@@ -13,6 +13,8 @@ Datos de la usuaria:
 - Esa carpeta contiene historial, configuracion, API key, exportaciones y backups.
 - Para actualizar la app en el futuro, reemplaza la carpeta de la aplicacion pero conserva
   GadeaProject_Data si quiere mantener sus datos.
+- La API key de Groq debe configurarse en la pantalla Configuracion de la app.
+- No envies ni subas la API key a GitHub. Cada usuaria debe tener su propia clave local.
 
 Aviso de Windows:
 - Si aparece "Windows protegió su PC", pulsar "Mas informacion" y luego
