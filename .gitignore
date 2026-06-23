@@ -1,0 +1,21 @@
+# Python / build output
+__pycache__/
+*.py[cod]
+build/
+dist/
+
+# Local app data and private files
+GadeaProject_Data/
+tools/
+*.log
+*.tmp
+
+# Generated packages
+*.exe
+*.zip
+
+# Editor / OS noise
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
