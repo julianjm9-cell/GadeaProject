@@ -1,0 +1,84 @@
+name: educa_suite
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-educa_suite}
+      POSTGRES_USER: ${POSTGRES_USER:-educa_suite}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-educa_suite}
+    volumes:
+      - educa_suite_postgres:/var/lib/postgresql/data
+    networks:
+      - suite_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-educa_suite} -d ${POSTGRES_DB:-educa_suite}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - path: ${ENV_FILE:-.env}
+        required: false
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-educa_suite}:${POSTGRES_PASSWORD:-educa_suite}@postgres:5432/${POSTGRES_DB:-educa_suite}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8890:8000"
+    networks:
+      - suite_internal
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5).read()\""]
+      interval: 20s
+      timeout: 8s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  admin:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./admin:/usr/share/nginx/html:ro
+    ports:
+      - "5174:80"
+    networks:
+      - suite_internal
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  reverse-proxy:
+    image: caddy:2-alpine
+    profiles: ["proxy"]
+    volumes:
+      - ./infra/reverse-proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - admin
+    networks:
+      - suite_internal
+    restart: unless-stopped
+
+volumes:
+  educa_suite_postgres:
+  caddy_data:
+  caddy_config:
+
+networks:
+  suite_internal:
+    driver: bridge

@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('GadeaProject.html', '.')],
+    datas=[('apps/diplomator/index.html', 'apps/diplomator')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

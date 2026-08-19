@@ -1,5 +1,5 @@
-"""
-Gadea Project - lanzador de escritorio.
+﻿"""
+Diplomator - lanzador de escritorio.
 
 Crea la estructura de datos local, sirve la interfaz en localhost y abre el
 navegador. Funciona en desarrollo y empaquetado con PyInstaller.
@@ -25,10 +25,11 @@ from urllib import error, request
 from urllib.parse import unquote, urlparse
 
 
-APP_NAME = "GadeaProject"
-HTML_FILE = "GadeaProject.html"
-DATA_DIR_NAME = "GadeaProject_Data"
+APP_NAME = "Diplomator"
+HTML_FILE = "apps/diplomator/index.html"
+DATA_DIR_NAME = "Diplomator_Data"
 DEFAULT_API_KEY = ""
+DEFAULT_LICENSE_SERVER_URL = "http://127.0.0.1:8787"
 DEFAULT_PROFILE = (
     "The student is preparing high-level C1/C2 oral answers in English and French, "
     "with a focus on diplomacy, international relations, current affairs, culture, "
@@ -45,7 +46,7 @@ GROQ_TEXT_MODELS = ("openai/gpt-oss-120b", "llama-3.3-70b-versatile")
 GROQ_TRANSCRIBE_MODEL = "whisper-large-v3-turbo"
 GROQ_BASE_HEADERS = {
     "Accept": "application/json",
-    "User-Agent": "GadeaProject/1.0 (+https://localhost)",
+    "User-Agent": "Diplomator/1.0 (+https://localhost)",
 }
 DEFAULT_STATE: dict[str, Any] = {
     "lang": "en",
@@ -86,6 +87,8 @@ def data_paths() -> dict[str, Path]:
         "logs": root / "logs",
         "state": root / "state.json",
         "apikey": root / "apikey.txt",
+        "license": root / "license.txt",
+        "backend_server": root / "backend_server.txt",
         "readme": root / "LEEME.txt",
         "log": root / "logs" / "app.log",
     }
@@ -102,14 +105,22 @@ def ensure_structure() -> dict[str, Path]:
     if not paths["apikey"].exists() or not paths["apikey"].read_text(encoding="utf-8").strip():
         paths["apikey"].write_text(DEFAULT_API_KEY, encoding="utf-8")
 
+    if not paths["license"].exists():
+        paths["license"].write_text("", encoding="utf-8")
+
+    if not paths["backend_server"].exists() or not paths["backend_server"].read_text(encoding="utf-8").strip():
+        paths["backend_server"].write_text(DEFAULT_LICENSE_SERVER_URL, encoding="utf-8")
+
     if not paths["readme"].exists():
         paths["readme"].write_text(
-            "Gadea Project - carpeta de datos\n"
+            "Diplomator - carpeta de datos\n"
             "================================\n\n"
-            "state.json: historial, temas completados y configuracion.\n"
-            "apikey.txt: clave de Groq guardada por la aplicacion.\n"
+            "state.json: historial, temas completados y configuraciÃ³n.\n"
+            "license.txt: clave de licencia DIPLOMATOR del usuario.\n"
+            "backend_server.txt: URL del backend Docker.\n"
+            "apikey.txt: archivo antiguo, ya no se usa para clientes.\n"
             "exports/: sesiones y bases de datos exportadas.\n"
-            "backups/: copias automaticas antes de sobrescribir state.json.\n"
+            "backups/: copias automÃ¡ticas antes de sobrescribir state.json.\n"
             "logs/: registro tecnico de arranque y errores.\n\n"
             "Puedes enviar esta carpeta junto al ejecutable si quieres conservar\n"
             "los datos de una instalacion.\n",
@@ -173,6 +184,57 @@ def get_api_key() -> str:
     return data_paths()["apikey"].read_text(encoding="utf-8").strip()
 
 
+def get_license_key() -> str:
+    return data_paths()["license"].read_text(encoding="utf-8").strip()
+
+
+def get_backend_server_url() -> str:
+    url = data_paths()["backend_server"].read_text(encoding="utf-8").strip() or DEFAULT_LICENSE_SERVER_URL
+    return url.rstrip("/")
+
+
+def backend_server_json(path: str, payload: dict[str, Any] | None = None, timeout: int = 120) -> dict[str, Any]:
+    body = json.dumps(payload or {}, ensure_ascii=False).encode("utf-8")
+    url = get_backend_server_url() + path
+    req = request.Request(
+        url,
+        data=body,
+        headers={
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "User-Agent": "Diplomator/1.0 (+https://localhost)",
+        },
+        method="POST",
+    )
+    try:
+        with request.urlopen(req, timeout=timeout) as res:
+            return json.loads(res.read().decode("utf-8"))
+    except error.HTTPError as exc:
+        raw = exc.read().decode("utf-8", errors="replace")
+        try:
+            data = json.loads(raw)
+            message = data.get("error") or data.get("message") or raw
+        except Exception:
+            message = raw or str(exc)
+        raise RuntimeError(message) from exc
+    except error.URLError as exc:
+        raise RuntimeError(
+            "No se pudo conectar con el servidor DIPLOMATOR. "
+            f"Comprueba que Docker estÃ¡ arrancado en {get_backend_server_url()}. Detalle: {exc.reason}"
+        ) from exc
+
+
+def license_payload(extra: dict[str, Any] | None = None) -> dict[str, Any]:
+    license_key = get_license_key()
+    if not license_key:
+        raise RuntimeError("Falta la clave de licencia DIPLOMATOR.")
+    return {"license_key": license_key, **(extra or {})}
+
+
+def validate_license() -> dict[str, Any]:
+    return backend_server_json("/validate", license_payload(), timeout=20)
+
+
 def post_json(url: str, api_key: str, payload: dict[str, Any]) -> dict[str, Any]:
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req = request.Request(
@@ -201,9 +263,13 @@ def post_json(url: str, api_key: str, payload: dict[str, Any]) -> dict[str, Any]
 
 
 def groq_chat(payload: dict[str, Any]) -> dict[str, Any]:
+    return backend_server_json("/chat", license_payload({"payload": payload}), timeout=120)
+
+
+def groq_chat_legacy(payload: dict[str, Any]) -> dict[str, Any]:
     api_key = get_api_key()
     if not api_key:
-        raise RuntimeError("Falta la API key de Groq.")
+        raise RuntimeError("Falta la API key del proveedor antiguo.")
 
     requested_model = str(payload.get("model") or GROQ_TEXT_MODELS[0])
     models = (requested_model,) + tuple(m for m in GROQ_TEXT_MODELS if m != requested_model)
@@ -226,11 +292,11 @@ def groq_chat(payload: dict[str, Any]) -> dict[str, Any]:
         except Exception as exc:
             last_error = exc
             log(f"Groq chat fallo con {model}: {exc}")
-    raise RuntimeError(str(last_error) if last_error else "Groq no devolvio respuesta.")
+    raise RuntimeError(str(last_error) if last_error else "Groq no devolviÃ³ respuesta.")
 
 
 def multipart_body(fields: dict[str, str], file_field: str, filename: str, content_type: str, data: bytes) -> tuple[bytes, str]:
-    boundary = f"----GadeaProject{int(time.time() * 1000)}"
+    boundary = f"----Diplomator{int(time.time() * 1000)}"
     chunks: list[bytes] = []
     for key, value in fields.items():
         chunks.extend([
@@ -251,9 +317,17 @@ def multipart_body(fields: dict[str, str], file_field: str, filename: str, conte
 
 
 def groq_transcribe(payload: dict[str, Any]) -> dict[str, Any]:
+    return backend_server_json("/transcribe", license_payload({"payload": payload}), timeout=180)
+
+
+def groq_ocr(payload: dict[str, Any]) -> dict[str, Any]:
+    return backend_server_json("/ocr", license_payload({"payload": payload}), timeout=180)
+
+
+def groq_transcribe_legacy(payload: dict[str, Any]) -> dict[str, Any]:
     api_key = get_api_key()
     if not api_key:
-        raise RuntimeError("Falta la API key de Groq.")
+        raise RuntimeError("Falta la API key del proveedor antiguo.")
 
     audio_b64 = str(payload.get("audio", ""))
     if "," in audio_b64:
@@ -263,9 +337,9 @@ def groq_transcribe(payload: dict[str, Any]) -> dict[str, Any]:
     try:
         audio = base64.b64decode(audio_b64, validate=True)
     except Exception as exc:
-        raise RuntimeError("El audio recibido no tiene un formato valido.") from exc
+        raise RuntimeError("El audio recibido no tiene un formato vÃ¡lido.") from exc
     if len(audio) < 1500:
-        raise RuntimeError("El audio esta vacio o es demasiado corto. Graba de nuevo y revisa el permiso del microfono.")
+        raise RuntimeError("El audio estÃ¡ vacÃ­o o es demasiado corto. Graba de nuevo y revisa el permiso del micrÃ³fono.")
     filename = safe_filename(str(payload.get("filename") or "recitation.webm"), "recitation.webm")
     content_type = str(payload.get("contentType") or mimetypes.guess_type(filename)[0] or "audio/webm")
     body, boundary_type = multipart_body(
@@ -301,7 +375,7 @@ def groq_transcribe(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 class GadeaHandler(SimpleHTTPRequestHandler):
-    server_version = "GadeaProjectLocal/1.0"
+    server_version = "DiplomatorLocal/1.0"
 
     def __init__(self, *args: Any, directory: str | None = None, **kwargs: Any) -> None:
         super().__init__(*args, directory=str(resource_dir()), **kwargs)
@@ -336,6 +410,10 @@ class GadeaHandler(SimpleHTTPRequestHandler):
         if route == "/api/apikey":
             key = self.paths["apikey"].read_text(encoding="utf-8").strip()
             return self.send_json({"apikey": key})
+        if route == "/api/license":
+            key = self.paths["license"].read_text(encoding="utf-8").strip()
+            server_url = self.paths["backend_server"].read_text(encoding="utf-8").strip() or DEFAULT_LICENSE_SERVER_URL
+            return self.send_json({"license": key, "serverUrl": server_url})
         return super().do_GET()
 
     def do_POST(self) -> None:
@@ -350,10 +428,21 @@ class GadeaHandler(SimpleHTTPRequestHandler):
                 key = str(payload.get("apikey", "")).strip()
                 self.paths["apikey"].write_text(key, encoding="utf-8")
                 return self.send_json({"ok": True})
+            if route == "/api/license":
+                key = str(payload.get("license", "")).strip()
+                server_url = str(payload.get("serverUrl", "")).strip() or DEFAULT_LICENSE_SERVER_URL
+                self.paths["license"].write_text(key, encoding="utf-8")
+                self.paths["backend_server"].write_text(server_url, encoding="utf-8")
+                status = validate_license() if key else {"ok": False, "error": "Licencia vacÃ­a"}
+                return self.send_json({"ok": True, "status": status})
+            if route == "/api/license/validate":
+                return self.send_json(validate_license())
             if route == "/api/chat":
                 return self.send_json(groq_chat(payload))
             if route == "/api/transcribe":
                 return self.send_json(groq_transcribe(payload))
+            if route == "/api/ocr":
+                return self.send_json(groq_ocr(payload))
             if route == "/api/export-text":
                 filename = safe_filename(str(payload.get("filename", "")))
                 content = str(payload.get("content", ""))
@@ -363,7 +452,7 @@ class GadeaHandler(SimpleHTTPRequestHandler):
             if route == "/api/export-db":
                 filename = safe_filename(
                     str(payload.get("filename", "")),
-                    f"GadeaProject_BD_{datetime.now().date().isoformat()}.json",
+                    f"Diplomator_BD_{datetime.now().date().isoformat()}.json",
                 )
                 target = self.paths["exports"] / filename
                 write_json_atomic(target, payload.get("data", {}))
@@ -402,7 +491,7 @@ def show_error(message: str) -> None:
     try:
         import tkinter.messagebox as mb
 
-        mb.showerror("Gadea Project", message)
+        mb.showerror("Diplomator", message)
     except Exception:
         print(message)
 
@@ -418,9 +507,9 @@ def main() -> int:
     url = f"http://127.0.0.1:{port}/"
 
     print("=" * 58)
-    print("  Gadea Project")
+    print("  Diplomator")
     print("=" * 58)
-    print(f"  Aplicacion: {url}")
+    print(f"  AplicaciÃ³n: {url}")
     print(f"  Datos:      {paths['root']}")
     print("  Puedes cerrar esta ventana al terminar.")
     print("=" * 58)
@@ -442,3 +531,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

@@ -1,0 +1,54 @@
+name: diplomator
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-diplomator}
+      POSTGRES_USER: ${POSTGRES_USER:-diplomator}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-diplomator}
+    volumes:
+      - diplomator_postgres:/var/lib/postgresql/data
+    networks:
+      - diplomator_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-diplomator} -d ${POSTGRES_DB:-diplomator}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-diplomator}:${POSTGRES_PASSWORD:-diplomator}@postgres:5432/${POSTGRES_DB:-diplomator}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8890:8000"
+    networks:
+      - diplomator_internal
+    restart: unless-stopped
+
+  dashboard-admin:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./dashboard-admin:/usr/share/nginx/html:ro
+    ports:
+      - "5174:80"
+    networks:
+      - diplomator_internal
+    restart: unless-stopped
+
+volumes:
+  diplomator_postgres:
+
+networks:
+  diplomator_internal:
+    driver: bridge

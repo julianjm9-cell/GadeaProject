@@ -1,14 +1,14 @@
-@echo off
+﻿@echo off
 :: ============================================================
-::  Gadea Project - Script de build para Windows
+::  Diplomator - Script de build para Windows
 ::  Ejecutar desde la carpeta del proyecto: build.bat
 :: ============================================================
 
-title Gadea Project - Build
+title Diplomator - Build
 
 echo.
 echo  ============================================================
-echo   Gadea Project - Generando ejecutable para Windows
+echo   Diplomator - Generando ejecutable para Windows
 echo  ============================================================
 echo.
 
@@ -35,20 +35,20 @@ echo.
 echo  [2/3] Limpiando builds anteriores...
 if exist "dist" rmdir /s /q "dist"
 if exist "build" rmdir /s /q "build"
-if exist "GadeaProject.spec" del "GadeaProject.spec"
+if exist "Diplomator.spec" del "Diplomator.spec"
 echo        OK
 echo.
 
 :: Construir el .exe
-echo  [3/3] Construyendo GadeaProject.exe ...
+echo  [3/3] Construyendo Diplomator.exe ...
 echo        (puede tardar 1-2 minutos, es normal)
 echo.
 
 pyinstaller ^
     --onefile ^
     --noconsole ^
-    --name "GadeaProject" ^
-    --add-data "GadeaProject.html;." ^
+    --name "Diplomator" ^
+    --add-data "apps\diplomator\index.html;apps\diplomator" ^
     --icon NONE ^
     main.py
 
@@ -65,17 +65,18 @@ echo   BUILD COMPLETADO
 echo  ============================================================
 echo.
 echo   Archivo generado:
-echo     dist\GadeaProject.exe
+echo     dist\Diplomator.exe
 echo.
 echo   Para distribuir, manda a la usuaria:
-echo     - dist\GadeaProject.exe
+echo     - dist\Diplomator.exe
 echo.
 echo   Al abrirlo, la aplicacion crea automaticamente:
-echo     - GadeaProject_Data\state.json
-echo     - GadeaProject_Data\apikey.txt
-echo     - GadeaProject_Data\exports
-echo     - GadeaProject_Data\backups
-echo     - GadeaProject_Data\logs
+echo     - Diplomator_Data\state.json
+echo     - Diplomator_Data\license.txt
+echo     - Diplomator_Data\backend_server.txt
+echo     - Diplomator_Data\exports
+echo     - Diplomator_Data\backups
+echo     - Diplomator_Data\logs
 echo.
 echo  ============================================================
 echo.
@@ -84,3 +85,5 @@ echo.
 explorer dist
 
 pause
+
+

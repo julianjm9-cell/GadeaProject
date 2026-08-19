@@ -1,0 +1,2303 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel de Apps</title>
+  <style>
+    :root {
+      --ink:#172026;
+      --muted:#657485;
+      --paper:#f4f1e9;
+      --panel:#ffffff;
+      --line:#e2ddd1;
+      --blue:#2454a6;
+      --blue-2:#173d78;
+      --blue-soft:#eaf1ff;
+      --gold:#c7922f;
+      --gold-soft:#fff5db;
+      --green:#24785f;
+      --red:#b74338;
+      --red-soft:#fff0ee;
+      --shadow:0 18px 48px rgba(23,32,38,0.10);
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      min-height:100vh;
+      color:var(--ink);
+      font-family:Inter, Arial, sans-serif;
+      background:
+        linear-gradient(135deg, rgba(36,84,166,0.10), transparent 34%),
+        linear-gradient(315deg, rgba(199,146,47,0.13), transparent 30%),
+        var(--paper);
+    }
+    body::before {
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background-image:
+        linear-gradient(rgba(23,32,38,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23,32,38,0.035) 1px, transparent 1px);
+      background-size:42px 42px;
+      mask-image:linear-gradient(120deg, rgba(0,0,0,0.42), transparent 78%);
+    }
+    .page {
+      position:relative;
+      z-index:1;
+      width:min(1480px, 100%);
+      margin:0 auto;
+      padding:16px 20px 36px;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+    .topbar { display:block; }
+    .apps-panel, .admin-access, .section-card, .panel {
+      border:1px solid rgba(226,221,209,0.95);
+      background:rgba(255,255,255,0.92);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(16px);
+      border-radius:10px;
+      min-width:0;
+    }
+    .eyebrow {
+      color:var(--gold);
+      font-size:10px;
+      letter-spacing:0.15em;
+      text-transform:uppercase;
+      font-weight:900;
+    }
+    .muted {
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+    }
+    .apps-panel {
+      padding:8px;
+    }
+    .apps-head {
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:12px;
+    }
+    .apps-head h2, .section-title h2, .panel h3 {
+      margin:0;
+      font-size:16px;
+      letter-spacing:0;
+    }
+    .app-grid {
+      display:grid;
+      grid-template-columns:repeat(4, minmax(120px,1fr));
+      gap:8px;
+      min-width:0;
+    }
+    .app-tile {
+      min-height:46px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      border:1px solid #d7e3f7;
+      border-radius:9px;
+      background:#fff;
+      min-width:0;
+      text-align:center;
+      cursor:pointer;
+      width:100%;
+      color:var(--ink);
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:0.04em;
+    }
+    .app-tile.primary-app {
+      min-height:46px;
+      border-color:var(--blue);
+    }
+    .app-tile.active { background:var(--blue); color:#fff; outline:0; }
+    .app-tile.empty {
+      border-style:solid;
+      border-color:var(--line);
+      background:#fffdf8;
+      color:var(--muted);
+    }
+    .app-tile strong { display:block; font-size:13px; }
+    .app-tile span { display:none; }
+    .top-app-actions {
+      display:flex;
+      gap:8px;
+      align-items:center;
+      justify-content:flex-start;
+      flex-wrap:wrap;
+    }
+    .top-app-actions a {
+      min-height:38px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid var(--line);
+      border-radius:8px;
+      padding:9px 11px;
+      color:var(--ink);
+      background:#fff;
+      text-decoration:none;
+      font-weight:900;
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .top-app-actions a.primary {
+      color:#fff;
+      background:var(--blue);
+      border-color:var(--blue);
+    }
+    .top-app-actions a:hover {
+      border-color:var(--blue);
+      color:var(--blue);
+      box-shadow:0 8px 18px rgba(36,84,166,0.09);
+    }
+    .top-app-actions a.primary:hover {
+      color:#fff;
+      background:var(--blue-2);
+    }
+    .admin-access {
+      display:grid;
+      grid-template-columns:minmax(0,1fr);
+      gap:16px;
+      align-items:start;
+      padding:16px;
+    }
+    .login-form {
+      display:grid;
+      grid-template-columns:minmax(190px,1fr) minmax(190px,1fr) auto auto minmax(130px,auto);
+      gap:10px;
+      align-items:end;
+    }
+    .login-status {
+      min-height:42px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid var(--line);
+      border-radius:8px;
+      padding:10px 12px;
+      background:#fff;
+      color:var(--muted);
+      font-weight:900;
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .login-status.on { color:var(--green); background:#f0faf5; border-color:#cdeadc; }
+    label {
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin:0 0 5px;
+      font-weight:800;
+    }
+    input, select, button {
+      font:inherit;
+      border:1px solid var(--line);
+      border-radius:8px;
+      padding:10px 11px;
+    }
+    input, select {
+      width:100%;
+      min-height:42px;
+      background:#fff;
+      color:var(--ink);
+      outline:none;
+    }
+    input:focus, select:focus {
+      border-color:var(--blue);
+      box-shadow:0 0 0 3px rgba(36,84,166,0.12);
+    }
+    button {
+      min-height:42px;
+      background:#fff;
+      cursor:pointer;
+      font-weight:800;
+      white-space:nowrap;
+    }
+    button:hover {
+      border-color:var(--blue);
+      color:var(--blue);
+      box-shadow:0 8px 18px rgba(36,84,166,0.09);
+    }
+    button.primary {
+      color:#fff;
+      background:var(--blue);
+      border-color:var(--blue);
+    }
+    button.primary:hover {
+      color:#fff;
+      background:var(--blue-2);
+    }
+    .nav-panel {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      padding:8px;
+      border:1px solid rgba(226,221,209,0.95);
+      border-radius:10px;
+      background:rgba(255,255,255,0.72);
+      backdrop-filter:blur(14px);
+    }
+    .nav-panel button {
+      flex:1 1 150px;
+      display:flex;
+      align-items:center;
+      gap:9px;
+      border-color:transparent;
+      background:transparent;
+    }
+    .nav-panel button::before {
+      content:attr(data-code);
+      width:24px;
+      height:24px;
+      display:grid;
+      place-items:center;
+      border-radius:7px;
+      background:#f7f5ef;
+      color:var(--blue);
+      font-size:11px;
+      font-weight:900;
+    }
+    .nav-panel button.active, .nav-panel button:hover {
+      border-color:#d7e3f7;
+      background:#f8fbff;
+      color:var(--blue);
+    }
+    .section-card {
+      padding:18px;
+      display:grid;
+      gap:16px;
+    }
+    body[data-selected-app="cambridge"] {
+      --blue:#0f766e;
+      --blue-2:#115e59;
+      --line:#bfe7df;
+      background:#edf8f6;
+    }
+    body[data-selected-app="universidad_adultos"] {
+      --blue:#6d3fb1;
+      --blue-2:#522f8b;
+      --line:#d9c7f4;
+      background:#f6f1ff;
+    }
+    body[data-selected-app="eso_adultos"] {
+      --blue:#b84a3a;
+      --blue-2:#8f3529;
+      --line:#f0c6bd;
+      background:#fff4f1;
+    }
+    .section-title {
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:flex-start;
+      padding-bottom:14px;
+      border-bottom:1px solid var(--line);
+    }
+    .section-title h2 {
+      font-size:24px;
+      margin-bottom:5px;
+    }
+    .section-title p, .panel p {
+      margin:0;
+      color:var(--muted);
+      line-height:1.48;
+      font-size:13px;
+    }
+    .section-grid {
+      display:grid;
+      grid-template-columns:380px minmax(0,1fr);
+      gap:16px;
+      align-items:start;
+    }
+    .users-grid { grid-template-columns:1fr; }
+    .panel {
+      padding:16px;
+      box-shadow:none;
+      overflow:hidden;
+    }
+    .panel h3 {
+      margin-bottom:6px;
+    }
+    .panel form, form.panel {
+      display:grid;
+      gap:10px;
+    }
+    .field-row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .actions {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .table-wrap {
+      margin-top:12px;
+      border:1px solid var(--line);
+      border-radius:9px;
+      overflow:auto;
+      background:#fff;
+    }
+    table {
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+    th, td {
+      text-align:left;
+      padding:11px 10px;
+      border-bottom:1px solid var(--line);
+      vertical-align:top;
+    }
+    th {
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:0.06em;
+      background:#fbfcfd;
+    }
+    tr:last-child td { border-bottom:0; }
+    .click-row {
+      cursor:pointer;
+      transition:background .16s;
+    }
+    .click-row:hover, .click-row.active {
+      background:#f8fbff;
+    }
+    .detail-card {
+      display:grid;
+      gap:14px;
+    }
+    .modal-backdrop {
+      position:fixed;
+      inset:0;
+      z-index:20;
+      display:grid;
+      place-items:center;
+      padding:20px;
+      background:rgba(23,32,38,0.42);
+      backdrop-filter:blur(6px);
+    }
+    .modal-card {
+      width:min(980px, calc(100vw - 32px));
+      max-height:calc(100vh - 40px);
+      overflow:auto;
+      border:1px solid rgba(226,221,209,0.95);
+      background:#fff;
+      border-radius:12px;
+      box-shadow:0 30px 80px rgba(23,32,38,0.28);
+      padding:18px;
+    }
+    .detail-head {
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+      padding-bottom:12px;
+      border-bottom:1px solid var(--line);
+    }
+    .detail-title {
+      margin:0 0 4px;
+      font-size:20px;
+      line-height:1.15;
+    }
+    .detail-subtitle {
+      color:var(--muted);
+      font-size:13px;
+      overflow-wrap:anywhere;
+    }
+    .stats-grid {
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:8px;
+    }
+    .stat-box {
+      border:1px solid var(--line);
+      border-radius:9px;
+      background:#fffdf8;
+      padding:10px;
+      min-width:0;
+    }
+    .stat-box span {
+      display:block;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:900;
+      margin-bottom:5px;
+    }
+    .stat-box strong {
+      display:block;
+      font-size:15px;
+      overflow-wrap:anywhere;
+    }
+    .detail-columns {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    .subpanel {
+      border:1px solid var(--line);
+      border-radius:9px;
+      background:#fff;
+      padding:12px;
+      min-width:0;
+    }
+    .subpanel h4 {
+      margin:0 0 10px;
+      font-size:14px;
+    }
+    .mini-table {
+      max-height:260px;
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:9px;
+    }
+    .ai-grid {
+      display:grid;
+      grid-template-columns:repeat(3, minmax(260px,1fr));
+      gap:12px;
+      align-items:start;
+    }
+    .ai-card {
+      display:grid;
+      gap:10px;
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:10px;
+      padding:14px;
+    }
+    .ai-card h4 { margin:0; font-size:15px; }
+    .ai-card p { margin:0; color:var(--muted); font-size:12px; line-height:1.45; }
+    .key-grid {
+      display:grid;
+      grid-template-columns:repeat(3, minmax(220px,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    code {
+      display:inline-block;
+      max-width:240px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      vertical-align:bottom;
+    }
+    .badge {
+      display:inline-block;
+      border-radius:999px;
+      padding:4px 8px;
+      font-size:12px;
+      font-weight:900;
+      background:#eef3ff;
+      color:var(--blue);
+    }
+    .badge.off {
+      background:var(--red-soft);
+      color:var(--red);
+    }
+    .empty-state {
+      padding:18px;
+      color:var(--muted);
+      font-size:13px;
+      border:1px dashed var(--line);
+      border-radius:9px;
+      background:#fffdf8;
+    }
+    .credential-box {
+      display:none;
+      gap:8px;
+      margin-top:10px;
+      border:1px solid #cdeadc;
+      border-radius:9px;
+      background:#f0faf5;
+      padding:12px;
+      color:var(--green);
+      font-size:13px;
+      line-height:1.45;
+    }
+    .credential-box.on { display:grid; }
+    .credential-box strong { color:var(--ink); }
+    .credential-box code {
+      max-width:none;
+      color:var(--ink);
+      background:rgba(255,255,255,0.72);
+      border:1px solid #cdeadc;
+      border-radius:6px;
+      padding:2px 5px;
+    }
+    .toast {
+      position:fixed;
+      right:16px;
+      bottom:16px;
+      max-width:min(420px, calc(100vw - 32px));
+      background:#172026;
+      color:#fff;
+      padding:12px 14px;
+      border-radius:8px;
+      opacity:0;
+      transform:translateY(8px);
+      transition:.2s;
+      z-index:5;
+    }
+    .toast.show {
+      opacity:1;
+      transform:translateY(0);
+    }
+    [hidden] { display:none !important; }
+    @media (max-width:1200px) {
+      .topbar { grid-template-columns:1fr; }
+      .admin-access, .section-grid { grid-template-columns:1fr; }
+      .login-form { grid-template-columns:repeat(2, minmax(0,1fr)) auto auto; }
+      .app-grid { grid-template-columns:repeat(2, minmax(0,1fr)); }
+      .app-tile.primary-app { grid-template-columns:36px minmax(0,1fr); }
+    }
+    @media (max-width:720px) {
+      .page { padding:10px; gap:12px; }
+      .apps-panel, .admin-access, .section-card, .panel { border-radius:9px; }
+      .apps-panel { padding:12px; }
+      .apps-head { align-items:flex-start; flex-direction:column; }
+      .app-grid {
+        display:flex;
+        overflow-x:auto;
+        padding-bottom:2px;
+        scroll-snap-type:x proximity;
+      }
+      .app-tile {
+        min-width:238px;
+        min-height:82px;
+        scroll-snap-align:start;
+      }
+      .app-tile.primary-app {
+        min-width:300px;
+      }
+      .top-app-actions a { min-height:34px; padding:8px 9px; font-size:12px; }
+      .admin-access { padding:14px; gap:12px; }
+      .login-form { grid-template-columns:1fr 1fr; gap:9px; }
+      .login-form > div:not([hidden]), .login-status { grid-column:1 / -1; }
+      .login-form button { width:100%; }
+      .field-row { grid-template-columns:1fr; }
+      .users-grid, .detail-columns, .stats-grid, .ai-grid, .key-grid { grid-template-columns:1fr; }
+      .section-title { flex-direction:column; }
+      .nav-panel {
+        flex-wrap:nowrap;
+        overflow-x:auto;
+        padding:7px;
+        position:sticky;
+        top:0;
+        z-index:4;
+      }
+      .nav-panel button {
+        flex:0 0 auto;
+        min-width:132px;
+        min-height:38px;
+        padding:8px 10px;
+      }
+      .nav-panel button::before { width:22px; height:22px; }
+      .section-card { padding:12px; gap:12px; }
+      .section-title h2 { font-size:21px; }
+      .panel { padding:12px; }
+    }
+    /* Modern admin shell */
+    body {
+      background:#f6f8fb;
+    }
+    body::before { display:none; }
+    .page {
+      width:min(1500px, 100%);
+      padding:18px 22px 36px;
+      gap:14px;
+    }
+    .apps-panel, .admin-access, .section-card, .panel {
+      border-color:#d9e2ec;
+      background:#fff;
+      box-shadow:0 10px 28px rgba(15,23,42,0.07);
+      backdrop-filter:none;
+    }
+    .apps-panel {
+      position:relative;
+      overflow:hidden;
+      padding:18px 22px 20px;
+      display:grid;
+      gap:14px;
+      background:
+        linear-gradient(135deg, rgba(36,84,166,0.10), transparent 36%),
+        linear-gradient(315deg, rgba(199,146,47,0.14), transparent 38%),
+        #fff;
+    }
+    .apps-panel::after {
+      content:"";
+      position:absolute;
+      right:-80px;
+      top:-100px;
+      width:260px;
+      height:260px;
+      border-radius:50%;
+      border:34px solid rgba(36,84,166,0.05);
+      pointer-events:none;
+    }
+    .apps-head {
+      display:grid;
+      grid-template-columns:minmax(220px,1fr) minmax(520px,auto);
+      justify-items:stretch;
+      gap:18px;
+      margin:0;
+      align-items:center;
+      position:relative;
+      z-index:1;
+    }
+    .dashboard-title {
+      color:var(--ink);
+      font-size:26px;
+      line-height:1;
+      font-weight:1000;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+    .apps-head h2 {
+      font-size:28px;
+      line-height:1.1;
+    }
+    .apps-brand {
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+    .suite-logo {
+      width:54px;
+      height:54px;
+      display:grid;
+      place-items:center;
+      border-radius:14px;
+      background:linear-gradient(135deg, var(--ink), var(--blue));
+      color:#fff;
+      font-weight:1000;
+      letter-spacing:-0.06em;
+      box-shadow:0 18px 30px rgba(36,84,166,0.20);
+    }
+    .suite-logo span {
+      transform:translateY(-1px);
+    }
+    .eyebrow {
+      color:var(--blue);
+      letter-spacing:0.12em;
+    }
+    .apps-subtitle {
+      margin:5px 0 0;
+      max-width:560px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+      font-weight:700;
+    }
+    .top-app-actions {
+      position:relative;
+      z-index:1;
+      padding:5px;
+      background:rgba(255,255,255,0.76);
+      border:1px solid rgba(217,226,236,0.90);
+      border-radius:12px;
+      box-shadow:0 10px 24px rgba(15,23,42,0.06);
+    }
+    .top-app-actions a {
+      min-height:42px;
+      border-color:#d9e2ec;
+      background:#fff;
+      border-radius:9px;
+      padding:10px 14px;
+    }
+    .top-app-actions a.primary {
+      background:var(--blue);
+      border-color:var(--blue);
+    }
+    .app-grid {
+      position:relative;
+      z-index:1;
+      grid-template-columns:repeat(5, minmax(0, 1fr));
+      justify-content:stretch;
+      gap:10px;
+    }
+    .app-tile {
+      position:relative;
+      overflow:hidden;
+      min-height:76px;
+      justify-content:flex-start;
+      align-items:center;
+      flex-direction:row;
+      gap:12px;
+      padding:14px 14px 14px 18px;
+      text-align:left;
+      border-color:#d9e2ec;
+      background:#fff;
+      text-transform:none;
+      letter-spacing:0;
+      box-shadow:0 8px 20px rgba(15,23,42,0.04);
+      transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    .app-tile::after {
+      content:"";
+      position:absolute;
+      inset:auto -28px -42px auto;
+      width:96px;
+      height:96px;
+      border-radius:26px;
+      background:var(--app-soft, #eef3ff);
+      transform:rotate(18deg);
+      opacity:.62;
+      pointer-events:none;
+    }
+    .app-tile:hover {
+      transform:translateY(-2px);
+      border-color:var(--app-main, var(--blue));
+      box-shadow:0 16px 32px rgba(15,23,42,0.09);
+      color:var(--ink);
+    }
+    .app-tile.empty {
+      border-style:solid;
+      border-color:#d9e2ec;
+      background:#fff;
+      color:var(--ink);
+    }
+    .app-tile::before {
+      content:"";
+      position:absolute;
+      inset:0 auto 0 0;
+      width:5px;
+      background:var(--app-main, var(--blue));
+      opacity:.85;
+    }
+    .app-tile.active {
+      background:linear-gradient(180deg, #fff, var(--app-soft, #f8fbff));
+      color:var(--ink);
+      border-color:var(--app-main, var(--blue));
+      box-shadow:0 0 0 3px color-mix(in srgb, var(--app-main, var(--blue)) 18%, transparent), 0 16px 32px rgba(15,23,42,0.10);
+    }
+    .app-tile[data-app-tile="global"] { --app-main:#2454a6; --app-soft:#eef4ff; }
+    .app-tile[data-app-tile="diplomator"] { --app-main:#172026; --app-soft:#f2f4f6; }
+    .app-tile[data-app-tile="cambridge"] { --app-main:#0f766e; --app-soft:#e8f7f5; }
+    .app-tile[data-app-tile="universidad_adultos"] { --app-main:#6d3fb1; --app-soft:#f2ecff; }
+    .app-tile[data-app-tile="eso_adultos"] { --app-main:#b84a3a; --app-soft:#fff0ed; }
+    .app-tile-head {
+      width:auto;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:0;
+      position:relative;
+      z-index:1;
+      flex:0 0 auto;
+    }
+    .app-logo {
+      width:44px;
+      height:44px;
+      display:grid;
+      place-items:center;
+      border-radius:13px;
+      background:var(--app-main, var(--blue));
+      color:#fff;
+      font-size:13px;
+      font-weight:1000;
+      letter-spacing:-0.04em;
+      box-shadow:0 14px 24px color-mix(in srgb, var(--app-main, var(--blue)) 24%, transparent);
+    }
+    .app-status-dot {
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:var(--app-main, var(--blue));
+      box-shadow:0 0 0 5px color-mix(in srgb, var(--app-main, var(--blue)) 12%, transparent);
+      margin-top:0;
+      position:absolute;
+      right:-2px;
+      top:-2px;
+    }
+    .app-copy {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      position:relative;
+      z-index:1;
+      padding-right:0;
+      min-width:0;
+      flex:1 1 auto;
+    }
+    .app-tile strong {
+      min-width:0;
+      font-size:14px;
+      line-height:1.15;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .app-tile span {
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+      font-weight:700;
+      text-transform:none;
+    }
+    .app-meta {
+      display:inline-flex;
+      flex:0 0 auto;
+      width:max-content;
+      max-width:100%;
+      align-items:center;
+      gap:6px;
+      padding:6px 9px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.72);
+      border:1px solid rgba(217,226,236,0.88);
+      color:var(--app-main, var(--blue));
+      font-size:11px;
+      font-weight:900;
+      min-height:0;
+      box-shadow:none;
+      position:relative;
+      z-index:1;
+      white-space:nowrap;
+      cursor:pointer;
+      font-family:inherit;
+      text-decoration:none;
+      appearance:none;
+    }
+    .app-meta:hover {
+      background:#fff;
+      border-color:var(--app-main, var(--blue));
+      transform:translateY(-1px);
+    }
+    .app-meta:focus-visible {
+      outline:2px solid var(--app-main, var(--blue));
+      outline-offset:2px;
+    }
+    .app-tile .app-tile-head {
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      color:inherit;
+    }
+    .app-tile .app-logo {
+      display:grid;
+      color:#fff;
+      font-size:13px;
+      line-height:1;
+    }
+    .app-tile .app-copy {
+      display:flex;
+    }
+    .app-tile .app-meta {
+      display:inline-flex;
+      color:var(--app-main, var(--blue));
+      line-height:1;
+    }
+    .app-status-dot {
+      display:block;
+      flex:0 0 auto;
+    }
+    .admin-access {
+      padding:14px;
+    }
+    .login-form {
+      grid-template-columns:minmax(220px,1fr) minmax(220px,1fr) auto auto minmax(160px,auto);
+      align-items:end;
+    }
+    .admin-login-form {
+      width:min(930px,100%);
+      margin-left:auto;
+      display:grid;
+      grid-template-columns:minmax(230px,1fr) minmax(170px,210px) minmax(150px,190px) auto auto minmax(132px,auto);
+      gap:8px;
+      align-items:end;
+      justify-content:end;
+      padding:8px;
+      border:1px solid rgba(217,226,236,0.92);
+      border-radius:12px;
+      background:rgba(255,255,255,0.82);
+      box-shadow:0 10px 24px rgba(15,23,42,0.06);
+    }
+    .admin-login-form label {
+      font-size:10px;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:900;
+    }
+    .admin-login-form input {
+      min-height:38px;
+      padding:9px 10px;
+      font-size:13px;
+    }
+    .admin-login-form button {
+      min-height:38px;
+      padding:9px 12px;
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .admin-login-form .login-status {
+      min-height:38px;
+      padding:9px 10px;
+      font-size:12px;
+      white-space:nowrap;
+    }
+    input, select, button {
+      border-radius:8px;
+    }
+    input, select {
+      border-color:#d9e2ec;
+      background:#fbfdff;
+    }
+    button.primary {
+      background:var(--blue);
+      border-color:var(--blue);
+    }
+    button.primary:hover {
+      background:var(--blue-2);
+    }
+    .dashboard-overview {
+      display:grid;
+      grid-template-columns:repeat(5, minmax(0,1fr));
+      gap:10px;
+    }
+    .global-grid {
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:14px;
+      align-items:start;
+    }
+    .product-health {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .product-health-card {
+      display:grid;
+      gap:10px;
+      min-height:150px;
+      border:1px solid #d9e2ec;
+      border-radius:8px;
+      background:#fff;
+      padding:14px;
+      box-shadow:0 8px 20px rgba(15,23,42,0.05);
+    }
+    .product-health-card h3 {
+      margin:0;
+      font-size:16px;
+    }
+    .metric-row {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+    }
+    .metric-row span {
+      display:grid;
+      gap:4px;
+      padding:9px;
+      border-radius:8px;
+      background:#f8fafc;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:900;
+    }
+    .metric-row strong {
+      color:var(--ink);
+      font-size:18px;
+    }
+    .overview-card {
+      min-height:92px;
+      display:grid;
+      align-content:space-between;
+      gap:8px;
+      border:1px solid #d9e2ec;
+      border-radius:8px;
+      background:#fff;
+      padding:14px;
+      box-shadow:0 8px 20px rgba(15,23,42,0.05);
+    }
+    .overview-card span {
+      color:var(--muted);
+      font-size:12px;
+      font-weight:900;
+    }
+    .overview-card strong {
+      font-size:25px;
+      line-height:1;
+    }
+    .overview-card small {
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.3;
+    }
+    .nav-panel {
+      position:sticky;
+      top:0;
+      z-index:4;
+      border-color:#d9e2ec;
+      background:rgba(255,255,255,0.94);
+      box-shadow:0 10px 24px rgba(15,23,42,0.06);
+    }
+    .nav-panel button {
+      justify-content:center;
+      flex:1 1 0;
+      min-height:46px;
+      border-radius:8px;
+      color:var(--muted);
+    }
+    .nav-panel button::before {
+      background:#eef3ff;
+    }
+    .nav-panel button.active {
+      background:var(--blue);
+      border-color:var(--blue);
+      color:#fff;
+    }
+    .nav-panel button.active::before {
+      background:rgba(255,255,255,0.18);
+      color:#fff;
+    }
+    .section-card {
+      padding:18px;
+      border-radius:10px;
+    }
+    .section-title {
+      align-items:center;
+      border-bottom-color:#d9e2ec;
+    }
+    .section-title h2 {
+      font-size:26px;
+    }
+    .panel {
+      border-color:#d9e2ec;
+      border-radius:10px;
+      box-shadow:none;
+    }
+    .panel h3 {
+      font-size:18px;
+    }
+    .table-wrap {
+      border-color:#d9e2ec;
+      border-radius:8px;
+    }
+    th {
+      background:#f8fafc;
+    }
+    tr:hover td {
+      background:#fbfdff;
+    }
+    .badge {
+      border-radius:8px;
+    }
+    .modal-card {
+      border-radius:10px;
+    }
+    body[data-selected-app="cambridge"] .app-tile.active { box-shadow:0 0 0 3px rgba(15,118,110,0.14), 0 14px 28px rgba(15,23,42,0.08); }
+    body[data-selected-app="universidad_adultos"] .app-tile.active { box-shadow:0 0 0 3px rgba(109,63,177,0.14), 0 14px 28px rgba(15,23,42,0.08); }
+    body[data-selected-app="eso_adultos"] .app-tile.active { box-shadow:0 0 0 3px rgba(184,74,58,0.14), 0 14px 28px rgba(15,23,42,0.08); }
+    @media (max-width:1320px) {
+      .apps-head { grid-template-columns:1fr; align-items:start; }
+      .dashboard-title { font-size:22px; }
+      .admin-login-form { justify-content:start; grid-template-columns:minmax(220px,1fr) minmax(190px,1fr) minmax(170px,1fr) auto auto minmax(132px,auto); }
+      .app-grid { grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); }
+    }
+    @media (max-width:1080px) {
+      .app-grid, .dashboard-overview { grid-template-columns:repeat(2, minmax(0,1fr)); }
+      .global-grid, .product-health { grid-template-columns:1fr; }
+      .login-form, .admin-login-form { grid-template-columns:1fr 1fr; }
+      .login-status { grid-column:1 / -1; }
+    }
+    @media (max-width:720px) {
+      .page { padding:12px; }
+      .apps-panel { padding:14px; }
+      .apps-head { flex-direction:column; align-items:flex-start; }
+      .app-grid, .dashboard-overview { grid-template-columns:1fr; display:grid; overflow:visible; }
+      .app-tile, .app-tile.primary-app { min-width:0; min-height:132px; }
+      .apps-brand { align-items:flex-start; }
+      .suite-logo { width:46px; height:46px; border-radius:12px; }
+      .app-tile, .app-tile.primary-app { min-height:72px; }
+      .app-copy { gap:8px; }
+      .app-meta { padding:5px 7px; font-size:10px; }
+      .login-form, .admin-login-form { grid-template-columns:1fr; width:100%; }
+      .nav-panel { top:0; }
+      .nav-panel button { min-width:128px; justify-content:flex-start; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <section class="topbar" aria-label="Cabecera">
+    <div class="apps-panel">
+      <div class="apps-head">
+        <div class="dashboard-title">SUITE TERRAZA</div>
+        <div class="login-form admin-login-form">
+          <div hidden><label for="apiBase">API base</label><input id="apiBase" value=""></div>
+          <div><label for="publicBase">URL publica</label><input id="publicBase" type="url" placeholder="https://tu-ngrok.ngrok-free.app"></div>
+          <div><label for="email">Usuario admin</label><input id="email" type="email" placeholder="admin@diplomator.app"></div>
+          <div><label for="password">Contrase&ntilde;a</label><input id="password" type="password" placeholder="Password"></div>
+          <button class="primary" onclick="login()">Entrar</button>
+          <button onclick="logout()">Salir</button>
+          <div id="authStatus" class="login-status">Sesion no iniciada</div>
+        </div>
+      </div>
+      <div class="app-grid">
+        <div class="app-tile primary-app active" role="button" tabindex="0" data-app-tile="global" data-short="ALL" onclick="selectApp('global', this)" onkeydown="tileKeyOpen(event, 'global', this)">
+          <span class="app-tile-head"><span class="app-logo">ALL</span><i class="app-status-dot"></i></span>
+          <span class="app-copy">
+            <strong>VISTA GENERAL</strong>
+            <button class="app-meta" type="button" onclick="openDirectApp(event, 'global')">Abrir suite</button>
+          </span>
+        </div>
+        <div class="app-tile empty" role="button" tabindex="0" data-app-tile="diplomator" data-short="DIP" onclick="selectApp('diplomator', this)" onkeydown="tileKeyOpen(event, 'diplomator', this)">
+          <span class="app-tile-head"><span class="app-logo">DIP</span><i class="app-status-dot"></i></span>
+          <span class="app-copy">
+            <strong>DIPLOMATOR</strong>
+            <button class="app-meta" type="button" onclick="openDirectApp(event, 'diplomator')">Abrir app</button>
+          </span>
+        </div>
+        <div class="app-tile empty" role="button" tabindex="0" data-app-tile="cambridge" data-short="CAM" onclick="selectApp('cambridge', this)" onkeydown="tileKeyOpen(event, 'cambridge', this)">
+          <span class="app-tile-head"><span class="app-logo">CAM</span><i class="app-status-dot"></i></span>
+          <span class="app-copy">
+            <strong>CAMBRIDGE TRAINER</strong>
+            <button class="app-meta" type="button" onclick="openDirectApp(event, 'cambridge')">Abrir app</button>
+          </span>
+        </div>
+        <div class="app-tile empty" role="button" tabindex="0" data-app-tile="universidad_adultos" data-short="UNI" onclick="selectApp('universidad_adultos', this)" onkeydown="tileKeyOpen(event, 'universidad_adultos', this)">
+          <span class="app-tile-head"><span class="app-logo">U25</span><i class="app-status-dot"></i></span>
+          <span class="app-copy">
+            <strong>UNIVERSIDAD +25</strong>
+            <button class="app-meta" type="button" onclick="openDirectApp(event, 'universidad_adultos')">Abrir app</button>
+          </span>
+        </div>
+        <div class="app-tile empty" role="button" tabindex="0" data-app-tile="eso_adultos" data-short="ESO" onclick="selectApp('eso_adultos', this)" onkeydown="tileKeyOpen(event, 'eso_adultos', this)">
+          <span class="app-tile-head"><span class="app-logo">E25</span><i class="app-status-dot"></i></span>
+          <span class="app-copy">
+            <strong>ESO ADULTOS</strong>
+            <button class="app-meta" type="button" onclick="openDirectApp(event, 'eso_adultos')">Abrir app</button>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dashboard-overview" id="dashboardOverview" aria-label="Resumen"></section>
+
+  <nav id="diplomatorNav" class="nav-panel" aria-label="Secciones admin" hidden>
+    <button class="active" data-code="01" onclick="show('users', this)">Usuarios</button>
+    <button data-code="02" onclick="show('licenses', this)">Accesos</button>
+    <button data-code="03" onclick="show('ai', this)">IA</button>
+    <button data-code="04" onclick="show('usage', this)">Consumo</button>
+    <button data-code="05" onclick="show('business', this)">Sistema</button>
+    <button data-code="06" data-resource-nav onclick="show('resources', this)">Recursos</button>
+    <button data-code="07" onclick="show('observability', this)">Observabilidad</button>
+  </nav>
+
+  <main id="diplomatorAdmin" hidden>
+    <section id="view-orgs" class="section-card" hidden>
+      <div class="section-title">
+        <div><h2>Cuentas internas</h2><p>Base tecnica para separar datos sin pasos visibles en la app.</p></div>
+      </div>
+      <div class="section-grid">
+        <form class="panel" onsubmit="createOrg(event)">
+          <h3>Crear cuenta interna</h3>
+          <p>Uso tecnico para aislar datos de usuarios.</p>
+          <div><label for="orgName">Nombre interno</label><input id="orgName" required></div>
+          <div><label for="orgStatus">Estado inicial</label><select id="orgStatus"><option>active</option><option>suspended</option><option>cancelled</option></select></div>
+          <div class="actions"><button class="primary">Crear cuenta</button></div>
+        </form>
+        <div class="panel">
+          <h3>Cuentas registradas</h3>
+          <p>Activa o suspende bases internas completas desde aqui.</p>
+          <div id="orgTable"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-users" class="section-card">
+      <div class="section-title">
+        <div><h2>Usuarios</h2><p id="usersSubtitle">Altas normales de alumnos. La plataforma separa los datos por usuario y por app sin pasos extra.</p></div>
+      </div>
+      <div class="section-grid users-grid">
+        <form class="panel" onsubmit="createUser(event)">
+          <h3>Crear usuario</h3>
+          <p>Crea una cuenta de alumno con contrase&ntilde;a temporal. Por defecto sera usuario normal.</p>
+          <div hidden><label for="userOrg">Cuenta interna</label><select id="userOrg"></select></div>
+          <div><label for="userEmail">Usuario o email</label><input id="userEmail" type="text" required placeholder="alumno@email.com o alumno1"></div>
+          <div><label for="userName">Nombre visible</label><input id="userName"></div>
+          <div><label for="userPassword">Contrase&ntilde;a temporal</label><input id="userPassword" type="password" required minlength="8"></div>
+          <div hidden><label for="userRole">Rol</label><select id="userRole"><option selected>user</option><option>organization_admin</option><option>superadmin</option></select></div>
+          <div class="actions"><button class="primary">Crear usuario</button></div>
+          <div id="lastCredentials" class="credential-box"></div>
+        </form>
+        <div class="panel">
+          <h3>Usuarios activos e inactivos</h3>
+          <p>Pulsa sobre un usuario para ver consumo, acceso y ajustes.</p>
+          <div id="userTable"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-licenses" class="section-card" hidden>
+      <div class="section-title">
+        <div><h2>Accesos</h2><p id="licensesSubtitle">Periodos activos, caducidad y limites de uso.</p></div>
+      </div>
+      <div class="section-grid">
+        <form class="panel" onsubmit="createLicense(event)">
+          <h3>Crear acceso</h3>
+          <p>Activa un periodo de uso y genera su clave de compatibilidad.</p>
+          <div><label for="licOrg">Cuenta interna</label><select id="licOrg"></select></div>
+          <div class="field-row">
+            <div><label for="licStart">Inicio</label><input id="licStart" type="datetime-local" required></div>
+            <div><label for="licEnd">Caducidad</label><input id="licEnd" type="datetime-local" required></div>
+          </div>
+          <div><label for="licLimit">L&iacute;mite de uso</label><input id="licLimit" type="number" value="300"></div>
+          <div><label for="licStatus">Estado</label><select id="licStatus"><option>active</option><option>expired</option><option>suspended</option><option>cancelled</option></select></div>
+          <div class="actions"><button class="primary">Crear licencia</button></div>
+        </form>
+        <div class="panel">
+          <h3>Licencias emitidas</h3>
+          <p>Consulta caducidad, estado y clave de compatibilidad.</p>
+          <div id="licenseTable"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-usage" class="section-card" hidden>
+      <div class="section-title">
+        <div><h2>Consumo</h2><p id="usageSubtitle">Registro de uso de modelos, tokens y actividad reciente.</p></div>
+      </div>
+      <div class="panel">
+        <h3>Uso reciente</h3>
+        <p>Ultimas peticiones registradas por usuario.</p>
+        <div id="usageTable"></div>
+      </div>
+    </section>
+
+    <section id="view-business" class="section-card" hidden>
+      <div class="section-title">
+        <div><h2>Sistema</h2><p>Estado de IA, accesos, consumo y salud por producto.</p></div>
+      </div>
+      <div class="section-grid" style="grid-template-columns:1fr">
+        <div class="panel">
+          <h3>Resumen tecnico</h3>
+          <p>Lectura rapida de accesos activos, proveedor IA y uso registrado.</p>
+          <div id="businessSummary"></div>
+        </div>
+        <div class="panel">
+          <h3>Alertas</h3>
+          <p>Senales para actuar antes de que el producto se quede sin seguimiento o sin uso real.</p>
+          <div id="businessAlerts"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-resources" class="section-card" hidden>
+      <div class="section-title">
+        <div><h2>Recursos oficiales</h2><p>Catalogo central usado por U25 y E25. Editalo aqui sin tocar los HTML.</p></div>
+      </div>
+      <div class="section-grid">
+        <form class="panel" onsubmit="saveResources(event)">
+          <h3>Editar catalogo</h3>
+          <p>Formato JSON. Cada recurso necesita title, source, url, tags y desc.</p>
+          <div id="resourcesU25Group"><label for="resourcesU25">ACCESO UNIVERSIDAD +25</label><textarea id="resourcesU25" rows="13" style="width:100%;resize:vertical;font-family:Consolas,monospace;"></textarea></div>
+          <div id="resourcesE25Group"><label for="resourcesE25">ACCESO ESO ADULTOS</label><textarea id="resourcesE25" rows="13" style="width:100%;resize:vertical;font-family:Consolas,monospace;"></textarea></div>
+          <div class="actions"><button class="primary">Guardar recursos</button></div>
+        </form>
+        <div class="panel">
+          <h3>Vista rapida</h3>
+          <p>Comprueba cuantos enlaces reales tiene cada app.</p>
+          <div id="resourcesPreview"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-observability" class="section-card" hidden>
+      <div class="section-title">
+        <div><h2>Observabilidad</h2><p>Logs, errores frontend, costes IA y pistas de operacion del servidor.</p></div>
+      </div>
+      <div class="section-grid" style="grid-template-columns:1fr">
+        <div class="panel">
+          <h3>Senales del sistema</h3>
+          <p>Lectura rapida para saber si algo empieza a torcerse.</p>
+          <div id="observabilitySummary"></div>
+        </div>
+        <div class="panel">
+          <h3>Logs recientes</h3>
+          <p>Acciones administrativas, cambios de recursos y errores reportados por las apps.</p>
+          <div id="auditLogTable"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-ai" class="section-card" hidden>
+      <div class="section-title">
+        <div><h2>IA del servidor</h2><p id="aiSubtitle">Configura la clave que usaran las apps para generar respuestas y transcribir audio.</p></div>
+      </div>
+      <div class="section-grid" style="grid-template-columns:1fr">
+        <form class="panel" onsubmit="saveAiSettings(event)">
+          <h3>Claves y modelos</h3>
+          <p>Cada tarea puede usar un proveedor y modelo distinto. Las claves quedan guardadas en el servidor.</p>
+          <div class="ai-grid">
+            <div class="ai-card">
+              <h4>Generacion de puntos</h4>
+              <p>Modelo principal para crear temarios, puntos y vocabulario.</p>
+              <div><label for="pointsProvider">Proveedor</label><select id="pointsProvider" onchange="applyPointsDefaults(true)"><option value="groq">Groq</option><option value="openai">OpenAI</option><option value="gemini">Gemini</option></select></div>
+              <div><label for="pointsModel">Modelo</label><select id="pointsModel"></select></div>
+            </div>
+            <div class="ai-card">
+              <h4>Chat y correcciones</h4>
+              <p>Modelo para dudas, explicaciones y correccion de practica oral.</p>
+              <div><label for="chatProvider">Proveedor</label><select id="chatProvider" onchange="applyChatDefaults(true)"><option value="groq">Groq</option><option value="openai">OpenAI</option><option value="gemini">Gemini</option></select></div>
+              <div><label for="chatModel">Modelo</label><select id="chatModel"></select></div>
+            </div>
+            <div class="ai-card">
+              <h4>Transcripcion audio</h4>
+              <p>Modelo para convertir grabaciones de practica oral a texto.</p>
+              <div><label for="transcribeProvider">Proveedor</label><select id="transcribeProvider" onchange="applyTranscribeDefaults(true)"><option value="groq">Groq</option><option value="openai">OpenAI</option></select></div>
+              <div><label for="transcribeModel">Modelo</label><select id="transcribeModel"></select></div>
+            </div>
+          </div>
+          <div class="key-grid">
+            <div><label for="openaiKey">Clave OpenAI</label><input id="openaiKey" type="password" placeholder="sk-... o sk-proj-..."></div>
+            <div><label for="groqKey">Clave Groq</label><input id="groqKey" type="password" placeholder="gsk_..."></div>
+            <div><label for="geminiKey">Clave Gemini</label><input id="geminiKey" type="password" placeholder="AIza..."></div>
+          </div>
+          <div class="ai-card" style="margin-top:16px;">
+            <h4>Estilo de generación de temas</h4>
+            <p>Esta guía se aplica a cualquier tema, incluidos los temas manuales. Puedes editarla o analizar documentos Word de ejemplo.</p>
+            <div><label for="topicStyleGuide">Guía editable</label><textarea id="topicStyleGuide" rows="9" style="width:100%;resize:vertical;"></textarea></div>
+            <div class="key-grid" style="margin-top:10px;align-items:end;">
+              <div><label for="styleDocxInput">Ejemplos DOCX</label><input id="styleDocxInput" type="file" accept=".docx" multiple></div>
+              <div class="actions" style="justify-content:flex-start;margin:0;"><button type="button" onclick="analyzeStyleExamples()">Analizar ejemplos</button></div>
+            </div>
+            <div id="styleGuideStatus" class="empty-state" style="margin-top:10px;">La guía se guardará junto con la configuración de IA.</div>
+          </div>
+          <div class="actions"><button class="primary">Guardar IA</button></div>
+        </form>
+        <div class="panel">
+          <h3>Estado IA</h3>
+          <p>Comprueba que hay una clave activa antes de usar el generador, chat o practica oral.</p>
+          <div id="aiStatus" class="empty-state">Inicia sesion como admin.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <section id="globalPanel" class="section-card">
+    <div class="section-title">
+      <div><h2>Vista general</h2><p>Lectura conjunta de usuarios, accesos y consumo de todas las aplicaciones.</p></div>
+    </div>
+    <div class="global-grid">
+      <div class="panel">
+        <h3>Estado por app</h3>
+        <p>Comparativa rapida de actividad, licencias y uso registrado.</p>
+        <div id="globalProducts" class="product-health"></div>
+      </div>
+      <div class="panel">
+        <h3>Actividad reciente</h3>
+        <p>Ultimas peticiones IA de toda la suite.</p>
+        <div id="globalRecentUsage"></div>
+      </div>
+      <div class="panel">
+        <h3>Sistema</h3>
+        <p>Proveedor IA, accesos activos y uso por producto.</p>
+        <div id="globalBusiness"></div>
+      </div>
+      <div class="panel">
+        <h3>Alertas operativas</h3>
+        <p>Senales rapidas para priorizar ventas, onboarding o control de coste.</p>
+        <div id="globalAlerts"></div>
+      </div>
+    </div>
+  </section>
+  <section id="constructionPanel" class="section-card" hidden>
+    <div class="section-title">
+      <div><h2 id="constructionTitle">Aun construyendo</h2><p id="constructionSubtitle">Esta aplicacion todavia no tiene panel propio.</p></div>
+    </div>
+    <div class="empty-state" id="constructionText">Cuando este lista, su administracion aparecera aqui separada en este mismo panel.</div>
+  </section>
+</div>
+<div id="userModal" class="modal-backdrop" hidden>
+  <div class="modal-card detail-card" id="userDetailPanel"></div>
+</div>
+<div id="toast" class="toast"></div>
+<script>
+let token = localStorage.getItem('diplomator_admin_access') || '';
+let orgs = [], users = [], licenses = [], usageRecords = [], auditLogs = [], resourceCatalog = {}, aiSettings = null, selectedUserId = '', selectedApp = 'global';
+const PRODUCT_CONFIG = {
+  diplomator: { label:'Diplomator', path:'/app', code:'DIPLOMATOR', prefix:'DIPLO' },
+  cambridge: { label:'Cambridge Trainer', path:'/cambridge', code:'CAMBRIDGE', prefix:'CAMB' },
+  universidad_adultos: { label:'ACCESO UNIVERSIDAD +25', path:'/universidad-adultos', code:'UNIVERSIDAD_ADULTOS', prefix:'U25', monthlyPrice:39 },
+  eso_adultos: { label:'ACCESO ESO ADULTOS', path:'/eso-adultos', code:'ESO_ADULTOS', prefix:'E25', monthlyPrice:29 }
+};
+const DEFAULT_MONTHLY_PRICE = 49;
+const $ = id => document.getElementById(id);
+const CHAT_MODELS = {
+  groq: [
+    ['llama-3.3-70b-versatile', 'Groq - Llama 3.3 70B potente'],
+    ['openai/gpt-oss-120b', 'Groq - GPT-OSS 120B potente'],
+    ['openai/gpt-oss-20b', 'Groq - GPT-OSS 20B rapido'],
+    ['llama-3.1-8b-instant', 'Groq - Llama 3.1 8B rapido'],
+    ['qwen/qwen3-32b', 'Groq - Qwen3 32B']
+  ],
+  openai: [
+    ['gpt-5.6-terra', 'OpenAI - GPT-5.6 Terra equilibrio'],
+    ['gpt-5.6-sol', 'OpenAI - GPT-5.6 Sol maximo'],
+    ['gpt-5.6-luna', 'OpenAI - GPT-5.6 Luna coste bajo'],
+    ['gpt-4o-mini', 'OpenAI - GPT-4o mini compatible']
+  ],
+  gemini: [
+    ['gemini-3.5-flash', 'Gemini - 3.5 Flash'],
+    ['gemini-3.5-pro', 'Gemini - 3.5 Pro'],
+    ['gemini-2.5-pro', 'Gemini - 2.5 Pro'],
+    ['gemini-2.5-flash', 'Gemini - 2.5 Flash']
+  ]
+};
+const TRANSCRIBE_MODELS = {
+  groq: [
+    ['whisper-large-v3-turbo', 'Groq - Whisper Large V3 Turbo'],
+    ['whisper-large-v3', 'Groq - Whisper Large V3']
+  ],
+  openai: [
+    ['whisper-1', 'OpenAI - Whisper 1'],
+    ['gpt-4o-transcribe', 'OpenAI - GPT-4o Transcribe'],
+    ['gpt-4o-mini-transcribe', 'OpenAI - GPT-4o mini Transcribe']
+  ]
+};
+function defaultApiBase() {
+  if (location.port === '5174') return `${location.protocol}//${location.hostname}:8890`;
+  if (location.protocol === 'file:') return 'http://127.0.0.1:8890';
+  return location.origin;
+}
+function base() { return ($('apiBase').value || defaultApiBase()).replace(/\/$/, ''); }
+function publicBase() {
+  return ($('publicBase')?.value.trim() || base()).replace(/\/$/, '');
+}
+function appLoginUrl() { return `${publicBase()}/login?next=/apps`; }
+function selectedLoginUrl() { return `${publicBase()}/login?next=${encodeURIComponent(selectedAppPath())}`; }
+function directAppUrl(name) {
+  const path = name === 'global' ? '/apps' : (PRODUCT_CONFIG[name] || PRODUCT_CONFIG.diplomator).path;
+  return `${base()}${path}`;
+}
+function openDirectApp(event, name) {
+  event?.preventDefault();
+  event?.stopPropagation();
+  window.open(directAppUrl(name), '_blank', 'noopener');
+}
+function tileKeyOpen(event, name, tile) {
+  if (event.target?.closest?.('.app-meta')) return;
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  event.preventDefault();
+  selectApp(name, tile);
+}
+function toast(msg) { const el = $('toast'); el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2800); }
+function requireAdminSession() {
+  if (token) return true;
+  toast('Inicia sesion como admin antes de crear o guardar cambios');
+  $('email')?.focus();
+  return false;
+}
+function updateAuthStatus() {
+  const el = $('authStatus');
+  if (!el) return;
+  el.textContent = token ? 'Sesion iniciada' : 'Sesion no iniciada';
+  el.classList.toggle('on', Boolean(token));
+  renderOverview();
+}
+async function api(path, opts={}) {
+  const res = await fetch(base() + path, { ...opts, headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}`, ...(opts.headers||{}) } });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) {
+    token = '';
+    localStorage.removeItem('diplomator_admin_access');
+    updateAuthStatus();
+    throw new Error('Sesion admin caducada. Pulsa Entrar otra vez.');
+  }
+  if (!res.ok) throw new Error(apiErrorMessage(data, res.status));
+  return data;
+}
+function apiErrorMessage(data, status) {
+  if (typeof data.detail === 'string') return data.detail;
+  if (Array.isArray(data.detail)) {
+    return data.detail.map(item => {
+      const field = Array.isArray(item.loc) ? item.loc.filter(part => part !== 'body').join('.') : '';
+      return `${field ? field + ': ' : ''}${item.msg || 'Dato invalido'}`;
+    }).join(' | ');
+  }
+  return data.error || `Error ${status}`;
+}
+async function login() {
+  if ($('publicBase')) localStorage.setItem('suite_public_base', $('publicBase').value.trim());
+  const res = await fetch(base() + '/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email:$('email').value, password:$('password').value }) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return toast(data.detail || 'Login fallido');
+  token = data.access_token;
+  localStorage.setItem('diplomator_admin_access', token);
+  toast('Sesion iniciada');
+  updateAuthStatus();
+  loadAll();
+}
+async function logout() {
+  try { if (token) await fetch(base() + '/auth/logout', { method:'POST', headers:{ Authorization:`Bearer ${token}` } }); } catch {}
+  token = '';
+  localStorage.removeItem('diplomator_admin_access');
+  updateAuthStatus();
+  toast('Sesion cerrada');
+}
+function selectApp(name, btn) {
+  selectedApp = name;
+  document.body.dataset.selectedApp = name;
+  document.querySelectorAll('[data-app-tile]').forEach(tile => tile.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (name === 'global') {
+    $('diplomatorNav').hidden = true;
+    $('diplomatorAdmin').hidden = true;
+    $('constructionPanel').hidden = true;
+    $('globalPanel').hidden = false;
+    const openLink = $('openSelectedAppLink');
+    if (openLink) {
+      openLink.textContent = 'Abrir suite';
+      openLink.href = selectedLoginUrl();
+    }
+    renderOverview();
+    renderGlobalOverview();
+    return;
+  }
+  const isManagedApp = Boolean(PRODUCT_CONFIG[name]);
+  $('diplomatorNav').hidden = !isManagedApp;
+  $('diplomatorAdmin').hidden = !isManagedApp;
+  $('globalPanel').hidden = true;
+  $('constructionPanel').hidden = isManagedApp;
+  if (isManagedApp) {
+    applySelectedAppCopy();
+    updateContextualNav();
+    return;
+  }
+  $('constructionTitle').textContent = 'Aun construyendo';
+  $('constructionSubtitle').textContent = 'Esta aplicacion todavia no tiene panel propio.';
+  $('constructionText').textContent = 'Cuando este lista, su administracion aparecera aqui separada en este mismo panel.';
+}
+function isAdultAppSelection() {
+  return selectedApp === 'universidad_adultos' || selectedApp === 'eso_adultos';
+}
+function updateContextualNav() {
+  const resourceBtn = document.querySelector('[data-resource-nav]');
+  if (!resourceBtn) return;
+  resourceBtn.hidden = !isAdultAppSelection();
+  const resourcesOpen = $('view-resources') && !$('view-resources').hidden;
+  if (resourceBtn.hidden && resourcesOpen) {
+    const usersBtn = document.querySelector('.nav-panel button[onclick*="users"]');
+    show('users', usersBtn);
+  }
+}
+function selectedAppLabel() {
+  if (selectedApp === 'global') return 'Vista general';
+  return (PRODUCT_CONFIG[selectedApp] || PRODUCT_CONFIG.diplomator).label;
+}
+function selectedAppPath() {
+  if (selectedApp === 'global') return '/apps';
+  return (PRODUCT_CONFIG[selectedApp] || PRODUCT_CONFIG.diplomator).path;
+}
+function selectedProductCode() {
+  if (selectedApp === 'global') return '';
+  return (PRODUCT_CONFIG[selectedApp] || PRODUCT_CONFIG.diplomator).code;
+}
+function selectedLicensePrefix() {
+  if (selectedApp === 'global') return 'ALL';
+  return (PRODUCT_CONFIG[selectedApp] || PRODUCT_CONFIG.diplomator).prefix;
+}
+function createLicenseKey() {
+  const raw = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`).replace(/[^a-z0-9]/gi, '');
+  return `${selectedLicensePrefix()}-${raw.slice(0, 13).toUpperCase()}`;
+}
+function appLicenses() {
+  if (selectedApp === 'global') return licenses;
+  const code = selectedProductCode();
+  return licenses.filter(l => (l.product_code || 'DIPLOMATOR') === code);
+}
+function appUsageRecords() {
+  if (selectedApp === 'global') return usageRecords;
+  const code = selectedProductCode();
+  return usageRecords.filter(r => (r.product_code || 'DIPLOMATOR') === code);
+}
+function appUsers() {
+  if (selectedApp === 'global') return users;
+  const appOrgIds = new Set(appLicenses().map(l => l.organization_id));
+  return users.filter(u => appOrgIds.has(u.organization_id));
+}
+function renderOverview() {
+  const el = $('dashboardOverview');
+  if (!el) return;
+  const visibleUsers = appUsers();
+  const visibleLicenses = appLicenses();
+  const visibleUsage = appUsageRecords();
+  const activeLicenses = visibleLicenses.filter(l => l.status === 'active').length;
+  const activeUsers = visibleUsers.filter(u => u.is_active).length;
+  const totalTokens = visibleUsage.reduce((sum, r) => sum + Number(r.input_tokens || 0) + Number(r.output_tokens || 0), 0);
+  const lastUse = visibleUsage[0]?.created_at ? date(visibleUsage[0].created_at) : 'Sin uso';
+  const iaLabel = aiSettings ? providerName(aiSettings.chat_provider || aiSettings.ai_provider) : 'Sin iniciar';
+  const iaNote = aiSettings?.groq_configured ? `Groq configurado · ${esc(aiSettings.chat_model || '')}` : (aiSettings ? 'Revisa clave y proveedor en IA' : 'Inicia sesion admin');
+  el.innerHTML = [
+    ['Usuarios', activeUsers, selectedApp === 'global' ? `${visibleUsers.length} cuentas totales` : `${visibleUsers.length} cuentas vinculadas a ${esc(selectedAppLabel())}`],
+    ['Accesos activos', activeLicenses, `${visibleLicenses.length} licencias emitidas`],
+    ['IA activa', iaLabel, iaNote],
+    ['Uso IA', visibleUsage.length, `ultimo uso: ${esc(lastUse)}`],
+    ['Tokens', totalTokens.toLocaleString('es-ES'), 'Entrada y salida registradas']
+  ].map(([label, value, note]) => `<article class="overview-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`).join('');
+}
+function providerName(value) {
+  return ({groq:'Groq', openai:'OpenAI', gemini:'Gemini'}[String(value || '').toLowerCase()] || 'Sin configurar');
+}
+function priceForCode(code) {
+  const product = Object.values(PRODUCT_CONFIG).find(item => item.code === code);
+  return Number(product?.monthlyPrice || DEFAULT_MONTHLY_PRICE);
+}
+function estimatedMonthlyRevenue(rows) {
+  return rows.filter(l => l.status === 'active').reduce((sum, l) => sum + priceForCode(l.product_code || 'DIPLOMATOR'), 0);
+}
+function money(value) {
+  return `${Number(value || 0).toLocaleString('es-ES', {minimumFractionDigits:2, maximumFractionDigits:2})} €`;
+}
+function productStats(product) {
+  const productLicenses = licenses.filter(l => (l.product_code || 'DIPLOMATOR') === product.code);
+  const orgIds = new Set(productLicenses.map(l => l.organization_id));
+  const productUsers = users.filter(u => orgIds.has(u.organization_id));
+  const productUsage = usageRecords.filter(r => (r.product_code || 'DIPLOMATOR') === product.code);
+  const tokens = productUsage.reduce((sum, r) => sum + Number(r.input_tokens || 0) + Number(r.output_tokens || 0), 0);
+  return {
+    users: productUsers.length,
+    activeUsers: productUsers.filter(u => u.is_active).length,
+    licenses: productLicenses.length,
+    activeLicenses: productLicenses.filter(l => l.status === 'active').length,
+    usage: productUsage.length,
+    tokens
+  };
+}
+function renderGlobalOverview() {
+  const productsEl = $('globalProducts');
+  const recentEl = $('globalRecentUsage');
+  const businessEl = $('globalBusiness');
+  const alertsEl = $('globalAlerts');
+  if (!productsEl || !recentEl) return;
+  productsEl.innerHTML = Object.values(PRODUCT_CONFIG).map(product => {
+    const stats = productStats(product);
+    return `<article class="product-health-card">
+      <div><h3>${esc(product.label)}</h3><p>${esc(product.code)}</p></div>
+      <div class="metric-row">
+        <span><strong>${stats.activeUsers}/${stats.users}</strong>Usuarios</span>
+        <span><strong>${stats.activeLicenses}/${stats.licenses}</strong>Accesos</span>
+        <span><strong>${stats.usage}</strong>Peticiones</span>
+      </div>
+      <div class="progress"><span style="width:${Math.min(100, stats.usage * 8)}%"></span></div>
+      <small class="muted">${stats.tokens.toLocaleString('es-ES')} tokens registrados</small>
+    </article>`;
+  }).join('');
+  const rows = usageRecords.slice(0, 12).map(r => [
+    productLabel(r.product_code || 'DIPLOMATOR'),
+    userEmail(r.user_id),
+    esc(r.model),
+    `${Number(r.input_tokens || 0) + Number(r.output_tokens || 0)}`,
+    date(r.created_at)
+  ]);
+  recentEl.innerHTML = table(['App','Usuario','Modelo','Tokens','Fecha'], rows);
+  if (businessEl) {
+    businessEl.innerHTML = table(['Producto','Licencias activas','Peticiones IA','Tokens','Proveedor'], Object.values(PRODUCT_CONFIG).map(product => {
+      const productLicenses = licenses.filter(l => (l.product_code || 'DIPLOMATOR') === product.code);
+      const active = productLicenses.filter(l => l.status === 'active').length;
+      const usage = usageRecords.filter(r => (r.product_code || 'DIPLOMATOR') === product.code);
+      const tokens = usage.reduce((sum, r) => sum + Number(r.input_tokens || 0) + Number(r.output_tokens || 0), 0);
+      return [esc(product.label), active, usage.length, tokens.toLocaleString('es-ES'), providerName(aiSettings?.chat_provider || aiSettings?.ai_provider)];
+    }));
+  }
+  if (alertsEl) {
+    const alerts = businessAlerts();
+    alertsEl.innerHTML = alerts.length ? table(['Nivel','Alerta','Accion'], alerts) : '<div class="empty-state">Sin alertas criticas ahora mismo.</div>';
+  }
+}
+function applySelectedAppCopy() {
+  const label = selectedAppLabel();
+  const openLink = $('openSelectedAppLink');
+  if (openLink) {
+    openLink.textContent = `Abrir ${label}`;
+    openLink.href = selectedLoginUrl();
+  }
+  document.querySelectorAll('[data-app-login-link]').forEach(link => { link.href = appLoginUrl(); });
+  if ($('usersSubtitle')) $('usersSubtitle').textContent = `Altas normales de alumnos para ${label}. Los usuarios, licencias e IA viven en el mismo servidor.`;
+  if ($('licensesSubtitle')) $('licensesSubtitle').textContent = `Periodos activos, caducidad y limites de uso para acceder a ${label}.`;
+  if ($('usageSubtitle')) $('usageSubtitle').textContent = `Registro de uso de modelos, tokens y actividad reciente de las apps conectadas.`;
+  if ($('aiSubtitle')) $('aiSubtitle').textContent = `Configura la clave que usara ${label} para generar respuestas y transcribir audio.`;
+  updateContextualNav();
+  renderSelectors();
+  renderUsers();
+  renderLicenses();
+  renderUsage();
+  renderBusiness();
+  renderResources();
+  renderObservability();
+  renderOverview();
+  renderGlobalOverview();
+}
+function show(name, btn) {
+  if (name === 'resources' && !isAdultAppSelection()) {
+    toast('Recursos oficiales solo se gestionan en U25 y E25');
+    name = 'users';
+    btn = document.querySelector('.nav-panel button[onclick*="users"]');
+  }
+  document.querySelectorAll('main section[id^="view-"]').forEach(el => el.hidden = true);
+  $('view-' + name).hidden = false;
+  document.querySelectorAll('.nav-panel button').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+async function loadAll() {
+  try {
+    const usageData = await api('/admin/usage').catch(() => ({ usage: [] }));
+    const auditData = await api('/admin/audit-logs').catch(() => ({ audit_logs: [] }));
+    const resourcesData = await api('/admin/resources').catch(() => ({ catalog: {} }));
+    [orgs, users, licenses, aiSettings] = await Promise.all([api('/admin/organizations'), api('/admin/users'), api('/admin/licenses'), api('/admin/ai-settings')]);
+    usageRecords = usageData.usage || [];
+    auditLogs = auditData.audit_logs || [];
+    resourceCatalog = resourcesData.catalog || {};
+    if (selectedUserId && !users.some(u => u.id === selectedUserId)) selectedUserId = '';
+    renderSelectors(); renderOrgs(); renderUsers(); renderLicenses(); renderAiSettings(); renderUsage(); renderBusiness(); renderResources(); renderObservability(); renderOverview(); renderGlobalOverview();
+  } catch (e) { toast(e.message); }
+}
+function renderSelectors() {
+  const opts = orgs.map(o => `<option value="${o.id}">${esc(o.name)}</option>`).join('');
+  $('userOrg').innerHTML = opts || '<option value="">Crea primero una cuenta interna</option>';
+  $('licOrg').innerHTML = opts || '<option value="">Crea primero una cuenta interna</option>';
+  const appOrg = appOrgForSelection();
+  if (appOrg) {
+    $('userOrg').value = appOrg.id;
+    $('licOrg').value = appOrg.id;
+  }
+}
+function selectedAppOrgName() {
+  return `${selectedAppLabel()} Usuarios`;
+}
+function appOrgForSelection() {
+  const name = selectedAppOrgName().toLowerCase();
+  return orgs.find(o => String(o.name || '').toLowerCase() === name) || null;
+}
+async function ensureSelectedAppOrg() {
+  if (!requireAdminSession()) throw new Error('Inicia sesion como admin.');
+  if (selectedApp === 'global') throw new Error('Selecciona una app concreta antes de crear usuarios.');
+  const existing = appOrgForSelection();
+  if (existing) return existing;
+  const created = await api('/admin/organizations', { method:'POST', body:JSON.stringify({ name:selectedAppOrgName(), status:'active' }) });
+  orgs.push(created);
+  renderSelectors();
+  return created;
+}
+async function createOrg(e) {
+  e.preventDefault();
+  if (!requireAdminSession()) return;
+  try {
+    await api('/admin/organizations', { method:'POST', body:JSON.stringify({ name:$('orgName').value, status:$('orgStatus').value }) });
+    e.target.reset();
+    toast('Cuenta interna creada');
+    loadAll();
+  } catch (err) {
+    toast(err.message);
+  }
+}
+async function createUser(e) {
+  e.preventDefault();
+  if (!requireAdminSession()) return;
+  if (selectedApp === 'global') return toast('Selecciona una app concreta antes de crear usuarios.');
+  const identifier = $('userEmail').value.trim();
+  const password = $('userPassword').value;
+  if (!identifier) return toast('El usuario o email es obligatorio.');
+  if (password.length < 8) return toast('La contrasena temporal debe tener al menos 8 caracteres.');
+  let created;
+  let organizationId = '';
+  try {
+    const appOrg = await ensureSelectedAppOrg();
+    organizationId = appOrg.id;
+    if (!organizationId) return toast('No hay cuenta interna base para guardar usuarios.');
+    created = await api('/admin/users', { method:'POST', body:JSON.stringify({ organization_id:organizationId, email:identifier, password, full_name:$('userName').value.trim(), role:$('userRole').value }) });
+    const starts = new Date();
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 30);
+    const licenseOrgId = created.organization_id || organizationId;
+    if (!licenses.some(l => l.organization_id === licenseOrgId && (l.product_code || 'DIPLOMATOR') === selectedProductCode() && l.status === 'active')) {
+      await api('/admin/licenses', { method:'POST', body:JSON.stringify({ organization_id:licenseOrgId, product_code:selectedProductCode(), legacy_key:createLicenseKey(), starts_at:starts.toISOString(), expires_at:expires.toISOString(), status:'active', usage_limit:300 }) });
+    }
+    selectedUserId = created.id;
+    renderCreatedCredentials(identifier, password);
+    e.target.reset();
+    toast('Usuario listo para ' + selectedAppLabel());
+    loadAll();
+  } catch (err) {
+    if (!String(err.message || '').toLowerCase().includes('email ya existe')) return toast(err.message);
+    try {
+      created = users.find(u => String(u.email || '').toLowerCase() === identifier.toLowerCase());
+      if (!created) {
+        const freshUsers = await api('/admin/users');
+        users = freshUsers;
+        created = users.find(u => String(u.email || '').toLowerCase() === identifier.toLowerCase());
+      }
+      if (!created) throw err;
+      const licenseOrgId = created.organization_id || organizationId;
+      if (licenseOrgId && !licenses.some(l => l.organization_id === licenseOrgId && (l.product_code || 'DIPLOMATOR') === selectedProductCode() && l.status === 'active')) {
+        const starts = new Date();
+        const expires = new Date();
+        expires.setDate(expires.getDate() + 30);
+        await api('/admin/licenses', { method:'POST', body:JSON.stringify({ organization_id:licenseOrgId, product_code:selectedProductCode(), legacy_key:createLicenseKey(), starts_at:starts.toISOString(), expires_at:expires.toISOString(), status:'active', usage_limit:300 }) });
+      }
+      selectedUserId = created.id;
+      renderCreatedCredentials(identifier, password);
+      e.target.reset();
+      toast('Usuario existente actualizado para ' + selectedAppLabel());
+      loadAll();
+    } catch (innerErr) {
+      toast(innerErr.message);
+    }
+  }
+}
+async function createLicense(e) {
+  e.preventDefault();
+  if (!requireAdminSession()) return;
+  if (selectedApp === 'global') return toast('Selecciona una app concreta antes de crear accesos.');
+  try {
+    const appOrg = await ensureSelectedAppOrg();
+    await api('/admin/licenses', { method:'POST', body:JSON.stringify({ organization_id:appOrg.id, product_code:selectedProductCode(), legacy_key:createLicenseKey(), starts_at:new Date($('licStart').value).toISOString(), expires_at:new Date($('licEnd').value).toISOString(), status:$('licStatus').value, usage_limit:Number($('licLimit').value) }) });
+    e.target.reset();
+    setDefaultDates();
+    toast('Acceso creado para ' + selectedAppLabel());
+    loadAll();
+  } catch (err) {
+    toast(err.message);
+  }
+}
+async function patch(path, body) {
+  if (!requireAdminSession()) return;
+  try {
+    await api(path, { method:'PATCH', body:JSON.stringify(body) });
+    toast('Cambio guardado');
+    loadAll();
+  } catch (err) {
+    toast(err.message);
+  }
+}
+async function loadAiSettings() {
+  try {
+    aiSettings = await api('/admin/ai-settings');
+    renderAiSettings();
+    toast('Configuracion IA actualizada');
+  } catch (e) { toast(e.message); }
+}
+async function saveAiSettings(e) {
+  e.preventDefault();
+  const body = {
+    ai_provider:$('chatProvider').value,
+    points_provider:$('pointsProvider').value,
+    chat_provider:$('chatProvider').value,
+    transcribe_provider:$('transcribeProvider').value,
+    openai_api_key:$('openaiKey').value.trim(),
+    groq_api_key:$('groqKey').value.trim(),
+    gemini_api_key:$('geminiKey').value.trim(),
+    points_model:$('pointsModel').value.trim(),
+    chat_model:$('chatModel').value.trim(),
+    transcribe_model:$('transcribeModel').value.trim(),
+    topic_style_guide:$('topicStyleGuide').value.trim()
+  };
+  aiSettings = await api('/admin/ai-settings', { method:'POST', body:JSON.stringify(body) });
+  $('openaiKey').value = '';
+  $('groqKey').value = '';
+  $('geminiKey').value = '';
+  renderAiSettings();
+  toast('IA guardada');
+}
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || '').split(',')[1] || '');
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function analyzeStyleExamples() {
+  const input = $('styleDocxInput');
+  const files = [...(input.files || [])];
+  if (!files.length) { toast('Sube al menos un DOCX'); return; }
+  $('styleGuideStatus').textContent = 'Analizando ejemplos...';
+  const payload = { files: await Promise.all(files.map(async file => ({
+    filename: file.name,
+    content_base64: await fileToBase64(file)
+  }))) };
+  const data = await api('/admin/style-guide/analyze-docx', { method:'POST', body:JSON.stringify(payload) });
+  $('topicStyleGuide').value = data.topic_style_guide || '';
+  if (aiSettings) aiSettings.topic_style_guide = $('topicStyleGuide').value;
+  $('styleGuideStatus').textContent = `Guía actualizada desde ${files.length} documento(s). Revisa el texto y pulsa Guardar IA si haces cambios.`;
+  input.value = '';
+  toast('Ejemplos analizados');
+}
+function setSelectOptions(select, options, selected) {
+  select.innerHTML = options.map(([value, label]) => `<option value="${escAttr(value)}">${esc(label)}</option>`).join('');
+  if (selected && options.some(([value]) => value === selected)) select.value = selected;
+}
+function applyModelOptions(providerId, modelId, force = false) {
+  const provider = $(providerId).value;
+  const current = force ? '' : $(modelId).value;
+  const options = CHAT_MODELS[provider] || CHAT_MODELS.groq;
+  setSelectOptions($(modelId), options, current || options[0][0]);
+}
+function applyPointsDefaults(force = false) {
+  applyModelOptions('pointsProvider', 'pointsModel', force);
+}
+function applyChatDefaults(force = false) {
+  applyModelOptions('chatProvider', 'chatModel', force);
+}
+function applyProviderDefaults(force = false) {
+  applyChatDefaults(force);
+}
+function applyTranscribeDefaults(force = false) {
+  const provider = $('transcribeProvider').value;
+  const current = force ? '' : $('transcribeModel').value;
+  const options = TRANSCRIBE_MODELS[provider] || TRANSCRIBE_MODELS.groq;
+  setSelectOptions($('transcribeModel'), options, current || options[0][0]);
+}
+function renderOrgs() { $('orgTable').innerHTML = table(['Cuenta','Estado','Accion'], orgs.map(o => [esc(o.name), badge(o.status), `<button onclick="patch('/admin/organizations/${o.id}', {status:'${o.status === 'active' ? 'suspended' : 'active'}'})">${o.status === 'active' ? 'Suspender' : 'Activar'}</button>`])); }
+function renderUsers() {
+  const visibleUsers = appUsers();
+  if (!visibleUsers.length) {
+    $('userTable').innerHTML = `<div class="empty-state">Todavia no hay usuarios con acceso a ${esc(selectedAppLabel())}.</div>`;
+    return;
+  }
+  const rows = visibleUsers.map(u => {
+    const usage = usageForUser(u.id);
+    const activeClass = u.id === selectedUserId ? ' active' : '';
+    return `<tr class="click-row${activeClass}" onclick="selectUser('${escAttr(u.id)}')">
+      <td><strong>${esc(u.email)}</strong><div class="muted">${esc(u.full_name || 'Sin nombre')}</div></td>
+      <td>${badge(u.is_active ? 'active' : 'inactive')}</td>
+      <td>${usage.length}</td>
+      <td>${date(u.updated_at)}</td>
+    </tr>`;
+  }).join('');
+  $('userTable').innerHTML = `<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Estado</th><th>Uso</th><th>Actualizado</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function renderLicenses() { const visibleLicenses = appLicenses(); $('licenseTable').innerHTML = table(['Cuenta','App','Estado','Caduca','Clave','Accion'], visibleLicenses.map(l => [orgName(l.organization_id), esc(l.product_code || selectedProductCode()), badge(l.status), date(l.expires_at), `<code title="${esc(l.legacy_key || '')}">${esc(l.legacy_key || '')}</code>`, `<button onclick="patch('/admin/licenses/${l.id}', {status:'${l.status === 'active' ? 'suspended' : 'active'}'})">${l.status === 'active' ? 'Suspender' : 'Activar'}</button>`])); }
+async function renderUsage() { try { if (!usageRecords.length) { const data = await api('/admin/usage'); usageRecords = data.usage || []; } const visibleUsage = appUsageRecords(); $('usageTable').innerHTML = table(['Usuario','Modelo','Tokens','Fecha'], visibleUsage.map(r => [userEmail(r.user_id), esc(r.model), `${r.input_tokens}/${r.output_tokens}`, date(r.created_at)])); } catch (e) { $('usageTable').innerHTML = `<div class="empty-state">No se pudo cargar consumo: ${esc(e.message)}</div>`; } }
+function renderBusiness() {
+  if (!$('businessSummary')) return;
+  const rows = selectedApp === 'global' ? Object.values(PRODUCT_CONFIG) : [PRODUCT_CONFIG[selectedApp]].filter(Boolean);
+  const summaryRows = rows.map(product => {
+    const productLicenses = licenses.filter(l => (l.product_code || 'DIPLOMATOR') === product.code);
+    const active = productLicenses.filter(l => l.status === 'active').length;
+    const usage = usageRecords.filter(r => (r.product_code || 'DIPLOMATOR') === product.code);
+    const tokens = usage.reduce((sum, r) => sum + Number(r.input_tokens || 0) + Number(r.output_tokens || 0), 0);
+    return [esc(product.label), active, usage.length, tokens.toLocaleString('es-ES'), providerName(aiSettings?.chat_provider || aiSettings?.ai_provider)];
+  });
+  $('businessSummary').innerHTML = table(['Producto','Accesos activos','Peticiones IA','Tokens','Proveedor'], summaryRows);
+  const alerts = businessAlerts();
+  $('businessAlerts').innerHTML = alerts.length ? table(['Nivel','Alerta','Accion'], alerts) : '<div class="empty-state">Sin alertas criticas ahora mismo.</div>';
+}
+function businessAlerts() {
+  const alerts = [];
+  Object.values(PRODUCT_CONFIG).forEach(product => {
+    const productUsage = usageRecords.filter(r => (r.product_code || 'DIPLOMATOR') === product.code);
+    const active = licenses.filter(l => (l.product_code || 'DIPLOMATOR') === product.code && l.status === 'active').length;
+    if (active === 0) alerts.push(['Info', `${product.label}: sin licencias activas`, 'Revisar landing, demo y pipeline de ventas']);
+    if (!productUsage.length && active > 0) alerts.push(['Uso', `${product.label}: clientes activos sin uso IA`, 'Revisar onboarding y sesion inicial']);
+  });
+  if (!aiSettings?.groq_configured && (aiSettings?.chat_provider || aiSettings?.ai_provider) === 'groq') alerts.unshift(['IA', 'Groq seleccionado sin clave visible', 'Revisar la pestaña IA']);
+  return alerts;
+}
+function renderResources() {
+  if (!$('resourcesU25')) return;
+  const showU25 = selectedApp === 'universidad_adultos';
+  const showE25 = selectedApp === 'eso_adultos';
+  $('resourcesU25Group').hidden = !showU25;
+  $('resourcesE25Group').hidden = !showE25;
+  $('resourcesU25').value = JSON.stringify(resourceCatalog.universidad_adultos || [], null, 2);
+  $('resourcesE25').value = JSON.stringify(resourceCatalog.eso_adultos || [], null, 2);
+  const rows = [];
+  if (showU25) rows.push(['ACCESO UNIVERSIDAD +25', (resourceCatalog.universidad_adultos || []).length, esc([...(new Set((resourceCatalog.universidad_adultos || []).map(r => r.source)))].join(', '))]);
+  if (showE25) rows.push(['ACCESO ESO ADULTOS', (resourceCatalog.eso_adultos || []).length, esc([...(new Set((resourceCatalog.eso_adultos || []).map(r => r.source)))].join(', '))]);
+  $('resourcesPreview').innerHTML = rows.length ? table(['App','Enlaces','Fuentes'], rows) : '<div class="empty-state">Selecciona U25 o E25 para editar sus recursos oficiales.</div>';
+}
+async function saveResources(event) {
+  event.preventDefault();
+  try {
+    const catalog = {
+      universidad_adultos: selectedApp === 'universidad_adultos' ? JSON.parse($('resourcesU25').value || '[]') : (resourceCatalog.universidad_adultos || []),
+      eso_adultos: selectedApp === 'eso_adultos' ? JSON.parse($('resourcesE25').value || '[]') : (resourceCatalog.eso_adultos || [])
+    };
+    const data = await api('/admin/resources', {method:'PUT', body:JSON.stringify({catalog})});
+    resourceCatalog = data.catalog || catalog;
+    renderResources();
+    toast('Recursos actualizados');
+  } catch (e) {
+    toast('JSON no valido o error al guardar: ' + e.message);
+  }
+}
+function renderObservability() {
+  if (!$('observabilitySummary')) return;
+  const visibleUsage = appUsageRecords();
+  const visibleLogs = selectedApp === 'global' ? auditLogs : auditLogs.filter(log => {
+    const meta = log.metadata || {};
+    return JSON.stringify(meta).includes(selectedProductCode()) || JSON.stringify(meta).includes(selectedApp);
+  });
+  const cost = visibleUsage.reduce((sum, r) => sum + Number(r.estimated_cost || 0), 0);
+  const frontendErrors = visibleLogs.filter(log => log.action === 'frontend_error').length;
+  $('observabilitySummary').innerHTML = table(['Senal','Valor','Lectura'], [
+    ['Peticiones IA', visibleUsage.length, 'Actividad registrada por backend'],
+    ['Proveedor IA', providerName(aiSettings?.chat_provider || aiSettings?.ai_provider), aiSettings?.groq_configured ? 'Groq configurado' : 'Revisar clave IA'],
+    ['Errores frontend', frontendErrors, 'Reportes enviados por las apps'],
+    ['Logs auditables', visibleLogs.length, 'Acciones admin y eventos relevantes']
+  ]);
+  $('auditLogTable').innerHTML = table(['Fecha','Accion','Entidad','Detalle'], visibleLogs.slice(0, 60).map(log => [date(log.created_at), esc(log.action), esc(log.entity_type), `<code>${esc(JSON.stringify(log.metadata || {})).slice(0, 260)}</code>`]));
+}
+function renderCreatedCredentials(identifier, password) {
+  const box = $('lastCredentials');
+  if (!box) return;
+  const loginUrl = appLoginUrl();
+  box.classList.add('on');
+  box.innerHTML = `<strong>Acceso creado para ${esc(selectedAppLabel())}</strong>
+    <div>Usuario: <code>${esc(identifier)}</code></div>
+    <div>Contrase&ntilde;a temporal: <code>${esc(password)}</code></div>
+    <div>Login: <code>${esc(loginUrl)}</code></div>
+    <div class="actions"><button type="button" onclick="copyCreatedCredentials('${escAttr(identifier)}','${escAttr(password)}')">Copiar acceso</button></div>`;
+}
+async function copyCreatedCredentials(identifier, password) {
+  const text = `${selectedAppLabel()}\nLogin: ${appLoginUrl()}\nUsuario: ${identifier}\nContrasena temporal: ${password}`;
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Acceso copiado');
+  } catch {
+    toast('No se pudo copiar automaticamente');
+  }
+}
+function renderAiSettings() {
+  if (!aiSettings) return;
+  $('pointsProvider').value = aiSettings.points_provider || aiSettings.chat_provider || aiSettings.ai_provider || 'groq';
+  $('chatProvider').value = aiSettings.chat_provider || aiSettings.ai_provider || 'groq';
+  $('transcribeProvider').value = aiSettings.transcribe_provider || aiSettings.ai_provider || 'groq';
+  applyPointsDefaults(false);
+  applyChatDefaults(false);
+  applyTranscribeDefaults(false);
+  $('pointsModel').value = aiSettings.points_model || aiSettings.chat_model || $('pointsModel').value;
+  $('chatModel').value = aiSettings.chat_model || $('chatModel').value;
+  $('transcribeModel').value = aiSettings.transcribe_model || $('transcribeModel').value;
+  $('topicStyleGuide').value = aiSettings.topic_style_guide || '';
+  $('styleGuideStatus').textContent = aiSettings.topic_style_guide ? 'Guía cargada desde el servidor.' : 'Sin guía personalizada.';
+  applyPointsDefaults(false);
+  applyChatDefaults(false);
+  const activeProvider = providerName(aiSettings.chat_provider || aiSettings.ai_provider);
+  const providerOk = aiSettings.groq_configured || aiSettings.openai_configured || aiSettings.gemini_configured;
+  $('aiStatus').innerHTML = `<div class="empty-state ${providerOk ? 'on' : ''}" style="margin-bottom:10px;text-align:left;"><strong>IA activa: ${esc(activeProvider)}</strong><br>${providerOk ? `Clave cargada en servidor · ${esc(aiSettings.chat_model || '')}` : 'Falta configurar una clave valida.'}</div>` + table(['Ajuste','Estado'], [
+    ['Puntos', `${esc((aiSettings.points_provider || aiSettings.chat_provider || 'groq').toUpperCase())} / ${esc(aiSettings.points_model || aiSettings.chat_model || '')}`],
+    ['Chat', `${esc((aiSettings.chat_provider || aiSettings.ai_provider || 'groq').toUpperCase())} / ${esc(aiSettings.chat_model || '')}`],
+    ['Transcripcion', `${esc((aiSettings.transcribe_provider || 'groq').toUpperCase())} / ${esc(aiSettings.transcribe_model || '')}`],
+    ['OpenAI', aiSettings.openai_configured ? `Configurada (${esc(aiSettings.openai_masked)})` : 'Sin clave'],
+    ['Groq', aiSettings.groq_configured ? `Configurada (${esc(aiSettings.groq_masked)})` : 'Sin clave'],
+    ['Gemini', aiSettings.gemini_configured ? `Configurada (${esc(aiSettings.gemini_masked)})` : 'Sin clave']
+  ]);
+}
+function selectUser(id) {
+  selectedUserId = id;
+  renderUsers();
+  renderUserDetail();
+  $('userModal').hidden = false;
+}
+function closeUserModal() {
+  $('userModal').hidden = true;
+}
+function usageForUser(id) {
+  return appUsageRecords().filter(r => r.user_id === id);
+}
+function licenseForUser(user) {
+  if (!user) return null;
+  const userLicenses = appLicenses()
+    .filter(l => l.organization_id === user.organization_id)
+    .sort((a, b) => new Date(b.expires_at) - new Date(a.expires_at));
+  return userLicenses[0] || null;
+}
+function usageSummary(records) {
+  return records.reduce((acc, r) => {
+    acc.requests += 1;
+    acc.input += Number(r.input_tokens || 0);
+    acc.output += Number(r.output_tokens || 0);
+    acc.total += Number(r.input_tokens || 0) + Number(r.output_tokens || 0);
+    if (!acc.last || new Date(r.created_at) > new Date(acc.last)) acc.last = r.created_at;
+    return acc;
+  }, { requests:0, input:0, output:0, total:0, last:'' });
+}
+function renderUserDetail() {
+  const panel = $('userDetailPanel');
+  if (!panel) return;
+  const user = users.find(u => u.id === selectedUserId);
+  if (!user) {
+    panel.innerHTML = '<div class="empty-state">Selecciona un usuario para ver y modificar su configuracion.</div>';
+    return;
+  }
+  const usage = usageForUser(user.id);
+  const summary = usageSummary(usage);
+  const lic = licenseForUser(user);
+  const recentUsage = usage.slice(0, 10).map(r => [
+    esc(r.model),
+    `${Number(r.input_tokens || 0) + Number(r.output_tokens || 0)}`,
+    date(r.created_at)
+  ]);
+  panel.innerHTML = `
+    <div class="detail-head">
+      <div>
+        <h3 class="detail-title">${esc(user.full_name || user.email)}</h3>
+        <div class="detail-subtitle">${esc(user.email)} · ${esc(roleName(user.role))}</div>
+      </div>
+      <div class="actions">${badge(user.is_active ? 'active' : 'inactive')}<button type="button" onclick="closeUserModal()">Cerrar</button></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-box"><span>Peticiones</span><strong>${summary.requests}</strong></div>
+      <div class="stat-box"><span>Tokens</span><strong>${summary.total}</strong></div>
+      <div class="stat-box"><span>Ultimo uso</span><strong>${summary.last ? date(summary.last) : '-'}</strong></div>
+      <div class="stat-box"><span>Alta</span><strong>${date(user.created_at)}</strong></div>
+    </div>
+    <div class="detail-columns">
+      <form class="subpanel" onsubmit="saveSelectedUser(event)">
+        <h4>Perfil y acceso</h4>
+        <div><label for="detailEmail">Correo o usuario</label><input id="detailEmail" value="${escAttr(user.email)}" required></div>
+        <div><label for="detailName">Nombre visible</label><input id="detailName" value="${escAttr(user.full_name || '')}"></div>
+        <div class="field-row">
+          <div><label for="detailRole">Rol</label><select id="detailRole"><option value="user">Usuario</option><option value="organization_admin">Admin</option><option value="superadmin">Superadmin</option></select></div>
+          <div><label for="detailActive">Estado</label><select id="detailActive"><option value="true">Activo</option><option value="false">Inactivo</option></select></div>
+        </div>
+        <div><label for="detailPassword">Nueva contrase&ntilde;a</label><input id="detailPassword" type="password" minlength="8" placeholder="Dejar vacio para no cambiar"></div>
+        <div class="actions">
+          <button class="primary">Guardar usuario</button>
+          <button type="button" onclick="toggleSelectedUser()">${user.is_active ? 'Desactivar' : 'Activar'}</button>
+        </div>
+      </form>
+      <form class="subpanel" onsubmit="saveSelectedLicense(event)">
+        <h4>Acceso y limites</h4>
+        ${lic ? `
+          <div><label for="detailLimit">Limite de uso</label><input id="detailLimit" type="number" value="${Number(lic.usage_limit || 0)}"></div>
+          <div class="field-row">
+            <div><label for="detailLicStatus">Estado</label><select id="detailLicStatus"><option>active</option><option>expired</option><option>suspended</option><option>cancelled</option></select></div>
+            <div><label for="detailLicKey">Clave</label><input id="detailLicKey" value="${escAttr(lic.legacy_key || '')}"></div>
+          </div>
+          <div class="field-row">
+            <div><label for="detailStart">Inicio</label><input id="detailStart" type="datetime-local" value="${dateInput(lic.starts_at)}"></div>
+            <div><label for="detailEnd">Caducidad</label><input id="detailEnd" type="datetime-local" value="${dateInput(lic.expires_at)}"></div>
+          </div>
+          <div class="actions"><button class="primary">Guardar acceso</button></div>
+        ` : '<div class="empty-state">Este usuario no tiene acceso asociado todavia.<br><br><button type="button" class="primary" onclick="createDefaultAccessForSelectedUser()">Crear acceso MVP</button></div>'}
+      </form>
+    </div>
+    <div class="subpanel">
+      <h4>Consumo reciente</h4>
+      <div class="mini-table">${table(['Modelo','Tokens','Fecha'], recentUsage)}</div>
+    </div>`;
+  $('detailRole').value = user.role || 'user';
+  $('detailActive').value = String(Boolean(user.is_active));
+  if (lic && $('detailLicStatus')) $('detailLicStatus').value = lic.status || 'active';
+}
+async function saveSelectedUser(e) {
+  e.preventDefault();
+  const user = users.find(u => u.id === selectedUserId);
+  if (!user) return;
+  const body = {
+    email:$('detailEmail').value.trim(),
+    full_name:$('detailName').value.trim(),
+    role:$('detailRole').value,
+    is_active:$('detailActive').value === 'true'
+  };
+  const password = $('detailPassword').value;
+  if (password) body.password = password;
+  await api(`/admin/users/${user.id}`, { method:'PATCH', body:JSON.stringify(body) });
+  toast('Usuario guardado');
+  loadAll();
+}
+async function toggleSelectedUser() {
+  const user = users.find(u => u.id === selectedUserId);
+  if (!user) return;
+  await api(`/admin/users/${user.id}`, { method:'PATCH', body:JSON.stringify({ is_active:!user.is_active }) });
+  toast(user.is_active ? 'Usuario desactivado' : 'Usuario activado');
+  loadAll();
+}
+async function saveSelectedLicense(e) {
+  e.preventDefault();
+  const user = users.find(u => u.id === selectedUserId);
+  const lic = licenseForUser(user);
+  if (!lic) return;
+  const body = {
+    usage_limit:Number($('detailLimit').value || 0),
+    status:$('detailLicStatus').value,
+    legacy_key:$('detailLicKey').value.trim() || null,
+    starts_at:new Date($('detailStart').value).toISOString(),
+    expires_at:new Date($('detailEnd').value).toISOString()
+  };
+  await api(`/admin/licenses/${lic.id}`, { method:'PATCH', body:JSON.stringify(body) });
+  toast('Acceso guardado');
+  loadAll();
+}
+async function createDefaultAccessForSelectedUser() {
+  const user = users.find(u => u.id === selectedUserId);
+  if (!user) return;
+  const starts = new Date();
+  const expires = new Date();
+  expires.setDate(expires.getDate() + 30);
+  await api('/admin/licenses', {
+    method:'POST',
+    body:JSON.stringify({
+      organization_id:user.organization_id,
+      product_code:selectedProductCode(),
+      legacy_key:createLicenseKey(),
+      starts_at:starts.toISOString(),
+      expires_at:expires.toISOString(),
+      status:'active',
+      usage_limit:300
+    })
+  });
+  toast('Acceso creado');
+  loadAll();
+}
+function table(head, rows) {
+  if (!rows.length) return '<div class="empty-state">Todavia no hay datos en esta seccion.</div>';
+  return `<div class="table-wrap"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function badge(v) { return `<span class="badge ${v === 'active' ? '' : 'off'}">${esc(statusName(v))}</span>`; }
+function orgName(id) { return esc((orgs.find(o => o.id === id) || {}).name || id || ''); }
+function userEmail(id) { return esc((users.find(u => u.id === id) || {}).email || id || ''); }
+function productLabel(code) {
+  const found = Object.values(PRODUCT_CONFIG).find(product => product.code === code);
+  return esc(found?.label || code || '');
+}
+function roleName(v) { return {user:'Usuario', organization_admin:'Admin', superadmin:'Superadmin'}[v] || v; }
+function statusName(v) { return ({active:'Activo', inactive:'Inactivo', suspended:'Suspendido', cancelled:'Cancelado', expired:'Caducado'}[v] || v); }
+function actionName(v) { return ({organization_created:'Cuenta interna creada', organization_updated:'Cuenta interna actualizada', user_created:'Usuario creado', user_updated:'Usuario actualizado', license_created:'Acceso creado', license_updated:'Acceso actualizado', ai_settings_updated:'IA actualizada'}[v] || v); }
+function date(v) { return v ? new Date(v).toLocaleString('es-ES') : ''; }
+function dateInput(v) {
+  if (!v) return '';
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return '';
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0,16);
+}
+function esc(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+function escAttr(v) { return esc(v).replace(/`/g, '&#096;'); }
+function setDefaultDates() { const s = new Date(); const e = new Date(); e.setDate(e.getDate() + 30); $('licStart').value = s.toISOString().slice(0,16); $('licEnd').value = e.toISOString().slice(0,16); }
+setDefaultDates();
+$('publicBase').value = localStorage.getItem('suite_public_base') || '';
+$('publicBase')?.addEventListener('change', event => localStorage.setItem('suite_public_base', event.target.value.trim()));
+applyPointsDefaults(false);
+applyChatDefaults(false);
+applyTranscribeDefaults(false);
+selectApp('global', document.querySelector('[data-app-tile="global"]'));
+updateAuthStatus();
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') closeUserModal();
+});
+$('userModal')?.addEventListener('click', event => {
+  if (event.target.id === 'userModal') closeUserModal();
+});
+if (token) loadAll();
+</script>
+</body>
+</html>

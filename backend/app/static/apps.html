@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seleccionar app</title>
+<style>
+  :root {
+    --ink:#102a43;
+    --muted:#607482;
+    --paper:#eef4f8;
+    --panel:#ffffff;
+    --line:#cfe0ea;
+    --blue:#2454a6;
+    --teal:#0f766e;
+    --violet:#6d3fb1;
+    --coral:#b84a3a;
+    --danger:#b42318;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0;
+    min-height:100vh;
+    display:grid;
+    place-items:center;
+    padding:28px;
+    font-family:"Segoe UI", Arial, sans-serif;
+    color:var(--ink);
+    background:linear-gradient(135deg,#edf4ff,#ecfbf7);
+  }
+  main { width:min(980px,100%); }
+  header { margin-bottom:18px; }
+  h1 { margin:0; font-size:30px; letter-spacing:0; }
+  p { margin:8px 0 0; color:var(--muted); line-height:1.5; }
+  .grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+  }
+  .app-card {
+    min-height:220px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    gap:18px;
+    padding:22px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--panel);
+    box-shadow:0 18px 40px rgba(16,42,67,.08);
+  }
+  .app-card.cambridge { border-color:#b7e5dd; }
+  .app-card.universidad { border-color:#d9c7f4; }
+  .app-card.eso { border-color:#f0c6bd; }
+  .app-top { display:flex; align-items:flex-start; gap:14px; }
+  .app-icon {
+    width:52px;
+    height:52px;
+    border-radius:13px;
+    display:grid;
+    place-items:center;
+    color:white;
+    background:var(--blue);
+    font-weight:900;
+    font-size:22px;
+    flex:0 0 auto;
+  }
+  .cambridge .app-icon { background:var(--teal); }
+  .universidad .app-icon { background:var(--violet); }
+  .eso .app-icon { background:var(--coral); }
+  h2 { margin:0; font-size:22px; }
+  .status {
+    margin-top:10px;
+    font-size:13px;
+    color:var(--muted);
+  }
+  .actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  a.button {
+    min-height:42px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px 16px;
+    border-radius:8px;
+    background:var(--blue);
+    color:white;
+    text-decoration:none;
+    font-weight:800;
+  }
+  .cambridge a.button { background:var(--teal); }
+  .universidad a.button { background:var(--violet); }
+  .eso a.button { background:var(--coral); }
+  a.disabled {
+    pointer-events:none;
+    background:#d9e3ea;
+    color:#6b7b86;
+  }
+  .logout {
+    margin-top:16px;
+    border:1px solid var(--line);
+    background:white;
+    color:var(--ink);
+    border-radius:8px;
+    padding:10px 14px;
+    cursor:pointer;
+    font-weight:700;
+  }
+  .error { color:var(--danger); margin-top:12px; }
+  @media (max-width:720px) {
+    body { padding:16px; place-items:start center; }
+    .grid { grid-template-columns:1fr; }
+    h1 { font-size:25px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Elige tu app</h1>
+    <p>Tu cuenta puede tener acceso a una o varias aplicaciones. Entra en la que quieras trabajar ahora.</p>
+  </header>
+  <section class="grid" id="appGrid" aria-label="Aplicaciones disponibles"></section>
+  <button class="logout" onclick="logout()">Cerrar sesión</button>
+  <div class="error" id="error"></div>
+</main>
+<script>
+const appsMeta = {
+  DIPLOMATOR: { initial:'D', className:'diplomator' },
+  CAMBRIDGE: { initial:'C', className:'cambridge' },
+  UNIVERSIDAD_ADULTOS: { initial:'U', className:'universidad' },
+  ESO_ADULTOS: { initial:'E', className:'eso' }
+};
+async function loadApps() {
+  const error = document.getElementById('error');
+  try {
+    const res = await fetch('/api/apps');
+    if (res.status === 401) {
+      location.href = '/login?next=/apps';
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.ok === false) throw new Error(data.detail || data.error || 'No se pudieron cargar las apps.');
+    document.getElementById('appGrid').innerHTML = data.apps.map(app => {
+      const meta = appsMeta[app.code] || { initial:'A', className:'' };
+      const disabled = app.available ? '' : ' disabled';
+      const status = app.available ? 'Acceso activo' : (app.message || 'Sin acceso activo');
+      return `<article class="app-card ${meta.className}">
+        <div class="app-top">
+          <div class="app-icon">${meta.initial}</div>
+          <div>
+            <h2>${escapeHtml(app.name)}</h2>
+            <p>${escapeHtml(app.description || '')}</p>
+            <div class="status">${escapeHtml(status)}</div>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="button${disabled}" href="${app.available ? app.path : '#'}">${app.available ? 'Entrar' : 'Sin acceso'}</a>
+        </div>
+      </article>`;
+    }).join('');
+  } catch (err) {
+    error.textContent = err.message;
+  }
+}
+async function logout() {
+  try { await fetch('/auth/logout', { method:'POST' }); } catch {}
+  location.href = '/login';
+}
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+loadApps();
+</script>
+</body>
+</html>

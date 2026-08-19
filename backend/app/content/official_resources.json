@@ -1,0 +1,62 @@
+{
+  "universidad_adultos": [
+    {
+      "title": "UNED - Acceso a la universidad para mayores de 25",
+      "source": "UNED",
+      "url": "https://www.uned.es/universidad/inicio/estudios/acceso/mayores-25.html",
+      "tags": ["estructura", "programas", "oficial"],
+      "desc": "Informacion oficial sobre estructura, materias, requisitos y orientaciones de la prueba."
+    },
+    {
+      "title": "UNED - Examenes y pruebas de acceso",
+      "source": "UNED",
+      "url": "https://www.uned.es/universidad/inicio/estudiantes/acceso/examenes.html",
+      "tags": ["modelos", "examenes", "oficial"],
+      "desc": "Repositorio oficial para consultar examenes, modelos y convocatorias disponibles."
+    },
+    {
+      "title": "Universidad Complutense - Mayores de 25",
+      "source": "UCM",
+      "url": "https://www.ucm.es/mayores-25",
+      "tags": ["convocatoria", "programas", "oficial"],
+      "desc": "Informacion oficial de convocatoria, materias, calendario y documentacion."
+    },
+    {
+      "title": "Instituto Geografico Nacional - Recursos educativos",
+      "source": "IGN",
+      "url": "https://www.ign.es/web/recursos-educativos",
+      "tags": ["geografia", "mapas", "recursos"],
+      "desc": "Material oficial para practicar geografia, mapas y lectura territorial."
+    }
+  ],
+  "eso_adultos": [
+    {
+      "title": "Educagob - Educacion de personas adultas",
+      "source": "Ministerio de Educacion",
+      "url": "https://educagob.educacionyfp.gob.es/ensenanzas/personas-adultas.html",
+      "tags": ["estructura", "normativa", "oficial"],
+      "desc": "Portal oficial sobre ensenanzas para personas adultas y vias de obtencion del titulo."
+    },
+    {
+      "title": "Junta de Andalucia - Pruebas libres Graduado ESO",
+      "source": "Junta de Andalucia",
+      "url": "https://www.juntadeandalucia.es/educacion/portals/web/educacion-permanente/pruebas-libres/eso",
+      "tags": ["modelos", "examenes", "oficial"],
+      "desc": "Modelos y orientaciones oficiales para la prueba libre de Graduado en ESO."
+    },
+    {
+      "title": "CIDEAD - Educacion secundaria para personas adultas",
+      "source": "CIDEAD",
+      "url": "https://www.educacionfpydeportes.gob.es/mc/cidead/ensenanzas/educacion-secundaria-personas-adultas.html",
+      "tags": ["materiales", "contenidos", "oficial"],
+      "desc": "Informacion y orientaciones oficiales para estudios de secundaria de personas adultas."
+    },
+    {
+      "title": "Procomun - Recursos educativos abiertos",
+      "source": "INTEF",
+      "url": "https://procomun.intef.es/",
+      "tags": ["materiales", "recursos", "contenidos"],
+      "desc": "Banco publico de recursos educativos para reforzar lengua, sociales, ciencias y competencia digital."
+    }
+  ]
+}

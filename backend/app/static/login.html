@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Apps Suite - Acceso</title>
+  <style>
+    :root {
+      --ink:#172026;
+      --muted:#627080;
+      --paper:#f4f1e9;
+      --panel:#ffffff;
+      --line:#e2ddd1;
+      --blue:#2454a6;
+      --blue-2:#173d78;
+      --gold:#c7922f;
+      --green:#0f766e;
+      --red:#b74338;
+      --shadow:0 24px 70px rgba(23,32,38,0.14);
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+      color:var(--ink);
+      font-family:Inter, "Segoe UI", Arial, sans-serif;
+      background:
+        linear-gradient(135deg, rgba(36,84,166,0.12), transparent 36%),
+        linear-gradient(315deg, rgba(199,146,47,0.15), transparent 34%),
+        var(--paper);
+    }
+    body::before {
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background-image:
+        linear-gradient(rgba(23,32,38,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23,32,38,0.035) 1px, transparent 1px);
+      background-size:42px 42px;
+      mask-image:linear-gradient(120deg, rgba(0,0,0,0.44), transparent 78%);
+    }
+    main {
+      position:relative;
+      z-index:1;
+      width:min(940px, 100%);
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 420px;
+      gap:18px;
+      align-items:stretch;
+    }
+    .intro, form {
+      border:1px solid rgba(226,221,209,0.95);
+      border-radius:10px;
+      background:rgba(255,255,255,0.92);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(16px);
+    }
+    .intro {
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      min-height:460px;
+      padding:28px;
+      overflow:hidden;
+    }
+    .brand-mark {
+      width:52px;
+      height:52px;
+      display:grid;
+      place-items:center;
+      border:1px solid #d7e3f7;
+      border-radius:9px;
+      background:#eaf1ff;
+      color:var(--blue);
+      font-weight:900;
+      font-size:22px;
+    }
+    .eyebrow {
+      margin-top:22px;
+      color:var(--gold);
+      font-size:11px;
+      letter-spacing:0.15em;
+      text-transform:uppercase;
+      font-weight:900;
+    }
+    h1 {
+      max-width:520px;
+      margin:8px 0 10px;
+      font-size:42px;
+      line-height:1.04;
+      letter-spacing:0;
+    }
+    p {
+      margin:0;
+      color:var(--muted);
+      line-height:1.55;
+      font-size:15px;
+    }
+    .app-strip {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:28px;
+    }
+    .app-pill {
+      min-height:64px;
+      border:1px solid var(--line);
+      border-radius:9px;
+      padding:12px;
+      background:#fffdf8;
+      font-weight:900;
+    }
+    .app-pill span {
+      display:block;
+      margin-top:4px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      line-height:1.35;
+    }
+    form {
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      padding:28px;
+    }
+    .form-title {
+      margin:0 0 6px;
+      font-size:25px;
+      line-height:1.15;
+    }
+    .google-button, button {
+      width:100%;
+      min-height:46px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      border-radius:8px;
+      padding:12px 14px;
+      font:inherit;
+      font-weight:850;
+      cursor:pointer;
+      text-decoration:none;
+    }
+    .google-button {
+      margin-top:22px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--ink);
+    }
+    .google-icon {
+      width:20px;
+      height:20px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      color:#4285f4;
+      font-weight:900;
+    }
+    .divider {
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      gap:12px;
+      align-items:center;
+      margin:20px 0 4px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+    }
+    .divider::before, .divider::after {
+      content:"";
+      height:1px;
+      background:var(--line);
+    }
+    label {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin:14px 0 6px;
+      font-weight:800;
+    }
+    input {
+      width:100%;
+      min-height:44px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      padding:12px;
+      background:#fff;
+      color:var(--ink);
+      font:inherit;
+      outline:none;
+    }
+    input:focus {
+      border-color:var(--blue);
+      box-shadow:0 0 0 3px rgba(36,84,166,0.12);
+    }
+    button {
+      margin-top:18px;
+      border:1px solid var(--blue);
+      background:var(--blue);
+      color:white;
+    }
+    button:hover { background:var(--blue-2); }
+    .error {
+      color:var(--red);
+      font-size:13px;
+      margin-top:12px;
+      min-height:18px;
+      line-height:1.4;
+    }
+    @media (max-width:820px) {
+      main { grid-template-columns:1fr; }
+      .intro { min-height:auto; }
+      h1 { font-size:32px; }
+    }
+    @media (max-width:520px) {
+      body { padding:14px; }
+      .intro, form { padding:20px; }
+      .app-strip { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <section class="intro" aria-label="Apps Suite">
+    <div>
+      <div class="brand-mark">A</div>
+      <div class="eyebrow">Apps Suite</div>
+      <h1>Un unico acceso para tus apps.</h1>
+      <p>Entra con el usuario asignado por el administrador. Despues eliges la app segun tus accesos activos.</p>
+    </div>
+    <div class="app-strip" aria-label="Aplicaciones disponibles">
+      <div class="app-pill">DIPLOMATOR<span>Preparacion oral, temas y recitacion.</span></div>
+      <div class="app-pill">CAMBRIDGE<span>Speaking, writing y practica Cambridge.</span></div>
+      <div class="app-pill">UNIVERSIDAD +25<span>Fase general, ramas y simulacros.</span></div>
+      <div class="app-pill">ESO ADULTOS<span>Ambitos, modulos, test y examenes.</span></div>
+    </div>
+  </section>
+  <form onsubmit="login(event)">
+    <h2 class="form-title">Acceder</h2>
+    <p>Usa el mismo acceso para tus aplicaciones.</p>
+    <a class="google-button" id="googleLogin" href="/auth/google/login?next=/apps">
+      <span class="google-icon">G</span>
+      Acceder con Google
+    </a>
+    <div class="divider">o</div>
+    <label for="email">Usuario o email</label>
+    <input id="email" type="text" autocomplete="username" required>
+    <label for="password">Contrase&ntilde;a</label>
+    <input id="password" type="password" autocomplete="current-password" required>
+    <button>Entrar</button>
+    <div class="error" id="error"></div>
+  </form>
+</main>
+<script>
+function nextPath() {
+  const requested = new URLSearchParams(location.search).get('next') || '/apps';
+  return ['/app', '/cambridge', '/universidad-adultos', '/eso-adultos', '/apps'].includes(requested) ? requested : '/apps';
+}
+function applyLoginLinks() {
+  const next = nextPath();
+  const googleLogin = document.getElementById('googleLogin');
+  googleLogin.href = `/auth/google/login?next=${encodeURIComponent(next)}`;
+  if (location.hostname.includes('ngrok') || location.hostname.includes('trycloudflare')) {
+    googleLogin.hidden = true;
+    document.querySelector('.divider').hidden = true;
+  }
+  const params = new URLSearchParams(location.search);
+  const error = document.getElementById('error');
+  if (params.has('expired')) error.textContent = 'La sesion ha caducado. Vuelve a entrar.';
+  if (params.has('google_error')) error.textContent = 'No se pudo acceder con Google. Prueba de nuevo o usa usuario y contrasena.';
+}
+async function login(event) {
+  event.preventDefault();
+  const error = document.getElementById('error');
+  error.textContent = '';
+  const res = await fetch('/auth/login', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({identifier:document.getElementById('email').value.trim(), password:document.getElementById('password').value})
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.ok === false) {
+    error.textContent = data.detail || data.error || 'No se pudo iniciar sesion.';
+    return;
+  }
+  location.href = nextPath();
+}
+applyLoginLinks();
+</script>
+</body>
+</html>

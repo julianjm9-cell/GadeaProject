@@ -1,0 +1,15 @@
+{
+	email admin@example.com
+}
+
+:80 {
+	redir /admin-dashboard /admin-dashboard/
+
+	handle_path /admin-dashboard/* {
+		reverse_proxy admin:80
+	}
+
+	handle {
+		reverse_proxy backend:8000
+	}
+}

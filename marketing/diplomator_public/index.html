@@ -1,0 +1,978 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DIPLOMATOR | Preparación oral</title>
+  <meta name="description" content="DIPLOMATOR ayuda a preparar y corregir temas orales de inglés y francés para diplomacia.">
+  <style>
+    :root {
+      --ink: #171717;
+      --muted: #626262;
+      --line: #d8d1c7;
+      --paper: #fbfaf7;
+      --soft: #f1eee8;
+      --white: #ffffff;
+      --blue: #22577a;
+      --green: #2f7d62;
+      --gold: #a16f28;
+      --rust: #8f3b2f;
+      --shadow: 0 16px 38px rgba(31, 27, 22, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.5;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    .shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgba(23, 23, 23, 0.09);
+      background: rgba(251, 250, 247, 0.94);
+      backdrop-filter: blur(14px);
+    }
+
+    .topbar {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 820;
+    }
+
+    .mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: url("assets/diplomator-icon.svg") center / cover;
+      box-shadow: 0 6px 14px rgba(23, 23, 23, 0.14);
+    }
+
+    .brand-copy {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.35rem, 2.2vw, 2rem);
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand-tagline {
+      color: var(--muted);
+      font-size: clamp(0.78rem, 0.9vw, 0.9rem);
+      font-weight: 560;
+      white-space: nowrap;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+
+    .button-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    nav a:hover { color: var(--ink); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 32px;
+      padding: 0 12px;
+      border: 1px solid var(--ink);
+      border-radius: 8px;
+      background: var(--ink);
+      color: var(--white);
+      font-weight: 780;
+      white-space: nowrap;
+      box-shadow: 0 10px 24px rgba(23, 23, 23, 0.12);
+    }
+
+    .btn.secondary {
+      background: transparent;
+      color: var(--ink);
+      box-shadow: none;
+    }
+
+    .btn.blue {
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .kicker {
+      margin-bottom: 10px;
+      color: var(--gold);
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    h1, h2 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 720px;
+      margin: 0;
+      font-size: clamp(1.55rem, 2.55vw, 2.35rem);
+    }
+
+    h2 {
+      font-size: clamp(1.65rem, 3vw, 2.7rem);
+    }
+
+    .lead {
+      max-width: 660px;
+      margin: 6px 0 0;
+      color: #383838;
+      font-size: clamp(0.88rem, 1vw, 0.98rem);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .check {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: #e5f1eb;
+      color: var(--green);
+      font-weight: 900;
+      font-size: 0.78rem;
+    }
+
+    section {
+      padding: 58px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 30px;
+      margin-bottom: 26px;
+    }
+
+    .section-head p {
+      max-width: 430px;
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .feature {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.43fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .feature + .feature { margin-top: 34px; }
+
+    .feature.reversed {
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 0.43fr);
+    }
+
+    .feature.reversed .feature-text {
+      order: 2;
+    }
+
+    .feature.reversed .screenshot {
+      order: 1;
+    }
+
+    .feature-text {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      box-shadow: 0 14px 32px rgba(31, 27, 22, 0.06);
+    }
+
+    .feature-number {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.14);
+      color: var(--white);
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .feature-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 10px;
+      border: 1px solid rgba(23, 23, 23, 0.18);
+      border-radius: 8px;
+      background: linear-gradient(135deg, #243647, #17212b);
+      color: var(--white);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 12px 26px rgba(31, 27, 22, 0.12);
+    }
+
+    .feature-text h3 {
+      margin: 0;
+      font-size: 1.28rem;
+      line-height: 1.08;
+    }
+
+    .feature-text p {
+      margin: 0 0 18px;
+      color: var(--muted);
+    }
+
+    .feature-text ul {
+      display: grid;
+      gap: 9px;
+      margin: 0;
+      padding: 0;
+      color: #3e3e3e;
+      list-style: none;
+    }
+
+    .feature-text li {
+      position: relative;
+      padding-left: 30px;
+    }
+
+    .feature-text li::before {
+      content: attr(data-icon);
+      position: absolute;
+      left: 0;
+      top: 0.05em;
+      width: 20px;
+      height: 20px;
+      display: grid;
+      place-items: center;
+      border-radius: 7px;
+      background: rgba(34, 87, 122, 0.1);
+      color: var(--blue);
+      font-size: 0.74rem;
+      font-weight: 900;
+    }
+
+    .screenshot {
+      overflow: hidden;
+      min-height: 390px;
+      border: 1px solid rgba(23, 23, 23, 0.18);
+      border-radius: 8px;
+      background: #e9edf1;
+      box-shadow: 0 24px 55px rgba(23, 23, 23, 0.2);
+    }
+
+    .window-bar {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 12px;
+      border-bottom: 1px solid rgba(23, 23, 23, 0.12);
+      background: linear-gradient(180deg, #f7f8fa, #dfe4ea);
+      color: #4b5561;
+      font-size: 0.84rem;
+    }
+
+    .dots { display: flex; gap: 7px; }
+    .dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #c4c9cf;
+    }
+
+    .dots span:nth-child(1) { background: #ef6a5f; }
+    .dots span:nth-child(2) { background: #f4be4f; }
+    .dots span:nth-child(3) { background: #61c554; }
+
+    .browser-url {
+      flex: 1;
+      min-width: 0;
+      padding: 7px 11px;
+      border: 1px solid rgba(23, 23, 23, 0.1);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.72);
+      color: #53606d;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .app {
+      min-height: 344px;
+      background: #f8fafb;
+    }
+
+    .app-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--white);
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: start;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .tab {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    .app-meta {
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-align: right;
+    }
+
+    .app-body {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 16px;
+      padding: 12px;
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+    }
+
+    .label {
+      margin-bottom: 9px;
+      color: var(--gold);
+      font-size: 0.64rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .topic-title {
+      margin: 0 0 12px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.32rem;
+      line-height: 1.06;
+    }
+
+    .line {
+      height: 10px;
+      margin: 9px 0;
+      border-radius: 999px;
+      background: #ddd6cc;
+    }
+
+    .line.short { width: 58%; }
+    .line.mid { width: 78%; }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .mini-btn {
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--blue);
+      color: var(--white);
+      font-size: 0.72rem;
+      font-weight: 860;
+    }
+
+    .mini-btn.light {
+      border: 1px solid var(--line);
+      background: var(--soft);
+      color: var(--ink);
+    }
+
+    .item-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .item {
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffdf8;
+      color: #373737;
+      font-size: 0.8rem;
+      line-height: 1.45;
+    }
+
+    .item b {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--ink);
+    }
+
+    .timer {
+      display: grid;
+      place-items: center;
+      min-height: 82px;
+      border: 1px solid #e0e8e3;
+      border-radius: 8px;
+      background: #f7faf7;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 2.2rem;
+      color: var(--rust);
+    }
+
+    .textarea {
+      min-height: 88px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffdf8;
+      color: #333;
+      font-size: 0.8rem;
+      line-height: 1.55;
+    }
+
+    .correction {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .correction .item {
+      border-left: 3px solid var(--green);
+      background: var(--white);
+    }
+
+    .pricing {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 0.56fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .price-card {
+      padding: 24px;
+      border-radius: 8px;
+      background: var(--ink);
+      color: var(--white);
+      box-shadow: var(--shadow);
+    }
+
+    .price-card h2 { color: var(--white); }
+    .price {
+      margin: 18px 0 8px;
+      font-size: 2.35rem;
+      font-weight: 900;
+    }
+
+    .price-card p, .note p {
+      margin: 0;
+      color: rgba(255,255,255,0.74);
+    }
+
+    .price-card .btn {
+      width: 100%;
+      margin-top: 24px;
+      background: var(--white);
+      border-color: var(--white);
+      color: var(--ink);
+    }
+
+    .note {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+    }
+
+    .note p {
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    .faq {
+      display: grid;
+      gap: 10px;
+    }
+
+    .faq details {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      overflow: hidden;
+    }
+
+    .faq summary {
+      cursor: pointer;
+      padding: 16px 18px;
+      color: var(--ink);
+      font-weight: 820;
+      list-style: none;
+    }
+
+    .faq summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .faq summary::after {
+      content: "+";
+      float: right;
+      color: var(--blue);
+      font-weight: 900;
+    }
+
+    .faq details[open] summary::after {
+      content: "-";
+    }
+
+    .faq p {
+      margin: 0;
+      padding: 0 18px 18px;
+      color: var(--muted);
+    }
+
+    footer {
+      padding: 24px 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .footer-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .trust {
+      color: var(--ink);
+      font-weight: 820;
+    }
+
+    .social-links {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .social-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-weight: 720;
+    }
+
+    .social-link:hover {
+      color: var(--ink);
+    }
+
+    .social-icon {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 auto;
+      display: block;
+    }
+
+    @media (max-width: 920px) {
+      nav { display: none; }
+      .topbar {
+        align-items: flex-start;
+        padding: 12px 0;
+      }
+      .header-actions {
+        align-items: flex-end;
+        flex-direction: column;
+      }
+      .feature,
+      .feature.reversed,
+      .pricing {
+        grid-template-columns: 1fr;
+      }
+      .feature.reversed .feature-text,
+      .feature.reversed .screenshot {
+        order: initial;
+      }
+      .section-head {
+        display: block;
+      }
+      .section-head p {
+        margin-top: 14px;
+      }
+      .app-head {
+        grid-template-columns: 1fr;
+      }
+      .tabs {
+        justify-content: start;
+        overflow: auto;
+      }
+      .app-meta {
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 28px, 1120px); }
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+      .header-actions {
+        align-items: stretch;
+      }
+      .button-group {
+        width: 100%;
+      }
+      .button-group .btn {
+        flex: 1;
+      }
+      .hero-actions .btn { width: 100%; }
+      section { padding: 56px 0; }
+      .app-body { grid-template-columns: 1fr; padding: 12px; }
+      .screenshot { min-height: auto; }
+      .timer { font-size: 2.35rem; }
+      .feature-text,
+      .price-card,
+      .note {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header id="inicio">
+    <div class="shell topbar">
+      <a class="brand" href="#inicio" aria-label="DIPLOMATOR">
+        <span class="mark" aria-hidden="true"></span>
+        <span class="brand-copy">
+          <h1 class="brand-title">DIPLOMATOR</h1>
+          <span class="brand-tagline">Tu profesor virtual para temas orales de diplomacia en inglés y francés.</span>
+        </span>
+      </a>
+      <div class="header-actions">
+        <nav aria-label="Navegación principal">
+          <a href="#funciones">Funciones</a>
+          <a href="#precio">Proceso</a>
+          <a href="#descarga">Contacto</a>
+        </nav>
+        <div class="button-group">
+          <a class="btn blue" href="https://wa.me/34663533412?text=Hola%2C%20quiero%20ver%20DIPLOMATOR%20y%20recibir%20un%20link%20de%20prueba" target="_blank" rel="noopener">Háblame por WhatsApp</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="funciones">
+      <div class="shell">
+        <article class="feature">
+          <div class="feature-text">
+            <div class="feature-title">
+              <div class="feature-number">01</div>
+              <h3>TEMA DEL DIA</h3>
+            </div>
+            <p>Elige idioma y tema. Edita tus apuntes y guárdalos.</p>
+            <ul>
+              <li data-icon="◎">Tema diario de diplomacia y actualidad.</li>
+              <li data-icon="✎">Apuntes editables.</li>
+              <li data-icon="↺">Historial guardado.</li>
+            </ul>
+          </div>
+          <div class="screenshot" aria-label="Captura de la funcionalidad preparar tema">
+            <div class="window-bar">
+              <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="browser-url">diplomator.app/sesion-de-hoy</span>
+            </div>
+            <div class="app">
+              <div class="app-head">
+                <div class="tabs">
+                  <span class="tab active">Sesión de hoy</span>
+                  <span class="tab">Temas</span>
+                  <span class="tab">Recitar tema</span>
+                </div>
+                <div class="app-meta">English C1<br>Français C1</div>
+              </div>
+              <div class="app-body">
+                <div class="panel">
+                  <div class="label">Tema editable</div>
+                  <h3 class="topic-title">EU strategic autonomy</h3>
+                  <div class="line mid"></div>
+                  <div class="line short"></div>
+                  <div class="button-row">
+                    <span class="mini-btn">Nuevo tema aleatorio</span>
+                    <span class="mini-btn light">Elegir tema</span>
+                  </div>
+                </div>
+                <div class="panel">
+                  <div class="label">Apuntes generados por el profesor virtual</div>
+                  <div class="item-list">
+                    <div class="item"><b>01. Thesis</b>Strategic autonomy means capacity to act, not isolation from allies.</div>
+                    <div class="item"><b>02. Context</b>Ukraine, energy security and defence cooperation have changed the debate.</div>
+                    <div class="item"><b>03. Useful vocabulary</b>strategic autonomy, resilience, deterrence, transatlantic link.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="feature reversed">
+          <div class="feature-text">
+            <div class="feature-title">
+              <div class="feature-number">02</div>
+              <h3>BIBLIOTECA PERSONAL</h3>
+            </div>
+            <p>Ordena tus temas y vuelve a ellos cuando quieras.</p>
+            <ul>
+              <li data-icon="EN">English C1 y Français C1.</li>
+              <li data-icon="⌕">Búsqueda rápida.</li>
+              <li data-icon="▣">Control de temas preparados.</li>
+            </ul>
+          </div>
+          <div class="screenshot" aria-label="Captura de la sección de temas">
+            <div class="window-bar">
+              <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="browser-url">diplomator.app/biblioteca-personal</span>
+            </div>
+            <div class="app">
+              <div class="app-head">
+                <div class="tabs">
+                  <span class="tab">Sesión de hoy</span>
+                  <span class="tab active">Temas</span>
+                  <span class="tab">Recitar tema</span>
+                </div>
+                <div class="app-meta">English C1<br>Français C1</div>
+              </div>
+              <div class="app-body">
+                <div class="panel">
+                  <div class="label">Buscar tema</div>
+                  <div class="item"><b>Filtro</b>Diplomacia climática, Unión Europea, Sahel, multilateralismo...</div>
+                  <div class="button-row">
+                    <span class="mini-btn">English C1</span>
+                    <span class="mini-btn light">Français C1</span>
+                  </div>
+                </div>
+                <div class="panel">
+                  <div class="label">Biblioteca de temas</div>
+                  <div class="item-list">
+                    <div class="item"><b>Preparado</b>EU strategic autonomy</div>
+                    <div class="item"><b>Por practicar</b>La diplomatie climatique</div>
+                    <div class="item"><b>Nuevo</b>The role of the United Nations in crisis management</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="feature">
+          <div class="feature-text">
+            <div class="feature-title">
+              <div class="feature-number">03</div>
+              <h3>PRACTICA ORAL</h3>
+            </div>
+            <p>Practica, transcribe y corrige tu exposición.</p>
+            <ul>
+              <li data-icon="⏱">Temporizador de práctica.</li>
+              <li data-icon="Aa">Transcripción editable.</li>
+              <li data-icon="✓">Corrección y siguiente intento.</li>
+            </ul>
+          </div>
+          <div class="screenshot" aria-label="Captura de la funcionalidad corregir grabación">
+            <div class="window-bar">
+              <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span class="browser-url">diplomator.app/practica-oral</span>
+            </div>
+            <div class="app">
+              <div class="app-head">
+                <div class="tabs">
+                  <span class="tab">Sesión de hoy</span>
+                  <span class="tab">Temas</span>
+                  <span class="tab active">Recitar tema</span>
+                </div>
+                <div class="app-meta">Français C1<br>04:38 / 05:00</div>
+              </div>
+              <div class="app-body">
+                <div class="panel">
+                  <div class="label">Práctica oral</div>
+                  <h3 class="topic-title">La diplomatie climatique</h3>
+                  <div class="timer">04:38</div>
+                  <div class="button-row">
+                    <span class="mini-btn light">Preparar 1 min</span>
+                    <span class="mini-btn">Grabar 5 min</span>
+                    <span class="mini-btn">Transcribir</span>
+                  </div>
+                  <div class="label" style="margin-top:16px">Transcripción</div>
+                  <div class="textarea">La diplomatie climatique est devenue un instrument central de politique étrangère. Elle permet aux Etats de défendre leurs intérêts tout en construisant des coalitions...</div>
+                </div>
+                <div class="panel">
+                  <div class="label">Corrección de la grabación</div>
+                  <div class="correction">
+                    <div class="item"><b>Resumen</b>Buena idea central, pero falta anunciar la estructura al principio.</div>
+                    <div class="item"><b>Correcciones prioritarias</b>Evita repetir "important" y añade un ejemplo concreto: COP28, UE o Acuerdo de París.</div>
+                    <div class="item"><b>Versión mejorada</b>"La diplomatie climatique est désormais un levier d'influence, de coopération et de crédibilité internationale."</div>
+                    <div class="item"><b>Siguiente práctica</b>Repite con tres partes: problema, actores y consecuencia diplomática.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="precio">
+      <div class="shell pricing">
+        <div class="price-card">
+          <div class="kicker">Proceso simple</div>
+          <h2>Háblame por WhatsApp y te mando un link de prueba.</h2>
+          <div class="price">15 EUR/mes</div>
+          <p>Sin descarga pública ni prueba automática.</p>
+          <a class="btn" href="https://wa.me/34663533412?text=Hola%2C%20quiero%20ver%20DIPLOMATOR%20y%20recibir%20un%20link%20de%20prueba" target="_blank" rel="noopener">Háblame por WhatsApp</a>
+        </div>
+        <aside class="note">
+          <div class="kicker">Contacto</div>
+          <h3 id="descarga">Te mando un link de prueba</h3>
+          <p>Escríbeme al 663 533 412 y lo vemos juntos.</p>
+          <div class="hero-actions">
+            <a class="btn secondary" href="https://wa.me/34663533412?text=Hola%2C%20quiero%20ver%20DIPLOMATOR%20y%20recibir%20un%20link%20de%20prueba" target="_blank" rel="noopener">WhatsApp: 663 533 412</a>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <div class="kicker">Preguntas frecuentes</div>
+            <h2>Antes de empezar</h2>
+          </div>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>¿Qué diferencia a esto de ChatGPT?</summary>
+            <p>ChatGPT es generalista. DIPLOMATOR ya trae el flujo de tema, biblioteca y práctica oral.</p>
+          </details>
+          <details>
+            <summary>¿Necesito conexión a internet?</summary>
+            <p>Para usar IA, sí. Tus temas se guardan localmente.</p>
+          </details>
+          <details>
+            <summary>¿Cuándo pago?</summary>
+            <p>Después de verlo e instalarlo contigo, si decides quedártelo.</p>
+          </details>
+          <details>
+            <summary>¿Hay descarga pública?</summary>
+            <p>No. Escríbeme por WhatsApp y te mando un link de prueba.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footer-row">
+      <span class="trust">Fíate de mí</span>
+      <div class="social-links" aria-label="Contacto">
+        <a class="social-link" href="https://wa.me/34663533412?text=Hola%2C%20quiero%20ver%20DIPLOMATOR%20y%20recibir%20un%20link%20de%20prueba" target="_blank" rel="noopener">
+          <svg class="social-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#25D366" d="M20.52 3.48A11.8 11.8 0 0 0 12.12 0C5.55 0 .2 5.34.2 11.91c0 2.1.55 4.16 1.6 5.97L0 24l6.28-1.65a11.9 11.9 0 0 0 5.84 1.49h.01c6.57 0 11.91-5.34 11.92-11.91a11.82 11.82 0 0 0-3.53-8.45Zm-8.4 18.35h-.01a9.9 9.9 0 0 1-5.04-1.38l-.36-.21-3.73.98.99-3.63-.24-.37a9.86 9.86 0 0 1-1.51-5.31c0-5.45 4.44-9.89 9.9-9.89a9.82 9.82 0 0 1 7 2.9 9.83 9.83 0 0 1 2.9 7.01c-.01 5.46-4.45 9.9-9.9 9.9Zm5.43-7.41c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.21 5.09 4.5.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35Z"/>
+          </svg>
+          663 533 412
+        </a>
+        <a class="social-link" href="https://www.linkedin.com/in/julianjimenezmoreno/" target="_blank" rel="noopener">
+          <svg class="social-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#0A66C2" d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.95v5.66H9.34V9h3.42v1.56h.05c.48-.91 1.64-1.87 3.37-1.87 3.61 0 4.27 2.38 4.27 5.47v6.29ZM5.32 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.1 20.45H3.54V9H7.1v11.45ZM22.23 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.46c.98 0 1.77-.77 1.77-1.72V1.72C24 .77 23.21 0 22.23 0Z"/>
+          </svg>
+          LinkedIn
+        </a>
+        <a class="social-link" href="mailto:julianjm9@gmail.com">
+          <svg class="social-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#EA4335" d="M12 13.7 2 6.35V18a2 2 0 0 0 2 2h2V10.9l6 4.42 6-4.42V20h2a2 2 0 0 0 2-2V6.35L12 13.7Z"/>
+            <path fill="#FBBC04" d="M2 6.35 6 9.3V4H4a2 2 0 0 0-2 2v.35Z"/>
+            <path fill="#34A853" d="M18 20h2a2 2 0 0 0 2-2V6.35L18 9.3V20Z"/>
+            <path fill="#4285F4" d="M18 4v5.3l4-2.95V6a2 2 0 0 0-2-2h-2Z"/>
+            <path fill="#C5221F" d="M6 9.3 12 13.7 18 9.3V4L12 8.4 6 4v5.3Z"/>
+          </svg>
+          julianjm9@gmail.com
+        </a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
+
+

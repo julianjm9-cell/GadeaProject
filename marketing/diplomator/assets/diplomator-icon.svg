@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Diplomator icon">
+  <rect width="128" height="128" rx="28" fill="#111111"/>
+  <circle cx="64" cy="43" r="19" fill="#ffffff"/>
+  <path d="M29 105c4-28 17-43 35-43s31 15 35 43" fill="#ffffff"/>
+  <path d="M48 72l16 24 16-24" fill="#111111"/>
+  <path d="M46 37c8-17 31-18 39-1" stroke="#111111" stroke-width="7" stroke-linecap="round"/>
+  <path d="M43 106h42" stroke="#111111" stroke-width="6" stroke-linecap="round"/>
+</svg>

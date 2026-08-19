@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ACCESO ESO ADULTOS | Graduado ESO con estudio guiado</title>
+  <meta name="description" content="App para preparar la ESO de adultos con sesiones cortas, biblioteca por asignaturas, tests, generador de examenes con IA y progreso simple.">
+  <meta name="robots" content="index,follow">
+  <meta property="og:title" content="ACCESO ESO ADULTOS">
+  <meta property="og:description" content="Una forma sencilla de estudiar la ESO para personas adultas con poco tiempo.">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="demo-shared.css">
+</head>
+<body data-app="eso" data-theme="rust">
+  <div class="page">
+    <header class="topbar">
+      <a class="brand" href="#inicio"><span class="logo">E25</span><span>ACCESO ESO ADULTOS</span></a>
+      <nav class="nav"><a href="#funciones">Funciones</a><a href="#explora">Preview</a><a href="#preguntas">Preguntas</a><a class="nav-login" href="/login?next=/eso-adultos">Acceder</a><button type="button" data-request-demo>Solicitar demo</button></nav>
+    </header>
+    <main>
+      <section class="hero" id="inicio">
+        <div>
+          <div class="eyebrow">Preparacion Graduado ESO para adultos</div>
+          <h1>Prepara la ESO de adultos paso a paso.</h1>
+          <p class="lead">Estudio guiado para la prueba de Graduado en ESO: hoy, asignaturas, tests, examenes con IA y progreso.</p>
+          <div class="actions"><a class="btn primary" href="#explora">Ver como funciona</a><a class="btn" href="/login?next=/eso-adultos">Acceder</a><button class="btn" type="button" data-request-demo>Solicitar acceso</button></div>
+          <div class="features" id="funciones">
+            <article class="feature"><b>Sesion de hoy</b><p>El siguiente paso claro.</p></article>
+            <article class="feature"><b>Asignaturas</b><p>Temas ordenados.</p></article>
+            <article class="feature"><b>Tests</b><p>Practica y completa.</p></article>
+            <article class="feature"><b>Examenes con IA</b><p>Rapidos o tipo prueba real.</p></article>
+          </div>
+        </div>
+        <aside class="product-card">
+          <p class="function-card-title">Funcionalidades</p>
+          <div class="function-list">
+            <button class="function-item" type="button" data-jump-screen="hoy"><span class="dot">HOY</span><span><strong>Sesion de hoy</strong><small>Plan de 15, 30 o 45 minutos.</small></span></button>
+            <button class="function-item" type="button" data-jump-screen="biblioteca"><span class="dot">BIB</span><span><strong>Biblioteca por asignaturas</strong><small>Lengua, social, matematicas y ciencias.</small></span></button>
+            <button class="function-item" type="button" data-jump-screen="examen"><span class="dot">IA</span><span><strong>Generador de examenes con IA</strong><small>Practicas rapidas, modelos e historial.</small></span></button>
+            <button class="function-item" type="button" data-jump-screen="progreso"><span class="dot">%</span><span><strong>Progreso visual</strong><small>Camino por tareas completadas.</small></span></button>
+          </div>
+        </aside>
+      </section>
+      <section id="explora">
+        <div class="eyebrow">Demo simple</div><h2>Asi se organiza el estudio dentro de la app.</h2>
+        <div class="device-mockup">
+          <div class="device-chrome"><span></span><span></span><span></span><strong>Preview de la app</strong></div>
+          <div class="explore">
+            <div class="appbar"><div class="app-title"><span class="mini-logo">E25</span><span>ACCESO ESO ADULTOS</span></div><div class="tabs"><button class="tab" data-screen="hoy">HOY</button><button class="tab" data-screen="biblioteca">BIBLIOTECA</button><button class="tab" data-screen="examen">EXAMEN</button><button class="tab" data-screen="progreso">PROGRESO</button></div></div>
+            <div class="demo-layout"><div class="demo-main"><div class="screen-head"><div><h3 id="demoTitle"></h3><p class="lead">El alumno entra, elige una seccion y sigue el siguiente paso.</p></div><span class="status-pill" id="demoBadge"></span></div><div id="demoContent"></div></div></div>
+            <div class="notice">ESTO ES UNA DEMO VISUAL. NO GENERA CONTENIDO, NO CORRIGE Y NO CONECTA CON IA.</div>
+          </div>
+        </div>
+      </section>
+      <section id="preguntas">
+        <div class="eyebrow">Preguntas frecuentes</div><h2>Antes de empezar.</h2>
+        <div class="faq-grid">
+          <details class="faq-item" open><summary>Por que elegir esto en vez de una IA tipica?</summary><p>Porque una IA normal responde a lo que le pidas, pero no te ordena el estudio. Esta app ya viene pensada para la prueba de ESO de adultos: sesion de hoy, asignaturas, temas, tests, generador de examenes con IA y progreso en un mismo flujo.</p></details>
+          <details class="faq-item"><summary>Sirve para personas con poco tiempo?</summary><p>Si. La idea es entrar, elegir una sesion corta y saber cual es el siguiente paso sin tener que preparar prompts ni buscar materiales cada dia.</p></details>
+          <details class="faq-item"><summary>Genera examenes con IA?</summary><p>Si, la version completa permite crear practicas y modelos de examen adaptados a temas concretos. Esta pagina solo muestra una demo visual.</p></details>
+          <details class="faq-item"><summary>Que diferencia hay con estudiar por apuntes sueltos?</summary><p>Aqui todo queda organizado por asignaturas, temas, tests, examenes e historial. El alumno ve lo que ha hecho y lo que falta.</p></details>
+        </div>
+      </section>
+    </main>
+    <footer>Pagina estatica de presentacion para ACCESO ESO ADULTOS.</footer>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="demo-shared.js"></script>
+</body>
+</html>

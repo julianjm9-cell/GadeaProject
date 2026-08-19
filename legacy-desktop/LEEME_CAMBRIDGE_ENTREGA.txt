@@ -1,0 +1,28 @@
+CAMBRIDGE TRAINER - ENTREGA A USUARIA
+=================================
+
+Forma recomendada:
+1. Envia el archivo CambridgeTrainer_Portable.zip.
+2. La usuaria debe descomprimirlo en una carpeta propia, por ejemplo:
+   Documentos\CambridgeTrainer
+3. Debe abrir CambridgeTrainer.exe.
+4. La aplicación abrira el navegador automáticamente.
+
+Datos de la usuaria:
+- Al primer uso se crea CambridgeTrainer_Data junto al ejecutable.
+- Esa carpeta contiene historial, configuración, licencia, exportaciones y backups.
+- Para actualizar la app en el futuro, reemplaza la carpeta de la aplicación pero conserva
+  CambridgeTrainer_Data si quiere mantener sus datos.
+- La clave CAMBRIDGE TRAINER debe configurarse en la pantalla Configuración de la app.
+- No metas tu API key privada de OpenAI/Groq dentro de la app. La API key va en el servidor.
+
+Aviso de Windows:
+- Si aparece "Windows protegió su PC", pulsar "Más información" y luego
+  "Ejecutar de todas formas".
+- Esto puede pasar porque la app no está firmada digitalmente, no porque sea virus.
+
+Para evitar avisos de antivirus o SmartScreen:
+- Lo ideal es firmar digitalmente el ejecutable con un certificado de firma de codigo.
+- También ayuda distribuir la app como ZIP, no como adjunto EXE directo.
+- Si se manda por email, algunos proveedores bloquean EXE. Usa ZIP o un enlace de descarga.
+

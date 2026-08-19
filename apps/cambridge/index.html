@@ -1,0 +1,3629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cambridge Trainer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap');
+
+  :root {
+    --ink: #102a43;
+    --muted: #526879;
+    --paper: #eef8f7;
+    --cream: #ffffff;
+    --gold: #00a896;
+    --rust: #e76f51;
+    --sage: #2a9d8f;
+    --blue: #3157d5;
+    --blue-light: #e7fbf7;
+    --border: #c6e3df;
+    --shadow: rgba(16, 42, 67, 0.11);
+    --point-size: 0.83rem;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Mono', monospace;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    border-bottom: 1px solid #e6ece8;
+    padding: 10px 34px;
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) minmax(280px, 0.8fr) minmax(250px, 0.8fr);
+    align-items: center;
+    gap: 16px;
+    background: rgba(247,253,252,0.96);
+    position: sticky;
+    top: 0;
+    z-index: 140;
+    box-shadow: 0 8px 24px rgba(17,24,39,0.06);
+    backdrop-filter: blur(10px);
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .brand-word {
+    position:relative;
+    display:inline-flex;
+    align-items:baseline;
+    gap:1px;
+    color:var(--ink);
+    text-shadow:0 1px 0 rgba(255,255,255,0.9);
+  }
+  .brand-word .brand-initial { color:var(--blue); font-style:italic; font-size:1.18em; }
+  .brand-word::after {
+    content:'';
+    position:absolute;
+    left:0.18em;
+    right:0.34em;
+    bottom:-0.18em;
+    height:2px;
+    background:linear-gradient(90deg,var(--blue),var(--gold),#7c3aed);
+    opacity:0.72;
+  }
+  .brand-area { display:flex; align-items:center; gap:12px; min-width:0; flex-wrap:wrap; }
+
+  .lang-switcher { display: flex; gap: 3px; background: #e9fbf7; border: 1px solid #bde6df; padding: 2px; border-radius: 999px; }
+
+  .lang-btn {
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.9rem; letter-spacing: 0;
+    border: none; background: transparent; color: #888;
+    width:30px; height:28px; padding:0; cursor: pointer; transition: all 0.15s; font-weight: 500; border-radius: 999px;
+  }
+  .lang-btn.active { background: var(--ink); color: white; box-shadow:0 5px 14px rgba(17,24,39,0.12); }
+  .topic-header-btn {
+    font-family:'IBM Plex Mono',monospace; font-size:0.64rem; letter-spacing:0.08em; text-transform:uppercase;
+    border:1px solid #d8c38f; background:#fff8e8; color:#8a661e; padding:8px 12px;
+    border-radius:999px; cursor:pointer; transition:all 0.16s; font-weight:600; white-space:nowrap;
+  }
+  .topic-header-btn:hover { border-color:var(--gold); color:var(--ink); background:#fff3d3; }
+  .topic-header-btn.active { background:var(--gold); border-color:var(--gold); color:white; box-shadow:0 8px 18px rgba(199,146,47,0.22); }
+
+  .main-actions { justify-self:center; display:flex; gap:8px; padding:4px; border:1px solid var(--border); background:#f0f3f1; border-radius:12px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.8); }
+  .nav-pill {
+    font-family:'IBM Plex Mono',monospace; font-size:0.68rem; letter-spacing:0; text-transform:uppercase;
+    border:1px solid transparent; background:transparent; color:var(--muted); padding:10px 16px;
+    border-radius:9px; cursor:pointer; transition:all 0.16s; font-weight:500; white-space:nowrap;
+  }
+  .nav-pill:hover { color:var(--ink); background:rgba(255,255,255,0.7); }
+  .nav-pill.active { background:var(--ink); color:white; box-shadow:0 8px 18px rgba(17,24,39,0.14); }
+  .header-right { justify-self:end; display:flex; align-items:center; gap:12px; min-width:0; }
+  .header-meta { font-size:0.62rem; color:var(--muted); letter-spacing:0; text-transform:uppercase; line-height:1.55; text-align:right; white-space:nowrap; }
+  .profile-mini {
+    width:42px; height:42px; border-radius:12px; border:1px solid #cfe0f7; background:var(--blue-light);
+    color:var(--blue); display:grid; place-items:center; cursor:pointer; transition:all 0.16s;
+    font-size:1.05rem; line-height:1;
+  }
+  .cambridge-icon { width:74%; height:74%; display:block; }
+  .cambridge-icon .skin { fill:#e8c7a4; }
+  .cambridge-icon .hair, .cambridge-icon .suit { fill:var(--ink); }
+  .cambridge-icon .shirt { fill:white; }
+  .cambridge-icon .tie { fill:var(--blue); }
+  .cambridge-icon .line { stroke:currentColor; stroke-width:1.8; stroke-linecap:round; fill:none; opacity:0.55; }
+  .profile-mini:hover, .profile-mini.active { background:var(--blue); color:white; border-color:var(--blue); box-shadow:0 8px 18px rgba(36,84,166,0.22); }
+  .utility-links { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  #tab-perfil > .notice, #tab-perfil > .config-row, #tab-perfil .utility-links { display:none; }
+  main { max-width: min(1680px, calc(100vw - 28px)); margin: 0 auto; padding: 26px 24px 44px; }
+
+  .tab { display: none; }
+  .tab.active { display: block; }
+
+  /* SESSION */
+  .session-empty { text-align: center; padding: 70px 40px; border: 1px solid var(--border); background:white; border-radius: 8px; box-shadow: 0 12px 36px rgba(17,24,39,0.06); }
+  .session-empty .icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
+  .session-empty h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; margin-bottom: 8px; }
+  .session-empty p { font-size: 0.78rem; color: #888; margin-bottom: 28px; }
+
+  .btn {
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; letter-spacing: 0;
+    text-transform: uppercase; border: 2px solid var(--ink); background: var(--ink);
+    color: var(--paper); padding: 12px 24px; cursor: pointer; transition: all 0.15s; font-weight: 500;
+    border-radius: 7px;
+    min-height: 44px;
+  }
+  .btn:hover { background: var(--blue); border-color: var(--blue); color:white; }
+  .btn:disabled { opacity:0.45; cursor:not-allowed; transform:none; }
+  .btn-outline { background: transparent; color: var(--ink); }
+  .btn-outline:hover { background: var(--ink); color: var(--paper); }
+  .btn-small { font-size: 0.65rem; padding: 6px 12px; border-width: 1.5px; }
+  .btn-accept { border-color: var(--sage); background: var(--sage); color: white; }
+  .btn-accept:hover { background: #3a5431; border-color: #3a5431; }
+  .btn-danger { border-color: var(--rust); background: transparent; color: var(--rust); }
+  .btn-danger:hover { background: var(--rust); color: white; }
+  .btn-blue { border-color: var(--blue); background: var(--blue); color: white; }
+  .btn-blue:hover { background: #1a3a6a; border-color: #1a3a6a; }
+
+  .session-active { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  .session-header {
+    display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:24px;
+    padding:16px 18px; border:1px solid var(--border); background:rgba(255,255,255,0.96);
+    position:relative; z-index:1; box-shadow:0 10px 28px rgba(17,24,39,0.08); border-radius: 8px;
+  }
+  .session-date { font-size:0.65rem; color:var(--gold); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:6px; }
+  .session-topic { font-family:'Playfair Display',serif; font-size:1.9rem; line-height:1.15; max-width:650px; }
+  .session-lang-badge { font-size:0.6rem; letter-spacing:0.12em; text-transform:uppercase; padding:3px 10px; border:1px solid var(--blue); color:var(--blue); margin-top:8px; display:inline-block; }
+
+  .point-row { display:grid; grid-template-columns:minmax(0,1fr) 12px minmax(180px,var(--vocab-col-width,270px)); gap:0; margin-bottom:12px; animation:slideIn 0.3s ease; align-items:stretch; }
+  @keyframes slideIn { from { opacity:0; transform:translateX(-6px); } to { opacity:1; transform:translateX(0); } }
+
+  .point-card { display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border:1px solid var(--border); background:white; transition:all 0.2s; border-radius:8px; }
+  .point-card.accepted { border-color:var(--sage); background:#f0f5ef; }
+  .point-card.manual { border-color:var(--gold); background:#fdf8ef; }
+
+  .point-num { font-size:0.62rem; color:var(--gold); font-weight:500; min-width:22px; padding-top:2px; flex-shrink:0; }
+  .point-body { flex:1; min-width:0; }
+  .point-title { font-family:'Playfair Display',serif; font-size:1rem; line-height:1.25; color:var(--ink); margin-bottom:7px; }
+  .point-text { font-size: var(--point-size); line-height:1.75; color:var(--ink); }
+  .point-info { margin-top:10px; padding-top:8px; border-top:1px solid rgba(26,26,24,0.09); font-size:0.72rem; line-height:1.6; color:#555; }
+  .point-info-item { margin-bottom:5px; }
+  .point-info-date { color:var(--gold); font-weight:500; }
+  .point-actions { display:flex; gap:5px; flex-shrink:0; flex-direction:column; align-items:flex-end; }
+
+  .point-badge { font-size:0.52rem; letter-spacing:0.12em; text-transform:uppercase; padding:2px 7px; border-radius:1px; font-weight:500; }
+  .badge-ai { background:#e8eaf6; color:#3949ab; }
+  .badge-manual { background:#fff8e1; color:#f57c00; }
+  .badge-saved { background:#e8f5e9; color:#388e3c; }
+
+  .point-card { margin-right:10px; }
+  .vocab-card { border:1px solid var(--blue); background:var(--blue-light); padding:12px 14px; font-size:0.74rem; line-height:1.6; border-radius:6px; min-width:0; }
+  .vocab-resizer {
+    width:12px;
+    cursor:col-resize;
+    position:relative;
+    align-self:stretch;
+    touch-action:none;
+  }
+  .vocab-resizer::before {
+    content:'';
+    position:absolute;
+    top:8px;
+    bottom:8px;
+    left:5px;
+    width:2px;
+    border-radius:999px;
+    background:rgba(36,84,166,0.16);
+    transition:background 0.15s, width 0.15s, left 0.15s;
+  }
+  .vocab-resizer:hover::before,
+  .vocab-resizer.dragging::before {
+    left:4px;
+    width:4px;
+    background:var(--gold);
+  }
+  .vocab-label { font-size:0.58rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--blue); font-weight:500; margin-bottom:8px; }
+  .vocab-item { padding:5px 0; border-bottom:1px solid rgba(42,74,122,0.12); }
+  .vocab-item:last-child { border-bottom:none; }
+  .vocab-word { font-weight:500; color:var(--blue); }
+  .vocab-def { font-size:0.68rem; color:#555; }
+  .vocab-loading { font-size:0.68rem; color:#aaa; font-style:italic; text-align:center; padding:8px; }
+
+  .section-label { font-size:0.62rem; letter-spacing:0.18em; text-transform:uppercase; color:#999; margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+  .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+  .points-section { margin-bottom:30px; }
+  #tab-sesion { max-width:min(1640px, calc(100vw - 20px)); margin:0 auto; }
+  .loading-bar { height:2px; background:linear-gradient(90deg,var(--gold),var(--rust),var(--gold)); background-size:200% 100%; animation:shimmer 1.5s infinite; margin:16px 0; }
+  @keyframes shimmer { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+  .loading-text { font-size:0.7rem; color:#999; letter-spacing:0.1em; text-align:center; padding:8px; }
+
+  .add-point-row { display:flex; gap:10px; margin-top:14px; align-items:flex-start; }
+  .add-point-row textarea { flex:1; font-family:'IBM Plex Mono',monospace; font-size:0.8rem; padding:10px 14px; border:1.5px solid var(--border); background:white; color:var(--ink); resize:vertical; min-height:56px; outline:none; transition:border-color 0.2s; }
+  .add-point-row textarea:focus { border-color:var(--gold); }
+  .manual-point-form { display:grid; grid-template-columns:1fr; gap:8px; flex:1; }
+  .manual-point-form input, .manual-point-form textarea, .recite-input {
+    font-family:'IBM Plex Mono',monospace; font-size:0.78rem; padding:10px 14px;
+    border:1.5px solid var(--border); background:white; color:var(--ink); outline:none;
+  }
+  .manual-point-form textarea { resize:vertical; min-height:56px; }
+  .manual-point-form input:focus, .manual-point-form textarea:focus, .recite-input:focus { border-color:var(--gold); }
+
+  /* TOPICS NEW DESIGN */
+  .topics-search-bar { display:flex; gap:10px; margin-bottom:20px; align-items:center; flex-wrap:wrap; }
+  .topics-search-bar input { flex:1; font-family:'IBM Plex Mono',monospace; font-size:0.8rem; padding:9px 14px; border:1.5px solid var(--border); background:white; color:var(--ink); outline:none; min-width:200px; }
+  .topics-search-bar input:focus { border-color:var(--gold); }
+
+  .topic-filter-row { display:flex; align-items:center; gap:10px; padding:14px 0 4px; flex-wrap:wrap; }
+  .topic-filter-row label { font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--blue); font-weight:500; }
+  .topic-category-select { min-width:280px; flex:1; max-width:560px; border:1.5px solid var(--border); background:white; color:var(--ink); font-family:'IBM Plex Mono',monospace; font-size:0.72rem; padding:9px 12px; outline:none; }
+  .topic-category-select:focus { border-color:var(--gold); }
+
+  /* Category sub-tabs */
+  .cat-tabs { display:flex; gap:4px; flex-wrap:wrap; padding:14px 0 10px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+  .cat-tab-btn { font-family:'IBM Plex Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; border:1.5px solid var(--border); background:white; color:#888; padding:4px 12px; cursor:pointer; transition:all 0.15s; }
+  .cat-tab-btn.active { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .cat-tab-btn:hover:not(.active) { border-color:var(--gold); color:var(--ink); }
+
+  .topics-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:8px; }
+
+  .topic-item {
+    display:flex; align-items:center; gap:8px; padding:9px 13px;
+    border:1px solid var(--border); background:white; font-size:0.76rem;
+    cursor:pointer; transition:all 0.15s; line-height:1.4; user-select:none; border-radius:5px;
+  }
+  .topic-item:hover { border-color:var(--gold); background:#fdf8ef; }
+  .topic-item.done { border-color:var(--sage); background:#f0f5ef; color:#3a5431; }
+  .topic-item.done::before { content:'✓'; font-size:0.6rem; color:var(--sage); flex-shrink:0; font-weight:700; }
+  .topic-item:not(.done)::before { content:''; width:0.6rem; flex-shrink:0; }
+  .topic-num { font-size:0.55rem; color:#bbb; min-width:24px; flex-shrink:0; }
+  .topic-item.done .topic-num { color:var(--sage); }
+
+  .topic-count { font-size:0.65rem; color:#999; letter-spacing:0.08em; }
+
+  /* HISTORY */
+  .history-entry { border:1px solid var(--border); margin-bottom:14px; background:white; border-radius:6px; overflow:hidden; }
+  .history-entry-header { display:flex; align-items:baseline; gap:12px; padding:14px 18px; cursor:pointer; border-bottom:1px solid transparent; transition:background 0.15s; user-select:none; }
+  .history-entry-header:hover { background:var(--cream); }
+  .history-entry.open .history-entry-header { border-bottom-color:var(--border); }
+  .history-date { font-size:0.65rem; color:var(--gold); letter-spacing:0.12em; }
+  .history-topic { font-family:'Playfair Display',serif; font-size:1rem; flex:1; }
+  .history-count { font-size:0.65rem; color:#aaa; }
+  .history-toggle { font-size:0.65rem; color:#aaa; }
+  .history-body { display:none; padding:16px 18px; }
+  .history-entry.open .history-body { display:block; }
+
+  .history-point-row { display:grid; grid-template-columns:1fr 250px; gap:10px; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid #f0ece4; }
+  .history-point-row:last-of-type { border-bottom:none; }
+  .history-point-card { display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid var(--border); background:var(--paper); font-size:0.78rem; line-height:1.55; }
+  .inline-point-editor { display:grid; gap:7px; }
+  .inline-point-title {
+    width:100%; border:1px solid transparent; background:transparent; color:var(--blue);
+    font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; padding:4px 6px; outline:none;
+  }
+  .inline-point-title:focus, .inline-point-text:focus, .inline-point-info:focus {
+    border-color:var(--gold); background:white; box-shadow:0 0 0 3px rgba(199,146,47,0.12);
+  }
+  .inline-point-text {
+    min-height:58px; border:1px solid transparent; background:transparent; padding:7px 8px; border-radius:6px; outline:none;
+  }
+  .inline-point-info {
+    width:100%; min-height:54px; resize:vertical; border:1px solid transparent; background:rgba(255,255,255,0.45);
+    padding:7px 8px; border-radius:6px; outline:none; font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:#58656a;
+  }
+  .inline-point-hint { font-size:0.58rem; letter-spacing:0.08em; text-transform:uppercase; color:#9a9388; }
+  .history-vocab-card { border:1px solid var(--blue); background:var(--blue-light); padding:10px 12px; font-size:0.72rem; line-height:1.5; }
+  .history-action-bar { display:flex; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); flex-wrap:wrap; }
+  textarea.inline-edit { width:100%; font-family:'IBM Plex Mono',monospace; font-size:0.78rem; padding:8px 10px; border:1.5px solid var(--gold); background:white; color:var(--ink); resize:vertical; min-height:60px; outline:none; }
+
+  .empty-msg { font-size:0.75rem; color:#bbb; text-align:center; padding:28px; letter-spacing:0.05em; }
+
+  /* CONFIG */
+  .config-row { display:flex; align-items:center; gap:14px; margin-bottom:10px; font-size:0.78rem; }
+  .config-row label { min-width:210px; color:#666; }
+  .config-row input[type=number] { font-family:'IBM Plex Mono',monospace; font-size:0.8rem; width:70px; padding:6px 10px; border:1.5px solid var(--border); background:white; outline:none; text-align:center; }
+  .config-row input[type=number]:focus { border-color:var(--gold); }
+  .config-row input[type=range] { flex:1; max-width:200px; accent-color:var(--gold); }
+
+  .api-input { flex:1; font-family:'IBM Plex Mono',monospace; font-size:0.75rem; padding:8px 12px; border:1.5px solid var(--border); background:white; outline:none; color:var(--ink); }
+  .api-input:focus { border-color:var(--gold); }
+  .profile-card {
+    display:grid;
+    grid-template-columns:72px minmax(0,1fr);
+    gap:18px;
+    align-items:start;
+    border:1px solid var(--border);
+    background:white;
+    border-radius:8px;
+    padding:22px;
+    box-shadow:0 14px 36px rgba(17,24,39,0.07);
+    margin-bottom:24px;
+  }
+  .profile-avatar {
+    width:72px;
+    height:72px;
+    border-radius:18px;
+    display:grid;
+    place-items:center;
+    background:var(--blue-light);
+    border:1px solid #cfe0f7;
+    color:var(--blue);
+    font-family:'Playfair Display',serif;
+    font-size:2rem;
+    font-weight:700;
+  }
+  .profile-title { font-family:'Playfair Display',serif; font-size:1.65rem; line-height:1.1; margin-bottom:6px; }
+  .profile-subtitle { color:var(--muted); font-size:0.78rem; line-height:1.6; margin-bottom:14px; overflow-wrap:anywhere; }
+  .profile-name-row { display:flex; gap:8px; align-items:center; margin:10px 0 4px; }
+  .profile-name-input {
+    flex:1;
+    min-width:0;
+    border:1.5px solid var(--border);
+    background:white;
+    border-radius:7px;
+    padding:9px 11px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.78rem;
+    color:var(--ink);
+    outline:none;
+  }
+  .profile-name-input:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(199,146,47,0.12); }
+  .profile-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:16px 0; }
+  .profile-stat { border:1px solid var(--border); background:var(--paper); border-radius:8px; padding:12px; }
+  .profile-stat span { display:block; font-size:0.58rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .profile-stat strong { display:block; font-size:0.86rem; color:var(--ink); overflow-wrap:anywhere; }
+  .profile-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; align-items:stretch; }
+  .profile-actions .btn { width:100%; }
+  .profile-history-panel {
+    display:none; grid-column:1 / -1; border:1px solid #d9e4f5; background:#f8fbff;
+    border-radius:8px; padding:14px; margin-top:14px;
+  }
+  .profile-history-panel.open { display:block; }
+  .profile-history-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:12px; }
+  .profile-history-stat { border:1px solid var(--border); background:white; border-radius:8px; padding:10px; }
+  .profile-history-stat span { display:block; font-size:0.56rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+  .profile-history-stat strong { font-size:0.9rem; color:var(--ink); }
+  .profile-history-list { display:grid; gap:8px; max-height:300px; overflow:auto; padding-right:4px; }
+  .profile-history-day { border:1px solid var(--border); background:white; border-radius:8px; padding:10px 12px; }
+  .profile-history-date { font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:5px; }
+  .profile-history-topic { font-family:'Playfair Display',serif; font-size:0.98rem; line-height:1.25; color:var(--ink); }
+  .profile-history-meta { font-size:0.66rem; color:var(--muted); margin-top:5px; }
+  @media (max-width:760px) {
+    .profile-card { grid-template-columns:1fr; }
+    .profile-grid { grid-template-columns:1fr; }
+    .profile-history-summary { grid-template-columns:1fr; }
+  }
+
+  .notice { font-size:0.7rem; color:var(--rust); line-height:1.7; padding:12px 16px; border:1px solid #f0d0c0; background:#fff8f5; margin-bottom:16px; }
+  .correction-report { color:var(--ink); background:#fffdf8; border-color:#eadfcf; padding:0; overflow:hidden; }
+  .correction-section { padding:14px 16px; border-bottom:1px solid #eadfcf; }
+  .correction-section:last-child { border-bottom:none; }
+  .correction-heading { font-family:'Playfair Display',serif; font-size:1rem; color:var(--blue); margin:0 0 8px; line-height:1.2; }
+  .correction-section ul { margin:0; padding-left:18px; }
+  .correction-section li { margin:6px 0; color:#444; }
+  .correction-section p { margin:6px 0; color:#444; line-height:1.7; }
+  .correction-quote { margin-top:8px; padding:10px 12px; border-left:3px solid var(--gold); background:white; font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:#333; line-height:1.65; }
+  .success-notice { font-size:0.7rem; color:var(--sage); line-height:1.6; padding:10px 14px; border:1px solid #c8e6c9; background:#f1f8f0; margin-bottom:16px; }
+  .db-notice { font-size:0.68rem; color:var(--blue); line-height:1.6; padding:10px 14px; border:1px solid #b0c4e8; background:var(--blue-light); margin-bottom:14px; }
+  #tab-recitar { max-width:min(1280px, calc(100vw - 32px)); margin:0 auto; }
+  #tab-escrita { max-width:min(1280px, calc(100vw - 32px)); margin:0 auto; }
+  .writing-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(300px,0.7fr); gap:18px; align-items:start; }
+  .writing-panel { border:1px solid var(--border); background:white; padding:18px; border-radius:8px; box-shadow:0 12px 28px rgba(16,42,67,0.06); }
+  .writing-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .writing-field { margin-bottom:12px; }
+  .writing-field label { display:block; font-size:0.66rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--blue); margin-bottom:6px; }
+  .writing-select, .writing-input, .writing-textarea { width:100%; font-family:'IBM Plex Mono',monospace; border:1.5px solid var(--border); border-radius:7px; padding:10px 12px; background:#fbfffe; color:var(--ink); outline:none; }
+  .writing-textarea { min-height:170px; resize:vertical; line-height:1.65; }
+  .writing-textarea.answer { min-height:260px; }
+  .writing-select:focus, .writing-input:focus, .writing-textarea:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(0,168,150,0.14); }
+  .writing-ocr-box { border:1px solid var(--border); background:#f6fbfa; border-radius:8px; padding:14px; margin:2px 0 14px; }
+  .writing-ocr-row { display:grid; grid-template-columns:minmax(170px,1fr) minmax(150px,0.45fr) auto auto; gap:10px; align-items:end; }
+  .writing-ocr-preview { display:none; margin-top:12px; border:1px dashed #9bc9c2; background:white; border-radius:7px; padding:8px; }
+  .writing-ocr-preview img { display:block; max-width:100%; max-height:210px; object-fit:contain; margin:0 auto; }
+  .writing-ocr-hint { font-size:0.66rem; color:var(--muted); line-height:1.5; margin-top:8px; }
+  .writing-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+  .writing-report { white-space:pre-wrap; line-height:1.65; }
+  .recite-panel { border:1px solid var(--border); background:white; padding:24px; border-radius:8px; box-shadow:0 14px 36px rgba(17,24,39,0.07); }
+  .recite-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; align-items:start; max-width:1180px; margin:0 auto; }
+  .recite-layout > .chat-panel {
+    position:fixed;
+    right:22px;
+    bottom:22px;
+    width:min(420px, calc(100vw - 32px));
+    max-height:calc(100vh - 44px);
+    z-index:610;
+    box-shadow:0 14px 34px rgba(36,84,166,0.10);
+  }
+  .recite-layout > .chat-panel .chat-log { min-height:260px; max-height:calc(100vh - 250px); }
+  .recite-layout > .chat-panel.collapsed .section-label,
+  .recite-layout > .chat-panel.collapsed .chat-log,
+  .recite-layout > .chat-panel.collapsed .chat-row { display:none; }
+  .recite-layout > .chat-panel.collapsed { width:230px; padding:10px; }
+  .recite-layout > .chat-panel.collapsed .session-chat-toggle { margin-bottom:0; }
+  .recite-layout > .chat-panel.collapsed .session-chat-toggle::after { content:'Mostrar'; }
+  .recite-topic { font-family:'Playfair Display',serif; font-size:1.45rem; line-height:1.2; margin:10px 0 16px; color:var(--ink); }
+  .recite-topic-select {
+    width:100%;
+    border:1.5px solid var(--border);
+    background:white;
+    color:var(--ink);
+    border-radius:7px;
+    padding:10px 12px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.78rem;
+    outline:none;
+  }
+  .recite-topic-select:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(199,146,47,0.12); }
+  .recite-topic-hint { font-size:0.66rem; color:var(--muted); line-height:1.55; margin-top:7px; }
+  .recite-phase { font-size:0.68rem;color:var(--blue);letter-spacing:0;text-transform:uppercase; }
+  .recite-stage { display:grid; grid-template-columns:150px minmax(0,1fr); gap:18px; align-items:center; padding:18px; border:1px solid #e0e8e3; background:#f8faf8; border-radius:8px; margin:14px 0; }
+  .timer-display { font-family:'IBM Plex Mono',monospace; font-size:3.15rem; line-height:1; color:var(--ink); letter-spacing:0; }
+  .timer-display.recording { color:var(--rust); }
+  .recite-controls { display:flex; gap:8px; flex-wrap:wrap; margin:14px 0; }
+  .recite-flow { display:grid; grid-template-columns:minmax(140px,1fr) minmax(170px,1.2fr) auto; gap:8px; margin:14px 0; align-items:stretch; }
+  .recite-flow .btn { width:100%; min-height:42px; padding:10px 12px; }
+  .recite-flow .btn.active { box-shadow:0 0 0 3px rgba(36,84,166,0.14); border-color:var(--blue); }
+  .recite-flow .btn.recording { background:var(--rust); border-color:var(--rust); color:white; }
+  .recite-pause-btn { display:none; min-width:88px; }
+  .recite-transcribe-box { border:1px solid #c8e6c9; background:#f1f8f0; border-radius:8px; padding:14px; margin:12px 0 14px; }
+  .recite-transcribe-title { font-size:0.66rem; letter-spacing:0; text-transform:uppercase; color:var(--sage); margin-bottom:8px; }
+  .recite-transcribe-hint { font-size:0.7rem; color:#4f665a; line-height:1.55; margin-top:8px; }
+  .recite-card { border:1px solid var(--border); background:white; padding:14px; border-radius:8px; margin:14px 0; }
+  .recite-card-title { font-size:0.66rem; letter-spacing:0;text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .recite-card-hint { font-size:0.68rem; color:var(--muted); line-height:1.55; margin-top:8px; }
+  .recite-field { margin-top:14px; }
+  .recite-field label { display:block; font-size:0.66rem; color:var(--muted); letter-spacing:0; text-transform:uppercase; margin-bottom:7px; }
+  .recite-field-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:7px; }
+  .recite-field-head label { margin:0; }
+  .recite-field-head .btn { min-height:34px; padding:7px 10px; }
+  .audio-state { display:flex; align-items:center; gap:8px; font-size:0.72rem; color:var(--muted); margin:8px 0 0; }
+  .audio-dot { width:9px; height:9px; border-radius:50%; background:#bbb; box-shadow:0 0 0 3px rgba(0,0,0,0.04); }
+  .audio-dot.recording { background:var(--rust); box-shadow:0 0 0 4px rgba(164,75,55,0.14); }
+  .audio-dot.ready { background:var(--sage); box-shadow:0 0 0 4px rgba(93,122,78,0.14); }
+  .audio-meta { font-size:0.65rem; color:var(--muted); margin-top:6px; min-height:18px; }
+  .recite-notes { width:100%; min-height:130px; resize:vertical; margin-top:10px; }
+  .recite-transcript { width:100%; min-height:150px; resize:vertical; margin-top:10px; }
+  .edit-shell { border:1px solid var(--border); background:#fffdf8; padding:12px; border-radius:6px; }
+  .edit-label { font-size:0.58rem; letter-spacing:0.14em; text-transform:uppercase; color:#999; margin:9px 0 5px; }
+  .rich-editor { min-height:130px; padding:11px 13px; border:1.5px solid var(--gold); background:white; line-height:1.65; outline:none; border-radius:5px; }
+  .rich-editor:focus { box-shadow:0 0 0 2px rgba(184,148,63,0.15); }
+  .rich-content mark { padding:0 2px; }
+  .selection-toolbar {
+    position:fixed;
+    z-index:500;
+    display:none;
+    align-items:center;
+    gap:3px;
+    padding:5px;
+    border:1px solid rgba(23,32,38,0.16);
+    background:rgba(255,255,255,0.98);
+    border-radius:10px;
+    box-shadow:0 14px 36px rgba(17,24,39,0.18);
+    backdrop-filter:blur(10px);
+  }
+  .selection-toolbar.show { display:flex; }
+  .selection-toolbar button {
+    width:32px;
+    height:30px;
+    display:grid;
+    place-items:center;
+    border:0;
+    border-radius:7px;
+    background:transparent;
+    color:var(--ink);
+    font-family:Arial, sans-serif;
+    font-size:0.86rem;
+    font-weight:700;
+    cursor:pointer;
+    padding:0;
+  }
+  .selection-toolbar button:hover { background:#eef3f8; color:var(--blue); }
+  .selection-toolbar .swatch { width:16px; height:16px; border-radius:50%; border:1px solid rgba(0,0,0,0.18); }
+  .chat-panel { border:1px solid var(--blue); background:var(--blue-light); padding:14px; border-radius:7px; }
+  .chat-panel.compact { margin:18px 0; }
+  .chat-panel.compact .chat-log { min-height:110px; max-height:210px; }
+  .chat-log { min-height:220px; max-height:360px; overflow:auto; background:white; border:1px solid rgba(42,74,122,0.25); padding:10px; font-size:0.72rem; line-height:1.55; margin:10px 0; }
+  .chat-msg { margin-bottom:10px; }
+  .chat-msg strong { color:var(--blue); }
+  .chat-row { display:flex; gap:8px; align-items:flex-start; }
+  .chat-row textarea { flex:1; min-height:58px; resize:vertical; }
+  .session-workspace { display:grid; grid-template-columns:minmax(0,1fr) minmax(300px,360px); gap:18px; align-items:start; }
+  .session-main { min-width:0; }
+  .session-side { position:sticky; top:86px; }
+  .session-chat-toggle {
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    border:1px solid var(--blue);
+    background:white;
+    color:var(--blue);
+    border-radius:7px;
+    padding:10px 12px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.68rem;
+    text-transform:uppercase;
+    cursor:pointer;
+    margin-bottom:8px;
+  }
+  .session-chat-toggle::after { content:'Ocultar'; color:var(--muted); font-size:0.58rem; }
+  .session-side.collapsed .session-chat-toggle::after { content:'Mostrar'; }
+  #sessionActive > .chat-panel.compact.collapsed .session-chat-toggle::after { content:'Mostrar'; }
+  .session-side.collapsed .chat-panel { display:none; }
+  .session-side .chat-log { min-height:300px; max-height:calc(100vh - 280px); }
+  #sessionActive {
+    grid-template-columns:minmax(0,1fr);
+    gap:18px;
+    align-items:start;
+    max-width:1380px;
+    margin:0 auto;
+  }
+  #sessionActive[style*="block"] { display:grid !important; }
+  #sessionActive > .session-header { grid-column:1 / -1; grid-row:1; }
+  #sessionActive > .points-section:nth-child(2) { grid-column:1; grid-row:2; }
+  #sessionActive > .points-section:nth-child(3) { grid-column:1; grid-row:3; }
+  #sessionActive > div:nth-child(4) { grid-column:1; grid-row:4; }
+  #sessionActive > .chat-panel.compact {
+    position:fixed;
+    right:22px;
+    bottom:22px;
+    top:auto;
+    width:min(420px, calc(100vw - 32px));
+    max-height:calc(100vh - 44px);
+    z-index:600;
+    margin:0;
+    box-shadow:0 14px 34px rgba(36,84,166,0.10);
+  }
+  #sessionActive > .chat-panel.compact .chat-log { min-height:260px; max-height:calc(100vh - 250px); }
+  #sessionActive > div:nth-child(6) { grid-column:1; grid-row:5; }
+  #sessionActive > .chat-panel.compact.collapsed .section-label,
+  #sessionActive > .chat-panel.compact.collapsed .chat-log,
+  #sessionActive > .chat-panel.compact.collapsed .chat-row { display:none; }
+  #sessionActive > .chat-panel.compact.collapsed { width:230px; padding:10px; }
+  #sessionActive > .chat-panel.compact.collapsed .session-chat-toggle { margin-bottom:0; }
+  #tab-temas { max-width:min(1640px, calc(100vw - 20px)); margin:0 auto; }
+  .topics-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; align-items:start; }
+  .topics-main { min-width:0; }
+  .topics-side { position:static; }
+  .topics-side .chat-panel {
+    position:fixed;
+    right:22px;
+    bottom:22px;
+    width:min(420px, calc(100vw - 32px));
+    max-height:calc(100vh - 44px);
+    z-index:600;
+    margin:0;
+    box-shadow:0 14px 34px rgba(36,84,166,0.10);
+  }
+  .topics-side .chat-log { min-height:260px; max-height:calc(100vh - 250px); }
+  .topics-side .chat-panel.collapsed .section-label,
+  .topics-side .chat-panel.collapsed .chat-log,
+  .topics-side .chat-panel.collapsed .chat-row { display:none; }
+  .topics-side .chat-panel.collapsed { width:230px; padding:10px; }
+  .topics-side .chat-panel.collapsed .session-chat-toggle { margin-bottom:0; }
+  .topics-side .chat-panel.collapsed .session-chat-toggle::after { content:'Mostrar'; }
+  .topic-helper { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,360px); gap:18px; align-items:start; }
+  .topic-main { min-width:0; }
+  .history-folder-card {
+    border:1px solid var(--border);
+    background:white;
+    border-radius:8px;
+    padding:14px;
+    margin-top:16px;
+  }
+  .history-folder-title { font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .history-folder-status { font-size:0.76rem; color:var(--ink); line-height:1.55; overflow-wrap:anywhere; }
+  .history-folder-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .recite-mode-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0 12px; }
+  .mode-choice {
+    border:1.5px solid var(--border); background:var(--paper); padding:11px 12px; text-align:left; cursor:pointer;
+    font-family:'IBM Plex Mono',monospace; color:#666; border-radius:6px; line-height:1.45;
+  }
+  .mode-choice strong { display:block; color:var(--ink); margin-bottom:2px; }
+  .mode-choice.active { border-color:var(--gold); background:#fff8e8; color:var(--ink); }
+  @media (max-width: 850px) {
+    header { position:static; grid-template-columns:1fr; padding:14px 16px; }
+    .brand-area, .main-actions, .header-right { justify-self:stretch; }
+    .brand-area { justify-content:flex-start; flex-wrap:wrap; }
+    .main-actions { overflow-x:auto; }
+    .nav-pill { flex:1; }
+    .topic-header-btn { margin-left:auto; }
+    .header-right { justify-content:space-between; }
+    .header-meta { text-align:left; }
+    main { padding:22px 16px 36px; }
+    .session-header { top:44px; flex-direction:column; }
+    .point-row, .history-point-row { grid-template-columns:1fr; }
+    .recite-layout { grid-template-columns:1fr; }
+    .recite-layout > .chat-panel { position:fixed; right:14px; bottom:14px; width:min(390px, calc(100vw - 28px)); }
+    .topic-helper { grid-template-columns:1fr; }
+    .topics-layout { grid-template-columns:1fr; }
+    .topics-side { position:static; }
+    .phase-steps { grid-template-columns:1fr; }
+    .recite-stage { grid-template-columns:1fr; }
+    .recite-flow { grid-template-columns:1fr; }
+  }
+  @media (max-width: 520px) {
+    .recite-flow { grid-template-columns:1fr; }
+    .timer-display { font-size:2.6rem; }
+    .selection-toolbar { max-width:calc(100vw - 16px); overflow-x:auto; }
+  }
+  @media (max-width: 850px) {
+    header {
+      position: sticky;
+      grid-template-columns: 1fr;
+      padding: 10px 12px 12px;
+      gap: 9px;
+      max-height: 100vh;
+      overflow: auto;
+    }
+    header h1 { font-size: 1.12rem; }
+    .brand-area, .main-actions, .header-right { justify-self: stretch; width: 100%; }
+    .brand-area { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: 8px; }
+    .lang-switcher { justify-self: end; }
+    .lang-btn { width: 32px; height: 30px; font-size: 0.86rem; }
+    .topic-header-btn { justify-self: end; padding: 8px 10px; font-size: 0.58rem; }
+    .main-actions { overflow-x: auto; justify-content: stretch; gap: 6px; padding: 4px; }
+    .main-actions::-webkit-scrollbar { display: none; }
+    .nav-pill { flex: 1 0 0; padding: 9px 8px; font-size: 0.61rem; text-align: center; }
+    .header-right { justify-content: space-between; gap: 8px; }
+    .header-meta { text-align: left; font-size: 0.56rem; line-height: 1.45; white-space: normal; }
+    .profile-mini { width: 38px; height: 38px; border-radius: 10px; flex: 0 0 auto; }
+    main { padding: 18px 12px 30px; max-width: 100%; }
+    .session-empty { padding: 38px 18px; }
+    .session-empty h2 { font-size: 1.45rem; }
+    .session-empty p { font-size: 0.74rem; line-height: 1.55; }
+    .session-header { position: static; flex-direction: column; gap: 12px; padding: 14px; margin-bottom: 18px; }
+    .session-header > div:last-child { width: 100%; align-items: stretch !important; }
+    .session-topic { font-size: 1.45rem; max-width: none; }
+    #sessionActive[style*="block"] { display:grid !important; grid-template-columns:1fr; gap:14px; }
+    #sessionActive > .session-header,
+    #sessionActive > .points-section:nth-child(2),
+    #sessionActive > .points-section:nth-child(3),
+    #sessionActive > div:nth-child(4),
+    #sessionActive > div:nth-child(6) { grid-column:1; position:static; }
+    #sessionActive > .session-header { grid-row:1; }
+    #sessionActive > .points-section:nth-child(2) { grid-row:2; }
+    #sessionActive > .points-section:nth-child(3) { grid-row:3; }
+    #sessionActive > div:nth-child(4) { grid-row:4; }
+    #sessionActive > div:nth-child(6) { grid-row:5; }
+    #sessionActive > .chat-panel.compact { position:fixed; right:14px; bottom:14px; width:min(390px, calc(100vw - 28px)); }
+    #sessionActive > .chat-panel.compact .chat-log { min-height:150px; max-height:260px; }
+    .point-row, .history-point-row { grid-template-columns: 1fr; }
+    .point-card { margin-right:0; }
+    .vocab-resizer { display:none; }
+    .point-card { padding: 12px; }
+    .point-actions { flex-direction: row; align-items: center; flex-wrap: wrap; }
+    .vocab-card { padding: 11px 12px; }
+    .add-point-row { flex-direction: column; }
+    .add-point-row .btn { width: 100%; }
+    .topics-search-bar { gap: 8px; margin-bottom: 14px; }
+    .topics-search-bar input { min-width: 0; width: 100%; flex-basis: 100%; }
+    .topic-count { width: 100%; }
+    .topic-filter-row { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 12px 0 2px; }
+    .topic-category-select { min-width: 0; max-width: none; width: 100%; font-size: 0.68rem; }
+    .cat-tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding: 10px 0 12px;
+      margin-bottom: 12px;
+      scroll-snap-type: x proximity;
+    }
+    .cat-tabs::-webkit-scrollbar { display: none; }
+    .cat-tab-btn {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      border-radius: 999px;
+      padding: 8px 11px;
+      max-width: 78vw;
+      white-space: normal;
+      text-align: left;
+      line-height: 1.25;
+    }
+    .topics-grid { grid-template-columns: 1fr; gap: 7px; }
+    .topic-item { min-height: 44px; padding: 10px 12px; align-items: flex-start; }
+    .recite-layout { grid-template-columns: 1fr; }
+    .writing-layout, .writing-grid, .writing-ocr-row { grid-template-columns: 1fr; }
+    .recite-layout > .chat-panel { position: fixed; right: 12px; bottom: 12px; width:min(360px, calc(100vw - 24px)); }
+    .topic-helper { grid-template-columns: 1fr; }
+    .topics-layout { grid-template-columns: 1fr; }
+    .topics-side { position: static; }
+    .topics-side .chat-panel { position:fixed; right:14px; bottom:14px; width:min(390px, calc(100vw - 28px)); }
+    .topics-side .chat-log, .recite-layout > .chat-panel .chat-log { min-height: 150px; max-height: 260px; }
+    .phase-steps { grid-template-columns: 1fr; }
+    .recite-stage { grid-template-columns: 1fr; }
+    .recite-flow { grid-template-columns: 1fr; }
+    .recite-panel { padding: 16px 14px; }
+    .recite-topic { font-size: 1.28rem; }
+    .chat-row { flex-direction: column; }
+    .chat-row textarea, .chat-row .btn { width: 100%; }
+    .chat-log { min-height: 150px; max-height: 260px; font-size: 0.7rem; }
+    .profile-card { padding: 16px; }
+    .profile-actions .btn, .utility-links .btn { width: 100%; }
+    .config-row { flex-direction: column; align-items: stretch; gap: 8px; }
+    .config-row label { min-width: 0; }
+    .api-input, .config-row input[type=number], .config-row input[type=range] { width: 100%; max-width: none; }
+  }
+  @media (max-width: 520px) {
+    header { padding: 8px 10px 10px; }
+    header h1 { font-size: 1rem; letter-spacing: 0.06em; }
+    .brand-area { grid-template-columns: 1fr auto; }
+    .topic-header-btn { grid-column: 1 / -1; justify-self: stretch; text-align: center; }
+    .main-actions { border-radius: 10px; }
+    .nav-pill { font-size: 0.58rem; min-width: 0; white-space: normal; line-height: 1.2; }
+    main { padding: 14px 10px 26px; }
+    .btn { width: 100%; padding: 11px 12px; }
+    .btn-small { min-height: 40px; }
+    .session-topic { font-size: 1.28rem; }
+    .point-card { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 8px; }
+    .point-actions { grid-column: 1 / -1; }
+    .point-title { font-size: 0.95rem; }
+    .point-text { line-height: 1.65; }
+    .history-entry-header { align-items: flex-start; flex-direction: column; gap: 5px; }
+    .profile-avatar { width: 58px; height: 58px; border-radius: 14px; font-size: 1.55rem; }
+    .profile-title { font-size: 1.35rem; }
+    .profile-grid { gap: 8px; }
+    .recite-flow { grid-template-columns: 1fr; }
+    .timer-display { font-size: 2.35rem; }
+    .recite-stage { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="selection-toolbar" id="selectionToolbar" aria-label="Formato de texto">
+  <button type="button" title="Negrita" onmousedown="applySelectionFormat(event,'bold')">B</button>
+  <button type="button" title="Cursiva" style="font-style:italic" onmousedown="applySelectionFormat(event,'italic')">I</button>
+  <button type="button" title="Subrayar" style="text-decoration:underline" onmousedown="applySelectionFormat(event,'underline')">U</button>
+  <button type="button" title="Resaltar" onmousedown="applySelectionFormat(event,'hiliteColor','#fff59d')"><span class="swatch" style="background:#fff59d"></span></button>
+  <button type="button" title="Color" onmousedown="applySelectionFormat(event,'foreColor','#9b4a2a')"><span class="swatch" style="background:#9b4a2a"></span></button>
+  <button type="button" title="Quitar formato" onmousedown="applySelectionFormat(event,'removeFormat')">Tx</button>
+</div>
+
+<header>
+  <div class="brand-area">
+    <h1><span class="brand-word"><span class="brand-initial">C</span>AMBRIDGE TRAINER</span></h1>
+    <div class="lang-switcher">
+      <button class="lang-btn active" id="btnEN" title="English B2/C1/C2">EN</button>
+    </div>
+    <button class="topic-header-btn" data-tab-btn="temas" onclick="showTab('temas',this)">Temas</button>
+  </div>
+  <div class="main-actions">
+    <button class="nav-pill active" data-tab-btn="sesion" onclick="showTab('sesion',this)">Sesión de hoy</button>
+    <button class="nav-pill" data-tab-btn="recitar" onclick="showTab('recitar',this)">Práctica oral</button>
+    <button class="nav-pill" data-tab-btn="escrita" onclick="showTab('escrita',this)">Práctica escrita</button>
+  </div>
+  <div class="header-right">
+    <div class="header-meta" id="headerMeta">Sesiones: 0<br>Temas: 0<br>Créditos: -</div>
+    <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil',this)" title="Perfil">👤</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- TAB: SESIÓN -->
+  <div id="tab-sesion" class="tab active">
+    <div id="sessionEmpty" class="session-empty">
+      <div class="icon">⚖️</div>
+      <h2>Nueva sesión de estudio</h2>
+      <p>Selecciona idioma, elige un tema o usa un tema aleatorio. Los creditos solo se consumen al pulsar <strong>Generar respuesta</strong>.</p>
+      <button class="btn" onclick="startSession()">Tema aleatorio -></button>
+    </div>
+    <div id="sessionActive" class="session-active" style="display:none">
+      <div class="session-header">
+        <div>
+          <div class="session-date" id="sessionDateLabel"></div>
+          <div class="session-topic" id="sessionTopicLabel"></div>
+          <div class="session-lang-badge" id="sessionLangBadge"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
+          <button class="btn btn-outline btn-small" onclick="startSession()">Tema aleatorio</button>
+          <button class="btn btn-outline btn-small" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">Elegir tema →</button>
+        </div>
+      </div>
+
+      <div class="points-section">
+        <div class="section-label">Puntos de examen generados</div>
+        <div id="aiPoints"></div>
+        <div id="loadingBar" style="display:none">
+          <div class="loading-bar"></div>
+          <div class="loading-text">Generando respuesta modelo, estrategia y vocabulario...</div>
+        </div>
+      </div>
+
+      <div class="points-section">
+        <div class="section-label">Mis puntos aceptados / añadidos</div>
+        <div id="savedPoints"></div>
+        <div class="empty-msg" id="savedEmpty">Acepta puntos generados o añade los tuyos</div>
+      </div>
+
+      <div>
+        <div class="section-label">Añadir punto manual</div>
+        <div class="add-point-row">
+          <div class="manual-point-form">
+            <input id="manualTitleInput" placeholder="Título de la idea">
+            <textarea id="manualInput" spellcheck="true" placeholder="Write your own exam answer, paragraph or speaking point..."></textarea>
+            <textarea id="manualInfoInput" spellcheck="true" placeholder="Ejemplos o datos con fecha, uno por línea. Ej: 2024 - The EU adopted..."></textarea>
+          </div>
+          <button class="btn btn-small" onclick="addManualPoint()">+ Añadir</button>
+        </div>
+      </div>
+
+      <div class="chat-panel compact">
+        <div class="section-label">Chat de examen</div>
+        <div class="chat-log" id="sessionChatLog">
+          <div class="chat-msg"><strong>Asistente:</strong> Pregúntame dudas concretas sobre el tema de hoy.</div>
+        </div>
+        <div class="chat-row">
+          <textarea class="recite-input" id="sessionChatInput" spellcheck="true" placeholder="Ej: Dame una frase C1 m?s natural para esta idea..."></textarea>
+          <button class="btn btn-small btn-blue" onclick="askSessionChat()">Enviar</button>
+        </div>
+      </div>
+
+      <div style="margin-top:26px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-small btn-accept" onclick="saveSession()">Guardar</button>
+        <button class="btn btn-small btn-outline" onclick="exportSession()">Generar Word</button>
+        <button class="btn btn-small btn-blue" onclick="uploadSessionToDrive()">Subir a Drive</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: RECITAR -->
+  <div id="tab-recitar" class="tab">
+    <div class="recite-layout">
+      <div class="recite-panel">
+        <div class="section-label">Práctica oral</div>
+        <div class="recite-field">
+          <label for="reciteTopicInput">Tema</label>
+          <select class="recite-topic-select" id="reciteTopicInput" onchange="updateReciteTopic(this.value)"></select>
+          <div class="recite-topic-hint">Por defecto usa el tema que estas trabajando. Tambien puedes elegir otro de la lista.</div>
+        </div>
+        <div class="recite-topic" id="reciteTopicLabel">Sin tema seleccionado</div>
+        <div class="recite-stage">
+          <div class="timer-display" id="reciteTimer">01:00</div>
+          <div>
+            <div class="recite-phase" id="recitePhase">Preparacion: 1 minuto</div>
+            <div class="audio-state"><span class="audio-dot" id="audioDot"></span><span id="audioStateText">Audio sin iniciar</span></div>
+            <div class="audio-meta" id="audioMeta"></div>
+          </div>
+        </div>
+        <div class="recite-flow">
+          <button class="btn btn-outline" id="prepModeBtn" onclick="setReciteMode('prep'); startPrepTimer()">Preparar 1 min</button>
+          <button class="btn btn-blue" id="speakModeBtn" onclick="toggleSpeakRecording()">Grabar 5 min</button>
+          <button class="btn btn-small btn-outline recite-pause-btn" id="pauseAudioBtn" onclick="toggleRecitePause()">Pausa</button>
+        </div>
+        <div class="recite-controls">
+          <button class="btn btn-small btn-outline" onclick="resetReciteFlow()">Reiniciar práctica</button>
+        </div>
+        <div class="recite-field">
+          <label for="reciteNotes">Notas</label>
+          <textarea class="recite-input recite-notes" id="reciteNotes" spellcheck="true" oninput="persistRecitePractice()" placeholder="Ideas, fechas, estructura y vocabulario útil."></textarea>
+        </div>
+        <div class="recite-field">
+          <label for="reciteTranscript">Transcripción</label>
+          <textarea class="recite-input recite-transcript" id="reciteTranscript" spellcheck="true" oninput="persistRecitePractice()" placeholder="La transcripción aparecerá aquí. También puedes pegar tu texto oral manualmente."></textarea>
+        </div>
+        <div class="recite-transcribe-box">
+          <div class="recite-transcribe-title">Cuando termines de grabar</div>
+          <button class="btn btn-accept" id="transcribeAudioBtn" onclick="transcribeReciteAudio()">Haz click aquí para transcribir</button>
+          <div class="recite-transcribe-hint">Primero graba tu exposición. Cuando pares la grabación, este botón quedará listo para pasar el audio a texto.</div>
+        </div>
+        <div class="recite-controls">
+          <button class="btn btn-small btn-accept" onclick="correctRecitation()">Corregir recitación</button>
+        </div>
+        <div id="reciteStatus" class="db-notice" style="display:none;"></div>
+        <div id="reciteCorrection" class="notice" style="display:none;"></div>
+      </div>
+      <div class="chat-panel">
+        <div class="section-label">Chat de examen</div>
+        <div class="chat-log" id="topicChatLog">
+          <div class="chat-msg"><strong>Asistente:</strong> Pregúntame dudas concretas sobre el tema seleccionado.</div>
+        </div>
+        <div class="chat-row">
+          <textarea class="recite-input" id="topicChatInput" spellcheck="true" placeholder="Ej: Dame conectores y vocabulario para este tema..."></textarea>
+          <button class="btn btn-small btn-blue" onclick="askTopicChat()">Enviar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: ESCRITA -->
+  <div id="tab-escrita" class="tab">
+    <div class="writing-layout">
+      <div class="writing-panel">
+        <div class="section-label">Práctica escrita</div>
+        <div class="writing-grid">
+          <div class="writing-field">
+            <label for="writingTaskType">Tarea</label>
+            <select class="writing-select" id="writingTaskType" onchange="persistWritingPractice()">
+              <option value="essay">Essay</option>
+              <option value="article">Article</option>
+              <option value="report">Report</option>
+              <option value="proposal">Proposal</option>
+              <option value="review">Review</option>
+              <option value="email">Email / letter</option>
+            </select>
+          </div>
+          <div class="writing-field">
+            <label for="writingLevel">Nivel</label>
+            <select class="writing-select" id="writingLevel" onchange="persistWritingPractice()">
+              <option value="B2 First">B2 First</option>
+              <option value="C1 Advanced" selected>C1 Advanced</option>
+              <option value="C2 Proficiency">C2 Proficiency</option>
+            </select>
+          </div>
+        </div>
+        <div class="writing-ocr-box">
+          <div class="writing-ocr-row">
+            <div class="writing-field">
+              <label for="writingImageInput">Imagen para OCR</label>
+              <input class="writing-input" id="writingImageInput" type="file" accept="image/png,image/jpeg,image/webp" onchange="handleWritingImage(this)">
+            </div>
+            <div class="writing-field">
+              <label for="writingOcrTarget">Insertar en</label>
+              <select class="writing-select" id="writingOcrTarget">
+                <option value="prompt">Enunciado</option>
+                <option value="answer" selected>Respuesta</option>
+              </select>
+            </div>
+            <button class="btn btn-small btn-blue" id="writingOcrBtn" onclick="runWritingOcr()">Detectar texto</button>
+            <button class="btn btn-small btn-outline" onclick="clearWritingImage()">Quitar imagen</button>
+          </div>
+          <div class="writing-ocr-preview" id="writingImagePreviewBox">
+            <img id="writingImagePreview" alt="Imagen seleccionada para OCR">
+          </div>
+          <div class="writing-ocr-hint">PNG, JPG o WEBP. El texto detectado se a&ntilde;ade al campo seleccionado sin borrar lo que ya tengas escrito.</div>
+        </div>
+        <div class="writing-field">
+          <label for="writingPrompt">Enunciado</label>
+          <textarea class="writing-textarea" id="writingPrompt" oninput="persistWritingPractice()" placeholder="Pega o escribe aquí el enunciado de Cambridge."></textarea>
+        </div>
+        <div class="writing-field">
+          <label for="writingAnswer">Respuesta del alumno</label>
+          <textarea class="writing-textarea answer" id="writingAnswer" oninput="persistWritingPractice()" placeholder="Write your answer here..."></textarea>
+        </div>
+        <div class="writing-actions">
+          <button class="btn btn-small btn-blue" onclick="generateWritingModel()">Generar modelo</button>
+          <button class="btn btn-small btn-accept" onclick="correctWritingPractice()">Corregir writing</button>
+          <button class="btn btn-small btn-outline" onclick="clearWritingPractice()">Limpiar</button>
+        </div>
+      </div>
+      <div class="writing-panel">
+        <div class="section-label">Informe Cambridge</div>
+        <div id="writingStatus" class="db-notice" style="display:none;"></div>
+        <div id="writingFeedback" class="writing-report notice">El informe aparecerá aquí con valoración, errores prioritarios, versión mejorada y plan de mejora.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: TEMAS -->
+  <div id="tab-temas" class="tab">
+    <div class="topics-layout">
+      <div class="topics-main">
+        <div class="topics-search-bar">
+          <input type="text" id="topicSearchInput" placeholder="🔍 Buscar en todos los temas..." oninput="onTopicSearch(this.value)">
+          <span class="topic-count" id="topicCount"></span>
+        </div>
+
+        <!-- Search results (shown when searching) -->
+        <div id="searchResults" style="display:none;">
+          <div class="topics-grid" id="searchGrid"></div>
+        </div>
+
+        <div id="topicsContainer">
+          <div class="topic-filter-row">
+            <label for="topicCategorySelect">Categoría</label>
+            <select id="topicCategorySelect" class="topic-category-select" onchange="setCategoryFromSelect(this.value)"></select>
+          </div>
+
+          <div class="cat-tabs" id="cattabs-all"></div>
+          <div class="topics-grid" id="topicsgrid-all"></div>
+        </div>
+      </div>
+
+      <aside class="topics-side">
+        <div class="chat-panel">
+          <div class="section-label">Chat rápido sobre temas</div>
+          <div class="chat-log" id="topicPageChatLog">
+            <div class="chat-msg"><strong>Asistente:</strong> Pregúntame por ejemplos, enfoques, fechas o argumentos para cualquier tema.</div>
+          </div>
+          <div class="chat-row">
+            <textarea class="recite-input" id="topicPageChatInput" spellcheck="true" placeholder="Ej: Dame una estructura para Speaking Part 2 sobre educaci?n..."></textarea>
+            <button class="btn btn-small btn-blue" onclick="askTopicPageChat()">Enviar</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- TAB: HISTORIAL -->
+  <div id="tab-historial" class="tab">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+      <span class="section-label" style="margin:0;flex:1">Sesiones guardadas</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-small btn-blue" onclick="exportDB()">📦 Exportar BD (.json)</button>
+        <button class="btn btn-small btn-outline" onclick="importDB()">📥 Importar BD</button>
+        <button class="btn btn-small btn-outline" onclick="exportAll()">Generar Word completo</button>
+        <button class="btn btn-small btn-blue" onclick="uploadAllToDrive()">Subir a Drive</button>
+      </div>
+    </div>
+    <div class="db-notice">💡 Usa <strong>Exportar BD</strong> para guardar una copia en tu carpeta local e <strong>Importar BD</strong> para restaurarla.</div>
+    <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="handleImport(this)">
+    <div id="historyList"></div>
+  </div>
+
+  <!-- TAB: PERFIL -->
+  <div id="tab-perfil" class="tab">
+    <div class="section-label">Perfil</div>
+    <div class="profile-card">
+      <div class="profile-avatar" id="profileAvatar"></div>
+      <div>
+        <div class="profile-title" id="profileName">Cuenta CAMBRIDGE TRAINER</div>
+        <div class="profile-name-row">
+          <input class="profile-name-input" id="profileNameInput" maxlength="90" placeholder="Nombre visible">
+          <button class="btn btn-small btn-blue" onclick="saveProfileName()">Guardar nombre</button>
+        </div>
+        <div class="profile-subtitle" id="profileSubtitle">Gestiona tu acceso, tus créditos mensuales y tu sesión.</div>
+        <div class="profile-grid">
+          <div class="profile-stat">
+            <span>Créditos</span>
+            <strong id="profileUsage">-</strong>
+          </div>
+          <div class="profile-stat">
+            <span>Caducidad</span>
+            <strong id="profileExpiry">-</strong>
+          </div>
+        </div>
+        <div id="licenseStatus"></div>
+        <div class="profile-actions">
+          <button class="btn btn-small btn-blue" id="driveConnectBtn" onclick="handleGoogleDrive()">Conectar Drive</button>
+          <button class="btn btn-small btn-outline" onclick="toggleProfileHistory()">Historial</button>
+          <button class="btn btn-small btn-outline" onclick="showUtilityTab('config')">Configuración</button>
+          <button class="btn btn-small btn-outline btn-danger" onclick="logoutWeb()">Cerrar sesión</button>
+        <div class="profile-history-panel" id="profileHistoryPanel">
+          <div class="section-label" style="margin-bottom:10px;">Registro de estudio</div>
+          <div id="profileHistoryContent"></div>
+        </div>
+        </div>
+        <div class="utility-links">
+          <button class="btn btn-small btn-outline" onclick="showUtilityTab('config')">Configuración</button>
+        </div>
+      </div>
+    </div>
+    <div class="notice" id="accessKeyHelp">
+      Tu cuenta activa la IA automaticamente al entrar. Usa la clave manual solo si trabajas sin sesion web.
+    </div>
+    <div class="config-row" id="licenseConfigRow">
+      <label>Clave CAMBRIDGE TRAINER</label>
+      <input type="password" class="api-input" id="licenseKeyInput" placeholder="CAMB-...">
+    </div>
+  </div>
+
+  <!-- TAB: CONFIG -->
+  <div id="tab-config" class="tab">
+    <div class="section-label">Parámetros de generación</div>
+    <div class="config-row">
+      <label>Nº de puntos clave a generar</label>
+      <input type="number" id="numPoints" min="2" max="12" value="5">
+    </div>
+    <div class="config-row">
+      <label>Nº de palabras de vocabulario por punto</label>
+      <input type="number" id="numVocab" min="2" max="12" value="5">
+    </div>
+    <div class="config-row">
+      <label>Tamaño texto de los puntos</label>
+      <input type="range" id="pointFontSize" min="11" max="20" value="13" oninput="updatePointSize(this.value)">
+      <span id="pointSizeLabel" style="font-size:0.72rem;color:#888;min-width:40px;">13px</span>
+    </div>
+    <div class="config-row" style="margin-top:6px;">
+      <label>Contexto / perfil del estudíante</label>
+    </div>
+    <div style="margin-bottom:16px;">
+      <textarea id="profileContext"
+        placeholder="Ej: B2 First, C1 Advanced o C2 Proficiency; objetivo speaking/writing..."
+        style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;padding:10px 14px;border:1.5px solid var(--border);background:white;color:var(--ink);resize:vertical;min-height:70px;outline:none;"
+        onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    </div>
+    <button class="btn btn-small" onclick="saveConfig()">Guardar configuración</button>
+    <div id="configStatus" style="margin-top:10px;font-size:0.7rem;color:var(--sage);"></div>
+
+    <div class="section-label" style="margin-top:28px;">Datos</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-small btn-outline btn-danger" onclick="clearHistory()">Borrar historial</button>
+      <button class="btn btn-small btn-outline btn-danger" onclick="resetAll()">Reiniciar todo</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── TOPIC DATABASE ─────────────────────────────────────────────────────────
+const TOPIC_DB = {
+  2026: {
+    "Speaking: personal questions and interview": [
+      "Introducing yourself with confidence", "Talking about your studies and work", "Family, friends and relationships",
+      "Daily routines and time management", "Hobbies, sports and free time", "Travel experiences and holidays",
+      "Technology in everyday life", "Food, health and lifestyle", "Plans, ambitions and future careers",
+      "Opinions about your city or country", "Memorable experiences", "Strengths, weaknesses and learning habits"
+    ],
+    "Speaking: pictures, comparison and speculation": [
+      "Comparing two photographs naturally", "Describing people, places and actions", "Speculating with may, might and could",
+      "Using contrast and similarity markers", "Organising a one-minute picture answer", "Avoiding empty description",
+      "Expressing impressions and uncertainty", "Talking about emotions in pictures", "Linking visual details to wider ideas",
+      "Common Part 2 picture topics", "Repairing mistakes while speaking", "Sounding fluent under time pressure"
+    ],
+    "Speaking: collaborative task and discussion": [
+      "Agreeing and disagreeing politely", "Inviting your partner to speak", "Negotiating and reaching a decision",
+      "Giving reasons and examples", "Interrupting naturally and respectfully", "Keeping the conversation moving",
+      "Discussing education and exams", "Discussing work and career choices", "Discussing environment and transport",
+      "Discussing media and technology", "Discussing health and wellbeing", "Handling Part 4 abstract questions"
+    ],
+    "Writing: essays and articles": [
+      "B2 First essay structure", "C1 Advanced discursive essay", "C2 Proficiency essay style",
+      "Writing strong introductions", "Topic sentences and paragraph control", "Developing arguments with examples",
+      "Balancing both sides of an issue", "Using cohesive devices accurately", "Advanced opinion language",
+      "Avoiding repetition and vague claims", "Register and tone in essays", "Editing an essay before submission"
+    ],
+    "Writing: reports, proposals, reviews and letters": [
+      "Formal email and letter conventions", "Informal email naturalness", "Report layout and headings",
+      "Proposal language for recommendations", "Review structure and persuasive detail", "Complaint letters and tactful tone",
+      "Application letters and cover emails", "Summarising survey results", "Making practical recommendations",
+      "Useful formal linking phrases", "Avoiding over-formal language", "Checking task fulfilment"
+    ],
+    "Use of English: grammar transformations": [
+      "Key word transformation strategy", "Conditionals and mixed conditionals", "Inversion for emphasis",
+      "Cleft sentences", "Passive structures", "Reported speech and reporting verbs",
+      "Modals of deduction and obligation", "Gerunds and infinitives", "Relative clauses and participles",
+      "Comparatives and intensifiers", "Wish, if only and regrets", "Common transformation traps"
+    ],
+    "Use of English: vocabulary and word formation": [
+      "Word formation prefixes and suffixes", "Collocations for education", "Collocations for work and business",
+      "Phrasal verbs in Cambridge exams", "Idioms that sound natural", "Prepositional phrases",
+      "Dependent prepositions", "Formal vs informal vocabulary", "Paraphrasing without losing meaning",
+      "Avoiding false friends", "Spelling patterns and silent letters", "Building a personal vocabulary bank"
+    ],
+    "Reading and listening strategy": [
+      "Skimming and scanning", "Multiple choice reading strategy", "Gapped text coherence",
+      "Matching headings and speakers", "Listening for attitude and opinion", "Distractors in listening tasks",
+      "Understanding implication", "Taking notes while listening", "Managing time in Reading and Use of English",
+      "Predicting answers before listening", "Reviewing mistakes effectively", "Exam-day concentration routines"
+    ]
+  },
+  2025: {
+    "B2 First core topics": [
+      "Education and school life", "Jobs and career plans", "Shopping and consumer habits", "Travel and tourism",
+      "Sports and competitions", "Entertainment and streaming", "Health and fitness", "Social media and communication",
+      "Environmental responsibility", "Living in a city or village", "Learning languages", "Friendship and teamwork"
+    ],
+    "C1 Advanced core topics": [
+      "Globalisation and culture", "Artificial intelligence and education", "Remote work and productivity", "University and lifelong learning",
+      "Urban design and public transport", "Climate action and personal choices", "Media literacy and misinformation", "Creativity and the arts",
+      "Economic inequality", "Privacy in the digital age", "Leadership and decision-making", "Resilience and mental health"
+    ],
+    "C2 Proficiency core topics": [
+      "The limits of meritocracy", "The value of tradition", "Scientific progress and ethics", "The future of democracy",
+      "Language, identity and power", "Cultural heritage and tourism", "The psychology of persuasion", "Work, status and fulfilment",
+      "Consumerism and sustainability", "Risk, uncertainty and public policy", "Humour across cultures", "The role of the arts in society"
+    ],
+    "Pronunciation and fluency": [
+      "Word stress in long words", "Sentence stress and meaning", "Connected speech", "Intonation for contrast",
+      "Pausing and chunking", "Pronouncing regular past endings", "Vowel contrasts for Spanish speakers", "Consonant clusters",
+      "Speaking more slowly without sounding hesitant", "Using fillers naturally", "Self-correction techniques", "Recording and evaluating yourself"
+    ],
+    "Exam routines and scoring": [
+      "Understanding Cambridge assessment criteria", "Improving grammatical range", "Improving lexical resource", "Improving discourse management",
+      "Interactive communication", "Writing task achievement", "Accuracy vs ambition", "Planning under time pressure",
+      "A weekly study plan", "Mock exam reflection", "Common reasons candidates lose marks", "Final week revision"
+    ]
+  }
+};
+
+// Flat list of all topics for random selection
+function getAllTopics() {
+  const all = [];
+  const seen = new Set();
+  const groups = getTopicGroups();
+  for (const cat of Object.keys(groups)) {
+    for (const t of groups[cat]) {
+      if (seen.has(t)) continue;
+      seen.add(t);
+      all.push({ topic: t, cat });
+    }
+  }
+  return all;
+}
+
+// ── STATE ───────────────────────────────────────────────────────────────
+const DEFAULT_PROFILE = `The student is preparing for Cambridge English exams (B2 First, C1 Advanced or C2 Proficiency), especially Speaking, Writing, Reading and Use of English. The output should sound natural, accurate and exam-ready: clear structure, strong cohesion, idiomatic but controlled vocabulary, useful collocations and practical examiner-focused advice. Avoid generic textbook wording and memorised essays. Prioritise model answers, alternative phrases, register, discourse management, task fulfilment and common mistakes for Spanish-speaking learners.`;
+
+let state = {
+  lang: 'en',
+  completedTopics: [],   // array of topic strings that have been saved
+  history: [],
+  currentSession: null,
+  recitePractice: { topic: '', notes: '', transcript: '', correction: '', selectedMode: 'prep' },
+  writingPractice: { taskType: 'essay', level: 'C1 Advanced', prompt: '', answer: '', feedback: '' },
+  topicChats: { session: [], recite: [], temas: [] },
+  config: { numPoints: 5, numVocab: 5, profile: DEFAULT_PROFILE, pointFontSize: 13, vocabColumnWidth: 270 }
+};
+let accountUser = null;
+
+let session = {
+  topic: null,
+  aiPoints: [],
+  savedPoints: []
+};
+let reciteTimerId = null;
+let reciteSeconds = 0;
+let recitePhase = 'prep';
+let reciteSelectedMode = 'prep';
+let reciteRecorder = null;
+let reciteChunks = [];
+let reciteAudioBlob = null;
+let reciteStream = null;
+let reciteStopPromise = null;
+let reciteRecordingStartedAt = null;
+let reciteAudioDuration = 0;
+let reciteAudioType = 'audio/webm';
+let reciteRecordingToken = 0;
+let writingImageDataUrl = '';
+let writingImageMime = '';
+const GROQ_TEXT_MODEL = 'openai/gpt-oss-120b';
+const GROQ_TRANSCRIBE_MODEL = 'whisper-large-v3-turbo';
+
+// ── TOPICS UI ──────────────────────────────────────────────────────────
+let currentCat = '';
+let topicSearchVal = '';
+
+function normalizeAppState() {
+  if (!state.config) state.config = {};
+  state.config.numPoints     = state.config.numPoints     || 5;
+  state.config.numVocab      = state.config.numVocab      || 5;
+  state.config.profile       = state.config.profile       || DEFAULT_PROFILE;
+  state.config.pointFontSize = state.config.pointFontSize || 13;
+  state.config.vocabColumnWidth = state.config.vocabColumnWidth || 270;
+  if (!state.completedTopics) state.completedTopics = [];
+  if (!state.history) state.history = [];
+  if (!('currentSession' in state)) state.currentSession = null;
+  state.lang = 'en';
+  if (!state.writingPractice) state.writingPractice = { taskType: 'essay', level: 'C1 Advanced', prompt: '', answer: '', feedback: '' };
+  state.recitePractice = {
+    topic: '',
+    notes: '',
+    transcript: '',
+    correction: '',
+    selectedMode: 'prep',
+    ...(state.recitePractice || {})
+  };
+  state.topicChats = {
+    session: [],
+    recite: [],
+    temas: [],
+    ...(state.topicChats || {})
+  };
+}
+
+function renderTopicsTab() {
+  renderTopicPanel();
+  renderCategorySelect();
+  updateTopicCount();
+}
+
+function getTopicGroups() {
+  const groups = {};
+  for (const year of Object.keys(TOPIC_DB).sort((a,b) => Number(b) - Number(a))) {
+    for (const cat of Object.keys(TOPIC_DB[year])) {
+      if (!groups[cat]) groups[cat] = [];
+      for (const topic of TOPIC_DB[year][cat]) {
+        if (!groups[cat].includes(topic)) groups[cat].push(topic);
+      }
+    }
+  }
+  return groups;
+}
+
+function renderTopicPanel() {
+  const groups = getTopicGroups();
+  const cats = Object.keys(groups);
+  if (!currentCat || !cats.includes(currentCat)) currentCat = cats[0] || '';
+
+  // Category tabs
+  const ctEl = document.getElementById('cattabs-all');
+  ctEl.innerHTML = '';
+  cats.forEach(cat => {
+    const b = document.createElement('button');
+    b.className = 'cat-tab-btn' + (currentCat === cat ? ' active' : '');
+    // Count done in this cat
+    const topics = groups[cat];
+    const doneCount = topics.filter(t => state.completedTopics.includes(t)).length;
+    b.textContent = `${cat} (${doneCount}/${topics.length})`;
+    b.onclick = () => setCatTab(cat);
+    ctEl.appendChild(b);
+  });
+
+  renderTopicGrid();
+}
+
+function setCatTab(cat) {
+  currentCat = cat;
+  document.querySelectorAll('#cattabs-all .cat-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#cattabs-all .cat-tab-btn').forEach(b => {
+    if (b.textContent.startsWith(`${cat} (`)) b.classList.add('active');
+  });
+  renderCategorySelect();
+  renderTopicGrid();
+}
+
+function renderCategorySelect() {
+  const select = document.getElementById('topicCategorySelect');
+  if (!select) return;
+  const groups = getTopicGroups();
+  const cats = Object.keys(groups);
+  if (!cats.length) return;
+  if (!currentCat || !cats.includes(currentCat)) currentCat = cats[0];
+  select.innerHTML = cats.map(cat => {
+    const topics = groups[cat] || [];
+    const doneCount = topics.filter(t => state.completedTopics.includes(t)).length;
+    return `<option value="${escAttr(cat)}">${escHtml(cat)} (${doneCount}/${topics.length})</option>`;
+  }).join('');
+  select.value = currentCat;
+}
+
+function setCategoryFromSelect(cat) {
+  setCatTab(cat);
+}
+
+function renderTopicGrid() {
+  const groups = getTopicGroups();
+  const cat = currentCat || Object.keys(groups)[0] || '';
+  const topics = groups[cat] || [];
+  const grid = document.getElementById('topicsgrid-all');
+  grid.innerHTML = '';
+  topics.forEach((t, i) => {
+    const done = state.completedTopics.includes(t);
+    const div = document.createElement('div');
+    div.className = 'topic-item' + (done ? ' done' : '');
+    div.title = done ? 'Completado — clic para estudíar de nuevo' : 'Clic para estudíar este tema';
+    div.innerHTML = `<span class="topic-num">${String(i+1).padStart(3,'0')}</span><span>${escHtml(t)}</span>`;
+    div.onclick = () => startSessionWithTopic(t);
+    grid.appendChild(div);
+  });
+}
+
+function onTopicSearch(val) {
+  topicSearchVal = val.trim().toLowerCase();
+  const searchEl = document.getElementById('searchResults');
+  const topicsEl = document.getElementById('topicsContainer');
+  if (!topicSearchVal) {
+    searchEl.style.display = 'none';
+    topicsEl.style.display = '';
+    updateTopicCount();
+    return;
+  }
+  searchEl.style.display = '';
+  topicsEl.style.display = 'none';
+
+  const all = getAllTopics();
+  const results = all.filter(({ topic }) => topic.toLowerCase().includes(topicSearchVal));
+  const grid = document.getElementById('searchGrid');
+  grid.innerHTML = '';
+  results.forEach(({ topic, cat }, index) => {
+    const done = state.completedTopics.includes(topic);
+    const div = document.createElement('div');
+    div.className = 'topic-item' + (done ? ' done' : '');
+    div.innerHTML = `
+      <span class="topic-num">${String(index + 1).padStart(3,'0')}</span>
+      <span style="flex:1">${escHtml(topic)}</span>
+      <span style="font-size:0.55rem;color:#aaa;flex-shrink:0;">${escHtml(cat)}</span>`;
+    div.onclick = () => startSessionWithTopic(topic);
+    grid.appendChild(div);
+  });
+
+  document.getElementById('topicCount').textContent = `${results.length} resultados`;
+}
+
+function updateTopicCount() {
+  const all = getAllTopics();
+  const done = state.completedTopics.length;
+  document.getElementById('topicCount').textContent = `${done} completados / ${all.length} temas`;
+}
+
+// ── LANGUAGE ────────────────────────────────────────────────────────────
+function setLang(lang) {
+  state.lang = 'en';
+  persist();
+  document.getElementById('btnEN')?.classList.add('active');
+}
+
+function getLangLabel() {
+  return 'English B2/C1/C2';
+}
+
+// ── FONT SIZE ────────────────────────────────────────────────────────────
+function updatePointSize(val) {
+  document.documentElement.style.setProperty('--point-size', val + 'px');
+  document.getElementById('pointSizeLabel').textContent = val + 'px';
+}
+
+function updateVocabColumnWidth(val, save = true) {
+  const width = Math.max(180, Math.min(560, parseInt(val, 10) || 270));
+  document.documentElement.style.setProperty('--vocab-col-width', width + 'px');
+  if (save) {
+    state.config.vocabColumnWidth = width;
+    persist();
+  }
+}
+
+function createVocabResizer() {
+  const handle = document.createElement('div');
+  handle.className = 'vocab-resizer';
+  handle.title = 'Arrastra para ajustar la columna de vocabulario';
+  handle.addEventListener('pointerdown', startVocabResize);
+  return handle;
+}
+
+function startVocabResize(event) {
+  event.preventDefault();
+  const handle = event.currentTarget;
+  const row = handle.closest('.point-row');
+  if (!row) return;
+  handle.classList.add('dragging');
+  const startX = event.clientX;
+  const startWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--vocab-col-width'), 10) || state.config.vocabColumnWidth || 270;
+  const onMove = moveEvent => {
+    const nextWidth = startWidth - (moveEvent.clientX - startX);
+    updateVocabColumnWidth(nextWidth, false);
+  };
+  const onUp = () => {
+    handle.classList.remove('dragging');
+    const finalWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--vocab-col-width'), 10) || startWidth;
+    state.config.vocabColumnWidth = finalWidth;
+    persist();
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
+  };
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onUp);
+}
+
+function normalizeDatedInfo(info) {
+  if (!info) return [];
+  if (Array.isArray(info)) {
+    return info.map(item => {
+      if (typeof item === 'string') return { date: '', text: item.trim() };
+      return { date: String(item.date || '').trim(), text: String(item.text || '').trim() };
+    }).filter(item => item.text);
+  }
+  return String(info).split('\n').map(line => line.trim()).filter(Boolean).map(line => {
+    const match = line.match(/^([^:–—-]{2,30})\s*[:–—-]\s*(.+)$/);
+    return match ? { date: match[1].trim(), text: match[2].trim() } : { date: '', text: line };
+  });
+}
+
+function normalizePoint(p, fallbackTitle = '') {
+  const text = String(p?.text || '').trim();
+  return {
+    title: String(p?.title || fallbackTitle || '').trim(),
+    text,
+    html: sanitizeRichHtml(p?.html || ''),
+    datedInfo: normalizeDatedInfo(p?.datedInfo || p?.examples || p?.info),
+    vocab: Array.isArray(p?.vocab) ? p.vocab : [],
+    type: p?.type || 'ai',
+    aiIndex: p?.aiIndex ?? null,
+    accepted: !!p?.accepted
+  };
+}
+
+function renderPointBody(p) {
+  const point = normalizePoint(p);
+  const title = point.title ? `<div class="point-title">${escHtml(point.title)}</div>` : '';
+  const body = point.html ? sanitizeRichHtml(point.html) : escHtml(point.text);
+  const info = point.datedInfo.length
+    ? `<div class="point-info">${point.datedInfo.map(item => `<div class="point-info-item">${item.date ? `<span class="point-info-date">${escHtml(item.date)}</span> - ` : ''}${escHtml(item.text)}</div>`).join('')}</div>`
+    : '';
+  return `${title}<div class="point-text rich-content">${body}</div>${info}`;
+}
+
+function inlinePointEditorHtml(scope, i, j, p) {
+  const point = normalizePoint(p);
+  const suffix = j === null || j === undefined ? `${i}` : `${i}-${j}`;
+  const infoText = point.datedInfo.map(item => `${item.date ? item.date + ' - ' : ''}${item.text}`).join('\n');
+  return `
+    <div class="inline-point-editor" data-point-editor="${scope}-${suffix}">
+      <input class="inline-point-title" id="${scope}title-${suffix}" value="${escAttr(point.title)}" placeholder="Titulo de la idea" onblur="saveInlinePoint('${scope}', ${i}, ${j ?? 'null'})">
+      <div class="inline-point-text rich-content" id="${scope}text-${suffix}" contenteditable="true" spellcheck="true" onblur="saveInlinePoint('${scope}', ${i}, ${j ?? 'null'})">${point.html || escHtml(point.text)}</div>
+      <div class="inline-point-hint">Ejemplos y fechas</div>
+      <textarea class="inline-point-info" id="${scope}info-${suffix}" placeholder="Ej: 2024 - dato util para recitar" onblur="saveInlinePoint('${scope}', ${i}, ${j ?? 'null'})">${escHtml(infoText)}</textarea>
+    </div>`;
+}
+
+function getInlinePoint(scope, i, j) {
+  if (scope === 'ai') return session.aiPoints[i];
+  if (scope === 'saved') return session.savedPoints[i];
+  if (scope === 'history') return state.history[i]?.points?.[j];
+  return null;
+}
+
+function setInlinePoint(scope, i, j, point) {
+  if (scope === 'ai') session.aiPoints[i] = { ...point, accepted: false, aiIndex: i };
+  if (scope === 'saved') session.savedPoints[i] = point;
+  if (scope === 'history' && state.history[i]?.points?.[j]) state.history[i].points[j] = point;
+}
+
+async function saveInlinePoint(scope, i, j = null) {
+  const suffix = j === null || j === undefined ? `${i}` : `${i}-${j}`;
+  const current = getInlinePoint(scope, i, j);
+  if (!current) return;
+  const title = document.getElementById(`${scope}title-${suffix}`)?.value.trim() || '';
+  const editor = document.getElementById(`${scope}text-${suffix}`);
+  const info = document.getElementById(`${scope}info-${suffix}`);
+  if (!editor || !info) return;
+  const html = sanitizeRichHtml(editor.innerHTML);
+  const text = stripHtml(html).trim();
+  if (!text) return;
+  const next = { ...normalizePoint(current), title, text, html, datedInfo: normalizeDatedInfo(info.value) };
+  setInlinePoint(scope, i, j, next);
+  if (scope === 'history') {
+    await persist();
+    return;
+  }
+  persistCurrentSession();
+}
+
+function sanitizeRichHtml(html) {
+  if (!html) return '';
+  const template = document.createElement('template');
+  template.innerHTML = String(html);
+  template.content.querySelectorAll('script,style,iframe,object,embed').forEach(el => el.remove());
+  template.content.querySelectorAll('*').forEach(el => {
+    [...el.attributes].forEach(attr => {
+      const name = attr.name.toLowerCase();
+      if (name.startsWith('on')) el.removeAttribute(attr.name);
+      if (name === 'style' && !/background-color|color|text-decoration|font-weight/i.test(attr.value)) el.removeAttribute(attr.name);
+    });
+  });
+  return template.innerHTML;
+}
+
+function stripHtml(html) {
+  const div = document.createElement('div');
+  div.innerHTML = sanitizeRichHtml(html);
+  return div.textContent || '';
+}
+
+async function getCambridgeTrainerLicense() {
+  if (BACKEND_SUPPORTED && await loadBackendStatus()) {
+    return backendStatus?.user?.license_key || '';
+  }
+  return localStorage.getItem('cambridge_trainer_license') || '';
+}
+
+async function groqChat(messages, options = {}) {
+  const license = await getCambridgeTrainerLicense();
+  if (!license) throw new Error('Falta la clave de licencia CAMBRIDGE TRAINER.');
+  if (BACKEND_SUPPORTED) await loadBackendStatus();
+  const limits = generationLimits();
+  const payload = {
+    model: options.model || GROQ_TEXT_MODEL,
+    max_tokens: Math.min(options.max_tokens || 2200, limits.maxOutputTokens),
+    temperature: options.temperature ?? 0.35,
+    ...(options.purpose ? { purpose: options.purpose } : {}),
+    ...(options.response_format ? { response_format: options.response_format } : {}),
+    messages
+  };
+  if (BACKEND_SUPPORTED && await loadBackendStatus()) {
+    const data = await backendRequest('/api/chat', { method: 'POST', body: JSON.stringify(payload) });
+    return data.content || '';
+  }
+  throw new Error('No se pudo conectar con el servidor. Vuelve a iniciar sesion o recarga la pagina.');
+}
+
+// ── FILE SYSTEM STORAGE ────────────────────────────────────────────────
+let dirHandle = null;
+const FS_SUPPORTED = false;
+const BACKEND_SUPPORTED = location.protocol === 'http:' || location.protocol === 'https:';
+let backendStatus = null;
+
+async function backendRequest(path, options = {}) {
+  const res = await fetch(path, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Client-App': 'cambridge',
+      ...(options.headers || {})
+    }
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) {
+    if (location.pathname !== '/login') location.href = '/login?expired=1';
+    throw new Error('Sesión caducada. Vuelve a iniciar sesión.');
+  }
+  if (!res.ok || data.ok === false) throw new Error(data.error || data.detail || `HTTP ${res.status}`);
+  return data;
+}
+
+async function loadBackendStatus() {
+  if (!BACKEND_SUPPORTED) return null;
+  if (backendStatus) return backendStatus;
+  try {
+    backendStatus = await backendRequest('/api/status');
+    return backendStatus;
+  } catch(e) {
+    return null;
+  }
+}
+
+async function refreshAccountStatus() {
+  if (!BACKEND_SUPPORTED) return null;
+  backendStatus = null;
+  const status = await loadBackendStatus();
+  if (status?.user) {
+    renderProfile(status.user);
+    updateHeader();
+  }
+  return status;
+}
+
+function generationLimits() {
+  const limits = backendStatus?.limits || {};
+  return {
+    maxOutputTokens: Number(limits.max_output_tokens || 3200),
+    maxPoints: Number(limits.max_points || 4),
+    maxVocab: Number(limits.max_vocab || 3),
+    profileChars: Number(limits.profile_chars ?? 420)
+  };
+}
+
+async function getDir() {
+  return null;
+}
+
+async function readJSON(filename) {
+  if (BACKEND_SUPPORTED && filename === 'state.json') {
+    try {
+      if (await loadBackendStatus()) return await backendRequest('/api/state');
+    } catch(e) {}
+  }
+  return lsFallbackRead('cambridge_trainer_state');
+}
+
+async function writeJSON(filename, data) {
+  if (BACKEND_SUPPORTED && filename === 'state.json') {
+    try {
+      if (await loadBackendStatus()) {
+        await backendRequest('/api/state', { method: 'POST', body: JSON.stringify(data) });
+        return;
+      }
+    } catch(e) {}
+  }
+  lsFallbackWrite('cambridge_trainer_state', data);
+}
+
+async function writeTXT(filename, content) {
+  if (BACKEND_SUPPORTED) {
+    try {
+      if (await loadBackendStatus()) {
+        if (filename === 'apikey.txt') {
+          await backendRequest('/api/apikey', { method: 'POST', body: JSON.stringify({ apikey: content }) });
+        } else if (filename === 'license.txt') {
+          await backendRequest('/api/license', { method: 'POST', body: JSON.stringify({ license: content }) });
+        } else {
+          await backendRequest('/api/export-text', { method: 'POST', body: JSON.stringify({ filename, content }) });
+        }
+        return;
+      }
+    } catch(e) {}
+  }
+  if (filename === 'license.txt') {
+    localStorage.setItem('cambridge_trainer_license', content);
+    return;
+  }
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function readTXT(filename) {
+  if (BACKEND_SUPPORTED && filename === 'license.txt') {
+    try {
+      if (await loadBackendStatus()) {
+        const data = await backendRequest('/api/license');
+        return data.license || '';
+      }
+    } catch(e) {}
+  }
+  if (BACKEND_SUPPORTED && filename === 'apikey.txt') {
+    try {
+      if (await loadBackendStatus()) {
+        const data = await backendRequest('/api/apikey');
+        return data.apikey || '';
+      }
+    } catch(e) {}
+  }
+  if (filename === 'license.txt') return localStorage.getItem('cambridge_trainer_license') || '';
+  return '';
+}
+
+function lsFallbackWrite(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+function lsFallbackRead(key) {
+  try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch(e) { return {}; }
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────
+async function init() {
+  let loaded = {};
+  const backend = await loadBackendStatus();
+  if (backend) {
+    loaded = await readJSON('state.json');
+  } else {
+    loaded = lsFallbackRead('cambridge_trainer_state');
+  }
+
+  if (loaded && Object.keys(loaded).length > 0) state = { ...state, ...loaded };
+
+  normalizeAppState();
+
+  const license = backend?.user?.license_key || localStorage.getItem('cambridge_trainer_license') || '';
+  document.getElementById('licenseKeyInput').value = license;
+  if (backend?.user) renderProfile(backend.user);
+  if (license) validateLicense(false);
+
+  document.getElementById('numPoints').value      = state.config.numPoints;
+  document.getElementById('numVocab').value       = state.config.numVocab;
+  document.getElementById('profileContext').value = state.config.profile;
+  document.getElementById('pointFontSize').value  = state.config.pointFontSize;
+  document.getElementById('pointSizeLabel').textContent = state.config.pointFontSize + 'px';
+  updatePointSize(state.config.pointFontSize);
+  updateVocabColumnWidth(state.config.vocabColumnWidth, false);
+
+  state.lang = 'en';
+  document.getElementById('btnEN')?.classList.add('active');
+
+  renderCambridgeIcons();
+  moveTranscribeButtonToHeader();
+  renderTopicsTab();
+  renderHistory();
+  renderCurrentSession();
+  renderRecitePractice();
+  renderAllChats();
+  ensureSessionChatToggle();
+  ensureTopicPageChatToggle();
+  ensureReciteChatToggle();
+  refreshDriveStatus();
+  updateHeader();
+}
+
+async function selectFolder() {
+  alert('Cambridge Trainer guarda ahora el historial en el servidor, separado por usuario. No necesitas elegir ninguna carpeta.');
+}
+
+async function persist() {
+  if (BACKEND_SUPPORTED) await writeJSON('state.json', state);
+  lsFallbackWrite('cambridge_trainer_state', state);
+}
+
+function updateHeader() {
+  const all = getAllTopics();
+  const credits = remainingCredits(accountUser) ?? '-';
+  document.getElementById('headerMeta').innerHTML =
+    `Sesiones: ${state.history.length}<br>${state.completedTopics.length}/${all.length} completados<br>Créditos: ${credits}`;
+}
+
+// ── TABS ────────────────────────────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('[data-tab-btn]').forEach(b => b.classList.remove('active'));
+  document.getElementById('moreMenu')?.classList.remove('open');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'temas') {
+    renderTopicsTab();
+    ensureTopicPageChatToggle();
+  }
+  if (name === 'historial') renderHistory();
+  if (name === 'perfil') refreshProfile();
+  if (name === 'recitar') renderRecitePractice();
+  if (name === 'escrita') renderWritingPractice();
+}
+
+function renderWritingPractice() {
+  const data = state.writingPractice || {};
+  if (document.getElementById('writingTaskType')) document.getElementById('writingTaskType').value = data.taskType || 'essay';
+  if (document.getElementById('writingLevel')) document.getElementById('writingLevel').value = data.level || 'C1 Advanced';
+  if (document.getElementById('writingPrompt')) document.getElementById('writingPrompt').value = data.prompt || '';
+  if (document.getElementById('writingAnswer')) document.getElementById('writingAnswer').value = data.answer || '';
+  const feedback = document.getElementById('writingFeedback');
+  if (feedback) feedback.textContent = data.feedback || 'El informe aparecerá aquí con valoración, errores prioritarios, versión mejorada y plan de mejora.';
+}
+
+function persistWritingPractice() {
+  state.writingPractice = {
+    taskType: document.getElementById('writingTaskType')?.value || 'essay',
+    level: document.getElementById('writingLevel')?.value || 'C1 Advanced',
+    prompt: document.getElementById('writingPrompt')?.value || '',
+    answer: document.getElementById('writingAnswer')?.value || '',
+    feedback: state.writingPractice?.feedback || ''
+  };
+  persist();
+}
+
+function setWritingStatus(message) {
+  const el = document.getElementById('writingStatus');
+  if (!el) return;
+  el.style.display = message ? 'block' : 'none';
+  el.textContent = message || '';
+}
+
+function handleWritingImage(input) {
+  const file = input?.files?.[0];
+  if (!file) return;
+  if (!/^image\/(png|jpeg|webp)$/.test(file.type)) {
+    alert('Usa una imagen PNG, JPG o WEBP.');
+    input.value = '';
+    return;
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    alert('La imagen es demasiado grande. Maximo 8 MB.');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    writingImageDataUrl = String(reader.result || '');
+    writingImageMime = file.type;
+    const preview = document.getElementById('writingImagePreview');
+    const box = document.getElementById('writingImagePreviewBox');
+    if (preview) preview.src = writingImageDataUrl;
+    if (box) box.style.display = writingImageDataUrl ? 'block' : 'none';
+    setWritingStatus('Imagen lista para detectar texto.');
+  };
+  reader.onerror = () => setWritingStatus('No se pudo leer la imagen.');
+  reader.readAsDataURL(file);
+}
+
+function clearWritingImage() {
+  writingImageDataUrl = '';
+  writingImageMime = '';
+  const input = document.getElementById('writingImageInput');
+  const preview = document.getElementById('writingImagePreview');
+  const box = document.getElementById('writingImagePreviewBox');
+  if (input) input.value = '';
+  if (preview) preview.removeAttribute('src');
+  if (box) box.style.display = 'none';
+  setWritingStatus('');
+}
+
+function appendWritingText(targetId, text) {
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  const current = el.value.trim();
+  el.value = current ? `${current}\n\n${text}` : text;
+  persistWritingPractice();
+}
+
+async function runWritingOcr() {
+  if (!writingImageDataUrl) {
+    alert('Selecciona primero una imagen.');
+    return;
+  }
+  const target = document.getElementById('writingOcrTarget')?.value || 'answer';
+  const button = document.getElementById('writingOcrBtn');
+  setWritingStatus('Detectando texto en la imagen...');
+  if (button) button.disabled = true;
+  try {
+    const data = await backendRequest('/api/ocr', {
+      method: 'POST',
+      body: JSON.stringify({ image: writingImageDataUrl, mime_type: writingImageMime, target })
+    });
+    const text = String(data.text || '').trim();
+    if (!text) {
+      setWritingStatus('No se detecto texto legible en la imagen.');
+      return;
+    }
+    appendWritingText(target === 'prompt' ? 'writingPrompt' : 'writingAnswer', text);
+    setWritingStatus(`Texto detectado e insertado en ${target === 'prompt' ? 'el enunciado' : 'la respuesta'}.`);
+  } catch(e) {
+    setWritingStatus(e.message);
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+async function generateWritingModel() {
+  persistWritingPractice();
+  const data = state.writingPractice;
+  const prompt = data.prompt.trim();
+  if (!prompt) { alert('Escribe primero el enunciado.'); return; }
+  setWritingStatus('Generando modelo Cambridge...');
+  try {
+    const model = await groqChat([
+      { role: 'system', content: 'You are a Cambridge English writing examiner and preparation teacher. Respond in clear Spanish, but write model answers in English. Do not use markdown headings with ### or **.' },
+      { role: 'user', content: `Nivel: ${data.level}\nTipo de tarea: ${data.taskType}\nEnunciado:\n${prompt}\n\nGenera una respuesta modelo en inglés y después explica en español: estructura, registro, conectores útiles y 5 expresiones reutilizables.` }
+    ], { max_tokens: 1900, temperature: 0.35 });
+    state.writingPractice.feedback = model;
+    document.getElementById('writingFeedback').textContent = model;
+    setWritingStatus('');
+    persistWritingPractice();
+  } catch(e) {
+    setWritingStatus(e.message);
+  }
+}
+
+async function correctWritingPractice() {
+  persistWritingPractice();
+  const data = state.writingPractice;
+  if (!data.answer.trim()) { alert('Escribe o pega primero la respuesta del alumno.'); return; }
+  setWritingStatus('Corrigiendo writing...');
+  try {
+    const feedback = await groqChat([
+      { role: 'system', content: 'You are a demanding Cambridge English writing examiner for B2 First, C1 Advanced and C2 Proficiency. Respond in Spanish. Quote improved English phrases only when useful. Do not use markdown headings with ### or **.' },
+      { role: 'user', content: `Nivel: ${data.level}\nTipo de tarea: ${data.taskType}\nEnunciado:\n${data.prompt}\n\nRespuesta del alumno:\n${data.answer}\n\nDevuelve exactamente este formato:\n\nVALORACIÓN CAMBRIDGE\n- Nivel aproximado y puntuación orientativa sobre 20.\n\nCUMPLIMIENTO DE TAREA\n- Qué cumple y qué falta.\n\nORGANIZACIÓN Y COHESIÓN\n- 3 mejoras concretas.\n\nGRAMÁTICA Y VOCABULARIO\n- Errores prioritarios con corrección.\n\nVERSIÓN MEJORADA\nReescribe 1 o 2 fragmentos importantes en inglés.\n\nPLAN DE MEJORA\n- 3 acciones para la próxima redacción.` }
+    ], { max_tokens: 1900, temperature: 0.25 });
+    state.writingPractice.feedback = feedback;
+    document.getElementById('writingFeedback').textContent = feedback;
+    setWritingStatus('');
+    persistWritingPractice();
+  } catch(e) {
+    setWritingStatus(e.message);
+  }
+}
+
+function clearWritingPractice() {
+  state.writingPractice = { taskType: 'essay', level: 'C1 Advanced', prompt: '', answer: '', feedback: '' };
+  renderWritingPractice();
+  persist();
+  setWritingStatus('');
+}
+
+function toggleMoreMenu(event) {
+  event.stopPropagation();
+  document.getElementById('moreMenu')?.classList.toggle('open');
+}
+
+function showUtilityTab(name) {
+  showTab(name);
+  document.getElementById('moreMenu')?.classList.remove('open');
+}
+
+document.addEventListener('click', () => document.getElementById('moreMenu')?.classList.remove('open'));
+
+// ── SESSION ────────────────────────────────────────────────────────────
+function persistCurrentSession() {
+  state.currentSession = session?.topic ? {
+    ...session,
+    lang: state.lang,
+    date: state.currentSession?.date || new Date().toISOString()
+  } : null;
+  persist();
+}
+
+function renderCurrentSession() {
+  if (!state.currentSession || !state.currentSession.topic) return;
+  session = {
+    topic: state.currentSession.topic,
+    aiPoints: state.currentSession.aiPoints || [],
+    savedPoints: state.currentSession.savedPoints || []
+  };
+  document.getElementById('sessionEmpty').style.display = 'none';
+  document.getElementById('sessionActive').style.display = 'block';
+  const date = state.currentSession.date ? new Date(state.currentSession.date) : new Date();
+  document.getElementById('sessionDateLabel').textContent =
+    date.toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('sessionTopicLabel').textContent = session.topic;
+  document.getElementById('sessionLangBadge').textContent = getLangLabel();
+  ensureSessionChatToggle();
+  renderAIPoints();
+  renderSavedPoints();
+}
+
+function ensureSessionChatToggle() {
+  const panel = document.querySelector('#sessionActive > .chat-panel.compact');
+  if (!panel || panel.querySelector('.session-chat-toggle')) return;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'session-chat-toggle';
+  btn.textContent = 'Chat de examen';
+  btn.onclick = toggleSessionChat;
+  panel.prepend(btn);
+  panel.classList.add('collapsed');
+  updateVocabColumnWidth(state.config.vocabColumnWidth, false);
+}
+
+function toggleSessionChat() {
+  const panel = document.querySelector('#sessionActive > .chat-panel.compact');
+  if (!panel) return;
+  panel.classList.toggle('collapsed');
+}
+
+function ensureTopicPageChatToggle() {
+  const panel = document.querySelector('#tab-temas .topics-side .chat-panel');
+  if (!panel || panel.querySelector('.session-chat-toggle')) return;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'session-chat-toggle';
+  btn.textContent = 'Chat de temas';
+  btn.onclick = toggleTopicPageChat;
+  panel.prepend(btn);
+  panel.classList.add('collapsed');
+}
+
+function toggleTopicPageChat() {
+  const panel = document.querySelector('#tab-temas .topics-side .chat-panel');
+  if (!panel) return;
+  panel.classList.toggle('collapsed');
+}
+
+function ensureReciteChatToggle() {
+  const panel = document.querySelector('#tab-recitar .recite-layout > .chat-panel');
+  if (!panel || panel.querySelector('.session-chat-toggle')) return;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'session-chat-toggle';
+  btn.textContent = 'Chat de práctica';
+  btn.onclick = toggleReciteChat;
+  panel.prepend(btn);
+  panel.classList.add('collapsed');
+}
+
+function toggleReciteChat() {
+  const panel = document.querySelector('#tab-recitar .recite-layout > .chat-panel');
+  if (!panel) return;
+  panel.classList.toggle('collapsed');
+}
+
+async function startSession() {
+  const all = getAllTopics();
+  if (all.length === 0) { alert('No hay temas disponibles.'); return; }
+  // Prefer uncompleted topics
+  const pending = all.filter(({ topic }) => !state.completedTopics.includes(topic));
+  const pool = pending.length > 0 ? pending : all;
+  const { topic } = pool[Math.floor(Math.random() * pool.length)];
+  await startSessionWithTopic(topic, false);
+}
+
+async function startSessionWithTopic(topic, autoGenerate = false) {
+  session = { topic, aiPoints: [], savedPoints: [] };
+  state.currentSession = { ...session, lang: state.lang, date: new Date().toISOString() };
+
+  // Switch to session tab
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('[data-tab-btn]').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-sesion').classList.add('active');
+  document.querySelector('[data-tab-btn="sesion"]')?.classList.add('active');
+
+  document.getElementById('sessionEmpty').style.display = 'none';
+  document.getElementById('sessionActive').style.display = 'block';
+  ensureSessionChatToggle();
+
+  const now = new Date();
+  document.getElementById('sessionDateLabel').textContent =
+    now.toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('sessionTopicLabel').textContent = topic;
+  document.getElementById('sessionLangBadge').textContent = getLangLabel();
+  document.getElementById('aiPoints').innerHTML = '';
+  document.getElementById('savedPoints').innerHTML = '';
+  document.getElementById('savedEmpty').style.display = 'block';
+  document.getElementById('manualInput').value = '';
+  document.getElementById('manualTitleInput').value = '';
+  document.getElementById('manualInfoInput').value = '';
+  setReciteTopic(topic);
+  persistCurrentSession();
+
+  if (autoGenerate) {
+    await generateSession(topic);
+  } else {
+    document.getElementById('aiPoints').innerHTML = `
+      <div class="db-notice" style="text-align:center;">
+        Tema seleccionado. No se ha consumido ningun credito todavia. Generar la respuesta consumira 1 credito.
+      </div>
+      <div style="display:flex;justify-content:center;margin-top:14px;">
+        <button class="btn btn-blue" onclick="generateCurrentSession()">Generar respuesta</button>
+      </div>`;
+  }
+}
+
+async function generateCurrentSession() {
+  if (!session.topic) return;
+  await generateSession(session.topic);
+}
+
+async function generateSession(topic) {
+  const license = await getCambridgeTrainerLicense();
+
+  if (!license) {
+    document.getElementById('aiPoints').innerHTML =
+      `<div class="notice">Introduce tu clave CAMBRIDGE TRAINER en la pestaña Configuración.<br><br>Puedes añadir puntos manualmente.</div>`;
+    return;
+  }
+
+  if (BACKEND_SUPPORTED) await loadBackendStatus();
+  const limits = generationLimits();
+  const n = Math.min(parseInt(document.getElementById('numPoints').value) || 5, limits.maxPoints);
+  const nv = Math.min(parseInt(document.getElementById('numVocab').value) || 5, limits.maxVocab);
+  const profile = (document.getElementById('profileContext').value || '').slice(0, limits.profileChars);
+  const langName = 'English';
+
+  document.getElementById('loadingBar').style.display = 'block';
+  document.getElementById('aiPoints').innerHTML = '';
+
+  const prompt = `You are a senior Cambridge English ${langName} examiner and preparation teacher for B2 First, C1 Advanced and C2 Proficiency.
+${profile ? `Student profile: ${profile}` : ''}
+
+Topic: "${topic}"
+
+This is a Cambridge English exam preparation tool. Generate everything in ${langName}, with Spanish translations only inside vocabulary definitions.
+
+Generate exactly ${n} key study points. Each point must include:
+- "title": a precise exam-focused title in ${langName}, max 9 words, not generic.
+- "text": written ENTIRELY IN ${langName.toUpperCase()} at the appropriate Cambridge level, 5-7 full sentences. It must sound natural, accurate and exam-ready: clear enough to reproduce orally or adapt in writing. Include structure, useful phrases, grammar range, examples, register advice and common pitfalls where relevant. Avoid vague filler, memorised-sounding templates and Spanish-influenced phrasing.
+- "datedInfo": exactly 3 exam tips, model phrases, grammar notes or task-specific examples directly useful for Cambridge preparation. Each item must have "date" and "text"; use "Tip", "Phrase" or "Exam" as the date label when there is no real date.
+
+For each point, generate exactly ${nv} advanced ${langName} vocabulary words/expressions directly related to that point and suitable for Cambridge exams. For each: the word in ${langName} and a SHORT Spanish translation (max 8 words).
+
+Respond ONLY with valid JSON, no markdown:
+{"points":[{"title":"...","text":"...","datedInfo":[{"date":"...","text":"..."}],"vocab":[{"word":"...","def":"..."}]}]}`;
+
+  try {
+    const raw = await groqChat([{ role: 'user', content: prompt }], {
+      max_tokens: limits.maxOutputTokens,
+      temperature: 0.55,
+      purpose: 'points',
+      response_format: { type: 'json_object' }
+    });
+    document.getElementById('loadingBar').style.display = 'none';
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch(e) {
+      document.getElementById('aiPoints').innerHTML = `<div class="notice">Respuesta inválida. Inténtalo de nuevo.</div>`;
+      return;
+    }
+
+    session.aiPoints = (parsed.points || []).map((p, i) => ({
+      ...normalizePoint(p, `Idea ${i + 1}`), accepted: false, aiIndex: i
+    }));
+    renderAIPoints();
+    persistCurrentSession();
+    await refreshAccountStatus();
+
+  } catch(e) {
+    document.getElementById('loadingBar').style.display = 'none';
+    setTimeout(() => {
+      document.getElementById('aiPoints').innerHTML = `<div class="notice">Error al generar: ${escHtml(e.message || 'Comprueba tu licencia y el servidor local.')}</div>`;
+    }, 0);
+    document.getElementById('aiPoints').innerHTML = `<div class="notice">Error de conexión. Comprueba tu licencia y el servidor local.</div>`;
+  }
+}
+
+function renderAIPoints() {
+  const container = document.getElementById('aiPoints');
+  container.innerHTML = '';
+  const pending = session.aiPoints.filter(p => !p.accepted);
+  if (pending.length === 0 && session.aiPoints.length > 0) {
+    container.innerHTML = '<div class="empty-msg">✓ Todos los puntos aceptados</div>'; return;
+  }
+  if (session.aiPoints.length === 0) {
+    container.innerHTML = '<div class="empty-msg">No se generaron puntos</div>'; return;
+  }
+  session.aiPoints.forEach((p, i) => {
+    if (p.accepted) return;
+    const row = document.createElement('div');
+    row.className = 'point-row';
+    row.id = `airow-${i}`;
+    const vocabHtml = p.vocab && p.vocab.length > 0
+      ? p.vocab.map(v => `<div class="vocab-item"><div class="vocab-word">${escHtml(v.word)}</div><div class="vocab-def">${escHtml(v.def)}</div></div>`).join('')
+      : '<div class="vocab-loading">—</div>';
+    row.innerHTML = `
+      <div class="point-card">
+        <span class="point-num">${String(i+1).padStart(2,'0')}</span>
+        <div class="point-body" id="aibody-${i}">${inlinePointEditorHtml('ai', i, null, p)}</div>
+        <div class="point-actions">
+          <span class="point-badge badge-ai">IA</span>
+
+          <button class="btn btn-small btn-accept" onclick="acceptPoint(${i})">Guardar en apuntes</button>
+        </div>
+      </div>
+      <div class="vocab-card">
+        <div class="vocab-label">📖 ${escHtml(getLangLabel())} → ES</div>
+        ${vocabHtml}
+      </div>`;
+    row.insertBefore(createVocabResizer(), row.children[1]);
+    container.appendChild(row);
+  });
+}
+
+async function acceptPoint(i) {
+  await saveInlinePoint('ai', i, null);
+  session.aiPoints[i].accepted = true;
+  const row = document.getElementById(`airow-${i}`);
+  if (row) row.remove();
+  if (session.aiPoints.filter(p => !p.accepted).length === 0)
+    document.getElementById('aiPoints').innerHTML = '<div class="empty-msg">✓ Todos los puntos aceptados</div>';
+  session.savedPoints.push({ ...normalizePoint(session.aiPoints[i]), type: 'ai', aiIndex: i });
+  document.getElementById('savedEmpty').style.display = 'none';
+  renderSavedPoints();
+  persistCurrentSession();
+}
+
+function buildPointEditorHtml(prefix, i, p, saveFn, cancelFn, includePolish = false) {
+  const point = normalizePoint(p);
+  const infoText = point.datedInfo.map(item => `${item.date ? item.date + ' - ' : ''}${item.text}`).join('\n');
+  return `
+    <div class="edit-shell">
+      <div class="edit-label">Título</div>
+      <input class="recite-input" id="${prefix}title-${i}" style="width:100%;" value="${escAttr(point.title)}" placeholder="Título de la idea">
+      <div class="edit-label">Texto</div>
+      <div class="rich-editor" id="${prefix}text-${i}" contenteditable="true" spellcheck="true">${point.html || escHtml(point.text)}</div>
+      ${includePolish ? `<div style="margin-top:8px;"><button class="btn btn-small btn-blue" onclick="polishSavedPoint(${i})">Pulir IA</button></div>` : ''}
+      <div class="edit-label">Ejemplos y fechas</div>
+      <textarea class="inline-edit" id="${prefix}info-${i}" placeholder="Ej: 2024 - dato útil para recitar">${escHtml(infoText)}</textarea>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+        <button class="btn btn-small btn-accept" onclick="${saveFn}(${i})">Guardar</button>
+        <button class="btn btn-small btn-outline" onclick="${cancelFn}">Cancelar</button>
+      </div>
+    </div>`;
+}
+
+function readPointEditor(prefix, i, currentPoint) {
+  const title = document.getElementById(`${prefix}title-${i}`).value.trim();
+  const editor = document.getElementById(`${prefix}text-${i}`);
+  const html = sanitizeRichHtml(editor.innerHTML);
+  const text = stripHtml(html).trim();
+  const datedInfo = normalizeDatedInfo(document.getElementById(`${prefix}info-${i}`).value);
+  if (!text) return null;
+  return { ...normalizePoint(currentPoint), title, text, html, datedInfo };
+}
+
+function editAIPoint(i) {
+  const body = document.getElementById(`aibody-${i}`);
+  if (!body) return;
+  body.innerHTML = buildPointEditorHtml('ai', i, session.aiPoints[i], 'saveAIPoint', 'renderAIPoints()');
+}
+
+function saveAIPoint(i) {
+  const point = readPointEditor('ai', i, session.aiPoints[i]);
+  if (!point) return;
+  session.aiPoints[i] = { ...point, accepted: false, aiIndex: i };
+  renderAIPoints();
+  persistCurrentSession();
+}
+
+function addManualPoint() {
+  const title = document.getElementById('manualTitleInput').value.trim();
+  const val = document.getElementById('manualInput').value.trim();
+  const datedInfo = normalizeDatedInfo(document.getElementById('manualInfoInput').value);
+  if (!val) return;
+  session.savedPoints.push({ title, text: val, datedInfo, vocab: [], type: 'manual', aiIndex: null });
+  document.getElementById('savedEmpty').style.display = 'none';
+  document.getElementById('manualTitleInput').value = '';
+  document.getElementById('manualInput').value = '';
+  document.getElementById('manualInfoInput').value = '';
+  renderSavedPoints();
+  persistCurrentSession();
+}
+
+function renderSavedPoints() {
+  const container = document.getElementById('savedPoints');
+  container.innerHTML = '';
+  session.savedPoints.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'point-row';
+    const vocabHtml = p.vocab && p.vocab.length > 0
+      ? `<div class="vocab-card"><div class="vocab-label">📖 ${escHtml(getLangLabel())} → ES</div>${p.vocab.map(v=>`<div class="vocab-item"><div class="vocab-word">${escHtml(v.word)}</div><div class="vocab-def">${escHtml(v.def)}</div></div>`).join('')}</div>`
+      : '<div></div>';
+    row.innerHTML = `
+      <div class="point-card ${p.type==='manual'?'manual':'accepted'}">
+        <span class="point-num">${String(i+1).padStart(2,'0')}</span>
+        <div class="point-body" id="savedbody-${i}">${inlinePointEditorHtml('saved', i, null, p)}</div>
+        <div class="point-actions">
+          <span class="point-badge ${p.type==='manual'?'badge-manual':'badge-saved'}">${p.type==='manual'?'Manual':'IA'}</span>
+
+          <button class="btn btn-small btn-danger" onclick="removeSaved(${i})">✕</button>
+        </div>
+      </div>
+      ${vocabHtml}`;
+    row.insertBefore(createVocabResizer(), row.children[1]);
+    container.appendChild(row);
+  });
+}
+
+function editSavedPoint(i) {
+  const body = document.getElementById(`savedbody-${i}`);
+  if (!body) return;
+  body.innerHTML = buildPointEditorHtml('saved', i, session.savedPoints[i], 'saveSavedPoint', 'renderSavedPoints()', true);
+}
+
+function saveSavedPoint(i) {
+  const point = readPointEditor('saved', i, session.savedPoints[i]);
+  if (!point) return;
+  session.savedPoints[i] = point;
+  renderSavedPoints();
+  persistCurrentSession();
+}
+
+function currentRichEditor() {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return null;
+  const node = selection.anchorNode;
+  const el = node?.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+  return el?.closest?.('.rich-editor, .inline-point-text') || null;
+}
+
+function updateSelectionToolbar() {
+  const toolbar = document.getElementById('selectionToolbar');
+  const selection = window.getSelection();
+  if (!toolbar || !selection || selection.rangeCount === 0 || selection.isCollapsed || !currentRichEditor()) {
+    toolbar?.classList.remove('show');
+    return;
+  }
+  const rect = selection.getRangeAt(0).getBoundingClientRect();
+  if (!rect || rect.width === 0) {
+    toolbar.classList.remove('show');
+    return;
+  }
+  toolbar.classList.add('show');
+  const toolbarWidth = toolbar.offsetWidth || 220;
+  const left = Math.max(8, Math.min(window.innerWidth - toolbarWidth - 8, rect.left + rect.width / 2 - toolbarWidth / 2));
+  const top = Math.max(8, rect.top - toolbar.offsetHeight - 10);
+  toolbar.style.left = `${left}px`;
+  toolbar.style.top = `${top}px`;
+}
+
+function applySelectionFormat(event, command, value = null) {
+  event.preventDefault();
+  document.execCommand(command, false, value);
+  updateSelectionToolbar();
+}
+
+function formatRich(command, value = null) {
+  document.execCommand(command, false, value);
+  updateSelectionToolbar();
+}
+
+document.addEventListener('selectionchange', () => requestAnimationFrame(updateSelectionToolbar));
+document.addEventListener('scroll', () => document.getElementById('selectionToolbar')?.classList.remove('show'), true);
+document.addEventListener('mousedown', (event) => {
+  if (!event.target.closest?.('.selection-toolbar') && !event.target.closest?.('.rich-editor, .inline-point-text')) {
+    document.getElementById('selectionToolbar')?.classList.remove('show');
+  }
+});
+
+async function polishSavedPoint(i) {
+  const editor = document.getElementById(`savedtext-${i}`);
+  const titleEl = document.getElementById(`savedtitle-${i}`);
+  if (!editor) return;
+  const langName = 'English';
+  editor.dataset.previous = editor.innerHTML;
+  editor.innerHTML = 'Puliendo texto...';
+  try {
+    const improved = await groqChat([
+      { role: 'system', content: `You are a strict C1/C2 ${langName} oral-exam editor. Improve style, precisión, grammar and argumentative quality. Keep the same language. Return only the improved paragraph, no markdown.` },
+      { role: 'user', content: `Title: ${titleEl?.value || ''}\nText:\n${stripHtml(editor.dataset.previous || '')}` }
+    ], { max_tokens: 900, temperature: 0.25 });
+    editor.innerHTML = escHtml(improved).replace(/\n/g,'<br>');
+    persistCurrentSession();
+  } catch(e) {
+    editor.innerHTML = editor.dataset.previous || '';
+    alert(e.message);
+  }
+}
+
+function removeSaved(i) {
+  const removed = session.savedPoints[i];
+  session.savedPoints.splice(i, 1);
+  if (removed.type === 'ai' && removed.aiIndex !== null) {
+    session.aiPoints[removed.aiIndex].accepted = false;
+    renderAIPoints();
+  }
+  if (session.savedPoints.length === 0) document.getElementById('savedEmpty').style.display = 'block';
+  renderSavedPoints();
+  persistCurrentSession();
+}
+
+async function saveSession() {
+  if (!session.topic) return;
+  if (session.savedPoints.length === 0) { alert('Acepta o añade al menos un punto antes de guardar.'); return; }
+  const entry = {
+    id: Date.now(),
+    date: new Date().toISOString(),
+    lang: state.lang,
+    topic: session.topic,
+    points: session.savedPoints.map(p => {
+      const point = normalizePoint(p);
+      return { title: point.title, text: point.text, html: point.html, datedInfo: point.datedInfo, vocab: point.vocab || [], type: point.type };
+    })
+  };
+  state.history.unshift(entry);
+  // Mark topic as completed
+  if (!state.completedTopics.includes(session.topic)) {
+    state.completedTopics.push(session.topic);
+  }
+  state.currentSession = null;
+  await persist();
+  updateHeader();
+  renderProfileHistory();
+  renderTopicsTab();   // refresh green markers
+  alert('✓ Sesión guardada.');
+}
+
+function exportSession() {
+  if (!session.topic || session.savedPoints.length === 0) { alert('No hay puntos guardados.'); return; }
+  const entry = sessionEntryForWord();
+  downloadWord(buildEntryWordHtml(entry), `CambridgeTrainer_${safeFilename(entry.topic)}.doc`);
+}
+
+function sessionEntryForWord() {
+  return { topic:session.topic, lang:state.lang, date:new Date().toISOString(), points:session.savedPoints };
+}
+
+async function uploadWordToDrive(html, filename) {
+  if (!BACKEND_SUPPORTED) { alert('Drive solo funciona desde el servidor.'); return; }
+  try {
+    const data = await backendRequest('/api/drive/upload-document', {
+      method: 'POST',
+      body: JSON.stringify({ filename, content: html, mime_type: 'application/msword' })
+    });
+    alert(data.webViewLink ? `Documento subido a Drive.\n${data.webViewLink}` : 'Documento subido a Drive.');
+    refreshDriveStatus();
+  } catch (err) {
+    const message = err?.message || String(err);
+    if (message.includes('Drive no esta conectado') || message.includes('Drive no está conectado')) {
+      if (confirm('Drive no esta conectado. ¿Conectarlo ahora?')) window.location.href = '/auth/google/drive?next=' + encodeURIComponent('/cambridge?drive=connected');
+      return;
+    }
+    alert('No se pudo subir a Drive: ' + message);
+  }
+}
+
+function uploadSessionToDrive() {
+  if (!session.topic || session.savedPoints.length === 0) { alert('No hay puntos guardados.'); return; }
+  const entry = sessionEntryForWord();
+  uploadWordToDrive(buildEntryWordHtml(entry), `CambridgeTrainer_${safeFilename(entry.topic)}.doc`);
+}
+
+// ── HISTORY ────────────────────────────────────────────────────────────
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (state.history.length === 0) { list.innerHTML = '<div class="empty-msg">Aún no hay sesiones guardadas</div>'; return; }
+  list.innerHTML = '';
+  state.history.forEach((entry, i) => {
+    const date = new Date(entry.date).toLocaleDateString('es-ES', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
+    const langBadge = `<span style="font-size:0.58rem;color:var(--blue);border:1px solid var(--blue);padding:1px 6px;margin-left:6px;">EN</span>`;
+    const div = document.createElement('div');
+    div.className = 'history-entry';
+    div.id = `hentry-${i}`;
+    div.innerHTML = `
+      <div class="history-entry-header" onclick="toggleHistory(${i})">
+        <span class="history-date">${date}</span>
+        <span class="history-topic">${escHtml(entry.topic)}${langBadge}</span>
+        <span class="history-count" id="hcount-${i}">${entry.points.length} puntos</span>
+        <span class="history-toggle" id="htoggle-${i}">▾</span>
+      </div>
+      <div class="history-body" id="hbody-${i}"></div>`;
+    list.appendChild(div);
+  });
+}
+
+function toggleHistory(i) {
+  const el = document.getElementById(`hentry-${i}`);
+  const body = document.getElementById(`hbody-${i}`);
+  const toggle = document.getElementById(`htoggle-${i}`);
+  const isOpen = el.classList.toggle('open');
+  toggle.textContent = isOpen ? '▴' : '▾';
+  if (isOpen && body.innerHTML === '') renderHistoryBody(i);
+}
+
+function renderHistoryBody(i) {
+  const entry = state.history[i];
+  const body = document.getElementById(`hbody-${i}`);
+  const langLabel = 'English B2/C1/C2';
+  let html = '';
+  entry.points.forEach((p, j) => {
+    const vocabHtml = p.vocab && p.vocab.length > 0
+      ? p.vocab.map(v=>`<div class="vocab-item"><div class="vocab-word">${escHtml(v.word)}</div><div class="vocab-def">${escHtml(v.def)}</div></div>`).join('')
+      : '<div class="vocab-loading">Sin vocabulario</div>';
+    html += `
+      <div class="history-point-row" id="hpr-${i}-${j}">
+        <div class="history-point-card">
+          <span style="font-size:0.6rem;color:var(--gold);min-width:20px;flex-shrink:0;padding-top:2px;">${String(j+1).padStart(2,'0')}</span>
+          <div style="flex:1;min-width:0;">
+            <div id="hptext-${i}-${j}" style="font-size:0.8rem;line-height:1.65;">${inlinePointEditorHtml('history', i, j, p)}</div>
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+
+              <button class="btn btn-small btn-danger" onclick="deleteHistoryPoint(${i},${j})">✕ Eliminar</button>
+            </div>
+          </div>
+        </div>
+        <div class="history-vocab-card">
+          <div class="vocab-label" style="margin-bottom:6px;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue);font-weight:500;">📖 ${escHtml(langLabel)} → ES</div>
+          ${vocabHtml}
+        </div>
+      </div>`;
+  });
+  html += `
+    <div class="history-action-bar">
+      <button class="btn btn-small btn-accept" onclick="addHistoryPoint(${i})">+ Añadir punto</button>
+      <button class="btn btn-small btn-outline" onclick="exportEntryWord(${i})">Generar Word</button>
+      <button class="btn btn-small btn-blue" onclick="uploadEntryWordToDrive(${i})">Subir a Drive</button>
+      <button class="btn btn-small btn-danger btn-outline" onclick="deleteHistoryEntry(${i})">🗑 Eliminar sesión</button>
+    </div>`;
+  body.innerHTML = html;
+}
+
+function editHistoryPoint(i, j) {
+  const p = normalizePoint(state.history[i].points[j]);
+  const infoText = p.datedInfo.map(item => `${item.date ? item.date + ' - ' : ''}${item.text}`).join('\n');
+  document.getElementById(`hptext-${i}-${j}`).innerHTML = `
+    <input class="recite-input" id="htitle-${i}-${j}" style="width:100%;margin-bottom:7px;" value="${escAttr(p.title)}" placeholder="Título de la idea">
+    <div class="rich-editor" id="hedit-${i}-${j}" contenteditable="true" spellcheck="true">${p.html || escHtml(p.text)}</div>
+    <textarea class="inline-edit" id="hinfo-${i}-${j}" style="margin-top:7px;" placeholder="Ejemplos o datos con fecha, uno por línea">${escHtml(infoText)}</textarea>
+    <div style="display:flex;gap:6px;margin-top:6px;">
+      <button class="btn btn-small btn-accept" onclick="saveHistoryPoint(${i},${j})">✓ Guardar</button>
+      <button class="btn btn-small btn-outline" onclick="renderHistoryBody(${i})">Cancelar</button>
+    </div>`;
+}
+
+async function saveHistoryPoint(i, j) {
+  const title = document.getElementById(`htitle-${i}-${j}`).value.trim();
+  const editor = document.getElementById(`hedit-${i}-${j}`);
+  const html = sanitizeRichHtml(editor.innerHTML);
+  const val = stripHtml(html).trim();
+  const datedInfo = normalizeDatedInfo(document.getElementById(`hinfo-${i}-${j}`).value);
+  if (!val) return;
+  state.history[i].points[j] = { ...normalizePoint(state.history[i].points[j]), title, text: val, html, datedInfo };
+  await persist();
+  document.getElementById(`hbody-${i}`).innerHTML = '';
+  renderHistoryBody(i);
+}
+
+async function deleteHistoryPoint(i, j) {
+  if (!confirm('¿Eliminar este punto?')) return;
+  state.history[i].points.splice(j, 1);
+  await persist();
+  document.getElementById(`hbody-${i}`).innerHTML = '';
+  renderHistoryBody(i);
+  document.getElementById(`hcount-${i}`).textContent = `${state.history[i].points.length} puntos`;
+}
+
+async function addHistoryPoint(i) {
+  const text = prompt('Escribe el nuevo punto clave:');
+  if (!text || !text.trim()) return;
+  state.history[i].points.push({ title: '', text: text.trim(), datedInfo: [], vocab: [], type: 'manual' });
+  await persist();
+  document.getElementById(`hbody-${i}`).innerHTML = '';
+  renderHistoryBody(i);
+  document.getElementById(`hcount-${i}`).textContent = `${state.history[i].points.length} puntos`;
+}
+
+async function deleteHistoryEntry(i) {
+  if (!confirm('¿Eliminar esta sesión completa?')) return;
+  state.history.splice(i, 1);
+  await persist();
+  updateHeader();
+  renderProfileHistory();
+  renderHistory();
+}
+
+function exportEntryWord(i) { downloadWord(buildEntryWordHtml(state.history[i]), `CambridgeTrainer_${safeFilename(state.history[i].topic)}.doc`); }
+
+function uploadEntryWordToDrive(i) {
+  const entry = state.history[i];
+  if (!entry) return;
+  uploadWordToDrive(buildEntryWordHtml(entry), `CambridgeTrainer_${safeFilename(entry.topic)}.doc`);
+}
+
+function exportAllTxtLegacy() {
+  if (state.history.length === 0) { alert('No hay historial.'); return; }
+  let txt = `CAMBRIDGE TRAINER — HISTORIAL COMPLETO\n${'='.repeat(50)}\n\n`;
+  state.history.forEach(entry => { txt += buildEntryTxt(entry) + '\n'; });
+  downloadWord(wrapWordHtml('CAMBRIDGE TRAINER - Historial completo', `<pre>${escHtml(txt)}</pre>`), 'CambridgeTrainer_Historial.doc');
+}
+
+function buildEntryTxt(entry) {
+  const date = new Date(entry.date).toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const langLabel = 'English B2/C1/C2';
+  let txt = `CAMBRIDGE TRAINER\n${'='.repeat(50)}\nFecha: ${date}\nIdioma: ${langLabel}\nTema: ${entry.topic}\n\n`;
+  entry.points.forEach((p, i) => {
+    txt += `${i+1}. ${p.text}\n`;
+    if (p.vocab && p.vocab.length > 0) { txt += `   [${langLabel}]\n`; p.vocab.forEach(v => { txt += `   · ${v.word}: ${v.def}\n`; }); }
+    txt += '\n';
+  });
+  return txt;
+}
+
+// ── DATABASE ────────────────────────────────────────────────────────────
+function exportDB() {
+  const db = { version: 3, app: 'Cambridge Trainer', exported: new Date().toISOString(), state };
+  if (BACKEND_SUPPORTED) {
+    backendRequest('/api/export-db', {
+      method: 'POST',
+      body: JSON.stringify({
+        filename: `CambridgeTrainer_BD_${new Date().toISOString().slice(0,10)}.json`,
+        data: db
+      })
+    }).catch(() => {});
+  }
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `CambridgeTrainer_BD_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function importDB() { document.getElementById('importFileInput').click(); }
+
+function handleImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const db = JSON.parse(e.target.result);
+      if (!db.state) { alert('Archivo no válido.'); return; }
+      if (!confirm(`¿Importar BD del ${(db.exported||'').slice(0,10)}? Se sobrescribirá la actual.`)) return;
+      state = { ...state, ...db.state };
+      await persist();
+      init();
+      alert('✓ Base de datos importada.');
+    } catch(err) { alert('Error: ' + err.message); }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ── CONFIG ───────────────────────────────────────────────────────────────
+function formatProfileDate(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('es-ES');
+}
+
+function remainingCredits(user = null) {
+  const total = Number(user?.monthly_quota || 0);
+  const used = Number(user?.usage_month || 0);
+  return total ? Math.max(0, total - used) : null;
+}
+
+function cambridgeIcon() {
+  return `
+    <svg class="cambridge-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <rect x="11" y="10" width="42" height="46" rx="5" fill="white" stroke="currentColor" stroke-width="2"/>
+      <path d="M20 10h28a5 5 0 0 1 5 5v36a5 5 0 0 0-5-5H20a5 5 0 0 0-5 5V15a5 5 0 0 1 5-5Z" fill="var(--blue-light)"/>
+      <path d="M20 18h24M20 26h24M20 34h16" class="line"/>
+      <path d="M44 10v18l-5-3-5 3V10" fill="var(--gold)"/>
+      <circle cx="45" cy="44" r="8" fill="var(--blue)" opacity="0.95"/>
+      <path d="m41.5 44 2.2 2.3 5-5.4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>`;
+}
+
+function renderCambridgeIcons() {
+  const mini = document.getElementById('profileHeaderBtn');
+  const avatar = document.getElementById('profileAvatar');
+  if (mini) mini.innerHTML = cambridgeIcon();
+  if (avatar) avatar.innerHTML = cambridgeIcon();
+  document.querySelectorAll('#tab-perfil .profile-actions button').forEach(button => {
+    if (button.getAttribute('onclick')?.includes('showUtilityTab')) button.textContent = 'Configuración';
+  });
+  const historyNotice = document.querySelector('#tab-historial .db-notice');
+  if (historyNotice) historyNotice.innerHTML = 'El historial se guarda en el servidor por usuario. Puedes exportar o importar una copia JSON si quieres hacer un respaldo.';
+}
+
+function renderProfile(user = null) {
+  accountUser = user;
+  renderCambridgeIcons();
+  const name = user?.name || user?.username || 'Cuenta CAMBRIDGE TRAINER';
+  const email = user?.email || '';
+  const remaining = remainingCredits(user);
+  const avatar = document.getElementById('profileAvatar');
+  const nameEl = document.getElementById('profileName');
+  const nameInput = document.getElementById('profileNameInput');
+  const subtitleEl = document.getElementById('profileSubtitle');
+  const usageEl = document.getElementById('profileUsage');
+  const expiryEl = document.getElementById('profileExpiry');
+  if (avatar) avatar.innerHTML = cambridgeIcon();
+  if (nameEl) nameEl.textContent = name;
+  if (nameInput) nameInput.value = name;
+  if (subtitleEl) subtitleEl.textContent = email || 'Acceso local CAMBRIDGE TRAINER';
+  if (usageEl) usageEl.textContent = remaining === null ? 'Sin límite' : `${remaining} créditos restantes`;
+  if (expiryEl) expiryEl.textContent = formatProfileDate(user?.expires_at);
+  updateAccessKeyUi(Boolean(user?.license_key));
+  updateDriveButton(Boolean(user?.drive_connected));
+  updateHeader();
+  renderProfileHistory();
+}
+
+function updateAccessKeyUi(hasSessionAccess = false) {
+  const help = document.getElementById('accessKeyHelp');
+  const row = document.getElementById('licenseConfigRow');
+  const input = document.getElementById('licenseKeyInput');
+  if (row) row.hidden = hasSessionAccess;
+  if (input && hasSessionAccess) input.value = '';
+  if (help) {
+    help.innerHTML = hasSessionAccess
+      ? 'Acceso activo desde tu cuenta. No necesitas introducir ninguna clave manual.'
+      : 'Tu cuenta activa la IA automaticamente al entrar. Usa la clave manual solo si trabajas sin sesion web.';
+  }
+}
+
+function refreshProfile() {
+  if (typeof loadAccountStatus === 'function') {
+    loadAccountStatus();
+    return;
+  }
+  validateLicense(false);
+}
+
+function profileHistoryStats() {
+  const byDay = new Map();
+  state.history.forEach(entry => {
+    const date = new Date(entry.date || Date.now());
+    const key = date.toISOString().slice(0, 10);
+    if (!byDay.has(key)) byDay.set(key, { date, sessions: 0, points: 0, topics: [] });
+    const day = byDay.get(key);
+    day.sessions += 1;
+    day.points += Array.isArray(entry.points) ? entry.points.length : 0;
+    day.topics.push(entry.topic || 'Tema sin titulo');
+  });
+  const days = [...byDay.values()].sort((a, b) => b.date - a.date);
+  return {
+    days,
+    activeDays: days.length,
+    sessions: state.history.length,
+    points: state.history.reduce((sum, entry) => sum + (Array.isArray(entry.points) ? entry.points.length : 0), 0)
+  };
+}
+
+function renderProfileHistory() {
+  const container = document.getElementById('profileHistoryContent');
+  if (!container) return;
+  const stats = profileHistoryStats();
+  if (!stats.sessions) {
+    container.innerHTML = '<div class="empty-msg">Aun no hay temas guardados. Guarda tu primera sesion y aparecera aqui.</div>';
+    return;
+  }
+  const recent = stats.days.slice(0, 10).map(day => {
+    const dateLabel = day.date.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+    const topics = [...new Set(day.topics)].map(escHtml).join(' · ');
+    return `<div class="profile-history-day">
+      <div class="profile-history-date">${escHtml(dateLabel)}</div>
+      <div class="profile-history-topic">${topics}</div>
+      <div class="profile-history-meta">${day.sessions} sesion${day.sessions === 1 ? '' : 'es'} · ${day.points} puntos trabajados</div>
+    </div>`;
+  }).join('');
+  container.innerHTML = `
+    <div class="profile-history-summary">
+      <div class="profile-history-stat"><span>Dias activos</span><strong>${stats.activeDays}</strong></div>
+      <div class="profile-history-stat"><span>Sesiones</span><strong>${stats.sessions}</strong></div>
+      <div class="profile-history-stat"><span>Puntos</span><strong>${stats.points}</strong></div>
+    </div>
+    <div class="profile-history-list">${recent}</div>`;
+}
+
+function toggleProfileHistory() {
+  const panel = document.getElementById('profileHistoryPanel');
+  if (!panel) return;
+  renderProfileHistory();
+  panel.classList.toggle('open');
+}
+
+async function saveLicense() {
+  const key = document.getElementById('licenseKeyInput').value.trim();
+  if (!key) { alert('Introduce una clave CAMBRIDGE TRAINER válida.'); return; }
+  if (BACKEND_SUPPORTED) await writeTXT('license.txt', key);
+  localStorage.setItem('cambridge_trainer_license', key);
+  await validateLicense(true);
+}
+
+async function validateLicense(showSaved = true) {
+  const statusEl = document.getElementById('licenseStatus');
+  if (!statusEl) return;
+  try {
+    if (!BACKEND_SUPPORTED || !(await loadBackendStatus())) {
+      throw new Error('No hay sesion activa. Vuelve al login y entra de nuevo.');
+    }
+    const data = await backendRequest('/api/me');
+    const user = data.user || {};
+    const remaining = remainingCredits(user);
+    const creditsText = remaining === null ? 'Créditos sin límite.' : `${remaining} créditos restantes.`;
+    if (data.ok) renderProfile(user);
+    statusEl.innerHTML = data.ok
+      ? `<div class="success-notice">${showSaved ? 'Clave guardada. ' : ''}Licencia activa. ${escHtml(creditsText)}</div>`
+      : `<div class="notice">Licencia no activa: ${escHtml(data.message || data.error || 'revisa la clave.')}</div>`;
+  } catch(e) {
+    statusEl.innerHTML = `<div class="notice">No se pudo validar la licencia: ${escHtml(e.message)}</div>`;
+  }
+}
+
+async function saveProfileName() {
+  const input = document.getElementById('profileNameInput');
+  const statusEl = document.getElementById('licenseStatus');
+  const name = (input?.value || '').trim();
+  if (!name) {
+    if (statusEl) statusEl.innerHTML = '<div class="notice">El nombre no puede estar vacio.</div>';
+    return;
+  }
+  try {
+    const data = await backendRequest('/api/profile', { method: 'POST', body: JSON.stringify({ name }) });
+    backendStatus = null;
+    renderProfile(data.user || {});
+    if (statusEl) statusEl.innerHTML = '<div class="success-notice">Nombre actualizado.</div>';
+  } catch(e) {
+    if (statusEl) statusEl.innerHTML = `<div class="notice">No se pudo guardar el nombre: ${escHtml(e.message)}</div>`;
+  }
+}
+
+function updateDriveButton(connected = false) {
+  const btn = document.getElementById('driveConnectBtn');
+  if (!btn) return;
+  btn.dataset.connected = connected ? '1' : '0';
+  btn.textContent = connected ? 'Drive conectado' : 'Conectar Drive';
+  btn.classList.toggle('btn-accept', connected);
+  btn.classList.toggle('btn-blue', !connected);
+}
+
+async function refreshDriveStatus() {
+  if (!BACKEND_SUPPORTED) return;
+  try {
+    const data = await backendRequest('/auth/google/drive-status');
+    updateDriveButton(Boolean(data.drive_connected));
+  } catch(e) {}
+}
+
+async function handleGoogleDrive() {
+  if (!BACKEND_SUPPORTED) {
+    alert('Drive solo se conecta desde la version servidor de Cambridge Trainer.');
+    return;
+  }
+  const connected = document.getElementById('driveConnectBtn')?.dataset.connected === '1';
+  if (!connected) {
+    location.href = '/auth/google/drive?next=' + encodeURIComponent('/cambridge?drive=connected');
+    return;
+  }
+  if (!confirm('Drive esta conectado. ¿Quieres desconectarlo de Cambridge Trainer?')) return;
+  await backendRequest('/auth/google/drive-disconnect', { method: 'POST', body: '{}' });
+  updateDriveButton(false);
+  const statusEl = document.getElementById('licenseStatus');
+  if (statusEl) statusEl.innerHTML = '<div class="success-notice">Drive desconectado.</div>';
+}
+
+async function logoutWeb() {
+  localStorage.removeItem('cambridge_trainer_license');
+  if (BACKEND_SUPPORTED) {
+    await fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+    location.href = '/login';
+    return;
+  }
+  location.href = 'login.html';
+}
+
+async function saveConfig() {
+  state.config.numPoints     = parseInt(document.getElementById('numPoints').value) || 5;
+  state.config.numVocab      = parseInt(document.getElementById('numVocab').value) || 5;
+  state.config.profile       = document.getElementById('profileContext').value;
+  state.config.pointFontSize = parseInt(document.getElementById('pointFontSize').value) || 13;
+  state.config.vocabColumnWidth = state.config.vocabColumnWidth || 270;
+  await persist();
+  document.getElementById('configStatus').textContent = '✓ Configuración guardada.';
+  setTimeout(() => document.getElementById('configStatus').textContent = '', 2500);
+}
+
+async function clearHistory() {
+  if (!confirm('¿Borrar todo el historial?')) return;
+  state.history = [];
+  await persist();
+  renderHistory();
+  updateHeader();
+}
+
+async function resetAll() {
+  if (!confirm('¿Reiniciar toda la aplicación?')) return;
+  localStorage.removeItem('cambridge_trainer_state');
+  localStorage.removeItem('cambridge_trainer_license');
+  if (BACKEND_SUPPORTED) await writeJSON('state.json', {});
+  location.reload();
+}
+
+// ── UTILS ────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escAttr(s) {
+  return escHtml(s).replace(/'/g,'&#39;');
+}
+
+function safeFilename(name) {
+  return String(name || 'Sesion')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+    .replace(/\s+/g, '_')
+    .slice(0, 42) || 'Sesion';
+}
+
+function wrapWordHtml(title, bodyHtml) {
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>${escHtml(title)}</title>
+<style>
+  body { font-family: Aptos, Calibri, Arial, sans-serif; color:#172026; line-height:1.45; }
+  h1 { font-family: Georgia, serif; color:#2454a6; letter-spacing:0.04em; }
+  h2 { font-family: Georgia, serif; color:#172026; margin-top:22px; }
+  h3 { color:#2454a6; margin-bottom:6px; }
+  .meta { color:#607080; margin-bottom:18px; }
+  .point { margin:16px 0; padding-bottom:12px; border-bottom:1px solid #d6ded9; }
+  .date-item, .vocab-item { margin:4px 0; }
+  .label { color:#c7922f; font-weight:bold; }
+</style>
+</head>
+<body>${bodyHtml}</body>
+</html>`;
+}
+
+function buildEntryWordHtml(entry, fragmentOnly = false) {
+  const date = new Date(entry.date || new Date()).toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const langLabel = 'English B2/C1/C2';
+  const points = (entry.points || []).map((rawPoint, index) => {
+    const point = normalizePoint(rawPoint);
+    const dated = point.datedInfo.length
+      ? `<h3>Ejemplos / fechas</h3>${point.datedInfo.map(item => `<div class="date-item"><span class="label">${escHtml(item.date || '')}</span>${item.date ? ': ' : ''}${escHtml(item.text)}</div>`).join('')}`
+      : '';
+    const vocab = point.vocab?.length
+      ? `<h3>Vocabulario</h3>${point.vocab.map(v => `<div class="vocab-item"><span class="label">${escHtml(v.word || '')}</span>: ${escHtml(v.def || '')}</div>`).join('')}`
+      : '';
+    const text = point.html ? sanitizeRichHtml(point.html) : escHtml(point.text || '').replace(/\n/g, '<br>');
+    return `<div class="point"><h2>${index + 1}. ${escHtml(point.title || 'Idea')}</h2><p>${text}</p>${dated}${vocab}</div>`;
+  }).join('');
+  const body = `<h1>CAMBRIDGE TRAINER</h1><div class="meta">Fecha: ${escHtml(date)}<br>Idioma: ${escHtml(langLabel)}<br>Tema: ${escHtml(entry.topic || '')}</div>${points}`;
+  return fragmentOnly ? body : wrapWordHtml(`CAMBRIDGE TRAINER - ${entry.topic || 'Sesion'}`, body);
+}
+
+function downloadWord(html, filename) {
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename.endsWith('.doc') ? filename : `${filename}.doc`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function downloadTxt(text, filename) {
+  if (BACKEND_SUPPORTED) await writeTXT(filename, text);
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+function fillReciteTopicSelect(selectedTopic = '') {
+  const select = document.getElementById('reciteTopicInput');
+  if (!select) return;
+  const current = selectedTopic || state.recitePractice?.topic || session.topic || '';
+  const currentValue = select.value;
+  select.innerHTML = '<option value="">Selecciona un tema...</option>';
+  const groups = getTopicGroups();
+  for (const cat of Object.keys(groups)) {
+    const group = document.createElement('optgroup');
+    group.label = cat;
+    for (const topic of groups[cat]) {
+      const option = document.createElement('option');
+      option.value = topic;
+      option.textContent = topic;
+      group.appendChild(option);
+    }
+    select.appendChild(group);
+  }
+  const next = current || currentValue;
+  if (next && [...select.options].some(option => option.value === next)) {
+    select.value = next;
+  }
+}
+
+function moveTranscribeButtonToHeader() {
+  const textarea = document.getElementById('reciteTranscript');
+  const button = document.getElementById('transcribeAudioBtn');
+  if (!textarea || !button || button.closest('.recite-field-head')) return;
+  const field = textarea.closest('.recite-field');
+  const label = field?.querySelector('label[for="reciteTranscript"]');
+  if (!field || !label) return;
+  const head = document.createElement('div');
+  head.className = 'recite-field-head';
+  label.replaceWith(head);
+  head.appendChild(label);
+  head.appendChild(button);
+  button.className = 'btn btn-small btn-accept';
+  button.textContent = 'Transcribir';
+}
+
+function setReciteTopic(topic, reset = true) {
+  const value = topic || '';
+  const input = document.getElementById('reciteTopicInput');
+  const label = document.getElementById('reciteTopicLabel');
+  fillReciteTopicSelect(value);
+  if (input) input.value = value;
+  if (label) label.textContent = value || 'Sin tema seleccionado';
+  state.recitePractice.topic = value;
+  persist();
+  if (reset) resetReciteFlow();
+}
+
+function updateReciteTopic(value) {
+  setReciteTopic(value, false);
+}
+
+function persistRecitePractice() {
+  state.recitePractice.topic = document.getElementById('reciteTopicInput')?.value || '';
+  state.recitePractice.notes = document.getElementById('reciteNotes')?.value || '';
+  state.recitePractice.transcript = document.getElementById('reciteTranscript')?.value || '';
+  state.recitePractice.correction = document.getElementById('reciteCorrection')?.innerHTML || '';
+  state.recitePractice.selectedMode = reciteSelectedMode;
+  persist();
+}
+
+function renderRecitePractice() {
+  const saved = state.recitePractice || {};
+  reciteSelectedMode = saved.selectedMode === 'speak' ? 'speak' : 'prep';
+  const topicInput = document.getElementById('reciteTopicInput');
+  const topicLabel = document.getElementById('reciteTopicLabel');
+  const topic = saved.topic || session.topic || state.currentSession?.topic || '';
+  fillReciteTopicSelect(topic);
+  if (topicInput) topicInput.value = topic;
+  if (topicLabel) topicLabel.textContent = topic || 'Sin tema seleccionado';
+  state.recitePractice.topic = topic;
+  const notes = document.getElementById('reciteNotes');
+  const transcript = document.getElementById('reciteTranscript');
+  const correction = document.getElementById('reciteCorrection');
+  if (notes) notes.value = saved.notes || '';
+  if (transcript) transcript.value = saved.transcript || '';
+  if (correction && saved.correction) {
+    correction.style.display = 'block';
+    correction.className = 'notice correction-report';
+    correction.innerHTML = saved.correction;
+  }
+  setRecitePhase(reciteSelectedMode, reciteSelectedMode === 'speak' ? 300 : 60);
+  setAudioState(reciteAudioBlob ? 'ready' : 'idle');
+}
+
+function getSupportedAudioType() {
+  if (!window.MediaRecorder) return '';
+  const types = [
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/ogg;codecs=opus',
+    'audio/mp4'
+  ];
+  return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
+}
+
+function audioExtension(type) {
+  const clean = String(type || '').toLowerCase();
+  if (clean.includes('ogg')) return 'ogg';
+  if (clean.includes('mp4') || clean.includes('m4a')) return 'm4a';
+  if (clean.includes('wav')) return 'wav';
+  return 'webm';
+}
+
+function getReciteAudioFilename() {
+  return `recitation.${audioExtension(reciteAudioBlob?.type || reciteAudioType)}`;
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return '0 KB';
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatTimer(seconds) {
+  const mins = String(Math.floor(seconds / 60)).padStart(2, '0');
+  const secs = String(seconds % 60).padStart(2, '0');
+  return `${mins}:${secs}`;
+}
+
+function updateReciteTimer() {
+  const el = document.getElementById('reciteTimer');
+  if (el) el.textContent = formatTimer(reciteSeconds);
+}
+
+async function startPrepTimer() {
+  reciteSelectedMode = 'prep';
+  if (recitePhase !== 'prep') setRecitePhase('prep', reciteSeconds > 0 ? reciteSeconds : 60);
+  startReciteCountdown();
+}
+
+async function startSpeakTimer() {
+  reciteSelectedMode = 'speak';
+  if (recitePhase !== 'speak') {
+    setRecitePhase('speak', 300);
+  }
+  setReciteStatus('Tiempo de recitación iniciado.');
+  startReciteCountdown();
+}
+
+function setReciteMode(mode) {
+  reciteSelectedMode = mode === 'speak' ? 'speak' : 'prep';
+  pauseReciteTimer();
+  setRecitePhase(reciteSelectedMode, reciteSelectedMode === 'speak' ? 300 : 60);
+  setReciteStatus(reciteSelectedMode === 'speak'
+    ? 'Listo para grabar la recitación.'
+    : 'Preparacion lista.');
+  persistRecitePractice();
+}
+
+async function startSelectedRecite() {
+  if (reciteSelectedMode === 'speak') await startSpeakRecordingSession();
+  else await startPrepTimer();
+}
+
+async function skipPrepToSpeak() {
+  setReciteMode('speak');
+  await startSpeakRecordingSession();
+}
+
+async function startReciteFlow() {
+  await startPrepTimer();
+}
+
+function startReciteCountdown() {
+  if (reciteTimerId) return;
+  if (recitePhase === 'done') resetReciteFlow();
+  if (recitePhase === 'prep' && reciteSeconds <= 0) setRecitePhase('prep', 60);
+  if (recitePhase === 'speak' && reciteSeconds <= 0) setRecitePhase('speak', 300);
+  reciteTimerId = setInterval(() => {
+    reciteSeconds -= 1;
+    updateReciteTimer();
+    if (reciteSeconds <= 0) advanceRecitePhase();
+  }, 1000);
+}
+
+function pauseReciteTimer() {
+  if (reciteTimerId) {
+    clearInterval(reciteTimerId);
+    reciteTimerId = null;
+  }
+}
+
+function resetReciteFlow() {
+  pauseReciteTimer();
+  reciteRecordingToken += 1;
+  stopReciteRecording();
+  reciteAudioBlob = null;
+  reciteChunks = [];
+  reciteStopPromise = null;
+  reciteRecordingStartedAt = null;
+  reciteAudioDuration = 0;
+  reciteSelectedMode = 'prep';
+  setRecitePhase('prep', 60);
+  setAudioState('idle');
+  setReciteStatus('');
+  const correction = document.getElementById('reciteCorrection');
+  if (correction) {
+    correction.style.display = 'none';
+    correction.className = 'notice';
+    correction.innerHTML = '';
+  }
+  persistRecitePractice();
+}
+
+function setRecitePhase(phase, seconds) {
+  recitePhase = phase;
+  reciteSeconds = seconds;
+  const label = document.getElementById('recitePhase');
+  if (label) {
+    label.textContent =
+      phase === 'prep' ? 'Preparacion: 1 minuto' :
+      phase === 'speak' ? 'Recitación: 5 minutos' :
+      'Práctica terminada';
+  }
+  document.getElementById('prepModeBtn')?.classList.toggle('active', reciteSelectedMode === 'prep');
+  document.getElementById('speakModeBtn')?.classList.toggle('active', reciteSelectedMode === 'speak');
+  document.getElementById('reciteTimer')?.classList.toggle('recording', phase === 'speak');
+  updateReciteTimer();
+}
+
+async function advanceRecitePhase() {
+  pauseReciteTimer();
+  if (recitePhase === 'prep') {
+    setRecitePhase('done', 0);
+    setReciteStatus('Preparación terminada. Pulsa Grabar 5 min cuando estés lista.');
+    return;
+  }
+  if (recitePhase === 'speak') {
+    if (reciteRecorder && reciteRecorder.state === 'recording') await stopReciteRecording();
+    setRecitePhase('done', 0);
+    setReciteStatus('Recitación terminada. Audio listo para transcribir.');
+  }
+}
+
+async function toggleSpeakRecording() {
+  if (reciteRecorder && reciteRecorder.state !== 'inactive') {
+    await stopReciteNow();
+    return;
+  }
+  await startSpeakRecordingSession();
+}
+
+function toggleRecitePause() {
+  if (!reciteRecorder) return;
+  if (reciteRecorder.state === 'recording') {
+    try { reciteRecorder.pause(); } catch(e) { return; }
+    pauseReciteTimer();
+    setAudioState('paused');
+    setReciteStatus('Grabación en pausa. Pulsa Reanudar para continuar.');
+    return;
+  }
+  if (reciteRecorder.state === 'paused') {
+    try { reciteRecorder.resume(); } catch(e) { return; }
+    setAudioState('recording');
+    setReciteStatus('Grabando recitación...');
+    startReciteCountdown();
+  }
+}
+
+async function stopReciteNow() {
+  pauseReciteTimer();
+  await stopReciteRecording();
+  setRecitePhase('done', 0);
+  setReciteStatus(reciteAudioBlob ? 'Audio listo. Pulsa Transcribir.' : 'No se ha guardado audio. Prueba a grabar de nuevo.');
+}
+
+async function startSpeakRecordingSession() {
+  reciteSelectedMode = 'speak';
+  pauseReciteTimer();
+  setRecitePhase('speak', 300);
+  const started = await startReciteRecording();
+  if (!started) return;
+  startReciteCountdown();
+}
+
+function finishReciteNow() {
+  pauseReciteTimer();
+  stopReciteRecording();
+  setRecitePhase('done', 0);
+  setReciteStatus('Práctica terminada. Puedes transcribir el audio y pedir corrección.');
+}
+
+async function startReciteRecording() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setReciteStatus('Este navegador no permite usar el micrófono aquí. Abre la app desde el ejecutable o pega la transcripción manualmente.');
+    setAudioState('error');
+    return false;
+  }
+  if (!window.MediaRecorder) {
+    setReciteStatus('Este navegador no puede grabar audio. Prueba con Edge o Chrome actualizado.');
+    setAudioState('error');
+    return false;
+  }
+  if (reciteRecorder && reciteRecorder.state === 'recording') {
+    setReciteStatus('El audio ya está grabando.');
+    return true;
+  }
+  reciteAudioBlob = null;
+  reciteChunks = [];
+  reciteStopPromise = null;
+  reciteRecordingStartedAt = null;
+  reciteAudioDuration = 0;
+  const recordingToken = ++reciteRecordingToken;
+  setAudioState('starting');
+  try {
+    reciteStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 1
+      }
+    });
+    const supportedType = getSupportedAudioType();
+    reciteAudioType = supportedType || 'audio/webm';
+    reciteRecorder = new MediaRecorder(
+      reciteStream,
+      supportedType ? { mimeType: supportedType } : undefined
+    );
+    reciteRecorder.ondataavailable = e => { if (e.data.size > 0) reciteChunks.push(e.data); };
+    reciteStopPromise = new Promise(resolve => {
+      reciteRecorder.onstop = () => {
+        const isCurrentRecording = recordingToken === reciteRecordingToken;
+        reciteAudioDuration = reciteRecordingStartedAt ? Math.round((Date.now() - reciteRecordingStartedAt) / 1000) : 0;
+        if (isCurrentRecording && reciteChunks.length > 0) {
+          const finalType = reciteRecorder.mimeType || reciteAudioType || 'audio/webm';
+          reciteAudioBlob = new Blob(reciteChunks, { type: finalType });
+        }
+        reciteStream?.getTracks().forEach(track => track.stop());
+        reciteStream = null;
+        reciteRecorder = null;
+        if (isCurrentRecording) setAudioState(reciteAudioBlob ? 'ready' : 'idle');
+        resolve(reciteAudioBlob);
+      };
+    });
+    reciteRecorder.onerror = () => {
+      setReciteStatus('El micrófono ha dado un error. Cierra otras apps que usen audio y prueba otra vez.');
+      setAudioState('error');
+    };
+    reciteRecordingStartedAt = Date.now();
+    reciteRecorder.start(1000);
+    setAudioState('recording');
+    setReciteStatus('Grabando recitación...');
+    return true;
+  } catch(e) {
+    setAudioState('error');
+    const message = e && e.name === 'NotAllowedError'
+      ? 'Windows o el navegador han bloqueado el micrófono. Permite el micrófono para esta app y vuelve a pulsar Grabar 5 min.'
+      : 'No se pudo activar el micrófono. Cierra otras apps que usen audio o pega la transcripción manualmente.';
+    setReciteStatus(message);
+    reciteStream?.getTracks().forEach(track => track.stop());
+    reciteStream = null;
+    reciteRecorder = null;
+    return false;
+  }
+}
+
+async function stopReciteRecording() {
+  if (!reciteRecorder || reciteRecorder.state === 'inactive') return reciteAudioBlob;
+  setAudioState('stopping');
+  try { reciteRecorder.requestData?.(); } catch(e) {}
+  try { reciteRecorder.stop(); } catch(e) { setAudioState('error'); return reciteAudioBlob; }
+  return await reciteStopPromise;
+}
+
+function setReciteStatus(text) {
+  const el = document.getElementById('reciteStatus');
+  if (!el) return;
+  el.style.display = text ? 'block' : 'none';
+  el.textContent = text || '';
+}
+
+function setAudioState(stateName) {
+  const dot = document.getElementById('audioDot');
+  const text = document.getElementById('audioStateText');
+  const meta = document.getElementById('audioMeta');
+  const recordBtn = document.getElementById('speakModeBtn');
+  const pauseBtn = document.getElementById('pauseAudioBtn');
+  const transcribeBtn = document.getElementById('transcribeAudioBtn');
+  if (!dot || !text) return;
+  dot.classList.remove('recording', 'ready');
+  if (stateName === 'recording') {
+    dot.classList.add('recording');
+    text.textContent = 'Grabando audio';
+    if (meta) meta.textContent = 'Micrófono activo';
+  } else if (stateName === 'paused') {
+    dot.classList.add('recording');
+    text.textContent = 'Grabación en pausa';
+    if (meta) meta.textContent = 'Micrófono pausado';
+  } else if (stateName === 'ready') {
+    dot.classList.add('ready');
+    text.textContent = 'Audio listo para transcribir';
+    if (meta) meta.textContent = reciteAudioBlob
+      ? `${formatBytes(reciteAudioBlob.size)} capturados en ${reciteAudioDuration || '?'} s`
+      : '';
+  } else if (stateName === 'starting') {
+    text.textContent = 'Activando micrófono...';
+    if (meta) meta.textContent = '';
+  } else if (stateName === 'stopping') {
+    text.textContent = 'Guardando audio...';
+    if (meta) meta.textContent = '';
+  } else if (stateName === 'error') {
+    text.textContent = 'Audio no disponible';
+    if (meta) meta.textContent = '';
+  } else {
+    text.textContent = 'Audio sin iniciar';
+    if (meta) meta.textContent = '';
+  }
+  const isBusy = stateName === 'starting' || stateName === 'stopping';
+  const isActiveRecording = stateName === 'recording' || stateName === 'paused';
+  if (recordBtn) {
+    recordBtn.disabled = isBusy;
+    recordBtn.textContent = isActiveRecording || stateName === 'stopping' ? 'Parar grabación' : 'Grabar 5 min';
+    recordBtn.classList.toggle('recording', isActiveRecording || stateName === 'stopping');
+  }
+  if (pauseBtn) {
+    pauseBtn.style.display = isActiveRecording ? 'inline-flex' : 'none';
+    pauseBtn.textContent = stateName === 'paused' ? 'Reanudar' : 'Pausa';
+  }
+  if (transcribeBtn) transcribeBtn.disabled = !reciteAudioBlob || isActiveRecording || isBusy;
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function transcribeReciteAudio() {
+  if (reciteRecorder && reciteRecorder.state !== 'inactive') await stopReciteRecording();
+  if (!reciteAudioBlob && reciteStopPromise) await reciteStopPromise;
+  if (!reciteAudioBlob) {
+    setReciteStatus('No hay audio guardado. Pulsa Grabar 5 min, habla, pulsa Parar y después Transcribir.');
+    return;
+  }
+  if (reciteAudioBlob.size < 1500) {
+    setReciteStatus('El audio guardado está vacío o es demasiado corto. Revisa el permiso de micrófono y graba de nuevo.');
+    return;
+  }
+  const license = await getCambridgeTrainerLicense();
+  if (!license) { alert('Introduce tu clave CAMBRIDGE TRAINER en Configuración.'); return; }
+  setReciteStatus('Transcribiendo audio...');
+  const filename = getReciteAudioFilename();
+  if (BACKEND_SUPPORTED && await loadBackendStatus()) {
+    try {
+      const data = await backendRequest('/api/transcribe', {
+        method: 'POST',
+        body: JSON.stringify({
+          audio: await blobToDataUrl(reciteAudioBlob),
+          filename,
+          contentType: reciteAudioBlob.type || 'audio/webm',
+          model: GROQ_TRANSCRIBE_MODEL,
+          language: 'en'
+        })
+      });
+      document.getElementById('reciteTranscript').value = data.text || '';
+      setReciteStatus('Transcripción completada.');
+      persistRecitePractice();
+      return;
+    } catch(e) {
+      setReciteStatus('No se pudo transcribir: ' + e.message);
+      return;
+    }
+  }
+  setReciteStatus('No se pudo conectar con el servidor. Recarga la pagina o vuelve a iniciar sesion.');
+}
+
+async function correctRecitation() {
+  const transcript = document.getElementById('reciteTranscript').value.trim();
+  if (!transcript) { alert('Primero transcribe o pega tu recitación.'); return; }
+  const topic = document.getElementById('reciteTopicInput').value.trim() || session.topic || '';
+  const box = document.getElementById('reciteCorrection');
+  box.style.display = 'block';
+  box.className = 'notice';
+  box.textContent = 'Corrigiendo recitación...';
+  const langName = 'English';
+  try {
+    const correction = await groqChat([
+      { role: 'system', content: `You are a demanding Cambridge English ${langName} speaking examiner for B2/C1/C2 candidates. Respond in clear Spanish. Be práctical, specific and well structured. Quote improved ${langName} phrases only when useful. Do not use markdown symbols like ### or **.` },
+      { role: 'user', content: `Tema: ${topic}\nTranscripción:\n${transcript}\n\nDevuelve exactamente este formato, con títulos en mayúsculas y bullets claros:\n\nRESUMEN\n- Valoración global en 2 frases según criterios Cambridge.\n\nPUNTOS FUERTES\n- 2 o 3 cosas que ya funcionan.\n\nCORRECCIONES PRIORITARIAS\n- 3 a 5 mejoras concretas: estructura, gramática, vocabulario, pronunciación, interacción, cumplimiento de tarea o ritmo oral.\n\nVERSIÓN MEJORADA\nEscribe una versión mejorada de 1 o 2 fragmentos importantes de la respuesta, manteniendo el idioma de la exposición.\n\nPLAN PARA LA SIGUIENTE PRÁCTICA\n- 3 acciones concretas para repetir mejor la práctica Cambridge.` }
+    ], { max_tokens: 1800, temperature: 0.25 });
+    box.className = 'notice correction-report';
+    box.innerHTML = renderCorrectionReport(correction);
+    persistRecitePractice();
+  } catch(e) {
+    box.className = 'notice';
+    box.textContent = e.message;
+    persistRecitePractice();
+  }
+}
+
+function renderCorrectionReport(text) {
+  const titles = new Set(['RESUMEN', 'PUNTOS FUERTES', 'CORRECCIONES PRIORITARIAS', 'VERSIÓN MEJORADA', 'PLAN PARA LA SIGUIENTE PRÁCTICA']);
+  const lines = String(text || '').replace(/\r/g, '').split('\n').map(line => line.trim()).filter(Boolean);
+  const sections = [];
+  let current = { title: 'CORRECCIÓN', lines: [] };
+  lines.forEach(line => {
+    const clean = line.replace(/[:.]+$/, '').toUpperCase();
+    if (titles.has(clean)) {
+      if (current.lines.length) sections.push(current);
+      current = { title: clean, lines: [] };
+    } else {
+      current.lines.push(line.replace(/^[-*]\s*/, ''));
+    }
+  });
+  if (current.lines.length) sections.push(current);
+
+  return sections.map(section => {
+    const isVersion = section.title === 'VERSIÓN MEJORADA';
+    const body = isVersion
+      ? `<div class="correction-quote">${section.lines.map(escHtml).join('<br>')}</div>`
+      : `<ul>${section.lines.map(line => `<li>${escHtml(line)}</li>`).join('')}</ul>`;
+    return `<section class="correction-section"><h4 class="correction-heading">${escHtml(titleCaseCorrection(section.title))}</h4>${body}</section>`;
+  }).join('');
+}
+
+function titleCaseCorrection(title) {
+  const labels = {
+    'RESUMEN': 'Resumen',
+    'PUNTOS FUERTES': 'Puntos fuertes',
+    'CORRECCIONES PRIORITARIAS': 'Correcciónes prioritarias',
+    'VERSIÓN MEJORADA': 'Versión mejorada',
+    'PLAN PARA LA SIGUIENTE PRÁCTICA': 'Plan para la siguiente práctica',
+    'CORRECCIÓN': 'Corrección'
+  };
+  return labels[title] || title;
+}
+
+function renderChat(logId, key, fallbackText) {
+  const log = document.getElementById(logId);
+  if (!log) return;
+  const messages = state.topicChats?.[key] || [];
+  log.innerHTML = `<div class="chat-msg"><strong>Asistente:</strong> ${escHtml(fallbackText)}</div>`;
+  messages.forEach(msg => {
+    log.innerHTML += `<div class="chat-msg"><strong>${msg.role === 'user' ? 'Tu' : 'Asistente'}:</strong> ${escHtml(msg.text).replace(/\n/g,'<br>')}</div>`;
+  });
+  log.scrollTop = log.scrollHeight;
+}
+
+function renderAllChats() {
+  renderChat('sessionChatLog', 'session', 'Pregúntame dudas concretas sobre el tema de hoy.');
+  renderChat('topicChatLog', 'recite', 'Pregúntame dudas concretas sobre el tema seleccionado.');
+  renderChat('topicPageChatLog', 'temas', 'Pregúntame por ejemplos, enfoques, fechas o argumentos para cualquier tema.');
+}
+
+async function askTopicChatFrom(inputId, logId, chatKey, topic) {
+  const input = document.getElementById(inputId);
+  const log = document.getElementById(logId);
+  if (!input || !log) return;
+  const question = input.value.trim();
+  if (!question) return;
+  const langName = 'English';
+  if (!state.topicChats[chatKey]) state.topicChats[chatKey] = [];
+  state.topicChats[chatKey].push({ role: 'user', text: question });
+  log.innerHTML += `<div class="chat-msg"><strong>Tu:</strong> ${escHtml(question)}</div>`;
+  input.value = '';
+  log.scrollTop = log.scrollHeight;
+  const waitId = `wait-${Date.now()}`;
+  log.innerHTML += `<div class="chat-msg" id="${waitId}"><strong>Asistente:</strong> Pensando...</div>`;
+  try {
+    const answer = await groqChat([
+      { role: 'system', content: `You are a concise expert tutor for a C1/C2 ${langName} oral exam. Answer in Spanish unless the user asks for phrasing in ${langName}. Give concrete facts, dates, examples and elegant oral formulations. Topic: ${topic}` },
+      { role: 'user', content: question }
+    ], { max_tokens: 1100, temperature: 0.3 });
+    document.getElementById(waitId).innerHTML = `<strong>Asistente:</strong> ${escHtml(answer).replace(/\n/g,'<br>')}`;
+    state.topicChats[chatKey].push({ role: 'assistant', text: answer });
+  } catch(e) {
+    document.getElementById(waitId).innerHTML = `<strong>Asistente:</strong> ${escHtml(e.message)}`;
+    state.topicChats[chatKey].push({ role: 'assistant', text: e.message });
+  }
+  persist();
+  log.scrollTop = log.scrollHeight;
+}
+
+async function askTopicChat() {
+  const topic = document.getElementById('reciteTopicInput').value.trim() || session.topic || 'tema actual';
+  await askTopicChatFrom('topicChatInput', 'topicChatLog', 'recite', topic);
+}
+
+async function askSessionChat() {
+  const topic = session.topic || document.getElementById('sessionTopicLabel')?.textContent || 'tema de hoy';
+  await askTopicChatFrom('sessionChatInput', 'sessionChatLog', 'session', topic);
+}
+
+async function askTopicPageChat() {
+  const topic = document.getElementById('topicSearchInput')?.value.trim() || session.topic || 'temas de la base';
+  await askTopicChatFrom('topicPageChatInput', 'topicPageChatLog', 'temas', topic);
+}
+
+function buildEntryTxt(entry) {
+  const date = new Date(entry.date).toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const langLabel = 'English B2/C1/C2';
+  let txt = `CAMBRIDGE TRAINER\n${'='.repeat(50)}\nFecha: ${date}\nIdioma: ${langLabel}\nTema: ${entry.topic}\n\n`;
+  entry.points.forEach((p, i) => {
+    const point = normalizePoint(p);
+    txt += `${i+1}. ${point.title || 'Idea'}\n`;
+    txt += `${point.text}\n`;
+    if (point.datedInfo.length > 0) {
+      txt += `   Ejemplos / fechas:\n`;
+      point.datedInfo.forEach(item => { txt += `   - ${item.date ? item.date + ': ' : ''}${item.text}\n`; });
+    }
+    if (point.vocab && point.vocab.length > 0) {
+      txt += `   [${langLabel}]\n`;
+      point.vocab.forEach(v => { txt += `   - ${v.word}: ${v.def}\n`; });
+    }
+    txt += '\n';
+  });
+  return txt;
+}
+
+function exportAll() {
+  if (state.history.length === 0) { alert('No hay historial.'); return; }
+  const body = state.history.map(entry => buildEntryWordHtml(entry, true)).join('<br style="page-break-after:always">');
+  downloadWord(wrapWordHtml('CAMBRIDGE TRAINER - Historial completo', body), 'CambridgeTrainer_Historial.doc');
+}
+
+function uploadAllToDrive() {
+  if (state.history.length === 0) { alert('No hay historial.'); return; }
+  const body = state.history.map(entry => buildEntryWordHtml(entry, true)).join('<br style="page-break-after:always">');
+  uploadWordToDrive(wrapWordHtml('CAMBRIDGE TRAINER - Historial completo', body), 'CambridgeTrainer_Historial.doc');
+}
+
+function installFrontendErrorReporter() {
+  const send = payload => fetch('/api/frontend-error', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json','X-Client-App':'cambridge'}, body:JSON.stringify({...payload, path:location.pathname})}).catch(()=>{});
+  window.addEventListener('error', event => send({message:event.message, source:event.filename, line:event.lineno, column:event.colno}));
+  window.addEventListener('unhandledrejection', event => send({message:String(event.reason?.message || event.reason || 'Unhandled rejection'), source:'promise'}));
+}
+installFrontendErrorReporter();
+init();
+</script>
+</body>
+</html>
+
+
+

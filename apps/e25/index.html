@@ -1,0 +1,3247 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ACCESO ESO ADULTOS</title>
+  <style>
+    :root {
+      --ink:#1d242a;
+      --muted:#64727d;
+      --paper:#fff4f1;
+      --panel:#ffffff;
+      --line:#efc5bc;
+      --primary:#b84a3a;
+      --primary-dark:#8f3529;
+      --green:#24785f;
+      --accent:#2e7c86;
+      --gold:#d39a2f;
+      --soft:#ffe8e2;
+      --shadow:0 18px 44px rgba(62,32,24,.11);
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      min-height:100vh;
+      color:var(--ink);
+      font-family:"Segoe UI", Arial, sans-serif;
+      background:
+        linear-gradient(90deg,rgba(184,74,58,.08) 1px,transparent 1px),
+        linear-gradient(0deg,rgba(184,74,58,.06) 1px,transparent 1px),
+        linear-gradient(135deg,#fff7f3 0%,#effaf6 56%,#fff8e8 100%);
+      background-size:44px 44px,44px 44px,auto;
+    }
+    body::before {
+      content:'';
+      position:fixed;
+      inset:0 0 auto;
+      height:160px;
+      pointer-events:none;
+      background:linear-gradient(135deg,rgba(184,74,58,.12),transparent 42%), linear-gradient(90deg,transparent,rgba(210,151,47,.16),transparent);
+      opacity:.75;
+    }
+    .app {
+      width:min(1360px,100%);
+      margin:0 auto;
+      padding:18px;
+      display:grid;
+      gap:16px;
+      position:relative;
+      z-index:1;
+    }
+    header {
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:center;
+      padding:10px 14px;
+      border:1px solid rgba(239,197,188,.72);
+      border-radius:8px;
+      background:rgba(255,255,255,.96);
+      box-shadow:0 8px 24px rgba(62,32,24,.06);
+      backdrop-filter:blur(10px);
+      position:relative;
+      z-index:20;
+    }
+    h1,h2,h3 { margin:0; letter-spacing:0; }
+    h1 { font-size:30px; line-height:1.1; }
+    h2 { font-size:22px; }
+    h3 { font-size:16px; }
+    p { margin:6px 0 0; color:var(--muted); line-height:1.45; }
+    a { color:inherit; text-decoration:none; }
+    .ui-label, button, summary, label, .pill, .result-label, .button-link {
+      word-spacing:.16em;
+    }
+    button, summary, .pill, .result-label, .button-link, label {
+      text-transform:uppercase;
+    }
+    button, select, input, textarea {
+      font:inherit;
+      border:1px solid var(--line);
+      border-radius:8px;
+    }
+    button {
+      min-height:40px;
+      padding:9px 12px;
+      background:#fff;
+      color:var(--ink);
+      font-weight:800;
+      cursor:pointer;
+    }
+    button:hover { border-color:var(--primary); color:var(--primary); }
+    button.primary { background:var(--primary); border-color:var(--primary); color:#fff; }
+    button.primary:hover { background:var(--primary-dark); color:#fff; }
+    select,input,textarea {
+      width:100%;
+      min-height:40px;
+      padding:9px 10px;
+      background:#fff;
+      color:var(--ink);
+    }
+    textarea { min-height:140px; resize:vertical; line-height:1.45; }
+    label { display:block; margin:0 0 5px; color:var(--muted); font-size:12px; font-weight:800; }
+    .toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .brand {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+    .brand-logo {
+      width:42px;
+      aspect-ratio:1;
+      flex:0 0 auto;
+      border-radius:8px;
+      display:grid;
+      place-items:center;
+      position:relative;
+      color:#fff;
+      font-weight:950;
+      letter-spacing:0;
+      background:linear-gradient(135deg,var(--primary),var(--accent) 62%,var(--gold));
+      box-shadow:0 12px 24px rgba(184,74,58,.2);
+      overflow:hidden;
+    }
+    .brand-logo::before {
+      content:'';
+      position:absolute;
+      width:27px;
+      height:20px;
+      border:1px solid rgba(255,255,255,.78);
+      border-radius:4px 4px 7px 7px;
+      bottom:8px;
+    }
+    .brand-logo::after {
+      content:'';
+      position:absolute;
+      width:2px;
+      height:18px;
+      bottom:9px;
+      background:rgba(255,255,255,.72);
+    }
+    .brand-logo span { position:relative; z-index:1; font-size:14px; transform:translateY(-3px); }
+    .brand-kicker {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-bottom:2px;
+    }
+    .brand-kicker span {
+      min-height:22px;
+      display:inline-flex;
+      align-items:center;
+      padding:3px 7px;
+      border-radius:999px;
+      background:#effaf6;
+      color:#24785f;
+      font-size:10px;
+      font-weight:900;
+    }
+    .brand h1 {
+      font-size:20px;
+      color:#33201b;
+    }
+    .brand p { display:none; }
+    #moduleText:empty { display:none; }
+    .profile-button {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      max-width:190px;
+      padding:6px 10px 6px 6px;
+      border-color:#d5c3ee;
+      background:#fff;
+      color:var(--ink);
+    }
+    .profile-button.active, .profile-button:hover {
+      border-color:var(--primary);
+      color:var(--primary);
+      box-shadow:0 10px 22px rgba(101,66,166,.12);
+    }
+    .profile-icon {
+      width:30px;
+      aspect-ratio:1;
+      display:grid;
+      place-items:center;
+      border-radius:8px;
+      background:var(--primary);
+      color:#fff;
+      font-weight:900;
+      flex:0 0 auto;
+    }
+    .profile-button strong {
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:13px;
+    }
+    .pill {
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      min-height:28px;
+      padding:5px 9px;
+      border-radius:999px;
+      background:var(--soft);
+      color:var(--primary);
+      font-size:12px;
+      font-weight:900;
+    }
+    .brand .pill {
+      background:#ffe8e2;
+      color:var(--primary);
+    }
+    .panel, .module-card, .stat, .task-card, .question {
+      background:rgba(255,255,255,.96);
+      border:1px solid var(--line);
+      border-radius:8px;
+      box-shadow:var(--shadow);
+    }
+    .panel {
+      position:relative;
+      overflow:hidden;
+    }
+    .profile-panel { padding:16px; }
+    .profile-panel[hidden] { display:none; }
+    .profile-card {
+      display:grid;
+      grid-template-columns:auto minmax(0,1fr);
+      gap:16px;
+      align-items:start;
+    }
+    .profile-avatar {
+      width:70px;
+      aspect-ratio:1;
+      display:grid;
+      place-items:center;
+      border-radius:8px;
+      background:linear-gradient(135deg,var(--primary),#24785f);
+      color:#fff;
+      font-size:28px;
+      font-weight:900;
+      box-shadow:0 14px 28px rgba(101,66,166,.18);
+    }
+    .profile-title { font-size:20px; font-weight:900; }
+    .profile-subtitle { margin-top:4px; overflow-wrap:anywhere; }
+    .profile-name-row {
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:8px;
+      margin-top:12px;
+    }
+    .profile-grid {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .profile-stat {
+      border:1px solid var(--line);
+      background:var(--soft);
+      border-radius:8px;
+      padding:12px;
+    }
+    .profile-stat span {
+      display:block;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:900;
+      text-transform:uppercase;
+    }
+    .profile-stat strong {
+      display:block;
+      margin-top:5px;
+      font-size:15px;
+      overflow-wrap:anywhere;
+    }
+    .profile-message {
+      min-height:18px;
+      margin-top:10px;
+      color:var(--green);
+      font-size:12px;
+      font-weight:800;
+    }
+    .document-manager {
+      margin-top:14px;
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:#fff;
+      display:grid;
+      gap:10px;
+    }
+    .document-actions {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+    }
+    .document-actions button { min-height:38px; padding:8px; }
+    .drive-status { color:var(--muted); font-size:12px; font-weight:800; overflow-wrap:anywhere; }
+    .screen-nav {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+    }
+    .screen-nav button {
+      min-height:54px;
+      background:rgba(255,255,255,.94);
+      font-size:15px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+    .screen-nav button.active {
+      background:var(--primary);
+      border-color:var(--primary);
+      color:#fff;
+    }
+    .view-section[hidden] { display:none; }
+    .session-flow {
+      width:min(760px,100%);
+      margin:0 auto;
+      display:grid;
+      gap:14px;
+    }
+    .hero {
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 310px;
+      gap:14px;
+      align-items:stretch;
+    }
+    .hero-main {
+      padding:24px;
+      background:
+        linear-gradient(135deg,rgba(184,74,58,.08),rgba(46,124,134,.07)),
+        rgba(255,255,255,.96);
+    }
+    .hero-main h2 { font-size:28px; color:#33201b; }
+    .hero-main::after {
+      content:'EA';
+      position:absolute;
+      right:24px;
+      bottom:-10px;
+      color:rgba(184,74,58,.08);
+      font-size:104px;
+      font-weight:950;
+      line-height:1;
+    }
+    .identity-strip {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:14px;
+      position:relative;
+      z-index:1;
+    }
+    .simple-note {
+      margin-top:12px;
+      padding:12px;
+      border:1px solid rgba(184,74,58,.14);
+      border-radius:8px;
+      background:#fff;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.45;
+      position:relative;
+      z-index:1;
+    }
+    .identity-strip span {
+      padding:7px 10px;
+      border:1px solid rgba(184,74,58,.18);
+      border-radius:8px;
+      background:#fff;
+      color:var(--primary);
+      font-size:12px;
+      font-weight:900;
+    }
+    .home-actions {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin-top:16px;
+      position:relative;
+      z-index:1;
+    }
+    .home-actions button {
+      min-height:108px;
+      text-align:left;
+      padding:16px;
+      display:grid;
+      align-content:center;
+      gap:4px;
+      background:#fff;
+      border-color:rgba(184,74,58,.18);
+    }
+    .home-actions button strong { display:block; font-size:18px; }
+    .home-actions button span { color:var(--muted); font-size:13px; font-weight:700; line-height:1.35; }
+    .hero-progress {
+      padding:18px;
+      display:grid;
+      align-content:center;
+      gap:12px;
+      background:linear-gradient(180deg,#ffffff,#f8fbf6);
+    }
+    .ring {
+      width:136px;
+      aspect-ratio:1;
+      margin:0 auto;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:conic-gradient(var(--primary) calc(var(--pct) * 1%), #ffe0d8 0);
+    }
+    .ring strong {
+      width:104px;
+      aspect-ratio:1;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:#fff;
+      font-size:27px;
+    }
+    .stats {
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+    }
+    .stat { padding:13px; box-shadow:none; }
+    .stat span { display:block; color:var(--muted); font-size:12px; font-weight:900; }
+    .stat strong { display:block; margin-top:4px; font-size:23px; }
+    .study-cockpit {
+      display:grid;
+      grid-template-columns:1.15fr .9fr .95fr;
+      gap:12px;
+      align-items:stretch;
+    }
+    .cockpit-card {
+      padding:16px;
+      display:grid;
+      gap:10px;
+      min-height:190px;
+    }
+    .cockpit-card h3 { font-size:17px; }
+    .plan-list, .mistake-list, .structure-list {
+      display:grid;
+      gap:8px;
+      margin:0;
+      padding:0;
+      list-style:none;
+    }
+    .plan-list li, .mistake-list li, .structure-list li {
+      padding:9px 10px;
+      border:1px solid rgba(184,74,58,.14);
+      border-radius:8px;
+      background:#fff;
+      color:var(--ink);
+      font-size:13px;
+      line-height:1.35;
+    }
+    .mistake-list li strong { display:block; color:var(--primary); margin-bottom:3px; }
+    .structure-list li span {
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:3px;
+    }
+    .module-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+      gap:12px;
+      width:min(980px,100%);
+      margin:0 auto;
+    }
+    .module-card {
+      min-height:170px;
+      padding:16px;
+      display:grid;
+      align-content:space-between;
+      gap:14px;
+      text-align:left;
+      position:relative;
+      overflow:hidden;
+      transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+    }
+    .module-card::after {
+      content:'';
+      position:absolute;
+      inset:auto 0 0;
+      height:4px;
+      background:var(--module-color,var(--primary));
+      opacity:.72;
+    }
+    .module-card:hover {
+      transform:translateY(-2px);
+      box-shadow:0 20px 42px rgba(62,32,24,.13);
+    }
+    .module-card.active { outline:3px solid color-mix(in srgb,var(--module-color,var(--primary)) 18%,transparent); border-color:var(--module-color,var(--primary)); }
+    .module-card h3 { font-size:18px; }
+    .module-card .icon {
+      width:38px;
+      height:38px;
+      display:grid;
+      place-items:center;
+      border-radius:8px;
+      background:var(--module-color,var(--primary));
+      color:#fff;
+      font-weight:900;
+      box-shadow:0 10px 20px rgba(184,74,58,.15);
+    }
+    .module-card h3, .topic-row strong, .lesson-card strong, .exam-mode strong, .exam-example-card strong {
+      text-transform:uppercase;
+      word-spacing:.14em;
+    }
+    .workspace-title h2, .progress-simple h2, .session-chooser h2, .session-plan h2, .topic-detail h2 {
+      text-transform:uppercase;
+      word-spacing:.14em;
+    }
+    .progress {
+      height:9px;
+      background:#ffe0d8;
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .progress span { display:block; height:100%; width:0; background:var(--module-color,var(--primary)); }
+    .workspace {
+      padding:16px;
+      display:grid;
+      gap:14px;
+    }
+    .workspace-head {
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+      border-bottom:1px solid var(--line);
+      padding-bottom:12px;
+    }
+    .content-grid {
+      display:grid;
+      grid-template-columns:340px minmax(0,1fr);
+      gap:12px;
+      align-items:start;
+    }
+    .task-list { display:grid; gap:8px; }
+    .task-card {
+      padding:12px;
+      box-shadow:none;
+      display:grid;
+      gap:7px;
+    }
+    .task-card.done { border-color:#b8dfca; background:#f6fff9; }
+    .task-card button { justify-self:start; min-height:34px; padding:7px 10px; }
+    .viewer { display:grid; gap:12px; min-width:0; }
+    .tabs { display:flex; gap:7px; flex-wrap:wrap; }
+    .tabs button { min-height:36px; display:inline-flex; align-items:center; justify-content:center; gap:7px; }
+    .tabs button.active { background:var(--module-color,var(--primary)); border-color:var(--module-color,var(--primary)); color:#fff; }
+    .output {
+      white-space:pre-wrap;
+      line-height:1.5;
+      min-height:110px;
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:#fff9f7;
+    }
+    .question { padding:12px; box-shadow:none; display:grid; gap:8px; }
+    .question.correct { border-color:#b8dfca; }
+    .question.wrong { border-color:#efb6ae; }
+    .answers { display:grid; gap:7px; }
+    .answers button { text-align:left; min-height:36px; }
+    .answers button.selected { background:#17202a; border-color:#17202a; color:#fff; }
+    .test-library { display:grid; gap:12px; }
+    .test-library-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:12px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .test-library-head strong { color:var(--ink); font-size:14px; }
+    .test-library-head span { color:var(--muted); font-size:12px; font-weight:850; }
+    .test-card-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:10px; }
+    .test-card { min-height:112px; display:grid; gap:8px; align-content:start; padding:13px; border:1px solid color-mix(in srgb,var(--module-color,var(--primary)) 34%,#dfe4ea); border-radius:8px; background:#fff; text-align:left; }
+    .test-card.done { background:color-mix(in srgb,var(--module-color,var(--primary)) 9%,#fff); border-color:#9bcdb4; }
+    .test-card strong, .test-card small { display:block; }
+    .test-card small { color:var(--muted); line-height:1.3; }
+    .test-card-status { display:flex; align-items:center; justify-content:space-between; gap:8px; color:var(--module-color,var(--primary)); font-size:11px; font-weight:950; text-transform:uppercase; }
+    .test-run-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .test-run-head > div { min-width:0; }
+    .test-run-head strong, .test-run-head span { display:block; }
+    .test-run-head span { color:var(--muted); font-size:12px; font-weight:850; margin-top:3px; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .result-label { color:var(--primary); font-weight:900; }
+    .empty { padding:18px; border:1px dashed var(--line); border-radius:8px; color:var(--muted); background:#fff; }
+    .resource-grid {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .resource-card {
+      display:grid;
+      gap:8px;
+      min-height:142px;
+      padding:13px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:#fff;
+      color:var(--ink);
+    }
+    .resource-card:hover {
+      border-color:var(--primary);
+      box-shadow:0 10px 24px rgba(62,32,24,.08);
+    }
+    .resource-card strong { font-size:15px; }
+    .resource-card small { color:var(--muted); line-height:1.35; }
+    .resource-tags { display:flex; gap:6px; flex-wrap:wrap; }
+    .resource-tags span {
+      text-transform:uppercase;
+      word-spacing:.12em;
+    }
+    .resource-tags span {
+      border-radius:8px;
+      padding:4px 7px;
+      background:var(--soft);
+      color:var(--primary);
+      font-size:11px;
+      font-weight:900;
+    }
+    footer { display:none; }
+    @media (max-width:1080px) {
+      .hero, .content-grid { grid-template-columns:1fr; }
+      .module-grid, .stats, .resource-grid, .study-cockpit, .home-actions, .screen-nav { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width:640px) {
+      .app { padding:12px; }
+      header, .workspace-head { flex-direction:column; }
+      .brand { align-items:flex-start; }
+      .brand-logo { width:42px; }
+      .module-grid, .stats, .form-grid, .resource-grid, .profile-card, .profile-grid, .profile-name-row, .document-actions, .study-cockpit, .home-actions, .screen-nav { grid-template-columns:1fr; }
+      h1 { font-size:25px; }
+    }
+    /* A calmer layout for short, focused study sessions. */
+    body { background:#f5f6f8; }
+    .app { width:min(1180px,100%); padding:16px; gap:14px; }
+    header { border-color:#e2e5ea; box-shadow:0 5px 18px rgba(23,32,42,.06); backdrop-filter:none; }
+    .brand-logo { background:var(--primary); box-shadow:none; }
+    .screen-nav button { min-height:52px; background:#fff; }
+    .hero { grid-template-columns:minmax(0,1fr) 280px; }
+    .hero-main { padding:26px; background:#fff; }
+    .hero-main::after { display:none; }
+    .home-actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:16px; }
+    .home-actions button { min-height:48px; padding:10px 14px; }
+    .home-actions button strong { font-size:15px; }
+    .home-actions button span { display:none; }
+    .stats { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .study-cockpit { grid-template-columns:1.2fr .8fr; }
+    .cockpit-card { min-height:170px; }
+    .content-grid { grid-template-columns:260px minmax(0,1fr); }
+    .task-card { padding:14px; }
+    .session-chooser, .session-plan { padding:28px; }
+    .session-chooser h2, .session-plan h2 { margin-top:8px; font-size:28px; }
+    .coach-strip {
+      margin-top:16px;
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:#fff;
+      color:var(--ink);
+      font-weight:850;
+      text-align:left;
+    }
+    .coach-strip small {
+      display:block;
+      margin-top:3px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:750;
+      line-height:1.35;
+      text-transform:none;
+      word-spacing:0;
+    }
+    .coach-strip strong {
+      text-transform:uppercase;
+      word-spacing:.12em;
+    }
+    .duration-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:20px; }
+    .duration-options button { min-height:146px; padding:16px; text-align:left; display:grid; align-content:center; gap:7px; }
+    .duration-options button:hover { background:var(--soft); }
+    .duration-options strong { font-size:22px; color:var(--primary); }
+    .duration-options span { color:var(--muted); font-size:13px; font-weight:700; line-height:1.35; }
+    .session-plan-head { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; padding-bottom:14px; border-bottom:1px solid var(--line); }
+    .session-plan .plan-list { margin-top:16px; }
+    .session-more { margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
+    .session-more summary { cursor:pointer; color:var(--primary); font-weight:900; }
+    .session-progress { display:grid; grid-template-columns:auto minmax(0,1fr); gap:14px; align-items:center; margin-top:12px; }
+    .session-progress .stats { grid-column:1/-1; }
+    .session-more-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:12px; }
+    .progress-game { display:grid; gap:13px; margin-top:16px; padding-top:16px; border-top:1px solid var(--line); }
+    .level-banner { display:flex; justify-content:space-between; gap:14px; align-items:center; padding:14px; border-left:5px solid var(--primary); background:var(--soft); }
+    .level-banner strong { display:block; font-size:18px; }
+    .level-banner span { display:block; color:var(--muted); font-size:12px; font-weight:800; margin-top:3px; }
+    .point-total { color:var(--primary); font-size:24px; font-weight:950; white-space:nowrap; }
+    .milestone-rail { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; position:relative; }
+    .milestone { position:relative; min-height:82px; padding:10px; border:1px solid var(--line); background:#fff; }
+    .milestone::before { content:''; display:block; width:11px; height:11px; margin-bottom:8px; border:3px solid var(--line); border-radius:50%; background:#fff; }
+    .milestone.complete::before { border-color:var(--primary); background:var(--primary); }
+    .milestone.current { border-color:var(--primary); background:#fff; }
+    .milestone.current::before { border-color:var(--primary); background:var(--soft); }
+    .milestone strong { display:block; font-size:12px; }
+    .milestone span { color:var(--muted); font-size:11px; line-height:1.3; }
+    .next-goal { color:var(--muted); font-size:13px; }
+    .next-goal strong { color:var(--ink); }
+    .module-grid { display:block; }
+    .topic-group + .topic-group { margin-top:14px; }
+    .topic-group-head { display:flex; justify-content:space-between; gap:12px; align-items:end; margin-bottom:10px; }
+    .topic-group-head p { margin:0; }
+    .subject-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
+    .topic-tools { margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
+    .topic-tools summary { cursor:pointer; color:var(--primary); font-weight:900; }
+    .topic-tools .subject-grid { margin-top:10px; }
+    .library-tabs { width:fit-content; max-width:100%; display:flex; gap:4px; margin:0 auto 14px; padding:4px; border:1px solid #e2e5ea; border-radius:8px; background:#f5f6f8; }
+    .library-tabs button { min-width:132px; min-height:40px; border-color:transparent; background:transparent; box-shadow:none; }
+    .library-tabs button.active { background:#fff; color:var(--primary); border-color:var(--line); box-shadow:0 2px 7px rgba(23,32,42,.07); }
+    .simple-resource-list { width:min(820px,100%); margin:0 auto; display:grid; gap:8px; }
+    .simple-resource-list a { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:50px; padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .simple-resource-list a:hover { border-color:var(--primary); color:var(--primary); }
+    .simple-resource-list strong, .simple-resource-list span { display:block; }
+    .simple-resource-list span { color:var(--muted); font-size:12px; font-weight:850; }
+    .workspace.topic-workspace .content-grid { grid-template-columns:1fr; }
+    .workspace.topic-workspace .task-list { display:none; }
+    .topic-accordion { border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .topic-accordion + .topic-accordion { margin-top:9px; }
+    .topic-accordion summary { cursor:pointer; padding:15px; font-weight:900; }
+    .topic-accordion summary span { display:block; margin-top:4px; color:var(--muted); font-size:13px; font-weight:700; }
+    .topic-accordion-body { padding:0 15px 15px; display:grid; gap:11px; }
+    .topic-accordion .output { min-height:0; }
+    .topic-actions { display:flex; flex-wrap:wrap; gap:8px; }
+    .module-card.done { border-color:#9bcdb4; background:#f4fbf7; }
+    .module-card.done .icon { background:var(--green); }
+    .module-card.recommended { border-color:var(--module-color,var(--primary)); box-shadow:0 14px 30px color-mix(in srgb,var(--module-color,var(--primary)) 15%,transparent); }
+    .module-badges { display:flex; justify-content:center; gap:6px; flex-wrap:wrap; margin-top:8px; }
+    .mini-badge { min-height:24px; display:inline-flex; align-items:center; justify-content:center; padding:4px 8px; border-radius:999px; background:color-mix(in srgb,var(--module-color,var(--primary)) 12%,white); color:var(--module-color,var(--primary)); font-size:10px; font-weight:950; text-transform:uppercase; word-spacing:.12em; }
+    .mini-badge.review { background:#fff6de; color:#8a6411; }
+    .topic-accordion.done { border-color:#9bcdb4; }
+    .topic-accordion.done summary { color:var(--green); }
+    .exam-mode-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:14px; }
+    .exam-mode { min-height:142px; padding:15px; text-align:left; display:grid; align-content:start; gap:6px; }
+    .exam-mode strong { font-size:16px; }
+    .exam-mode span { color:var(--muted); font-size:13px; line-height:1.35; font-weight:700; }
+    .exam-mode.active { border:2px solid var(--primary); background:var(--soft); }
+    .exam-options { margin-top:14px; }
+    .app { width:min(1040px,100%); }
+    .screen-nav { position:static; z-index:15; }
+    .screen-nav button { min-height:48px; box-shadow:0 4px 12px rgba(23,32,42,.04); }
+    .workspace { max-width:900px; width:100%; margin:0 auto; }
+    .workspace .content-grid { grid-template-columns:1fr; }
+    .workspace .task-list { display:none; }
+    .workspace-head { align-items:center; }
+    .module-card { min-height:132px; }
+    .module-card p { display:none; }
+    .topic-group-head p { display:none; }
+    .topic-library-list { display:grid; gap:8px; }
+    .topic-row { width:100%; min-height:68px; display:grid; grid-template-columns:42px minmax(0,1fr) auto; align-items:center; gap:12px; padding:11px 13px; text-align:left; }
+    .topic-row.done { border-color:#9bcdb4; background:#f4fbf7; }
+    .topic-status { width:34px; height:34px; display:grid; place-items:center; border-radius:50%; background:color-mix(in srgb,var(--module-color,var(--primary)) 12%,white); color:var(--module-color,var(--primary)); font-weight:950; }
+    .topic-row.done .topic-status { background:var(--green); color:#fff; }
+    .topic-row > span:nth-child(2) { min-width:0; display:grid; gap:4px; }
+    .topic-row strong { display:block; min-width:0; font-size:15px; line-height:1.2; overflow-wrap:anywhere; }
+    .topic-row small { display:block; color:var(--muted); font-weight:700; line-height:1.2; }
+    .topic-arrow { color:var(--module-color,var(--primary)); font-size:20px; }
+    .topic-detail-head h2 { margin-top:5px; }
+    .topic-functions { display:grid; gap:8px; }
+    .topic-function { border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .topic-function summary { cursor:pointer; padding:14px; font-weight:900; }
+    .topic-function-body { padding:0 14px 14px; color:var(--muted); line-height:1.5; white-space:pre-wrap; }
+    .topic-primary-actions { display:flex; flex-wrap:wrap; gap:8px; padding-top:4px; }
+    .exam-mode span { max-width:24ch; }
+    .screen-nav { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .progress-view { width:min(900px,100%); margin:0 auto; display:grid; gap:14px; }
+    .progress-view[hidden] { display:none; }
+    .progress-hero { min-height:210px; padding:24px; display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:24px; background:#fff; }
+    .progress-hero h2 { margin-top:7px; font-size:30px; }
+    .progress-ring-large { width:164px; margin:0; }
+    .progress-ring-large strong { width:124px; font-size:31px; }
+    .progress-view .stats { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .progress-view .progress-game { margin:0; padding:20px; border-top:0; }
+    .achievement-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+    .achievement { min-height:130px; padding:14px; display:grid; align-content:space-between; gap:10px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .achievement.locked { opacity:.52; filter:grayscale(.65); }
+    .achievement-mark { width:40px; height:40px; display:grid; place-items:center; border-radius:50%; background:var(--soft); color:var(--primary); font-weight:950; font-size:15px; }
+    .achievement.unlocked .achievement-mark { background:var(--green); color:#fff; }
+    .achievement strong { display:block; font-size:13px; }
+    .achievement span { color:var(--muted); font-size:11px; line-height:1.3; }
+    @media (max-width:640px) { .session-chooser, .session-plan { padding:18px; } .duration-options, .session-more-grid, .session-progress { grid-template-columns:1fr; } .session-plan-head { flex-direction:column; } .session-progress .stats { grid-column:auto; } }
+    @media (max-width:640px) { .milestone-rail { grid-template-columns:1fr 1fr; } .level-banner { align-items:flex-start; flex-direction:column; } }
+    @media (max-width:640px) { .exam-mode-grid { grid-template-columns:1fr; } }
+    @media (max-width:640px) { .topic-row { grid-template-columns:36px minmax(0,1fr) auto; } }
+    @media (max-width:640px) { .screen-nav { grid-template-columns:1fr 1fr; } .progress-hero { grid-template-columns:1fr; text-align:center; } .progress-ring-large { margin:0 auto; } .achievement-grid { grid-template-columns:1fr 1fr; } }
+    @media (max-width:1080px) { .module-grid, .stats, .resource-grid, .study-cockpit, .screen-nav { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:640px) { .module-grid, .stats, .form-grid, .resource-grid, .profile-card, .profile-grid, .profile-name-row, .document-actions, .study-cockpit, .screen-nav, .ocr-row, .exam-history-grid { grid-template-columns:1fr; } }
+    .topic-section { min-height:220px; padding:20px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .topic-reading { max-width:720px; }
+    .topic-reading > strong { display:block; margin-bottom:10px; font-size:18px; }
+    .topic-reading p { color:var(--ink); font-size:15px; line-height:1.7; }
+    .theory-card { display:grid; gap:8px; padding:14px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .theory-card strong { color:var(--ink); font-size:13px; }
+    .theory-card p { margin:0; color:var(--ink); line-height:1.55; }
+    .ai-notes-card { margin-top:14px; padding:14px; display:grid; gap:10px; border:1px solid var(--line); border-radius:8px; background:linear-gradient(180deg,#fff,#fbfcfd); }
+    .ai-notes-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+    .ai-notes-head strong { color:var(--primary); font-size:13px; text-transform:uppercase; }
+    .ai-notes-head p { margin:3px 0 0; font-size:12px; }
+    .ai-notes-actions { display:flex; flex-wrap:wrap; gap:8px; }
+    .ai-notes-text { min-height:220px; background:#fff; }
+    .ai-notes-status { min-height:20px; color:var(--muted); font-size:12px; font-weight:800; }
+    .topic-resource-list { display:grid; gap:8px; }
+    .topic-resource-list a { min-height:60px; padding:11px 13px; display:flex; justify-content:space-between; align-items:center; gap:12px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .topic-resource-list a > span:last-child, .exam-bank-group summary > span:last-child, .exam-example-card > span:last-child {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:34px;
+      height:28px;
+      border-radius:999px;
+      background:var(--soft);
+      color:var(--primary);
+      font-size:11px;
+      font-weight:950;
+      text-transform:uppercase;
+      word-spacing:0;
+    }
+    .topic-resource-list a:hover { border-color:var(--primary); }
+    .topic-resource-list strong, .topic-resource-list small { display:block; }
+    .topic-resource-list small { margin-top:3px; color:var(--muted); }
+    .exam-flow { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-bottom:16px; }
+    .exam-flow span { min-height:40px; display:grid; place-items:center; padding:8px; border:1px solid var(--line); border-radius:8px; color:var(--muted); background:#f7f8fa; font-size:12px; font-weight:900; text-align:center; }
+    .exam-flow span.done { border-color:#a9d8be; background:#f1faf5; color:var(--green); }
+    .exam-flow span.active { border-color:var(--primary); background:var(--soft); color:var(--primary); }
+    .exam-hub { display:grid; gap:14px; }
+    .exam-action-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .exam-action-card { min-height:122px; display:grid; align-content:center; gap:7px; padding:14px; border:1px solid #d8c7f4; border-radius:8px; background:#fff; text-align:center; }
+    .exam-action-card:hover { border-color:var(--primary); box-shadow:0 14px 28px color-mix(in srgb,var(--primary) 13%,transparent); }
+    .exam-action-card strong { color:var(--primary); font-size:16px; }
+    .exam-action-card span { color:var(--muted); font-size:12px; font-weight:850; line-height:1.3; }
+    .exam-preset-list { display:grid; gap:8px; }
+    .exam-preset-list button { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:52px; text-align:left; }
+    .exam-ai-box { display:grid; gap:10px; padding:14px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .exam-history-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .exam-history-card { display:grid; gap:10px; padding:14px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .exam-history-card strong { color:var(--ink); font-size:13px; }
+    .exam-history-bar { height:9px; overflow:hidden; border-radius:999px; background:#eef0f4; }
+    .exam-history-bar span { display:block; height:100%; width:var(--value); background:var(--module-color,var(--primary)); }
+    .exam-history-list { display:grid; gap:7px; }
+    .exam-history-list article { padding:9px 10px; border-radius:8px; background:#f8f9fb; }
+    .exam-history-list small { display:block; margin-top:2px; color:var(--muted); font-weight:800; }
+    .exam-topic-map { display:grid; gap:10px; margin:0 0 16px; padding:14px; border:1px solid var(--line); border-radius:8px; background:#fff; box-shadow:0 10px 28px rgba(23,32,42,.06); }
+    .exam-topic-map-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .exam-topic-map-head strong { font-size:12px; font-weight:950; color:var(--ink); text-transform:uppercase; }
+    .exam-topic-map-head span { font-size:12px; font-weight:850; color:var(--muted); }
+    .exam-topic-chips { display:flex; flex-wrap:wrap; gap:8px; }
+    .exam-topic-chip { display:inline-grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:8px; max-width:100%; padding:8px 10px; border:1px solid color-mix(in srgb, var(--module-color) 36%, #dfe4ea); border-radius:999px; background:color-mix(in srgb, var(--module-color) 10%, #fff); color:var(--ink); font-size:12px; font-weight:900; }
+    .exam-topic-chip span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .exam-topic-dot { width:10px; height:10px; border-radius:50%; background:var(--module-color); box-shadow:0 0 0 4px color-mix(in srgb, var(--module-color) 18%, transparent); }
+    .exam-paper { margin-bottom:16px; overflow:hidden; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .exam-paper summary { cursor:pointer; padding:13px 15px; font-weight:900; }
+    .exam-paper textarea { min-height:240px; border:0; border-top:1px solid var(--line); border-radius:0; background:#fbfcfd; }
+    .ocr-card { display:grid; gap:10px; margin:14px 0 16px; padding:14px; border:1px solid var(--line); border-radius:8px; background:linear-gradient(180deg,#fff,#fbfcfd); }
+    .ocr-card-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .ocr-card-title { font-size:13px; font-weight:950; color:var(--primary); text-transform:uppercase; }
+    .ocr-card-hint { margin:0; font-size:12px; color:var(--muted); }
+    .teacher-panel { position:fixed; right:18px; bottom:18px; z-index:40; width:min(390px, calc(100vw - 36px)); border:1px solid rgba(184,74,58,.28); border-radius:12px; background:#fff; box-shadow:0 22px 55px rgba(23,32,42,.18); overflow:hidden; }
+    .teacher-panel.collapsed { width:auto; }
+    .teacher-panel.collapsed .teacher-body { display:none; }
+    .teacher-head { min-height:58px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; background:linear-gradient(135deg,#b84a3a,#2563eb); color:#fff; }
+    .teacher-id { display:flex; align-items:center; gap:9px; min-width:0; }
+    .teacher-avatar { width:36px; height:36px; display:grid; place-items:center; border-radius:9px; background:rgba(255,255,255,.18); font-weight:950; }
+    .teacher-id strong, .teacher-id small { display:block; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .teacher-id strong { font-size:13px; text-transform:uppercase; }
+    .teacher-id small { font-size:11px; opacity:.85; }
+    .teacher-toggle { width:34px; height:34px; border:1px solid rgba(255,255,255,.34); border-radius:8px; background:rgba(255,255,255,.14); color:#fff; font-weight:950; cursor:pointer; }
+    .teacher-body { display:grid; gap:10px; padding:12px; background:linear-gradient(180deg,#fff,#fbfcff); }
+    .teacher-log { max-height:270px; min-height:150px; overflow:auto; padding:10px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:13px; line-height:1.45; }
+    .teacher-msg { margin:0 0 10px; }
+    .teacher-msg:last-child { margin-bottom:0; }
+    .teacher-msg strong { color:var(--primary); }
+    .teacher-msg.user strong { color:var(--ink); }
+    .teacher-suggestions { display:flex; flex-wrap:wrap; gap:7px; }
+    .teacher-suggestions button { min-height:32px; padding:7px 9px; border-radius:999px; font-size:11px; }
+    .teacher-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:end; }
+    .teacher-row textarea { min-height:52px; resize:vertical; font-size:13px; }
+    .ocr-row { display:grid; grid-template-columns:minmax(180px,1fr) minmax(150px,220px) auto; gap:8px; align-items:end; }
+    .ocr-preview { display:grid; grid-template-columns:90px minmax(0,1fr); gap:10px; align-items:center; padding:10px; border:1px dashed var(--line); border-radius:8px; background:#fff; }
+    .ocr-preview[hidden] { display:none; }
+    .ocr-preview img { width:90px; height:70px; object-fit:cover; border-radius:6px; border:1px solid var(--line); background:#f7f8fa; }
+    .ocr-preview strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .ocr-preview p { margin:3px 0 0; font-size:12px; }
+    .ocr-text { min-height:110px; }
+    .answer-area { min-height:300px; margin-top:7px; }
+    header { display:grid; grid-template-columns:auto minmax(360px,1fr) auto; align-items:center; gap:18px; }
+    header .screen-nav { position:static; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; padding:4px; border:1px solid #e2e5ea; border-radius:8px; background:#f5f6f8; box-shadow:none; }
+    header .screen-nav button { min-height:38px; padding:7px 10px; border-color:transparent; background:transparent; box-shadow:none; font-size:13px; }
+    header .screen-nav button.active { background:#fff; color:var(--primary); border-color:var(--line); box-shadow:0 2px 7px rgba(23,32,42,.07); }
+    header > .profile-button { justify-self:end; }
+    .profile-utility { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
+    .profile-utility a { min-height:40px; display:inline-flex; align-items:center; padding:9px 12px; border:1px solid var(--line); border-radius:8px; background:#fff; font-weight:800; }
+    .profile-utility a:hover { border-color:var(--primary); color:var(--primary); }
+    @media (max-width:860px) {
+      header { grid-template-columns:minmax(0,1fr) auto; }
+      header .screen-nav { grid-column:1/-1; grid-row:2; width:100%; min-width:0; }
+      header > .profile-button { grid-column:2; grid-row:1; }
+    }
+    @media (max-width:520px) {
+      header .brand h1 { font-size:15px; }
+      header .screen-nav { grid-template-columns:1fr 1fr; }
+      header .screen-nav button { min-height:40px; }
+      .profile-button strong { display:none; }
+    }
+    /* Deliberate action system: centered decisions, quiet reading surfaces. */
+    button, .profile-utility a, .button-link {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      box-shadow:0 1px 2px rgba(23,32,42,.05);
+      transition:border-color .18s ease, background-color .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+    button:hover, .profile-utility a:hover, .button-link:hover {
+      transform:translateY(-1px);
+      box-shadow:0 8px 18px rgba(23,32,42,.09);
+    }
+    button:active, .profile-utility a:active, .button-link:active {
+      transform:translateY(0);
+      box-shadow:0 1px 3px rgba(23,32,42,.08);
+    }
+    button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline:3px solid color-mix(in srgb,var(--primary) 24%,transparent);
+      outline-offset:2px;
+    }
+    button.primary {
+      min-width:150px;
+      box-shadow:0 8px 18px color-mix(in srgb,var(--primary) 24%,transparent);
+    }
+    button.primary:hover { box-shadow:0 12px 24px color-mix(in srgb,var(--primary) 30%,transparent); }
+    .toolbar {
+      width:100%;
+      justify-content:center;
+      gap:10px;
+      margin-inline:auto;
+    }
+    .toolbar > button, .toolbar > a { min-width:150px; }
+    header .screen-nav {
+      width:min(540px,100%);
+      justify-self:center;
+      border-color:#dfe3e8;
+      background:#f1f3f5;
+    }
+    header .screen-nav button { box-shadow:none; }
+    header .screen-nav button:hover { transform:none; background:#fff; box-shadow:0 2px 8px rgba(23,32,42,.07); }
+    .profile-button { min-width:112px; justify-content:center; }
+    .profile-name-row { grid-template-columns:minmax(0,1fr) minmax(140px,auto); align-items:center; }
+    .document-manager > .toolbar { max-width:680px; }
+    .document-actions { grid-template-columns:repeat(2,minmax(160px,1fr)); max-width:620px; width:100%; margin-inline:auto; }
+    .profile-utility { justify-content:center; }
+    .duration-options {
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      width:min(690px,100%);
+      margin:24px auto 0;
+      gap:12px;
+    }
+    .session-chooser { text-align:center; }
+    .session-chooser > .pill { margin-inline:auto; }
+    .duration-options button {
+      min-height:138px;
+      align-items:center;
+      justify-items:center;
+      align-content:center;
+      text-align:center;
+      border:1px solid #d8c7f4;
+      border-radius:8px;
+      background:#fff;
+    }
+    .duration-options button:hover {
+      border-color:var(--primary);
+      background:#fff;
+      box-shadow:0 14px 28px color-mix(in srgb,var(--primary) 13%,transparent);
+    }
+    .duration-options span { max-width:18ch; }
+    .session-plan-head { align-items:center; }
+    .subject-grid {
+      grid-template-columns:repeat(auto-fit,minmax(210px,240px));
+      justify-content:center;
+      gap:14px;
+    }
+    .module-card {
+      width:100%;
+      min-height:178px;
+      justify-items:center;
+      text-align:center;
+      border-color:#dfe3e8;
+    }
+    .module-card > div { width:100%; }
+    .module-card .icon { margin:0 auto 10px; }
+    .module-card .progress { margin-top:8px; }
+    .module-card:hover { border-color:var(--primary); transform:translateY(-3px); }
+    .workspace-head { align-items:center; }
+    .tabs {
+      width:fit-content;
+      max-width:100%;
+      justify-content:center;
+      margin-inline:auto;
+      padding:4px;
+      border:1px solid #dfe3e8;
+      border-radius:8px;
+      background:#f1f3f5;
+    }
+    .tabs button { min-width:104px; border-color:transparent; background:transparent; box-shadow:none; }
+    .tabs button:hover { transform:none; background:#fff; box-shadow:0 2px 8px rgba(23,32,42,.07); }
+    .tabs button.active { box-shadow:0 4px 12px color-mix(in srgb,var(--module-color,var(--primary)) 22%,transparent); }
+    .topic-primary-actions { justify-content:center; gap:10px; }
+    .topic-primary-actions button { flex:1 1 170px; max-width:230px; min-height:44px; }
+    .topic-row:hover { transform:translateX(2px); box-shadow:0 7px 16px rgba(23,32,42,.07); }
+    .lesson-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .lesson-card { width:100%; min-height:78px; display:grid; grid-template-columns:38px minmax(0,1fr) auto; align-items:center; gap:12px; padding:12px; text-align:left; }
+    .lesson-card > span:nth-child(2) { min-width:0; }
+    .lesson-card strong, .lesson-card small { display:block; }
+    .lesson-card small { margin-top:3px; color:var(--muted); }
+    .lesson-number { width:34px; height:34px; display:grid; place-items:center; border-radius:50%; background:var(--soft); color:var(--primary); font-size:12px; font-weight:950; }
+    .lesson-card.done { border-color:#9bcdb4; background:#f2faf5; color:var(--green); }
+    .lesson-card.done .lesson-number { background:var(--green); color:#fff; }
+    .topic-parent { display:block; margin-bottom:5px; color:var(--primary); font-size:12px; font-weight:900; }
+    button:disabled { cursor:default; opacity:.72; transform:none; box-shadow:none; }
+    .answers button.answer-correct { border-color:#23855f; background:#1f8a5b; color:#fff; font-weight:900; }
+    .answers button.answer-wrong { border-color:#c94b43; background:#c94b43; color:#fff; font-weight:900; }
+    .exam-mode-grid { width:min(740px,100%); margin:18px auto 0; gap:12px; }
+    .exam-mode {
+      min-height:138px;
+      align-content:center;
+      justify-items:center;
+      text-align:center;
+      border:1px solid #d8c7f4;
+      border-radius:8px;
+    }
+    .exam-mode:hover { border-color:var(--primary); background:#fff; }
+    .exam-mode span { text-align:center; }
+    .exam-options { width:min(760px,100%); margin:18px auto 0; }
+    .exam-readiness {
+      width:min(760px,100%);
+      margin:14px auto 0;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+    }
+    .exam-readiness span {
+      min-height:42px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+      padding:8px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:#fff;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:900;
+      text-align:center;
+      text-transform:uppercase;
+      word-spacing:.12em;
+    }
+    .exam-bank { display:grid; gap:10px; }
+    .exam-bank-group { overflow:hidden; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .exam-bank-group summary { min-height:64px; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:13px 15px; cursor:pointer; }
+    .exam-bank-group summary strong, .exam-bank-group summary small { display:block; }
+    .exam-bank-group summary small { margin-top:3px; color:var(--muted); }
+    .exam-example-list { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:0 12px 12px; }
+    .exam-example-card { min-height:72px; display:flex; justify-content:space-between; gap:12px; padding:11px 13px; text-align:left; }
+    .exam-example-card > span:first-child { min-width:0; }
+    .exam-example-card strong, .exam-example-card small { display:block; }
+    .exam-example-card small { margin-top:3px; color:var(--muted); }
+    .exam-options + .toolbar, .answer-area + .toolbar { margin-top:16px; }
+    .exam-paper summary { text-align:center; }
+    #testBox > button.primary { justify-self:center; min-width:220px; margin-top:4px; }
+    .answers button { justify-content:flex-start; text-align:left; box-shadow:none; }
+    .answers button:hover { transform:none; box-shadow:0 2px 8px rgba(23,32,42,.06); }
+    .resource-card { transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+    .resource-card:hover { transform:translateY(-2px); box-shadow:0 12px 26px rgba(23,32,42,.09); }
+    .button-link {
+      min-height:40px;
+      padding:9px 12px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:#fff;
+      font-weight:800;
+    }
+    .progress-view { width:min(760px,100%); margin-inline:auto; }
+    .progress-simple { padding:32px; }
+    .progress-simple {
+      max-width:620px;
+      text-align:center;
+    }
+    .progress-simple-head { display:flex; align-items:end; justify-content:space-between; gap:20px; }
+    .progress-simple-head h2 { margin-top:7px; font-size:28px; }
+    .progress-simple-head > strong { color:var(--primary); font-size:36px; line-height:1; }
+    .progress-track { width:100%; height:18px; margin-top:24px; overflow:hidden; border-radius:999px; background:#e6e9ed; box-shadow:inset 0 1px 3px rgba(23,32,42,.12); }
+    .progress-track span { display:block; width:0; height:100%; border-radius:inherit; background:var(--primary); transition:width .35s ease; }
+    .progress-simple > p { margin-top:16px; color:var(--ink); font-size:16px; font-weight:800; }
+    .progress-facts { display:flex; justify-content:center; flex-wrap:wrap; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid #e2e5ea; color:var(--muted); font-size:13px; }
+    .progress-facts span { min-width:112px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:#f8faf9; }
+    .progress-facts strong { color:var(--ink); font-size:17px; }
+    .progress-next { margin-top:14px; padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); font-weight:850; }
+    .progress-next small { display:block; margin-top:4px; color:var(--muted); font-weight:750; }
+    .progress-simple > button { display:flex; min-width:220px; margin:24px auto 0; }
+    .progress-roadmap { margin-top:22px; display:grid; gap:12px; }
+    .roadmap-line { position:relative; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; padding-top:18px; }
+    .roadmap-line::before { content:''; position:absolute; left:8%; right:8%; top:37px; height:8px; border-radius:999px; background:#e6e9ed; box-shadow:inset 0 1px 3px rgba(23,32,42,.10); }
+    .roadmap-fill { position:absolute; left:8%; top:37px; height:8px; max-width:84%; border-radius:999px; background:linear-gradient(90deg,var(--primary),var(--accent),var(--green)); z-index:1; transition:width .35s ease; }
+    .roadmap-stage { position:relative; z-index:2; min-height:180px; display:grid; grid-template-rows:auto auto 1fr; gap:8px; padding:0 10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; box-shadow:0 8px 18px rgba(23,32,42,.05); }
+    .roadmap-stage.complete { border-color:#9bcdb4; background:#f4fbf7; }
+    .roadmap-stage.current { border-color:var(--primary); box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 14%,transparent), 0 12px 24px rgba(23,32,42,.08); }
+    .stage-dot { width:42px; height:42px; margin:-18px auto 0; display:grid; place-items:center; border:4px solid #e6e9ed; border-radius:50%; background:#fff; color:var(--muted); font-weight:950; }
+    .roadmap-stage.complete .stage-dot { border-color:var(--green); background:var(--green); color:#fff; }
+    .roadmap-stage.current .stage-dot { border-color:var(--primary); background:var(--soft); color:var(--primary); }
+    .roadmap-stage strong { display:block; text-align:center; font-size:13px; }
+    .stage-target { display:block; text-align:center; color:var(--muted); font-size:11px; font-weight:850; }
+    .stage-checks { display:grid; gap:6px; align-content:start; margin-top:2px; }
+    .stage-check { display:grid; grid-template-columns:18px minmax(0,1fr); gap:6px; align-items:start; color:var(--muted); font-size:11px; line-height:1.25; font-weight:750; }
+    .stage-check::before { content:'○'; color:#a4adba; font-weight:950; }
+    .stage-check.done { color:var(--ink); }
+    .stage-check.done::before { content:'✓'; color:var(--green); }
+    .stage-now { width:max-content; max-width:100%; margin:0 auto; padding:4px 8px; border-radius:999px; background:var(--primary); color:#fff; font-size:10px; font-weight:950; }
+    .progress-legend { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px; }
+    .progress-legend span { min-height:54px; padding:10px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--muted); font-size:12px; font-weight:800; }
+    .progress-legend strong { display:block; color:var(--ink); font-size:15px; margin-bottom:3px; }
+    .topic-group, .topic-tools { width:100%; }
+    .topic-tools { margin-top:2px; }
+    .topic-tools > summary { text-align:center; }
+    .topic-tools > summary, .lesson-resources > summary {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+    .workspace-head { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; }
+    .workspace-title { min-width:0; display:flex; align-items:center; gap:14px; }
+    .workspace-title > div { min-width:0; }
+    .workspace-title > div { display:block; }
+    .workspace-back { flex:0 0 auto; }
+    .workspace-head .tabs { margin:0; }
+    .icon-button { width:40px; min-width:40px; height:40px; padding:0; border-radius:50%; font-size:22px; line-height:1; }
+    .topic-detail {
+      display:grid;
+      gap:14px;
+    }
+    .topic-detail-head {
+      padding:0 2px 2px;
+      border:0;
+    }
+    .topic-detail-head p { margin-top:4px; }
+    .document-settings { margin-top:14px; border-top:1px solid var(--line); }
+    .document-settings > summary { cursor:pointer; padding:14px 2px 0; color:var(--primary); font-weight:900; }
+    .document-settings .document-manager { margin-top:12px; }
+    .session-plan-head { justify-content:flex-start; }
+    .session-plan-head > .icon-button { min-width:40px; }
+    .session-step-row { padding:0 !important; border:0 !important; background:transparent !important; }
+    .session-step-row::before { display:none !important; }
+    .session-plan .plan-list li .session-step {
+      position:static;
+      width:100%;
+      min-height:70px;
+      display:grid;
+      grid-template-columns:34px minmax(0,1fr) auto;
+      align-items:center;
+      gap:12px;
+      padding:12px 14px;
+      transform:none;
+      text-align:left;
+    }
+    .session-step > span:nth-child(2) {
+      min-width:0;
+      display:grid;
+      gap:3px;
+    }
+    .session-plan-head, .topic-detail-head {
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .session-plan .plan-list li .session-step:hover { transform:translateY(-1px); }
+    .session-step strong, .session-step small { display:block; }
+    .session-step small { margin-top:3px; color:var(--muted); font-weight:700; }
+    .session-step.primary small { color:rgba(255,255,255,.78); }
+    .session-step.primary .topic-arrow { color:#fff; }
+    .step-number { width:30px; height:30px; display:grid; place-items:center; border-radius:50%; background:var(--soft); color:var(--primary); font-weight:950; }
+    .session-step.primary .step-number { background:rgba(255,255,255,.18); color:#fff; }
+    .lesson-head, .mode-head { justify-content:flex-start; align-items:center; }
+    .lesson-content { display:grid; gap:12px; }
+    .lesson-content .topic-reading { padding:20px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .topic-reading > strong {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:9px;
+      font-size:18px;
+      text-transform:uppercase;
+    }
+    .lesson-resources { border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .lesson-resources > summary { cursor:pointer; padding:14px 16px; color:var(--primary); font-weight:900; }
+    .lesson-resources .topic-resource-list { padding:0 12px 12px; }
+    .topic-primary-actions {
+      display:flex;
+      justify-content:center;
+    }
+    .topic-primary-actions button {
+      min-width:220px;
+    }
+    .test-status { min-height:24px; text-align:center; margin-bottom:4px; }
+    @media (max-width:700px) {
+      header .screen-nav { grid-template-columns:repeat(4,minmax(0,1fr)); }
+      .session-plan-head { flex-direction:row; align-items:flex-start; }
+      .duration-options, .exam-mode-grid { grid-template-columns:1fr; width:min(440px,100%); }
+      .exam-readiness { grid-template-columns:1fr; }
+      .exam-example-list { grid-template-columns:1fr; }
+      .duration-options button, .exam-mode { min-height:106px; }
+      .document-actions { grid-template-columns:1fr 1fr; }
+      .session-plan .plan-list li .session-step { margin:0; }
+      .subject-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .lesson-grid { grid-template-columns:1fr; }
+      .workspace-head { grid-template-columns:1fr; }
+      .workspace-head .tabs { width:100%; margin-top:2px; }
+      .module-grid { width:100%; }
+    }
+    @media (max-width:480px) {
+      header .screen-nav { grid-template-columns:1fr 1fr; }
+      .subject-grid, .document-actions { grid-template-columns:1fr; }
+      .toolbar > button, .toolbar > a, .topic-primary-actions button { width:100%; max-width:none; }
+      .tabs { width:100%; }
+      .tabs button { flex:1 1 calc(50% - 8px); min-width:0; }
+      .profile-name-row { grid-template-columns:1fr; }
+      .progress-simple { padding:22px 18px; }
+      .progress-simple-head > strong { font-size:30px; }
+      .progress-facts { display:grid; grid-template-columns:1fr 1fr; }
+      .roadmap-line { grid-template-columns:1fr; padding-top:0; }
+      .roadmap-line::before, .roadmap-fill { display:none; }
+      .roadmap-stage { min-height:0; padding:14px; grid-template-columns:auto minmax(0,1fr); grid-template-rows:auto auto; align-items:center; }
+      .stage-dot { margin:0; grid-row:1 / 3; }
+      .roadmap-stage strong, .stage-target { text-align:left; }
+      .stage-checks { grid-column:1 / -1; }
+      .progress-legend { grid-template-columns:1fr; }
+      .workspace-title { align-items:flex-start; }
+      .teacher-panel { right:10px; bottom:10px; width:min(360px, calc(100vw - 20px)); }
+      .teacher-log { max-height:230px; }
+      .teacher-row { grid-template-columns:1fr; }
+      .exam-action-grid, .exam-history-grid { grid-template-columns:1fr; }
+    }
+    /* Cambridge/Diplomator visual polish */
+    body {
+      font-family:"Segoe UI", Arial, sans-serif;
+      background:#f6f7f4;
+      letter-spacing:0;
+    }
+    body::before {
+      height:0;
+      background:none;
+    }
+    .app {
+      width:min(1680px,100%);
+      padding:0 24px 44px;
+      gap:22px;
+    }
+    header {
+      margin:0 -24px;
+      padding:10px 34px;
+      border:0;
+      border-bottom:1px solid #e6ece8;
+      border-radius:0;
+      background:rgba(255,255,255,.96);
+      box-shadow:0 8px 24px rgba(17,24,39,.06);
+      backdrop-filter:blur(10px);
+      position:sticky;
+      top:0;
+      z-index:80;
+    }
+    .brand { gap:12px; }
+    .brand-logo {
+      width:42px;
+      border-radius:12px;
+      background:#2454a6;
+      box-shadow:none;
+    }
+    .brand-logo::before { inset:8px; width:auto; height:auto; border-radius:4px; bottom:8px; }
+    .brand-logo::after { width:24px; height:2px; bottom:10px; background:rgba(255,255,255,.8); }
+    .brand-logo span { font-size:12px; transform:none; }
+    .brand h1,
+    .workspace-title h2,
+    .progress-simple h2,
+    .session-chooser h2,
+    .session-plan h2,
+    .topic-detail h2 {
+      font-family:"Segoe UI", Arial, sans-serif;
+      letter-spacing:0;
+      color:var(--ink);
+    }
+    .brand h1 { font-size:22px; text-transform:uppercase; }
+    .brand-kicker { display:none; }
+    header .screen-nav,
+    .library-tabs {
+      padding:4px;
+      border:1px solid var(--border,#d6ded9);
+      border-radius:12px;
+      background:#f0f3f1;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+    }
+    header .screen-nav button,
+    .library-tabs button,
+    .tabs button {
+      border-radius:9px;
+      font-size:11px;
+      font-weight:600;
+      letter-spacing:0;
+    }
+    header .screen-nav button.active,
+    .library-tabs button.active,
+    .tabs button.active {
+      background:var(--ink);
+      border-color:var(--ink);
+      color:#fff;
+      box-shadow:0 8px 18px rgba(17,24,39,.14);
+    }
+    button,
+    .profile-utility a,
+    .button-link {
+      border-radius:7px;
+      font-weight:600;
+      letter-spacing:0;
+      box-shadow:none;
+    }
+    button.primary {
+      background:var(--ink);
+      border-color:var(--ink);
+      color:#fff;
+      box-shadow:0 8px 18px rgba(17,24,39,.14);
+    }
+    button:hover,
+    .profile-utility a:hover,
+    .button-link:hover {
+      transform:translateY(-1px);
+      border-color:var(--gold);
+      color:var(--ink);
+      box-shadow:0 8px 18px rgba(17,24,39,.08);
+    }
+    button.primary:hover {
+      background:#2454a6;
+      border-color:#2454a6;
+      color:#fff;
+    }
+    .panel,
+    .module-card,
+    .stat,
+    .task-card,
+    .question,
+    .topic-row,
+    .lesson-card,
+    .test-card,
+    .exam-action-card,
+    .exam-ai-box,
+    .exam-history-card,
+    .theory-card,
+    .ai-notes-card,
+    .session-chooser,
+    .session-plan,
+    .progress-simple {
+      border:1px solid #d6ded9;
+      border-radius:8px;
+      background:#fff;
+      box-shadow:0 12px 36px rgba(17,24,39,.06);
+    }
+    .module-card:hover,
+    .topic-row:hover,
+    .lesson-card:hover,
+    .test-card:hover,
+    .exam-action-card:hover {
+      border-color:var(--gold);
+      box-shadow:0 16px 34px rgba(17,24,39,.10);
+    }
+    .module-card.active,
+    .module-card.recommended {
+      border-color:#2454a6;
+      box-shadow:0 14px 30px rgba(36,84,166,.14);
+    }
+    .topic-status,
+    .lesson-number,
+    .stage-dot,
+    .achievement-mark {
+      border-radius:999px;
+      background:#edf4ff;
+      color:#2454a6;
+    }
+    .topic-row.done,
+    .lesson-card.done,
+    .test-card.done {
+      border-color:#8bc8b7;
+      background:#f0f5ef;
+    }
+    .topic-row.done .topic-status,
+    .lesson-card.done .lesson-number {
+      background:var(--green);
+      color:#fff;
+    }
+    input,
+    select,
+    textarea {
+      border-radius:7px;
+      border:1.5px solid #d6ded9;
+      background:#fff;
+      font-family:"Segoe UI", Arial, sans-serif;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color:var(--gold);
+      outline:none;
+      box-shadow:0 0 0 3px rgba(199,146,47,.14);
+    }
+    .pill,
+    .result-label,
+    .mini-badge {
+      letter-spacing:.08em;
+      font-weight:600;
+      background:#fff8e8;
+      color:#8a661e;
+      border-color:#d8c38f;
+    }
+    .teacher-panel {
+      border-color:#d6ded9;
+      border-radius:12px;
+      box-shadow:0 22px 55px rgba(17,24,39,.16);
+    }
+    .teacher-head {
+      background:linear-gradient(135deg,#172026,#2454a6);
+    }
+    /* Final product layout */
+    .view-section[hidden],
+    .module-grid[hidden],
+    .workspace[hidden],
+    .progress-view[hidden],
+    .profile-panel[hidden] { display:none !important; }
+    .app {
+      width:min(1320px,100%);
+      padding-inline:clamp(16px,2.2vw,30px);
+      gap:18px;
+    }
+    header {
+      margin-inline:calc(clamp(16px,2.2vw,30px) * -1);
+      padding-inline:clamp(18px,3vw,42px);
+      grid-template-columns:minmax(260px,auto) minmax(420px,1fr) auto;
+      gap:18px;
+    }
+    header .screen-nav {
+      justify-self:center;
+      width:min(600px,100%);
+      grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+    .view-section,
+    .module-grid,
+    .workspace,
+    .progress-view,
+    .profile-panel {
+      width:min(1120px,100%);
+      margin-inline:auto;
+    }
+    .session-flow { justify-items:center; }
+    .session-chooser,
+    .session-plan,
+    .progress-simple {
+      width:100%;
+      max-width:980px;
+      margin-inline:auto;
+    }
+    .duration-options {
+      width:min(860px,100%);
+      margin-inline:auto;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+    }
+    .module-grid { display:block; }
+    .library-tabs {
+      margin-inline:auto;
+      margin-bottom:16px;
+    }
+    .subject-grid {
+      width:min(1040px,100%);
+      margin-inline:auto;
+      grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+      gap:14px;
+    }
+    .module-card {
+      min-height:168px;
+      text-align:center;
+      justify-items:center;
+      align-content:space-between;
+    }
+    .module-card .icon { margin-inline:auto; }
+    .module-badges { justify-content:center; }
+    .workspace {
+      max-width:1120px;
+      margin-inline:auto;
+    }
+    .workspace-head {
+      grid-template-columns:auto minmax(0,1fr);
+      gap:16px;
+      padding:16px 18px;
+    }
+    .workspace-title {
+      justify-self:start;
+      min-height:52px;
+      padding:4px 0;
+    }
+    .workspace-title h2 {
+      margin:0;
+      font-size:20px;
+      line-height:1.05;
+      text-transform:uppercase;
+    }
+    .workspace-title p {
+      display:block;
+      margin-top:5px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:750;
+      line-height:1.25;
+      max-width:430px;
+    }
+    .workspace-head .tabs {
+      justify-self:center;
+      width:fit-content;
+      max-width:100%;
+      justify-content:center;
+    }
+    .workspace-head .tabs button {
+      min-width:112px;
+      padding-inline:22px;
+      flex:0 0 auto;
+    }
+    .workspace .content-grid,
+    .workspace.topic-workspace .content-grid {
+      grid-template-columns:1fr;
+      width:min(980px,100%);
+      margin-inline:auto;
+    }
+    .workspace .task-list { display:none; }
+    .topic-library-list,
+    .simple-resource-list {
+      width:min(920px,100%);
+      margin-inline:auto;
+    }
+    .saved-notes-list {
+      width:min(920px,100%);
+      margin-inline:auto;
+      display:grid;
+      gap:10px;
+    }
+    .saved-note-card {
+      min-height:76px;
+      padding:14px 16px;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:14px;
+      align-items:center;
+      border:1px solid #d6ded9;
+      border-radius:8px;
+      background:#fff;
+      text-align:left;
+      box-shadow:0 10px 26px rgba(17,24,39,.05);
+    }
+    .saved-note-card strong,
+    .saved-note-card span,
+    .saved-note-card small { display:block; }
+    .saved-note-card strong { color:var(--ink); font-size:15px; }
+    .saved-note-card span { margin-top:2px; color:var(--muted); font-size:13px; font-weight:750; }
+    .saved-note-card small { margin-top:5px; color:#8a661e; font-size:11px; font-weight:850; letter-spacing:.04em; text-transform:uppercase; }
+    .saved-note-card b {
+      min-width:86px;
+      padding:8px 10px;
+      border-radius:7px;
+      background:#f0f3f1;
+      color:var(--ink);
+      text-align:center;
+      font-size:12px;
+    }
+    .lesson-grid,
+    .test-card-grid,
+    .exam-action-grid,
+    .exam-history-grid {
+      grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+      gap:12px;
+    }
+    .exam-hub,
+    .exam-ai-box,
+    .exam-topic-map,
+    .exam-paper,
+    .ocr-card,
+    .topic-detail {
+      width:min(980px,100%);
+      max-width:none;
+      margin-inline:auto;
+    }
+    @media (max-width:900px) {
+      header { grid-template-columns:1fr; justify-items:stretch; }
+      header .screen-nav { width:100%; min-width:0; }
+      .duration-options,
+      .subject-grid,
+      .lesson-grid,
+      .test-card-grid,
+      .exam-action-grid,
+      .exam-history-grid { grid-template-columns:1fr; }
+      .workspace-head { grid-template-columns:1fr; justify-items:stretch; }
+      .workspace-title { justify-self:stretch; }
+      .workspace-head .tabs { width:100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true"><span>E25</span></div>
+      <div>
+        <h1>ACCESO ESO ADULTOS</h1>
+        <p>Prepara la ESO sin agobio. La app te dice que estudiar, guarda tus fallos y te ayuda a practicar examenes.</p>
+      </div>
+    </div>
+    <nav class="screen-nav">
+      <button id="navHome" type="button" onclick="showView('home')">HOY</button>
+      <button id="navModules" type="button" onclick="openLibrary()">BIBLIOTECA</button>
+      <button id="navExam" type="button" onclick="openModule('exam')">EXAMEN</button>
+      <button id="navProgress" type="button" onclick="showView('progress')">PROGRESO</button>
+    </nav>
+    <button class="profile-button" id="profileButton" type="button" onclick="toggleProfile()" title="Perfil">
+      <span class="profile-icon" id="profileIcon">E</span>
+      <strong id="profileButtonName">Perfil</strong>
+    </button>
+  </header>
+
+  <section class="panel profile-panel" id="profilePanel" hidden>
+    <div class="profile-card">
+      <div class="profile-avatar" id="profileAvatar">E</div>
+      <div>
+        <div class="profile-title" id="profileName">Cuenta ESO Adultos</div>
+        <p class="profile-subtitle" id="profileSubtitle">Gestiona tu nombre visible, tu acceso y el consumo mensual de esta cuenta.</p>
+        <div class="profile-name-row">
+          <input id="profileNameInput" maxlength="90" placeholder="Nombre visible">
+          <button class="primary" type="button" onclick="saveProfileName()">Guardar nombre</button>
+        </div>
+        <div class="profile-grid">
+          <div class="profile-stat"><span>Uso mensual</span><strong id="profileUsage">-</strong></div>
+          <div class="profile-stat"><span>Caduca</span><strong id="profileExpiry">-</strong></div>
+          <div class="profile-stat"><span>Estado</span><strong id="profileStatus">-</strong></div>
+        </div>
+        <details class="document-settings">
+          <summary>Drive</summary>
+          <div class="document-manager">
+          <div>
+            <h3>Documentos por asignatura</h3>
+            <p>El tema actual se guarda como Word en la carpeta de su asignatura. Los examenes se guardan aparte dentro de esa misma estructura.</p>
+          </div>
+          <div><label>Carpeta de Drive</label><input id="driveFolderInput" placeholder="Pega aqui el enlace o ID de la carpeta"></div>
+          <div class="toolbar">
+            <button type="button" onclick="handleDriveConnect()" id="driveConnectBtn">Conectar Drive</button>
+            <button type="button" onclick="saveDriveFolder()">Guardar carpeta</button>
+            <button type="button" onclick="refreshDriveStatus()">Actualizar</button>
+          </div>
+          <div class="document-actions">
+            <button class="primary" type="button" onclick="uploadWordDrive('topic')">Guardar tema en Drive</button>
+            <button type="button" onclick="saveWordLocal('topic')">Guardar tema local</button>
+            <button type="button" onclick="uploadWordDrive('exam')">Guardar examen en Drive</button>
+            <button type="button" onclick="saveWordLocal('exam')">Guardar examen local</button>
+          </div>
+          <div class="drive-status" id="driveStatus">Drive pendiente de comprobar.</div>
+          </div>
+        </details>
+        <div class="profile-utility"><a href="/apps">Todas las apps</a><button type="button" onclick="logout()">Cerrar sesion</button></div>
+        <div class="profile-message" id="profileMessage"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="session-flow view-section" id="homeView">
+    <article class="panel session-chooser" id="sessionChooser">
+      <h2>¿CUANTO TIEMPO TIENES?</h2>
+      <div class="coach-strip" id="todayInsight"></div>
+      <div class="duration-options">
+        <button type="button" onclick="setSessionDuration(15)"><strong>15 MIN</strong><span>UN TEMA</span></button>
+        <button type="button" onclick="setSessionDuration(30)"><strong>30 MIN</strong><span>TEMA + TEST</span></button>
+        <button type="button" onclick="setSessionDuration(45)"><strong>45 MIN</strong><span>SESION COMPLETA</span></button>
+      </div>
+    </article>
+    <article class="panel session-plan" id="sessionPlan" hidden>
+      <div class="session-plan-head"><button class="icon-button" type="button" onclick="clearSessionDuration()" aria-label="Cambiar tiempo" title="Cambiar tiempo">&larr;</button><div><span class="pill" id="sessionDurationPill">15 minutos</span><h2 id="sessionPlanTitle">Tu plan de hoy</h2><p id="sessionPlanText"></p></div></div>
+      <div class="coach-strip" id="sessionCoach"></div>
+      <ol class="plan-list" id="todayPlan"></ol>
+      <details class="session-more"><summary>Repasar fallos o ver la prueba</summary><div class="session-more-grid"><div><h3>Para repasar</h3><ul class="mistake-list" id="mistakeNotebook"></ul><button type="button" onclick="clearMistakes()">Limpiar lista</button></div><div><h3>Que entra</h3><ul class="structure-list" id="officialStructure"></ul></div></div></details>
+    </article>
+  </section>
+
+  <section class="progress-view view-section" id="progressView" hidden>
+    <article class="progress-simple panel">
+      <div class="progress-simple-head">
+        <div><span class="pill">MES ACTUAL</span><h2>PROGRESO MENSUAL</h2></div>
+        <strong id="progressPct">0%</strong>
+      </div>
+      <div class="progress-track" id="progressTrack" role="progressbar" aria-label="Progreso mensual" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="progressBar"></span></div>
+      <p id="progressText">Empieza con una sesion corta.</p>
+      <div class="progress-facts" id="progressFacts"></div>
+      <div class="progress-next" id="progressNext"></div>
+      <button class="primary" id="progressContinue" type="button" onclick="continueProgress()">Continuar</button>
+    </article>
+  </section>
+
+  <section class="module-grid view-section" id="moduleGrid" hidden></section>
+
+  <section class="panel workspace view-section" id="workspace" hidden>
+    <div class="workspace-head">
+      <div class="workspace-title">
+        <button class="workspace-back icon-button" type="button" onclick="openLibrary()" aria-label="Volver a la biblioteca" title="Biblioteca">&larr;</button>
+        <div>
+          <h2 id="moduleTitle">Contenidos</h2>
+          <p id="moduleText"></p>
+        </div>
+      </div>
+      <div class="tabs" id="tabs"></div>
+    </div>
+    <div class="content-grid">
+      <div class="task-list" id="taskList"></div>
+      <div class="viewer" id="viewer"></div>
+    </div>
+  </section>
+
+  <footer></footer>
+  <aside class="teacher-panel" id="teacherPanel"></aside>
+</div>
+
+<script>
+const APP_KEY = 'eso_adultos';
+const APP_TITLE = 'ACCESO ESO ADULTOS';
+const MODULES = [
+  {
+    id:'lengua',
+    icon:'LC',
+    title:'Lengua Castellana',
+    desc:'Lectura, escritura y gramatica.',
+    testKey:'comunicacion',
+    tasks:[
+      {id:'len-comprension', title:'Comprension lectora', detail:'Idea principal, informacion y deducciones.', tags:['lengua','contenidos'], note:'Lee el titulo, identifica el tema y busca en el texto la evidencia de cada respuesta.', example:'Si pregunta por una causa, localiza conectores como porque, debido a o ya que.'},
+      {id:'len-resumen', title:'Resumen', detail:'Ideas esenciales y orden.', tags:['lengua','redaccion'], note:'Elimina ejemplos secundarios y conserva tema, ideas principales y relacion entre ellas.', example:'Resume un texto de veinte lineas en cuatro o cinco frases propias.'},
+      {id:'len-gramatica', title:'Gramatica', detail:'Palabras, verbos y oraciones.', tags:['lengua','contenidos'], note:'Distingue categorias gramaticales y analiza sujeto, predicado y complementos basicos.', example:'En Los alumnos llegaron pronto, los alumnos es sujeto.'},
+      {id:'len-ortografia', title:'Ortografia', detail:'Tildes, puntuacion y escritura.', tags:['lengua','consulta'], note:'Revisa tildes, mayusculas, b/v, g/j y puntuacion. Lee la frase en voz alta para comprobar pausas.', example:'No se escribe coma entre sujeto y verbo.'},
+      {id:'len-redaccion', title:'Redaccion', detail:'Textos claros y organizados.', tags:['lengua','redaccion'], note:'Planifica inicio, desarrollo y cierre. Cada parrafo debe desarrollar una idea.', example:'Una carta formal incluye saludo, motivo, peticion y despedida.'},
+      {id:'len-literatura', title:'Literatura', detail:'Generos, epocas y textos.', tags:['lengua','contenidos'], note:'Relaciona genero, autor, epoca y rasgos del fragmento sin memorizar listas aisladas.', example:'La narracion tiene narrador, personajes, tiempo, espacio y accion.'}
+    ]
+  },
+  {
+    id:'ingles',
+    icon:'EN',
+    title:'Ingles',
+    desc:'Comprension y comunicacion practica.',
+    testKey:'comunicacion',
+    tasks:[
+      {id:'ing-reading', title:'Reading', detail:'Comprender textos cotidianos.', tags:['ingles','contenidos'], note:'Busca primero nombres, fechas, lugares y palabras repetidas. Despues responde con informacion del texto.', example:'A timetable permite localizar horas, destinos y precios.'},
+      {id:'ing-vocabulary', title:'Vocabulario', detail:'Vida diaria, trabajo y servicios.', tags:['ingles','consulta'], note:'Agrupa palabras por situaciones y aprende expresiones completas, no terminos aislados.', example:'Apply for a job significa solicitar un empleo.'},
+      {id:'ing-grammar', title:'Gramatica', detail:'Tiempos y estructuras basicas.', tags:['ingles','contenidos'], note:'Revisa presente, pasado, futuro, modales, comparativos y preguntas.', example:'She has lived here for five years conecta pasado y presente.'},
+      {id:'ing-writing', title:'Writing', detail:'Mensajes, cartas y opinion.', tags:['ingles','redaccion'], note:'Usa frases claras, conectores basicos y revisa sujeto-verbo-tiempo.', example:'Un email formal empieza con Dear y termina con Kind regards.'},
+      {id:'ing-listening', title:'Ingles funcional', detail:'Indicaciones y situaciones reales.', tags:['ingles','contenidos'], note:'Practica pedir informacion, explicar un problema y comprender instrucciones frecuentes.', example:'Could you tell me where the station is? sirve para pedir indicaciones.'}
+    ]
+  },
+  {
+    id:'geografia',
+    icon:'GE',
+    title:'Geografia',
+    desc:'Mapas, poblacion y economia.',
+    testKey:'social',
+    tasks:[
+      {id:'geo-mapas', title:'Mapas y escalas', detail:'Localizacion, simbolos y distancia.', tags:['social','mapas','geografia'], note:'Lee titulo, leyenda, orientacion y escala antes de interpretar el mapa.', example:'Una escala 1:100000 significa que 1 cm representa 1 km.'},
+      {id:'geo-relieve', title:'Relieve y clima', detail:'Paisajes y factores naturales.', tags:['social','mapas','geografia'], note:'Relaciona altitud, latitud, distancia al mar, temperaturas y precipitaciones.', example:'La cercania al mar suaviza las temperaturas.'},
+      {id:'geo-poblacion', title:'Poblacion', detail:'Estructura, movimientos y ciudad.', tags:['social','datos','geografia'], note:'Interpreta tasas, piramides y migraciones explicando causas y consecuencias.', example:'Una base estrecha en la piramide indica baja natalidad.'},
+      {id:'geo-economia', title:'Actividades economicas', detail:'Sectores y territorio.', tags:['social','datos','geografia'], note:'Distingue sectores y explica como recursos, transporte y mercado influyen en su localizacion.', example:'La industria logistica se concentra cerca de grandes redes de transporte.'},
+      {id:'geo-global', title:'Globalizacion', detail:'Interdependencia y desigualdad.', tags:['social','datos','geografia'], note:'Relaciona comercio, tecnologia, movilidad, oportunidades y desigualdades.', example:'Un producto puede disenarse, fabricarse y venderse en paises distintos.'}
+    ]
+  },
+  {
+    id:'historia',
+    icon:'HI',
+    title:'Historia y Ciudadania',
+    desc:'Procesos historicos y sociedad.',
+    testKey:'social',
+    tasks:[
+      {id:'his-antigua', title:'Mundo antiguo', detail:'Primeras sociedades, Grecia y Roma.', tags:['social','contenidos'], note:'Ordena cada civilizacion por espacio, politica, economia, sociedad y legado.', example:'Roma difundio lengua, derecho y obras publicas.'},
+      {id:'his-medieval', title:'Edad Media', detail:'Feudalismo, ciudades y culturas.', tags:['social','contenidos'], note:'Relaciona sociedad estamental, economia agraria y crecimiento urbano posterior.', example:'Los gremios organizaban oficios en las ciudades medievales.'},
+      {id:'his-moderna', title:'Edad Moderna', detail:'Monarquias, expansion y cambios.', tags:['social','contenidos'], note:'Estudia descubrimientos, monarquias, reforma religiosa e Ilustracion como procesos conectados.', example:'La imprenta acelero la difusion de ideas.'},
+      {id:'his-contemporanea', title:'Edad Contemporanea', detail:'Revoluciones e industrializacion.', tags:['social','contenidos'], note:'Explica causas, protagonistas y consecuencias de las revoluciones politica e industrial.', example:'La industrializacion transformo trabajo, ciudades y clases sociales.'},
+      {id:'his-sigloxx', title:'Siglos XX y XXI', detail:'Conflictos, democracia y mundo actual.', tags:['social','datos'], note:'Construye lineas de tiempo y relaciona guerra, dictadura, democracia, integracion europea y globalizacion.', example:'La Constitucion de 1978 organiza el sistema democratico espanol.'},
+      {id:'his-ciudadania', title:'Ciudadania', detail:'Derechos, deberes e instituciones.', tags:['social','contenidos'], note:'Distingue derechos, responsabilidades y funciones de las instituciones democraticas.', example:'Participar incluye votar, informarse, respetar normas y colaborar.'}
+    ]
+  },
+  {
+    id:'matematicas',
+    icon:'MA',
+    title:'Matematicas',
+    desc:'Numeros, algebra y datos.',
+    testKey:'cientifico',
+    tasks:[
+      {id:'mat-numeros', title:'Numeros y operaciones', detail:'Enteros, fracciones y decimales.', tags:['matematicas','geometria'], note:'Respeta el orden de operaciones y estima el resultado antes de calcular.', example:'3 + 2 x 5 es 13, no 25.'},
+      {id:'mat-proporciones', title:'Proporcionalidad', detail:'Porcentajes, escalas y reglas de tres.', tags:['matematicas','datos'], note:'Comprueba si las magnitudes son directas o inversas antes de plantear la proporcion.', example:'Un descuento del 20 por ciento deja el precio en el 80 por ciento.'},
+      {id:'mat-algebra', title:'Algebra', detail:'Expresiones, ecuaciones y sistemas.', tags:['matematicas','geometria'], note:'Traduce el problema a una incognita y verifica la solucion al final.', example:'x + 7 = 12 tiene solucion x = 5.'},
+      {id:'mat-geometria', title:'Geometria y medida', detail:'Areas, volumenes y Pitagoras.', tags:['matematicas','geometria'], note:'Dibuja, escribe unidades y selecciona formula antes de sustituir datos.', example:'El area de un triangulo es base por altura dividido entre dos.'},
+      {id:'mat-funciones', title:'Funciones y graficas', detail:'Relacion entre variables.', tags:['matematicas','geometria'], note:'Lee ejes, unidades, crecimiento, cortes y cambios de tendencia.', example:'Una recta ascendente muestra una relacion creciente.'},
+      {id:'mat-estadistica', title:'Estadistica y probabilidad', detail:'Datos, medidas y azar.', tags:['matematicas','datos'], note:'Organiza datos y decide si conviene media, mediana o porcentaje.', example:'La mediana es el valor central al ordenar los datos.'}
+    ]
+  },
+  {
+    id:'ciencias',
+    icon:'CI',
+    title:'Ciencias y Tecnologia',
+    desc:'Biologia, fisica, quimica y digital.',
+    testKey:'cientifico',
+    tasks:[
+      {id:'cie-metodo', title:'Metodo cientifico', detail:'Preguntas, hipotesis y datos.', tags:['ciencias','simulaciones'], note:'Distingue observacion, hipotesis, experimento, resultado y conclusion.', example:'Cambiar solo una variable permite comprobar su efecto.'},
+      {id:'cie-biologia', title:'Seres vivos y salud', detail:'Celula, sistemas y prevencion.', tags:['ciencias','simulaciones'], note:'Relaciona niveles de organizacion y funciones de nutricion, relacion y reproduccion.', example:'Los pulmones intercambian oxigeno y dioxido de carbono.'},
+      {id:'cie-ecologia', title:'Ecosistemas', detail:'Relaciones, energia e impacto.', tags:['ciencias','simulaciones'], note:'Identifica productores, consumidores, descomponedores y factores ambientales.', example:'Reducir un depredador puede alterar toda la red alimentaria.'},
+      {id:'cie-materia', title:'Materia y quimica', detail:'Propiedades, mezclas y reacciones.', tags:['ciencias','simulaciones'], note:'Distingue sustancias, mezclas, cambios fisicos y reacciones quimicas.', example:'Disolver sal es cambio fisico; quemar madera es cambio quimico.'},
+      {id:'cie-fisica', title:'Fuerzas y energia', detail:'Movimiento, trabajo y electricidad.', tags:['ciencias','simulaciones'], note:'Usa datos, formula, unidades y comprobacion en cada problema.', example:'La velocidad media se calcula dividiendo distancia entre tiempo.'},
+      {id:'cie-tecnologia', title:'Tecnologia digital', detail:'Sistemas, datos y seguridad.', tags:['recursos','datos'], note:'Comprende dispositivos, redes, hojas de calculo, privacidad y uso responsable.', example:'Una formula de hoja de calculo empieza con el signo igual.'}
+    ]
+  },
+  {
+    id:'exam',
+    icon:'E',
+    title:'Generador de examenes con IA',
+    desc:'Elige tipo, responde, corrige y guarda tu historial.',
+    tasks:[
+      {id:'exam-random', title:'Aleatorio', detail:'Practica rapida con temas pendientes.'},
+      {id:'exam-choose', title:'Elegir examen', detail:'Modelos predeterminados o estructura real.'},
+      {id:'exam-history', title:'Historial', detail:'Intentos, correcciones y avance por asignatura.'}
+    ]
+  },
+  {
+    id:'oficial',
+    icon:'O',
+    title:'Recursos oficiales',
+    desc:'Modelos reales, materiales, estructura y normativa para abrir fuera de la app.',
+    tasks:[
+      {id:'oficial-modelos', title:'Modelos de examen', detail:'Abre repositorios oficiales de examenes anteriores.'},
+      {id:'oficial-materiales', title:'Materiales educativos', detail:'Consulta contenidos y unidades oficiales de apoyo.'},
+      {id:'oficial-normativa', title:'Estructura y normativa', detail:'Comprueba ambitos, puntuacion, requisitos y convocatoria.'}
+    ]
+  }
+];
+const LESSON_TITLES = {
+  'len-comprension':['Idea principal','Informacion explicita','Inferencias','Intencion y tipo de texto'],
+  'len-resumen':['Ideas imprescindibles','Orden del contenido','Redaccion propia','Revision del resumen'],
+  'len-gramatica':['Clases de palabras','Sujeto y predicado','Complementos','Oraciones compuestas'],
+  'len-ortografia':['Acentuacion','Puntuacion','Letras conflictivas','Revision final'],
+  'len-redaccion':['Planificar','Parrafos y conectores','Textos personales','Opinion argumentada'],
+  'len-literatura':['Generos literarios','Recursos expresivos','Epocas principales','Lectura de fragmentos'],
+  'ing-reading':['Main idea','Specific information','True or false','Inference'],
+  'ing-vocabulary':['Daily life','Work and studies','Health and travel','Words in context'],
+  'ing-grammar':['Present and past','Future forms','Modals','Comparatives and conditionals'],
+  'ing-writing':['Personal description','Daily routines','Informal email','Short opinion'],
+  'ing-listening':['Useful questions','Schedules and prices','Directions','Workplace English'],
+  'geo-mapas':['Puntos cardinales','Escala','Coordenadas','Lectura de mapas'],
+  'geo-relieve':['Formas del relieve','Climas de Espana','Climogramas','Paisajes'],
+  'geo-poblacion':['Natalidad y mortalidad','Piramides de poblacion','Migraciones','Ciudades'],
+  'geo-economia':['Sector primario','Industria','Servicios','Trabajo y territorio'],
+  'geo-global':['Comercio mundial','Tecnologia','Desigualdad','Desarrollo sostenible'],
+  'his-antigua':['Primeras civilizaciones','Grecia','Roma','Legado clasico'],
+  'his-medieval':['Feudalismo','Al-Andalus','Reinos cristianos','Cultura medieval'],
+  'his-moderna':['Descubrimientos','Monarquias','Renacimiento','Reformas religiosas'],
+  'his-contemporanea':['Revoluciones','Industrializacion','Liberalismo','Movimiento obrero'],
+  'his-sigloxx':['Guerras mundiales','Dictaduras','Guerra fria','Mundo actual'],
+  'his-ciudadania':['Constitucion','Derechos y deberes','Instituciones','Participacion democratica'],
+  'mat-numeros':['Enteros y decimales','Fracciones','Potencias y raices','Jerarquia de operaciones'],
+  'mat-proporciones':['Razones','Regla de tres','Porcentajes','Escalas y repartos'],
+  'mat-algebra':['Lenguaje algebraico','Ecuaciones','Sistemas sencillos','Problemas algebraicos'],
+  'mat-geometria':['Perimetros y areas','Pitagoras','Volumenes','Unidades de medida'],
+  'mat-funciones':['Coordenadas','Tablas y graficas','Funcion lineal','Interpretacion de datos'],
+  'mat-estadistica':['Tablas de frecuencia','Media y mediana','Graficos estadisticos','Probabilidad simple'],
+  'cie-metodo':['Pregunta e hipotesis','Variables','Experimento','Conclusiones'],
+  'cie-biologia':['Celula','Nutricion','Aparatos del cuerpo','Salud y prevencion'],
+  'cie-ecologia':['Ecosistema','Cadenas troficas','Ciclos naturales','Impacto humano'],
+  'cie-materia':['Estados de la materia','Mezclas','Atomos y elementos','Reacciones quimicas'],
+  'cie-fisica':['Movimiento','Fuerzas','Energia','Electricidad'],
+  'cie-tecnologia':['Hardware y software','Internet seguro','Hojas de calculo','Resolucion tecnologica']
+};
+const DEFAULT_OFFICIAL_LINKS = [
+  {
+    title:'Junta de Andalucia - Modelos convocatorias anteriores',
+    url:'https://www.juntadeandalucia.es/educacion/portals/en/web/educacion-permanente/pruebas-obtencion-graduado-eso/modelos',
+    source:'Junta de Andalucia',
+    tags:['examenes','modelos'],
+    desc:'Repositorio oficial con modelos por convocatoria para la obtencion del Graduado en ESO.'
+  },
+  {
+    title:'Junta de Andalucia - Materiales educativos',
+    url:'https://www.juntadeandalucia.es/educacion/portals/en/web/educacion-permanente/pruebas-obtencion-graduado-eso/material-apoyo',
+    source:'Junta de Andalucia',
+    tags:['contenidos','materiales'],
+    desc:'Material oficial de apoyo para preparar los ambitos de la prueba.'
+  },
+  {
+    title:'Junta de Andalucia - Estructura de pruebas',
+    url:'https://www.juntadeandalucia.es/educacion/portals/en/web/educacion-permanente/pruebas-obtencion-graduado-eso/estructura-pruebas',
+    source:'Junta de Andalucia',
+    tags:['estructura','puntuacion'],
+    desc:'Estructura oficial por ambitos, apartados, puntuacion y criterios generales.'
+  },
+  {
+    title:'Educastur - Orientaciones y modelos ESO',
+    url:'https://www.educastur.es/estudiantes/titulos/eso-orientacion',
+    source:'Educastur',
+    tags:['modelos','PDF'],
+    desc:'Portal oficial con orientaciones, modelos de examen y pruebas liberadas.'
+  },
+  {
+    title:'Educastur - Orientaciones Enero 2026 PDF',
+    url:'https://www.educastur.es/documents/34868/8004174/2025-10-est-epa-titulo-ESO-orientaciones-01-25.pdf/e4bab2fc-ea97-c20a-609f-ff3fbe91eed6?t=1760435189731',
+    source:'Educastur',
+    tags:['PDF','orientaciones'],
+    desc:'PDF oficial de orientaciones para la prueba de Graduado ESO mayores de 18 anos.'
+  },
+  {
+    title:'BOE - Curriculo y prueba ESO adultos',
+    url:'https://www.boe.es/buscar/act.php?id=BOE-A-2023-16814',
+    source:'BOE',
+    tags:['normativa','ambitos'],
+    desc:'Orden estatal con organizacion de ESPA, ambitos y caracteristicas de la prueba.'
+  },
+  {
+    title:'Junta de Andalucia - Informacion general pruebas libres',
+    url:'https://www.juntadeandalucia.es/temas/estudiar/adultos/examenes-libres.html',
+    source:'Junta de Andalucia',
+    tags:['convocatoria','tramites'],
+    desc:'Informacion oficial sobre requisitos, plazos, convocatoria y enlaces generales.'
+  },
+  {
+    title:'INTEF - Procomun',
+    url:'https://procomun.intef.es/',
+    source:'INTEF',
+    tags:['materiales','recursos'],
+    desc:'Banco publico de recursos educativos para reforzar Lengua, Sociales, Ciencias y competencia digital.'
+  },
+  {
+    title:'Diccionario RAE',
+    url:'https://dle.rae.es/',
+    source:'Real Academia Espanola',
+    tags:['lengua','consulta'],
+    desc:'Para comprobar significados, ortografia, acentuacion y vocabulario en el ambito de Comunicacion.'
+  },
+  {
+    title:'Centro Virtual Cervantes - Recursos de espanol',
+    url:'https://cvc.cervantes.es/ensenanza/biblioteca_ele/',
+    source:'Instituto Cervantes',
+    tags:['lengua','redaccion'],
+    desc:'Recursos de comprension y expresion escrita para practicar textos, resumenes y redacciones.'
+  },
+  {
+    title:'Khan Academy en Espanol',
+    url:'https://es.khanacademy.org/',
+    source:'Khan Academy',
+    tags:['matematicas','practica'],
+    desc:'Videos y ejercicios guiados para repasar operaciones, algebra, geometria, estadistica y ciencias.'
+  },
+  {
+    title:'GeoGebra - Matematicas visuales',
+    url:'https://www.geogebra.org/?lang=es',
+    source:'GeoGebra',
+    tags:['matematicas','geometria'],
+    desc:'Herramientas interactivas para entender graficas, funciones, geometria y problemas paso a paso.'
+  },
+  {
+    title:'PhET - Simulaciones de ciencias',
+    url:'https://phet.colorado.edu/es/',
+    source:'Universidad de Colorado Boulder',
+    tags:['ciencias','simulaciones'],
+    desc:'Simulaciones sencillas de fisica, quimica, biologia y matematicas para comprender conceptos visualmente.'
+  },
+  {
+    title:'INE - Recursos educativos y estadisticos',
+    url:'https://www.ine.es/ine/educacion.htm',
+    source:'INE',
+    tags:['social','datos'],
+    desc:'Datos y recursos oficiales para practicar graficos, poblacion, economia y lectura de estadisticas.'
+  },
+  {
+    title:'Instituto Geografico Nacional - Recursos educativos',
+    url:'https://www.ign.es/web/recursos-educativos',
+    source:'IGN',
+    tags:['social','mapas'],
+    desc:'Mapas y materiales reales para reforzar geografia, territorio y lectura de informacion visual.'
+  }
+];
+let OFFICIAL_LINKS = [...DEFAULT_OFFICIAL_LINKS];
+const QUESTIONS = {
+  comunicacion:[
+    ['La idea principal de un texto es...', ['Lo que comunica globalmente','La primera palabra','Una opinion sin relacion'], 0],
+    ['Una carta formal necesita...', ['Saludo, cuerpo ordenado y despedida','Solo abreviaturas','Lenguaje coloquial siempre'], 0],
+    ['El verbo concuerda con...', ['El sujeto','El complemento directo','El adverbio'], 0],
+    ['En ingles, "must" expresa...', ['Obligacion','Pasado perfecto','Comparacion'], 0],
+    ['Un resumen correcto...', ['Incluye solo ideas esenciales','Copia todo','Anade opiniones nuevas'], 0],
+    ['El sujeto de una oracion...', ['Concuerda con el verbo','Siempre es la primera palabra','Es un adverbio'], 0],
+    ['Los conectores sirven para...', ['Relacionar ideas','Eliminar parrafos','Cambiar nombres'], 0],
+    ['Yesterday suele pedir un verbo en...', ['Futuro','Pasado','Infinitivo siempre'], 1],
+    ['La palabra mas adecuada en un texto formal es...', ['Guay','Solicito','Pa'], 1],
+    ['Una inferencia se obtiene...', ['Uniendo pistas del texto','Copiando el titulo','Ignorando datos'], 0],
+    ['En un email informal en ingles puede usarse...', ['Hi Ana','Dear Sir or Madam siempre','Sin saludo'], 0],
+    ['La tilde diacritica distingue...', ['Palabras iguales con funcion distinta','Todos los plurales','Solo verbos'], 0]
+  ],
+  social:[
+    ['Una fuente primaria es...', ['Un documento de la epoca','Un resumen escolar','Una opinion sin datos'], 0],
+    ['La densidad de poblacion relaciona...', ['Habitantes y superficie','Renta y consumo','Altitud y clima'], 0],
+    ['La Revolucion Industrial produjo...', ['Cambios productivos y sociales','El fin de la tecnologia','Solo un estilo artistico'], 0],
+    ['Participar en democracia implica...', ['Derechos, deberes y respeto','No cumplir normas','Evitar informacion'], 0],
+    ['La escala de un mapa relaciona...', ['Distancia del mapa y distancia real','Poblacion y renta','Clima y vegetacion'], 0],
+    ['Una piramide con base estrecha indica...', ['Alta natalidad','Baja natalidad','Ausencia de adultos'], 1],
+    ['El sector terciario incluye...', ['Servicios','Agricultura','Mineria'], 0],
+    ['El feudalismo se organizaba alrededor de...', ['Senores, vasallos y tierras','Fabricas modernas','Partidos politicos'], 0],
+    ['La industrializacion favorecio...', ['Crecimiento urbano','Fin de las ciudades','Desaparicion del trabajo'], 0],
+    ['La Constitucion establece...', ['Derechos e instituciones','El precio de productos','Las estaciones'], 0],
+    ['La globalizacion aumenta...', ['La interdependencia','El aislamiento total','La ausencia de comercio'], 0],
+    ['Una causa se diferencia de una consecuencia porque...', ['Ocurre antes y ayuda a explicar el hecho','Siempre es posterior','No tiene relacion'], 0]
+  ],
+  cientifico:[
+    ['Una ecuacion de primer grado tiene...', ['La incognita elevada a uno','Siempre dos soluciones','Solo numeros negativos'], 0],
+    ['La fotosintesis necesita...', ['Luz, agua y dioxido de carbono','Solo oxigeno','Arena y metal'], 0],
+    ['La unidad de energia en el SI es...', ['Julio','Metro','Litro'], 0],
+    ['Una hoja de calculo permite...', ['Organizar datos y formulas','Medir temperatura directamente','Dibujar mapas siempre'], 0],
+    ['El 25% de 80 es...', ['20','25','40'], 0],
+    ['En un triangulo rectangulo se usa...', ['Pitagoras','La regla de Laplace siempre','Una ecuacion cubica'], 0],
+    ['La media de 4, 6 y 8 es...', ['5','6','7'], 1],
+    ['Una variable independiente es...', ['La que se modifica en el experimento','El resultado medido','Una conclusion'], 0],
+    ['Una cadena trofica comienza normalmente con...', ['Productores','Depredadores finales','Minerales metalicos'], 0],
+    ['Una mezcla heterogenea...', ['Tiene componentes distinguibles','Es siempre un gas','Solo contiene agua'], 0],
+    ['La energia no se crea ni se destruye, se...', ['Transforma','Congela siempre','Divide en metros'], 0],
+    ['Una contrasena segura debe...', ['Combinar caracteres y ser unica','Ser 1234','Usarse en todas las cuentas'], 0]
+  ]
+};
+let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, teacherChats:{}, testAttempts:{}, teacherOpen:true, libraryTab:'subjects', sessionDuration:null, examMode:null, activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
+let currentUser = null;
+let currentView = 'home';
+const $ = id => document.getElementById(id);
+function init() {
+  renderProfile();
+  loadProfile();
+  loadOfficialResources();
+  loadState();
+}
+async function backend(path, options={}) {
+  const res = await fetch(path, {credentials:'same-origin', ...options, headers:{'Content-Type':'application/json','X-Client-App':APP_KEY, ...(options.headers||{})}});
+  if (res.status === 401) location.href = '/login?next=/eso-adultos';
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.ok === false) throw new Error(data.detail || data.error || 'No se pudo completar la accion.');
+  return data;
+}
+async function loadState() {
+  try { state = {...state, ...(await backend('/api/state'))}; } catch {}
+  state.mistakes = Array.isArray(state.mistakes) ? state.mistakes : [];
+  state.activityDates = Array.isArray(state.activityDates) ? state.activityDates : [];
+  state.monthlyProgress = state.monthlyProgress && typeof state.monthlyProgress === 'object' ? state.monthlyProgress : {};
+  state.savedNotes = Array.isArray(state.savedNotes) ? state.savedNotes : [];
+  state.lessonNotes = state.lessonNotes && typeof state.lessonNotes === 'object' ? state.lessonNotes : {};
+  state.teacherChats = state.teacherChats && typeof state.teacherChats === 'object' ? state.teacherChats : {};
+  state.testAttempts = state.testAttempts && typeof state.testAttempts === 'object' ? state.testAttempts : {};
+  state.teacherOpen = state.teacherOpen !== false;
+  state.libraryTab = ['subjects','resources','saved'].includes(state.libraryTab) ? state.libraryTab : 'subjects';
+  state.currentExamTopics = Array.isArray(state.currentExamTopics) ? state.currentExamTopics : [];
+  state.activeLesson = Number.isInteger(state.activeLesson) ? state.activeLesson : null;
+  state.sessionDuration = [15,30,45].includes(Number(state.sessionDuration)) ? Number(state.sessionDuration) : null;
+  state.examMode = ['quick','complete','official'].includes(state.examMode) ? state.examMode : null;
+  render();
+}
+async function loadOfficialResources() {
+  try {
+    const data = await backend('/api/resources?app=' + encodeURIComponent(APP_KEY));
+    if (Array.isArray(data.resources) && data.resources.length) {
+      OFFICIAL_LINKS = data.resources;
+      render();
+    }
+  } catch {}
+}
+async function saveState() {
+  try { await backend('/api/state', {method:'POST', body:JSON.stringify(state)}); } catch {}
+}
+async function loadProfile() {
+  try {
+    const data = await backend('/api/me');
+    currentUser = data.user || null;
+  } catch {
+    currentUser = null;
+  }
+  renderProfile();
+  renderShell();
+}
+function profileDisplayName() {
+  if (!currentUser) return 'Perfil';
+  return currentUser.name || currentUser.full_name || currentUser.username || currentUser.email || 'Perfil';
+}
+function profileInitial() {
+  const raw = profileDisplayName().trim();
+  return (raw[0] || 'E').toUpperCase();
+}
+function renderProfile() {
+  const name = profileDisplayName();
+  const email = currentUser?.email || currentUser?.username || 'Sesion iniciada';
+  const quota = Number(currentUser?.monthly_quota || 0);
+  const usage = Number(currentUser?.usage_month || 0);
+  const expires = formatDate(currentUser?.expires_at);
+  if ($('profileIcon')) $('profileIcon').textContent = profileInitial();
+  if ($('profileButtonName')) $('profileButtonName').textContent = name;
+  if ($('profileAvatar')) $('profileAvatar').textContent = profileInitial();
+  if ($('profileName')) $('profileName').textContent = name === 'Perfil' ? 'Cuenta ESO Adultos' : name;
+  if ($('profileSubtitle')) $('profileSubtitle').textContent = email;
+  if ($('profileNameInput')) $('profileNameInput').value = name === 'Perfil' ? '' : name;
+  if ($('profileUsage')) $('profileUsage').textContent = quota ? `${usage}/${quota}` : String(usage);
+  if ($('profileExpiry')) $('profileExpiry').textContent = expires;
+  if ($('profileStatus')) $('profileStatus').textContent = currentUser?.status || 'Activo';
+  if ($('driveFolderInput')) $('driveFolderInput').value = currentUser?.drive_folder_id || '';
+  updateDriveUi(Boolean(currentUser?.drive_connected), currentUser?.drive_folder_id || '');
+}
+function toggleProfile(force) {
+  const panel = $('profilePanel');
+  const button = $('profileButton');
+  const nextOpen = typeof force === 'boolean' ? force : panel.hidden;
+  panel.hidden = !nextOpen;
+  button?.classList.toggle('active', nextOpen);
+  if (nextOpen) loadProfile();
+  renderView();
+}
+async function saveProfileName() {
+  const input = $('profileNameInput');
+  const msg = $('profileMessage');
+  const name = (input.value || '').trim();
+  if (!name) {
+    msg.textContent = 'Escribe un nombre para guardar.';
+    return;
+  }
+  msg.textContent = 'Guardando...';
+  try {
+    const data = await backend('/api/profile', {method:'POST', body:JSON.stringify({name})});
+    currentUser = data.user || currentUser;
+    renderProfile();
+    msg.textContent = 'Nombre actualizado.';
+  } catch (e) {
+    msg.textContent = e.message;
+  }
+}
+function updateDriveUi(connected, folderId) {
+  const btn = $('driveConnectBtn');
+  const status = $('driveStatus');
+  if (btn) {
+    btn.textContent = connected ? 'Desconectar Drive' : 'Conectar Drive';
+    btn.dataset.connected = connected ? '1' : '0';
+  }
+  if (status) status.textContent = connected ? `Drive conectado. Carpeta: ${folderId || 'carpeta de la app'}` : 'Drive no conectado. Puedes guardar Word local o conectar Google Drive.';
+}
+async function refreshDriveStatus() {
+  try {
+    const data = await backend('/auth/google/drive-status');
+    if (currentUser) {
+      currentUser.drive_connected = Boolean(data.drive_connected);
+      currentUser.drive_folder_id = data.drive_folder_id || currentUser.drive_folder_id || '';
+    }
+    updateDriveUi(Boolean(data.drive_connected), data.drive_folder_id || '');
+  } catch (e) {
+    if ($('driveStatus')) $('driveStatus').textContent = e.message;
+  }
+}
+async function handleDriveConnect() {
+  const connected = $('driveConnectBtn')?.dataset.connected === '1';
+  if (!connected) {
+    location.href = '/auth/google/drive?next=' + encodeURIComponent('/eso-adultos?drive=connected');
+    return;
+  }
+  try {
+    await backend('/auth/google/drive-disconnect', {method:'POST', body:'{}'});
+    if (currentUser) currentUser.drive_connected = false;
+    updateDriveUi(false, '');
+  } catch (e) {
+    if ($('driveStatus')) $('driveStatus').textContent = e.message;
+  }
+}
+async function saveDriveFolder() {
+  const folder = ($('driveFolderInput')?.value || '').trim();
+  try {
+    const data = await backend('/api/drive/folder', {method:'POST', body:JSON.stringify({folder})});
+    if (currentUser) currentUser.drive_folder_id = data.drive_folder_id || '';
+    updateDriveUi(Boolean(data.drive_connected), data.drive_folder_id || '');
+    if ($('driveStatus')) $('driveStatus').textContent = data.drive_folder_id ? 'Carpeta de Drive guardada.' : 'Carpeta de Drive borrada.';
+  } catch (e) {
+    if ($('driveStatus')) $('driveStatus').textContent = e.message;
+  }
+}
+function documentPayload(kind) {
+  const html = buildWordHtml(kind);
+  const today = new Date().toISOString().slice(0,10);
+  const context = currentDocumentContext();
+  const label = kind === 'exam' ? 'Examen' : kind === 'history' ? 'Historial' : kind === 'topic' ? 'Apuntes' : 'Dossier';
+  const base = kind === 'topic' ? `${context.module.title}_${context.topic.title}_Apuntes` : kind === 'exam' ? `${context.module.title}_Examen` : label;
+  const filename = `${safeFilename(base)}_${today}.doc`;
+  return {html, filename, folder_path:[APP_TITLE, context.module.title, kind === 'exam' ? 'Examenes' : 'Apuntes'], label};
+}
+function currentDocumentContext() {
+  const modules = MODULES.filter(m => !['exam','oficial'].includes(m.id));
+  const module = modules.find(m => m.id === state.activeModule) || recommendedStudyModule() || modules[0];
+  const topic = module.tasks.find(t => t.id === state.activeTopic) || module.tasks.find(t => !state.done[t.id]) || module.tasks[0];
+  return {module, topic};
+}
+function downloadWordDocument(kind) {
+  const doc = documentPayload(kind);
+  downloadWord(doc.html, doc.filename);
+  rememberSavedNote({kind, location:'descarga', filename:doc.filename, label:doc.label});
+  saveState();
+}
+async function saveWordLocal(kind) {
+  const doc = documentPayload(kind);
+  const status = $('driveStatus');
+  if (status) status.textContent = 'Guardando Word local...';
+  try {
+    const data = await backend('/api/documents/save-local', {method:'POST', body:JSON.stringify({app:APP_KEY, filename:doc.filename, content:doc.html, folder_path:doc.folder_path})});
+    rememberSavedNote({kind, location:'local', filename:doc.filename, path:data.path || '', label:doc.label});
+    if (status) status.textContent = `Word guardado: ${data.path || data.filename}`;
+  } catch (e) {
+    downloadWord(doc.html, doc.filename);
+    rememberSavedNote({kind, location:'descarga', filename:doc.filename, label:doc.label});
+    if (status) status.textContent = 'No se pudo guardar en servidor; se descargo en el navegador.';
+  }
+  saveState();
+}
+async function uploadWordDrive(kind) {
+  const doc = documentPayload(kind);
+  const status = $('driveStatus');
+  if (status) status.textContent = 'Subiendo Word a Drive...';
+  try {
+    const data = await backend('/api/drive/upload-document', {method:'POST', body:JSON.stringify({filename:doc.filename, content:doc.html, mime_type:'application/msword', folder_id:$('driveFolderInput')?.value || '', folder_path:doc.folder_path})});
+    rememberSavedNote({kind, location:'drive', filename:doc.filename, url:data.webViewLink || '', label:doc.label});
+    if (status) status.innerHTML = data.webViewLink ? `Subido a Drive: <a href="${escapeHtml(data.webViewLink)}" target="_blank" rel="noopener">abrir documento</a>` : 'Documento subido a Drive.';
+    refreshDriveStatus();
+    saveState();
+  } catch (e) {
+    const normalized = String(e.message || e).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    if (normalized.includes('drive no esta conectado')) {
+      if (confirm('Drive no esta conectado. Conectarlo ahora?')) handleDriveConnect();
+      return;
+    }
+    if (status) status.textContent = e.message;
+  }
+}
+function safeFilename(name) {
+  return String(name || 'documento').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[<>:"/\\|?*\x00-\x1F]/g,'').replace(/\s+/g,'_').slice(0,50) || 'documento';
+}
+function rememberSavedNote(meta={}) {
+  const context = currentDocumentContext();
+  const topicId = meta.topicId || context.topic?.id || '';
+  const lessonIndex = Number.isInteger(meta.lessonIndex) ? meta.lessonIndex : null;
+  const module = topicId ? moduleByTopicId(topicId) : context.module;
+  const topic = topicId ? allTasks().find(item => item.id === topicId) : context.topic;
+  const key = [meta.kind || 'apuntes', meta.location || 'app', topicId, lessonIndex ?? '', meta.filename || ''].join(':');
+  const record = {
+    id:`${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    key,
+    kind:meta.kind || 'apuntes',
+    location:meta.location || 'app',
+    title:meta.title || (topic ? topic.title : meta.label || 'Documento guardado'),
+    moduleTitle:module?.title || context.module.title,
+    topicId,
+    lessonIndex,
+    filename:meta.filename || '',
+    url:meta.url || '',
+    path:meta.path || '',
+    at:new Date().toISOString()
+  };
+  state.savedNotes = [record, ...(state.savedNotes || []).filter(item => item.key !== key)].slice(0,80);
+}
+function moduleByTopicId(topicId) {
+  return MODULES.find(module => module.tasks.some(topic => topic.id === topicId)) || null;
+}
+function savedNotesFromLessonNotes() {
+  return Object.keys(state.lessonNotes || {}).map(key => {
+    const match = key.match(/^(.+):notes:(\d+)$/);
+    if (!match) return null;
+    const topic = allTasks().find(item => item.id === match[1]);
+    const module = topic ? moduleByTopicId(topic.id) : null;
+    return topic && module ? {
+      id:`lesson-${key}`,
+      key:`lesson-${key}`,
+      kind:'apuntes',
+      location:'app',
+      title:topic.title,
+      moduleTitle:module.title,
+      topicId:topic.id,
+      lessonIndex:Number(match[2]),
+      filename:'',
+      url:'',
+      path:'',
+      at:''
+    } : null;
+  }).filter(Boolean);
+}
+function savedNotesList() {
+  const explicit = Array.isArray(state.savedNotes) ? state.savedNotes : [];
+  const seen = new Set(explicit.map(item => item.key));
+  return [...explicit, ...savedNotesFromLessonNotes().filter(item => !seen.has(item.key))];
+}
+function savedNoteLocationLabel(item) {
+  return {drive:'DRIVE', local:'CARPETA LOCAL', descarga:'DESCARGA', ia:'IA', app:'APP'}[item.location] || String(item.location || 'APP').toUpperCase();
+}
+function renderSavedNotesLibrary() {
+  const items = savedNotesList();
+  if (!items.length) return '<div class="empty">Todavia no hay apuntes guardados.</div>';
+  return `<div class="saved-notes-list">${items.map(item => {
+    const when = item.at ? formatDateTime(item.at) : 'Guardado en la app';
+    const action = item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">ABRIR</a>` : item.topicId ? `<button type="button" onclick="openSavedNote('${escapeHtml(item.topicId)}',${Number.isInteger(item.lessonIndex) ? item.lessonIndex : 0})">VER</button>` : '<b>GUARDADO</b>';
+    return `<article class="saved-note-card"><div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.moduleTitle || 'Documento')} · ${escapeHtml(item.filename || 'Apuntes del tema')}</span><small>${savedNoteLocationLabel(item)} · ${escapeHtml(when)}</small></div>${action}</article>`;
+  }).join('')}</div>`;
+}
+function openSavedNote(topicId, lessonIndex=0) {
+  const module = moduleByTopicId(topicId);
+  if (!module) return;
+  state.activeModule = module.id;
+  state.activeTopic = topicId;
+  state.activeLesson = Number(lessonIndex) || 0;
+  state.activeTab = 'contenidos';
+  currentView = 'workspace';
+  renderShell();
+  renderWorkspace();
+  renderView();
+  saveState();
+  jumpTo($('workspace'));
+}
+function wrapWordHtml(title, bodyHtml) {
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title><style>
+    body{font-family:Aptos,Calibri,Arial,sans-serif;color:#1d242a;line-height:1.45}
+    h1{color:#b84a3a} h2{margin-top:22px;color:#1d242a} h3{color:#b84a3a;margin-bottom:4px}
+    .meta{color:#64727d;margin-bottom:18px}.box{border:1px solid #efc5bc;padding:10px;margin:10px 0}.small{color:#64727d;font-size:12px}
+    table{border-collapse:collapse;width:100%;margin:10px 0}td,th{border:1px solid #efc5bc;padding:7px;text-align:left}
+  </style></head><body>${bodyHtml}</body></html>`;
+}
+function buildWordHtml(kind) {
+  if (kind === 'topic') return buildTopicWordHtml();
+  const done = allTasks().filter(t => state.done[t.id]);
+  const attempts = state.attempts || [];
+  const modules = MODULES.map(m => `<tr><td>${escapeHtml(m.title)}</td><td>${taskDoneCount(m.id)}/${m.tasks.length}</td><td>${escapeHtml(m.desc)}</td></tr>`).join('');
+  const taskRows = done.map(t => `<li>${escapeHtml(moduleById(t.module).title)} - ${escapeHtml(t.title)}</li>`).join('') || '<li>Sin tareas marcadas.</li>';
+  const attemptRows = attempts.map(a => `<tr><td>${escapeHtml(a.type)}</td><td>${escapeHtml(formatDateTime(a.at))}</td><td>${escapeHtml(a.note)}</td></tr>`).join('') || '<tr><td colspan="3">Sin historial.</td></tr>';
+  const mistakeRows = (state.mistakes || []).map(m => `<tr><td>${escapeHtml(m.module)}</td><td>${escapeHtml(m.question)}</td><td>${escapeHtml(m.correct)}</td></tr>`).join('') || '<tr><td colspan="3">Sin errores registrados.</td></tr>';
+  const links = OFFICIAL_LINKS.map(l => `<li><a href="${escapeHtml(l.url)}">${escapeHtml(l.title)}</a><br><span class="small">${escapeHtml(l.source)} - ${escapeHtml(l.desc)}</span></li>`).join('');
+  const exam = state.currentExam ? `<h2>Examen actual</h2><div class="box">${escapeHtml(state.currentExam).replace(/\n/g,'<br>')}</div>` : '';
+  const body = `<h1>${escapeHtml(APP_TITLE)}</h1><div class="meta">Alumno: ${escapeHtml(profileDisplayName())}<br>Fecha: ${escapeHtml(new Date().toLocaleString('es-ES'))}<br>Progreso: ${progressPct()}%</div>
+    <h2>Resumen por modulos</h2><table><tr><th>Modulo</th><th>Avance</th><th>Objetivo</th></tr>${modules}</table>
+    <h2>Tareas completadas</h2><ul>${taskRows}</ul>${kind !== 'history' ? exam : ''}
+    <h2>Cuaderno de errores</h2><table><tr><th>Modulo</th><th>Pregunta</th><th>Repasar</th></tr>${mistakeRows}</table>
+    <h2>Historial</h2><table><tr><th>Tipo</th><th>Fecha</th><th>Nota</th></tr>${attemptRows}</table>
+    ${kind === 'exam' ? '' : `<h2>Recursos oficiales</h2><ul>${links}</ul>`}`;
+  return wrapWordHtml(`${APP_TITLE} - ${kind}`, body);
+}
+function buildTopicWordHtml() {
+  const {module, topic} = currentDocumentContext();
+  const lessons = subtopicsFor(topic);
+  const resources = resourcesForTopic(topic).map(l => `<li><a href="${escapeHtml(l.url)}">${escapeHtml(l.title)}</a><br><span class="small">${escapeHtml(l.source)}</span></li>`).join('');
+  const body = `<h1>${escapeHtml(topic.title)}</h1><div class="meta">Asignatura: ${escapeHtml(module.title)}<br>Alumno: ${escapeHtml(profileDisplayName())}<br>Fecha: ${escapeHtml(new Date().toLocaleString('es-ES'))}</div>
+    <h2>Apunte base</h2><div class="box">${escapeHtml(topic.note || topic.detail)}</div>
+    <h2>Lecciones</h2>${lessons.map((lesson,index) => `<h3>${index + 1}. ${escapeHtml(lesson.title)}</h3><div class="box">${escapeHtml(state.lessonNotes?.[lessonNoteKey(topic.id,index)] || defaultLessonNotes(topic,lesson,index)).replace(/\n/g,'<br>')}</div><div class="box">${escapeHtml(lesson.example)}</div>`).join('')}
+    <h2>Recursos oficiales</h2><ul>${resources}</ul>`;
+  return wrapWordHtml(`${module.title} - ${topic.title}`, body);
+}
+function downloadWord(html, filename) {
+  const blob = new Blob(['\ufeff', html], {type:'application/msword;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename.endsWith('.doc') ? filename : `${filename}.doc`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function formatDateTime(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('es-ES');
+}
+function formatDate(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleDateString('es-ES');
+}
+function allTasks() { return MODULES.flatMap(m => m.tasks.map(t => ({...t, module:m.id}))); }
+function studyTasks() { return MODULES.filter(m => !['exam','oficial'].includes(m.id)).flatMap(m => m.tasks.map(t => ({...t, module:m.id}))); }
+function moduleById(id) { return MODULES.find(m => m.id === id) || MODULES[0]; }
+function taskDoneCount(moduleId) {
+  const module = moduleById(moduleId);
+  return module.tasks.filter(t => state.done[t.id]).length;
+}
+function progressPct() {
+  const finalTarget = progressLevels({completedItems:0}).at(-1).targetCount;
+  return Math.min(100, Math.round(monthlyProgressCount() / finalTarget * 100));
+}
+function monthKey(date = new Date()) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2,'0')}`; }
+function isThisMonth(value) {
+  if (!value) return false;
+  const date = new Date(value);
+  return !Number.isNaN(date.getTime()) && monthKey(date) === monthKey();
+}
+function monthlyAttemptItems() { return (state.attempts || []).filter(item => isThisMonth(item.at)); }
+function monthlyProgressCount() {
+  const key = monthKey();
+  const stored = Number(state.monthlyProgress?.[key] || 0);
+  if (stored > 0) return stored;
+  const sessionDays = (state.activityDates || []).filter(day => String(day).startsWith(key)).length;
+  return monthlyAttemptItems().length + sessionDays;
+}
+function monthlyStats() {
+  const attempts = monthlyAttemptItems();
+  const tests = attempts.filter(item => String(item.type || '').toLowerCase().includes('test')).length;
+  const exams = attempts.filter(item => String(item.type || '').toLowerCase().includes('examen')).length;
+  const sessions = (state.activityDates || []).filter(day => String(day).startsWith(monthKey())).length;
+  return {items:monthlyProgressCount(), tests, exams, sessions};
+}
+function completedItemCount() {
+  const doneKeys = Object.entries(state.done || {}).filter(([key,value]) => value && !key.startsWith('test:')).length;
+  const tests = Object.keys(state.testAttempts || {}).length;
+  const notes = Object.keys(state.lessonNotes || {}).length;
+  const exams = (state.attempts || []).length;
+  return doneKeys + tests + notes + exams;
+}
+function averageScore() {
+  return state.scores?.length ? Math.round(state.scores.reduce((sum,score) => sum + Number(score || 0), 0) / state.scores.length) : null;
+}
+function streakDays() {
+  const dates = new Set(state.activityDates || []);
+  let streak = 0;
+  const cursor = new Date();
+  while (dates.has(todayKey(cursor))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+function nextMilestone(pct) {
+  return [25,50,75,100].find(mark => pct < mark) || 100;
+}
+function progressLevels(metrics) {
+  const count = metrics.completedItems || 0;
+  return [
+    {level:1, targetCount:4, title:'Inicio mensual', goal:'Arrancar sin agobio', checks:[{text:'4 acciones este mes', done:count >= 4}]},
+    {level:2, targetCount:8, title:'Ritmo mensual', goal:'Dos sesiones por semana', checks:[{text:'8 acciones este mes', done:count >= 8}]},
+    {level:3, targetCount:14, title:'Mes constante', goal:'Practicar y repasar', checks:[{text:'14 acciones este mes', done:count >= 14}]},
+    {level:4, targetCount:22, title:'Mes fuerte', goal:'Tests y examenes', checks:[{text:'22 acciones este mes', done:count >= 22}]},
+    {level:5, targetCount:30, title:'Objetivo mensual', goal:'Cerrar el mes preparado', checks:[{text:'30 acciones este mes', done:count >= 30}]}
+  ];
+}
+function renderProgressRoadmap(metrics, next) {
+  const levels = progressLevels(metrics);
+  const finalTarget = levels.at(-1).targetCount;
+  const count = metrics.completedItems || 0;
+  const currentIndex = count >= finalTarget ? levels.length - 1 : Math.max(0, levels.findIndex(level => count < level.targetCount));
+  const current = levels[currentIndex];
+  const missing = current.checks.find(check => !check.done);
+  return {current, missing};
+}
+function render() {
+  renderShell();
+  renderStudyCockpit();
+  renderWorkspace();
+  renderView();
+  renderTeacherPanel();
+}
+function renderShell() {
+  const pct = progressPct();
+  $('progressPct').textContent = pct + '%';
+  const completed = studyTasks().filter(t => state.done[t.id]).length;
+  const total = studyTasks().length;
+  const monthly = monthlyStats();
+  const completedItems = monthly.items;
+  const next = nextStudyItem();
+  const avg = averageScore();
+  const streak = streakDays();
+  const exams = monthly.exams;
+  const progressStage = renderProgressRoadmap({pct, completedItems, completed, total, tests:monthly.tests, avg, streak, exams, sessions:monthly.sessions}, next);
+  $('progressBar').style.width = pct + '%';
+  $('progressTrack').setAttribute('aria-valuenow', pct);
+  $('progressText').textContent = `Meta ${progressStage.current.targetCount} acciones`;
+  $('progressFacts').innerHTML = `<span><strong>${completedItems}</strong> acciones</span><span><strong>${monthly.tests}</strong> tests</span><span><strong>${exams}</strong> examenes</span>`;
+  $('progressNext').innerHTML = next ? `<strong>Siguiente</strong><small>${escapeHtml(next.module.title)} - ${escapeHtml(next.topic.title)}</small>` : '<strong>Siguiente</strong><small>Repasar fallos o hacer un examen.</small>';
+  $('progressContinue').textContent = next ? 'Continuar' : 'Ver biblioteca';
+  if ($('todayInsight')) $('todayInsight').innerHTML = next ? `<span><strong>SIGUIENTE PASO</strong><small>${escapeHtml(next.module.title)} - ${escapeHtml(next.topic.title)}</small></span>` : '<span><strong>TODO HECHO</strong><small>Pasa a examenes completos y repaso de fallos.</small></span>';
+  const moduleButton = m => {
+    const done = taskDoneCount(m.id);
+    const pct = Math.round(done / m.tasks.length * 100);
+    const isNext = next?.module.id === m.id;
+    const hasMistakes = (state.mistakes || []).some(item => item.module === m.title);
+    return `<button class="module-card ${state.activeModule === m.id ? 'active' : ''} ${done === m.tasks.length ? 'done' : ''} ${isNext ? 'recommended' : ''}" style="--module-color:${moduleColor(m.id)}" onclick="openModule('${m.id}')">
+      <div><div class="icon">${m.icon}</div><h3>${escapeHtml(m.title)}</h3><div class="module-badges">${isNext ? '<span class="mini-badge">Siguiente</span>' : ''}${hasMistakes ? '<span class="mini-badge review">Repasar</span>' : ''}</div><p>${escapeHtml(m.desc)}</p></div>
+      <div><span class="result-label">${done === m.tasks.length ? 'Completada' : `${done}/${m.tasks.length} temas`}</span><div class="progress"><span style="width:${pct}%"></span></div></div>
+    </button>`;
+  };
+  const subjects = MODULES.filter(m => !['test','exam','oficial'].includes(m.id));
+  const tabs = libraryTabsHtml();
+  const body = state.libraryTab === 'resources'
+    ? `<div class="simple-resource-list">${OFFICIAL_LINKS.map(link => `<a href="${link.url}" target="_blank" rel="noopener"><span><strong>${escapeHtml(link.title)}</strong><span>${escapeHtml(link.source)}</span></span><b>ABRIR</b></a>`).join('')}</div>`
+    : state.libraryTab === 'saved'
+      ? renderSavedNotesLibrary()
+      : `<section class="topic-group"><div class="subject-grid">${subjects.map(moduleButton).join('')}</div></section>`;
+  $('moduleGrid').innerHTML = tabs + body;
+}
+function renderModuleGrid() {
+  if (!$('moduleGrid')) return;
+  const next = nextStudyItem();
+  const moduleButton = m => {
+    const done = taskDoneCount(m.id);
+    const pct = Math.round(done / m.tasks.length * 100);
+    const isNext = next?.module.id === m.id;
+    const hasMistakes = (state.mistakes || []).some(item => item.module === m.title);
+    return `<button class="module-card ${state.activeModule === m.id ? 'active' : ''} ${done === m.tasks.length ? 'done' : ''} ${isNext ? 'recommended' : ''}" style="--module-color:${moduleColor(m.id)}" onclick="openModule('${m.id}')">
+      <div><div class="icon">${m.icon}</div><h3>${escapeHtml(m.title)}</h3><div class="module-badges">${isNext ? '<span class="mini-badge">Siguiente</span>' : ''}${hasMistakes ? '<span class="mini-badge review">Repasar</span>' : ''}</div><p>${escapeHtml(m.desc)}</p></div>
+      <div><span class="result-label">${done === m.tasks.length ? 'Completada' : `${done}/${m.tasks.length} temas`}</span><div class="progress"><span style="width:${pct}%"></span></div></div>
+    </button>`;
+  };
+  const subjects = MODULES.filter(m => !['test','exam','oficial'].includes(m.id));
+  const tabs = libraryTabsHtml();
+  const body = state.libraryTab === 'resources'
+    ? `<div class="simple-resource-list">${OFFICIAL_LINKS.map(link => `<a href="${link.url}" target="_blank" rel="noopener"><span><strong>${escapeHtml(link.title)}</strong><span>${escapeHtml(link.source)}</span></span><b>ABRIR</b></a>`).join('')}</div>`
+    : state.libraryTab === 'saved'
+      ? renderSavedNotesLibrary()
+      : `<section class="topic-group"><div class="subject-grid">${subjects.map(moduleButton).join('')}</div></section>`;
+  $('moduleGrid').innerHTML = tabs + body;
+}
+function libraryTabsHtml() {
+  return `<div class="library-tabs"><button type="button" class="${state.libraryTab === 'subjects' ? 'active' : ''}" onclick="setLibraryTab('subjects')">ASIGNATURAS</button><button type="button" class="${state.libraryTab === 'resources' ? 'active' : ''}" onclick="setLibraryTab('resources')">RECURSOS</button><button type="button" class="${state.libraryTab === 'saved' ? 'active' : ''}" onclick="setLibraryTab('saved')">APUNTES GUARDADOS</button></div>`;
+}
+function setLibraryTab(tab) {
+  state.libraryTab = tab;
+  currentView = 'modules';
+  renderModuleGrid();
+  renderView();
+  saveState();
+}
+function openLibrary(tab='subjects') {
+  if (['subjects','resources','saved'].includes(tab)) state.libraryTab = tab;
+  currentView = 'modules';
+  const panel = $('profilePanel');
+  const button = $('profileButton');
+  if (panel) panel.hidden = true;
+  button?.classList.remove('active');
+  renderModuleGrid();
+  renderView();
+  renderTeacherPanel();
+  saveState();
+  jumpTo($('moduleGrid'));
+}
+function nextStudyItem() {
+  for (const module of MODULES.filter(item => !['exam','oficial'].includes(item.id))) {
+    const topic = module.tasks.find(item => !state.done[item.id]);
+    if (topic) return {module, topic};
+  }
+  return null;
+}
+function continueProgress() {
+  const next = nextStudyItem();
+  if (!next) return showView('modules');
+  openModule(next.module.id);
+  openTopic(next.topic.id);
+}
+function todayKey(date = new Date()) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
+function recordStudyActivity() {
+  const today = todayKey();
+  state.activityDates = [today, ...(state.activityDates || []).filter(day => day !== today)].slice(0,90);
+  const key = monthKey();
+  state.monthlyProgress = state.monthlyProgress && typeof state.monthlyProgress === 'object' ? state.monthlyProgress : {};
+  state.monthlyProgress[key] = Number(state.monthlyProgress[key] || 0) + 1;
+}
+function showView(view) {
+  if (view === 'modules') return openLibrary(state.libraryTab || 'subjects');
+  currentView = view;
+  if (view === 'modules') renderModuleGrid();
+  renderView();
+  renderTeacherPanel();
+  const target = view === 'home' ? $('homeView') : view === 'modules' ? $('moduleGrid') : view === 'progress' ? $('progressView') : $('workspace');
+  jumpTo(target);
+}
+function jumpTo(target) { target?.scrollIntoView({behavior:'auto', block:'start'}); }
+function renderView() {
+  const profileOpen = $('profilePanel') && !$('profilePanel').hidden;
+  if ($('homeView')) $('homeView').hidden = profileOpen || currentView !== 'home';
+  if ($('planView')) $('planView').hidden = profileOpen || currentView !== 'home';
+  if ($('progressView')) $('progressView').hidden = profileOpen || currentView !== 'progress';
+  if ($('moduleGrid')) $('moduleGrid').hidden = profileOpen || currentView !== 'modules';
+  if ($('workspace')) $('workspace').hidden = profileOpen || currentView !== 'workspace';
+  if ($('navHome')) $('navHome').classList.toggle('active', currentView === 'home');
+  if ($('navModules')) $('navModules').classList.toggle('active', currentView === 'modules' || (currentView === 'workspace' && state.activeModule !== 'exam'));
+  if ($('navExam')) $('navExam').classList.toggle('active', currentView === 'workspace' && state.activeModule === 'exam');
+  if ($('navProgress')) $('navProgress').classList.toggle('active', currentView === 'progress');
+}
+function recommendedModule() {
+  return MODULES.find(m => m.tasks.some(t => !state.done[t.id])) || MODULES[0];
+}
+function recommendedStudyModule() { return MODULES.filter(m => !['test','exam','oficial'].includes(m.id)).find(m => m.tasks.some(t => !state.done[t.id])) || MODULES[0]; }
+function moduleColor(id) {
+  return {
+    lengua:'#2563eb', ingles:'#0f766e', geografia:'#0284c7', historia:'#9f5f16',
+    matematicas:'#7c3aed', ciencias:'#15803d', exam:'#b74338', oficial:'#475569'
+  }[id] || '#b84a3a';
+}
+function sessionSteps() {
+  const module = recommendedStudyModule();
+  const task = module.tasks.find(t => !state.done[t.id]) || module.tasks[0];
+  const steps = [{module:module.id, topic:task.id, tab:'contenidos', title:task.title, detail:'Tema'}];
+  if (state.sessionDuration >= 30) steps.push({module:module.id, topic:null, tab:'test', title:'Test corto', detail:'Practica'});
+  if (state.sessionDuration >= 45) steps.push({module:'exam', topic:null, tab:'examen', title:'Examen rapido', detail:'Comprobar'});
+  return steps;
+}
+function setSessionDuration(minutes) { state.sessionDuration = minutes; renderStudyCockpit(); renderTeacherPanel(); saveState(); }
+function clearSessionDuration() { state.sessionDuration = null; renderStudyCockpit(); renderTeacherPanel(); saveState(); }
+function openSessionStep(moduleId, tab, topicId='') {
+  state.activeModule = moduleId;
+  state.activeTopic = topicId || null;
+  state.activeLesson = null;
+  state.activeTab = tab;
+  if (moduleId === 'exam' && !state.examMode) state.examMode = 'quick';
+  currentView = 'workspace';
+  renderShell();
+  renderWorkspace();
+  renderView();
+  saveState();
+  jumpTo($('workspace'));
+}
+function renderStudyCockpit() {
+  const duration = state.sessionDuration;
+  $('sessionChooser').hidden = Boolean(duration);
+  $('sessionPlan').hidden = !duration;
+  if (!duration) return;
+  const steps = sessionSteps();
+  $('sessionDurationPill').textContent = `${duration} minutos`;
+  $('sessionPlanTitle').textContent = duration === 15 ? 'UN PASO Y LISTO' : duration === 30 ? 'PLAN CORTO Y COMPLETO' : 'SESION PARA AVANZAR';
+  $('sessionPlanText').textContent = `${steps.length} paso${steps.length === 1 ? '' : 's'}`;
+  if ($('sessionCoach')) $('sessionCoach').innerHTML = `<span><strong>OBJETIVO</strong><small>${duration === 15 ? 'Entender una idea y cerrar con una accion.' : duration === 30 ? 'Aprender, practicar y detectar fallos.' : 'Aprender, practicar y terminar con una prueba realista.'}</small></span>`;
+  $('todayPlan').innerHTML = steps.map((step,index) => `<li class="session-step-row"><button class="session-step ${index === 0 ? 'primary' : ''}" type="button" onclick="openSessionStep('${step.module}','${step.tab}','${step.topic || ''}')"><span class="step-number">${index + 1}</span><span><strong>${escapeHtml(step.title)}</strong><small>${escapeHtml(step.detail)}</small></span><span class="topic-arrow">&rsaquo;</span></button></li>`).join('');
+  $('officialStructure').innerHTML = [
+    ['Tres partes', 'Lengua e idioma, Sociales, y Matematicas/Ciencias.'],
+    ['Cada parte cuenta', 'Conviene practicar un poco de cada una.'],
+    ['Objetivo', 'Llegar al minimo exigido y saber explicar lo basico.']
+  ].map(([a,b]) => `<li><strong>${a}</strong><span>${b}</span></li>`).join('');
+  const mistakes = (state.mistakes || []).slice(0,4);
+  $('mistakeNotebook').innerHTML = mistakes.length ? mistakes.map(m => `<li><strong>${escapeHtml(m.module || 'Test')}</strong>${escapeHtml(m.question)}<br><span class="result-label">Respuesta buena: ${escapeHtml(m.correct)}</span></li>`).join('') : '<li>Aun no hay fallos. Cuando hagas un test, se guardaran aqui.</li>';
+}
+function openRecommendedModule() { openModule(recommendedModule().id); }
+function clearMistakes() {
+  state.mistakes = [];
+  renderStudyCockpit();
+  saveState();
+}
+function openModule(id) {
+  state.activeModule = id;
+  state.activeTopic = null;
+  state.activeLesson = null;
+  state.activeTab = id === 'exam' ? 'aleatorio' : 'contenidos';
+  currentView = 'workspace';
+  renderShell();
+  renderWorkspace();
+  renderView();
+  saveState();
+  jumpTo($('workspace'));
+}
+function setTab(tab) { state.activeTab = tab; if (tab === 'contenidos') { state.activeTopic = null; state.activeLesson = null; } currentView = 'workspace'; renderWorkspace(); renderView(); saveState(); }
+function renderWorkspace() {
+  const module = moduleById(state.activeModule);
+  if (module.id === 'exam' && ['examen','ejemplos'].includes(state.activeTab)) state.activeTab = 'aleatorio';
+  const topicMode = module.id !== 'exam' && module.id !== 'oficial' && state.activeTab === 'contenidos';
+  $('workspace').classList.toggle('topic-workspace', topicMode);
+  $('workspace').style.setProperty('--module-color', moduleColor(module.id));
+  $('moduleTitle').textContent = module.title;
+  $('moduleText').textContent = state.activeTopic ? module.desc : `${module.tasks.length} temas · ${module.desc}`;
+  const tabs = module.id === 'exam' ? ['aleatorio','elegir','historial'] : module.id === 'oficial' ? ['recursos'] : ['contenidos','test'];
+  $('tabs').innerHTML = tabs.map(t => `<button class="${state.activeTab === t ? 'active' : ''}" onclick="setTab('${t}')">${t === 'contenidos' && state.activeTopic ? 'LISTA DE TEMAS' : tabLabel(t)}</button>`).join('');
+  $('taskList').innerHTML = `<p class="result-label">Tu lista de pasos</p>` + module.tasks.map(t => `<article class="task-card ${state.done[t.id] ? 'done' : ''}">
+    <h3>${t.title}</h3><p>${t.detail}</p>
+    <button onclick="toggleDone('${t.id}')">${state.done[t.id] ? 'Marcar pendiente' : 'Marcar hecho'}</button>
+  </article>`).join('');
+  if (state.activeTab === 'contenidos') renderContents(module);
+  if (state.activeTab === 'test') renderTest(module);
+  if (state.activeTab === 'recursos') renderOfficialResources();
+  if (state.activeTab === 'aleatorio') renderRandomExam();
+  if (state.activeTab === 'elegir') renderExamBuilder();
+  if (state.activeTab === 'historial') renderExamHistory();
+  if (state.activeTab === 'correccion') renderExamCorrection();
+  renderTeacherPanel();
+}
+function tabLabel(tab) {
+  return {contenidos:'TEMAS', test:'TEST', recursos:'RECURSOS', aleatorio:'ALEATORIO', elegir:'ELEGIR EXAMEN', historial:'HISTORIAL'}[tab] || tab.toUpperCase();
+}
+function teacherContext() {
+  const module = moduleById(state.activeModule);
+  const topic = module.tasks.find(t => t.id === state.activeTopic);
+  const lessons = topic ? subtopicsFor(topic) : [];
+  const lesson = Number.isInteger(state.activeLesson) ? lessons[state.activeLesson] : null;
+  if (currentView === 'home') {
+    const plan = state.sessionDuration ? sessionSteps().map(step => `${step.detail}: ${step.title}`).join(' | ') : 'Elegir 15, 30 o 45 minutos.';
+    return {key:`home:${state.sessionDuration || 'choose'}`, title:'Sesion de hoy', brief:`Pantalla de hoy. Tiempo elegido: ${state.sessionDuration || 'sin elegir'} minutos. Plan: ${plan}`};
+  }
+  if (currentView === 'progress') {
+    const monthly = monthlyStats();
+    return {key:'progress', title:'Progreso mensual', brief:`Progreso del mes ${progressPct()}%. Acciones este mes: ${monthly.items}. Tests este mes: ${monthly.tests}. Examenes este mes: ${monthly.exams}.`};
+  }
+  if (module.id === 'exam') {
+    const topics = (state.currentExamTopics || []).map(item => `${item.moduleTitle}: ${item.title}`).join(' | ') || 'Todavia sin temas elegidos.';
+    return {key:`exam:${state.activeTab}:${state.examMode || 'none'}`, title:'Preparacion de examen', brief:`Seccion examen. Pestaña: ${state.activeTab}. Modo: ${state.examMode || 'sin elegir'}. Temas que entran: ${topics}. Enunciado actual: ${state.currentExam || 'sin examen creado'}`};
+  }
+  if (topic && lesson) {
+    return {key:`lesson:${topic.id}:${state.activeLesson}`, title:lesson.title, brief:`Asignatura: ${module.title}. Tema: ${topic.title}. Leccion: ${lesson.title}. Puntos: ${lessonPoints(topic, lesson, state.activeLesson).join(' | ')}. Ejemplo: ${lesson.example}`};
+  }
+  if (topic) {
+    return {key:`topic:${topic.id}`, title:topic.title, brief:`Asignatura: ${module.title}. Tema abierto: ${topic.title}. Objetivo: ${topic.detail}. Apunte base: ${topic.note}.`};
+  }
+  return {key:`module:${module.id}:${state.activeTab}`, title:module.title, brief:`Asignatura: ${module.title}. Pestaña: ${state.activeTab}. Temas: ${module.tasks.map(t => t.title).join(', ')}.`};
+}
+function teacherIntro(ctx) {
+  if (ctx.key.startsWith('home:')) return state.sessionDuration ? 'Te acompaño en la sesion de hoy. Si quieres, te explico el primer paso y como hacerlo rapido.' : 'Elige cuanto tiempo tienes y te ayudo a convertirlo en una sesion concreta.';
+  if (ctx.key.startsWith('exam:')) return 'Estoy aqui para explicarte que entra, como repartir el tiempo y como responder antes de corregir.';
+  if (ctx.key.startsWith('lesson:')) return 'Puedo explicarte esta leccion con ejemplos, pasos sencillos o una mini pregunta tipo examen.';
+  if (ctx.key.startsWith('topic:')) return 'Puedo ayudarte a ordenar el tema antes de entrar en las lecciones.';
+  if (ctx.key === 'progress') return 'Veo tu avance y puedo decirte el siguiente paso mas rentable.';
+  return 'Preguntame dudas concretas de esta asignatura o pide una ruta corta para empezar.';
+}
+function teacherSuggestions(ctx) {
+  if (ctx.key.startsWith('home:')) return ['Que hago primero?', 'Explicamelo en 5 minutos', 'Como cierro la sesion?'];
+  if (ctx.key.startsWith('exam:')) return ['Que entra hoy?', 'Como reparto el tiempo?', 'Dame estrategia de respuesta'];
+  if (ctx.key.startsWith('lesson:')) return ['Explicalo facil', 'Ponme un ejemplo', 'Hazme una pregunta'];
+  if (ctx.key === 'progress') return ['Que me falta para subir?', 'Que hago manana?', 'Donde estoy flojo?'];
+  return ['Por donde empiezo?', 'Resumen rapido', 'Errores tipicos'];
+}
+function renderTeacherPanel() {
+  const panel = $('teacherPanel');
+  if (!panel) return;
+  const ctx = teacherContext();
+  const messages = state.teacherChats?.[ctx.key] || [];
+  const suggestions = teacherSuggestions(ctx);
+  panel.classList.toggle('collapsed', !state.teacherOpen);
+  panel.innerHTML = `<div class="teacher-head"><div class="teacher-id"><div class="teacher-avatar">P</div><div><strong>Profesor virtual</strong><small>${escapeHtml(ctx.title)}</small></div></div><button class="teacher-toggle" type="button" onclick="toggleTeacherPanel()" title="${state.teacherOpen ? 'Ocultar' : 'Mostrar'}">${state.teacherOpen ? '-' : '+'}</button></div><div class="teacher-body"><div class="teacher-log" id="teacherLog"><div class="teacher-msg"><strong>Profesor:</strong> ${escapeHtml(teacherIntro(ctx))}</div>${messages.map(msg => `<div class="teacher-msg ${msg.role === 'user' ? 'user' : ''}"><strong>${msg.role === 'user' ? 'Tu' : 'Profesor'}:</strong> ${escapeHtml(msg.text).replace(/\n/g,'<br>')}</div>`).join('')}</div><div class="teacher-suggestions">${suggestions.map(item => `<button type="button" onclick='askTeacher(${JSON.stringify(item)})'>${escapeHtml(item)}</button>`).join('')}</div><div class="teacher-row"><textarea id="teacherInput" placeholder="Pregunta al profesor virtual"></textarea><button class="primary" type="button" onclick="askTeacher()">Enviar</button></div></div>`;
+  const log = $('teacherLog');
+  if (log) log.scrollTop = log.scrollHeight;
+}
+function toggleTeacherPanel() {
+  state.teacherOpen = !state.teacherOpen;
+  renderTeacherPanel();
+  saveState();
+}
+async function askTeacher(preset='') {
+  const ctx = teacherContext();
+  const input = $('teacherInput');
+  const question = String(preset || input?.value || '').trim();
+  if (!question) return;
+  if (input) input.value = '';
+  if (!state.teacherChats[ctx.key]) state.teacherChats[ctx.key] = [];
+  state.teacherChats[ctx.key].push({role:'user', text:question});
+  state.teacherChats[ctx.key].push({role:'assistant', text:'Pensando...'});
+  renderTeacherPanel();
+  const history = state.teacherChats[ctx.key].filter(msg => msg.text !== 'Pensando...').slice(-8);
+  const messages = [
+    {role:'system', content:`Eres un profesor virtual experto en ${APP_TITLE}. Responde siempre en espanol sencillo para una persona adulta con poco tiempo. Se muy concreto, guia el siguiente paso y evita texto largo. Contexto actual: ${ctx.brief}`},
+    ...history.map(msg => ({role:msg.role === 'user' ? 'user' : 'assistant', content:msg.text})),
+    {role:'user', content:question}
+  ];
+  try {
+    const data = await backend('/api/chat', {method:'POST', body:JSON.stringify({purpose:'study', messages, temperature:.25, max_tokens:900})});
+    state.teacherChats[ctx.key].pop();
+    state.teacherChats[ctx.key].push({role:'assistant', text:data.content || 'No he podido responder ahora.'});
+  } catch (e) {
+    state.teacherChats[ctx.key].pop();
+    state.teacherChats[ctx.key].push({role:'assistant', text:e.message});
+  }
+  renderTeacherPanel();
+  saveState();
+}
+function toggleDone(id) {
+  state.done[id] = !state.done[id];
+  if (state.done[id]) recordStudyActivity();
+  render();
+  saveState();
+}
+function renderContents(module) {
+  const topic = module.tasks.find(t => t.id === state.activeTopic);
+  if (!topic) {
+    $('viewer').innerHTML = `<div class="topic-library-list">${module.tasks.map((t,index) => `<button class="topic-row ${state.done[t.id] ? 'done' : ''}" type="button" onclick="openTopic('${t.id}')"><span class="topic-status">${state.done[t.id] ? 'OK' : index + 1}</span><span><strong>${escapeHtml(t.title)}</strong><small>${state.done[t.id] ? 'COMPLETADO' : `${subtopicsFor(t).length} LECCIONES`}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div>`;
+    return;
+  }
+  const lessons = subtopicsFor(topic);
+  if (!Number.isInteger(state.activeLesson) || !lessons[state.activeLesson]) {
+    const doneCount = lessons.filter((lesson,index) => isLessonDone(topic,index)).length;
+    $('viewer').innerHTML = `<section class="topic-detail"><div class="topic-detail-head"><div><h2>${escapeHtml(topic.title).toUpperCase()}</h2><p>${doneCount}/${lessons.length} LECCIONES COMPLETADAS</p></div></div><div class="lesson-grid">${lessons.map((lesson,index) => `<button class="lesson-card ${isLessonDone(topic,index) ? 'done' : ''}" type="button" onclick="openLesson(${index})"><span class="lesson-number">${isLessonDone(topic,index) ? 'OK' : index + 1}</span><span><strong>${escapeHtml(lesson.title)}</strong><small>${isLessonDone(topic,index) ? 'COMPLETADA' : 'TEORIA Y PRACTICA'}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div></section>`;
+    return;
+  }
+  const lesson = lessons[state.activeLesson];
+  $('viewer').innerHTML = `<section class="topic-detail"><div class="topic-detail-head lesson-head"><button class="icon-button" type="button" onclick="closeLesson()" aria-label="Volver a las lecciones" title="Lecciones">&larr;</button><div><small class="topic-parent">${escapeHtml(topic.title)}</small><h2>${escapeHtml(lesson.title)}</h2></div></div>${lessonContentHtml(topic,lesson,state.activeLesson)}<div class="topic-primary-actions"><button class="primary" type="button" ${isLessonDone(topic,state.activeLesson) ? 'disabled' : ''} onclick="completeLesson('${topic.id}',${state.activeLesson})">${isLessonDone(topic,state.activeLesson) ? 'Leccion completada' : 'Completar leccion'}</button></div></section>`;
+}
+function subtopicsFor(topic) {
+  const titles = LESSON_TITLES[topic.id] || ['Conceptos clave','Procedimiento','Practica','Revision'];
+  return titles.map((title,index) => ({
+    title,
+    note:`${topic.note} En esta leccion trabajaras ${title.toLowerCase()} de forma guiada y con los pasos que suelen pedirse en la prueba.`,
+    example:index === 0 ? `Modelo inicial: ${topic.example}` : index === 1 ? `Practica guiada de ${title.toLowerCase()}: parte de esta idea y explica cada paso. ${topic.example}` : index === 2 ? `Pregunta tipo examen: aplica ${title.toLowerCase()} en una respuesta breve y justificada. Referencia: ${topic.example}` : `Revision final: detecta el error, corrigelo y explica por que. Modelo de apoyo: ${topic.example}`
+  }));
+}
+function lessonKey(topicId,index) { return `${topicId}:lesson:${index}`; }
+function isLessonDone(topic,index) { return Boolean(state.done[topic.id] || state.done[lessonKey(topic.id,index)]); }
+function openTopic(id) { state.activeTopic = id; state.activeLesson = null; renderWorkspace(); saveState(); }
+function openLesson(index) { state.activeLesson = index; renderWorkspace(); saveState(); }
+function closeLesson() { state.activeLesson = null; renderWorkspace(); saveState(); }
+function completeLesson(topicId,index) {
+  const topic = allTasks().find(item => item.id === topicId);
+  if (!topic) return;
+  saveLessonNotes(topicId,index,false);
+  state.done[lessonKey(topicId,index)] = true;
+  if (subtopicsFor(topic).every((lesson,lessonIndex) => isLessonDone(topic,lessonIndex))) state.done[topicId] = true;
+  recordStudyActivity();
+  render();
+  saveState();
+}
+function saveLessonNotes(topicId,index,notify=true) {
+  const textarea = $('lessonAiNotes');
+  if (!textarea) return;
+  state.lessonNotes[lessonNoteKey(topicId,index)] = textarea.value.trim();
+  if (notify) rememberSavedNote({kind:'apuntes', location:'app', topicId, lessonIndex:index});
+  if (notify && $('lessonAiStatus')) $('lessonAiStatus').textContent = 'Apuntes guardados.';
+  saveState();
+}
+async function generateLessonNotes(topicId,index,mode='generate') {
+  const topic = allTasks().find(item => item.id === topicId);
+  if (!topic) return;
+  const lesson = subtopicsFor(topic)[index];
+  const textarea = $('lessonAiNotes');
+  const status = $('lessonAiStatus');
+  const current = textarea?.value.trim() || '';
+  if (status) status.textContent = mode === 'improve' ? 'Mejorando apuntes...' : 'Generando apuntes...';
+  const guide = lessonPoints(topic, lesson, index).map((point,i) => `${i + 1}. ${point}`).join('\n');
+  const prompt = `${mode === 'improve' && current ? 'Mejora estos apuntes de un alumno adulto con poco tiempo.' : 'Crea apuntes claros para un alumno adulto con poco tiempo.'}\n\nAPP: ${APP_TITLE}\nASIGNATURA: ${moduleById(topic.module).title}\nTEMA: ${topic.title}\nLECCION: ${lesson.title}\n\nCONTENIDO DEL TEMA:\n${guide}\n\nTEORIA BASE:\n${lesson.note}\n\nAPUNTES ACTUALES:\n${current || 'No hay apuntes todavia.'}\n\nDevuelve apuntes utiles en espanol, con: resumen corto, teoria clara, esquema sencillo, errores tipicos y mini pregunta de examen. Usa lenguaje sencillo y directo. No uses markdown pesado.`;
+  try {
+    const data = await backend('/api/chat', {method:'POST', body:JSON.stringify({purpose:'study', messages:[{role:'user', content:prompt}], temperature:.25, max_tokens:1800})});
+    if (textarea) textarea.value = data.content || '';
+    state.lessonNotes[lessonNoteKey(topicId,index)] = textarea?.value.trim() || '';
+    rememberSavedNote({kind:'apuntes', location:'ia', topicId, lessonIndex:index});
+    if (status) status.textContent = 'Apuntes generados y guardados.';
+    saveState();
+  } catch (e) {
+    if (status) status.textContent = e.message;
+  }
+}
+function resourcesForTopic(topic) {
+  const tags = topic.tags || [];
+  const ranked = OFFICIAL_LINKS.map(link => ({link, score:link.tags.filter(tag => tags.includes(tag)).length})).filter(item => item.score > 0).sort((a,b) => b.score - a.score).map(item => item.link);
+  return (ranked.length ? ranked : OFFICIAL_LINKS).slice(0,5);
+}
+function lessonPoints(topic, lesson, index) {
+  const base = [
+    `Definicion clara de ${lesson.title.toLowerCase()} dentro de ${topic.title}.`,
+    `Idea clave: ${topic.detail}`,
+    `Aplicacion habitual en examen: ${topic.detail}`,
+    `Error frecuente a evitar y como corregirlo.`,
+    `Mini respuesta modelo en 6-8 lineas.`
+  ];
+  return base.map((text, pointIndex) => pointIndex === 0 && index > 0 ? `Aplicacion practica de ${lesson.title.toLowerCase()} en ${topic.title}.` : text);
+}
+function lessonNoteKey(topicId,index) { return `${topicId}:notes:${index}`; }
+function moduleStudyProfile(moduleId) {
+  return {
+    lengua:{exam:'ambito de comunicacion', method:'leer, localizar datos, ordenar ideas y escribir con frases claras', criteria:'comprension, expresion escrita, gramatica y ortografia'},
+    ingles:{exam:'ambito de comunicacion', method:'buscar palabras clave, entender la situacion y responder con frases sencillas', criteria:'comprension, vocabulario funcional y correccion basica'},
+    geografia:{exam:'ambito social', method:'leer mapas o datos, situar el fenomeno y explicar causas y consecuencias', criteria:'interpretacion de fuentes, vocabulario social y razonamiento'},
+    historia:{exam:'ambito social', method:'ordenar hechos en el tiempo, explicar cambios y relacionar causas con consecuencias', criteria:'cronologia, conceptos e instituciones'},
+    matematicas:{exam:'ambito cientifico-tecnologico', method:'extraer datos, elegir operacion o formula y comprobar el resultado', criteria:'planteamiento, calculo, unidades y explicacion'},
+    ciencias:{exam:'ambito cientifico-tecnologico', method:'identificar el proceso, usar datos y justificar con vocabulario cientifico sencillo', criteria:'comprension del concepto, aplicacion y conclusion'}
+  }[moduleId] || {exam:'prueba libre de ESO', method:'entender, ordenar, practicar y revisar', criteria:'claridad, correccion y aplicacion'};
+}
+function defaultLessonNotes(topic, lesson, index) {
+  const module = moduleById(topic.module);
+  const profile = moduleStudyProfile(module.id);
+  const points = lessonPoints(topic, lesson, index);
+  return `RESUMEN CORTO
+${lesson.note}
+
+PARA QUE SIRVE EN EL EXAMEN
+Este punto suele aparecer dentro del ${profile.exam}. El objetivo es responder de forma clara, practica y suficiente, como se pide en las pruebas libres: entender el enunciado, aplicar el contenido y explicar el resultado con tus palabras.
+
+ESQUEMA UTIL
+1. Idea principal: ${topic.detail}
+2. Metodo: ${profile.method}.
+3. Palabras clave: ${points.slice(0,3).map(point => point.replace(/\.$/,'')).join(' | ')}.
+4. Criterio de correccion: ${profile.criteria}.
+
+COMO RESPONDER
+Lee la pregunta dos veces y marca que te pide: definir, explicar, calcular, comparar o redactar. Contesta primero lo seguro. Usa frases cortas. Si hay problema, escribe datos, operacion y respuesta final. Si hay texto o fuente, cita una pista concreta y explicala.
+
+APLICACION EN EXAMEN
+${lesson.example}
+
+ERRORES TIPICOS
+- Saltarse la pregunta y escribir todo lo que se recuerda.
+- No justificar el calculo o la respuesta.
+- Confundir ejemplo con definicion.
+- No revisar tildes, unidades, signos o concordancia.
+
+MINI PREGUNTA DE EXAMEN
+Explica ${lesson.title.toLowerCase()} aplicado a ${topic.title.toLowerCase()} y anade un ejemplo sencillo de la vida diaria.`;
+}
+function lessonTheory(topic, lesson, index) {
+  const module = moduleById(topic.module);
+  const profile = moduleStudyProfile(module.id);
+  return `${lesson.title} es una parte de ${topic.title} que conviene estudiar de forma practica. En ${module.title}, lo importante es entender la idea, reconocerla en un texto, dato, problema o situacion cotidiana, y explicarla con palabras propias. ${lesson.note}
+
+Para prepararlo, aprende primero la definicion corta y despues practica una respuesta aplicable. Si la pregunta pide explicar, usa dos frases ordenadas y un ejemplo. Si pide calcular o interpretar, escribe datos, operacion o pista del texto, y conclusion. El corrector suele valorar ${profile.criteria}.
+
+Un buen metodo es: 1) leer que pide exactamente, 2) responder lo seguro primero, 3) justificar con una pista o ejemplo, 4) revisar unidades, ortografia y sentido. La meta no es escribir mucho, sino responder justo lo que se pregunta sin dejar pasos importantes fuera.`;
+}
+function lessonContentHtml(topic,lesson,index) {
+  const saved = state.lessonNotes?.[lessonNoteKey(topic.id,index)] || defaultLessonNotes(topic, lesson, index);
+  return `<div class="lesson-content"><div class="theory-card"><strong>TEORIA</strong><p>${escapeHtml(lessonTheory(topic,lesson,index)).replace(/\n/g,'<br>')}</p></div><div class="ai-notes-card"><div class="ai-notes-head"><div><strong>APUNTES BASE</strong><p>Estos apuntes ya vienen preparados. Puedes editarlos, guardarlos o mejorarlos con IA si quieres.</p></div></div><textarea class="ai-notes-text" id="lessonAiNotes" placeholder="Aqui apareceran tus apuntes del tema. Puedes escribir, pegar o generar con IA.">${escapeHtml(saved)}</textarea><div class="ai-notes-actions"><button class="primary" type="button" onclick="saveLessonNotes('${topic.id}',${index})">Guardar apuntes</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'improve')">Mejorar con IA</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'generate')">Regenerar IA</button></div><div class="ai-notes-status" id="lessonAiStatus">${state.lessonNotes?.[lessonNoteKey(topic.id,index)] ? 'Apuntes guardados.' : 'Base incluida sin usar IA.'}</div></div><details class="lesson-resources"><summary>RECURSOS</summary><div class="topic-resource-list">${resourcesForTopic(topic).map(link => `<a href="${link.url}" target="_blank" rel="noopener"><span><strong>${escapeHtml(link.title)}</strong><small>${escapeHtml(link.source)}</small></span><span>ABRIR</span></a>`).join('')}</div></details></div>`;
+}
+function contentFor(id, moduleId) {
+  const topic = allTasks().find(t => t.id === id);
+  return topic?.note || topic?.detail || 'Contenido guiado para trabajar este tema.';
+}
+function renderTest(module) {
+  if (module.id === 'exam') return renderExamBuilder();
+  const cards = testCards(module);
+  const doneCount = cards.filter(card => state.testAttempts?.[card.id]).length;
+  $('viewer').innerHTML = `<div class="test-library"><div class="test-library-head"><div><strong>BATERIA DE TEST</strong><span>${doneCount}/${cards.length} completados</span></div><button type="button" onclick="startTopicTest('${module.id}:mixed:0')">Test mixto</button></div><div class="test-card-grid">${cards.map(card => {
+    const attempt = state.testAttempts?.[card.id];
+    return `<button class="test-card ${attempt ? 'done' : ''}" type="button" onclick="startTopicTest('${card.id}')"><span class="test-card-status"><span>${attempt ? 'HECHO' : 'PENDIENTE'}</span><span>${attempt ? `${attempt.score}%` : card.label}</span></span><strong>${escapeHtml(card.title)}</strong><small>${escapeHtml(card.detail)}</small></button>`;
+  }).join('')}</div></div><div id="testBox"></div>`;
+}
+function renderOfficialResources() {
+  $('viewer').innerHTML = `<div class="output">ENLACES OFICIALES VERIFICADOS PARA ABRIR MODELOS REALES, MATERIALES DE ESTUDIO, ESTRUCTURA DE LA PRUEBA Y NORMATIVA. Algunos repositorios pueden cambiar el PDF concreto cada convocatoria; por eso se enlaza a paginas oficiales mantenidas por la administracion.</div>
+  <div class="resource-grid">${OFFICIAL_LINKS.map(link => `<a class="resource-card" href="${link.url}" target="_blank" rel="noopener">
+    <div class="resource-tags">${link.tags.map(tag => `<span>${tag}</span>`).join('')}</div>
+    <strong>${escapeHtml(link.title)}</strong>
+    <small>${escapeHtml(link.desc)}</small>
+    <span class="result-label">${escapeHtml(link.source)} - ABRIR</span>
+  </a>`).join('')}</div>`;
+}
+function testCards(module) {
+  const topicCards = module.tasks.flatMap(topic => [0,1].map(variant => ({id:`${module.id}:${topic.id}:${variant}`, title:`${topic.title} ${variant + 1}`, detail:variant ? 'Aplicacion y errores frecuentes.' : 'Conceptos clave y respuesta tipo.', label:`TEST ${variant + 1}`})));
+  return [{id:`${module.id}:mixed:0`, title:`${module.title} mixto`, detail:'Preguntas combinadas de toda la asignatura.', label:'MIXTO'}, ...topicCards];
+}
+function testById(testId) {
+  const [moduleId, topicId, variantRaw] = String(testId || '').split(':');
+  const module = moduleById(moduleId);
+  const topic = topicId === 'mixed' ? null : module.tasks.find(t => t.id === topicId);
+  return {id:testId, module, topic, variant:Number(variantRaw || 0)};
+}
+function topicQuestionSet(topic, module, variant=0) {
+  const profile = moduleStudyProfile(module.id);
+  const examples = [
+    [`${topic.title}: que debes priorizar?`, [topic.detail, 'Responder sin leer el enunciado', 'Copiar una frase sin explicarla'], 0],
+    [`En ${topic.title}, una respuesta buena debe...`, [`Usar este metodo: ${profile.method}`, 'Ser larga aunque no responda', 'Evitar ejemplos siempre'], 0],
+    [`Cual es un ejemplo util para este tema?`, [topic.example, 'Una opinion sin relacion', 'Una palabra aislada sin contexto'], 0],
+    [`Que error conviene evitar en ${topic.title}?`, ['No justificar la respuesta', 'Ordenar las ideas', 'Revisar antes de entregar'], 0],
+    ['Criterio clave de correccion', [profile.criteria, 'Solo decorar la respuesta', 'No terminar la conclusion'], 0],
+    ['Para cerrar la respuesta conviene...', ['Anadir una conclusion breve', 'Dejarla a medias', 'Cambiar de tema'], 0]
+  ];
+  return variant ? examples.slice(2).concat(examples.slice(0,2)) : examples;
+}
+function buildQuestionsForTest(testId) {
+  const {module, topic, variant} = testById(testId);
+  const base = [...(QUESTIONS[module.testKey || 'comunicacion'] || QUESTIONS.comunicacion)];
+  const topicQs = topic ? topicQuestionSet(topic, module, variant) : module.tasks.flatMap((task,index) => topicQuestionSet(task, module, index % 2).slice(0,1));
+  return [...topicQs, ...base].slice(0,10);
+}
+function startTopicTest(testId) {
+  const {module, topic, variant} = testById(testId);
+  const title = topic ? `${topic.title} - test ${variant + 1}` : `${module.title} - test mixto`;
+  const qs = buildQuestionsForTest(testId);
+  $('testBox').innerHTML = `<div class="test-run-head"><button class="icon-button" type="button" onclick="renderTest(moduleById('${module.id}'))" aria-label="Volver" title="Volver">&larr;</button><div><strong>${escapeHtml(title)}</strong><span>${qs.length} preguntas - selecciona y corrige</span></div></div><div class="test-status result-label" id="testResult">PENDIENTE</div>` + qs.map((q,i) => `<div class="question" data-test-id="${escapeHtml(testId)}" data-answer="${q[2]}" data-question="${escapeHtml(q[0])}" data-correct="${escapeHtml(q[1][q[2]])}"><strong>${i+1}. ${escapeHtml(q[0])}</strong><div class="answers">${q[1].map((a,j)=>`<button type="button" onclick="answer(this,${j})">${escapeHtml(a)}</button>`).join('')}</div></div>`).join('') + `<button class="primary" id="scoreTestButton" onclick="scoreTest('${escapeHtml(testId)}')">Corregir test</button>`;
+}
+function answer(btn, index) {
+  const q = btn.closest('.question');
+  q.dataset.selected = index;
+  q.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function scoreTest(testId='') {
+  const qs = [...document.querySelectorAll('.question')];
+  const ok = qs.filter(q => q.dataset.selected === q.dataset.answer).length;
+  qs.forEach(q => {
+    const selected = Number(q.dataset.selected);
+    const correct = Number(q.dataset.answer);
+    q.classList.add(selected === correct ? 'correct' : 'wrong');
+    q.querySelectorAll('.answers button').forEach((button,index) => {
+      button.classList.remove('selected');
+      if (index === correct) button.classList.add('answer-correct');
+      else if (index === selected) button.classList.add('answer-wrong');
+      button.disabled = true;
+    });
+  });
+  const module = moduleById(state.activeModule);
+  qs.filter(q => q.dataset.selected !== q.dataset.answer).forEach(q => {
+    state.mistakes = [{module:module.title, question:q.dataset.question || '', correct:q.dataset.correct || '', at:new Date().toISOString()}, ...(state.mistakes || [])].slice(0,24);
+  });
+  const pct = Math.round(ok / Math.max(1, qs.length) * 100);
+  const id = testId || qs[0]?.dataset.testId || `${state.activeModule}:mixed:0`;
+  state.testAttempts[id] = {score:pct, ok, total:qs.length, at:new Date().toISOString()};
+  state.done[`test:${id}`] = true;
+  state.scores.push(pct);
+  recordStudyActivity();
+  state.attempts.unshift({type:'test', at:new Date().toISOString(), note:`${ok}/${qs.length} (${pct}%)`});
+  $('testResult').textContent = `RESULTADO: ${ok}/${qs.length} (${pct}%) - ${ok === qs.length ? 'LISTO PARA AVANZAR' : 'FALLOS GUARDADOS PARA REPASAR'}`;
+  if ($('scoreTestButton')) { $('scoreTestButton').disabled = true; $('scoreTestButton').textContent = 'Test corregido'; }
+  renderShell();
+  renderStudyCockpit();
+  saveState();
+}
+function examModeInfo() {
+  return {
+    quick:{title:'Examen rapido', desc:'15-20 minutos. Una practica corta para comprobar una asignatura.', button:'Generar rapido', prompt:'una practica corta de 15-20 minutos con 2 o 3 actividades'},
+    complete:{title:'Examen completo', desc:'Simulacro de las asignaturas elegidas con correccion posterior.', button:'Generar completo', prompt:'un simulacro completo de las asignaturas indicadas'},
+    official:{title:'Modelo con estructura oficial', desc:'Estructura, tiempos y puntuacion orientativa de las pruebas libres reales; actividades originales.', button:'Generar estructura real', prompt:'un modelo original que respete de forma realista estructura, tiempos, puntuacion y criterios habituales de las pruebas libres oficiales'}
+  }[state.examMode || 'quick'];
+}
+function examTopicModules(type, mode) {
+  const value = String(type || '').toLowerCase();
+  if (value.includes('comunicacion')) return ['lengua','ingles'];
+  if (value.includes('social')) return ['geografia','historia'];
+  if (value.includes('cientifico')) return ['matematicas','ciencias'];
+  return mode === 'quick' ? ['lengua','ingles','matematicas'] : ['lengua','ingles','geografia','historia','matematicas','ciencias'];
+}
+function selectExamTopics(type, mode) {
+  const ids = examTopicModules(type, mode);
+  const perModule = mode === 'quick' ? 1 : 2;
+  const limit = mode === 'quick' ? 3 : 9;
+  const topics = [];
+  ids.forEach(id => {
+    const module = MODULES.find(m => m.id === id);
+    if (!module) return;
+    const pending = module.tasks.filter(t => !state.done[t.id]);
+    const pool = [...pending, ...module.tasks.filter(t => state.done[t.id])];
+    pool.slice(0, perModule).forEach(topic => topics.push({module:id, moduleTitle:module.title, topicId:topic.id, title:topic.title}));
+  });
+  return topics.slice(0, limit);
+}
+function examTopicsText(topics) {
+  return (topics || []).map(item => `- ${item.moduleTitle}: ${item.title}`).join('\n');
+}
+function examTopicsHtml() {
+  const topics = Array.isArray(state.currentExamTopics) ? state.currentExamTopics : [];
+  if (!topics.length) return '';
+  return `<div class="exam-topic-map"><div class="exam-topic-map-head"><strong>Temas que entran hoy</strong><span>${topics.length} puntos</span></div><div class="exam-topic-chips">${topics.map(item => `<div class="exam-topic-chip" style="--module-color:${moduleColor(item.module)}" title="${escapeHtml(item.moduleTitle)} - ${escapeHtml(item.title)}"><i class="exam-topic-dot"></i><span>${escapeHtml(item.moduleTitle)} - ${escapeHtml(item.title)}</span></div>`).join('')}</div></div>`;
+}
+function examExampleBank() {
+  const communication = MODULES.filter(module => ['lengua','ingles'].includes(module.id)).flatMap(module => module.tasks);
+  const social = MODULES.filter(module => ['geografia','historia'].includes(module.id)).flatMap(module => module.tasks);
+  const science = MODULES.filter(module => ['matematicas','ciencias'].includes(module.id)).flatMap(module => module.tasks);
+  return Array.from({length:18}, (_,index) => {
+    const group = Math.floor(index / 6);
+    const variant = index % 6;
+    const communicationTopic = communication[(variant * 2) % communication.length];
+    const socialTopic = social[(variant * 2 + 3) % social.length];
+    const scienceTopic = science[(variant * 2 + 5) % science.length];
+    const mode = group === 0 ? 'quick' : group === 1 ? 'complete' : 'official';
+    const label = group === 0 ? 'Rapido' : group === 1 ? 'Completo' : 'Estructura real';
+    const time = group === 0 ? '20 min' : group === 1 ? '75 min' : 'Tiempo oficial orientativo';
+    const focus = [communicationTopic,socialTopic,scienceTopic][variant % 3];
+    const body = group === 0
+      ? `MODELO RAPIDO ${variant + 1}\nTiempo: 20 minutos\n\n1. ${focus.title}: ${focus.detail} Responde con tus palabras.\n\n2. Aplica lo aprendido en un ejercicio breve y explica cada paso.\n\n3. Revisa que la respuesta este completa y sea facil de entender.`
+      : group === 1
+        ? `SIMULACRO COMPLETO ${variant + 1}\nTiempo recomendado: 75 minutos\n\nCOMUNICACION\n1. ${communicationTopic.title}: ${communicationTopic.detail} Incluye comprension y expresion escrita.\n\nSOCIAL\n2. ${socialTopic.title}: ${socialTopic.detail} Explica causas, consecuencias o datos.\n\nCIENTIFICO-TECNOLOGICO\n3. ${scienceTopic.title}: ${scienceTopic.detail} Resuelve mostrando el procedimiento.\n\nPuntuacion: 10 puntos repartidos entre los tres ambitos.`
+        : `MODELO CON ESTRUCTURA REAL ${variant + 1}\n\nAMBITO DE COMUNICACION\nTexto con preguntas de comprension, lengua y redaccion. Contenido destacado: ${communicationTopic.title}.\n\nAMBITO SOCIAL\nAnalisis de una fuente, conceptos y explicacion historica o geografica. Contenido destacado: ${socialTopic.title}.\n\nAMBITO CIENTIFICO-TECNOLOGICO\nProblemas, interpretacion de datos y explicacion cientifica. Contenido destacado: ${scienceTopic.title}.\n\nResponde por apartados, justifica los pasos y revisa unidades, vocabulario y presentacion.`;
+    const topics = [communicationTopic, socialTopic, scienceTopic].filter(Boolean).map(topic => {
+      const module = MODULES.find(m => m.tasks.some(t => t.id === topic.id)) || MODULES[0];
+      return {module:module.id, moduleTitle:module.title, topicId:topic.id, title:topic.title};
+    });
+    return {mode,label,time,title:`${label} ${variant + 1}: ${focus.title}`,body,topics};
+  });
+}
+function loadExamExample(index) {
+  const example = examExampleBank()[index];
+  if (!example) return;
+  state.examMode = example.mode;
+  state.currentExamTopics = example.topics || [];
+  state.currentExam = `TEMAS QUE ENTRAN:\n${examTopicsText(state.currentExamTopics)}\n\n${example.body}`;
+  state.activeTab = 'correccion';
+  state.attempts.unshift({type:'modelo de examen', at:new Date().toISOString(), note:example.title, topics:state.currentExamTopics});
+  renderWorkspace();
+  saveState();
+}
+function selectExamMode(mode) { state.examMode = mode; renderExamBuilder(); saveState(); }
+function clearExamMode() { state.examMode = null; renderExamBuilder(); saveState(); }
+function renderRandomExam() {
+  $('viewer').innerHTML = `<div class="exam-hub"><div class="exam-ai-box"><strong>ELIGE TU TIEMPO</strong><div class="exam-action-grid"><button class="exam-action-card" type="button" onclick="createTimedRandomExam('quick')"><strong>15 MIN</strong><span>Una actividad corta de un ambito.</span></button><button class="exam-action-card" type="button" onclick="createTimedRandomExam('complete')"><strong>30 MIN</strong><span>Prueba media con varios ambitos.</span></button><button class="exam-action-card" type="button" onclick="createTimedRandomExam('official')"><strong>45 MIN</strong><span>Modelo parecido a prueba libre real.</span></button></div></div></div>`;
+}
+function renderExamBuilder() {
+  const examples = examExampleBank().slice(0,6);
+  const modelLink = OFFICIAL_LINKS.find(link => link.tags.includes('modelos') || link.tags.includes('examenes')) || OFFICIAL_LINKS[0];
+  $('viewer').innerHTML = `<div class="exam-hub"><div class="exam-ai-box"><strong>PERSONALIZADO</strong><div class="exam-options form-grid"><div><label>Ambito</label><select id="examType"><option>Examen completo de tres ambitos</option><option>Solo Comunicacion</option><option>Solo Social</option><option>Solo Cientifico-tecnologico</option></select></div><div><label>Nivel</label><select id="examLevel"><option>Nivel I</option><option>Nivel II</option><option>Prueba libre final</option></select></div><div><label>Formato</label><select id="examModeSelect"><option value="quick">Rapido</option><option value="complete">Completo</option><option value="official">Estructura real</option></select></div></div><div class="toolbar"><button class="primary" onclick="createExam()">Generar personalizado</button><button type="button" onclick="createAiExam()">Generar con IA</button><a href="${modelLink.url}" target="_blank" rel="noopener">Ver oficial</a></div></div><div class="exam-ai-box"><strong>PREDETERMINADOS</strong><div class="exam-preset-list">${examples.map((example,index) => `<button type="button" onclick="loadExamExample(${index})"><span><strong>${escapeHtml(example.title)}</strong><small>${escapeHtml(example.time)}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div></div></div>`;
+}
+function createExam() {
+  const type = $('examType').value;
+  const level = $('examLevel').value;
+  const mode = $('examModeSelect')?.value || state.examMode || 'quick';
+  state.examMode = mode;
+  const topics = selectExamTopics(type, mode);
+  const topicBlock = examTopicsText(topics);
+  const body = mode === 'quick' ? `1. ${type}: realiza una actividad breve de comprension o problema.\n\n2. Explica con tus palabras una idea importante del ambito.\n\nTiempo recomendado: 20 minutos.` : mode === 'official' ? `AMBITO DE COMUNICACION\nTexto, comprension, lengua y expresion escrita.\n\nAMBITO SOCIAL\nFuente, conceptos y explicacion de causas y consecuencias.\n\nAMBITO CIENTIFICO-TECNOLOGICO\nProblemas con procedimiento, interpretacion de datos y concepto cientifico.\n\nEstructura y puntuacion orientativa de una prueba libre real. Responde por apartados y controla el tiempo.` : `1. Comunicacion: lee un texto, responde comprension, analiza lengua y redacta una respuesta ordenada.\n\n2. Social: interpreta una fuente, define conceptos y explica causas y consecuencias.\n\n3. Cientifico-tecnologico: resuelve problemas con procedimiento, interpreta datos y explica un concepto cientifico.\n\nPuntuacion orientativa por cada ambito.`;
+  state.currentExamTopics = topics;
+  state.currentExam = `${examModeInfo().title.toUpperCase()}: ${type}\nNivel: ${level}\n\nTEMAS QUE ENTRAN:\n${topicBlock}\n\n${body}\n\nCuando termines, entra en Corregir para recibir nota y mejora.`;
+  state.attempts.unshift({type:'examen creado', at:new Date().toISOString(), note:examModeInfo().title, topics});
+  state.activeTab = 'correccion';
+  renderWorkspace();
+  saveState();
+}
+function createRandomExam() {
+  const examples = examExampleBank();
+  loadExamExample(Math.floor(Math.random() * examples.length));
+}
+function createTimedRandomExam(mode) {
+  const examples = examExampleBank().map((example,index) => ({example,index})).filter(item => item.example.mode === mode);
+  const pool = examples.length ? examples : examExampleBank().map((example,index) => ({example,index}));
+  loadExamExample(pool[Math.floor(Math.random() * pool.length)].index);
+}
+async function createAiExam() {
+  const target = $('viewer');
+  const next = nextStudyItem();
+  const topics = selectExamTopics('Examen completo de tres ambitos', 'complete');
+  state.examMode = 'complete';
+  state.currentExamTopics = topics;
+  target.innerHTML = '<div class="output">Generando examen con IA...</div>';
+  const prompt = `Genera una prueba original de Graduado ESO adultos. Alumno adulto con poco tiempo. Temas prioritarios: ${examTopicsText(topics)}. Incluye ambito de comunicacion, ambito social y ambito cientifico-tecnologico, tiempo recomendado, puntuacion y criterios breves. Preguntas claras y originales. Siguiente tema pendiente: ${next ? `${next.module.title} - ${next.topic.title}` : 'repaso general'}.`;
+  try {
+    const data = await backend('/api/chat', {method:'POST', body:JSON.stringify({purpose:'study', messages:[{role:'user', content:prompt}], temperature:.35, max_tokens:2600})});
+    state.currentExam = `EXAMEN CON IA\n\nTEMAS QUE ENTRAN:\n${examTopicsText(topics)}\n\n${data.content || ''}`;
+    state.activeTab = 'correccion';
+    state.attempts.unshift({type:'examen IA generado', at:new Date().toISOString(), note:'Examen nuevo', topics});
+    renderWorkspace();
+    saveState();
+  } catch (e) {
+    target.innerHTML = `<div class="output">${escapeHtml(e.message)}</div>`;
+  }
+}
+function renderExamCorrection() {
+  $('viewer').innerHTML = `<div class="exam-flow"><span class="done">1 Elegir examen</span><span class="active">2 Responder</span><span>3 Corregir</span></div>${examTopicsHtml()}<details class="exam-paper" open><summary>Enunciado</summary><textarea id="examPrompt">${escapeHtml(state.currentExam || '')}</textarea></details><div class="ocr-card"><div class="ocr-card-head"><div><div class="ocr-card-title">Subir imagen</div><p class="ocr-card-hint">Sube una foto clara del examen o de la respuesta escrita.</p></div></div><div class="ocr-row"><div><label>Imagen</label><input id="examOcrFile" type="file" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="previewExamOcrFile()"></div><div><label>Usar imagen como</label><select id="examOcrTarget"><option value="answer">Respuesta</option><option value="prompt">Enunciado</option></select></div><button class="primary" type="button" onclick="runExamOcr()">Leer imagen</button></div><div class="ocr-preview" id="examOcrPreview" hidden><img id="examOcrImage" alt="Vista previa del examen"><div><strong id="examOcrName">Imagen seleccionada</strong><p id="examOcrStatus">Lista para leer.</p></div></div><label>Texto de la imagen</label><textarea id="examOcrText" class="ocr-text" placeholder="Aqui aparecera el texto extraido de la imagen. Puedes revisarlo antes de insertarlo."></textarea><div class="toolbar"><button type="button" onclick="insertExamOcrText()">Insertar texto de la imagen</button><button type="button" onclick="clearExamOcr()">Quitar imagen</button></div></div><label>Tu respuesta</label><textarea id="studentAnswer" class="answer-area" placeholder="Escribe o pega tu respuesta"></textarea><div class="toolbar"><button class="primary" onclick="correctExamAi()">Corregir con IA</button><button onclick="saveOnlyAttempt()">Guardar</button></div><div class="output" id="correctionOutput">La correccion aparecera aqui.</div>`;
+}
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function previewExamOcrFile() {
+  const input = $('examOcrFile');
+  const file = input?.files?.[0];
+  if (!file) return;
+  const preview = $('examOcrPreview');
+  const image = $('examOcrImage');
+  if (preview) preview.hidden = false;
+  if ($('examOcrName')) $('examOcrName').textContent = file.name;
+  if ($('examOcrStatus')) $('examOcrStatus').textContent = 'Lista para leer la imagen.';
+  if (image) image.src = await fileToDataUrl(file);
+}
+async function runExamOcr() {
+  const input = $('examOcrFile');
+  const file = input?.files?.[0];
+  const status = $('examOcrStatus');
+  const output = $('examOcrText');
+  if (!file) { if (status) status.textContent = 'Sube primero una imagen del examen o de la respuesta.'; return; }
+  if (!file.type.startsWith('image/')) { if (status) status.textContent = 'Usa una imagen JPG, PNG o WEBP.'; return; }
+  if (status) status.textContent = 'Leyendo imagen...';
+  try {
+    const data = await backend('/api/ocr', {method:'POST', body:JSON.stringify({image:await fileToDataUrl(file), mime_type:file.type, target:$('examOcrTarget')?.value || 'answer'})});
+    if (output) output.value = data.text || '';
+    if (status) status.textContent = data.text ? 'Texto detectado. Revísalo e insértalo.' : 'No se detectó texto claro.';
+  } catch (e) {
+    if (status) status.textContent = e.message;
+    if (output) output.value = '';
+  }
+}
+function insertExamOcrText() {
+  const text = $('examOcrText')?.value.trim();
+  if (!text) { if ($('examOcrStatus')) $('examOcrStatus').textContent = 'No hay texto de imagen para insertar.'; return; }
+  const targetId = ($('examOcrTarget')?.value || 'answer') === 'prompt' ? 'examPrompt' : 'studentAnswer';
+  const target = $(targetId);
+  if (!target) return;
+  target.value = target.value.trim() ? `${target.value.trim()}\n\n${text}` : text;
+  if ($('examOcrStatus')) $('examOcrStatus').textContent = 'Texto insertado en la respuesta.';
+}
+function clearExamOcr() {
+  if ($('examOcrFile')) $('examOcrFile').value = '';
+  if ($('examOcrText')) $('examOcrText').value = '';
+  if ($('examOcrPreview')) $('examOcrPreview').hidden = true;
+}
+async function correctExamAi() {
+  const target = $('correctionOutput');
+  target.textContent = 'Corrigiendo con IA...';
+  const ocrText = $('examOcrText')?.value.trim() || '';
+  const ocrTarget = $('examOcrTarget')?.value || 'answer';
+  const examText = `${$('examPrompt').value}${ocrText && ocrTarget === 'prompt' ? `\n\nTEXTO EXTRAIDO DE LA IMAGEN DEL ENUNCIADO:\n${ocrText}` : ''}`;
+  const answerText = `${$('studentAnswer').value}${ocrText && ocrTarget !== 'prompt' ? `\n\nTEXTO EXTRAIDO DE LA IMAGEN DE LA RESPUESTA:\n${ocrText}` : ''}`;
+  const prompt = `Corrige este examen de Graduado ESO adultos.\n\nEXAMEN:\n${examText}\n\nRESPUESTA DEL ALUMNO:\n${answerText}\n\nDevuelve: 1) nota sobre 10 por ambito y global, 2) tabla de criterios, 3) errores graves explicados sencillo, 4) correcciones concretas, 5) plan de recuperacion de 7 dias, 6) respuesta modelo breve. Corrige con claridad y sin humillar. Si hay texto extraido de una imagen, ten en cuenta que puede contener errores de lectura y corrige interpretando con prudencia.`;
+  try {
+    const data = await backend('/api/chat', {method:'POST', body:JSON.stringify({purpose:'study', messages:[{role:'user', content:prompt}], temperature:.25, max_tokens:3200})});
+    target.textContent = data.content || '';
+    state.attempts.unshift({type:'examen IA', at:new Date().toISOString(), note:'Correccion completa', topics:state.currentExamTopics || []});
+    recordStudyActivity();
+    state.done['exam-ai'] = true;
+    renderShell();
+    saveState();
+  } catch (e) { target.textContent = e.message; }
+}
+function saveOnlyAttempt() {
+  state.attempts.unshift({type:'examen guardado', at:new Date().toISOString(), note:'Pendiente de correccion', topics:state.currentExamTopics || []});
+  recordStudyActivity();
+  render();
+  saveState();
+}
+function renderExamHistory() {
+  const subjects = MODULES.filter(module => !['exam','oficial'].includes(module.id));
+  const cards = subjects.map(module => {
+    const total = Math.max(1, module.tasks.length);
+    const done = module.tasks.filter(topic => state.done[topic.id]).length;
+    const pct = Math.round((done / total) * 100);
+    const attempts = state.attempts.filter(item => Array.isArray(item.topics) && item.topics.some(topic => topic.module === module.id)).slice(0,4);
+    const list = attempts.length ? attempts.map(item => `<article><strong>${escapeHtml(item.type)}</strong><small>${new Date(item.at).toLocaleString('es-ES')} - ${escapeHtml(item.note)}</small></article>`).join('') : '<article><strong>SIN EXAMENES</strong><small>Aun no hay intentos de este ambito.</small></article>';
+    return `<section class="exam-history-card" style="--module-color:${moduleColor(module.id)}"><strong>${escapeHtml(module.title).toUpperCase()}</strong><div class="exam-history-bar" aria-label="${pct}%"><span style="--value:${pct}%"></span></div><small>${pct}% de temas completados · ${attempts.length} examenes</small><div class="exam-history-list">${list}</div></section>`;
+  }).join('');
+  const loose = state.attempts.filter(item => !Array.isArray(item.topics) || !item.topics.length).slice(0,6);
+  const looseHtml = loose.length ? `<div class="exam-ai-box"><strong>GENERAL</strong><div class="exam-preset-list">${loose.map(item => `<button type="button"><span><strong>${escapeHtml(item.type)}</strong><small>${new Date(item.at).toLocaleString('es-ES')} - ${escapeHtml(item.note)}</small></span></button>`).join('')}</div></div>` : '';
+  $('viewer').innerHTML = state.attempts.length ? `<div class="exam-hub"><div class="exam-history-grid">${cards}</div>${looseHtml}</div>` : '<div class="empty">Todavia no hay historial.</div>';
+}
+async function logout() {
+  await fetch('/auth/logout', {method:'POST', credentials:'same-origin'}).catch(()=>{});
+  location.href = '/login';
+}
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function installFrontendErrorReporter() {
+  const send = payload => fetch('/api/frontend-error', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json','X-Client-App':APP_KEY}, body:JSON.stringify({...payload, path:location.pathname})}).catch(()=>{});
+  window.addEventListener('error', event => send({message:event.message, source:event.filename, line:event.lineno, column:event.colno}));
+  window.addEventListener('unhandledrejection', event => send({message:String(event.reason?.message || event.reason || 'Unhandled rejection'), source:'promise'}));
+}
+installFrontendErrorReporter();
+init();
+</script>
+</body>
+</html>

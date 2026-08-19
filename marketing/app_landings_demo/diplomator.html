@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DIPLOMATOR | Preparacion oral y temas diplomaticos</title>
+  <meta name="description" content="App para organizar temas diplomaticos, preparar sesiones de estudio, practicar exposicion oral y controlar progreso.">
+  <meta name="robots" content="index,follow">
+  <meta property="og:title" content="DIPLOMATOR">
+  <meta property="og:description" content="Preparacion avanzada para temas, argumentos y practica oral.">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="demo-shared.css">
+</head>
+<body data-app="diplomator">
+  <div class="page">
+    <header class="topbar">
+      <a class="brand" href="#inicio"><span class="logo">DIP</span><span>DIPLOMATOR</span></a>
+      <nav class="nav"><a href="#funciones">Funciones</a><a href="#explora">Preview</a><a href="#preguntas">Preguntas</a><a class="nav-login" href="/login?next=/app">Acceder</a><button type="button" data-request-demo>Solicitar demo</button></nav>
+    </header>
+    <main>
+      <section class="hero" id="inicio">
+        <div>
+          <div class="eyebrow">Preparacion oral avanzada</div>
+          <h1>Organiza temas complejos y practica con foco.</h1>
+          <p class="lead">Sistema claro para temas, sesiones, practica oral y progreso personal.</p>
+          <div class="actions"><a class="btn primary" href="#explora">Probar preview</a><a class="btn" href="/login?next=/app">Acceder</a><button class="btn" type="button" data-request-demo>Quiero acceso</button></div>
+          <div class="features" id="funciones">
+            <article class="feature"><b>Sesion de hoy</b><p>Rutina concreta.</p></article>
+            <article class="feature"><b>Biblioteca</b><p>Temas y buscador.</p></article>
+            <article class="feature"><b>Practica oral</b><p>Guion y revision.</p></article>
+            <article class="feature"><b>Progreso</b><p>Constancia visual.</p></article>
+          </div>
+        </div>
+        <aside class="product-card">
+          <p class="function-card-title">Funcionalidades</p>
+          <div class="function-list">
+            <button class="function-item" type="button" data-jump-screen="hoy"><span class="dot">HOY</span><span><strong>Sesion de hoy</strong><small>Rutina concreta para avanzar.</small></span></button>
+            <button class="function-item" type="button" data-jump-screen="biblioteca"><span class="dot">BIB</span><span><strong>Biblioteca</strong><small>Temas, buscador y materiales.</small></span></button>
+            <button class="function-item" type="button" data-jump-screen="oral"><span class="dot">OR</span><span><strong>Practica oral</strong><small>Guion, exposicion y revision.</small></span></button>
+            <button class="function-item" type="button" data-jump-screen="progreso"><span class="dot">%</span><span><strong>Progreso</strong><small>Sesiones guardadas y constancia.</small></span></button>
+          </div>
+        </aside>
+      </section>
+      <section id="explora">
+        <div class="eyebrow">Preview clicable</div><h2>Una muestra parecida a la app real.</h2>
+        <div class="device-mockup">
+          <div class="device-chrome"><span></span><span></span><span></span><strong>Preview de la app</strong></div>
+          <div class="explore">
+            <div class="appbar"><div class="app-title"><span class="mini-logo">DIP</span><span>DIPLOMATOR</span></div><div class="tabs"><button class="tab" data-screen="hoy">HOY</button><button class="tab" data-screen="biblioteca">BIBLIOTECA</button><button class="tab" data-screen="oral">ORAL</button><button class="tab" data-screen="progreso">PROGRESO</button></div></div>
+            <div class="demo-layout"><div class="demo-main"><div class="screen-head"><div><h3 id="demoTitle"></h3><p class="lead">Haz clic en las pestañas para ver la estructura de la app.</p></div><span class="status-pill" id="demoBadge"></span></div><div id="demoContent"></div></div></div>
+            <div class="notice">ESTO ES UNA DEMO VISUAL. NO GENERA CONTENIDO, NO CORRIGE Y NO CONECTA CON IA.</div>
+          </div>
+        </div>
+      </section>
+      <section id="preguntas">
+        <div class="eyebrow">Preguntas frecuentes</div><h2>Antes de empezar.</h2>
+        <div class="faq-grid">
+          <details class="faq-item" open><summary>Por que elegir esto en vez de una IA tipica?</summary><p>Porque DIPLOMATOR no empieza desde una caja vacia: organiza temas, sesiones, practica oral y progreso. La IA queda al servicio de un metodo, no al reves.</p></details>
+          <details class="faq-item"><summary>Para que tipo de preparacion sirve?</summary><p>Para preparar temas complejos, ordenar argumentos y practicar exposicion oral con una rutina clara.</p></details>
+          <details class="faq-item"><summary>Es una demo funcional?</summary><p>Esta pagina es una demo visual para ver el flujo. La version completa conecta las funciones reales.</p></details>
+          <details class="faq-item"><summary>Que problema resuelve?</summary><p>Reduce la dispersion: temas, puntos, practica oral, historial y progreso quedan en una misma app.</p></details>
+        </div>
+      </section>
+    </main>
+    <footer>Pagina estatica de presentacion para DIPLOMATOR.</footer>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="demo-shared.js"></script>
+</body>
+</html>
