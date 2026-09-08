@@ -45,7 +45,7 @@ Cambia al menos:
 - `JWT_SECRET`
 - `SUPERADMIN_EMAIL`
 - `SUPERADMIN_PASSWORD`
-- `OPENAI_API_KEY` o `GROQ_API_KEY`
+- `GROQ_API_KEY` recomendado para arrancar barato. Opcionalmente `OPENAI_API_KEY`.
 
 ## Arrancar servicios
 
@@ -103,13 +103,14 @@ docker compose exec backend python -m app.bootstrap
 1. Entra en `http://127.0.0.1:5174`.
 2. Usa API base `http://127.0.0.1:8890`.
 3. Inicia sesion con `SUPERADMIN_EMAIL` y `SUPERADMIN_PASSWORD`.
-4. Crea una organizacion.
-5. Crea un usuario con contrasena temporal.
-6. Crea una licencia `active` vigente para esa organizacion.
-7. Entra como cliente en `http://127.0.0.1:8890/login`.
-8. Abre `/apps` y entra en la app licenciada: `/app`, `/cambridge`, `/universidad-adultos` o `/eso-adultos`.
-9. Revisa consumo en el dashboard.
-10. Ajusta la guia de estilo o analiza DOCX de ejemplo desde Admin > IA.
+4. Ve a Admin > IA, pega la clave `GROQ_API_KEY`, guarda y pulsa `Probar IA`.
+5. Crea una organizacion.
+6. Crea un usuario con contrasena temporal.
+7. Crea una licencia `active` vigente para esa organizacion.
+8. Entra como cliente en `http://127.0.0.1:8890/login`.
+9. Abre `/apps` y entra en la app licenciada: `/app`, `/cambridge`, `/universidad-adultos` o `/eso-adultos`.
+10. Revisa consumo en el dashboard.
+11. Ajusta la guia de estilo o analiza DOCX de ejemplo desde Admin > IA.
 
 ## Pruebas
 

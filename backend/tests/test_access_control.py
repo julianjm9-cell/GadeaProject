@@ -13,6 +13,7 @@ from app.api.auth import LOGIN_BUCKET, ensure_google_access
 from app.main import app
 from app.models import License, Organization, User
 from app.security.passwords import hash_password
+from app.services.ai_config import GROQ_CHAT_DEFAULT, GROQ_TRANSCRIBE_DEFAULT
 
 
 @pytest.fixture()
@@ -202,3 +203,56 @@ def test_superadmin_can_access_admin(client):
     token = login(test_client).json()["access_token"]
     response = test_client.get("/admin/organizations", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
+
+
+def test_ai_settings_default_to_current_groq_models(client):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin")
+    token = login(test_client).json()["access_token"]
+    response = test_client.get("/admin/ai-settings", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["chat_provider"] == "groq"
+    assert data["points_model"] == GROQ_CHAT_DEFAULT
+    assert data["chat_model"] == GROQ_CHAT_DEFAULT
+    assert data["transcribe_model"] == GROQ_TRANSCRIBE_DEFAULT
+
+
+def test_ai_settings_replaces_deprecated_groq_model(client):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin")
+    token = login(test_client).json()["access_token"]
+    response = test_client.post(
+        "/admin/ai-settings",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "ai_provider": "groq",
+            "points_provider": "groq",
+            "chat_provider": "groq",
+            "transcribe_provider": "groq",
+            "points_model": "llama-3.1-8b-instant",
+            "chat_model": "llama-3.3-70b-versatile",
+            "transcribe_model": "whisper-1",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["points_model"] == GROQ_CHAT_DEFAULT
+    assert data["chat_model"] == GROQ_CHAT_DEFAULT
+    assert data["transcribe_model"] == GROQ_TRANSCRIBE_DEFAULT
+
+
+def test_ai_settings_rejects_openai_key_in_groq_field(client):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin")
+    token = login(test_client).json()["access_token"]
+    response = test_client.post(
+        "/admin/ai-settings",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "ai_provider": "groq",
+            "chat_provider": "groq",
+            "groq_api_key": "sk-proj-wrong-provider",
+        },
+    )
+    assert response.status_code == 400

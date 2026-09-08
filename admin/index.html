@@ -1341,33 +1341,47 @@
       </div>
       <div class="section-grid" style="grid-template-columns:1fr">
         <form class="panel" onsubmit="saveAiSettings(event)">
-          <h3>Claves y modelos</h3>
-          <p>Cada tarea puede usar un proveedor y modelo distinto. Las claves quedan guardadas en el servidor.</p>
-          <div class="ai-grid">
+          <h3>Configuracion recomendada</h3>
+          <p>Pega una clave Groq, guarda y prueba la conexion. Las apps usaran esta IA desde el servidor.</p>
+          <div class="ai-grid" style="grid-template-columns:minmax(260px,1fr) minmax(260px,1fr)">
             <div class="ai-card">
-              <h4>Generacion de puntos</h4>
-              <p>Modelo principal para crear temarios, puntos y vocabulario.</p>
-              <div><label for="pointsProvider">Proveedor</label><select id="pointsProvider" onchange="applyPointsDefaults(true)"><option value="groq">Groq</option><option value="openai">OpenAI</option><option value="gemini">Gemini</option></select></div>
-              <div><label for="pointsModel">Modelo</label><select id="pointsModel"></select></div>
+              <h4>Clave Groq</h4>
+              <p>Empieza por gsk_. Si ya existe una en el servidor, puedes dejar este campo vacio.</p>
+              <div><label for="groqKey">Clave API</label><input id="groqKey" type="password" placeholder="gsk_..."></div>
             </div>
             <div class="ai-card">
-              <h4>Chat y correcciones</h4>
-              <p>Modelo para dudas, explicaciones y correccion de practica oral.</p>
-              <div><label for="chatProvider">Proveedor</label><select id="chatProvider" onchange="applyChatDefaults(true)"><option value="groq">Groq</option><option value="openai">OpenAI</option><option value="gemini">Gemini</option></select></div>
-              <div><label for="chatModel">Modelo</label><select id="chatModel"></select></div>
-            </div>
-            <div class="ai-card">
-              <h4>Transcripcion audio</h4>
-              <p>Modelo para convertir grabaciones de practica oral a texto.</p>
-              <div><label for="transcribeProvider">Proveedor</label><select id="transcribeProvider" onchange="applyTranscribeDefaults(true)"><option value="groq">Groq</option><option value="openai">OpenAI</option></select></div>
-              <div><label for="transcribeModel">Modelo</label><select id="transcribeModel"></select></div>
+              <h4>Modelos activos</h4>
+              <p>Configuracion estable para generacion, correcciones y audio.</p>
+              <div id="recommendedAiSummary" class="empty-state">Cargando configuracion...</div>
             </div>
           </div>
-          <div class="key-grid">
-            <div><label for="openaiKey">Clave OpenAI</label><input id="openaiKey" type="password" placeholder="sk-... o sk-proj-..."></div>
-            <div><label for="groqKey">Clave Groq</label><input id="groqKey" type="password" placeholder="gsk_..."></div>
-            <div><label for="geminiKey">Clave Gemini</label><input id="geminiKey" type="password" placeholder="AIza..."></div>
-          </div>
+          <details class="ai-card" style="margin-top:16px;">
+            <summary style="cursor:pointer;font-weight:900;">Opciones avanzadas</summary>
+            <div class="ai-grid" style="margin-top:12px;">
+              <div>
+                <label for="pointsProvider">Proveedor puntos</label>
+                <select id="pointsProvider" onchange="applyPointsDefaults(true)"><option value="groq">Groq</option><option value="openai">OpenAI</option><option value="gemini">Gemini</option></select>
+                <label for="pointsModel" style="margin-top:8px;">Modelo puntos</label>
+                <select id="pointsModel"></select>
+              </div>
+              <div>
+                <label for="chatProvider">Proveedor chat</label>
+                <select id="chatProvider" onchange="syncSimpleProvider(true)"><option value="groq">Groq</option><option value="openai">OpenAI</option><option value="gemini">Gemini</option></select>
+                <label for="chatModel" style="margin-top:8px;">Modelo chat</label>
+                <select id="chatModel"></select>
+              </div>
+              <div>
+                <label for="transcribeProvider">Proveedor audio</label>
+                <select id="transcribeProvider" onchange="applyTranscribeDefaults(true)"><option value="groq">Groq</option><option value="openai">OpenAI</option></select>
+                <label for="transcribeModel" style="margin-top:8px;">Modelo audio</label>
+                <select id="transcribeModel"></select>
+              </div>
+            </div>
+            <div class="key-grid">
+              <div><label for="openaiKey">Clave OpenAI</label><input id="openaiKey" type="password" placeholder="sk-... o sk-proj-..."></div>
+              <div><label for="geminiKey">Clave Gemini</label><input id="geminiKey" type="password" placeholder="AIza..."></div>
+            </div>
+          </details>
           <div class="ai-card" style="margin-top:16px;">
             <h4>Estilo de generación de temas</h4>
             <p>Esta guía se aplica a cualquier tema, incluidos los temas manuales. Puedes editarla o analizar documentos Word de ejemplo.</p>
@@ -1378,7 +1392,7 @@
             </div>
             <div id="styleGuideStatus" class="empty-state" style="margin-top:10px;">La guía se guardará junto con la configuración de IA.</div>
           </div>
-          <div class="actions"><button class="primary">Guardar IA</button></div>
+          <div class="actions"><button class="primary">Guardar IA</button><button type="button" onclick="testAiSettings()">Probar IA</button></div>
         </form>
         <div class="panel">
           <h3>Estado IA</h3>
@@ -1440,23 +1454,18 @@ const DEFAULT_MONTHLY_PRICE = 49;
 const $ = id => document.getElementById(id);
 const CHAT_MODELS = {
   groq: [
-    ['llama-3.3-70b-versatile', 'Groq - Llama 3.3 70B potente'],
-    ['openai/gpt-oss-120b', 'Groq - GPT-OSS 120B potente'],
-    ['openai/gpt-oss-20b', 'Groq - GPT-OSS 20B rapido'],
-    ['llama-3.1-8b-instant', 'Groq - Llama 3.1 8B rapido'],
-    ['qwen/qwen3-32b', 'Groq - Qwen3 32B']
+    ['openai/gpt-oss-120b', 'GPT-OSS 120B - recomendado'],
+    ['openai/gpt-oss-20b', 'GPT-OSS 20B - rapido/barato'],
+    ['qwen/qwen3.6-27b', 'Qwen3.6 27B - alternativo']
   ],
   openai: [
-    ['gpt-5.6-terra', 'OpenAI - GPT-5.6 Terra equilibrio'],
-    ['gpt-5.6-sol', 'OpenAI - GPT-5.6 Sol maximo'],
-    ['gpt-5.6-luna', 'OpenAI - GPT-5.6 Luna coste bajo'],
-    ['gpt-4o-mini', 'OpenAI - GPT-4o mini compatible']
+    ['gpt-4o-mini', 'GPT-4o mini - compatible'],
+    ['gpt-4o', 'GPT-4o - calidad'],
+    ['gpt-4.1-mini', 'GPT-4.1 mini']
   ],
   gemini: [
-    ['gemini-3.5-flash', 'Gemini - 3.5 Flash'],
-    ['gemini-3.5-pro', 'Gemini - 3.5 Pro'],
-    ['gemini-2.5-pro', 'Gemini - 2.5 Pro'],
-    ['gemini-2.5-flash', 'Gemini - 2.5 Flash']
+    ['gemini-2.5-flash', 'Gemini 2.5 Flash'],
+    ['gemini-2.5-pro', 'Gemini 2.5 Pro']
   ]
 };
 const TRANSCRIBE_MODELS = {
@@ -1894,6 +1903,7 @@ async function loadAiSettings() {
 }
 async function saveAiSettings(e) {
   e.preventDefault();
+  if (!$('chatProvider').value) syncSimpleProvider(true);
   const body = {
     ai_provider:$('chatProvider').value,
     points_provider:$('pointsProvider').value,
@@ -1913,6 +1923,17 @@ async function saveAiSettings(e) {
   $('geminiKey').value = '';
   renderAiSettings();
   toast('IA guardada');
+}
+async function testAiSettings() {
+  try {
+    $('aiStatus').innerHTML = '<div class="empty-state">Probando conexion IA...</div>';
+    const data = await api('/admin/ai-settings/test', { method:'POST', body:'{}' });
+    await loadAiSettings();
+    toast(data.message || 'IA conectada correctamente');
+  } catch (e) {
+    $('aiStatus').innerHTML = `<div class="empty-state">${esc(e.message)}</div>`;
+    toast(e.message);
+  }
 }
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -1954,6 +1975,15 @@ function applyPointsDefaults(force = false) {
 function applyChatDefaults(force = false) {
   applyModelOptions('chatProvider', 'chatModel', force);
 }
+function syncSimpleProvider(force = false) {
+  const provider = $('chatProvider').value || 'groq';
+  $('pointsProvider').value = provider;
+  $('transcribeProvider').value = provider === 'gemini' ? 'groq' : provider;
+  applyPointsDefaults(force);
+  applyChatDefaults(force);
+  applyTranscribeDefaults(force);
+  updateRecommendedAiSummary();
+}
 function applyProviderDefaults(force = false) {
   applyChatDefaults(force);
 }
@@ -1962,6 +1992,7 @@ function applyTranscribeDefaults(force = false) {
   const current = force ? '' : $('transcribeModel').value;
   const options = TRANSCRIBE_MODELS[provider] || TRANSCRIBE_MODELS.groq;
   setSelectOptions($('transcribeModel'), options, current || options[0][0]);
+  updateRecommendedAiSummary();
 }
 function renderOrgs() { $('orgTable').innerHTML = table(['Cuenta','Estado','Accion'], orgs.map(o => [esc(o.name), badge(o.status), `<button onclick="patch('/admin/organizations/${o.id}', {status:'${o.status === 'active' ? 'suspended' : 'active'}'})">${o.status === 'active' ? 'Suspender' : 'Activar'}</button>`])); }
 function renderUsers() {
@@ -2089,9 +2120,10 @@ function renderAiSettings() {
   $('styleGuideStatus').textContent = aiSettings.topic_style_guide ? 'Guía cargada desde el servidor.' : 'Sin guía personalizada.';
   applyPointsDefaults(false);
   applyChatDefaults(false);
+  updateRecommendedAiSummary();
   const activeProvider = providerName(aiSettings.chat_provider || aiSettings.ai_provider);
-  const providerOk = aiSettings.groq_configured || aiSettings.openai_configured || aiSettings.gemini_configured;
-  $('aiStatus').innerHTML = `<div class="empty-state ${providerOk ? 'on' : ''}" style="margin-bottom:10px;text-align:left;"><strong>IA activa: ${esc(activeProvider)}</strong><br>${providerOk ? `Clave cargada en servidor · ${esc(aiSettings.chat_model || '')}` : 'Falta configurar una clave valida.'}</div>` + table(['Ajuste','Estado'], [
+  const providerOk = configuredForProvider(aiSettings.chat_provider || aiSettings.ai_provider);
+  $('aiStatus').innerHTML = `<div class="empty-state ${providerOk ? 'on' : ''}" style="margin-bottom:10px;text-align:left;"><strong>${providerOk ? 'Lista para probar' : 'Falta clave'}</strong><br>${esc(activeProvider)} · ${esc(aiSettings.chat_model || '')}</div>` + table(['Ajuste','Estado'], [
     ['Puntos', `${esc((aiSettings.points_provider || aiSettings.chat_provider || 'groq').toUpperCase())} / ${esc(aiSettings.points_model || aiSettings.chat_model || '')}`],
     ['Chat', `${esc((aiSettings.chat_provider || aiSettings.ai_provider || 'groq').toUpperCase())} / ${esc(aiSettings.chat_model || '')}`],
     ['Transcripcion', `${esc((aiSettings.transcribe_provider || 'groq').toUpperCase())} / ${esc(aiSettings.transcribe_model || '')}`],
@@ -2099,6 +2131,22 @@ function renderAiSettings() {
     ['Groq', aiSettings.groq_configured ? `Configurada (${esc(aiSettings.groq_masked)})` : 'Sin clave'],
     ['Gemini', aiSettings.gemini_configured ? `Configurada (${esc(aiSettings.gemini_masked)})` : 'Sin clave']
   ]);
+}
+function configuredForProvider(provider) {
+  provider = String(provider || 'groq').toLowerCase();
+  if (provider === 'openai') return Boolean(aiSettings?.openai_configured);
+  if (provider === 'gemini') return Boolean(aiSettings?.gemini_configured);
+  return Boolean(aiSettings?.groq_configured);
+}
+function updateRecommendedAiSummary() {
+  const box = $('recommendedAiSummary');
+  if (!box) return;
+  const chatProvider = $('chatProvider')?.value || aiSettings?.chat_provider || 'groq';
+  const transcribeProvider = $('transcribeProvider')?.value || aiSettings?.transcribe_provider || 'groq';
+  const chatModel = $('chatModel')?.value || aiSettings?.chat_model || 'openai/gpt-oss-120b';
+  const transcribeModel = $('transcribeModel')?.value || aiSettings?.transcribe_model || 'whisper-large-v3-turbo';
+  const keyState = aiSettings ? (configuredForProvider(chatProvider) ? 'Clave guardada' : 'Clave pendiente') : 'Cargando';
+  box.innerHTML = `<strong>${esc(providerName(chatProvider))}: ${esc(keyState)}</strong><br>Texto: <code>${esc(chatModel)}</code><br>Audio: <code>${esc(providerName(transcribeProvider))} / ${esc(transcribeModel)}</code>`;
 }
 function selectUser(id) {
   selectedUserId = id;

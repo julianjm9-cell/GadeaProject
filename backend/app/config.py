@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     cors_origins: str = "http://127.0.0.1:8890,http://localhost:8890,http://127.0.0.1:5174,http://localhost:5174"
     cookie_secure: bool = False
 
-    ai_provider: str = "openai"
+    ai_provider: str = "groq"
     openai_api_key: str = ""
     groq_api_key: str = ""
     gemini_api_key: str = ""
@@ -28,8 +28,8 @@ class Settings(BaseSettings):
     groq_chat_url: AnyHttpUrl = "https://api.groq.com/openai/v1/chat/completions"
     groq_transcribe_url: AnyHttpUrl = "https://api.groq.com/openai/v1/audio/transcriptions"
     gemini_chat_url: AnyHttpUrl = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
-    chat_model: str = "gpt-4o-mini"
-    transcribe_model: str = "whisper-1"
+    chat_model: str = "openai/gpt-oss-120b"
+    transcribe_model: str = "whisper-large-v3-turbo"
     max_prompt_chars: int = 24000
     max_output_tokens: int = 3200
     max_points: int = 4

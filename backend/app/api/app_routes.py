@@ -20,6 +20,12 @@ from app.config import get_settings
 from app.database.session import get_db
 from app.models import AppSetting, ClientState, Conversation, Document, License, Message, UsageRecord, User
 from app.security.tokens import decode_token
+from app.services.ai_config import (
+    GROQ_TRANSCRIBE_DEFAULT,
+    default_chat_model,
+    normalize_chat_model,
+    normalize_transcribe_model,
+)
 from app.services.audit import audit
 from app.services.licenses import check_access, check_legacy_license
 from app.services.resources import load_resource_catalog
@@ -184,19 +190,10 @@ def transcribe_provider_config(db: Session) -> tuple[str, str, str]:
     return api_key, str(settings.openai_transcribe_url), "openai"
 
 
-def default_chat_model(provider: str) -> str:
-    settings = get_settings()
-    if provider == "groq":
-        return "llama-3.3-70b-versatile"
-    if provider == "gemini":
-        return "gemini-3.5-flash"
-    return settings.chat_model
-
-
 def chat_model_for_purpose(db: Session, provider: str, purpose: str) -> str:
     if purpose == "points":
-        return setting_value(db, "points_model") or setting_value(db, "chat_model") or default_chat_model(provider)
-    return setting_value(db, "chat_model") or default_chat_model(provider)
+        return normalize_chat_model(provider, setting_value(db, "points_model") or setting_value(db, "chat_model") or default_chat_model(provider))
+    return normalize_chat_model(provider, setting_value(db, "chat_model") or default_chat_model(provider))
 
 
 def vision_provider_config(db: Session) -> tuple[str, str, str, str]:
@@ -814,7 +811,7 @@ async def transcribe(payload: dict, request: Request, user: User = Depends(curre
     if len(audio) > 25 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="Audio demasiado grande.")
     files = {"file": (payload.get("filename") or "audio.webm", audio, payload.get("contentType") or "audio/webm")}
-    transcribe_model = setting_value(db, "transcribe_model") or ("whisper-large-v3-turbo" if transcribe_provider == "groq" else settings.transcribe_model)
+    transcribe_model = normalize_transcribe_model(transcribe_provider, setting_value(db, "transcribe_model") or settings.transcribe_model or GROQ_TRANSCRIBE_DEFAULT)
     data = {"model": transcribe_model, "language": payload.get("language") or "en"}
     async with httpx.AsyncClient(timeout=180) as client:
         res = await client.post(transcribe_url, headers={"Authorization": f"Bearer {api_key}"}, data=data, files=files)

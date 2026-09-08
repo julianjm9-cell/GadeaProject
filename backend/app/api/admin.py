@@ -11,22 +11,29 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+import httpx
+
 from app.auth.dependencies import require_superadmin
+from app.config import get_settings
 from app.database.session import get_db
 from app.models import AppSetting, AuditLog, License, Organization, UsageRecord, User
 from app.schemas.core import LicenseCreate, LicenseOut, LicensePatch, OrganizationCreate, OrganizationOut, OrganizationPatch, UserCreate, UserOut, UserPatch
 from app.security.passwords import hash_password
+from app.services.ai_config import (
+    GROQ_CHAT_DEFAULT,
+    GROQ_TRANSCRIBE_DEFAULT,
+    normalize_chat_model,
+    normalize_transcribe_model,
+    valid_gemini_key,
+    valid_groq_key,
+    valid_openai_key,
+)
 from app.services.audit import audit
 from app.services.resources import load_resource_catalog, save_resource_catalog
 
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 AI_SETTING_KEYS = ("points_provider", "chat_provider", "transcribe_provider", "openai_api_key", "groq_api_key", "gemini_api_key", "points_model", "chat_model", "transcribe_model", "topic_style_guide")
-OPENAI_CHAT_DEFAULT = "gpt-4o-mini"
-OPENAI_TRANSCRIBE_DEFAULT = "whisper-1"
-GROQ_CHAT_DEFAULT = "llama-3.3-70b-versatile"
-GROQ_TRANSCRIBE_DEFAULT = "whisper-large-v3-turbo"
-GEMINI_CHAT_DEFAULT = "gemini-3.5-flash"
 DEFAULT_TOPIC_STYLE_GUIDE = """Model the structure on strong Diplomator reference topics: start each point as part of an oral presentation, not as isolated notes; organise the answer around clear axes such as evolution/history, importance/impact, challenges/controversies and legacy/future prospects; move from context to concrete facts and then to significance; include named actors, dates, places, reforms, institutions, controversies and consequences; use simple but elegant oral transitions such as "This leads us to...", "Beyond this aspect..." or their natural equivalent in the target language. The tone must be exam-ready, diplomatic and analytical: fluent enough to recite, but dense enough to sound informed."""
 
 
@@ -46,38 +53,13 @@ def mask_secret(value: str) -> str:
     return f"{value[:3]}...{value[-4:]}"
 
 
-def valid_openai_key(value: str) -> bool:
-    return bool(value) and value.startswith(("sk-", "sk-proj-"))
-
-
-def valid_groq_key(value: str) -> bool:
-    return bool(value) and value.startswith("gsk_")
-
-
-def default_chat_model(provider: str) -> str:
-    if provider == "groq":
-        return GROQ_CHAT_DEFAULT
-    if provider == "gemini":
-        return GEMINI_CHAT_DEFAULT
-    return OPENAI_CHAT_DEFAULT
-
-
-def normalize_chat_model(provider: str, model: str) -> str:
-    model = (model or "").strip()
-    if provider == "groq":
-        if not model or model in {"gpt-4o-mini", "gpt-4o", "gpt-4.1-mini", "llama-3.1-8b-instant"}:
-            return GROQ_CHAT_DEFAULT
-    elif provider == "gemini":
-        if not model or not model.startswith("gemini-"):
-            return GEMINI_CHAT_DEFAULT
-    elif not model or model.startswith(("llama-", "openai/gpt-oss", "groq/", "gemini-")):
-        return OPENAI_CHAT_DEFAULT
-    return model
-
-
 def get_setting(db: Session, key: str, default: str = "") -> str:
     row = db.get(AppSetting, key)
-    return row.value if row else default
+    return (row.value if row else default).strip()
+
+
+def setting_or_env(db: Session, key: str, env_value: str = "") -> str:
+    return get_setting(db, key) or (env_value or "").strip()
 
 
 def set_setting(db: Session, key: str, value: str) -> None:
@@ -156,13 +138,17 @@ def list_organizations(_: User = Depends(require_superadmin), db: Session = Depe
 
 @router.get("/ai-settings")
 def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends(get_db)):
-    points_provider = get_setting(db, "points_provider", get_setting(db, "chat_provider", get_setting(db, "ai_provider", "openai")))
-    chat_provider = get_setting(db, "chat_provider", get_setting(db, "ai_provider", "openai"))
-    transcribe_provider = get_setting(db, "transcribe_provider", get_setting(db, "ai_provider", "openai"))
-    transcribe_default = GROQ_TRANSCRIBE_DEFAULT if transcribe_provider == "groq" else OPENAI_TRANSCRIBE_DEFAULT
-    openai_key = get_setting(db, "openai_api_key")
-    groq_key = get_setting(db, "groq_api_key")
-    gemini_key = get_setting(db, "gemini_api_key")
+    settings = get_settings()
+    configured_provider = get_setting(db, "ai_provider", settings.ai_provider)
+    points_provider = get_setting(db, "points_provider", get_setting(db, "chat_provider", configured_provider))
+    chat_provider = get_setting(db, "chat_provider", configured_provider)
+    transcribe_provider = get_setting(db, "transcribe_provider", configured_provider)
+    openai_key = setting_or_env(db, "openai_api_key", settings.openai_api_key)
+    groq_key = setting_or_env(db, "groq_api_key", settings.groq_api_key)
+    gemini_key = setting_or_env(db, "gemini_api_key", settings.gemini_api_key)
+    points_model = normalize_chat_model(points_provider, get_setting(db, "points_model", get_setting(db, "chat_model", settings.chat_model)))
+    chat_model = normalize_chat_model(chat_provider, get_setting(db, "chat_model", settings.chat_model))
+    transcribe_model = normalize_transcribe_model(transcribe_provider, get_setting(db, "transcribe_model", settings.transcribe_model))
     return {
         "ok": True,
         "ai_provider": chat_provider,
@@ -173,19 +159,22 @@ def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends
         "openai_masked": mask_secret(openai_key) if valid_openai_key(openai_key) else "",
         "groq_configured": valid_groq_key(groq_key),
         "groq_masked": mask_secret(groq_key) if valid_groq_key(groq_key) else "",
-        "gemini_configured": bool(gemini_key),
-        "gemini_masked": mask_secret(gemini_key),
-        "points_model": get_setting(db, "points_model", get_setting(db, "chat_model", default_chat_model(points_provider))),
-        "chat_model": get_setting(db, "chat_model", default_chat_model(chat_provider)),
-        "transcribe_model": get_setting(db, "transcribe_model", transcribe_default),
+        "gemini_configured": valid_gemini_key(gemini_key),
+        "gemini_masked": mask_secret(gemini_key) if valid_gemini_key(gemini_key) else "",
+        "points_model": points_model,
+        "chat_model": chat_model,
+        "transcribe_model": transcribe_model,
+        "recommended_provider": "groq",
+        "recommended_chat_model": GROQ_CHAT_DEFAULT,
+        "recommended_transcribe_model": GROQ_TRANSCRIBE_DEFAULT,
         "topic_style_guide": get_setting(db, "topic_style_guide", DEFAULT_TOPIC_STYLE_GUIDE),
     }
 
 
 @router.post("/ai-settings")
 def save_ai_settings(payload: dict, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
-    points_provider = str(payload.get("points_provider") or payload.get("chat_provider") or payload.get("ai_provider") or "openai").strip().lower()
-    chat_provider = str(payload.get("chat_provider") or payload.get("ai_provider") or "openai").strip().lower()
+    points_provider = str(payload.get("points_provider") or payload.get("chat_provider") or payload.get("ai_provider") or "groq").strip().lower()
+    chat_provider = str(payload.get("chat_provider") or payload.get("ai_provider") or "groq").strip().lower()
     transcribe_provider = str(payload.get("transcribe_provider") or chat_provider).strip().lower()
     if points_provider not in {"openai", "groq", "gemini"}:
         raise HTTPException(status_code=400, detail="Proveedor de puntos no valido.")
@@ -201,12 +190,7 @@ def save_ai_settings(payload: dict, actor: User = Depends(require_superadmin), d
     chat_model = str(payload.get("chat_model") or "").strip()
     transcribe_model = str(payload.get("transcribe_model") or "").strip()
     chat_model = normalize_chat_model(chat_provider, chat_model)
-    if transcribe_provider == "groq":
-        if not transcribe_model or transcribe_model == "whisper-1":
-            transcribe_model = GROQ_TRANSCRIBE_DEFAULT
-    else:
-        if not transcribe_model or transcribe_model.startswith("whisper-large"):
-            transcribe_model = OPENAI_TRANSCRIBE_DEFAULT
+    transcribe_model = normalize_transcribe_model(transcribe_provider, transcribe_model)
     set_setting(db, "points_model", points_model[:120])
     set_setting(db, "chat_model", chat_model[:120])
     set_setting(db, "transcribe_model", transcribe_model[:120])
@@ -223,6 +207,50 @@ def save_ai_settings(payload: dict, actor: User = Depends(require_superadmin), d
     audit(db, actor=actor, organization_id=actor.organization_id, action="ai_settings_updated", entity_type="app_settings", entity_id="ai", metadata={"points_provider": points_provider, "chat_provider": chat_provider, "transcribe_provider": transcribe_provider})
     db.commit()
     return get_ai_settings(actor, db)
+
+
+@router.post("/ai-settings/test")
+async def test_ai_settings(actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    settings = get_settings()
+    provider = get_setting(db, "chat_provider", get_setting(db, "ai_provider", settings.ai_provider)).lower()
+    model = normalize_chat_model(provider, get_setting(db, "chat_model", settings.chat_model))
+    if provider == "groq":
+        api_key = setting_or_env(db, "groq_api_key", settings.groq_api_key)
+        url = str(settings.groq_chat_url)
+        if not valid_groq_key(api_key):
+            raise HTTPException(status_code=400, detail="Pega una clave Groq valida que empiece por gsk_ y guarda la configuracion.")
+    elif provider == "openai":
+        api_key = setting_or_env(db, "openai_api_key", settings.openai_api_key)
+        url = str(settings.openai_chat_url)
+        if not valid_openai_key(api_key):
+            raise HTTPException(status_code=400, detail="Pega una clave OpenAI valida y guarda la configuracion.")
+    elif provider == "gemini":
+        api_key = setting_or_env(db, "gemini_api_key", settings.gemini_api_key)
+        url = str(settings.gemini_chat_url)
+        if not valid_gemini_key(api_key):
+            raise HTTPException(status_code=400, detail="Pega una clave Gemini valida y guarda la configuracion.")
+    else:
+        raise HTTPException(status_code=400, detail="Proveedor IA no valido.")
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": "Responde solo: OK"}],
+        "temperature": 0,
+        "max_tokens": 8,
+    }
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.post(url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
+    if response.status_code >= 400:
+        detail = "La prueba IA fallo. Revisa la clave, el proveedor y el modelo."
+        try:
+            provider_detail = response.json().get("error", {}).get("message")
+            if provider_detail:
+                detail = f"{detail} Detalle: {provider_detail[:240]}"
+        except Exception:
+            pass
+        raise HTTPException(status_code=502, detail=detail)
+    audit(db, actor=actor, organization_id=actor.organization_id, action="ai_settings_tested", entity_type="app_settings", entity_id="ai", metadata={"provider": provider, "model": model})
+    db.commit()
+    return {"ok": True, "provider": provider, "model": model, "message": "IA conectada correctamente."}
 
 
 @router.post("/style-guide/analyze-docx")
