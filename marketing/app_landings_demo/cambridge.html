@@ -3,68 +3,61 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CAMBRIDGE TRAINER | Practica Cambridge B2, C1 y C2</title>
-  <meta name="description" content="App para preparar Cambridge con practica de speaking, writing, Use of English, temas organizados y progreso visual.">
+  <title>Cambridge Trainer | Speaking y Writing claros</title>
+  <meta name="description" content="Practica Cambridge B2, C1 y C2 con tareas claras de speaking, writing y feedback orientado al examen.">
   <meta name="robots" content="index,follow">
-  <meta property="og:title" content="CAMBRIDGE TRAINER">
-  <meta property="og:description" content="Preparacion clara para cada parte del examen Cambridge.">
-  <meta property="og:type" content="website">
-  <link rel="stylesheet" href="demo-shared.css">
+  <link rel="stylesheet" href="/demo-shared.css">
 </head>
-<body data-app="cambridge" data-theme="teal">
+<body class="cambridge" data-app="cambridge">
   <div class="page">
     <header class="topbar">
-      <a class="brand" href="#inicio"><span class="logo">CAM</span><span>CAMBRIDGE TRAINER</span></a>
-      <nav class="nav"><a href="#funciones">Funciones</a><a href="#explora">Preview</a><a href="#preguntas">Preguntas</a><a class="nav-login" href="/login?next=/cambridge">Acceder</a><button type="button" data-request-demo>Solicitar demo</button></nav>
+      <a class="brand" href="/"><span class="logo">CAM</span><span>Cambridge Trainer</span></a>
+      <nav class="nav"><a href="/">Suite</a><a href="#preview">Preview</a><a href="/login?next=/cambridge">Acceder</a><button type="button" data-request-demo>Solicitar demo</button></nav>
     </header>
     <main>
-      <section class="hero" id="inicio">
+      <section class="hero">
         <div>
           <div class="eyebrow">Cambridge B2, C1 y C2</div>
-          <h1>Practica cada parte del examen con estructura.</h1>
-          <p class="lead">Entrenamiento organizado para Speaking, Writing, Use of English y progreso por nivel.</p>
-          <div class="actions"><a class="btn primary" href="#explora">Probar preview</a><a class="btn" href="/login?next=/cambridge">Acceder</a><button class="btn" type="button" data-request-demo>Quiero acceso</button></div>
-          <div class="features" id="funciones">
-            <article class="feature"><b>Speaking</b><p>Temas por nivel.</p></article>
-            <article class="feature"><b>Writing</b><p>Estructura y criterios.</p></article>
-            <article class="feature"><b>Use of English</b><p>Patrones y practica.</p></article>
-            <article class="feature"><b>Progreso</b><p>Historial por nivel.</p></article>
-          </div>
+          <h1>Practica speaking y writing sin depender de prompts improvisados.</h1>
+          <p class="lead">La app separa las partes del examen y convierte cada practica en una tarea concreta con feedback.</p>
+          <div class="actions"><a class="btn primary" href="/login?next=/cambridge">Acceder</a><a class="btn" href="#preview">Ver flujo</a></div>
         </div>
-        <aside class="product-card">
-          <p class="function-card-title">Funcionalidades</p>
-          <div class="function-list">
-            <button class="function-item" type="button" data-jump-screen="speaking"><span class="dot">SP</span><span><strong>Speaking</strong><small>Temas, turnos y practica por nivel.</small></span></button>
-            <button class="function-item" type="button" data-jump-screen="writing"><span class="dot">WR</span><span><strong>Writing</strong><small>Essay, review, report y criterios.</small></span></button>
-            <button class="function-item" type="button" data-jump-screen="use"><span class="dot">USE</span><span><strong>Use of English</strong><small>Transformations y word formation.</small></span></button>
-            <button class="function-item" type="button" data-jump-screen="progreso"><span class="dot">%</span><span><strong>Progreso</strong><small>Practicas registradas por nivel.</small></span></button>
+        <aside class="promise-card">
+          <h3>Dos ideas fuertes</h3>
+          <div class="promise-list">
+            <article class="promise-item"><span class="mark">1</span><span><strong>Speaking por parte</strong><p>Practica long turn, discussion e interview con temas listos.</p></span></article>
+            <article class="promise-item"><span class="mark">2</span><span><strong>Writing con criterios</strong><p>Essay, review o report con estructura y correccion enfocada.</p></span></article>
           </div>
         </aside>
       </section>
-      <section id="explora">
-        <div class="eyebrow">Preview clicable</div><h2>Una muestra parecida a la app real.</h2>
-        <div class="device-mockup">
-          <div class="device-chrome"><span></span><span></span><span></span><strong>Preview de la app</strong></div>
-          <div class="explore">
-            <div class="appbar"><div class="app-title"><span class="mini-logo">CAM</span><span>CAMBRIDGE TRAINER</span></div><div class="tabs"><button class="tab" data-screen="speaking">SPEAKING</button><button class="tab" data-screen="writing">WRITING</button><button class="tab" data-screen="use">USE</button><button class="tab" data-screen="progreso">PROGRESO</button></div></div>
-            <div class="demo-layout"><div class="demo-main"><div class="screen-head"><div><h3 id="demoTitle"></h3><p class="lead">Haz clic en las pestañas para ver la estructura de la app.</p></div><span class="status-pill" id="demoBadge"></span></div><div id="demoContent"></div></div></div>
-            <div class="notice">ESTO ES UNA DEMO VISUAL. NO GENERA CONTENIDO, NO CORRIGE Y NO CONECTA CON IA.</div>
+      <section id="preview">
+        <div class="eyebrow">Preview</div>
+        <h2>El examen queda dividido en pasos.</h2>
+        <div class="preview">
+          <div class="panel">
+            <strong>Rama del alumno</strong>
+            <p>Elige nivel, parte del examen y practica. La correccion se centra en claridad, vocabulario y estructura.</p>
+            <div class="tabs"><button class="tab" data-screen="speaking">Speaking</button><button class="tab" data-screen="writing">Writing</button></div>
+            <div class="note">Para academias: cada usuario entra solo en su app licenciada.</div>
+          </div>
+          <div class="screen">
+            <div class="screen-title"><h3 id="demoTitle"></h3><span class="pill" id="demoBadge"></span></div>
+            <div id="demoContent"></div>
           </div>
         </div>
       </section>
-      <section id="preguntas">
-        <div class="eyebrow">Preguntas frecuentes</div><h2>Antes de empezar.</h2>
-        <div class="faq-grid">
-          <details class="faq-item" open><summary>Por que elegir esto en vez de una IA tipica?</summary><p>Porque Cambridge Trainer ya separa speaking, writing, Use of English y progreso. Una IA generica puede ayudar, pero aqui la practica esta organizada por partes del examen y nivel.</p></details>
-          <details class="faq-item"><summary>Para que niveles sirve?</summary><p>Esta pensado para practicar B2, C1 y C2 con tareas, temas y estructuras propias del examen.</p></details>
-          <details class="faq-item"><summary>Es una demo funcional?</summary><p>Esta pagina es una demo visual: permite explorar pantallas, pero no corrige ni conecta con IA.</p></details>
-          <details class="faq-item"><summary>Que aporta al writing?</summary><p>Organiza tipos de writing, estructura, criterios y practica para que el alumno no dependa de prompts improvisados.</p></details>
+      <section>
+        <div class="eyebrow">Siguiente paso</div>
+        <div class="route-grid">
+          <a class="route-card" href="/login?next=/cambridge"><span class="step">Cliente</span><strong>Entrar a la app</strong><p>Acceso privado con usuario y licencia.</p></a>
+          <button class="route-card" type="button" data-request-demo><span class="step">Academia</span><strong>Solicitar demo</strong><p>Preparado para conectar formulario, pago o WhatsApp.</p></button>
+          <a class="route-card" href="/"><span class="step">Suite</span><strong>Ver otros productos</strong><p>Universidad +25, ESO Adultos y Diplomator.</p></a>
         </div>
       </section>
     </main>
-    <footer>Pagina estatica de presentacion para CAMBRIDGE TRAINER.</footer>
+    <footer>Cambridge Trainer. Practica por partes, feedback y progreso.</footer>
   </div>
   <div class="toast" id="toast"></div>
-  <script src="demo-shared.js"></script>
+  <script src="/demo-shared.js"></script>
 </body>
 </html>

@@ -3,111 +3,69 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Suite de apps de estudio</title>
-  <meta name="description" content="Acceso a las apps de estudio de la suite: Universidad +25, ESO Adultos, Cambridge Trainer y Diplomator.">
+  <title>Educa Suite | Apps de estudio simples</title>
+  <meta name="description" content="Cuatro apps educativas con un flujo simple: entrar, ver el siguiente paso, practicar y avanzar.">
   <meta name="robots" content="index,follow">
-  <link rel="stylesheet" href="demo-shared.css">
-  <style>
-    body { --main:#172026; --accent:#2454a6; --soft:#eef3ff; }
-    .simple-home {
-      min-height:calc(100vh - 110px);
-      display:grid;
-      align-content:center;
-      gap:28px;
-      padding:54px 0;
-    }
-    .simple-head {
-      display:grid;
-      gap:14px;
-      justify-items:center;
-      text-align:center;
-    }
-    .simple-head h1 {
-      max-width:840px;
-      margin:0;
-      font-size:clamp(42px,7vw,82px);
-    }
-    .simple-head .lead {
-      max-width:560px;
-      margin:0;
-    }
-    .app-access-grid {
-      width:min(900px,100%);
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:14px;
-      margin:0 auto;
-    }
-    .app-access {
-      --app-main:#2454a6;
-      min-height:132px;
-      display:grid;
-      grid-template-columns:auto 1fr;
-      gap:15px;
-      align-items:center;
-      padding:18px;
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:#fff;
-      box-shadow:0 18px 46px rgba(17,24,39,.08);
-      transition:.18s ease;
-    }
-    .app-access:hover {
-      transform:translateY(-3px);
-      border-color:var(--app-main);
-      box-shadow:0 24px 60px rgba(17,24,39,.13);
-    }
-    .app-access-logo {
-      width:58px;
-      height:58px;
-      display:grid;
-      place-items:center;
-      border-radius:14px;
-      background:var(--app-main);
-      color:#fff;
-      font-weight:950;
-      box-shadow:0 12px 28px color-mix(in srgb, var(--app-main) 26%, transparent);
-    }
-    .app-access strong,
-    .app-access small { display:block; }
-    .app-access strong { font-size:19px; font-weight:950; }
-    .app-access small { margin-top:5px; color:var(--muted); font-weight:750; }
-    .app-access.u25 { --app-main:#6542a6; }
-    .app-access.e25 { --app-main:#b74338; }
-    .app-access.cambridge { --app-main:#0f766e; }
-    .app-access.diplomator { --app-main:#2454a6; }
-    @media (max-width:720px) {
-      .app-access-grid { grid-template-columns:1fr; }
-    }
-  </style>
+  <link rel="stylesheet" href="/demo-shared.css">
 </head>
 <body>
   <div class="page">
-    <main class="simple-home">
-      <section class="simple-head">
-        <div class="eyebrow">Suite de apps de estudio</div>
-        <h1>Elige la app que quieres abrir.</h1>
-        <p class="lead">Acceso a las webs de cada producto y a la app completa con usuario.</p>
+    <header class="topbar">
+      <a class="brand" href="/"><span class="logo">ED</span><span>Educa Suite</span></a>
+      <nav class="nav">
+        <a href="/login?next=/apps">Acceder</a>
+        <button type="button" data-request-demo>Solicitar demo</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero single">
+        <div class="eyebrow">Estudiar sin perderse</div>
+        <h1>Elige una meta. Abre la app. Sigue el siguiente paso.</h1>
+        <p class="lead">La suite no intenta hacerlo todo a la vez. Cada app reduce el estudio a dos cosas: saber que toca hoy y practicar con feedback.</p>
+        <div class="actions">
+          <a class="btn primary" href="/login?next=/apps">Entrar a mis apps</a>
+          <a class="btn" href="#apps">Ver productos</a>
+        </div>
+        <section class="product-grid" id="apps" aria-label="Productos">
+          <a class="product-card u25" href="/u25">
+            <span class="product-head"><span class="mini-logo">U25</span><span class="product-title">Acceso Universidad +25</span></span>
+            <p>Para adultos que necesitan un plan corto y simulacros tipo prueba.</p>
+            <span class="btn">Ver web</span>
+          </a>
+          <a class="product-card e25" href="/e25">
+            <span class="product-head"><span class="mini-logo">E25</span><span class="product-title">ESO Adultos</span></span>
+            <p>Para estudiar por bloques sin buscar materiales cada dia.</p>
+            <span class="btn">Ver web</span>
+          </a>
+          <a class="product-card cambridge" href="/cambridge-info">
+            <span class="product-head"><span class="mini-logo">CAM</span><span class="product-title">Cambridge Trainer</span></span>
+            <p>Para practicar speaking y writing con estructura de examen.</p>
+            <span class="btn">Ver web</span>
+          </a>
+          <a class="product-card diplomator" href="/diplomator">
+            <span class="product-head"><span class="mini-logo">DIP</span><span class="product-title">Diplomator</span></span>
+            <p>Para ordenar temas complejos y ensayar una exposicion clara.</p>
+            <span class="btn">Ver web</span>
+          </a>
+        </section>
       </section>
-      <section class="app-access-grid" aria-label="Apps">
-        <a class="app-access u25" href="universidad-25.html">
-          <span class="app-access-logo">U25</span>
-          <span><strong>ACCESO UNIVERSIDAD +25</strong><small>Preparacion prueba +25</small></span>
-        </a>
-        <a class="app-access e25" href="eso-adultos.html">
-          <span class="app-access-logo">E25</span>
-          <span><strong>ACCESO ESO ADULTOS</strong><small>Graduado ESO para adultos</small></span>
-        </a>
-        <a class="app-access cambridge" href="cambridge.html">
-          <span class="app-access-logo">CAM</span>
-          <span><strong>CAMBRIDGE TRAINER</strong><small>Speaking, Writing y Use of English</small></span>
-        </a>
-        <a class="app-access diplomator" href="diplomator.html">
-          <span class="app-access-logo">DIP</span>
-          <span><strong>DIPLOMATOR</strong><small>Temas y practica oral</small></span>
-        </a>
+
+      <section>
+        <div class="eyebrow">Flujo</div>
+        <h2>Una estructura comun para todas las apps.</h2>
+        <div class="route-grid">
+          <article class="route-card"><span class="step">1. Elegir</span><strong>El alumno entra por su objetivo.</strong><p>Universidad, ESO, Cambridge o exposicion oral.</p></article>
+          <article class="route-card"><span class="step">2. Practicar</span><strong>La app propone una tarea concreta.</strong><p>Una sesion, un ejercicio o un simulacro. Sin empezar desde cero.</p></article>
+          <article class="route-card"><span class="step">3. Avanzar</span><strong>El progreso queda guardado.</strong><p>Administra usuarios, licencias y consumo desde un unico panel.</p></article>
+        </div>
+        <img class="flow-image" src="/marketing-assets/simple-flow.svg" alt="Mapa simple de flujo de Educa Suite">
       </section>
     </main>
+
+    <footer>Educa Suite. Landing inicial, apps privadas, licencias y panel admin.</footer>
   </div>
+  <div class="toast" id="toast"></div>
+  <script src="/demo-shared.js"></script>
 </body>
 </html>

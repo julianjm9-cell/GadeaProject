@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 360" role="img" aria-labelledby="title desc">
+  <title id="title">Flujo simple de Educa Suite</title>
+  <desc id="desc">El alumno elige una app, practica una tarea concreta y el administrador controla usuarios y licencias.</desc>
+  <rect width="1120" height="360" rx="20" fill="#ffffff"/>
+  <rect x="30" y="34" width="240" height="292" rx="16" fill="#f7f8f5" stroke="#dce3df"/>
+  <text x="150" y="126" text-anchor="middle" font-family="Segoe UI, Arial" font-size="22" font-weight="800" fill="#172026">1. Elegir meta</text>
+  <text x="150" y="166" text-anchor="middle" font-family="Segoe UI, Arial" font-size="16" fill="#5d6b76">Universidad, ESO,</text>
+  <text x="150" y="190" text-anchor="middle" font-family="Segoe UI, Arial" font-size="16" fill="#5d6b76">Cambridge o oral</text>
+  <g transform="translate(74 222)">
+    <rect width="152" height="54" rx="12" fill="#edf4ff" stroke="#2454a6"/>
+    <text x="76" y="34" text-anchor="middle" font-family="Segoe UI, Arial" font-size="16" font-weight="800" fill="#2454a6">App correcta</text>
+  </g>
+  <path d="M290 180h92" stroke="#172026" stroke-width="4" stroke-linecap="round"/>
+  <path d="M372 164l20 16-20 16" fill="none" stroke="#172026" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="410" y="34" width="300" height="292" rx="16" fill="#fbfcfd" stroke="#dce3df"/>
+  <text x="560" y="126" text-anchor="middle" font-family="Segoe UI, Arial" font-size="22" font-weight="800" fill="#172026">2. Practicar</text>
+  <text x="560" y="166" text-anchor="middle" font-family="Segoe UI, Arial" font-size="16" fill="#5d6b76">Una tarea concreta,</text>
+  <text x="560" y="190" text-anchor="middle" font-family="Segoe UI, Arial" font-size="16" fill="#5d6b76">sin pantalla vacia</text>
+  <g transform="translate(468 222)">
+    <rect width="184" height="54" rx="12" fill="#e7fbf7" stroke="#0f766e"/>
+    <text x="92" y="34" text-anchor="middle" font-family="Segoe UI, Arial" font-size="16" font-weight="800" fill="#0f766e">Feedback y avance</text>
+  </g>
+  <path d="M730 180h92" stroke="#172026" stroke-width="4" stroke-linecap="round"/>
+  <path d="M812 164l20 16-20 16" fill="none" stroke="#172026" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="850" y="34" width="240" height="292" rx="16" fill="#f7f8f5" stroke="#dce3df"/>
+  <text x="970" y="126" text-anchor="middle" font-family="Segoe UI, Arial" font-size="22" font-weight="800" fill="#172026">3. Gestionar</text>
+  <text x="970" y="166" text-anchor="middle" font-family="Segoe UI, Arial" font-size="16" fill="#5d6b76">Usuarios, licencias</text>
+  <text x="970" y="190" text-anchor="middle" font-family="Segoe UI, Arial" font-size="16" fill="#5d6b76">y consumo IA</text>
+  <g transform="translate(894 222)">
+    <rect width="152" height="54" rx="12" fill="#fff1ed" stroke="#b74338"/>
+    <text x="76" y="34" text-anchor="middle" font-family="Segoe UI, Arial" font-size="16" font-weight="800" fill="#b74338">Panel admin</text>
+  </g>
+</svg>

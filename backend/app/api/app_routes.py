@@ -430,6 +430,19 @@ def marketing_js():
     return marketing_file("demo-shared.js", "application/javascript")
 
 
+@router.get("/marketing-assets/{filename}")
+def marketing_asset(filename: str):
+    allowed = {
+        "flujo-pantallas-suite.png": "image/png",
+        "roadmap-suite-terraza.png": "image/png",
+        "roadmap-suite-terraza-3-fases.png": "image/png",
+        "simple-flow.svg": "image/svg+xml",
+    }
+    if filename not in allowed:
+        raise HTTPException(status_code=404, detail="Asset no encontrado.")
+    return marketing_file(filename, allowed[filename])
+
+
 @router.get("/diplomator")
 @router.get("/diplomator.html")
 def diplomator_public_page():

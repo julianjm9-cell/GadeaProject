@@ -3,68 +3,61 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ACCESO UNIVERSIDAD +25 | Preparacion guiada para adultos</title>
-  <meta name="description" content="App para preparar el acceso a la universidad para mayores de 25 con sesiones cortas, biblioteca por asignaturas, generador de examenes con IA, recursos oficiales y progreso visual.">
+  <title>Acceso Universidad +25 | Estudio guiado</title>
+  <meta name="description" content="Preparacion sencilla para mayores de 25: sesiones cortas, simulacros y progreso sin complicaciones.">
   <meta name="robots" content="index,follow">
-  <meta property="og:title" content="ACCESO UNIVERSIDAD +25">
-  <meta property="og:description" content="Preparacion simple, guiada y pensada para adultos con poco tiempo.">
-  <meta property="og:type" content="website">
-  <link rel="stylesheet" href="demo-shared.css">
+  <link rel="stylesheet" href="/demo-shared.css">
 </head>
-<body data-app="universidad" data-theme="purple">
+<body class="u25" data-app="universidad">
   <div class="page">
     <header class="topbar">
-      <a class="brand" href="#inicio"><span class="logo">U25</span><span>ACCESO UNIVERSIDAD +25</span></a>
-      <nav class="nav"><a href="#funciones">Funciones</a><a href="#explora">Preview</a><a href="#preguntas">Preguntas</a><a class="nav-login" href="/login?next=/universidad-adultos">Acceder</a><button type="button" data-request-demo>Solicitar demo</button></nav>
+      <a class="brand" href="/"><span class="logo">U25</span><span>Acceso Universidad +25</span></a>
+      <nav class="nav"><a href="/">Suite</a><a href="#preview">Preview</a><a href="/login?next=/universidad-adultos">Acceder</a><button type="button" data-request-demo>Solicitar demo</button></nav>
     </header>
     <main>
-      <section class="hero" id="inicio">
+      <section class="hero">
         <div>
-          <div class="eyebrow">Preparacion prueba de acceso +25</div>
-          <h1>Prepara el acceso a la universidad para mayores de 25.</h1>
-          <p class="lead">Estudio guiado para la prueba de acceso +25: hoy, asignaturas, tests, examenes con IA y progreso.</p>
-          <div class="actions"><a class="btn primary" href="#explora">Ver como funciona</a><a class="btn" href="/login?next=/universidad-adultos">Acceder</a><button class="btn" type="button" data-request-demo>Solicitar acceso</button></div>
-          <div class="features" id="funciones">
-            <article class="feature"><b>Sesion de hoy</b><p>15, 30 o 45 minutos.</p></article>
-            <article class="feature"><b>Asignaturas</b><p>Temas y teoria.</p></article>
-            <article class="feature"><b>Examenes con IA</b><p>Simulacros guiados.</p></article>
-            <article class="feature"><b>Progreso</b><p>Etapas visuales.</p></article>
-          </div>
+          <div class="eyebrow">Para estudiar con poco tiempo</div>
+          <h1>Prepara la prueba +25 sin decidir cada dia por donde empezar.</h1>
+          <p class="lead">El alumno abre la app y encuentra una sesion corta, una practica tipo examen y su avance guardado.</p>
+          <div class="actions"><a class="btn primary" href="/login?next=/universidad-adultos">Acceder</a><a class="btn" href="#preview">Ver flujo</a></div>
         </div>
-        <aside class="product-card">
-          <p class="function-card-title">Funcionalidades</p>
-          <div class="function-list">
-            <button class="function-item" type="button" data-jump-screen="hoy"><span class="dot">HOY</span><span><strong>Sesion de hoy</strong><small>Plan corto segun el tiempo disponible.</small></span></button>
-            <button class="function-item" type="button" data-jump-screen="biblioteca"><span class="dot">BIB</span><span><strong>Biblioteca por asignaturas</strong><small>Teoria, apuntes y recursos oficiales.</small></span></button>
-            <button class="function-item" type="button" data-jump-screen="examen"><span class="dot">IA</span><span><strong>Generador de examenes con IA</strong><small>Aleatorio, modelo real e historial.</small></span></button>
-            <button class="function-item" type="button" data-jump-screen="progreso"><span class="dot">%</span><span><strong>Progreso visual</strong><small>5 etapas por tareas hechas.</small></span></button>
+        <aside class="promise-card">
+          <h3>Dos ideas fuertes</h3>
+          <div class="promise-list">
+            <article class="promise-item"><span class="mark">1</span><span><strong>Sesion de hoy</strong><p>15, 30 o 45 minutos con una tarea concreta.</p></span></article>
+            <article class="promise-item"><span class="mark">2</span><span><strong>Simulacro guiado</strong><p>Practicas tipo prueba y correccion clara para mejorar.</p></span></article>
           </div>
         </aside>
       </section>
-      <section id="explora">
-        <div class="eyebrow">Demo simple</div><h2>Asi se organiza el estudio dentro de la app.</h2>
-        <div class="device-mockup">
-          <div class="device-chrome"><span></span><span></span><span></span><strong>Preview de la app</strong></div>
-          <div class="explore">
-            <div class="appbar"><div class="app-title"><span class="mini-logo">U25</span><span>ACCESO UNIVERSIDAD +25</span></div><div class="tabs"><button class="tab" data-screen="hoy">HOY</button><button class="tab" data-screen="biblioteca">BIBLIOTECA</button><button class="tab" data-screen="examen">EXAMEN</button><button class="tab" data-screen="progreso">PROGRESO</button></div></div>
-            <div class="demo-layout"><div class="demo-main"><div class="screen-head"><div><h3 id="demoTitle"></h3><p class="lead">El alumno entra, elige una seccion y sigue el siguiente paso.</p></div><span class="status-pill" id="demoBadge"></span></div><div id="demoContent"></div></div></div>
-            <div class="notice">ESTO ES UNA DEMO VISUAL. NO GENERA CONTENIDO, NO CORRIGE Y NO CONECTA CON IA.</div>
+      <section id="preview">
+        <div class="eyebrow">Preview</div>
+        <h2>El recorrido es corto.</h2>
+        <div class="preview">
+          <div class="panel">
+            <strong>Rama del alumno</strong>
+            <p>Entra, elige el tiempo disponible y completa una practica. No necesita montar prompts ni buscar recursos sueltos.</p>
+            <div class="tabs"><button class="tab" data-screen="hoy">Hoy</button><button class="tab" data-screen="examen">Simulacro</button></div>
+            <div class="note">Para academias: usuarios, licencias y consumo se gestionan desde el panel admin.</div>
+          </div>
+          <div class="screen">
+            <div class="screen-title"><h3 id="demoTitle"></h3><span class="pill" id="demoBadge"></span></div>
+            <div id="demoContent"></div>
           </div>
         </div>
       </section>
-      <section id="preguntas">
-        <div class="eyebrow">Preguntas frecuentes</div><h2>Antes de empezar.</h2>
-        <div class="faq-grid">
-          <details class="faq-item" open><summary>Por que elegir esto en vez de una IA tipica?</summary><p>Porque no es un chat vacio. Esta app esta organizada alrededor de la prueba de acceso +25: sesion de hoy, asignaturas, temas, recursos, generador de examenes con IA y progreso. La IA trabaja dentro de una estructura preparada.</p></details>
-          <details class="faq-item"><summary>Sirve para estudiar con poco tiempo?</summary><p>Si. El alumno puede entrar, elegir 15, 30 o 45 minutos y seguir un plan concreto sin decidir desde cero que estudiar.</p></details>
-          <details class="faq-item"><summary>Puede generar examenes con IA?</summary><p>Si, la version completa genera simulacros rapidos o modelos tipo prueba real segun asignaturas y temas. Esta pagina es solo una demo visual.</p></details>
-          <details class="faq-item"><summary>Incluye teoria y recursos?</summary><p>La app organiza biblioteca, temas, teoria, apuntes y enlaces oficiales para que el estudio no dependa de buscar materiales dispersos.</p></details>
+      <section>
+        <div class="eyebrow">Siguiente paso</div>
+        <div class="route-grid">
+          <a class="route-card" href="/login?next=/universidad-adultos"><span class="step">Cliente</span><strong>Entrar a la app</strong><p>Acceso privado con usuario y licencia.</p></a>
+          <button class="route-card" type="button" data-request-demo><span class="step">Academia</span><strong>Solicitar demo</strong><p>Preparado para conectar formulario, pago o WhatsApp.</p></button>
+          <a class="route-card" href="/"><span class="step">Suite</span><strong>Ver otros productos</strong><p>ESO Adultos, Cambridge y Diplomator.</p></a>
         </div>
       </section>
     </main>
-    <footer>Pagina estatica de presentacion para ACCESO UNIVERSIDAD +25.</footer>
+    <footer>Acceso Universidad +25. Estudio simple, practica y progreso.</footer>
   </div>
   <div class="toast" id="toast"></div>
-  <script src="demo-shared.js"></script>
+  <script src="/demo-shared.js"></script>
 </body>
 </html>
