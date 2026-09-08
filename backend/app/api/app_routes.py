@@ -40,25 +40,25 @@ PRODUCTS = {
         "code": "DIPLOMATOR",
         "name": "Diplomator",
         "path": "/app",
-        "description": "Preparacion oral, temas y recitacion.",
+        "description": "Temas claros y practica oral guiada.",
     },
     "cambridge": {
         "code": "CAMBRIDGE",
         "name": "Cambridge Trainer",
         "path": "/cambridge",
-        "description": "Speaking, writing, Use of English y practica Cambridge.",
+        "description": "Speaking y writing con estructura de examen.",
     },
     "universidad_adultos": {
         "code": "UNIVERSIDAD_ADULTOS",
         "name": "ACCESO UNIVERSIDAD +25",
         "path": "/universidad-adultos",
-        "description": "Mayores de 25: fase general, ramas, examenes y simulacros.",
+        "description": "Sesiones cortas y simulacros tipo prueba.",
     },
     "eso_adultos": {
         "code": "ESO_ADULTOS",
         "name": "ACCESO ESO ADULTOS",
         "path": "/eso-adultos",
-        "description": "Graduado ESO: comunicacion, social y cientifico-tecnologico.",
+        "description": "Bloques simples, mini tests y progreso.",
     },
 }
 APP_ALIASES = {
@@ -670,7 +670,7 @@ def save_local_document(payload: dict, user: User = Depends(current_user), _: Li
     content = str(payload.get("content") or "")
     if not content.strip():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Documento vacio.")
-    app_key = APP_ALIASES.get(str(payload.get("app") or "").strip().lower(), "adultos")
+    app_key = APP_ALIASES.get(str(payload.get("app") or "").strip().lower(), "diplomator")
     folder_parts = [safe_document_name(str(part), "carpeta")[:80] for part in (payload.get("folder_path") or []) if str(part or "").strip()]
     target_dir = LOCAL_DOCUMENT_DIR / str(user.organization_id) / str(user.id) / app_key
     for part in folder_parts[:6]:

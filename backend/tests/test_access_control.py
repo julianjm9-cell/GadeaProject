@@ -80,10 +80,17 @@ def test_requires_login(client):
     assert response.status_code == 401
 
 
+@pytest.mark.parametrize("path", ["/", "/suite", "/u25", "/e25", "/cambridge-info", "/diplomator"])
+def test_public_marketing_pages_load_without_login(client, path):
+    test_client, _ = client
+    response = test_client.get(path)
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+
+
 @pytest.mark.parametrize(
     ("path", "next_path"),
     [
-        ("/", "/apps"),
         ("/apps", "/apps"),
         ("/app", "/app"),
         ("/cambridge", "/cambridge"),

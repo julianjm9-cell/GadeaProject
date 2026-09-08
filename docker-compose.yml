@@ -60,6 +60,9 @@ services:
   reverse-proxy:
     image: caddy:2-alpine
     profiles: ["proxy"]
+    env_file:
+      - path: ${ENV_FILE:-.env}
+        required: false
     volumes:
       - ./infra/reverse-proxy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

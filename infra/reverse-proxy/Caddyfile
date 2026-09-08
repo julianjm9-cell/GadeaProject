@@ -1,8 +1,8 @@
 {
-	email admin@example.com
+	email {$ACME_EMAIL:admin@example.com}
 }
 
-:80 {
+{$SITE_ADDRESS::80} {
 	redir /admin-dashboard /admin-dashboard/
 
 	handle_path /admin-dashboard/* {

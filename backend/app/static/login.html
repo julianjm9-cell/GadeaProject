@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Apps Suite - Acceso</title>
+  <title>Acceso | Educa Suite</title>
   <style>
     :root {
       --ink:#172026;
       --muted:#627080;
-      --paper:#f4f1e9;
+      --paper:#f6f8fb;
       --panel:#ffffff;
       --line:#e2ddd1;
       --blue:#2454a6;
@@ -27,21 +27,7 @@
       padding:24px;
       color:var(--ink);
       font-family:Inter, "Segoe UI", Arial, sans-serif;
-      background:
-        linear-gradient(135deg, rgba(36,84,166,0.12), transparent 36%),
-        linear-gradient(315deg, rgba(199,146,47,0.15), transparent 34%),
-        var(--paper);
-    }
-    body::before {
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      background-image:
-        linear-gradient(rgba(23,32,38,0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(23,32,38,0.035) 1px, transparent 1px);
-      background-size:42px 42px;
-      mask-image:linear-gradient(120deg, rgba(0,0,0,0.44), transparent 78%);
+      background:var(--paper);
     }
     main {
       position:relative;
@@ -230,21 +216,21 @@
 <main>
   <section class="intro" aria-label="Apps Suite">
     <div>
-      <div class="brand-mark">A</div>
-      <div class="eyebrow">Apps Suite</div>
-      <h1>Un unico acceso para tus apps.</h1>
-      <p>Entra con el usuario asignado por el administrador. Despues eliges la app segun tus accesos activos.</p>
+      <div class="brand-mark">ED</div>
+      <div class="eyebrow">Educa Suite</div>
+      <h1>Entra y sigue por donde toca.</h1>
+      <p>Un solo acceso para tus apps. Despues eliges producto y la plataforma te lleva al siguiente paso.</p>
     </div>
     <div class="app-strip" aria-label="Aplicaciones disponibles">
-      <div class="app-pill">DIPLOMATOR<span>Preparacion oral, temas y recitacion.</span></div>
-      <div class="app-pill">CAMBRIDGE<span>Speaking, writing y practica Cambridge.</span></div>
-      <div class="app-pill">UNIVERSIDAD +25<span>Fase general, ramas y simulacros.</span></div>
-      <div class="app-pill">ESO ADULTOS<span>Ambitos, modulos, test y examenes.</span></div>
+      <div class="app-pill">DIPLOMATOR<span>Temas claros y practica oral.</span></div>
+      <div class="app-pill">CAMBRIDGE<span>Speaking y writing con criterio.</span></div>
+      <div class="app-pill">UNIVERSIDAD +25<span>Sesion corta y simulacros.</span></div>
+      <div class="app-pill">ESO ADULTOS<span>Bloques simples y practica.</span></div>
     </div>
   </section>
   <form onsubmit="login(event)">
     <h2 class="form-title">Acceder</h2>
-    <p>Usa el mismo acceso para tus aplicaciones.</p>
+    <p>Usa el acceso que te han dado.</p>
     <a class="google-button" id="googleLogin" href="/auth/google/login?next=/apps">
       <span class="google-icon">G</span>
       Acceder con Google

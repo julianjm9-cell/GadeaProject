@@ -56,9 +56,9 @@ docker compose up --build -d postgres backend admin
 API: `http://127.0.0.1:8890`
 Dashboard: `http://127.0.0.1:5174`
 
-## Subir a Oracle por IP publica
+## Subir a Hostinger por IP publica
 
-Para una primera prueba sin dominio usa la plantilla preparada:
+Para una primera prueba sin dominio usa la plantilla preparada. Sirve para Hostinger, Oracle u otro VPS Ubuntu con Docker:
 
 ```bash
 cp .env.oracle-ip.example .env
@@ -67,7 +67,8 @@ docker compose exec backend alembic upgrade head
 docker compose exec backend python -m app.bootstrap
 ```
 
-Guia completa: `infra/ORACLE_IP_DEPLOY.md`.
+En `.env`, cambia `TU_IP_PUBLICA` por la IPv4 del servidor. En Hostinger es la IP que aparece en el panel del VPS.
+Si conectas dominio mas adelante, usa `SITE_ADDRESS=tu-dominio.com`, `COOKIE_SECURE=true`, `CORS_ORIGINS=https://tu-dominio.com` y `GOOGLE_REDIRECT_URI=https://tu-dominio.com/auth/google/callback`.
 Runbook Docker: `infra/DOCKER_RUNBOOK.md`.
 
 Rutas publicas de venta:

@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Seleccionar app</title>
+<title>Mis apps | Educa Suite</title>
 <style>
   :root {
     --ink:#102a43;
     --muted:#607482;
-    --paper:#eef4f8;
+    --paper:#f6f8fb;
     --panel:#ffffff;
     --line:#cfe0ea;
     --blue:#2454a6;
@@ -26,7 +26,7 @@
     padding:28px;
     font-family:"Segoe UI", Arial, sans-serif;
     color:var(--ink);
-    background:linear-gradient(135deg,#edf4ff,#ecfbf7);
+    background:var(--paper);
   }
   main { width:min(980px,100%); }
   header { margin-bottom:18px; }
@@ -45,7 +45,7 @@
     gap:18px;
     padding:22px;
     border:1px solid var(--line);
-    border-radius:12px;
+    border-radius:8px;
     background:var(--panel);
     box-shadow:0 18px 40px rgba(16,42,67,.08);
   }
@@ -56,7 +56,7 @@
   .app-icon {
     width:52px;
     height:52px;
-    border-radius:13px;
+    border-radius:8px;
     display:grid;
     place-items:center;
     color:white;
@@ -81,7 +81,7 @@
     align-items:center;
     justify-content:center;
     padding:10px 16px;
-    border-radius:8px;
+    border-radius:7px;
     background:var(--blue);
     color:white;
     text-decoration:none;
@@ -100,7 +100,7 @@
     border:1px solid var(--line);
     background:white;
     color:var(--ink);
-    border-radius:8px;
+    border-radius:7px;
     padding:10px 14px;
     cursor:pointer;
     font-weight:700;
@@ -116,8 +116,8 @@
 <body>
 <main>
   <header>
-    <h1>Elige tu app</h1>
-    <p>Tu cuenta puede tener acceso a una o varias aplicaciones. Entra en la que quieras trabajar ahora.</p>
+    <h1>Mis apps</h1>
+    <p>Elige en que quieres avanzar hoy. Solo veras activas las apps que tenga tu cuenta.</p>
   </header>
   <section class="grid" id="appGrid" aria-label="Aplicaciones disponibles"></section>
   <button class="logout" onclick="logout()">Cerrar sesión</button>
@@ -125,10 +125,10 @@
 </main>
 <script>
 const appsMeta = {
-  DIPLOMATOR: { initial:'D', className:'diplomator' },
-  CAMBRIDGE: { initial:'C', className:'cambridge' },
-  UNIVERSIDAD_ADULTOS: { initial:'U', className:'universidad' },
-  ESO_ADULTOS: { initial:'E', className:'eso' }
+  DIPLOMATOR: { initial:'DIP', className:'diplomator' },
+  CAMBRIDGE: { initial:'CAM', className:'cambridge' },
+  UNIVERSIDAD_ADULTOS: { initial:'U25', className:'universidad' },
+  ESO_ADULTOS: { initial:'E25', className:'eso' }
 };
 async function loadApps() {
   const error = document.getElementById('error');
