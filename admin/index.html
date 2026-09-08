@@ -1852,6 +1852,7 @@ async function createUser(e) {
         created = users.find(u => String(u.email || '').toLowerCase() === identifier.toLowerCase());
       }
       if (!created) throw err;
+      await api(`/admin/users/${created.id}`, { method:'PATCH', body:JSON.stringify({ password, full_name:$('userName').value.trim() || created.full_name || '', is_active:true }) });
       const licenseOrgId = created.organization_id || organizationId;
       if (licenseOrgId && !licenses.some(l => l.organization_id === licenseOrgId && (l.product_code || 'DIPLOMATOR') === selectedProductCode() && l.status === 'active')) {
         const starts = new Date();

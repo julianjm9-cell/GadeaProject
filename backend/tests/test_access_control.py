@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.database.session import Base, get_db
+from app.api import auth as auth_api
 from app.api.auth import LOGIN_BUCKET, ensure_google_access
 from app.main import app
 from app.models import License, Organization, User
@@ -78,6 +79,22 @@ def test_requires_login(client):
     test_client, _ = client
     response = test_client.get("/api/state")
     assert response.status_code == 401
+
+
+def test_google_login_redirects_back_when_not_configured(client, monkeypatch):
+    monkeypatch.setattr(auth_api, "google_enabled", lambda: False)
+    test_client, _ = client
+    response = test_client.get("/auth/google/login?next=/apps", follow_redirects=False)
+    assert response.status_code in {302, 307}
+    assert response.headers["location"] == "/login?google_disabled=1&next=/apps"
+
+
+def test_google_status_reports_disabled_when_not_configured(client, monkeypatch):
+    monkeypatch.setattr(auth_api, "google_enabled", lambda: False)
+    test_client, _ = client
+    response = test_client.get("/auth/google/status")
+    assert response.status_code == 200
+    assert response.json()["enabled"] is False
 
 
 @pytest.mark.parametrize("path", ["/", "/suite", "/u25", "/e25", "/cambridge-info", "/diplomator"])

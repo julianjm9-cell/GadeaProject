@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Educa Suite | Apps de estudio simples</title>
-  <meta name="description" content="Cuatro apps educativas con un flujo simple: entrar, ver el siguiente paso, practicar y avanzar.">
+  <meta name="description" content="Acceso a las webs de Educa Suite: Universidad +25, ESO Adultos, Cambridge Trainer y Diplomator.">
   <meta name="robots" content="index,follow">
   <link rel="stylesheet" href="/demo-shared.css">
 </head>
@@ -12,58 +12,34 @@
   <div class="page">
     <header class="topbar">
       <a class="brand" href="/"><span class="logo">ED</span><span>Educa Suite</span></a>
-      <nav class="nav">
-        <a href="/login?next=/apps">Acceder</a>
-        <button type="button" data-request-demo>Solicitar demo</button>
-      </nav>
+      <nav class="nav"><a href="/login?next=/apps">Acceder</a></nav>
     </header>
 
     <main>
-      <section class="hero single">
-        <div class="eyebrow">Estudiar sin perderse</div>
-        <h1>Elige una meta. Abre la app. Sigue el siguiente paso.</h1>
-        <p class="lead">La suite no intenta hacerlo todo a la vez. Cada app reduce el estudio a dos cosas: saber que toca hoy y practicar con feedback.</p>
-        <div class="actions">
-          <a class="btn primary" href="/login?next=/apps">Entrar a mis apps</a>
-          <a class="btn" href="#apps">Ver productos</a>
-        </div>
+      <section class="hero single compact-home">
+        <div class="eyebrow">Educa Suite</div>
+        <h1>Elige la web que quieres ver.</h1>
         <section class="product-grid" id="apps" aria-label="Productos">
           <a class="product-card u25" href="/u25">
             <span class="product-head"><span class="mini-logo">U25</span><span class="product-title">Acceso Universidad +25</span></span>
-            <p>Para adultos que necesitan un plan corto y simulacros tipo prueba.</p>
-            <span class="btn">Ver web</span>
+            <p>Sesion corta y simulacros.</p>
           </a>
           <a class="product-card e25" href="/e25">
             <span class="product-head"><span class="mini-logo">E25</span><span class="product-title">ESO Adultos</span></span>
-            <p>Para estudiar por bloques sin buscar materiales cada dia.</p>
-            <span class="btn">Ver web</span>
+            <p>Bloques simples y practica.</p>
           </a>
           <a class="product-card cambridge" href="/cambridge-info">
             <span class="product-head"><span class="mini-logo">CAM</span><span class="product-title">Cambridge Trainer</span></span>
-            <p>Para practicar speaking y writing con estructura de examen.</p>
-            <span class="btn">Ver web</span>
+            <p>Speaking y writing claros.</p>
           </a>
           <a class="product-card diplomator" href="/diplomator">
             <span class="product-head"><span class="mini-logo">DIP</span><span class="product-title">Diplomator</span></span>
-            <p>Para ordenar temas complejos y ensayar una exposicion clara.</p>
-            <span class="btn">Ver web</span>
+            <p>Temas y practica oral.</p>
           </a>
         </section>
-      </section>
-
-      <section>
-        <div class="eyebrow">Flujo</div>
-        <h2>Una estructura comun para todas las apps.</h2>
-        <div class="route-grid">
-          <article class="route-card"><span class="step">1. Elegir</span><strong>El alumno entra por su objetivo.</strong><p>Universidad, ESO, Cambridge o exposicion oral.</p></article>
-          <article class="route-card"><span class="step">2. Practicar</span><strong>La app propone una tarea concreta.</strong><p>Una sesion, un ejercicio o un simulacro. Sin empezar desde cero.</p></article>
-          <article class="route-card"><span class="step">3. Avanzar</span><strong>El progreso queda guardado.</strong><p>Administra usuarios, licencias y consumo desde un unico panel.</p></article>
-        </div>
-        <img class="flow-image" src="/marketing-assets/simple-flow.svg" alt="Mapa simple de flujo de Educa Suite">
+        <a class="quiet-login" href="/login?next=/apps">Acceder a mis apps</a>
       </section>
     </main>
-
-    <footer>Educa Suite. Landing inicial, apps privadas, licencias y panel admin.</footer>
   </div>
   <div class="toast" id="toast"></div>
   <script src="/demo-shared.js"></script>

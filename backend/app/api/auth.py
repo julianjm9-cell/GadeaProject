@@ -246,7 +246,15 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
 
 @router.get("/google/login")
 def google_login(next: str = "/apps"):
-    return google_auth_redirect("login", clean_next_path(next))
+    next_path = clean_next_path(next)
+    if not google_enabled():
+        return RedirectResponse(f"/login?google_disabled=1&next={next_path}")
+    return google_auth_redirect("login", next_path)
+
+
+@router.get("/google/status")
+def google_status() -> dict:
+    return {"ok": True, "enabled": google_enabled()}
 
 
 @router.get("/google/drive")

@@ -260,7 +260,17 @@ function applyLoginLinks() {
   const params = new URLSearchParams(location.search);
   const error = document.getElementById('error');
   if (params.has('expired')) error.textContent = 'La sesion ha caducado. Vuelve a entrar.';
+  if (params.has('google_disabled')) error.textContent = 'Google aun no esta configurado. Usa usuario y contrasena.';
   if (params.has('google_error')) error.textContent = 'No se pudo acceder con Google. Prueba de nuevo o usa usuario y contrasena.';
+  fetch('/auth/google/status', { credentials:'same-origin' })
+    .then(res => res.ok ? res.json() : { enabled:false })
+    .then(data => {
+      if (!data.enabled) {
+        googleLogin.hidden = true;
+        document.querySelector('.divider').hidden = true;
+      }
+    })
+    .catch(() => {});
 }
 async function login(event) {
   event.preventDefault();
