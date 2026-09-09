@@ -10,9 +10,10 @@ from sqlalchemy.pool import StaticPool
 
 from app.database.session import Base, get_db
 from app.api import auth as auth_api
+from app.api.app_routes import record_usage
 from app.api.auth import LOGIN_BUCKET, ensure_google_access
 from app.main import app
-from app.models import License, Organization, User
+from app.models import License, Organization, UsageRecord, User
 from app.security.passwords import hash_password
 from app.services.ai_config import GROQ_CHAT_DEFAULT, GROQ_TRANSCRIBE_DEFAULT
 
@@ -248,6 +249,19 @@ def test_ai_settings_default_to_current_groq_models(client):
     assert data["points_model"] == GROQ_CHAT_DEFAULT
     assert data["chat_model"] == GROQ_CHAT_DEFAULT
     assert data["transcribe_model"] == GROQ_TRANSCRIBE_DEFAULT
+
+
+def test_point_generation_records_one_credit_per_point(client):
+    _, db_factory = client
+    _, user_id = seed_user(db_factory)
+    with db_factory() as db:
+        user = db.get(User, user_id)
+        record_usage(db, user, "test-model", 10, 20, "DIPLOMATOR", credit_cost=5)
+        db.commit()
+        rows = db.query(UsageRecord).filter(UsageRecord.user_id == user.id).all()
+    assert len(rows) == 5
+    assert sum(row.input_tokens for row in rows) == 10
+    assert sum(row.output_tokens for row in rows) == 20
 
 
 def test_ai_settings_replaces_deprecated_groq_model(client):

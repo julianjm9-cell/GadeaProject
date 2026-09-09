@@ -291,18 +291,43 @@ def frontend_error(payload: dict, request: Request, user: User = Depends(current
     return {"ok": True}
 
 
-def record_usage(db: Session, user: User, model: str, input_tokens: int, output_tokens: int, product_code: str = "DIPLOMATOR") -> None:
-    db.add(
-        UsageRecord(
-            organization_id=user.organization_id,
-            user_id=user.id,
-            product_code=product_code,
-            model=model,
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-            estimated_cost=Decimal("0"),
+def credit_cost_from_payload(payload: dict, purpose: str) -> int:
+    if purpose != "points":
+        payload.pop("credit_cost", None)
+        return 1
+    raw = payload.pop("credit_cost", 1)
+    try:
+        cost = int(raw)
+    except (TypeError, ValueError):
+        cost = 1
+    return max(1, min(cost, 50))
+
+
+def ensure_credit_balance(db: Session, user: User, license_obj: License, credit_cost: int) -> None:
+    if not license_obj.usage_limit:
+        return
+    used = active_usage_count(db, user, license_obj)
+    if used + credit_cost > license_obj.usage_limit:
+        remaining = max(license_obj.usage_limit - used, 0)
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail=f"Creditos insuficientes. Te quedan {remaining} y esta generacion necesita {credit_cost}.",
         )
-    )
+
+
+def record_usage(db: Session, user: User, model: str, input_tokens: int, output_tokens: int, product_code: str = "DIPLOMATOR", credit_cost: int = 1) -> None:
+    for index in range(max(1, credit_cost)):
+        db.add(
+            UsageRecord(
+                organization_id=user.organization_id,
+                user_id=user.id,
+                product_code=product_code,
+                model=model,
+                input_tokens=input_tokens if index == 0 else 0,
+                output_tokens=output_tokens if index == 0 else 0,
+                estimated_cost=Decimal("0"),
+            )
+        )
 
 
 def provider_error(prefix: str, response: httpx.Response) -> HTTPException:
@@ -320,7 +345,6 @@ def public_limits(db: Session | None = None) -> dict:
     settings = get_settings()
     limits = {
         "max_output_tokens": settings.max_output_tokens,
-        "max_points": settings.max_points,
         "max_vocab": settings.max_vocab,
         "profile_chars": settings.profile_chars,
     }
@@ -754,11 +778,13 @@ def save_state(payload: dict, request: Request, user: User = Depends(current_use
 
 
 @router.post("/api/chat")
-async def chat(payload: dict, request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db), app_key_override: str | None = None):
+async def chat(payload: dict, request: Request, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db), app_key_override: str | None = None):
     settings = get_settings()
     if len(str(payload)) > settings.max_prompt_chars:
         raise HTTPException(status_code=413, detail="Peticion demasiado grande.")
     purpose = str(payload.pop("purpose", "") or "").strip().lower()
+    credit_cost = credit_cost_from_payload(payload, purpose)
+    ensure_credit_balance(db, user, license_obj, credit_cost)
     provider_key = "points_provider" if purpose == "points" else "chat_provider"
     api_key, chat_url, chat_provider = chat_provider_config(db, provider_key)
     payload["model"] = chat_model_for_purpose(db, chat_provider, purpose)
@@ -769,7 +795,7 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
     data = res.json()
     content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
     input_tokens, output_tokens = token_usage(data)
-    record_usage(db, user, payload["model"], input_tokens, output_tokens, product_code_for_app(app_key_override or request_app_key(request)))
+    record_usage(db, user, payload["model"], input_tokens, output_tokens, product_code_for_app(app_key_override or request_app_key(request)), credit_cost)
     conv = Conversation(organization_id=user.organization_id, user_id=user.id, title="AI request")
     db.add(conv)
     db.flush()

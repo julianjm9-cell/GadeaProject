@@ -1590,6 +1590,7 @@ async function groqChat(messages, options = {}) {
     max_tokens: Math.min(options.max_tokens || 2200, limits.maxOutputTokens),
     temperature: options.temperature ?? 0.35,
     ...(options.purpose ? { purpose: options.purpose } : {}),
+    ...(options.credit_cost ? { credit_cost: options.credit_cost } : {}),
     ...(options.response_format ? { response_format: options.response_format } : {}),
     messages
   };
@@ -1650,7 +1651,6 @@ function generationLimits() {
   const limits = backendStatus?.limits || {};
   return {
     maxOutputTokens: Number(limits.max_output_tokens || 3200),
-    maxPoints: Number(limits.max_points || 4),
     maxVocab: Number(limits.max_vocab || 3),
     profileChars: Number(limits.profile_chars ?? 420)
   };
@@ -2124,11 +2124,7 @@ async function generateSession(topic) {
 
   if (BACKEND_SUPPORTED) await loadBackendStatus();
   const limits = generationLimits();
-  const requestedPoints = parseInt(document.getElementById('numPoints').value, 10) || 5;
-  const n = Math.min(requestedPoints, limits.maxPoints || requestedPoints);
-  if (requestedPoints > n) {
-    alert(`El servidor permite ${n} puntos ahora mismo. Sube MAX_POINTS en el .env para generar ${requestedPoints}.`);
-  }
+  const n = parseInt(document.getElementById('numPoints').value, 10) || 5;
   const nv = Math.min(parseInt(document.getElementById('numVocab').value) || 5, limits.maxVocab);
   const profile = (document.getElementById('profileContext').value || '').slice(0, limits.profileChars);
   const langName = 'English';
@@ -2158,6 +2154,7 @@ Respond ONLY with valid JSON, no markdown:
       max_tokens: limits.maxOutputTokens,
       temperature: 0.55,
       purpose: 'points',
+      credit_cost: n,
       response_format: { type: 'json_object' }
     });
     document.getElementById('loadingBar').style.display = 'none';
