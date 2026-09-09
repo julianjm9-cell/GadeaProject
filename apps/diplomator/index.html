@@ -2193,7 +2193,11 @@ async function generateSession(topic) {
 
   if (BACKEND_SUPPORTED) await loadBackendStatus();
   const limits = generationLimits();
-  const n = Math.min(parseInt(document.getElementById('numPoints').value) || 5, limits.maxPoints);
+  const requestedPoints = parseInt(document.getElementById('numPoints').value, 10) || 5;
+  const n = Math.min(requestedPoints, limits.maxPoints || requestedPoints);
+  if (requestedPoints > n) {
+    alert(`El servidor permite ${n} puntos ahora mismo. Sube MAX_POINTS en el .env para generar ${requestedPoints}.`);
+  }
   const nv = Math.min(parseInt(document.getElementById('numVocab').value) || 5, limits.maxVocab);
   const profile = (document.getElementById('profileContext').value || '').slice(0, limits.profileChars);
   const langName = state.lang === 'en' ? 'English' : 'French';

@@ -142,15 +142,68 @@ h2 {
 .hero.single .actions { justify-content:center; }
 
 .promise-card {
+  position:relative;
+  overflow:hidden;
   padding:20px;
   border:1px solid var(--line);
   border-radius:10px;
   background:#fff;
   box-shadow:var(--shadow);
 }
+.visual-card {
+  min-height:390px;
+  display:grid;
+  align-content:end;
+  border-color:color-mix(in srgb, var(--main) 24%, var(--line));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--soft) 72%, white), #fff 46%, color-mix(in srgb, var(--accent) 10%, white));
+}
+.visual-card::before {
+  content:"";
+  position:absolute;
+  inset:18px 18px auto auto;
+  width:44%;
+  height:42%;
+  border:1px solid color-mix(in srgb, var(--main) 32%, transparent);
+  border-radius:8px;
+  background:
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--main) 12%, white) 0 1px, transparent 1px 18px),
+    linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.48));
+}
+.visual-card::after {
+  content:"";
+  position:absolute;
+  left:22px;
+  top:24px;
+  width:38%;
+  height:110px;
+  border:1px solid color-mix(in srgb, var(--accent) 36%, var(--line));
+  border-radius:8px;
+  background:
+    linear-gradient(90deg, var(--main) 0 34%, transparent 34%),
+    linear-gradient(180deg, #fff, color-mix(in srgb, var(--soft) 70%, white));
+  box-shadow:0 18px 42px rgba(23,32,38,.10);
+}
+.visual-kicker {
+  position:relative;
+  z-index:1;
+  width:max-content;
+  max-width:100%;
+  margin-bottom:14px;
+  padding:9px 12px;
+  border:1px solid color-mix(in srgb, var(--main) 25%, var(--line));
+  border-radius:8px;
+  background:#fff;
+  color:var(--main);
+  font-size:13px;
+  font-weight:950;
+  text-transform:uppercase;
+}
 .promise-card h3 { margin:0; font-size:22px; }
 .promise-list { display:grid; gap:12px; margin-top:18px; }
 .promise-item {
+  position:relative;
+  z-index:1;
   display:grid;
   grid-template-columns:auto 1fr;
   gap:12px;
@@ -206,6 +259,10 @@ h2 {
 .e25 { --main:#b74338; --accent:#28666e; --soft:#fff1ed; }
 .cambridge { --main:#0f766e; --accent:#3157d5; --soft:#e7fbf7; }
 .diplomator { --main:#2454a6; --accent:#24785f; --soft:#edf4ff; }
+.product-card.u25 { background:linear-gradient(145deg,#fff,#f6f0ff); }
+.product-card.e25 { background:linear-gradient(145deg,#fff,#fff0ec); }
+.product-card.cambridge { background:linear-gradient(145deg,#fff,#eafbf8); }
+.product-card.diplomator { background:linear-gradient(145deg,#fff,#edf4ff); }
 
 section { padding:30px 0; }
 .route-grid {
@@ -330,4 +387,7 @@ footer {
   .product-grid { grid-template-columns:1fr; }
   h1 { font-size:38px; }
   .lead { font-size:17px; }
+  .visual-card { min-height:340px; }
+  .visual-card::before { width:56%; }
+  .visual-card::after { width:46%; }
 }

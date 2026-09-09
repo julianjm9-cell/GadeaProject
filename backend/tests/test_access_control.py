@@ -105,6 +105,14 @@ def test_public_marketing_pages_load_without_login(client, path):
     assert "text/html" in response.headers["content-type"]
 
 
+@pytest.mark.parametrize("path", ["/login", "/u25/login", "/e25/login", "/cambridge-info/login", "/diplomator/login"])
+def test_login_pages_load_without_login(client, path):
+    test_client, _ = client
+    response = test_client.get(path)
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+
+
 @pytest.mark.parametrize(
     ("path", "next_path"),
     [

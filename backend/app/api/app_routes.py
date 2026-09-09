@@ -470,6 +470,10 @@ def eso_public_page():
 
 
 @router.get("/login")
+@router.get("/u25/login")
+@router.get("/e25/login")
+@router.get("/cambridge-info/login")
+@router.get("/diplomator/login")
 def login_page():
     return static_html("login.html", PROJECT_ROOT / "backend" / "app" / "static" / "login.html")
 

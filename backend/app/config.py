@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     transcribe_model: str = "whisper-large-v3-turbo"
     max_prompt_chars: int = 24000
     max_output_tokens: int = 3200
-    max_points: int = 4
+    max_points: int = 5
     max_vocab: int = 3
     profile_chars: int = 420
 

@@ -65,6 +65,29 @@
       font-weight:900;
       font-size:22px;
     }
+    body[data-login-app="u25"] {
+      --blue:#6542a6;
+      --blue-2:#4b2f82;
+      --gold:#8a5d0f;
+    }
+    body[data-login-app="e25"] {
+      --blue:#b74338;
+      --blue-2:#8f3028;
+      --gold:#28666e;
+    }
+    body[data-login-app="cambridge"] {
+      --blue:#0f766e;
+      --blue-2:#0a514c;
+      --gold:#3157d5;
+    }
+    body[data-login-app="diplomator"] {
+      --blue:#2454a6;
+      --blue-2:#173d78;
+      --gold:#24785f;
+    }
+    body[data-login-app] .intro {
+      background:linear-gradient(135deg, #fff, rgba(234,241,255,.9) 54%, #fffdf8);
+    }
     .eyebrow {
       margin-top:22px;
       color:var(--gold);
@@ -216,12 +239,12 @@
 <main>
   <section class="intro" aria-label="Apps Suite">
     <div>
-      <div class="brand-mark">ED</div>
-      <div class="eyebrow">Educa Suite</div>
-      <h1>Entra y sigue por donde toca.</h1>
-      <p>Un solo acceso para tus apps. Despues eliges producto y la plataforma te lleva al siguiente paso.</p>
+      <div class="brand-mark" id="loginMark">ED</div>
+      <div class="eyebrow" id="loginEyebrow">Educa Suite</div>
+      <h1 id="loginTitle">Entra y sigue por donde toca.</h1>
+      <p id="loginCopy">Un solo acceso para tus apps. Despues eliges producto y la plataforma te lleva al siguiente paso.</p>
     </div>
-    <div class="app-strip" aria-label="Aplicaciones disponibles">
+    <div class="app-strip" id="loginCards" aria-label="Aplicaciones disponibles">
       <div class="app-pill">DIPLOMATOR<span>Temas claros y practica oral.</span></div>
       <div class="app-pill">CAMBRIDGE<span>Speaking y writing con criterio.</span></div>
       <div class="app-pill">UNIVERSIDAD +25<span>Sesion corta y simulacros.</span></div>
@@ -245,9 +268,63 @@
   </form>
 </main>
 <script>
+const LOGIN_TARGETS = {
+  '/u25/login': '/universidad-adultos',
+  '/e25/login': '/eso-adultos',
+  '/cambridge-info/login': '/cambridge',
+  '/diplomator/login': '/app'
+};
+const LOGIN_BRANDS = {
+  '/universidad-adultos': {
+    app:'u25',
+    mark:'U25',
+    eyebrow:'Acceso Universidad +25',
+    title:'Tu sesion +25, directa y sin ruido.',
+    copy:'Entra para estudiar el siguiente bloque, hacer un simulacro o continuar justo donde lo dejaste.',
+    cards:['Sesion de hoy|15, 30 o 45 minutos.', 'Simulacro|Practica tipo prueba.']
+  },
+  '/eso-adultos': {
+    app:'e25',
+    mark:'E25',
+    eyebrow:'ESO Adultos',
+    title:'Entra, haz una tarea y avanza.',
+    copy:'Bloques claros, practica corta y continuidad para no perderse entre materiales.',
+    cards:['Bloques|Comunicacion, social y cientifico.', 'Practica|Tests breves y repetibles.']
+  },
+  '/cambridge': {
+    app:'cambridge',
+    mark:'CAM',
+    eyebrow:'Cambridge Trainer',
+    title:'Speaking y writing, cada cosa en su sitio.',
+    copy:'Accede a tareas por nivel y parte del examen, con feedback orientado a mejorar.',
+    cards:['Speaking|Partes del oral listas.', 'Writing|Estructura y correccion.']
+  },
+  '/app': {
+    app:'diplomator',
+    mark:'DIP',
+    eyebrow:'Diplomator',
+    title:'Del tema abierto al guion defendible.',
+    copy:'Entra para ordenar ideas, generar puntos y practicar una exposicion oral con criterio.',
+    cards:['Tema|Puntos y conexiones.', 'Oral|Practica y mejora.']
+  }
+};
 function nextPath() {
-  const requested = new URLSearchParams(location.search).get('next') || '/apps';
+  const requested = new URLSearchParams(location.search).get('next') || LOGIN_TARGETS[location.pathname] || '/apps';
   return ['/app', '/cambridge', '/universidad-adultos', '/eso-adultos', '/apps'].includes(requested) ? requested : '/apps';
+}
+function applyLoginBrand() {
+  const brand = LOGIN_BRANDS[nextPath()];
+  if (!brand) return;
+  document.body.dataset.loginApp = brand.app;
+  document.title = `${brand.eyebrow} | Acceso`;
+  document.getElementById('loginMark').textContent = brand.mark;
+  document.getElementById('loginEyebrow').textContent = brand.eyebrow;
+  document.getElementById('loginTitle').textContent = brand.title;
+  document.getElementById('loginCopy').textContent = brand.copy;
+  document.getElementById('loginCards').innerHTML = brand.cards.map(item => {
+    const [title, text] = item.split('|');
+    return `<div class="app-pill">${title}<span>${text}</span></div>`;
+  }).join('');
 }
 function applyLoginLinks() {
   const next = nextPath();
@@ -288,6 +365,7 @@ async function login(event) {
   }
   location.href = nextPath();
 }
+applyLoginBrand();
 applyLoginLinks();
 </script>
 </body>
