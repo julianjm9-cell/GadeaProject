@@ -10,7 +10,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.database.session import Base, get_db
 from app.api import auth as auth_api
-from app.api.app_routes import record_usage
+from app.api.app_routes import points_credit_cost_from_content, record_usage
 from app.api.auth import LOGIN_BUCKET, ensure_google_access
 from app.main import app
 from app.models import License, Organization, UsageRecord, User
@@ -262,6 +262,15 @@ def test_point_generation_records_one_credit_per_point(client):
     assert len(rows) == 5
     assert sum(row.input_tokens for row in rows) == 10
     assert sum(row.output_tokens for row in rows) == 20
+
+
+def test_point_generation_charges_actual_returned_points():
+    content = '{"points":[{"title":"A","text":"..."},{"title":"B","text":"..."},{"title":"C","text":"..."}]}'
+    assert points_credit_cost_from_content(content, fallback=5) == 3
+
+
+def test_point_generation_falls_back_when_response_is_not_countable():
+    assert points_credit_cost_from_content('{"message":"ok"}', fallback=5) == 5
 
 
 def test_ai_settings_replaces_deprecated_groq_model(client):

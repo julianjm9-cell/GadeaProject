@@ -1698,6 +1698,16 @@ function ensurePointConnections(points) {
   }));
 }
 
+function generatedPointsFromResponse(parsed) {
+  if (Array.isArray(parsed?.points)) return parsed.points;
+  if (Array.isArray(parsed?.study_points)) return parsed.study_points;
+  if (Array.isArray(parsed?.key_points)) return parsed.key_points;
+  if (Array.isArray(parsed?.ideas)) return parsed.ideas;
+  if (Array.isArray(parsed)) return parsed;
+  if (parsed?.point || parsed?.title || parsed?.text) return [parsed.point || parsed];
+  return [];
+}
+
 function renderPointBody(p) {
   const point = normalizePoint(p);
   const title = point.title ? `<div class="point-title">${escHtml(point.title)}</div>` : '';
@@ -1800,12 +1810,13 @@ async function groqChat(messages, options = {}) {
   if (!license) throw new Error('Falta la clave de licencia DIPLOMATOR.');
   if (BACKEND_SUPPORTED) await loadBackendStatus();
   const limits = generationLimits();
+  const requestedMaxTokens = options.max_tokens || 2200;
   const payload = {
     model: options.model || GROQ_TEXT_MODEL,
-    max_tokens: Math.min(options.max_tokens || 2200, limits.maxOutputTokens),
+    max_tokens: options.purpose === 'points' ? requestedMaxTokens : Math.min(requestedMaxTokens, limits.maxOutputTokens),
     temperature: options.temperature ?? 0.35,
     ...(options.purpose ? { purpose: options.purpose } : {}),
-    ...(options.credit_cost ? { credit_cost: options.credit_cost } : {}),
+    ...(options.requested_points ? { requested_points: options.requested_points } : {}),
     ...(options.response_format ? { response_format: options.response_format } : {}),
     messages
   };
@@ -2169,7 +2180,7 @@ async function startSessionWithTopic(topic, autoGenerate = false) {
   } else {
     document.getElementById('aiPoints').innerHTML = `
       <div class="db-notice" style="text-align:center;">
-        Tema seleccionado. No se ha consumido ningun credito todavia. Generar puntos consumira 1 credito.
+        Tema seleccionado. No se ha consumido ningun credito todavia. Generar puntos consumira 1 credito por punto.
       </div>
       <div style="display:flex;justify-content:center;margin-top:14px;">
         <button class="btn btn-blue" onclick="generateCurrentSession()">Generar puntos</button>
@@ -2197,6 +2208,7 @@ async function generateSession(topic) {
   const nv = Math.min(parseInt(document.getElementById('numVocab').value) || 5, limits.maxVocab);
   const profile = (document.getElementById('profileContext').value || '').slice(0, limits.profileChars);
   const langName = state.lang === 'en' ? 'English' : 'French';
+  const generationMaxTokens = Math.max(limits.maxOutputTokens || 0, 2400 + (n * 1500));
 
   document.getElementById('loadingBar').style.display = 'block';
   document.getElementById('aiPoints').innerHTML = '';
@@ -2209,10 +2221,14 @@ Topic: "${topic}"
 
 This is a ${langName} oral-exam preparation tool. Generate everything in ${langName}.
 
-Generate exactly ${n} key study points. Each point must include:
+Generate exactly ${n} key study points. This number is mandatory: the "points" array must contain ${n} objects, no fewer and no more.
+The points must work as one coherent oral presentation: each point should develop a different angle, and the order must feel intentional.
+Do not compress several points into one object. Do not stop after the first point.
+
+Each point must include:
 - "title": a precise analytical title in ${langName}, max 9 words, not generic.
 - "text": written ENTIRELY IN ${langName.toUpperCase()} at polished C1/C2 level, 5-7 full sentences. It must sound like a high-quality oral briefing: nuanced, structured, historically grounded, and useful to recite. Avoid vague filler, school-level phrasing, generic moralising and empty introductions. Include context, turning points, actors, controversies, mechanisms and significance.
-- "connection": a mini oral connector written in ${langName}, 1-2 elegant sentences, 25-45 words. For points 1 to ${n - 1}, it must explicitly bridge this point to the next point so the presentation flows naturally. For the final point, write a concise closing transition.
+- "connection": a mini oral connector written in ${langName}, 1-2 elegant sentences, 25-45 words. For points 1 to ${n - 1}, it must explicitly bridge this point to the next point so the presentation flows naturally and names the logic of the transition. For the final point, write a concise closing transition.
 - "datedInfo": exactly 3 examples, facts or dates directly useful for oral recitation. Each item must have "date" and "text". Use concrete years or full dates when possible and include at least one recent reference when the topic allows it.
 
 For each point, generate exactly ${nv} advanced ${langName} vocabulary words/expressions (C1) directly related to that point. For each: the word in ${langName} and a SHORT Spanish translation (max 8 words).
@@ -2222,10 +2238,10 @@ Respond ONLY with valid JSON, no markdown:
 
   try {
     const raw = await groqChat([{ role: 'user', content: prompt }], {
-      max_tokens: limits.maxOutputTokens,
+      max_tokens: generationMaxTokens,
       temperature: 0.55,
       purpose: 'points',
-      credit_cost: n,
+      requested_points: n,
       response_format: { type: 'json_object' }
     });
     document.getElementById('loadingBar').style.display = 'none';
@@ -2235,7 +2251,14 @@ Respond ONLY with valid JSON, no markdown:
       return;
     }
 
-    session.aiPoints = ensurePointConnections(parsed.points || []).map((p, i) => ({
+    const generatedPoints = generatedPointsFromResponse(parsed);
+    if (generatedPoints.length < n) {
+      document.getElementById('aiPoints').innerHTML =
+        `<div class="notice">La IA ha devuelto ${generatedPoints.length || 0} punto${generatedPoints.length === 1 ? '' : 's'} de ${n}. Pulsa generar otra vez: la petición ya esta reforzada para pedir todos los puntos y sus conectores.</div>`;
+      return;
+    }
+
+    session.aiPoints = ensurePointConnections(generatedPoints.slice(0, n)).map((p, i) => ({
       ...normalizePoint(p, `Idea ${i + 1}`), accepted: false, aiIndex: i
     }));
     renderAIPoints();

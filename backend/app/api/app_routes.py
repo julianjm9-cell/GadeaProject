@@ -291,16 +291,28 @@ def frontend_error(payload: dict, request: Request, user: User = Depends(current
     return {"ok": True}
 
 
-def credit_cost_from_payload(payload: dict, purpose: str) -> int:
+def requested_credit_cost_from_payload(payload: dict, purpose: str) -> int:
     if purpose != "points":
         payload.pop("credit_cost", None)
+        payload.pop("requested_points", None)
         return 1
-    raw = payload.pop("credit_cost", 1)
+    raw = payload.pop("requested_points", payload.pop("credit_cost", 1))
     try:
         cost = int(raw)
     except (TypeError, ValueError):
         cost = 1
     return max(1, min(cost, 50))
+
+
+def points_credit_cost_from_content(content: str, fallback: int) -> int:
+    try:
+        body = json.loads(content)
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return fallback
+    points = body.get("points") if isinstance(body, dict) else None
+    if isinstance(points, list) and points:
+        return max(1, min(len(points), 50))
+    return fallback
 
 
 def ensure_credit_balance(db: Session, user: User, license_obj: License, credit_cost: int) -> None:
@@ -783,8 +795,8 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
     if len(str(payload)) > settings.max_prompt_chars:
         raise HTTPException(status_code=413, detail="Peticion demasiado grande.")
     purpose = str(payload.pop("purpose", "") or "").strip().lower()
-    credit_cost = credit_cost_from_payload(payload, purpose)
-    ensure_credit_balance(db, user, license_obj, credit_cost)
+    requested_credit_cost = requested_credit_cost_from_payload(payload, purpose)
+    ensure_credit_balance(db, user, license_obj, requested_credit_cost)
     provider_key = "points_provider" if purpose == "points" else "chat_provider"
     api_key, chat_url, chat_provider = chat_provider_config(db, provider_key)
     payload["model"] = chat_model_for_purpose(db, chat_provider, purpose)
@@ -795,7 +807,8 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
     data = res.json()
     content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
     input_tokens, output_tokens = token_usage(data)
-    record_usage(db, user, payload["model"], input_tokens, output_tokens, product_code_for_app(app_key_override or request_app_key(request)), credit_cost)
+    actual_credit_cost = points_credit_cost_from_content(content, requested_credit_cost) if purpose == "points" else requested_credit_cost
+    record_usage(db, user, payload["model"], input_tokens, output_tokens, product_code_for_app(app_key_override or request_app_key(request)), actual_credit_cost)
     conv = Conversation(organization_id=user.organization_id, user_id=user.id, title="AI request")
     db.add(conv)
     db.flush()
