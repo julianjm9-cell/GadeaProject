@@ -102,7 +102,7 @@ const DEMOS = {
     screens: {
       temas: {
         title: "Biblioteca de temas",
-        text: "Ideas, vocabulario, ejemplos y criterios oficiales de Cambridge ordenados por nivel y tipo de examen.",
+        text: "Ideas, vocabulario, ejemplos y criterios oficiales de inglés Cambridge ordenados por nivel y tipo de examen.",
         bullets: ["Criterios oficiales", "B2, C1 y C2", "Vocabulary banks"],
         cards: [
           ["Work", "Ideas para speaking y writing."],
