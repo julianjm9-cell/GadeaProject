@@ -9,55 +9,27 @@
   <link rel="stylesheet" href="/demo-shared.css">
 </head>
 <body class="e25" data-app="eso">
-  <div class="page">
-    <header class="topbar">
-      <a class="brand" href="/"><span class="logo">E25</span><span>ESO Adultos</span></a>
-      <nav class="nav"><a href="/">Suite</a><a href="#preview">Preview</a><a href="/e25/login">Acceder</a></nav>
-    </header>
-    <main>
-      <section class="hero">
-        <div>
-          <div class="eyebrow">Graduado ESO para adultos</div>
-          <h1>Estudiar por bloques, sin perderse entre apuntes.</h1>
-          <p class="lead">Actividad, mini test y siguiente tarea. Simple y repetible.</p>
-          <div class="actions"><a class="btn primary" href="/e25/login">Acceder</a><a class="btn" href="#preview">Ver dentro</a></div>
-        </div>
-        <aside class="promise-card visual-card">
-          <div class="visual-kicker">Actividad - test - avance</div>
-          <h3>Una pantalla por paso.</h3>
-          <div class="promise-list">
-            <article class="promise-item"><span class="mark">1</span><span><strong>Bloques claros</strong><p>Comunicacion, social y cientifico-tecnologico ordenados.</p></span></article>
-            <article class="promise-item"><span class="mark">2</span><span><strong>Practica corta</strong><p>Tests y modelos breves para repetir lo que cuesta.</p></span></article>
-          </div>
-        </aside>
-      </section>
-      <section id="preview">
-        <div class="eyebrow">Preview</div>
-        <h2>Menos pantalla, mas avance.</h2>
-        <div class="preview">
-          <div class="panel">
-            <strong>Dentro de la app</strong>
-            <p>El alumno entra a una tarea asumible y ve que hacer despues.</p>
-            <div class="tabs"><button class="tab" data-screen="hoy">Hoy</button><button class="tab" data-screen="examen">Practica</button></div>
-            <div class="note">Menos materiales dispersos, mas continuidad.</div>
-          </div>
-          <div class="screen">
-            <div class="screen-title"><h3 id="demoTitle"></h3><span class="pill" id="demoBadge"></span></div>
-            <div id="demoContent"></div>
-          </div>
-        </div>
-      </section>
-      <section>
-        <div class="eyebrow">Siguiente paso</div>
-        <div class="route-grid">
-          <a class="route-card" href="/e25/login"><span class="step">Acceso</span><strong>Entrar a ESO Adultos</strong><p>Usuario y licencia activa.</p></a>
-          <a class="route-card" href="/"><span class="step">Suite</span><strong>Ver otras webs</strong><p>Universidad +25, Cambridge y Diplomator.</p></a>
-        </div>
-      </section>
-    </main>
-    <footer>ESO Adultos. Bloques claros, practica corta y continuidad.</footer>
-  </div>
-  <div class="toast" id="toast"></div>
-  <script src="/demo-shared.js"></script>
+  <main class="landing-simple">
+    <section class="landing-copy">
+      <a class="mini-back" href="/">Ver las 4 webs</a>
+      <span class="logo">E25</span>
+      <p class="eyebrow">WEB PARA AYUDARTE A ESTUDIAR</p>
+      <h1>ESO Adultos sencilla, sin complicaciones.</h1>
+      <p class="lead">IA aplicada para estudiar mejor: una sesión clara, asignaturas ordenadas, práctica de examen y avance visible.</p>
+      <div class="feature-grid" aria-label="Funciones principales">
+        <article><span>1</span><strong>Sesión de hoy</strong><p>Elige 15, 30 o 45 minutos y empieza.</p></article>
+        <article><span>2</span><strong>Asignaturas</strong><p>Lengua, inglés, sociales, matemáticas y ciencias.</p></article>
+        <article><span>3</span><strong>Examen</strong><p>Simulacros por bloques y corrección guiada.</p></article>
+        <article><span>4</span><strong>Progreso</strong><p>Controla temas, tests y siguiente tarea.</p></article>
+      </div>
+      <a class="btn primary" href="/e25/login">Entrar</a>
+    </section>
+    <aside class="app-image" aria-label="Vista simplificada de ESO Adultos">
+      <div class="mock-header"><span>E25</span><b>Tu escritorio virtual</b></div>
+      <div class="mock-tabs"><i></i><i></i><i></i><i></i></div>
+      <div class="mock-card wide"><strong>Siguiente paso</strong><p>Lengua Castellana</p></div>
+      <div class="mock-grid"><div></div><div></div><div></div><div></div></div>
+    </aside>
+  </main>
 </body>
 </html>

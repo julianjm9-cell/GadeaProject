@@ -9,55 +9,27 @@
   <link rel="stylesheet" href="/demo-shared.css">
 </head>
 <body class="cambridge" data-app="cambridge">
-  <div class="page">
-    <header class="topbar">
-      <a class="brand" href="/"><span class="logo">CAM</span><span>Cambridge Trainer</span></a>
-      <nav class="nav"><a href="/">Suite</a><a href="#preview">Preview</a><a href="/cambridge-info/login">Acceder</a></nav>
-    </header>
-    <main>
-      <section class="hero">
-        <div>
-          <div class="eyebrow">Cambridge B2, C1 y C2</div>
-          <h1>Practica speaking y writing sin depender de prompts improvisados.</h1>
-          <p class="lead">Speaking y writing separados en tareas concretas con feedback.</p>
-          <div class="actions"><a class="btn primary" href="/cambridge-info/login">Acceder</a><a class="btn" href="#preview">Ver dentro</a></div>
-        </div>
-        <aside class="promise-card visual-card">
-          <div class="visual-kicker">B2 - C1 - C2</div>
-          <h3>Examen dividido.</h3>
-          <div class="promise-list">
-            <article class="promise-item"><span class="mark">1</span><span><strong>Speaking por parte</strong><p>Practica long turn, discussion e interview con temas listos.</p></span></article>
-            <article class="promise-item"><span class="mark">2</span><span><strong>Writing con criterios</strong><p>Essay, review o report con estructura y correccion enfocada.</p></span></article>
-          </div>
-        </aside>
-      </section>
-      <section id="preview">
-        <div class="eyebrow">Preview</div>
-        <h2>El examen queda dividido en pasos.</h2>
-        <div class="preview">
-          <div class="panel">
-            <strong>Dentro de la app</strong>
-            <p>Elige nivel, parte del examen y practica con una estructura clara.</p>
-            <div class="tabs"><button class="tab" data-screen="speaking">Speaking</button><button class="tab" data-screen="writing">Writing</button></div>
-            <div class="note">Sin prompts improvisados ni pantallas cargadas.</div>
-          </div>
-          <div class="screen">
-            <div class="screen-title"><h3 id="demoTitle"></h3><span class="pill" id="demoBadge"></span></div>
-            <div id="demoContent"></div>
-          </div>
-        </div>
-      </section>
-      <section>
-        <div class="eyebrow">Siguiente paso</div>
-        <div class="route-grid">
-          <a class="route-card" href="/cambridge-info/login"><span class="step">Acceso</span><strong>Entrar a Cambridge</strong><p>Usuario y licencia activa.</p></a>
-          <a class="route-card" href="/"><span class="step">Suite</span><strong>Ver otras webs</strong><p>Universidad +25, ESO Adultos y Diplomator.</p></a>
-        </div>
-      </section>
-    </main>
-    <footer>Cambridge Trainer. Practica por partes, feedback y progreso.</footer>
-  </div>
-  <div class="toast" id="toast"></div>
-  <script src="/demo-shared.js"></script>
+  <main class="landing-simple">
+    <section class="landing-copy">
+      <a class="mini-back" href="/">Ver las 4 webs</a>
+      <span class="logo">CAM</span>
+      <p class="eyebrow">WEB PARA AYUDARTE A ESTUDIAR</p>
+      <h1>Cambridge sencillo, sin complicaciones.</h1>
+      <p class="lead">IA aplicada para estudiar mejor: temas organizados, sesión del día, práctica oral y writing con feedback.</p>
+      <div class="feature-grid" aria-label="Funciones principales">
+        <article><span>1</span><strong>Temas</strong><p>B2, C1 y C2 ordenados por destrezas.</p></article>
+        <article><span>2</span><strong>Sesión de hoy</strong><p>Empieza con una práctica concreta.</p></article>
+        <article><span>3</span><strong>Oral</strong><p>Speaking, transcripción y corrección.</p></article>
+        <article><span>4</span><strong>Writing</strong><p>Essay, review, report y propuesta.</p></article>
+      </div>
+      <a class="btn primary" href="/cambridge-info/login">Entrar</a>
+    </section>
+    <aside class="app-image" aria-label="Vista simplificada de Cambridge Trainer">
+      <div class="mock-header"><span>CAM</span><b>Cambridge Trainer</b></div>
+      <div class="mock-tabs"><i></i><i></i><i></i><i></i></div>
+      <div class="mock-card wide"><strong>Speaking</strong><p>Practice and feedback</p></div>
+      <div class="mock-grid"><div></div><div></div><div></div><div></div></div>
+    </aside>
+  </main>
 </body>
 </html>

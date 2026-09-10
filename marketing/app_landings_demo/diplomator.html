@@ -9,55 +9,27 @@
   <link rel="stylesheet" href="/demo-shared.css">
 </head>
 <body class="diplomator" data-app="diplomator">
-  <div class="page">
-    <header class="topbar">
-      <a class="brand" href="/"><span class="logo">DIP</span><span>Diplomator</span></a>
-      <nav class="nav"><a href="/">Suite</a><a href="#preview">Preview</a><a href="/diplomator/login">Acceder</a></nav>
-    </header>
-    <main>
-      <section class="hero">
-        <div>
-          <div class="eyebrow">Temas y exposicion oral</div>
-          <h1>Convierte un tema complejo en una exposicion que puedas defender.</h1>
-          <p class="lead">Tema ordenado, guion oral y practica. Sin pagina en blanco.</p>
-          <div class="actions"><a class="btn primary" href="/diplomator/login">Acceder</a><a class="btn" href="#preview">Ver dentro</a></div>
-        </div>
-        <aside class="promise-card visual-card">
-          <div class="visual-kicker">Tema -> puntos -> oral</div>
-          <h3>Guion defendible.</h3>
-          <div class="promise-list">
-            <article class="promise-item"><span class="mark">1</span><span><strong>Tema con estructura</strong><p>Idea central, tres puntos y cierre para no dispersarse.</p></span></article>
-            <article class="promise-item"><span class="mark">2</span><span><strong>Practica oral</strong><p>Ensayo y mejora centrados en claridad, ritmo y precision.</p></span></article>
-          </div>
-        </aside>
-      </section>
-      <section id="preview">
-        <div class="eyebrow">Preview</div>
-        <h2>De tema abierto a guion practicable.</h2>
-        <div class="preview">
-          <div class="panel">
-            <strong>Dentro de la app</strong>
-            <p>Abre un tema, ajusta sus puntos y practica una version oral clara.</p>
-            <div class="tabs"><button class="tab" data-screen="tema">Tema</button><button class="tab" data-screen="oral">Oral</button></div>
-            <div class="note">Ideal cuando el alumno necesita orden, no mas ruido.</div>
-          </div>
-          <div class="screen">
-            <div class="screen-title"><h3 id="demoTitle"></h3><span class="pill" id="demoBadge"></span></div>
-            <div id="demoContent"></div>
-          </div>
-        </div>
-      </section>
-      <section>
-        <div class="eyebrow">Siguiente paso</div>
-        <div class="route-grid">
-          <a class="route-card" href="/diplomator/login"><span class="step">Acceso</span><strong>Entrar a Diplomator</strong><p>Usuario y licencia activa.</p></a>
-          <a class="route-card" href="/"><span class="step">Suite</span><strong>Ver otras webs</strong><p>Universidad +25, ESO Adultos y Cambridge.</p></a>
-        </div>
-      </section>
-    </main>
-    <footer>Diplomator. Temas claros, guion oral y practica guiada.</footer>
-  </div>
-  <div class="toast" id="toast"></div>
-  <script src="/demo-shared.js"></script>
+  <main class="landing-simple">
+    <section class="landing-copy">
+      <a class="mini-back" href="/">Ver las 4 webs</a>
+      <span class="logo">DIP</span>
+      <p class="eyebrow">WEB PARA AYUDARTE A ESTUDIAR</p>
+      <h1>Diplomator sencillo, sin complicaciones.</h1>
+      <p class="lead">IA aplicada para estudiar mejor: eliges tema, generas guion, practicas oral y corriges tu exposición.</p>
+      <div class="feature-grid" aria-label="Funciones principales">
+        <article><span>1</span><strong>Tema</strong><p>Ideas ordenadas para empezar sin bloqueo.</p></article>
+        <article><span>2</span><strong>Puntos</strong><p>Guion con estructura y datos útiles.</p></article>
+        <article><span>3</span><strong>Oral</strong><p>Ensayo de exposición en inglés o francés.</p></article>
+        <article><span>4</span><strong>Corrección</strong><p>Feedback claro para mejorar la siguiente práctica.</p></article>
+      </div>
+      <a class="btn primary" href="/diplomator/login">Entrar</a>
+    </section>
+    <aside class="app-image" aria-label="Vista simplificada de Diplomator">
+      <div class="mock-header"><span>DIP</span><b>Diplomator</b></div>
+      <div class="mock-tabs"><i></i><i></i><i></i><i></i></div>
+      <div class="mock-card wide"><strong>Guion oral</strong><p>Tema, puntos y práctica</p></div>
+      <div class="mock-grid"><div></div><div></div><div></div><div></div></div>
+    </aside>
+  </main>
 </body>
 </html>

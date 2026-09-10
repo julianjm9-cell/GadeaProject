@@ -3,45 +3,31 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Educa Suite | Apps de estudio simples</title>
-  <meta name="description" content="Acceso a las webs de Educa Suite: Universidad +25, ESO Adultos, Cambridge Trainer y Diplomator.">
+  <title>Educa Suite | Apps de estudio</title>
+  <meta name="description" content="Acceso a las cuatro webs de estudio: Universidad +25, ESO Adultos, Cambridge Trainer y Diplomator.">
   <meta name="robots" content="index,follow">
   <link rel="stylesheet" href="/demo-shared.css">
 </head>
 <body>
-  <div class="page">
-    <header class="topbar">
-      <a class="brand" href="/"><span class="logo">ED</span><span>Educa Suite</span></a>
-      <nav class="nav"><a href="/login?next=/apps">Acceder</a></nav>
-    </header>
-
-    <main>
-      <section class="hero single compact-home">
-        <div class="eyebrow">Educa Suite</div>
-        <h1>Elige la web que quieres ver.</h1>
-        <section class="product-grid" id="apps" aria-label="Productos">
-          <a class="product-card u25" href="/u25">
-            <span class="product-head"><span class="mini-logo">U25</span><span class="product-title">Acceso Universidad +25</span></span>
-            <p>Sesion corta y simulacros.</p>
-          </a>
-          <a class="product-card e25" href="/e25">
-            <span class="product-head"><span class="mini-logo">E25</span><span class="product-title">ESO Adultos</span></span>
-            <p>Bloques simples y practica.</p>
-          </a>
-          <a class="product-card cambridge" href="/cambridge-info">
-            <span class="product-head"><span class="mini-logo">CAM</span><span class="product-title">Cambridge Trainer</span></span>
-            <p>Speaking y writing claros.</p>
-          </a>
-          <a class="product-card diplomator" href="/diplomator">
-            <span class="product-head"><span class="mini-logo">DIP</span><span class="product-title">Diplomator</span></span>
-            <p>Temas y practica oral.</p>
-          </a>
-        </section>
-        <a class="quiet-login" href="/login?next=/apps">Acceder a mis apps</a>
-      </section>
-    </main>
-  </div>
-  <div class="toast" id="toast"></div>
-  <script src="/demo-shared.js"></script>
+  <main class="home-only" aria-label="Apps disponibles">
+    <section class="product-grid home-grid">
+      <a class="product-card u25" href="/u25">
+        <span class="product-head"><span class="mini-logo">U25</span><span class="product-title">Universidad +25</span></span>
+        <p>Sesión diaria, materias, examen y progreso.</p>
+      </a>
+      <a class="product-card e25" href="/e25">
+        <span class="product-head"><span class="mini-logo">E25</span><span class="product-title">ESO Adultos</span></span>
+        <p>Bloques claros, práctica corta y simulacros.</p>
+      </a>
+      <a class="product-card cambridge" href="/cambridge-info">
+        <span class="product-head"><span class="mini-logo">CAM</span><span class="product-title">Cambridge Trainer</span></span>
+        <p>Temas, speaking, writing y feedback.</p>
+      </a>
+      <a class="product-card diplomator" href="/diplomator">
+        <span class="product-head"><span class="mini-logo">DIP</span><span class="product-title">Diplomator</span></span>
+        <p>Temas, guion oral, práctica y corrección.</p>
+      </a>
+    </section>
+  </main>
 </body>
 </html>
