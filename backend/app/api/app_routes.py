@@ -472,7 +472,6 @@ def marketing_asset(filename: str):
         "flujo-pantallas-suite.png": "image/png",
         "roadmap-suite-terraza.png": "image/png",
         "roadmap-suite-terraza-3-fases.png": "image/png",
-        "eso-adultos-logo.png": "image/png",
         "simple-flow.svg": "image/svg+xml",
     }
     if filename not in allowed:
