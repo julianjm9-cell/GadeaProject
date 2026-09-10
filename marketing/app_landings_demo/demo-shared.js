@@ -3,7 +3,7 @@ const DEMOS = {
     first: "hoy",
     screens: {
       hoy: {
-        title: "Sesión de hoy",
+        title: "Sesión diaria",
         text: "La app te propone una tarea concreta según el tiempo que tengas.",
         bullets: ["15, 30 o 45 minutos", "Lectura, test o repaso", "Siguiente paso guardado"],
         cards: [
@@ -14,9 +14,9 @@ const DEMOS = {
         ]
       },
       materias: {
-        title: "Materias",
-        text: "Todo queda ordenado por bloques para no perder tiempo decidiendo.",
-        bullets: ["Temas por área", "Lecciones pequeñas", "Repaso de lo flojo"],
+        title: "Biblioteca de materias",
+        text: "Todo queda ordenado por materias, con temario y recursos oficiales para estudiar sin buscar de cero.",
+        bullets: ["Recursos oficiales", "Temas por área", "Lecciones pequeñas"],
         cards: [
           ["Lengua", "Comentario, gramática y literatura."],
           ["Inglés", "Reading, grammar y writing."],
@@ -25,13 +25,13 @@ const DEMOS = {
         ]
       },
       examen: {
-        title: "Examen",
-        text: "Practicas con formato parecido a la prueba y corrección clara.",
-        bullets: ["Simulacros cortos", "Preguntas tipo examen", "Feedback para mejorar"],
+        title: "Generador de exámenes",
+        text: "Genera simulacros y ejercicios tipo prueba. También puedes subir una foto de tu respuesta para corregirla automáticamente.",
+        bullets: ["Simulacros cortos", "Corrección por foto", "Feedback para mejorar"],
         cards: [
           ["Modelo rápido", "10 preguntas para calentar."],
           ["Simulacro", "Bloque completo cronometrado."],
-          ["Corrección", "Errores explicados sin lío."],
+          ["Foto corregida", "Subes tu ejercicio y recibes feedback."],
           ["Repetir", "Nueva ronda de lo fallado."]
         ]
       },
@@ -52,7 +52,7 @@ const DEMOS = {
     first: "hoy",
     screens: {
       hoy: {
-        title: "Sesión de hoy",
+        title: "Sesión diaria",
         text: "Entras, eliges tiempo y empiezas con una actividad clara.",
         bullets: ["Sin preparar materiales", "Tarea corta", "Corrección inmediata"],
         cards: [
@@ -63,9 +63,9 @@ const DEMOS = {
         ]
       },
       asignaturas: {
-        title: "Asignaturas",
-        text: "El temario está separado en bloques sencillos y fáciles de seguir.",
-        bullets: ["Lengua", "Sociales", "Científico-tecnológico"],
+        title: "Biblioteca de materias",
+        text: "El temario está separado por asignaturas y acompañado de recursos oficiales para seguir una ruta fiable.",
+        bullets: ["Recursos oficiales", "Lengua y sociales", "Científico-tecnológico"],
         cards: [
           ["Lengua", "Comunicación, gramática y textos."],
           ["Inglés", "Reading, grammar y writing básico."],
@@ -74,14 +74,14 @@ const DEMOS = {
         ]
       },
       examen: {
-        title: "Examen",
-        text: "Practicas por bloques para llegar con seguridad a la prueba.",
-        bullets: ["Mini tests", "Simulacros", "Repaso de errores"],
+        title: "Generador de exámenes",
+        text: "Crea práctica por bloques, genera simulacros y corrige automáticamente una foto de tus respuestas.",
+        bullets: ["Mini tests", "Corrección por foto", "Repaso de errores"],
         cards: [
           ["Tipo test", "Preguntas rápidas con resultado."],
           ["Desarrollo", "Respuesta guiada paso a paso."],
           ["Bloques", "Práctica por ámbito."],
-          ["Corrección", "Qué cambiar en la siguiente ronda."]
+          ["Foto corregida", "La app detecta errores y te explica mejoras."]
         ]
       },
       progreso: {
@@ -101,9 +101,9 @@ const DEMOS = {
     first: "temas",
     screens: {
       temas: {
-        title: "Temas",
-        text: "Ideas y vocabulario organizados por nivel y tipo de examen.",
-        bullets: ["B2, C1 y C2", "Vocabulary banks", "Ejemplos de respuesta"],
+        title: "Biblioteca de temas",
+        text: "Ideas, vocabulario, ejemplos y criterios oficiales de Cambridge ordenados por nivel y tipo de examen.",
+        bullets: ["Criterios oficiales", "B2, C1 y C2", "Vocabulary banks"],
         cards: [
           ["Work", "Ideas para speaking y writing."],
           ["Education", "Argumentos y conectores."],
@@ -112,7 +112,7 @@ const DEMOS = {
         ]
       },
       hoy: {
-        title: "Sesión de hoy",
+        title: "Sesión diaria",
         text: "Una práctica concreta para avanzar sin abrir mil recursos.",
         bullets: ["Speaking corto", "Writing plan", "Feedback final"],
         cards: [
@@ -150,9 +150,9 @@ const DEMOS = {
     first: "tema",
     screens: {
       tema: {
-        title: "Tema",
-        text: "Empiezas con una idea central y ejemplos para construir el oral.",
-        bullets: ["Resumen del tema", "Contexto", "Enfoque defendible"],
+        title: "Biblioteca de temas",
+        text: "Temas, enfoques y recursos base para construir una exposición sin empezar desde una página en blanco.",
+        bullets: ["Temas organizados", "Contexto", "Enfoque defendible"],
         cards: [
           ["Idea central", "Qué quieres defender."],
           ["Contexto", "Dato o marco inicial."],
