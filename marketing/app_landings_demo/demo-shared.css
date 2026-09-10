@@ -482,7 +482,17 @@ body {
 .landing-copy .lead {
   max-width:680px;
   margin:0;
-  font-size:17px;
+  color:var(--ink);
+  font-size:20px;
+  font-weight:850;
+}
+
+.landing-copy .sublead {
+  max-width:680px;
+  margin:0;
+  color:var(--muted);
+  font-size:16px;
+  line-height:1.45;
 }
 
 .feature-grid {
@@ -737,7 +747,8 @@ body {
   .landing-copy { justify-items:stretch; }
   .feature-grid { grid-template-columns:1fr; }
   .landing-copy h1 { font-size:32px; }
-  .landing-copy .lead { font-size:16px; }
+  .landing-copy .lead { font-size:18px; }
+  .landing-copy .sublead { font-size:15px; }
   .app-image { min-height:300px; padding:16px; }
   .mock-grid { grid-template-columns:1fr 1fr; }
   .mock-grid article { min-height:72px; padding:12px; }
