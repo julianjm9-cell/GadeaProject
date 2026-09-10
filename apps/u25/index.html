@@ -762,8 +762,11 @@
     .topic-library-list { display:grid; gap:8px; }
     .topic-row { width:100%; min-height:68px; display:grid; grid-template-columns:42px minmax(0,1fr) auto; align-items:center; gap:12px; padding:11px 13px; text-align:left; }
     .topic-row.done { border-color:#9bcdb4; background:#f4fbf7; }
-    .topic-status { width:34px; height:34px; display:grid; place-items:center; border-radius:50%; background:color-mix(in srgb,var(--module-color,var(--primary)) 12%,white); color:var(--module-color,var(--primary)); font-weight:950; }
+    .topic-status { width:42px; height:42px; display:grid; place-items:center; gap:0; border-radius:14px; background:color-mix(in srgb,var(--module-color,var(--primary)) 12%,white); color:var(--module-color,var(--primary)); font-weight:950; line-height:1; }
+    .topic-status .topic-visual { font-size:16px; line-height:1; }
+    .topic-status small { font-size:9px; color:color-mix(in srgb,var(--module-color,var(--primary)) 70%,#687282); }
     .topic-row.done .topic-status { background:var(--green); color:#fff; }
+    .topic-row.done .topic-status small { color:#fff; }
     .topic-row > span:nth-child(2) { min-width:0; display:grid; gap:4px; }
     .topic-row strong { display:block; min-width:0; font-size:15px; line-height:1.2; overflow-wrap:anywhere; }
     .topic-row small { display:block; color:var(--muted); font-weight:700; line-height:1.2; }
@@ -1616,6 +1619,435 @@
       .workspace-title { justify-self:stretch; }
       .workspace-head .tabs { width:100%; }
     }
+    /* UX/UI refresh: Universidad +25, azul y blanco, escritorio simplificado. */
+    :root {
+      --ink:#102033;
+      --muted:#5d6b7c;
+      --paper:#f4f8ff;
+      --panel:#ffffff;
+      --line:#d9e4f2;
+      --primary:#123a73;
+      --primary-dark:#0c2850;
+      --green:#1e8a70;
+      --red:#b74338;
+      --accent:#2563eb;
+      --gold:#2563eb;
+      --soft:#eaf2ff;
+      --shadow:0 16px 42px rgba(18,58,115,.08);
+    }
+    body {
+      background:radial-gradient(circle at 18% -10%, rgba(37,99,235,.15), transparent 34%), linear-gradient(180deg,#fff 0%,#f4f8ff 42%,#eef5ff 100%);
+      color:var(--ink);
+    }
+    body::before { display:none; }
+    .app { width:min(1440px,100%); padding:0 clamp(16px,4vw,72px) 42px; gap:20px; }
+    header {
+      min-height:92px;
+      margin:0;
+      padding:18px 0;
+      border:0;
+      border-bottom:1px solid rgba(18,58,115,.12);
+      border-radius:0;
+      background:transparent;
+      box-shadow:none;
+      backdrop-filter:none;
+      display:grid;
+      grid-template-columns:minmax(220px,320px) minmax(360px,1fr) auto;
+      align-items:center;
+      gap:18px;
+    }
+    .brand-logo {
+      width:62px;
+      height:62px;
+      border-radius:16px;
+      background:linear-gradient(135deg,var(--primary),var(--accent));
+      box-shadow:0 14px 30px rgba(18,58,115,.18);
+    }
+    .brand-logo::before,
+    .brand-logo::after { display:none; }
+    .brand-logo span { font-size:18px; color:#fff; transform:none; }
+    .brand h1 { color:var(--primary); font-size:22px; font-weight:850; text-transform:none; }
+    .brand p { display:block; max-width:280px; color:var(--muted); font-size:13px; line-height:1.3; }
+    header .screen-nav,
+    .library-tabs,
+    .tabs {
+      padding:5px;
+      border:1px solid rgba(18,58,115,.12);
+      border-radius:10px;
+      background:rgba(255,255,255,.72);
+      box-shadow:none;
+      gap:6px;
+    }
+    header .screen-nav { width:min(570px,100%); justify-self:center; grid-template-columns:repeat(4,minmax(0,1fr)); }
+    header .screen-nav button,
+    .library-tabs button,
+    .tabs button {
+      min-height:42px;
+      border:0;
+      border-radius:7px;
+      background:transparent;
+      color:#526176;
+      font-size:13px;
+      font-weight:750;
+      text-transform:none;
+      word-spacing:0;
+    }
+    header .screen-nav button.active,
+    .library-tabs button.active,
+    .tabs button.active,
+    button.primary {
+      background:var(--primary);
+      border-color:var(--primary);
+      color:#fff;
+      box-shadow:0 10px 22px rgba(18,58,115,.18);
+    }
+    .profile-button {
+      width:46px;
+      min-width:46px;
+      height:46px;
+      padding:0;
+      border-radius:50%;
+      border:0;
+      background:#e8f1ff;
+      color:var(--primary);
+      box-shadow:none;
+      justify-self:end;
+    }
+    .profile-button strong { display:none; }
+    .profile-icon,
+    .profile-avatar { border-radius:50%; background:#e8f1ff; color:var(--primary); box-shadow:none; }
+    button,
+    .profile-utility a,
+    .button-link {
+      border-color:var(--line);
+      border-radius:8px;
+      background:#fff;
+      color:var(--ink);
+      font-weight:750;
+      text-transform:none;
+      word-spacing:0;
+      box-shadow:none;
+    }
+    button:hover,
+    .profile-utility a:hover,
+    .button-link:hover {
+      border-color:var(--accent);
+      color:var(--primary);
+      box-shadow:0 12px 26px rgba(18,58,115,.10);
+      transform:translateY(-1px);
+    }
+    .session-flow,
+    .view-section,
+    .module-grid,
+    .workspace,
+    .progress-view,
+    .profile-panel { width:min(1120px,100%); margin-inline:auto; }
+    .session-chooser { padding:24px 0 10px; background:transparent; border:0; box-shadow:none; text-align:left; }
+    .desk-hero {
+      display:grid;
+      grid-template-columns:auto minmax(0,1fr);
+      gap:22px;
+      align-items:center;
+      margin-top:18px;
+    }
+    .u25-logo-mark {
+      width:104px;
+      height:104px;
+      display:grid;
+      place-items:center;
+      border-radius:24px;
+      background:linear-gradient(135deg,var(--primary),var(--accent));
+      color:#fff;
+      font-size:30px;
+      font-weight:900;
+      box-shadow:0 20px 46px rgba(18,58,115,.18);
+    }
+    .desk-hero h2 {
+      max-width:760px;
+      font-size:clamp(38px,5.4vw,68px);
+      line-height:1;
+      font-weight:850;
+      color:var(--primary-dark);
+      text-transform:none;
+      word-spacing:0;
+    }
+    .desk-hero p { max-width:640px; color:#516175; font-size:17px; line-height:1.45; }
+    .coach-strip,
+    .duration-options button,
+    .desk-shortcuts button,
+    .panel,
+    .session-plan,
+    .progress-simple,
+    .workspace,
+    .profile-panel,
+    .question,
+    .module-card,
+    .topic-row,
+    .lesson-card,
+    .test-card,
+    .exam-mode,
+    .exam-action-card,
+    .resource-card,
+    .simple-resource-list a,
+    .saved-note-card,
+    .theory-card,
+    .ai-notes-card,
+    .exam-ai-box,
+    .exam-history-card,
+    .exam-topic-map,
+    .exam-paper,
+    .ocr-card,
+    .topic-section,
+    .lesson-content .topic-reading {
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:#fff;
+      box-shadow:0 12px 32px rgba(18,58,115,.07);
+    }
+    #sessionChooser { background:transparent; border:0; box-shadow:none; }
+    .coach-strip { width:100%; margin:24px 0 0; padding:14px 16px; border-left:4px solid var(--accent); }
+    .coach-strip strong,
+    .result-label,
+    .mini-badge,
+    .pill { color:var(--primary); letter-spacing:0; text-transform:none; word-spacing:0; }
+    .duration-options { margin-top:18px; gap:12px; grid-template-columns:repeat(3,minmax(180px,1fr)); }
+    .duration-options button { min-height:86px; padding:18px 20px; justify-items:start; text-align:left; }
+    .duration-options strong { color:var(--accent); font-size:22px; font-weight:850; text-transform:none; }
+    .duration-options span,
+    .desk-shortcuts span { color:var(--muted); font-size:14px; font-weight:650; text-transform:none; word-spacing:0; }
+    .desk-shortcuts { margin-top:18px; display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:12px; }
+    .desk-shortcuts button { min-height:94px; padding:18px 20px; justify-content:flex-start; text-align:left; display:grid; align-content:center; gap:5px; }
+    .desk-shortcuts strong { color:var(--primary-dark); font-size:18px; font-weight:850; }
+    .module-card .icon,
+    .lesson-number,
+    .topic-status { background:color-mix(in srgb,var(--module-color,var(--primary)) 12%,white); color:var(--module-color,var(--primary)); box-shadow:none; }
+    .module-card .icon .topic-visual { font-size:20px; line-height:1; }
+    .module-card .icon small { display:block; margin-top:2px; font-size:9px; line-height:1; opacity:.88; }
+    .module-card.done .icon,
+    .topic-row.done .topic-status,
+    .lesson-card.done .lesson-number { background:var(--green); color:#fff; }
+    .module-card::after { background:var(--accent); opacity:1; }
+    .progress,
+    .progress-track { background:#e6eef9; }
+    .progress span,
+    .progress-track span { background:linear-gradient(90deg,var(--accent),var(--primary)); }
+    .workspace-head {
+      display:grid;
+      grid-template-columns:1fr;
+      align-items:center;
+      gap:16px;
+      border-color:var(--line);
+    }
+    .workspace-head .tabs {
+      width:100%;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      max-width:620px;
+      margin-inline:auto;
+    }
+    .teacher-head { background:linear-gradient(135deg,var(--primary),var(--accent)); }
+    .teacher-panel.collapsed { width:58px; top:auto; right:24px; bottom:24px; border-radius:18px; }
+    .teacher-panel.collapsed .teacher-head { min-height:58px; padding:8px; }
+    .teacher-panel.collapsed .teacher-id > div:not(.teacher-avatar) { display:none; }
+    .teacher-panel.collapsed .teacher-avatar { width:42px; height:42px; }
+    .teacher-panel.collapsed .teacher-toggle { position:absolute; right:-6px; top:-6px; width:24px; height:24px; min-width:24px; font-size:14px; background:var(--accent); border:0; }
+    .teacher-panel.collapsed {
+      width:48px;
+      right:18px;
+      bottom:18px;
+      top:auto;
+      border-radius:16px;
+    }
+    .teacher-panel.collapsed .teacher-head {
+      min-height:48px;
+      padding:7px;
+    }
+    .teacher-panel.collapsed .teacher-avatar {
+      width:34px;
+      height:34px;
+      font-size:14px;
+    }
+    .teacher-panel.collapsed .teacher-toggle {
+      width:20px;
+      height:20px;
+      min-width:20px;
+      font-size:12px;
+    }
+    /* Pantalla ancha: aprovechar mejor el escritorio sin romper lectura en movil. */
+    .app {
+      width:min(1760px,100%);
+      padding-inline:clamp(18px,3vw,56px);
+    }
+    .view-section,
+    .workspace,
+    .session-chooser,
+    .session-plan,
+    .progress-panel {
+      width:100%;
+      max-width:none;
+    }
+    .module-grid {
+      grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    }
+    .resource-grid {
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    }
+    .study-cockpit {
+      grid-template-columns:minmax(0,1.35fr) minmax(360px,.65fr);
+    }
+    .workspace {
+      display:grid;
+      grid-template-columns:minmax(0,1fr);
+    }
+    .topic-reading {
+      max-width:960px;
+    }
+    .profile-panel {
+      max-width:min(980px,calc(100vw - 36px));
+      margin-inline:auto;
+    }
+    .drive-profile-actions {
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+    /* Direccion visual: ancho util con eje centrado. */
+    header {
+      grid-template-columns:minmax(220px,1fr) minmax(420px,620px) minmax(52px,1fr);
+    }
+    header .screen-nav {
+      justify-self:center;
+      width:100%;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+    .profile-button {
+      justify-self:end;
+    }
+    .session-chooser {
+      display:grid;
+      justify-items:center;
+      padding-bottom:96px;
+    }
+    .desk-hero {
+      width:min(1120px,100%);
+      margin-inline:auto;
+      grid-template-columns:1fr;
+      justify-items:center;
+      text-align:center;
+      min-height:0;
+      padding:34px 0 22px;
+    }
+    .desk-hero > * {
+      max-width:100%;
+    }
+    .u25-logo-mark {
+      display:none;
+    }
+    .desk-hero h2,
+    .desk-hero p {
+      margin-inline:auto;
+    }
+    .desk-hero h2 {
+      font-size:clamp(32px,4.6vw,58px);
+      line-height:1;
+      margin-bottom:0;
+    }
+    .desk-hero p {
+      display:none;
+    }
+    .today-insight,
+    .duration-options,
+    .desk-shortcuts {
+      width:min(1120px,100%);
+      margin-inline:auto;
+    }
+    #sessionChooser .coach-strip {
+      width:min(350px,100%);
+      min-height:112px;
+      margin:18px auto 0;
+      padding:18px 20px;
+      display:grid;
+      align-content:center;
+      justify-content:center;
+      text-align:center;
+      border-left:0;
+      border-top:4px solid var(--accent);
+    }
+    .duration-options,
+    .desk-shortcuts {
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:18px;
+    }
+    .duration-options button,
+    .desk-shortcuts button {
+      min-height:112px;
+      align-content:center;
+      justify-content:center;
+      text-align:center;
+    }
+    header .screen-nav button {
+      white-space:normal;
+      line-height:1.1;
+      text-transform:none;
+      font-size:14px;
+    }
+    .brand p {
+      display:none !important;
+    }
+    .module-grid,
+    .resource-grid {
+      justify-content:center;
+    }
+    .workspace,
+    .session-plan,
+    .progress-panel {
+      max-width:1400px;
+      margin-inline:auto;
+    }
+    .profile-card {
+      max-width:960px;
+      margin-inline:auto;
+    }
+    @media (max-width:900px) {
+      .app { padding-inline:18px; }
+      header { grid-template-columns:1fr auto; min-height:0; }
+      header .screen-nav { grid-column:1/-1; width:100%; grid-template-columns:repeat(4,minmax(0,1fr)); }
+      .desk-hero { grid-template-columns:1fr; }
+      .duration-options,
+      .desk-shortcuts { grid-template-columns:1fr; }
+      .teacher-panel.collapsed { top:auto; bottom:18px; right:18px; }
+    }
+    @media (max-width:1100px) and (min-width:901px) {
+      header {
+        grid-template-columns:minmax(0,1fr) auto;
+      }
+      header .screen-nav {
+        grid-column:1 / -1;
+        grid-row:2;
+        width:min(620px,100%);
+      }
+      .profile-button {
+        grid-column:2;
+        grid-row:1;
+        align-self:center;
+      }
+      .brand {
+        grid-column:1;
+        grid-row:1;
+        max-width:none;
+      }
+      .brand p {
+        display:none !important;
+      }
+    }
+    @media (max-width:520px) {
+      .app { padding-inline:14px; }
+      .brand p { display:none; }
+      header .screen-nav { grid-template-columns:1fr 1fr; }
+      .desk-hero h2 { font-size:36px; }
+      .u25-logo-mark { width:82px; height:82px; border-radius:20px; font-size:24px; }
+      .workspace-head .tabs { grid-template-columns:1fr; }
+      .teacher-panel.collapsed { top:auto; right:12px; bottom:12px; }
+    }
   </style>
 </head>
 <body>
@@ -1625,18 +2057,16 @@
       <div class="brand-logo" aria-hidden="true"><span>U25</span></div>
       <div>
         <h1>ACCESO UNIVERSIDAD +25</h1>
-        <p>Estudia para el acceso a la universidad sin perderte. La app te dice que hacer, guarda tu avance y te ayuda a corregir.</p>
       </div>
     </div>
     <nav class="screen-nav">
-      <button id="navHome" type="button" onclick="showView('home')">HOY</button>
-      <button id="navModules" type="button" onclick="openLibrary()">BIBLIOTECA</button>
-      <button id="navExam" type="button" onclick="openModule('exam')">EXAMEN</button>
-      <button id="navProgress" type="button" onclick="showView('progress')">PROGRESO</button>
+      <button id="navHome" type="button" onclick="showView('home')">Sesión de hoy</button>
+      <button id="navModules" type="button" onclick="openLibrary()">Biblioteca</button>
+      <button id="navExam" type="button" onclick="openModule('exam')">Examen</button>
+      <button id="navProgress" type="button" onclick="showView('progress')">Progreso</button>
     </nav>
-    <button class="profile-button" id="profileButton" type="button" onclick="toggleProfile()" title="Perfil">
+    <button class="profile-button" id="profileButton" type="button" onclick="toggleProfile()" title="Perfil" aria-label="Perfil">
       <span class="profile-icon" id="profileIcon">U</span>
-      <strong id="profileButtonName">Perfil</strong>
     </button>
   </header>
 
@@ -1663,16 +2093,9 @@
             <p>El tema actual se guarda como Word en la carpeta de su asignatura. Los examenes se guardan aparte dentro de esa misma estructura.</p>
           </div>
           <div><label>Carpeta de Drive</label><input id="driveFolderInput" placeholder="Pega aqui el enlace o ID de la carpeta"></div>
-          <div class="toolbar">
-            <button type="button" onclick="handleDriveConnect()" id="driveConnectBtn">Conectar Drive</button>
+          <div class="toolbar drive-profile-actions">
+            <button class="primary" type="button" onclick="handleDriveConnect()" id="driveConnectBtn">Conectar Drive</button>
             <button type="button" onclick="saveDriveFolder()">Guardar carpeta</button>
-            <button type="button" onclick="refreshDriveStatus()">Actualizar</button>
-          </div>
-          <div class="document-actions">
-            <button class="primary" type="button" onclick="uploadWordDrive('topic')">Guardar tema en Drive</button>
-            <button type="button" onclick="saveWordLocal('topic')">Guardar tema local</button>
-            <button type="button" onclick="uploadWordDrive('exam')">Guardar examen en Drive</button>
-            <button type="button" onclick="saveWordLocal('exam')">Guardar examen local</button>
           </div>
           <div class="drive-status" id="driveStatus">Drive pendiente de comprobar.</div>
           </div>
@@ -1685,12 +2108,19 @@
 
   <section class="session-flow view-section" id="homeView">
     <article class="panel session-chooser" id="sessionChooser">
-      <h2>¿CUANTO TIEMPO TIENES?</h2>
+      <div class="desk-hero">
+        <h2>Tu escritorio virtual</h2>
+      </div>
       <div class="coach-strip" id="todayInsight"></div>
       <div class="duration-options">
-        <button type="button" onclick="setSessionDuration(15)"><strong>15 MIN</strong><span>UN TEMA</span></button>
-        <button type="button" onclick="setSessionDuration(30)"><strong>30 MIN</strong><span>TEMA + TEST</span></button>
-        <button type="button" onclick="setSessionDuration(45)"><strong>45 MIN</strong><span>SESION COMPLETA</span></button>
+        <button type="button" onclick="setSessionDuration(15)"><strong>15 min</strong><span>Repaso rápido</span></button>
+        <button type="button" onclick="setSessionDuration(30)"><strong>30 min</strong><span>Estudiar y practicar</span></button>
+        <button type="button" onclick="setSessionDuration(45)"><strong>45 min</strong><span>Sesión completa</span></button>
+      </div>
+      <div class="desk-shortcuts" aria-label="Accesos rapidos">
+        <button type="button" onclick="openLibrary()"><strong>Materias</strong><span>Fase general y especifica</span></button>
+        <button type="button" onclick="openModule('exam')"><strong>Examen</strong><span>Simulacros y correccion</span></button>
+        <button type="button" onclick="showView('progress')"><strong>Progreso</strong><span>Continua por donde ibas</span></button>
       </div>
     </article>
     <article class="panel session-plan" id="sessionPlan" hidden>
@@ -1769,7 +2199,10 @@ const MODULES = [
       {id:'lc-sintaxis-compuesta', title:'Oracion compuesta', detail:'Coordinacion y subordinacion.', tags:['lengua','contenidos'], note:'Separa proposiciones por verbos y nexos. Decide si son coordinadas o si una depende de otra.', example:'Dijo que vendria contiene una subordinada sustantiva.'},
       {id:'lc-lexico', title:'Lexico y semantica', detail:'Significado, relaciones y registro.', tags:['lengua','consulta'], note:'Trabaja sinonimia, antonimia, polisemia, campos semanticos y significado contextual.', example:'Banco puede ser asiento, entidad financiera o conjunto de peces.'},
       {id:'lc-ortografia', title:'Ortografia', detail:'Acentuacion y puntuacion.', tags:['lengua','consulta'], note:'Revisa tildes, mayusculas, signos y palabras conflictivas. La puntuacion debe mostrar la estructura de las ideas.', example:'Una coma no debe separar sujeto y verbo.'},
-      {id:'lc-literatura', title:'Literatura', detail:'Movimientos, autores y comentario.', tags:['lengua','contenidos'], note:'Relaciona obra, autor, epoca y rasgos. Prioriza movimientos que aparezcan en el programa oficial de tu universidad.', example:'En la Generacion del 98 destacan la preocupacion por Espana y la renovacion del estilo.'}
+      {id:'lc-literatura', title:'Literatura', detail:'Movimientos, autores y comentario.', tags:['lengua','contenidos'], note:'Relaciona obra, autor, epoca y rasgos. Prioriza movimientos que aparezcan en el programa oficial de tu universidad.', example:'En la Generacion del 98 destacan la preocupacion por Espana y la renovacion del estilo.'},
+      {id:'lc-texto-actualidad', title:'Texto de actualidad', detail:'Opinion, medios y discurso publico.', tags:['lengua','redaccion'], note:'Reconoce tema, posicion del autor, argumentos, datos y vocabulario valorativo en textos periodisticos o divulgativos.', example:'Un editorial no solo informa: defiende una postura.'},
+      {id:'lc-cohesion', title:'Cohesion textual', detail:'Conectores, referencias y progresion.', tags:['lengua','redaccion'], note:'Analiza como se enlazan las ideas mediante conectores, sinonimos, pronombres y orden de la informacion.', example:'Por tanto introduce una consecuencia de lo dicho antes.'},
+      {id:'lc-redaccion-examen', title:'Redaccion de examen', detail:'Claridad, registro y presentacion.', tags:['lengua','redaccion'], note:'Practica respuestas completas, ordenadas y ajustadas a lo que pide el enunciado.', example:'Define, explica y ejemplifica en parrafos breves.'}
     ]
   },
   {
@@ -1783,7 +2216,9 @@ const MODULES = [
       {id:'en-vocabulary', title:'Vocabulary in context', detail:'Deducir significado por contexto.', tags:['ingles','consulta'], note:'Observa prefijos, sufijos, ejemplos y contraste. No traduzcas cada palabra.', example:'However suele introducir contraste entre dos ideas.'},
       {id:'en-grammar', title:'Grammar', detail:'Tiempos, modales y estructuras.', tags:['ingles','contenidos'], note:'Prioriza tiempos verbales, condicionales, pasiva, relativos y modales frecuentes.', example:'If I had studied, I would have passed es un tercer condicional.'},
       {id:'en-connectors', title:'Connectors', detail:'Ordenar y relacionar ideas.', tags:['ingles','redaccion'], note:'Usa conectores de adicion, contraste, causa, consecuencia y conclusion sin repetir siempre los mismos.', example:'Moreover anade; however contrasta; therefore expresa consecuencia.'},
-      {id:'en-writing', title:'Writing', detail:'Texto claro y bien revisado.', tags:['ingles','redaccion'], note:'Planifica introduccion, dos ideas desarrolladas y cierre. Revisa tiempos, concordancia y registro.', example:'Un writing de opinion necesita postura, razones y un ejemplo concreto.'}
+      {id:'en-writing', title:'Writing', detail:'Texto claro y bien revisado.', tags:['ingles','redaccion'], note:'Planifica introduccion, dos ideas desarrolladas y cierre. Revisa tiempos, concordancia y registro.', example:'Un writing de opinion necesita postura, razones y un ejemplo concreto.'},
+      {id:'en-translation', title:'Traduccion y reformulacion', detail:'Equivalencias, registro y errores frecuentes.', tags:['ingles','consulta'], note:'Evita traducciones literales y conserva sentido, tiempo verbal y registro.', example:'Actually significa en realidad, no actualmente.'},
+      {id:'en-exam-functions', title:'Funciones comunicativas', detail:'Opinion, contraste, causa y finalidad.', tags:['ingles','redaccion'], note:'Domina formulas para expresar acuerdo, contraste, hipotesis, finalidad y consecuencia.', example:'Although introduces contrast; in order to introduces purpose.'}
     ]
   },
   {
@@ -1797,7 +2232,9 @@ const MODULES = [
       {id:'hu-filosofia', title:'Filosofia', detail:'Problemas, autores y argumentos.', tags:['contenidos'], note:'Relaciona cada autor con su pregunta central y reconstruye el argumento paso a paso.', example:'Descartes busca una certeza que resista la duda.'},
       {id:'hu-arte', title:'Historia del arte', detail:'Estilos, obras y comentario.', tags:['contenidos','mapas'], note:'Identifica estilo, cronologia, elementos formales, funcion y contexto.', example:'En una catedral gotica destacan verticalidad, arco apuntado y vidrieras.'},
       {id:'hu-geografia', title:'Geografia humana', detail:'Poblacion, ciudad y territorio.', tags:['geografia','mapas','datos'], note:'Interpreta mapas y graficos antes de memorizar definiciones. Explica causas y contrastes territoriales.', example:'Una piramide regresiva indica baja natalidad y envejecimiento.'},
-      {id:'hu-latin', title:'Latin y cultura clasica', detail:'Morfologia, traduccion y legado.', tags:['lengua','contenidos'], note:'Analiza primero verbo y casos; despues construye una traduccion natural.', example:'El nominativo suele desempenar la funcion de sujeto.'}
+      {id:'hu-latin', title:'Latin y cultura clasica', detail:'Morfologia, traduccion y legado.', tags:['lengua','contenidos'], note:'Analiza primero verbo y casos; despues construye una traduccion natural.', example:'El nominativo suele desempenar la funcion de sujeto.'},
+      {id:'hu-literatura', title:'Literatura espanola', detail:'Generos, epocas y comentario.', tags:['lengua','contenidos'], note:'Situa textos literarios por epoca, genero, tema, rasgos formales y contexto cultural.', example:'El realismo busca representar problemas sociales con narrador observador.'},
+      {id:'hu-politica', title:'Politica y sociedad', detail:'Estado, ciudadania y pensamiento politico.', tags:['contenidos','datos'], note:'Relaciona ideologias, instituciones, participacion, derechos y organizacion social.', example:'La separacion de poderes limita la concentracion de poder.'}
     ]
   },
   {
@@ -1811,7 +2248,10 @@ const MODULES = [
       {id:'cs-empresa', title:'Empresa', detail:'Organizacion, costes y financiacion.', tags:['datos','contenidos'], note:'Diferencia ingresos, costes fijos, variables, beneficio y fuentes de financiacion.', example:'El punto muerto es el nivel de ventas que cubre todos los costes.'},
       {id:'cs-porcentajes', title:'Porcentajes e indices', detail:'Variaciones y tasas.', tags:['matematicas','datos'], note:'Distingue porcentaje de una cantidad y variacion porcentual entre dos valores.', example:'Subir de 80 a 100 supone un aumento del 25 por ciento.'},
       {id:'cs-estadistica', title:'Estadistica', detail:'Tablas, graficos y medidas.', tags:['matematicas','datos'], note:'Calcula e interpreta media, mediana, moda y dispersion basica.', example:'La mediana resiste mejor que la media los valores extremos.'},
-      {id:'cs-geografia', title:'Geografia economica', detail:'Sectores, comercio y desigualdad.', tags:['geografia','mapas','datos'], note:'Relaciona recursos, actividades, redes de transporte y especializacion territorial.', example:'Un puerto puede impulsar industria, logistica y comercio exterior.'}
+      {id:'cs-geografia', title:'Geografia economica', detail:'Sectores, comercio y desigualdad.', tags:['geografia','mapas','datos'], note:'Relaciona recursos, actividades, redes de transporte y especializacion territorial.', example:'Un puerto puede impulsar industria, logistica y comercio exterior.'},
+      {id:'cs-derecho', title:'Nociones juridicas', detail:'Normas, derechos y sistema institucional.', tags:['contenidos','redaccion'], note:'Diferencia norma, ley, derecho, deber, administracion, tribunal e institucion democratica.', example:'La Constitucion es la norma superior del ordenamiento juridico.'},
+      {id:'cs-educacion', title:'Educacion', detail:'Aprendizaje, sistema educativo e inclusion.', tags:['contenidos','redaccion'], note:'Relaciona educacion, socializacion, igualdad de oportunidades, diversidad y aprendizaje permanente.', example:'La educacion inclusiva adapta apoyos para que el alumnado participe.'},
+      {id:'cs-antropologia', title:'Antropologia', detail:'Cultura, identidad y diversidad social.', tags:['contenidos','datos'], note:'Analiza costumbres, parentesco, identidad, etnocentrismo y cambio cultural con ejemplos.', example:'Una practica cultural debe entenderse dentro de su contexto social.'}
     ]
   },
   {
@@ -1825,7 +2265,9 @@ const MODULES = [
       {id:'ci-genetica', title:'Genetica', detail:'ADN, genes y herencia.', tags:['ciencias','simulaciones'], note:'Diferencia gen, alelo, genotipo y fenotipo. Practica cruces sencillos.', example:'Dos heterocigotos Aa pueden producir descendencia aa.'},
       {id:'ci-quimica', title:'Quimica', detail:'Materia, enlace y reacciones.', tags:['ciencias','simulaciones'], note:'Ajusta ecuaciones conservando atomos y trabaja moles, concentracion y estequiometria basica.', example:'En 2H2 + O2 -> 2H2O se conservan hidrogeno y oxigeno.'},
       {id:'ci-fisica', title:'Fisica', detail:'Movimiento, fuerzas y energia.', tags:['ciencias','simulaciones'], note:'Anota datos, unidades, formula, sustitucion y resultado. Comprueba si el valor es razonable.', example:'Velocidad media es espacio recorrido dividido entre tiempo.'},
-      {id:'ci-salud', title:'Salud y medio ambiente', detail:'Sistemas, enfermedad y ecosistemas.', tags:['ciencias','contenidos'], note:'Relaciona procesos biologicos con prevencion y equilibrio ambiental.', example:'La vacunacion reduce la transmision y protege a la comunidad.'}
+      {id:'ci-salud', title:'Salud y medio ambiente', detail:'Sistemas, enfermedad y ecosistemas.', tags:['ciencias','contenidos'], note:'Relaciona procesos biologicos con prevencion y equilibrio ambiental.', example:'La vacunacion reduce la transmision y protege a la comunidad.'},
+      {id:'ci-psicologia', title:'Psicologia', detail:'Conducta, aprendizaje y procesos mentales.', tags:['contenidos','datos'], note:'Comprende memoria, motivacion, aprendizaje, personalidad y salud mental con enfoque cientifico.', example:'El condicionamiento relaciona estimulos, respuestas y consecuencias.'},
+      {id:'ci-metodo', title:'Metodo cientifico', detail:'Hipotesis, variables, datos y conclusion.', tags:['ciencias','datos'], note:'Identifica variable independiente, dependiente, control y conclusion basada en evidencias.', example:'Si solo cambias la temperatura, puedes estudiar su efecto en la velocidad de reaccion.'}
     ]
   },
   {
@@ -1839,7 +2281,24 @@ const MODULES = [
       {id:'ma-funciones', title:'Funciones', detail:'Graficas, dominio y variacion.', tags:['matematicas','geometria'], note:'Relaciona formula, tabla y grafica. Identifica cortes, crecimiento y extremos.', example:'En y = 2x + 1, la pendiente es 2 y el corte vertical es 1.'},
       {id:'ma-geometria', title:'Geometria', detail:'Figuras, trigonometria y vectores.', tags:['matematicas','geometria'], note:'Dibuja, etiqueta datos y elige el teorema adecuado antes de calcular.', example:'Pitagoras se aplica solo a triangulos rectangulos.'},
       {id:'ma-probabilidad', title:'Probabilidad', detail:'Sucesos y recuento.', tags:['matematicas','datos'], note:'Define casos posibles y favorables y comprueba si los sucesos son independientes.', example:'En un dado equilibrado, P(par) = 3/6.'},
-      {id:'ma-problemas', title:'Problemas aplicados', detail:'Modelizar y justificar resultados.', tags:['matematicas','datos'], note:'Traduce el enunciado a variables, resuelve y responde con unidades y contexto.', example:'No basta con obtener 12; indica 12 kilometros, euros o unidades.'}
+      {id:'ma-problemas', title:'Problemas aplicados', detail:'Modelizar y justificar resultados.', tags:['matematicas','datos'], note:'Traduce el enunciado a variables, resuelve y responde con unidades y contexto.', example:'No basta con obtener 12; indica 12 kilometros, euros o unidades.'},
+      {id:'ma-limites', title:'Limites y continuidad', detail:'Idea intuitiva, calculo y grafica.', tags:['matematicas','geometria'], note:'Interpreta el comportamiento de una funcion al acercarse a un punto o al infinito.', example:'Un limite describe a que valor se aproxima la funcion, aunque no lo alcance.'},
+      {id:'ma-derivadas', title:'Derivadas', detail:'Tasa de cambio, tangente y optimizacion.', tags:['matematicas','geometria'], note:'Relaciona derivada con pendiente, crecimiento, extremos y problemas de optimizacion.', example:'Si la derivada es positiva, la funcion crece en ese intervalo.'},
+      {id:'ma-integrales', title:'Integrales basicas', detail:'Area, primitiva y aplicaciones.', tags:['matematicas','geometria'], note:'Comprende la integral como acumulacion y area bajo una curva en casos sencillos.', example:'La integral de una velocidad puede dar distancia recorrida.'}
+    ]
+  },
+  {
+    id:'tecnologia',
+    icon:'TI',
+    title:'Tecnologia e Informatica',
+    desc:'Ingenieria, informatica y dibujo tecnico.',
+    testKey:'ramas',
+    tasks:[
+      {id:'ti-informatica', title:'Fundamentos de informatica', detail:'Datos, algoritmos, hardware y software.', tags:['datos','contenidos'], note:'Distingue componentes, sistemas operativos, redes, seguridad y pensamiento algoritmico.', example:'Un algoritmo es una secuencia ordenada de pasos para resolver un problema.'},
+      {id:'ti-programacion', title:'Programacion basica', detail:'Variables, condiciones, bucles y funciones.', tags:['datos','simulaciones'], note:'Lee pseudocodigo y razona que salida produce un programa sencillo.', example:'Un bucle repite instrucciones mientras se cumple una condicion.'},
+      {id:'ti-tecnologia', title:'Fundamentos de tecnologia', detail:'Materiales, energia, mecanismos y electricidad.', tags:['ciencias','simulaciones'], note:'Relaciona necesidad, solucion tecnica, materiales, mecanismos, energia y seguridad.', example:'Una palanca permite multiplicar fuerza cambiando brazo de potencia y resistencia.'},
+      {id:'ti-dibujo', title:'Dibujo tecnico', detail:'Vistas, escalas, acotacion y geometria.', tags:['geometria','mapas'], note:'Interpreta piezas mediante vistas, escalas, medidas, proyecciones y normas basicas.', example:'En sistema diedrico se representan planta, alzado y perfil.'},
+      {id:'ti-proyecto', title:'Proyecto tecnico', detail:'Diseno, planificacion, prototipo y mejora.', tags:['datos','redaccion'], note:'Describe fases del proceso tecnologico y justifica decisiones con criterios de utilidad, coste y sostenibilidad.', example:'Un buen prototipo permite probar errores antes de fabricar la solucion final.'}
     ]
   },
   {
@@ -1878,31 +2337,57 @@ const LESSON_TITLES = {
   'lc-lexico':['Sinonimia y antonimia','Polisemia y homonimia','Campos semanticos','Significado por contexto'],
   'lc-ortografia':['Acentuacion','Puntuacion','B y V, G y J','Revision ortografica'],
   'lc-literatura':['Generos literarios','Movimientos principales','Autores y obras','Comentario literario'],
+  'lc-texto-actualidad':['Noticia y opinion','Tesis','Argumentos','Valoracion'],
+  'lc-cohesion':['Conectores','Referencias internas','Progresion tematica','Correccion'],
+  'lc-redaccion-examen':['Plan','Respuesta desarrollada','Registro academico','Revision final'],
   'en-reading':['Skimming','Scanning','Main idea','Evidence and inference'],
   'en-vocabulary':['Word families','Prefixes and suffixes','Meaning from context','False friends'],
   'en-grammar':['Verb tenses','Modal verbs','Conditionals','Passive and relatives'],
   'en-connectors':['Addition and order','Contrast','Cause and result','Conclusion'],
   'en-writing':['Planning and structure','Opinion essay','Formal email','Review and correction'],
+  'en-translation':['Meaning not words','False friends','Register','Natural reformulation'],
+  'en-exam-functions':['Opinion','Contrast','Cause and purpose','Hypothesis'],
   'hu-historia':['Revoluciones liberales','Industrializacion','Imperialismo','Guerras y mundo actual'],
   'hu-filosofia':['Problemas filosoficos','Autores principales','Comparacion de ideas','Texto filosofico'],
   'hu-arte':['Lectura de una obra','Estilos artisticos','Arquitectura','Pintura y escultura'],
   'hu-geografia':['Poblacion','Espacio urbano','Migraciones','Desigualdad territorial'],
   'hu-latin':['Morfologia latina','Sintaxis basica','Traduccion guiada','Cultura clasica'],
+  'hu-literatura':['Generos','Edad Media a Barroco','Siglos XVIII-XIX','Siglos XX-XXI'],
+  'hu-politica':['Estado','Ideologias','Ciudadania','Instituciones'],
   'cs-economia':['Oferta y demanda','Inflacion y empleo','PIB y crecimiento','Politica economica'],
   'cs-empresa':['Tipos de empresa','Costes e ingresos','Financiacion','Organizacion empresarial'],
   'cs-porcentajes':['Variacion porcentual','Indices','Interes simple','Interpretacion economica'],
   'cs-estadistica':['Tablas de frecuencia','Media y mediana','Graficos','Dispersion e interpretacion'],
   'cs-geografia':['Sectores economicos','Comercio','Transportes','Globalizacion'],
+  'cs-derecho':['Norma y ley','Constitucion','Derechos y deberes','Administracion y justicia'],
+  'cs-educacion':['Sistema educativo','Aprendizaje','Inclusion','Educacion y sociedad'],
+  'cs-antropologia':['Cultura','Identidad','Diversidad','Cambio social'],
   'ci-biologia':['Tipos de celula','Organulos','Metabolismo','Mitosis y meiosis'],
   'ci-genetica':['ADN y genes','Genotipo y fenotipo','Leyes de Mendel','Problemas de herencia'],
   'ci-quimica':['Estructura de la materia','Enlace quimico','Ajuste de reacciones','Moles y disoluciones'],
   'ci-fisica':['Movimiento','Fuerzas','Trabajo y energia','Electricidad basica'],
   'ci-salud':['Nutricion y salud','Enfermedad y prevencion','Ecosistemas','Impacto ambiental'],
+  'ci-psicologia':['Aprendizaje','Memoria','Motivacion','Salud mental'],
+  'ci-metodo':['Hipotesis','Variables','Datos','Conclusion'],
   'ma-algebra':['Expresiones algebraicas','Ecuaciones','Sistemas','Inecuaciones'],
   'ma-funciones':['Concepto de funcion','Funciones lineales','Funciones cuadraticas','Lectura de graficas'],
   'ma-geometria':['Pitagoras','Areas y volumenes','Semejanza','Trigonometria basica'],
   'ma-probabilidad':['Sucesos','Regla de Laplace','Probabilidad compuesta','Diagramas y tablas'],
-  'ma-problemas':['Traducir el enunciado','Elegir operaciones','Resolver por pasos','Comprobar el resultado']
+  'ma-problemas':['Traducir el enunciado','Elegir operaciones','Resolver por pasos','Comprobar el resultado'],
+  'ma-limites':['Idea de limite','Limites laterales','Infinito','Continuidad'],
+  'ma-derivadas':['Pendiente','Reglas basicas','Crecimiento','Optimizacion'],
+  'ma-integrales':['Primitivas','Area','Integral definida','Aplicaciones'],
+  'ti-informatica':['Hardware y software','Sistemas operativos','Redes','Seguridad'],
+  'ti-programacion':['Variables','Condicionales','Bucles','Funciones'],
+  'ti-tecnologia':['Materiales','Mecanismos','Electricidad','Energia'],
+  'ti-dibujo':['Vistas','Escalas','Acotacion','Geometria tecnica'],
+  'ti-proyecto':['Necesidad','Diseno','Prototipo','Evaluacion'],
+  'exam-random':['Seleccion de materias','Tiempo y dificultad','Correccion guiada','Plan de repaso'],
+  'exam-choose':['Modelo UNED','Fase general','Fase especifica','Revision final'],
+  'exam-history':['Intentos previos','Errores frecuentes','Notas por bloque','Siguiente objetivo'],
+  'oficial-estructura':['Fase general','Fase especifica','Opciones de acceso','Criterios basicos'],
+  'oficial-programas':['Asignaturas comunes','Materias por rama','Prioridades de estudio','Consulta oficial'],
+  'oficial-examenes':['Modelos reales','Convocatorias','Soluciones y criterios','Simulacro final']
 };
 const DEFAULT_OFFICIAL_LINKS = [
   {
@@ -2028,7 +2513,7 @@ const QUESTIONS = {
     ['En una funcion lineal la grafica es...', ['Una recta','Una circunferencia','Una nube sin relacion'], 0]
   ]
 };
-let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, teacherChats:{}, testAttempts:{}, teacherOpen:true, libraryTab:'subjects', sessionDuration:null, examMode:null, activeModule:'comentario', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
+let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, teacherChats:{}, testAttempts:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, examMode:null, activeModule:'comentario', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
 let currentUser = null;
 let currentView = 'home';
 const $ = id => document.getElementById(id);
@@ -2054,7 +2539,7 @@ async function loadState() {
   state.lessonNotes = state.lessonNotes && typeof state.lessonNotes === 'object' ? state.lessonNotes : {};
   state.teacherChats = state.teacherChats && typeof state.teacherChats === 'object' ? state.teacherChats : {};
   state.testAttempts = state.testAttempts && typeof state.testAttempts === 'object' ? state.testAttempts : {};
-  state.teacherOpen = state.teacherOpen !== false;
+  state.teacherOpen = state.teacherOpen === true;
   state.libraryTab = ['subjects','resources','saved'].includes(state.libraryTab) ? state.libraryTab : 'subjects';
   state.currentExamTopics = Array.isArray(state.currentExamTopics) ? state.currentExamTopics : [];
   state.activeLesson = Number.isInteger(state.activeLesson) ? state.activeLesson : null;
@@ -2118,6 +2603,14 @@ function toggleProfile(force) {
   button?.classList.toggle('active', nextOpen);
   if (nextOpen) loadProfile();
   renderView();
+}
+function closeProfile() {
+  const panel = $('profilePanel');
+  const button = $('profileButton');
+  if (!panel || panel.hidden) return false;
+  panel.hidden = true;
+  button?.classList.remove('active');
+  return true;
 }
 async function saveProfileName() {
   const input = $('profileNameInput');
@@ -2309,6 +2802,7 @@ function renderSavedNotesLibrary() {
 function openSavedNote(topicId, lessonIndex=0) {
   const module = moduleByTopicId(topicId);
   if (!module) return;
+  closeProfile();
   state.activeModule = module.id;
   state.activeTopic = topicId;
   state.activeLesson = Number(lessonIndex) || 0;
@@ -2482,7 +2976,7 @@ function renderShell() {
     const isNext = next?.module.id === m.id;
     const hasMistakes = (state.mistakes || []).some(item => item.module === m.title);
     return `<button class="module-card ${state.activeModule === m.id ? 'active' : ''} ${done === m.tasks.length ? 'done' : ''} ${isNext ? 'recommended' : ''}" style="--module-color:${moduleColor(m.id)}" onclick="openModule('${m.id}')">
-      <div><div class="icon">${m.icon}</div><h3>${escapeHtml(m.title)}</h3><div class="module-badges">${isNext ? '<span class="mini-badge">Siguiente</span>' : ''}${hasMistakes ? '<span class="mini-badge review">Repasar</span>' : ''}</div><p>${escapeHtml(m.desc)}</p></div>
+      <div>${moduleIconHtml(m)}<h3>${escapeHtml(m.title)}</h3><div class="module-badges">${isNext ? '<span class="mini-badge">Siguiente</span>' : ''}${hasMistakes ? '<span class="mini-badge review">Repasar</span>' : ''}</div><p>${escapeHtml(m.desc)}</p></div>
       <div><span class="result-label">${done === m.tasks.length ? 'Completada' : `${done}/${m.tasks.length} temas`}</span><div class="progress"><span style="width:${pct}%"></span></div></div>
     </button>`;
   };
@@ -2504,7 +2998,7 @@ function renderModuleGrid() {
     const isNext = next?.module.id === m.id;
     const hasMistakes = (state.mistakes || []).some(item => item.module === m.title);
     return `<button class="module-card ${state.activeModule === m.id ? 'active' : ''} ${done === m.tasks.length ? 'done' : ''} ${isNext ? 'recommended' : ''}" style="--module-color:${moduleColor(m.id)}" onclick="openModule('${m.id}')">
-      <div><div class="icon">${m.icon}</div><h3>${escapeHtml(m.title)}</h3><div class="module-badges">${isNext ? '<span class="mini-badge">Siguiente</span>' : ''}${hasMistakes ? '<span class="mini-badge review">Repasar</span>' : ''}</div><p>${escapeHtml(m.desc)}</p></div>
+      <div>${moduleIconHtml(m)}<h3>${escapeHtml(m.title)}</h3><div class="module-badges">${isNext ? '<span class="mini-badge">Siguiente</span>' : ''}${hasMistakes ? '<span class="mini-badge review">Repasar</span>' : ''}</div><p>${escapeHtml(m.desc)}</p></div>
       <div><span class="result-label">${done === m.tasks.length ? 'Completada' : `${done}/${m.tasks.length} temas`}</span><div class="progress"><span style="width:${pct}%"></span></div></div>
     </button>`;
   };
@@ -2523,6 +3017,7 @@ function libraryTabsHtml() {
 function setLibraryTab(tab) {
   state.libraryTab = tab;
   currentView = 'modules';
+  closeProfile();
   renderModuleGrid();
   renderView();
   saveState();
@@ -2530,10 +3025,7 @@ function setLibraryTab(tab) {
 function openLibrary(tab='subjects') {
   if (['subjects','resources','saved'].includes(tab)) state.libraryTab = tab;
   currentView = 'modules';
-  const panel = $('profilePanel');
-  const button = $('profileButton');
-  if (panel) panel.hidden = true;
-  button?.classList.remove('active');
+  closeProfile();
   renderModuleGrid();
   renderView();
   renderTeacherPanel();
@@ -2564,6 +3056,7 @@ function recordStudyActivity() {
 function showView(view) {
   if (view === 'modules') return openLibrary(state.libraryTab || 'subjects');
   currentView = view;
+  closeProfile();
   if (view === 'modules') renderModuleGrid();
   renderView();
   renderTeacherPanel();
@@ -2593,6 +3086,29 @@ function moduleColor(id) {
     sociales:'#b45309', ciencias:'#15803d', matematicas:'#7c3aed', exam:'#b74338', oficial:'#475569'
   }[id] || '#6542a6';
 }
+function topicVisual(topic={}, moduleId='') {
+  const id = String(topic.id || moduleId || '');
+  const tags = new Set([...(topic.tags || []), moduleId, id]);
+  if (tags.has('ingles')) return 'EN';
+  if (tags.has('matematicas') || id.includes('ma-')) return 'Σ';
+  if (tags.has('mapas') || tags.has('geografia')) return '⌖';
+  if (tags.has('ciencias') || id.includes('ci-')) return '⚗';
+  if (tags.has('redaccion')) return '✎';
+  if (tags.has('datos')) return '%';
+  if (moduleId === 'sociales') return '%';
+  if (moduleId === 'tecnologia') return 'TI';
+  if (moduleId === 'humanidades') return '◷';
+  if (moduleId === 'comentario' || moduleId === 'lengua') return 'Aa';
+  if (moduleId === 'exam') return '✓';
+  if (moduleId === 'oficial') return 'i';
+  return 'Aa';
+}
+function moduleIconHtml(module) {
+  return `<div class="icon"><span class="topic-visual">${escapeHtml(topicVisual({}, module.id))}</span><small>${escapeHtml(module.icon || '')}</small></div>`;
+}
+function topicStatusHtml(topic, module, index) {
+  return `<span class="topic-status"><span class="topic-visual">${escapeHtml(topicVisual(topic, module.id))}</span><small>${state.done[topic.id] ? 'OK' : index + 1}</small></span>`;
+}
 function sessionSteps() {
   const module = recommendedStudyModule();
   const task = module.tasks.find(t => !state.done[t.id]) || module.tasks[0];
@@ -2604,6 +3120,7 @@ function sessionSteps() {
 function setSessionDuration(minutes) { state.sessionDuration = minutes; renderStudyCockpit(); renderTeacherPanel(); saveState(); }
 function clearSessionDuration() { state.sessionDuration = null; renderStudyCockpit(); renderTeacherPanel(); saveState(); }
 function openSessionStep(moduleId, tab, topicId='') {
+  closeProfile();
   state.activeModule = moduleId;
   state.activeTopic = topicId || null;
   state.activeLesson = null;
@@ -2642,6 +3159,7 @@ function clearMistakes() {
   saveState();
 }
 function openModule(id) {
+  closeProfile();
   state.activeModule = id;
   state.activeTopic = null;
   state.activeLesson = null;
@@ -2653,7 +3171,7 @@ function openModule(id) {
   saveState();
   jumpTo($('workspace'));
 }
-function setTab(tab) { state.activeTab = tab; if (tab === 'contenidos') { state.activeTopic = null; state.activeLesson = null; } currentView = 'workspace'; renderWorkspace(); renderView(); saveState(); }
+function setTab(tab) { closeProfile(); state.activeTab = tab; if (tab === 'contenidos') { state.activeTopic = null; state.activeLesson = null; } currentView = 'workspace'; renderWorkspace(); renderView(); saveState(); }
 function renderWorkspace() {
   const module = moduleById(state.activeModule);
   if (module.id === 'exam' && ['examen','ejemplos'].includes(state.activeTab)) state.activeTab = 'aleatorio';
@@ -2723,6 +3241,7 @@ function teacherSuggestions(ctx) {
 function renderTeacherPanel() {
   const panel = $('teacherPanel');
   if (!panel) return;
+  panel.hidden = false;
   const ctx = teacherContext();
   const messages = state.teacherChats?.[ctx.key] || [];
   const suggestions = teacherSuggestions(ctx);
@@ -2772,7 +3291,7 @@ function toggleDone(id) {
 function renderContents(module) {
   const topic = module.tasks.find(t => t.id === state.activeTopic);
   if (!topic) {
-    $('viewer').innerHTML = `<div class="topic-library-list">${module.tasks.map((t,index) => `<button class="topic-row ${state.done[t.id] ? 'done' : ''}" type="button" onclick="openTopic('${t.id}')"><span class="topic-status">${state.done[t.id] ? 'OK' : index + 1}</span><span><strong>${escapeHtml(t.title)}</strong><small>${state.done[t.id] ? 'COMPLETADO' : `${subtopicsFor(t).length} LECCIONES`}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div>`;
+    $('viewer').innerHTML = `<div class="topic-library-list">${module.tasks.map((t,index) => `<button class="topic-row ${state.done[t.id] ? 'done' : ''}" type="button" onclick="openTopic('${t.id}')">${topicStatusHtml(t,module,index)}<span><strong>${escapeHtml(t.title)}</strong><small>${state.done[t.id] ? 'COMPLETADO' : `${subtopicsFor(t).length} LECCIONES`}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div>`;
     return;
   }
   const lessons = subtopicsFor(topic);
@@ -2794,7 +3313,7 @@ function subtopicsFor(topic) {
 }
 function lessonKey(topicId,index) { return `${topicId}:lesson:${index}`; }
 function isLessonDone(topic,index) { return Boolean(state.done[topic.id] || state.done[lessonKey(topic.id,index)]); }
-function openTopic(id) { state.activeTopic = id; state.activeLesson = null; renderWorkspace(); saveState(); }
+function openTopic(id) { closeProfile(); state.activeTopic = id; state.activeLesson = null; renderWorkspace(); saveState(); }
 function openLesson(index) { state.activeLesson = index; renderWorkspace(); saveState(); }
 function closeLesson() { state.activeLesson = null; renderWorkspace(); saveState(); }
 function completeLesson(topicId,index) {

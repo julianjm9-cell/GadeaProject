@@ -748,6 +748,537 @@
     .timer-display { font-size: 2.35rem; }
     .recite-stage { padding: 14px; }
   }
+  /* UX/UI refresh: Cambridge, modern blue and white. */
+  :root {
+    --ink:#102033;
+    --muted:#5d6b7c;
+    --paper:#f4f8ff;
+    --cream:#ffffff;
+    --gold:#2563eb;
+    --rust:#dc5b4b;
+    --sage:#1e8a70;
+    --blue:#123a73;
+    --blue-light:#eaf2ff;
+    --border:#d9e4f2;
+    --shadow:rgba(18,58,115,0.08);
+    --point-size:0.86rem;
+  }
+  body {
+    font-family:"Segoe UI", Arial, sans-serif;
+    background:radial-gradient(circle at 18% -10%, rgba(37,99,235,.15), transparent 34%), linear-gradient(180deg,#fff 0%,#f4f8ff 42%,#eef5ff 100%);
+    color:var(--ink);
+  }
+  header {
+    min-height:92px;
+    padding:18px clamp(16px,4vw,72px);
+    grid-template-columns:minmax(220px,330px) minmax(320px,1fr) auto;
+    border-bottom:1px solid rgba(18,58,115,.12);
+    background:transparent;
+    box-shadow:none;
+    backdrop-filter:none;
+  }
+  header h1 {
+    font-family:"Segoe UI", Arial, sans-serif;
+    font-size:1.45rem;
+    letter-spacing:0;
+    text-transform:none;
+    color:var(--blue);
+    white-space:nowrap;
+  }
+  .brand-word { gap:0; text-shadow:none; }
+  .brand-word .brand-initial { font-style:normal; color:var(--blue); }
+  .brand-word::after,
+  .lang-switcher,
+  .topic-header-btn,
+  .header-meta { display:none; }
+  .main-actions {
+    justify-self:center;
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    width:min(560px,100%);
+    gap:6px;
+    padding:5px;
+    border:1px solid rgba(18,58,115,.12);
+    border-radius:10px;
+    background:rgba(255,255,255,.72);
+    box-shadow:none;
+  }
+  .nav-pill,
+  .topic-header-btn,
+  .lang-btn,
+  .btn,
+  .cat-tab-btn {
+    font-family:"Segoe UI", Arial, sans-serif;
+    letter-spacing:0;
+    text-transform:none;
+    border-radius:8px;
+    font-weight:750;
+  }
+  .nav-pill { min-height:42px; padding:8px 12px; font-size:.8rem; }
+  .nav-pill.active,
+  .btn {
+    background:var(--blue);
+    border-color:var(--blue);
+    color:#fff;
+    box-shadow:0 10px 22px rgba(18,58,115,.18);
+  }
+  .profile-mini {
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    border:0;
+    background:#e8f1ff;
+    color:var(--blue);
+    font-weight:850;
+    font-family:"Segoe UI", Arial, sans-serif;
+  }
+  main {
+    max-width:min(1760px, calc(100vw - 36px));
+    padding:24px 0 44px;
+  }
+  .session-empty {
+    min-height:560px;
+    display:grid;
+    align-content:center;
+    justify-items:start;
+    text-align:left;
+    padding:44px clamp(22px,6vw,70px);
+    border:0;
+    background:transparent;
+    box-shadow:none;
+  }
+  .session-empty .icon {
+    width:98px;
+    height:98px;
+    display:grid;
+    place-items:center;
+    margin:0 0 24px;
+    border-radius:24px;
+    background:linear-gradient(135deg,var(--blue),#2563eb);
+    color:#fff;
+    font-size:1.55rem;
+    font-weight:900;
+    opacity:1;
+  }
+  .session-empty h2 {
+    max-width:760px;
+    font-family:"Segoe UI", Arial, sans-serif;
+    font-size:clamp(2.35rem,5.4vw,4.25rem);
+    line-height:1;
+    color:#0c2850;
+    margin:0 0 16px;
+  }
+  .session-empty p {
+    max-width:620px;
+    color:#516175;
+    font-size:1.05rem;
+    line-height:1.45;
+    margin-bottom:26px;
+  }
+  .btn:hover,
+  .btn-blue:hover {
+    background:#2563eb;
+    border-color:#2563eb;
+    color:#fff;
+  }
+  .btn-outline {
+    background:#fff;
+    color:var(--blue);
+    box-shadow:none;
+  }
+  .session-header,
+  .point-card,
+  .vocab-card,
+  .writing-panel,
+  .recite-panel,
+  .chat-panel,
+  .topic-item,
+  .notice,
+  .writing-ocr-box,
+  .recite-stage,
+  .profile-card,
+  .profile-stat,
+  .topics-side .chat-panel {
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:#fff;
+    box-shadow:0 12px 32px rgba(18,58,115,.07);
+  }
+  .session-topic,
+  .point-title { font-family:"Segoe UI", Arial, sans-serif; }
+  .section-label {
+    color:var(--blue);
+    letter-spacing:0;
+    text-transform:none;
+    font-weight:850;
+  }
+  .topics-search-bar input,
+  .topic-category-select,
+  .writing-select,
+  .writing-input,
+  .writing-textarea,
+  .recite-input,
+  input,
+  textarea,
+  select {
+    font-family:"Segoe UI", Arial, sans-serif;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:#fff;
+  }
+  .writing-ocr-row {
+    grid-template-columns:1fr;
+    align-items:end;
+  }
+  .writing-ocr-box {
+    overflow:hidden;
+  }
+  .writing-ocr-row > * {
+    min-width:0;
+  }
+  .writing-ocr-row .writing-field:first-child {
+    grid-column:1 / -1;
+  }
+  .writing-ocr-row .btn {
+    box-sizing:border-box;
+    width:100%;
+    min-width:0;
+    min-height:44px;
+    padding-inline:12px;
+  }
+  .writing-ocr-row .btn:nth-of-type(1) {
+    grid-column:auto;
+  }
+  .writing-ocr-row .btn:nth-of-type(2) {
+    grid-column:auto;
+  }
+  .writing-ocr-row input[type="file"] {
+    box-sizing:border-box;
+    display:block;
+    width:100%;
+    max-width:100%;
+    min-height:44px;
+    padding:10px;
+    overflow:hidden;
+  }
+  .cat-tabs { gap:8px; }
+  .cat-tab-btn {
+    border:1px solid var(--border);
+    background:#fff;
+    color:var(--muted);
+  }
+  .cat-tab-btn.active,
+  .topic-item.done {
+    border-color:var(--blue);
+    background:#eaf2ff;
+    color:var(--blue);
+  }
+  .topic-item { min-height:64px; padding:14px; }
+  .topic-num { color:#2563eb; font-weight:850; }
+  .topic-item::before,
+  .topic-item.done::before,
+  .topic-item:not(.done)::before {
+    content:none;
+    width:0;
+  }
+  .topic-icon {
+    width:38px;
+    height:38px;
+    flex:0 0 38px;
+    display:grid;
+    place-items:center;
+    border-radius:13px;
+    background:#eaf2ff;
+    color:var(--blue);
+    font-size:14px;
+    font-weight:900;
+    line-height:1;
+  }
+  .topic-item.done .topic-icon {
+    background:var(--blue);
+    color:#fff;
+  }
+  .cat-tab-icon {
+    display:inline-grid;
+    place-items:center;
+    width:22px;
+    height:22px;
+    margin-right:6px;
+    border-radius:8px;
+    background:#eaf2ff;
+    color:var(--blue);
+    font-size:10px;
+    font-weight:900;
+    vertical-align:middle;
+  }
+  .cat-tab-btn.active .cat-tab-icon {
+    background:#fff;
+    color:var(--blue);
+  }
+  .writing-layout,
+  .recite-layout { gap:16px; }
+  #tab-sesion,
+  #tab-temas,
+  #tab-recitar,
+  #tab-escrita {
+    max-width:min(1720px, calc(100vw - 36px));
+  }
+  .recite-layout,
+  .writing-layout {
+    max-width:none;
+  }
+  .writing-layout {
+    grid-template-columns:minmax(0,1.45fr) minmax(360px,.55fr);
+  }
+  .recite-layout {
+    grid-template-columns:minmax(0,1.35fr) minmax(360px,.65fr);
+  }
+  .topics-grid {
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  }
+  .profile-card {
+    max-width:min(960px,100%);
+    margin-inline:auto;
+  }
+  .profile-actions {
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  /* Senior UX pass: usar ancho sin perder eje central ni equilibrio visual. */
+  header {
+    grid-template-columns:minmax(220px,1fr) minmax(420px,620px) minmax(52px,1fr);
+  }
+  .brand-area {
+    justify-self:start;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:nowrap;
+  }
+  .cambridge-header-icon {
+    width:52px;
+    height:52px;
+    flex:0 0 52px;
+    display:grid;
+    place-items:center;
+    border-radius:14px;
+    background:linear-gradient(135deg,var(--blue),#2563eb);
+    color:#fff;
+    font-weight:900;
+    letter-spacing:0;
+    box-shadow:0 14px 28px rgba(18,58,115,.18);
+  }
+  .main-actions {
+    justify-self:center;
+    width:100%;
+  }
+  .header-right {
+    justify-self:end;
+  }
+  .session-empty {
+    min-height:0;
+    justify-items:center;
+    align-content:center;
+    text-align:center;
+    padding:52px clamp(22px,5vw,80px) 96px;
+  }
+  .session-empty .icon { display:none; }
+  .session-empty .icon,
+  .session-empty h2,
+  .session-empty p {
+    margin-inline:auto;
+  }
+  .session-empty h2 {
+    max-width:900px;
+    font-size:clamp(32px,4.6vw,58px);
+    line-height:1;
+  }
+  .session-empty p {
+    display:none;
+  }
+  .cambridge-home-actions {
+    width:min(1120px,100%);
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:18px;
+    margin:18px auto 0;
+  }
+  .cambridge-duration-options {
+    width:min(1120px,100%);
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:18px;
+    margin:18px auto 0;
+  }
+  .cambridge-next-step {
+    width:min(350px,100%);
+    min-height:112px;
+    margin:18px auto 0;
+    padding:18px 20px;
+    display:grid;
+    align-content:center;
+    justify-content:center;
+    gap:6px;
+    text-align:center;
+    border:1px solid var(--border);
+    border-top:4px solid #2563eb;
+    border-radius:10px;
+    background:#fff;
+    box-shadow:0 12px 32px rgba(18,58,115,.07);
+  }
+  .cambridge-next-step strong {
+    color:var(--blue);
+    font-size:15px;
+    font-weight:850;
+    text-transform:uppercase;
+  }
+  .cambridge-next-step span {
+    color:var(--muted);
+    font-size:13px;
+    font-weight:650;
+  }
+  .cambridge-home-actions button,
+  .cambridge-duration-options button {
+    min-height:112px;
+    display:grid;
+    align-content:center;
+    justify-content:center;
+    gap:8px;
+    padding:18px 20px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:#fff;
+    color:var(--ink);
+    box-shadow:0 12px 32px rgba(18,58,115,.07);
+    cursor:pointer;
+    text-align:center;
+    font-family:"Segoe UI", Arial, sans-serif;
+  }
+  .cambridge-home-actions button:hover,
+  .cambridge-duration-options button:hover {
+    border-color:var(--blue);
+    transform:translateY(-1px);
+  }
+  .cambridge-home-actions strong,
+  .cambridge-duration-options strong {
+    color:var(--blue);
+    font-size:20px;
+    font-weight:850;
+  }
+  .cambridge-home-actions span,
+  .cambridge-duration-options span {
+    color:var(--muted);
+    font-size:14px;
+    font-weight:650;
+  }
+  .global-teacher {
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    z-index:40;
+    width:48px;
+    height:48px;
+    border:1px solid #c9d8ec;
+    border-radius:18px;
+    background:linear-gradient(135deg,var(--blue),#2563eb);
+    color:#fff;
+    box-shadow:0 16px 40px rgba(18,58,115,.18);
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+  }
+  .global-teacher strong {
+    font-size:16px;
+    line-height:1;
+  }
+  .global-teacher span {
+    position:absolute;
+    right:-6px;
+    top:-6px;
+    width:20px;
+    height:20px;
+    display:grid;
+    place-items:center;
+    border-radius:999px;
+    background:#2563eb;
+    color:#fff;
+    font-weight:900;
+    font-size:12px;
+  }
+  #tab-temas,
+  #tab-sesion,
+  #tab-recitar,
+  #tab-escrita,
+  #tab-perfil {
+    margin-inline:auto;
+  }
+  .topics-search-bar {
+    max-width:1320px;
+    margin-inline:auto;
+  }
+  #topicsContainer {
+    max-width:1320px;
+    margin-inline:auto;
+  }
+  .cat-tabs {
+    justify-content:center;
+  }
+  .topics-grid {
+    justify-content:center;
+  }
+  .session-header,
+  #sessionActive,
+  .recite-layout,
+  .writing-layout {
+    max-width:1320px;
+    margin-inline:auto;
+  }
+  .db-notice { border-color:var(--border); background:#eaf2ff; color:var(--blue); }
+  @media(max-width:900px) {
+    header { grid-template-columns:1fr auto; padding-inline:18px; }
+    .main-actions { grid-column:1/-1; width:100%; }
+    .session-empty { min-height:0; padding:32px 4px; }
+    .writing-layout,
+    .recite-layout {
+      grid-template-columns:1fr;
+    }
+    .cambridge-home-actions {
+      grid-template-columns:1fr;
+    }
+    .cambridge-duration-options {
+      grid-template-columns:1fr;
+    }
+    .global-teacher { right:18px; bottom:18px; }
+    .writing-ocr-row,
+    .writing-ocr-row .btn:nth-of-type(1),
+    .writing-ocr-row .btn:nth-of-type(2),
+    .writing-ocr-row .writing-field:first-child {
+      grid-column:auto;
+      grid-template-columns:1fr;
+    }
+  }
+  @media(max-width:1100px) and (min-width:901px) {
+    header {
+      grid-template-columns:minmax(0,1fr) auto;
+    }
+    .brand-area {
+      grid-column:1;
+      grid-row:1;
+    }
+    .header-right {
+      grid-column:2;
+      grid-row:1;
+    }
+    .main-actions {
+      grid-column:1 / -1;
+      grid-row:2;
+      width:min(620px,100%);
+    }
+  }
+  @media(max-width:600px) {
+    .main-actions { grid-template-columns:1fr 1fr; }
+    .session-empty .icon { width:78px; height:78px; border-radius:20px; }
+    .session-empty h2 { font-size:2.25rem; }
+  }
 </style>
 </head>
 <body>
@@ -762,32 +1293,42 @@
 
 <header>
   <div class="brand-area">
-    <h1><span class="brand-word"><span class="brand-initial">C</span>AMBRIDGE TRAINER</span></h1>
+    <div class="cambridge-header-icon" aria-hidden="true">C1</div>
+    <h1>Cambridge Trainer</h1>
     <div class="lang-switcher">
       <button class="lang-btn active" id="btnEN" title="English B2/C1/C2">EN</button>
     </div>
-    <button class="topic-header-btn" data-tab-btn="temas" onclick="showTab('temas',this)">Temas</button>
   </div>
   <div class="main-actions">
+    <button class="nav-pill" data-tab-btn="temas" onclick="showTab('temas',this)">Temas</button>
     <button class="nav-pill active" data-tab-btn="sesion" onclick="showTab('sesion',this)">Sesión de hoy</button>
-    <button class="nav-pill" data-tab-btn="recitar" onclick="showTab('recitar',this)">Práctica oral</button>
-    <button class="nav-pill" data-tab-btn="escrita" onclick="showTab('escrita',this)">Práctica escrita</button>
+    <button class="nav-pill" data-tab-btn="recitar" onclick="showTab('recitar',this)">Oral</button>
+    <button class="nav-pill" data-tab-btn="escrita" onclick="showTab('escrita',this)">Writing</button>
   </div>
   <div class="header-right">
     <div class="header-meta" id="headerMeta">Sesiones: 0<br>Temas: 0<br>Créditos: -</div>
-    <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil',this)" title="Perfil">👤</button>
+    <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil',this)" title="Perfil" aria-label="Perfil">C</button>
   </div>
 </header>
+<button class="global-teacher" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))" title="Profesor IA" aria-label="Profesor IA"><strong>P</strong><span>+</span></button>
 
 <main>
 
   <!-- TAB: SESIÓN -->
   <div id="tab-sesion" class="tab active">
     <div id="sessionEmpty" class="session-empty">
-      <div class="icon">⚖️</div>
-      <h2>Nueva sesión de estudio</h2>
-      <p>Selecciona idioma, elige un tema o usa un tema aleatorio. Los creditos solo se consumen al pulsar <strong>Generar respuesta</strong>.</p>
-      <button class="btn" onclick="startSession()">Tema aleatorio -></button>
+      <h2>Tu escritorio virtual</h2>
+      <div class="cambridge-next-step"><strong>Siguiente paso</strong><span>Reading and Use of English - práctica guiada</span></div>
+      <div class="cambridge-duration-options" aria-label="Duracion de la sesion">
+        <button type="button" onclick="startSessionForDuration(15)"><strong>15 min</strong><span>Repaso rápido</span></button>
+        <button type="button" onclick="startSessionForDuration(30)"><strong>30 min</strong><span>Estudiar y practicar</span></button>
+        <button type="button" onclick="startSessionForDuration(45)"><strong>45 min</strong><span>Sesión completa</span></button>
+      </div>
+      <div class="cambridge-home-actions" aria-label="Accesos rapidos">
+        <button type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))"><strong>Temas</strong><span>Elige de 216 temas</span></button>
+        <button type="button" onclick="showTab('recitar',document.querySelector('[data-tab-btn=&quot;recitar&quot;]'))"><strong>Oral</strong><span>Practica speaking</span></button>
+        <button type="button" onclick="showTab('escrita',document.querySelector('[data-tab-btn=&quot;escrita&quot;]'))"><strong>Writing</strong><span>Corrige textos</span></button>
+      </div>
     </div>
     <div id="sessionActive" class="session-active" style="display:none">
       <div class="session-header">
@@ -1058,7 +1599,6 @@
         <div class="profile-actions">
           <button class="btn btn-small btn-blue" id="driveConnectBtn" onclick="handleGoogleDrive()">Conectar Drive</button>
           <button class="btn btn-small btn-outline" onclick="toggleProfileHistory()">Historial</button>
-          <button class="btn btn-small btn-outline" onclick="showUtilityTab('config')">Configuración</button>
           <button class="btn btn-small btn-outline btn-danger" onclick="logoutWeb()">Cerrar sesión</button>
         <div class="profile-history-panel" id="profileHistoryPanel">
           <div class="section-label" style="margin-bottom:10px;">Registro de estudio</div>
@@ -1167,6 +1707,36 @@ const TOPIC_DB = {
       "Matching headings and speakers", "Listening for attitude and opinion", "Distractors in listening tasks",
       "Understanding implication", "Taking notes while listening", "Managing time in Reading and Use of English",
       "Predicting answers before listening", "Reviewing mistakes effectively", "Exam-day concentration routines"
+    ],
+    "B2 First: Reading and Use of English parts": [
+      "B2 Part 1 multiple-choice cloze", "B2 Part 2 open cloze", "B2 Part 3 word formation",
+      "B2 Part 4 key word transformations", "B2 Part 5 multiple choice reading", "B2 Part 6 gapped text",
+      "B2 Part 7 multiple matching", "B2 collocations and phrasal verbs", "B2 paraphrasing skills",
+      "B2 grammar accuracy under time pressure", "B2 reading for attitude", "B2 checking answer sheets"
+    ],
+    "C1 Advanced: Reading and Use of English parts": [
+      "C1 Part 1 multiple-choice cloze", "C1 Part 2 open cloze", "C1 Part 3 word formation",
+      "C1 Part 4 key word transformations", "C1 Part 5 long text multiple choice", "C1 Part 6 cross-text matching",
+      "C1 Part 7 gapped text", "C1 Part 8 multiple matching", "C1 implication and tone",
+      "C1 idiomatic precision", "C1 register control", "C1 exam timing plan"
+    ],
+    "Listening by exam part": [
+      "Listening Part 1 short extracts", "Listening Part 2 sentence completion", "Listening Part 3 long conversation",
+      "Listening Part 4 multiple matching", "Listening for opinion", "Listening for attitude",
+      "Listening for detail", "Predicting answers from prompts", "Handling distractors",
+      "Using the second listening", "Spelling in listening answers", "Post-listening error log"
+    ],
+    "Speaking by exam part": [
+      "Speaking Part 1 interview answers", "Speaking Part 2 long turn", "Speaking Part 2 comparing pictures",
+      "Speaking Part 3 collaborative discussion", "Speaking Part 3 decision task", "Speaking Part 4 abstract discussion",
+      "Discourse management", "Interactive communication", "Grammatical range in speaking",
+      "Lexical resource in speaking", "Repairing mistakes naturally", "Partner interaction strategies"
+    ],
+    "Writing by task type and criteria": [
+      "Essay task analysis", "Article voice and audience", "Review description and judgement",
+      "Report headings and findings", "Proposal recommendations", "Formal email and letter",
+      "Content coverage", "Communicative achievement", "Organisation and cohesion",
+      "Language range and accuracy", "Editing for word count", "Building a reusable writing checklist"
     ]
   },
   2025: {
@@ -1192,7 +1762,7 @@ const TOPIC_DB = {
     ],
     "Exam routines and scoring": [
       "Understanding Cambridge assessment criteria", "Improving grammatical range", "Improving lexical resource", "Improving discourse management",
-      "Interactive communication", "Writing task achievement", "Accuracy vs ambition", "Planning under time pressure",
+      "Scoring interactive communication", "Writing task achievement", "Accuracy vs ambition", "Planning under time pressure",
       "A weekly study plan", "Mock exam reflection", "Common reasons candidates lose marks", "Final week revision"
     ]
   }
@@ -1302,6 +1872,18 @@ function getTopicGroups() {
   return groups;
 }
 
+function topicVisual(topic='', cat='') {
+  const text = `${topic} ${cat}`.toLowerCase();
+  if (text.includes('writing') || text.includes('essay') || text.includes('letter') || text.includes('report') || text.includes('proposal')) return 'Wr';
+  if (text.includes('speaking') || text.includes('oral') || text.includes('pronunciation') || text.includes('conversation')) return 'Sp';
+  if (text.includes('listening') || text.includes('speaker')) return 'Li';
+  if (text.includes('vocab') || text.includes('collocation') || text.includes('idiom') || text.includes('phrasal')) return 'V';
+  if (text.includes('grammar') || text.includes('cloze') || text.includes('transformation') || text.includes('use of english')) return 'Gr';
+  if (text.includes('exam') || text.includes('timing') || text.includes('scoring') || text.includes('routine')) return 'Ex';
+  if (text.includes('reading') || text.includes('text')) return 'Rd';
+  return 'C1';
+}
+
 function renderTopicPanel() {
   const groups = getTopicGroups();
   const cats = Object.keys(groups);
@@ -1316,7 +1898,7 @@ function renderTopicPanel() {
     // Count done in this cat
     const topics = groups[cat];
     const doneCount = topics.filter(t => state.completedTopics.includes(t)).length;
-    b.textContent = `${cat} (${doneCount}/${topics.length})`;
+    b.innerHTML = `<span class="cat-tab-icon">${escHtml(topicVisual('', cat))}</span>${escHtml(cat)} (${doneCount}/${topics.length})`;
     b.onclick = () => setCatTab(cat);
     ctEl.appendChild(b);
   });
@@ -1328,7 +1910,7 @@ function setCatTab(cat) {
   currentCat = cat;
   document.querySelectorAll('#cattabs-all .cat-tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('#cattabs-all .cat-tab-btn').forEach(b => {
-    if (b.textContent.startsWith(`${cat} (`)) b.classList.add('active');
+    if (b.textContent.includes(`${cat} (`)) b.classList.add('active');
   });
   renderCategorySelect();
   renderTopicGrid();
@@ -1364,7 +1946,7 @@ function renderTopicGrid() {
     const div = document.createElement('div');
     div.className = 'topic-item' + (done ? ' done' : '');
     div.title = done ? 'Completado — clic para estudíar de nuevo' : 'Clic para estudíar este tema';
-    div.innerHTML = `<span class="topic-num">${String(i+1).padStart(3,'0')}</span><span>${escHtml(t)}</span>`;
+    div.innerHTML = `<span class="topic-icon">${escHtml(done ? 'OK' : topicVisual(t, cat))}</span><span class="topic-num">${String(i+1).padStart(3,'0')}</span><span>${escHtml(t)}</span>`;
     div.onclick = () => startSessionWithTopic(t);
     grid.appendChild(div);
   });
@@ -1392,6 +1974,7 @@ function onTopicSearch(val) {
     const div = document.createElement('div');
     div.className = 'topic-item' + (done ? ' done' : '');
     div.innerHTML = `
+      <span class="topic-icon">${escHtml(done ? 'OK' : topicVisual(topic, cat))}</span>
       <span class="topic-num">${String(index + 1).padStart(3,'0')}</span>
       <span style="flex:1">${escHtml(topic)}</span>
       <span style="font-size:0.55rem;color:#aaa;flex-shrink:0;">${escHtml(cat)}</span>`;
@@ -2067,9 +2650,19 @@ async function startSession() {
   await startSessionWithTopic(topic, false);
 }
 
+async function startSessionForDuration(minutes) {
+  state.currentSession = {
+    ...(state.currentSession || {}),
+    duration: minutes,
+    startedFromToday: true
+  };
+  persist();
+  await startSession();
+}
+
 async function startSessionWithTopic(topic, autoGenerate = false) {
   session = { topic, aiPoints: [], savedPoints: [] };
-  state.currentSession = { ...session, lang: state.lang, date: new Date().toISOString() };
+  state.currentSession = { ...session, duration: state.currentSession?.duration || null, lang: state.lang, date: new Date().toISOString() };
 
   // Switch to session tab
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));

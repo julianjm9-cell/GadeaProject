@@ -761,8 +761,11 @@
     .topic-library-list { display:grid; gap:8px; }
     .topic-row { width:100%; min-height:68px; display:grid; grid-template-columns:42px minmax(0,1fr) auto; align-items:center; gap:12px; padding:11px 13px; text-align:left; }
     .topic-row.done { border-color:#9bcdb4; background:#f4fbf7; }
-    .topic-status { width:34px; height:34px; display:grid; place-items:center; border-radius:50%; background:color-mix(in srgb,var(--module-color,var(--primary)) 12%,white); color:var(--module-color,var(--primary)); font-weight:950; }
+    .topic-status { width:42px; height:42px; display:grid; place-items:center; gap:0; border-radius:14px; background:color-mix(in srgb,var(--module-color,var(--primary)) 12%,white); color:var(--module-color,var(--primary)); font-weight:950; line-height:1; }
+    .topic-status .topic-visual { font-size:16px; line-height:1; }
+    .topic-status small { font-size:9px; color:color-mix(in srgb,var(--module-color,var(--primary)) 70%,#687282); }
     .topic-row.done .topic-status { background:var(--green); color:#fff; }
+    .topic-row.done .topic-status small { color:#fff; }
     .topic-row > span:nth-child(2) { min-width:0; display:grid; gap:4px; }
     .topic-row strong { display:block; min-width:0; font-size:15px; line-height:1.2; overflow-wrap:anywhere; }
     .topic-row small { display:block; color:var(--muted); font-weight:700; line-height:1.2; }
@@ -1615,27 +1618,977 @@
       .workspace-title { justify-self:stretch; }
       .workspace-head .tabs { width:100%; }
     }
+    /* ESO Adultos desktop refresh */
+    :root {
+      --ink:#302721;
+      --muted:#675f57;
+      --paper:#f2eee4;
+      --panel:#fffdf7;
+      --line:#ddd3c1;
+      --primary:#16376f;
+      --primary-dark:#102957;
+      --green:#718764;
+      --accent:#b96b35;
+      --gold:#b96b35;
+      --soft:#eef3e9;
+      --shadow:0 10px 28px rgba(48,39,33,.08);
+    }
+    body {
+      background:var(--paper);
+      color:var(--ink);
+    }
+    .app {
+      width:min(1500px,100%);
+      padding:0 clamp(18px,4vw,80px) 44px;
+      gap:26px;
+    }
+    header {
+      margin:0;
+      padding:22px 0 20px;
+      border:0;
+      border-bottom:1px solid rgba(103,95,87,.18);
+      border-radius:0;
+      background:transparent;
+      box-shadow:none;
+      position:static;
+      grid-template-columns:minmax(230px,auto) minmax(360px,1fr) auto;
+    }
+    .brand-logo {
+      width:58px;
+      height:58px;
+      border-radius:8px;
+      background:#fff;
+      box-shadow:0 8px 20px rgba(22,55,111,.10);
+    }
+    .brand-logo::before,
+    .brand-logo::after { display:none; }
+    .brand-logo img {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:left center;
+      transform:scale(1.52);
+    }
+    .brand h1 {
+      color:var(--primary);
+      font-size:20px;
+      font-weight:800;
+    }
+    .brand p {
+      display:block;
+      max-width:360px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    header .screen-nav,
+    .library-tabs,
+    .tabs {
+      border:0;
+      background:transparent;
+      box-shadow:none;
+      gap:10px;
+      padding:0;
+    }
+    header .screen-nav button,
+    .library-tabs button,
+    .tabs button {
+      min-height:44px;
+      border:0;
+      border-radius:8px;
+      background:transparent;
+      color:var(--muted);
+      font-size:14px;
+      font-weight:700;
+      text-transform:none;
+      word-spacing:0;
+    }
+    header .screen-nav button.active,
+    .library-tabs button.active,
+    .tabs button.active,
+    button.primary {
+      background:var(--accent);
+      border-color:var(--accent);
+      color:#fff;
+      box-shadow:none;
+    }
+    .profile-button {
+      min-width:0;
+      max-width:220px;
+      border:0;
+      background:transparent;
+      box-shadow:none;
+      color:var(--muted);
+    }
+    .profile-icon,
+    .profile-avatar {
+      border-radius:50%;
+      background:#d8d9c9;
+      color:var(--green);
+      box-shadow:none;
+    }
+    .view-section,
+    .module-grid,
+    .workspace,
+    .progress-view,
+    .profile-panel {
+      width:min(1200px,100%);
+    }
+    .session-flow {
+      width:min(1200px,100%);
+    }
+    .session-chooser {
+      padding:clamp(18px,3vw,34px);
+      background:transparent;
+      border:0;
+      box-shadow:none;
+      text-align:left;
+    }
+    .desk-eyebrow {
+      display:flex;
+      gap:5px;
+      align-items:center;
+      color:var(--muted);
+      font-size:15px;
+    }
+    .desk-eyebrow strong {
+      color:var(--ink);
+      font-weight:800;
+    }
+    .desk-hero {
+      margin-top:30px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:24px;
+    }
+    .desk-logo {
+      width:min(360px,70vw);
+      height:86px;
+      object-fit:contain;
+      object-position:left center;
+      mix-blend-mode:multiply;
+      margin-bottom:14px;
+    }
+    .desk-hero h2 {
+      max-width:920px;
+      font-family:Georgia, "Times New Roman", serif;
+      font-size:clamp(40px,6vw,64px);
+      line-height:.95;
+      font-weight:700;
+      color:var(--ink);
+      text-transform:none;
+      word-spacing:0;
+    }
+    .desk-hero p {
+      max-width:720px;
+      margin-top:14px;
+      color:var(--muted);
+      font-size:17px;
+    }
+    .desk-date {
+      display:flex;
+      align-items:center;
+      gap:18px;
+      color:var(--muted);
+      font-size:16px;
+      white-space:nowrap;
+    }
+    .desk-date b {
+      width:48px;
+      height:48px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      background:#d8d9c9;
+      color:var(--green);
+      font-size:17px;
+    }
+    .coach-strip {
+      width:min(860px,100%);
+      margin:30px 0 0;
+      border-color:rgba(103,95,87,.18);
+      background:rgba(255,253,247,.72);
+      box-shadow:none;
+    }
+    .duration-options {
+      width:100%;
+      margin:22px 0 0;
+      grid-template-columns:repeat(3,minmax(180px,1fr));
+      gap:14px;
+    }
+    .duration-options button,
+    .desk-shortcuts button,
+    .module-card,
+    .topic-row,
+    .lesson-card,
+    .exam-mode,
+    .exam-action-card,
+    .resource-card,
+    .simple-resource-list a,
+    .saved-note-card {
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:rgba(255,253,247,.82);
+      box-shadow:none;
+    }
+    .duration-options button {
+      min-height:88px;
+      align-content:center;
+      justify-items:start;
+      text-align:left;
+      padding:18px 22px;
+    }
+    .duration-options strong {
+      color:var(--accent);
+      font-size:19px;
+    }
+    .duration-options span {
+      display:block;
+      max-width:none;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .desk-shortcuts {
+      margin-top:32px;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+    }
+    .desk-shortcuts button {
+      min-height:106px;
+      padding:20px 22px;
+      justify-content:flex-start;
+      text-align:left;
+      display:grid;
+      align-content:center;
+      gap:5px;
+    }
+    .desk-shortcuts strong {
+      color:var(--ink);
+      font-family:Georgia, "Times New Roman", serif;
+      font-size:20px;
+    }
+    .desk-shortcuts span {
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.35;
+    }
+    .panel,
+    .session-plan,
+    .progress-simple,
+    .workspace,
+    .profile-panel,
+    .question,
+    .theory-card,
+    .ai-notes-card,
+    .exam-ai-box,
+    .exam-history-card,
+    .exam-topic-map,
+    .exam-paper,
+    .ocr-card,
+    .topic-section,
+    .lesson-content .topic-reading {
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:rgba(255,253,247,.9);
+      box-shadow:var(--shadow);
+    }
+    #sessionChooser {
+      background:transparent;
+      border:0;
+      box-shadow:none;
+    }
+    .workspace-head {
+      border-color:rgba(103,95,87,.18);
+    }
+    .module-card .icon {
+      background:var(--primary);
+      border-radius:8px;
+      box-shadow:none;
+    }
+    .module-card .icon .topic-visual { font-size:20px; line-height:1; }
+    .module-card .icon small { display:block; margin-top:2px; font-size:9px; line-height:1; opacity:.88; }
+    .progress,
+    .progress-track {
+      background:#e2ddcf;
+    }
+    .progress span,
+    .progress-track span {
+      background:var(--accent);
+    }
+    .teacher-head {
+      background:var(--primary);
+    }
+    .teacher-panel.collapsed {
+      width:62px;
+      border-radius:16px;
+    }
+    .teacher-panel.collapsed .teacher-head {
+      min-height:62px;
+      padding:8px;
+    }
+    .teacher-panel.collapsed .teacher-id > div:not(.teacher-avatar) {
+      display:none;
+    }
+    .teacher-panel.collapsed .teacher-avatar {
+      width:42px;
+      height:42px;
+    }
+    .teacher-panel.collapsed .teacher-toggle {
+      position:absolute;
+      right:-6px;
+      top:-6px;
+      width:24px;
+      height:24px;
+      min-width:24px;
+      font-size:14px;
+      background:var(--accent);
+      border:0;
+    }
+    button:hover,
+    .desk-shortcuts button:hover,
+    .module-card:hover,
+    .topic-row:hover,
+    .lesson-card:hover,
+    .exam-action-card:hover,
+    .resource-card:hover {
+      transform:translateY(-1px);
+      border-color:var(--accent);
+      color:var(--ink);
+      box-shadow:0 10px 24px rgba(48,39,33,.10);
+    }
+    button.primary:hover {
+      background:var(--primary);
+      border-color:var(--primary);
+      color:#fff;
+    }
+    @media (max-width:900px) {
+      .app { padding-inline:18px; }
+      header {
+        grid-template-columns:1fr auto;
+        gap:14px;
+      }
+      header .screen-nav {
+        grid-column:1 / -1;
+        width:100%;
+        grid-template-columns:repeat(4,minmax(0,1fr));
+      }
+      .desk-hero {
+        margin-top:28px;
+        display:grid;
+      }
+      .desk-date {
+        order:-1;
+        justify-content:space-between;
+      }
+      .duration-options,
+      .desk-shortcuts {
+        grid-template-columns:1fr;
+      }
+      .coach-strip { width:100%; }
+    }
+    @media (max-width:520px) {
+      .brand-logo { width:48px; height:48px; }
+      .brand p { display:none; }
+      header .screen-nav { grid-template-columns:1fr 1fr; }
+      .desk-logo { height:86px; }
+      .desk-hero h2 { font-size:38px; }
+      .session-chooser { padding:22px 0; }
+    }
+    /* UX/UI pass: modern blue and white, simplified surfaces. */
+    :root {
+      --ink:#102033;
+      --muted:#5d6b7c;
+      --paper:#f4f8ff;
+      --panel:#ffffff;
+      --line:#d9e4f2;
+      --primary:#123a73;
+      --primary-dark:#0c2850;
+      --green:#1e8a70;
+      --accent:#2563eb;
+      --gold:#2563eb;
+      --soft:#eaf2ff;
+      --shadow:0 16px 42px rgba(18,58,115,.08);
+    }
+    body {
+      background:
+        radial-gradient(circle at 18% -10%, rgba(37,99,235,.16), transparent 34%),
+        linear-gradient(180deg,#ffffff 0%,#f4f8ff 42%,#eef5ff 100%);
+      color:var(--ink);
+    }
+    .app {
+      width:min(1440px,100%);
+      padding:0 clamp(16px,4vw,72px) 42px;
+      gap:20px;
+    }
+    header {
+      min-height:92px;
+      padding:18px 0;
+      border-bottom:1px solid rgba(18,58,115,.12);
+      grid-template-columns:minmax(260px,360px) minmax(360px,1fr) auto;
+    }
+    .brand {
+      gap:14px;
+    }
+    .brand-logo {
+      width:174px;
+      height:62px;
+      border-radius:0;
+      background:transparent;
+      box-shadow:none;
+      overflow:visible;
+    }
+    .brand-logo img {
+      width:174px;
+      height:62px;
+      object-fit:contain;
+      object-position:left center;
+      transform:none;
+      mix-blend-mode:normal;
+    }
+    .brand > div:last-child {
+      position:absolute;
+      width:1px;
+      height:1px;
+      overflow:hidden;
+      clip:rect(0 0 0 0);
+      white-space:nowrap;
+    }
+    .brand h1 {
+      color:var(--primary);
+      font-size:22px;
+      font-weight:850;
+      text-transform:none;
+    }
+    .brand p {
+      display:block;
+      margin-top:3px;
+      max-width:270px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.3;
+    }
+    header .screen-nav {
+      width:min(570px,100%);
+      gap:6px;
+      padding:5px;
+      border:1px solid rgba(18,58,115,.12);
+      border-radius:10px;
+      background:rgba(255,255,255,.72);
+    }
+    .workspace-head {
+      display:grid;
+      grid-template-columns:1fr;
+      align-items:center;
+      gap:16px;
+    }
+    .workspace-head .tabs {
+      width:100%;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      max-width:620px;
+      margin-inline:auto;
+    }
+    header .screen-nav button,
+    .library-tabs button,
+    .tabs button {
+      min-height:42px;
+      border-radius:7px;
+      color:#526176;
+      font-size:13px;
+      font-weight:750;
+      text-transform:none;
+    }
+    header .screen-nav button.active,
+    .library-tabs button.active,
+    .tabs button.active,
+    button.primary {
+      background:var(--primary);
+      border-color:var(--primary);
+      color:#fff;
+      box-shadow:0 10px 22px rgba(18,58,115,.18);
+    }
+    button,
+    .profile-utility a,
+    .button-link {
+      border-color:var(--line);
+      border-radius:8px;
+      color:var(--ink);
+      background:#fff;
+      font-weight:750;
+      text-transform:none;
+      word-spacing:0;
+    }
+    button:hover,
+    .profile-utility a:hover,
+    .button-link:hover {
+      border-color:var(--accent);
+      color:var(--primary);
+      box-shadow:0 12px 26px rgba(18,58,115,.10);
+    }
+    .profile-button {
+      gap:8px;
+      color:var(--primary);
+      width:46px;
+      min-width:46px;
+      height:46px;
+      padding:0;
+      border-radius:50%;
+    }
+    .profile-button strong { display:none; }
+    .profile-icon,
+    .profile-avatar {
+      background:#e8f1ff;
+      color:var(--primary);
+    }
+    .session-flow,
+    .view-section,
+    .module-grid,
+    .workspace,
+    .progress-view,
+    .profile-panel {
+      width:min(1120px,100%);
+    }
+    .session-chooser {
+      padding:24px 0 10px;
+    }
+    .desk-eyebrow {
+      font-size:15px;
+      color:#617089;
+    }
+    .desk-hero {
+      margin-top:24px;
+      align-items:center;
+    }
+    .desk-logo {
+      width:min(340px,72vw);
+      height:104px;
+      margin:0 0 12px;
+      object-fit:contain;
+      object-position:left center;
+      mix-blend-mode:normal;
+    }
+    .desk-hero h2 {
+      max-width:720px;
+      font-family:"Segoe UI", Arial, sans-serif;
+      font-size:clamp(38px,5.4vw,68px);
+      line-height:1;
+      font-weight:850;
+      color:var(--primary-dark);
+      letter-spacing:0;
+      text-transform:none;
+    }
+    .desk-hero p {
+      max-width:640px;
+      color:#516175;
+      font-size:17px;
+      line-height:1.45;
+    }
+    .desk-date {
+      padding:10px 12px 10px 18px;
+      border:1px solid rgba(18,58,115,.12);
+      border-radius:999px;
+      background:rgba(255,255,255,.72);
+      color:#526176;
+      box-shadow:0 10px 24px rgba(18,58,115,.06);
+    }
+    .desk-date b {
+      width:42px;
+      height:42px;
+      background:var(--primary);
+      color:#fff;
+    }
+    .coach-strip,
+    .duration-options button,
+    .desk-shortcuts button,
+    .panel,
+    .session-plan,
+    .progress-simple,
+    .workspace,
+    .profile-panel,
+    .question,
+    .module-card,
+    .topic-row,
+    .lesson-card,
+    .test-card,
+    .exam-mode,
+    .exam-action-card,
+    .resource-card,
+    .simple-resource-list a,
+    .saved-note-card,
+    .theory-card,
+    .ai-notes-card,
+    .exam-ai-box,
+    .exam-history-card,
+    .exam-topic-map,
+    .exam-paper,
+    .ocr-card,
+    .topic-section,
+    .lesson-content .topic-reading {
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:#fff;
+      box-shadow:0 12px 32px rgba(18,58,115,.07);
+    }
+    #sessionChooser {
+      background:transparent;
+      border:0;
+      box-shadow:none;
+    }
+    .coach-strip {
+      width:100%;
+      margin:24px 0 0;
+      padding:14px 16px;
+      border-left:4px solid var(--accent);
+    }
+    .coach-strip strong,
+    .result-label,
+    .mini-badge,
+    .pill {
+      color:var(--primary);
+      letter-spacing:0;
+      text-transform:none;
+      word-spacing:0;
+    }
+    .duration-options {
+      margin-top:18px;
+      gap:12px;
+    }
+    .duration-options button {
+      min-height:86px;
+      padding:18px 20px;
+      justify-items:start;
+      text-align:left;
+    }
+    .duration-options button:first-child {
+      border-color:rgba(37,99,235,.34);
+      background:linear-gradient(180deg,#fff,#f3f7ff);
+    }
+    .duration-options strong {
+      color:var(--accent);
+      font-size:22px;
+      font-weight:850;
+      text-transform:none;
+    }
+    .duration-options span,
+    .desk-shortcuts span {
+      color:var(--muted);
+      font-size:14px;
+      font-weight:650;
+      text-transform:none;
+      word-spacing:0;
+    }
+    .desk-shortcuts {
+      margin-top:18px;
+      grid-template-columns:1.2fr 1fr 1fr;
+      gap:12px;
+    }
+    .desk-shortcuts button {
+      min-height:94px;
+      padding:18px 20px;
+    }
+    .desk-shortcuts strong {
+      color:var(--primary-dark);
+      font-family:"Segoe UI", Arial, sans-serif;
+      font-size:18px;
+      font-weight:850;
+    }
+    .module-card,
+    .lesson-card,
+    .topic-row {
+      background:#fff;
+    }
+    .module-card .icon,
+    .lesson-number,
+    .topic-status {
+      background:color-mix(in srgb,var(--module-color,var(--primary)) 12%,white);
+      color:var(--module-color,var(--primary));
+      box-shadow:none;
+    }
+    .module-card.done .icon,
+    .topic-row.done .topic-status,
+    .lesson-card.done .lesson-number {
+      background:var(--green);
+      color:#fff;
+    }
+    .module-card::after {
+      background:var(--accent);
+      opacity:1;
+    }
+    .progress,
+    .progress-track {
+      background:#e6eef9;
+    }
+    .progress span,
+    .progress-track span {
+      background:linear-gradient(90deg,var(--accent),var(--primary));
+    }
+    .workspace-head,
+    .profile-utility,
+    .document-settings {
+      border-color:var(--line);
+    }
+    .teacher-panel {
+      border-color:#c9d8ec;
+      box-shadow:0 16px 40px rgba(18,58,115,.18);
+    }
+    .teacher-head {
+      background:linear-gradient(135deg,var(--primary),var(--accent));
+    }
+    .teacher-panel.collapsed {
+      width:58px;
+      border-radius:18px;
+      top:auto;
+      right:24px;
+      bottom:24px;
+    }
+    .teacher-panel.collapsed .teacher-head {
+      min-height:58px;
+    }
+    .teacher-panel.collapsed {
+      width:48px;
+      right:18px;
+      bottom:18px;
+      top:auto;
+      border-radius:16px;
+    }
+    .teacher-panel.collapsed .teacher-head {
+      min-height:48px;
+      padding:7px;
+    }
+    .teacher-panel.collapsed .teacher-id > div:not(.teacher-avatar) {
+      display:none;
+    }
+    .teacher-panel.collapsed .teacher-avatar {
+      width:34px;
+      height:34px;
+      font-size:14px;
+    }
+    .teacher-panel.collapsed .teacher-toggle {
+      width:20px;
+      height:20px;
+      min-width:20px;
+      font-size:12px;
+    }
+    /* Pantalla ancha: aprovechar mejor el escritorio sin romper lectura en movil. */
+    .app {
+      width:min(1760px,100%);
+      padding-inline:clamp(18px,3vw,56px);
+    }
+    .view-section,
+    .workspace,
+    .session-chooser,
+    .session-plan,
+    .progress-panel {
+      width:100%;
+      max-width:none;
+    }
+    .module-grid {
+      grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    }
+    .resource-grid {
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    }
+    .study-cockpit {
+      grid-template-columns:minmax(0,1.35fr) minmax(360px,.65fr);
+    }
+    .workspace {
+      display:grid;
+      grid-template-columns:minmax(0,1fr);
+    }
+    .topic-reading {
+      max-width:960px;
+    }
+    .profile-panel {
+      max-width:min(980px,calc(100vw - 36px));
+      margin-inline:auto;
+    }
+    .drive-profile-actions {
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+    /* Direccion visual: ancho util con eje centrado. */
+    header {
+      grid-template-columns:minmax(220px,1fr) minmax(420px,620px) minmax(52px,1fr);
+    }
+    header .screen-nav {
+      justify-self:center;
+      width:100%;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+    .profile-button {
+      justify-self:end;
+    }
+    .session-chooser {
+      display:grid;
+      justify-items:center;
+      padding-bottom:96px;
+    }
+    .desk-hero {
+      width:min(1120px,100%);
+      margin-inline:auto;
+      grid-template-columns:1fr;
+      justify-items:center;
+      text-align:center;
+      min-height:0;
+      padding:34px 0 22px;
+    }
+    .desk-hero > * {
+      max-width:100%;
+    }
+    .desk-logo {
+      display:none;
+    }
+    .desk-hero h2,
+    .desk-hero p {
+      margin-inline:auto;
+    }
+    .desk-hero h2 {
+      font-size:clamp(32px,4.6vw,58px);
+      line-height:1;
+      margin-bottom:0;
+    }
+    .desk-hero p {
+      display:none;
+    }
+    .today-insight,
+    .duration-options,
+    .desk-shortcuts {
+      width:min(1120px,100%);
+      margin-inline:auto;
+    }
+    #sessionChooser .coach-strip {
+      width:min(350px,100%);
+      min-height:112px;
+      margin:18px auto 0;
+      padding:18px 20px;
+      display:grid;
+      align-content:center;
+      justify-content:center;
+      text-align:center;
+      border-left:0;
+      border-top:4px solid var(--accent);
+    }
+    .duration-options,
+    .desk-shortcuts {
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:18px;
+    }
+    .duration-options button,
+    .desk-shortcuts button {
+      min-height:112px;
+      align-content:center;
+      justify-content:center;
+      text-align:center;
+    }
+    header .screen-nav button {
+      white-space:normal;
+      line-height:1.1;
+      text-transform:none;
+      font-size:14px;
+    }
+    .brand p {
+      display:none !important;
+    }
+    .module-grid,
+    .resource-grid {
+      justify-content:center;
+    }
+    .workspace,
+    .session-plan,
+    .progress-panel {
+      max-width:1400px;
+      margin-inline:auto;
+    }
+    .profile-card {
+      max-width:960px;
+      margin-inline:auto;
+    }
+    @media (max-width:900px) {
+      header {
+        grid-template-columns:1fr auto;
+        min-height:0;
+      }
+      header .screen-nav {
+        grid-template-columns:repeat(4,minmax(0,1fr));
+      }
+      .desk-hero {
+        display:grid;
+        gap:18px;
+      }
+      .teacher-panel.collapsed { top:auto; bottom:18px; right:18px; }
+      .desk-date {
+        width:100%;
+        justify-content:space-between;
+      }
+      .duration-options,
+      .desk-shortcuts {
+        grid-template-columns:1fr;
+      }
+      .workspace-head {
+        grid-template-columns:1fr;
+      }
+      .workspace-head .tabs {
+        grid-template-columns:repeat(3,minmax(0,1fr));
+      }
+    }
+    @media (max-width:1100px) and (min-width:901px) {
+      header {
+        grid-template-columns:minmax(0,1fr) auto;
+      }
+      header .screen-nav {
+        grid-column:1 / -1;
+        grid-row:2;
+        width:min(620px,100%);
+      }
+      .profile-button {
+        grid-column:2;
+        grid-row:1;
+        align-self:center;
+      }
+      .brand {
+        grid-column:1;
+        grid-row:1;
+        max-width:none;
+      }
+      .brand p {
+        display:none !important;
+      }
+    }
+    @media (max-width:520px) {
+      .app { padding-inline:14px; }
+      .brand-logo { width:144px; height:52px; }
+      .brand-logo img { width:144px; height:52px; }
+      .brand h1 { font-size:18px; }
+      header .screen-nav { grid-template-columns:1fr 1fr; }
+      .workspace-head .tabs { grid-template-columns:1fr; }
+      .desk-logo { height:82px; }
+      .desk-hero h2 { font-size:36px; }
+      .desk-hero p { font-size:15px; }
+      .duration-options button,
+      .desk-shortcuts button { min-height:82px; }
+      .teacher-panel { right:12px; bottom:12px; }
+      .teacher-panel.collapsed { top:auto; right:12px; bottom:12px; }
+    }
   </style>
 </head>
 <body>
 <div class="app">
   <header>
     <div class="brand">
-      <div class="brand-logo" aria-hidden="true"><span>E25</span></div>
+      <div class="brand-logo"><img src="assets/eso-adultos-logo-clean.png" alt="ESO Adultos"></div>
       <div>
-        <h1>ACCESO ESO ADULTOS</h1>
-        <p>Prepara la ESO sin agobio. La app te dice que estudiar, guarda tus fallos y te ayuda a practicar examenes.</p>
+        <h1>ESO Adultos</h1>
       </div>
     </div>
     <nav class="screen-nav">
-      <button id="navHome" type="button" onclick="showView('home')">HOY</button>
-      <button id="navModules" type="button" onclick="openLibrary()">BIBLIOTECA</button>
-      <button id="navExam" type="button" onclick="openModule('exam')">EXAMEN</button>
-      <button id="navProgress" type="button" onclick="showView('progress')">PROGRESO</button>
+      <button id="navHome" type="button" onclick="showView('home')">Sesión de hoy</button>
+      <button id="navModules" type="button" onclick="openLibrary()">Biblioteca</button>
+      <button id="navExam" type="button" onclick="openModule('exam')">Examen</button>
+      <button id="navProgress" type="button" onclick="showView('progress')">Progreso</button>
     </nav>
-    <button class="profile-button" id="profileButton" type="button" onclick="toggleProfile()" title="Perfil">
+    <button class="profile-button" id="profileButton" type="button" onclick="toggleProfile()" title="Perfil" aria-label="Perfil">
       <span class="profile-icon" id="profileIcon">E</span>
-      <strong id="profileButtonName">Perfil</strong>
     </button>
   </header>
 
@@ -1662,16 +2615,9 @@
             <p>El tema actual se guarda como Word en la carpeta de su asignatura. Los examenes se guardan aparte dentro de esa misma estructura.</p>
           </div>
           <div><label>Carpeta de Drive</label><input id="driveFolderInput" placeholder="Pega aqui el enlace o ID de la carpeta"></div>
-          <div class="toolbar">
-            <button type="button" onclick="handleDriveConnect()" id="driveConnectBtn">Conectar Drive</button>
+          <div class="toolbar drive-profile-actions">
+            <button class="primary" type="button" onclick="handleDriveConnect()" id="driveConnectBtn">Conectar Drive</button>
             <button type="button" onclick="saveDriveFolder()">Guardar carpeta</button>
-            <button type="button" onclick="refreshDriveStatus()">Actualizar</button>
-          </div>
-          <div class="document-actions">
-            <button class="primary" type="button" onclick="uploadWordDrive('topic')">Guardar tema en Drive</button>
-            <button type="button" onclick="saveWordLocal('topic')">Guardar tema local</button>
-            <button type="button" onclick="uploadWordDrive('exam')">Guardar examen en Drive</button>
-            <button type="button" onclick="saveWordLocal('exam')">Guardar examen local</button>
           </div>
           <div class="drive-status" id="driveStatus">Drive pendiente de comprobar.</div>
           </div>
@@ -1684,12 +2630,19 @@
 
   <section class="session-flow view-section" id="homeView">
     <article class="panel session-chooser" id="sessionChooser">
-      <h2>¿CUANTO TIEMPO TIENES?</h2>
+      <div class="desk-hero">
+        <h2>Tu escritorio virtual</h2>
+      </div>
       <div class="coach-strip" id="todayInsight"></div>
       <div class="duration-options">
-        <button type="button" onclick="setSessionDuration(15)"><strong>15 MIN</strong><span>UN TEMA</span></button>
-        <button type="button" onclick="setSessionDuration(30)"><strong>30 MIN</strong><span>TEMA + TEST</span></button>
-        <button type="button" onclick="setSessionDuration(45)"><strong>45 MIN</strong><span>SESION COMPLETA</span></button>
+        <button type="button" onclick="setSessionDuration(15)"><strong>15 min</strong><span>Repaso rápido</span></button>
+        <button type="button" onclick="setSessionDuration(30)"><strong>30 min</strong><span>Estudiar y practicar</span></button>
+        <button type="button" onclick="setSessionDuration(45)"><strong>45 min</strong><span>Sesión completa</span></button>
+      </div>
+      <div class="desk-shortcuts" aria-label="Accesos rapidos">
+        <button type="button" onclick="openLibrary()"><strong>Tus asignaturas</strong><span>Biblioteca ordenada por bloques</span></button>
+        <button type="button" onclick="openModule('exam')"><strong>Examen</strong><span>Simulacros y correccion</span></button>
+        <button type="button" onclick="showView('progress')"><strong>Progreso</strong><span>Continua por donde ibas</span></button>
       </div>
     </article>
     <article class="panel session-plan" id="sessionPlan" hidden>
@@ -1753,7 +2706,12 @@ const MODULES = [
       {id:'len-gramatica', title:'Gramatica', detail:'Palabras, verbos y oraciones.', tags:['lengua','contenidos'], note:'Distingue categorias gramaticales y analiza sujeto, predicado y complementos basicos.', example:'En Los alumnos llegaron pronto, los alumnos es sujeto.'},
       {id:'len-ortografia', title:'Ortografia', detail:'Tildes, puntuacion y escritura.', tags:['lengua','consulta'], note:'Revisa tildes, mayusculas, b/v, g/j y puntuacion. Lee la frase en voz alta para comprobar pausas.', example:'No se escribe coma entre sujeto y verbo.'},
       {id:'len-redaccion', title:'Redaccion', detail:'Textos claros y organizados.', tags:['lengua','redaccion'], note:'Planifica inicio, desarrollo y cierre. Cada parrafo debe desarrollar una idea.', example:'Una carta formal incluye saludo, motivo, peticion y despedida.'},
-      {id:'len-literatura', title:'Literatura', detail:'Generos, epocas y textos.', tags:['lengua','contenidos'], note:'Relaciona genero, autor, epoca y rasgos del fragmento sin memorizar listas aisladas.', example:'La narracion tiene narrador, personajes, tiempo, espacio y accion.'}
+      {id:'len-literatura', title:'Literatura', detail:'Generos, epocas y textos.', tags:['lengua','contenidos'], note:'Relaciona genero, autor, epoca y rasgos del fragmento sin memorizar listas aisladas.', example:'La narracion tiene narrador, personajes, tiempo, espacio y accion.'},
+      {id:'len-textos-vida', title:'Textos de la vida diaria', detail:'Cartas, solicitudes, avisos y formularios.', tags:['lengua','redaccion'], note:'Identifica destinatario, finalidad, datos necesarios y tono adecuado en textos cotidianos y administrativos.', example:'Una solicitud debe indicar quien escribe, que pide, por que lo pide y como contactarle.'},
+      {id:'len-medios', title:'Medios y textos digitales', detail:'Noticias, redes, publicidad y desinformacion.', tags:['lengua','datos'], note:'Distingue hechos, opiniones, fuentes, intencion persuasiva y riesgos de manipulacion o privacidad.', example:'Un titular llamativo no basta: hay que comprobar fuente, fecha y datos.'},
+      {id:'len-argumentacion', title:'Argumentacion', detail:'Opinion, razones y contraargumentos.', tags:['lengua','redaccion'], note:'Defiende una idea con tesis, argumentos, ejemplos y conclusion, evitando repetir sin justificar.', example:'Estoy a favor porque..., por ejemplo..., aunque..., en conclusion...'},
+      {id:'len-comentario', title:'Comentario de texto', detail:'Tema, estructura, lenguaje y valoracion.', tags:['lengua','contenidos'], note:'Analiza que dice el texto, como lo organiza, que recursos usa y que opinion razonada puedes aportar.', example:'Primero resume, despues localiza la idea central y finalmente comenta el punto de vista.'},
+      {id:'len-presentacion', title:'Presentacion y revision', detail:'Limpieza, orden y correccion final.', tags:['lengua','consulta'], note:'Cuida margenes, letra, separacion, puntuacion y una revision final de faltas antes de entregar.', example:'Una respuesta clara con buena presentacion puede evitar perder puntos por expresion.'}
     ]
   },
   {
@@ -1767,7 +2725,11 @@ const MODULES = [
       {id:'ing-vocabulary', title:'Vocabulario', detail:'Vida diaria, trabajo y servicios.', tags:['ingles','consulta'], note:'Agrupa palabras por situaciones y aprende expresiones completas, no terminos aislados.', example:'Apply for a job significa solicitar un empleo.'},
       {id:'ing-grammar', title:'Gramatica', detail:'Tiempos y estructuras basicas.', tags:['ingles','contenidos'], note:'Revisa presente, pasado, futuro, modales, comparativos y preguntas.', example:'She has lived here for five years conecta pasado y presente.'},
       {id:'ing-writing', title:'Writing', detail:'Mensajes, cartas y opinion.', tags:['ingles','redaccion'], note:'Usa frases claras, conectores basicos y revisa sujeto-verbo-tiempo.', example:'Un email formal empieza con Dear y termina con Kind regards.'},
-      {id:'ing-listening', title:'Ingles funcional', detail:'Indicaciones y situaciones reales.', tags:['ingles','contenidos'], note:'Practica pedir informacion, explicar un problema y comprender instrucciones frecuentes.', example:'Could you tell me where the station is? sirve para pedir indicaciones.'}
+      {id:'ing-listening', title:'Ingles funcional', detail:'Indicaciones y situaciones reales.', tags:['ingles','contenidos'], note:'Practica pedir informacion, explicar un problema y comprender instrucciones frecuentes.', example:'Could you tell me where the station is? sirve para pedir indicaciones.'},
+      {id:'ing-dialogues', title:'Dialogos practicos', detail:'Compras, salud, viajes y servicios.', tags:['ingles','contenidos'], note:'Aprende preguntas y respuestas cortas para resolver situaciones habituales.', example:'I would like to make an appointment se usa para pedir cita.'},
+      {id:'ing-forms', title:'Formularios y datos personales', detail:'Datos, fechas, horarios y anuncios.', tags:['ingles','datos'], note:'Entrena la lectura de impresos, carteles, horarios y mensajes breves buscando informacion concreta.', example:'Departure, arrival, price and platform aparecen en horarios de transporte.'},
+      {id:'ing-connectors', title:'Conectores y cohesion', detail:'Ordenar frases y pequenos textos.', tags:['ingles','redaccion'], note:'Usa conectores sencillos para ordenar una respuesta escrita y hacerla comprensible.', example:'First, then, because, but y finally ayudan a construir un texto breve.'},
+      {id:'ing-exam-strategy', title:'Estrategia de examen', detail:'Como leer, responder y revisar ingles.', tags:['ingles','consulta'], note:'Contesta primero lo evidente, reutiliza palabras del enunciado y revisa tiempos verbales basicos.', example:'Si no entiendes todo el texto, localiza nombres, numeros y palabras transparentes.'}
     ]
   },
   {
@@ -1781,7 +2743,12 @@ const MODULES = [
       {id:'geo-relieve', title:'Relieve y clima', detail:'Paisajes y factores naturales.', tags:['social','mapas','geografia'], note:'Relaciona altitud, latitud, distancia al mar, temperaturas y precipitaciones.', example:'La cercania al mar suaviza las temperaturas.'},
       {id:'geo-poblacion', title:'Poblacion', detail:'Estructura, movimientos y ciudad.', tags:['social','datos','geografia'], note:'Interpreta tasas, piramides y migraciones explicando causas y consecuencias.', example:'Una base estrecha en la piramide indica baja natalidad.'},
       {id:'geo-economia', title:'Actividades economicas', detail:'Sectores y territorio.', tags:['social','datos','geografia'], note:'Distingue sectores y explica como recursos, transporte y mercado influyen en su localizacion.', example:'La industria logistica se concentra cerca de grandes redes de transporte.'},
-      {id:'geo-global', title:'Globalizacion', detail:'Interdependencia y desigualdad.', tags:['social','datos','geografia'], note:'Relaciona comercio, tecnologia, movilidad, oportunidades y desigualdades.', example:'Un producto puede disenarse, fabricarse y venderse en paises distintos.'}
+      {id:'geo-global', title:'Globalizacion', detail:'Interdependencia y desigualdad.', tags:['social','datos','geografia'], note:'Relaciona comercio, tecnologia, movilidad, oportunidades y desigualdades.', example:'Un producto puede disenarse, fabricarse y venderse en paises distintos.'},
+      {id:'geo-espana-europa', title:'Espana y Europa', detail:'Comunidades, UE y organizacion territorial.', tags:['social','mapas','geografia'], note:'Situa comunidades autonomas, provincias, principales unidades del relieve y el papel de Espana en la UE.', example:'La Union Europea coordina politicas comunes entre estados miembros.'},
+      {id:'geo-medioambiente', title:'Medio ambiente', detail:'Recursos, riesgos y sostenibilidad.', tags:['social','datos','geografia'], note:'Relaciona recursos naturales, contaminacion, cambio climatico, consumo responsable y soluciones sostenibles.', example:'La sequia afecta a agricultura, energia, precios y abastecimiento.'},
+      {id:'geo-fuentes', title:'Fuentes geograficas', detail:'Mapas, graficos, tablas e imagenes.', tags:['social','datos','mapas'], note:'Interpreta una fuente visual extrayendo datos, comparando valores y sacando una conclusion.', example:'En una grafica de barras compara primero el valor mayor, menor y la tendencia.'},
+      {id:'geo-ciudad', title:'Ciudad y mundo rural', detail:'Urbanizacion, vivienda y servicios.', tags:['social','datos','geografia'], note:'Explica diferencias entre espacios urbanos y rurales, problemas de acceso, transporte y sostenibilidad.', example:'La expansion urbana aumenta desplazamientos y consumo de suelo.'},
+      {id:'geo-trabajo', title:'Trabajo y economia familiar', detail:'Empleo, consumo y finanzas basicas.', tags:['social','datos'], note:'Conecta sectores economicos, mercado laboral, presupuesto familiar, ahorro y decisiones de consumo.', example:'Comparar ingresos y gastos ayuda a detectar si un presupuesto es sostenible.'}
     ]
   },
   {
@@ -1796,7 +2763,12 @@ const MODULES = [
       {id:'his-moderna', title:'Edad Moderna', detail:'Monarquias, expansion y cambios.', tags:['social','contenidos'], note:'Estudia descubrimientos, monarquias, reforma religiosa e Ilustracion como procesos conectados.', example:'La imprenta acelero la difusion de ideas.'},
       {id:'his-contemporanea', title:'Edad Contemporanea', detail:'Revoluciones e industrializacion.', tags:['social','contenidos'], note:'Explica causas, protagonistas y consecuencias de las revoluciones politica e industrial.', example:'La industrializacion transformo trabajo, ciudades y clases sociales.'},
       {id:'his-sigloxx', title:'Siglos XX y XXI', detail:'Conflictos, democracia y mundo actual.', tags:['social','datos'], note:'Construye lineas de tiempo y relaciona guerra, dictadura, democracia, integracion europea y globalizacion.', example:'La Constitucion de 1978 organiza el sistema democratico espanol.'},
-      {id:'his-ciudadania', title:'Ciudadania', detail:'Derechos, deberes e instituciones.', tags:['social','contenidos'], note:'Distingue derechos, responsabilidades y funciones de las instituciones democraticas.', example:'Participar incluye votar, informarse, respetar normas y colaborar.'}
+      {id:'his-ciudadania', title:'Ciudadania', detail:'Derechos, deberes e instituciones.', tags:['social','contenidos'], note:'Distingue derechos, responsabilidades y funciones de las instituciones democraticas.', example:'Participar incluye votar, informarse, respetar normas y colaborar.'},
+      {id:'his-espana', title:'Historia de Espana', detail:'De la Restauracion a la democracia.', tags:['social','contenidos'], note:'Ordena los principales cambios politicos y sociales de Espana contemporanea y su relacion con Europa.', example:'La Transicion paso de la dictadura a un sistema constitucional democratico.'},
+      {id:'his-andalucia', title:'Andalucia y patrimonio', detail:'Historia, cultura y bienes patrimoniales.', tags:['social','contenidos'], note:'Reconoce patrimonio historico, artistico y cultural como fuente para entender la sociedad.', example:'Un edificio historico informa sobre economia, poder, tecnica y cultura de su epoca.'},
+      {id:'his-valores', title:'Valores civicos y eticos', detail:'Igualdad, convivencia y derechos humanos.', tags:['social','redaccion'], note:'Argumenta sobre igualdad, diversidad, justicia, respeto y resolucion pacifica de conflictos.', example:'La igualdad real exige detectar barreras y proponer medidas concretas.'},
+      {id:'his-fuentes', title:'Fuentes historicas', detail:'Textos, imagenes, mapas y lineas de tiempo.', tags:['social','datos'], note:'Diferencia fuente primaria y secundaria, contexto, autoria, intencion y fiabilidad.', example:'Una fotografia historica debe analizarse preguntando quien la hizo, cuando y para que.'},
+      {id:'his-musica-cultura', title:'Musica y cultura social', detail:'Cultura, identidad y cambios sociales.', tags:['social','contenidos'], note:'Relaciona manifestaciones culturales con epoca, grupo social, identidad y transformaciones historicas.', example:'Una cancion de protesta puede reflejar conflictos y demandas de una sociedad.'}
     ]
   },
   {
@@ -1811,7 +2783,13 @@ const MODULES = [
       {id:'mat-algebra', title:'Algebra', detail:'Expresiones, ecuaciones y sistemas.', tags:['matematicas','geometria'], note:'Traduce el problema a una incognita y verifica la solucion al final.', example:'x + 7 = 12 tiene solucion x = 5.'},
       {id:'mat-geometria', title:'Geometria y medida', detail:'Areas, volumenes y Pitagoras.', tags:['matematicas','geometria'], note:'Dibuja, escribe unidades y selecciona formula antes de sustituir datos.', example:'El area de un triangulo es base por altura dividido entre dos.'},
       {id:'mat-funciones', title:'Funciones y graficas', detail:'Relacion entre variables.', tags:['matematicas','geometria'], note:'Lee ejes, unidades, crecimiento, cortes y cambios de tendencia.', example:'Una recta ascendente muestra una relacion creciente.'},
-      {id:'mat-estadistica', title:'Estadistica y probabilidad', detail:'Datos, medidas y azar.', tags:['matematicas','datos'], note:'Organiza datos y decide si conviene media, mediana o porcentaje.', example:'La mediana es el valor central al ordenar los datos.'}
+      {id:'mat-estadistica', title:'Estadistica y probabilidad', detail:'Datos, medidas y azar.', tags:['matematicas','datos'], note:'Organiza datos y decide si conviene media, mediana o porcentaje.', example:'La mediana es el valor central al ordenar los datos.'},
+      {id:'mat-medida', title:'Medida y unidades', detail:'Cambios de unidades y estimacion.', tags:['matematicas','datos'], note:'Convierte unidades de longitud, masa, capacidad, superficie, volumen y tiempo comprobando el sentido del resultado.', example:'2,5 km son 2500 metros.'},
+      {id:'mat-finanzas', title:'Matematicas financieras', detail:'IVA, descuentos, intereses y facturas.', tags:['matematicas','datos'], note:'Aplica porcentajes a situaciones reales de consumo, nominas, recibos, presupuestos y prestamos sencillos.', example:'Si un producto cuesta 80 euros y sube un 10 por ciento, pasa a 88 euros.'},
+      {id:'mat-problemas', title:'Problemas cotidianos', detail:'Leer, plantear, calcular y responder.', tags:['matematicas','datos'], note:'Subraya datos, pregunta final, operacion necesaria y unidad de la respuesta.', example:'Si una receta para 4 personas usa 300 g, para 6 personas necesita 450 g.'},
+      {id:'mat-graficas-examen', title:'Graficas de examen', detail:'Tablas, ejes, porcentajes y conclusion.', tags:['matematicas','datos'], note:'Interpreta graficas como fuente de informacion: lee ejes, compara valores y escribe una conclusion breve.', example:'Una linea que baja entre 2020 y 2022 indica descenso en ese periodo.'},
+      {id:'mat-calculadora', title:'Calculo y calculadora', detail:'Uso seguro y comprobacion de resultados.', tags:['matematicas','consulta'], note:'Usa calculadora sin perder el planteamiento: escribe operaciones, redondeos y respuesta final.', example:'Redondear a dos decimales es adecuado para dinero.'},
+      {id:'mat-razonamiento', title:'Razonamiento matematico', detail:'Patrones, logica y verificacion.', tags:['matematicas','datos'], note:'Explica por que una solucion tiene sentido y detecta resultados imposibles.', example:'Una probabilidad no puede ser mayor que 1 ni menor que 0.'}
     ]
   },
   {
@@ -1826,7 +2804,13 @@ const MODULES = [
       {id:'cie-ecologia', title:'Ecosistemas', detail:'Relaciones, energia e impacto.', tags:['ciencias','simulaciones'], note:'Identifica productores, consumidores, descomponedores y factores ambientales.', example:'Reducir un depredador puede alterar toda la red alimentaria.'},
       {id:'cie-materia', title:'Materia y quimica', detail:'Propiedades, mezclas y reacciones.', tags:['ciencias','simulaciones'], note:'Distingue sustancias, mezclas, cambios fisicos y reacciones quimicas.', example:'Disolver sal es cambio fisico; quemar madera es cambio quimico.'},
       {id:'cie-fisica', title:'Fuerzas y energia', detail:'Movimiento, trabajo y electricidad.', tags:['ciencias','simulaciones'], note:'Usa datos, formula, unidades y comprobacion en cada problema.', example:'La velocidad media se calcula dividiendo distancia entre tiempo.'},
-      {id:'cie-tecnologia', title:'Tecnologia digital', detail:'Sistemas, datos y seguridad.', tags:['recursos','datos'], note:'Comprende dispositivos, redes, hojas de calculo, privacidad y uso responsable.', example:'Una formula de hoja de calculo empieza con el signo igual.'}
+      {id:'cie-tecnologia', title:'Tecnologia digital', detail:'Sistemas, datos y seguridad.', tags:['recursos','datos'], note:'Comprende dispositivos, redes, hojas de calculo, privacidad y uso responsable.', example:'Una formula de hoja de calculo empieza con el signo igual.'},
+      {id:'cie-tierra', title:'La Tierra y el universo', detail:'Geologia, atmosfera y riesgos naturales.', tags:['ciencias','simulaciones'], note:'Relaciona capas de la Tierra, rocas, ciclo del agua, atmosfera y riesgos naturales con la vida cotidiana.', example:'La atmosfera protege, regula temperatura y permite fenomenos meteorologicos.'},
+      {id:'cie-cuerpo', title:'Cuerpo humano completo', detail:'Nutricion, relacion, reproduccion y salud.', tags:['ciencias','simulaciones'], note:'Estudia aparatos y sistemas conectando funcion, organos, habitos saludables y enfermedades frecuentes.', example:'El sistema circulatorio transporta nutrientes, gases y desechos.'},
+      {id:'cie-laboratorio', title:'Datos cientificos', detail:'Tablas, graficas, unidades y conclusion.', tags:['ciencias','datos'], note:'Interpreta resultados experimentales, identifica variables y comunica una conclusion basada en datos.', example:'Si al aumentar la temperatura aumenta la velocidad, hay relacion entre ambas variables.'},
+      {id:'cie-sostenibilidad', title:'Sostenibilidad y energia', detail:'Recursos, consumo e impacto ambiental.', tags:['ciencias','datos'], note:'Compara energias renovables y no renovables, eficiencia, residuos y decisiones responsables.', example:'Ahorrar energia reduce gasto y emisiones.'},
+      {id:'cie-digitalizacion', title:'Digitalizacion y seguridad', detail:'Redes, datos, identidad digital y privacidad.', tags:['recursos','datos'], note:'Reconoce riesgos digitales, contrasenas seguras, permisos, datos personales y comunicacion responsable.', example:'No se debe reutilizar la misma contrasena en todos los servicios.'},
+      {id:'cie-proyecto', title:'Proceso tecnologico', detail:'Problema, diseno, prototipo y mejora.', tags:['recursos','simulaciones'], note:'Aplica fases de un proyecto tecnico: necesidad, ideas, seleccion, plan, construccion, prueba y mejora.', example:'Antes de fabricar una solucion se dibuja, se mide y se decide que materiales usar.'}
     ]
   },
   {
@@ -1859,56 +2843,94 @@ const LESSON_TITLES = {
   'len-ortografia':['Acentuacion','Puntuacion','Letras conflictivas','Revision final'],
   'len-redaccion':['Planificar','Parrafos y conectores','Textos personales','Opinion argumentada'],
   'len-literatura':['Generos literarios','Recursos expresivos','Epocas principales','Lectura de fragmentos'],
+  'len-textos-vida':['Solicitud y carta','Avisos e instrucciones','Formularios','Registro formal'],
+  'len-medios':['Noticia y titular','Hecho y opinion','Publicidad','Desinformacion'],
+  'len-argumentacion':['Tesis','Argumentos','Contraargumentos','Conclusion'],
+  'len-comentario':['Tema y resumen','Estructura','Lenguaje','Valoracion personal'],
+  'len-presentacion':['Orden visual','Ortografia final','Coherencia','Entrega limpia'],
   'ing-reading':['Main idea','Specific information','True or false','Inference'],
   'ing-vocabulary':['Daily life','Work and studies','Health and travel','Words in context'],
   'ing-grammar':['Present and past','Future forms','Modals','Comparatives and conditionals'],
   'ing-writing':['Personal description','Daily routines','Informal email','Short opinion'],
   'ing-listening':['Useful questions','Schedules and prices','Directions','Workplace English'],
+  'ing-dialogues':['Buying and asking','Health situations','Travel services','Polite requests'],
+  'ing-forms':['Personal data','Dates and times','Signs and adverts','Short messages'],
+  'ing-connectors':['Basic connectors','Sentence order','Paragraphs','Final check'],
+  'ing-exam-strategy':['Skimming','Key words','Answer format','Review'],
   'geo-mapas':['Puntos cardinales','Escala','Coordenadas','Lectura de mapas'],
   'geo-relieve':['Formas del relieve','Climas de Espana','Climogramas','Paisajes'],
   'geo-poblacion':['Natalidad y mortalidad','Piramides de poblacion','Migraciones','Ciudades'],
   'geo-economia':['Sector primario','Industria','Servicios','Trabajo y territorio'],
   'geo-global':['Comercio mundial','Tecnologia','Desigualdad','Desarrollo sostenible'],
+  'geo-espana-europa':['Comunidades autonomas','Relieve espanol','Union Europea','Instituciones'],
+  'geo-medioambiente':['Recursos naturales','Riesgos ambientales','Cambio climatico','Soluciones sostenibles'],
+  'geo-fuentes':['Mapas tematicos','Graficas','Tablas','Conclusion con datos'],
+  'geo-ciudad':['Ciudad','Mundo rural','Transporte y servicios','Problemas urbanos'],
+  'geo-trabajo':['Sectores productivos','Mercado laboral','Presupuesto familiar','Consumo responsable'],
   'his-antigua':['Primeras civilizaciones','Grecia','Roma','Legado clasico'],
   'his-medieval':['Feudalismo','Al-Andalus','Reinos cristianos','Cultura medieval'],
   'his-moderna':['Descubrimientos','Monarquias','Renacimiento','Reformas religiosas'],
   'his-contemporanea':['Revoluciones','Industrializacion','Liberalismo','Movimiento obrero'],
   'his-sigloxx':['Guerras mundiales','Dictaduras','Guerra fria','Mundo actual'],
   'his-ciudadania':['Constitucion','Derechos y deberes','Instituciones','Participacion democratica'],
+  'his-espana':['Restauracion y crisis','Segunda Republica','Franquismo','Transicion democratica'],
+  'his-andalucia':['Historia andaluza','Arte y patrimonio','Cultura popular','Conservacion'],
+  'his-valores':['Derechos humanos','Igualdad','Diversidad','Convivencia'],
+  'his-fuentes':['Fuente primaria','Fuente secundaria','Linea del tiempo','Comentario de fuente'],
+  'his-musica-cultura':['Cultura e identidad','Musica y sociedad','Patrimonio inmaterial','Cambio social'],
   'mat-numeros':['Enteros y decimales','Fracciones','Potencias y raices','Jerarquia de operaciones'],
   'mat-proporciones':['Razones','Regla de tres','Porcentajes','Escalas y repartos'],
   'mat-algebra':['Lenguaje algebraico','Ecuaciones','Sistemas sencillos','Problemas algebraicos'],
   'mat-geometria':['Perimetros y areas','Pitagoras','Volumenes','Unidades de medida'],
   'mat-funciones':['Coordenadas','Tablas y graficas','Funcion lineal','Interpretacion de datos'],
   'mat-estadistica':['Tablas de frecuencia','Media y mediana','Graficos estadisticos','Probabilidad simple'],
+  'mat-medida':['Sistema metrico','Superficie y volumen','Tiempo','Estimacion'],
+  'mat-finanzas':['IVA','Descuentos','Interes simple','Facturas y presupuestos'],
+  'mat-problemas':['Datos y pregunta','Plan de calculo','Operacion','Respuesta con unidades'],
+  'mat-graficas-examen':['Ejes','Comparacion','Tendencia','Conclusion'],
+  'mat-calculadora':['Operaciones','Redondeo','Comprobacion','Errores frecuentes'],
+  'mat-razonamiento':['Patrones','Logica','Resultados posibles','Justificacion'],
   'cie-metodo':['Pregunta e hipotesis','Variables','Experimento','Conclusiones'],
   'cie-biologia':['Celula','Nutricion','Aparatos del cuerpo','Salud y prevencion'],
   'cie-ecologia':['Ecosistema','Cadenas troficas','Ciclos naturales','Impacto humano'],
   'cie-materia':['Estados de la materia','Mezclas','Atomos y elementos','Reacciones quimicas'],
   'cie-fisica':['Movimiento','Fuerzas','Energia','Electricidad'],
-  'cie-tecnologia':['Hardware y software','Internet seguro','Hojas de calculo','Resolucion tecnologica']
+  'cie-tecnologia':['Hardware y software','Internet seguro','Hojas de calculo','Resolucion tecnologica'],
+  'cie-tierra':['Capas de la Tierra','Rocas','Atmosfera','Riesgos naturales'],
+  'cie-cuerpo':['Aparatos','Sistemas','Habitos saludables','Enfermedades frecuentes'],
+  'cie-laboratorio':['Variables','Tablas','Graficas','Conclusion cientifica'],
+  'cie-sostenibilidad':['Energias renovables','Consumo','Residuos','Impacto ambiental'],
+  'cie-digitalizacion':['Identidad digital','Privacidad','Contrasenas','Uso responsable'],
+  'cie-proyecto':['Necesidad','Diseno','Prototipo','Evaluacion y mejora']
 };
 const DEFAULT_OFFICIAL_LINKS = [
   {
-    title:'Junta de Andalucia - Modelos convocatorias anteriores',
-    url:'https://www.juntadeandalucia.es/educacion/portals/en/web/educacion-permanente/pruebas-obtencion-graduado-eso/modelos',
+    title:'Junta de Andalucia - Graduado ESO mayores de 18',
+    url:'https://www.juntadeandalucia.es/educacion/portales/es/web/educacion-permanente/servicios/pruebas/obtencion-titulo-eso',
     source:'Junta de Andalucia',
-    tags:['examenes','modelos'],
-    desc:'Repositorio oficial con modelos por convocatoria para la obtencion del Graduado en ESO.'
+    tags:['convocatoria','estructura','examenes'],
+    desc:'Portal oficial con requisitos, estructura general, plazos y acceso a informacion de la prueba.'
   },
   {
-    title:'Junta de Andalucia - Materiales educativos',
-    url:'https://www.juntadeandalucia.es/educacion/portals/en/web/educacion-permanente/pruebas-obtencion-graduado-eso/material-apoyo',
+    title:'Junta de Andalucia - Contenidos y estructura',
+    url:'https://www.juntadeandalucia.es/educacion/portales/web/educacion-permanente/w/pruebas-obtencion-del-titulo-de-graduado-en-eso-para-mayores-de-18-anos-1-duplicar-0-1',
     source:'Junta de Andalucia',
-    tags:['contenidos','materiales'],
-    desc:'Material oficial de apoyo para preparar los ambitos de la prueba.'
+    tags:['contenidos','estructura','ambitos'],
+    desc:'Pagina oficial con ambitos de conocimiento, contenidos de referencia y puntuacion minima.'
   },
   {
     title:'Junta de Andalucia - Estructura de pruebas',
-    url:'https://www.juntadeandalucia.es/educacion/portals/en/web/educacion-permanente/pruebas-obtencion-graduado-eso/estructura-pruebas',
+    url:'https://www.juntadeandalucia.es/educacion/portales/es/web/educacion-permanente/servicios/pruebas/obtencion-titulo-eso/sobre-las-pruebas/estructura-de-pruebas?redirect=%2Feducacion%2Fportales%2Fes%2Fweb%2Feducacion-permanente%2Fservicios%2Fpruebas%2Fobtencion-titulo-eso%2Fsobre-las-pruebas',
     source:'Junta de Andalucia',
     tags:['estructura','puntuacion'],
     desc:'Estructura oficial por ambitos, apartados, puntuacion y criterios generales.'
+  },
+  {
+    title:'BOJA 2026 - Convocatoria y criterios',
+    url:'https://www.juntadeandalucia.es/boja/2026/19/38',
+    source:'BOJA',
+    tags:['convocatoria','estructura','puntuacion'],
+    desc:'Resolucion de 23 de enero de 2026 con horario, organizacion, estructura y criterios de correccion.'
   },
   {
     title:'Educastur - Orientaciones y modelos ESO',
@@ -2040,7 +3062,7 @@ const QUESTIONS = {
     ['Una contrasena segura debe...', ['Combinar caracteres y ser unica','Ser 1234','Usarse en todas las cuentas'], 0]
   ]
 };
-let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, teacherChats:{}, testAttempts:{}, teacherOpen:true, libraryTab:'subjects', sessionDuration:null, examMode:null, activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
+let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, teacherChats:{}, testAttempts:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, examMode:null, activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
 let currentUser = null;
 let currentView = 'home';
 const $ = id => document.getElementById(id);
@@ -2066,7 +3088,7 @@ async function loadState() {
   state.lessonNotes = state.lessonNotes && typeof state.lessonNotes === 'object' ? state.lessonNotes : {};
   state.teacherChats = state.teacherChats && typeof state.teacherChats === 'object' ? state.teacherChats : {};
   state.testAttempts = state.testAttempts && typeof state.testAttempts === 'object' ? state.testAttempts : {};
-  state.teacherOpen = state.teacherOpen !== false;
+  state.teacherOpen = state.teacherOpen === true;
   state.libraryTab = ['subjects','resources','saved'].includes(state.libraryTab) ? state.libraryTab : 'subjects';
   state.currentExamTopics = Array.isArray(state.currentExamTopics) ? state.currentExamTopics : [];
   state.activeLesson = Number.isInteger(state.activeLesson) ? state.activeLesson : null;
@@ -2130,6 +3152,14 @@ function toggleProfile(force) {
   button?.classList.toggle('active', nextOpen);
   if (nextOpen) loadProfile();
   renderView();
+}
+function closeProfile() {
+  const panel = $('profilePanel');
+  const button = $('profileButton');
+  if (!panel || panel.hidden) return false;
+  panel.hidden = true;
+  button?.classList.remove('active');
+  return true;
 }
 async function saveProfileName() {
   const input = $('profileNameInput');
@@ -2321,6 +3351,7 @@ function renderSavedNotesLibrary() {
 function openSavedNote(topicId, lessonIndex=0) {
   const module = moduleByTopicId(topicId);
   if (!module) return;
+  closeProfile();
   state.activeModule = module.id;
   state.activeTopic = topicId;
   state.activeLesson = Number(lessonIndex) || 0;
@@ -2469,7 +3500,17 @@ function render() {
   renderView();
   renderTeacherPanel();
 }
+function renderDeskHeader() {
+  const name = profileDisplayName();
+  const cleanName = name === 'Perfil' ? 'Marta' : name.split('@')[0];
+  const initial = (cleanName.trim()[0] || 'M').toUpperCase();
+  const formatted = new Intl.DateTimeFormat('es-ES', {weekday:'long', day:'numeric', month:'long'}).format(new Date());
+  if ($('deskUserName')) $('deskUserName').textContent = cleanName;
+  if ($('deskInitial')) $('deskInitial').textContent = initial;
+  if ($('deskDate')) $('deskDate').textContent = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
 function renderShell() {
+  renderDeskHeader();
   const pct = progressPct();
   $('progressPct').textContent = pct + '%';
   const completed = studyTasks().filter(t => state.done[t.id]).length;
@@ -2494,7 +3535,7 @@ function renderShell() {
     const isNext = next?.module.id === m.id;
     const hasMistakes = (state.mistakes || []).some(item => item.module === m.title);
     return `<button class="module-card ${state.activeModule === m.id ? 'active' : ''} ${done === m.tasks.length ? 'done' : ''} ${isNext ? 'recommended' : ''}" style="--module-color:${moduleColor(m.id)}" onclick="openModule('${m.id}')">
-      <div><div class="icon">${m.icon}</div><h3>${escapeHtml(m.title)}</h3><div class="module-badges">${isNext ? '<span class="mini-badge">Siguiente</span>' : ''}${hasMistakes ? '<span class="mini-badge review">Repasar</span>' : ''}</div><p>${escapeHtml(m.desc)}</p></div>
+      <div>${moduleIconHtml(m)}<h3>${escapeHtml(m.title)}</h3><div class="module-badges">${isNext ? '<span class="mini-badge">Siguiente</span>' : ''}${hasMistakes ? '<span class="mini-badge review">Repasar</span>' : ''}</div><p>${escapeHtml(m.desc)}</p></div>
       <div><span class="result-label">${done === m.tasks.length ? 'Completada' : `${done}/${m.tasks.length} temas`}</span><div class="progress"><span style="width:${pct}%"></span></div></div>
     </button>`;
   };
@@ -2516,7 +3557,7 @@ function renderModuleGrid() {
     const isNext = next?.module.id === m.id;
     const hasMistakes = (state.mistakes || []).some(item => item.module === m.title);
     return `<button class="module-card ${state.activeModule === m.id ? 'active' : ''} ${done === m.tasks.length ? 'done' : ''} ${isNext ? 'recommended' : ''}" style="--module-color:${moduleColor(m.id)}" onclick="openModule('${m.id}')">
-      <div><div class="icon">${m.icon}</div><h3>${escapeHtml(m.title)}</h3><div class="module-badges">${isNext ? '<span class="mini-badge">Siguiente</span>' : ''}${hasMistakes ? '<span class="mini-badge review">Repasar</span>' : ''}</div><p>${escapeHtml(m.desc)}</p></div>
+      <div>${moduleIconHtml(m)}<h3>${escapeHtml(m.title)}</h3><div class="module-badges">${isNext ? '<span class="mini-badge">Siguiente</span>' : ''}${hasMistakes ? '<span class="mini-badge review">Repasar</span>' : ''}</div><p>${escapeHtml(m.desc)}</p></div>
       <div><span class="result-label">${done === m.tasks.length ? 'Completada' : `${done}/${m.tasks.length} temas`}</span><div class="progress"><span style="width:${pct}%"></span></div></div>
     </button>`;
   };
@@ -2535,6 +3576,7 @@ function libraryTabsHtml() {
 function setLibraryTab(tab) {
   state.libraryTab = tab;
   currentView = 'modules';
+  closeProfile();
   renderModuleGrid();
   renderView();
   saveState();
@@ -2542,10 +3584,7 @@ function setLibraryTab(tab) {
 function openLibrary(tab='subjects') {
   if (['subjects','resources','saved'].includes(tab)) state.libraryTab = tab;
   currentView = 'modules';
-  const panel = $('profilePanel');
-  const button = $('profileButton');
-  if (panel) panel.hidden = true;
-  button?.classList.remove('active');
+  closeProfile();
   renderModuleGrid();
   renderView();
   renderTeacherPanel();
@@ -2576,6 +3615,7 @@ function recordStudyActivity() {
 function showView(view) {
   if (view === 'modules') return openLibrary(state.libraryTab || 'subjects');
   currentView = view;
+  closeProfile();
   if (view === 'modules') renderModuleGrid();
   renderView();
   renderTeacherPanel();
@@ -2605,6 +3645,26 @@ function moduleColor(id) {
     matematicas:'#7c3aed', ciencias:'#15803d', exam:'#b74338', oficial:'#475569'
   }[id] || '#b84a3a';
 }
+function topicVisual(topic={}, moduleId='') {
+  const id = String(topic.id || moduleId || '');
+  const tags = new Set([...(topic.tags || []), moduleId, id]);
+  if (tags.has('ingles')) return 'EN';
+  if (tags.has('matematicas') || id.includes('mat-')) return 'Σ';
+  if (tags.has('mapas') || tags.has('geografia') || id.includes('geo-')) return '⌖';
+  if (tags.has('ciencias') || id.includes('cie-')) return '⚗';
+  if (tags.has('redaccion')) return '✎';
+  if (tags.has('datos')) return '%';
+  if (moduleId === 'historia' || id.includes('his-')) return '◷';
+  if (moduleId === 'exam') return '✓';
+  if (moduleId === 'oficial') return 'i';
+  return 'Aa';
+}
+function moduleIconHtml(module) {
+  return `<div class="icon"><span class="topic-visual">${escapeHtml(topicVisual({}, module.id))}</span><small>${escapeHtml(module.icon || '')}</small></div>`;
+}
+function topicStatusHtml(topic, module, index) {
+  return `<span class="topic-status"><span class="topic-visual">${escapeHtml(topicVisual(topic, module.id))}</span><small>${state.done[topic.id] ? 'OK' : index + 1}</small></span>`;
+}
 function sessionSteps() {
   const module = recommendedStudyModule();
   const task = module.tasks.find(t => !state.done[t.id]) || module.tasks[0];
@@ -2616,6 +3676,7 @@ function sessionSteps() {
 function setSessionDuration(minutes) { state.sessionDuration = minutes; renderStudyCockpit(); renderTeacherPanel(); saveState(); }
 function clearSessionDuration() { state.sessionDuration = null; renderStudyCockpit(); renderTeacherPanel(); saveState(); }
 function openSessionStep(moduleId, tab, topicId='') {
+  closeProfile();
   state.activeModule = moduleId;
   state.activeTopic = topicId || null;
   state.activeLesson = null;
@@ -2654,6 +3715,7 @@ function clearMistakes() {
   saveState();
 }
 function openModule(id) {
+  closeProfile();
   state.activeModule = id;
   state.activeTopic = null;
   state.activeLesson = null;
@@ -2665,7 +3727,7 @@ function openModule(id) {
   saveState();
   jumpTo($('workspace'));
 }
-function setTab(tab) { state.activeTab = tab; if (tab === 'contenidos') { state.activeTopic = null; state.activeLesson = null; } currentView = 'workspace'; renderWorkspace(); renderView(); saveState(); }
+function setTab(tab) { closeProfile(); state.activeTab = tab; if (tab === 'contenidos') { state.activeTopic = null; state.activeLesson = null; } currentView = 'workspace'; renderWorkspace(); renderView(); saveState(); }
 function renderWorkspace() {
   const module = moduleById(state.activeModule);
   if (module.id === 'exam' && ['examen','ejemplos'].includes(state.activeTab)) state.activeTab = 'aleatorio';
@@ -2735,6 +3797,7 @@ function teacherSuggestions(ctx) {
 function renderTeacherPanel() {
   const panel = $('teacherPanel');
   if (!panel) return;
+  panel.hidden = false;
   const ctx = teacherContext();
   const messages = state.teacherChats?.[ctx.key] || [];
   const suggestions = teacherSuggestions(ctx);
@@ -2784,7 +3847,7 @@ function toggleDone(id) {
 function renderContents(module) {
   const topic = module.tasks.find(t => t.id === state.activeTopic);
   if (!topic) {
-    $('viewer').innerHTML = `<div class="topic-library-list">${module.tasks.map((t,index) => `<button class="topic-row ${state.done[t.id] ? 'done' : ''}" type="button" onclick="openTopic('${t.id}')"><span class="topic-status">${state.done[t.id] ? 'OK' : index + 1}</span><span><strong>${escapeHtml(t.title)}</strong><small>${state.done[t.id] ? 'COMPLETADO' : `${subtopicsFor(t).length} LECCIONES`}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div>`;
+    $('viewer').innerHTML = `<div class="topic-library-list">${module.tasks.map((t,index) => `<button class="topic-row ${state.done[t.id] ? 'done' : ''}" type="button" onclick="openTopic('${t.id}')">${topicStatusHtml(t,module,index)}<span><strong>${escapeHtml(t.title)}</strong><small>${state.done[t.id] ? 'COMPLETADO' : `${subtopicsFor(t).length} LECCIONES`}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div>`;
     return;
   }
   const lessons = subtopicsFor(topic);
@@ -2806,7 +3869,7 @@ function subtopicsFor(topic) {
 }
 function lessonKey(topicId,index) { return `${topicId}:lesson:${index}`; }
 function isLessonDone(topic,index) { return Boolean(state.done[topic.id] || state.done[lessonKey(topic.id,index)]); }
-function openTopic(id) { state.activeTopic = id; state.activeLesson = null; renderWorkspace(); saveState(); }
+function openTopic(id) { closeProfile(); state.activeTopic = id; state.activeLesson = null; renderWorkspace(); saveState(); }
 function openLesson(index) { state.activeLesson = index; renderWorkspace(); saveState(); }
 function closeLesson() { state.activeLesson = null; renderWorkspace(); saveState(); }
 function completeLesson(topicId,index) {
