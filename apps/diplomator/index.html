@@ -3673,8 +3673,8 @@ async function correctRecitation() {
   const langName = state.lang === 'fr' ? 'French' : 'English';
   try {
     const correction = await groqChat([
-      { role: 'system', content: `You are a demanding ${langName} C1/C2 oral examiner for diplomacy and international affairs. Respond in clear Spanish. Be práctical, specific and well structured. Quote improved ${langName} phrases only when useful. Do not use markdown symbols like ### or **.` },
-      { role: 'user', content: `Tema: ${topic}\nTranscripción:\n${transcript}\n\nDevuelve exactamente este formato, con títulos en mayúsculas y bullets claros:\n\nRESUMEN\n- Valoración global en 2 frases.\n\nPUNTOS FUERTES\n- 2 o 3 cosas que ya funcionan.\n\nCORRECCIONES PRIORITARIAS\n- 3 a 5 mejoras concretas: estructura, gramática, vocabulario, precisión diplomática, ejemplos o ritmo oral.\n\nVERSIÓN MEJORADA\nEscribe una versión mejorada de 1 o 2 fragmentos importantes de la respuesta, manteniendo el idioma de la exposición.\n\nPLAN PARA LA SIGUIENTE PRÁCTICA\n- 3 acciones concretas para repetir mejor la recitación.` }
+      { role: 'system', content: `You are a demanding C1/C2 oral examiner for diplomacy and international affairs. The student's practice language is ${langName}, but your full correction report must be written in English. Be practical, specific and well structured. Quote improved ${langName} phrases when useful. Do not use markdown symbols like ### or **.` },
+      { role: 'user', content: `Topic: ${topic}\nTranscript:\n${transcript}\n\nReturn exactly this format, with uppercase headings and clear bullet points. Write the whole correction report in English:\n\nSUMMARY\n- Overall assessment in 2 sentences.\n\nSTRENGTHS\n- 2 or 3 things that already work well.\n\nPRIORITY CORRECTIONS\n- 3 to 5 concrete improvements: structure, grammar, vocabulary, diplomatic precision, examples or oral rhythm.\n\nIMPROVED VERSION\nWrite an improved version of 1 or 2 important fragments of the answer, keeping the oral performance language as ${langName}.\n\nPLAN FOR THE NEXT PRACTICE\n- 3 concrete actions to repeat the recitation better.` }
     ], { max_tokens: 1800, temperature: 0.25 });
     box.className = 'notice correction-report';
     box.innerHTML = renderCorrectionReport(correction);
@@ -3687,7 +3687,7 @@ async function correctRecitation() {
 }
 
 function renderCorrectionReport(text) {
-  const titles = new Set(['RESUMEN', 'PUNTOS FUERTES', 'CORRECCIONES PRIORITARIAS', 'VERSIÓN MEJORADA', 'PLAN PARA LA SIGUIENTE PRÁCTICA']);
+  const titles = new Set(['SUMMARY', 'STRENGTHS', 'PRIORITY CORRECTIONS', 'IMPROVED VERSION', 'PLAN FOR THE NEXT PRACTICE', 'RESUMEN', 'PUNTOS FUERTES', 'CORRECCIONES PRIORITARIAS', 'VERSIÓN MEJORADA', 'PLAN PARA LA SIGUIENTE PRÁCTICA']);
   const lines = String(text || '').replace(/\r/g, '').split('\n').map(line => line.trim()).filter(Boolean);
   const sections = [];
   let current = { title: 'CORRECCIÓN', lines: [] };
@@ -3703,7 +3703,7 @@ function renderCorrectionReport(text) {
   if (current.lines.length) sections.push(current);
 
   return sections.map(section => {
-    const isVersion = section.title === 'VERSIÓN MEJORADA';
+    const isVersion = section.title === 'IMPROVED VERSION' || section.title === 'VERSIÓN MEJORADA';
     const body = isVersion
       ? `<div class="correction-quote">${section.lines.map(escHtml).join('<br>')}</div>`
       : `<ul>${section.lines.map(line => `<li>${escHtml(line)}</li>`).join('')}</ul>`;
@@ -3713,6 +3713,11 @@ function renderCorrectionReport(text) {
 
 function titleCaseCorrection(title) {
   const labels = {
+    'SUMMARY': 'Summary',
+    'STRENGTHS': 'Strengths',
+    'PRIORITY CORRECTIONS': 'Priority corrections',
+    'IMPROVED VERSION': 'Improved version',
+    'PLAN FOR THE NEXT PRACTICE': 'Plan for the next practice',
     'RESUMEN': 'Resumen',
     'PUNTOS FUERTES': 'Puntos fuertes',
     'CORRECCIONES PRIORITARIAS': 'Correcciones prioritarias',
