@@ -433,7 +433,7 @@ body {
   margin:0 auto;
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(360px,.82fr);
-  gap:34px;
+  gap:30px;
   align-items:center;
   padding:28px 0;
 }
@@ -441,7 +441,7 @@ body {
 .landing-copy {
   display:grid;
   justify-items:start;
-  gap:14px;
+  gap:12px;
 }
 
 .landing-copy .logo {
@@ -475,14 +475,14 @@ body {
 .landing-copy h1 {
   max-width:720px;
   margin:0;
-  font-size:40px;
+  font-size:36px;
   line-height:1.06;
 }
 
 .landing-copy .lead {
   max-width:680px;
   margin:0;
-  font-size:18px;
+  font-size:17px;
 }
 
 .feature-grid {
@@ -494,13 +494,13 @@ body {
 }
 
 .feature-grid article {
-  min-height:98px;
+  min-height:84px;
   display:grid;
   grid-template-columns:auto minmax(0,1fr);
   grid-template-areas:"mark title" "mark text";
   gap:4px 10px;
   align-content:center;
-  padding:15px;
+  padding:13px;
   border:1px solid var(--line);
   border-radius:8px;
   background:#fff;
@@ -535,11 +535,67 @@ body {
 .landing-copy .btn {
   min-width:170px;
   justify-content:center;
-  padding:15px 24px;
+  padding:13px 22px;
   border-color:var(--main);
   background:var(--main);
   color:#fff;
   box-shadow:0 16px 34px color-mix(in srgb,var(--main) 26%,transparent);
+}
+
+.faq {
+  width:100%;
+  display:grid;
+  gap:7px;
+  margin-top:4px;
+}
+
+.faq details {
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:rgba(255,255,255,.82);
+  box-shadow:0 8px 22px rgba(23,32,38,.04);
+  overflow:hidden;
+}
+
+.faq summary {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 12px;
+  color:var(--ink);
+  font-weight:900;
+  cursor:pointer;
+  list-style:none;
+}
+
+.faq summary::-webkit-details-marker {
+  display:none;
+}
+
+.faq summary::after {
+  content:"+";
+  width:24px;
+  height:24px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  background:var(--soft);
+  color:var(--main);
+  font-size:18px;
+  line-height:1;
+}
+
+.faq details[open] summary::after {
+  content:"-";
+}
+
+.faq p {
+  margin:0;
+  padding:0 12px 12px;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.45;
 }
 
 .app-image {
