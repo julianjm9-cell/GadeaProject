@@ -11,7 +11,6 @@
 <body class="cambridge" data-app="cambridge">
   <main class="landing-simple">
     <section class="landing-copy">
-      <a class="mini-back" href="/">Ver las 4 webs</a>
       <span class="logo">CAM</span>
       <p class="eyebrow">WEB PARA AYUDARTE A ESTUDIAR</p>
       <h1>Cambridge sencillo, sin complicaciones.</h1>
@@ -26,10 +25,16 @@
     </section>
     <aside class="app-image" aria-label="Vista simplificada de Cambridge Trainer">
       <div class="mock-header"><span>CAM</span><b>Cambridge Trainer</b></div>
-      <div class="mock-tabs"><i></i><i></i><i></i><i></i></div>
-      <div class="mock-card wide"><strong>Speaking</strong><p>Practice and feedback</p></div>
-      <div class="mock-grid"><div></div><div></div><div></div><div></div></div>
+      <div class="mock-tabs" aria-label="Preview de funciones">
+        <button class="active" type="button" data-screen="temas">Temas</button>
+        <button type="button" data-screen="hoy">Hoy</button>
+        <button type="button" data-screen="speaking">Oral</button>
+        <button type="button" data-screen="writing">Writing</button>
+      </div>
+      <div class="mock-card wide" id="mockCard"></div>
+      <div class="mock-grid" id="mockGrid"></div>
     </aside>
   </main>
+  <script src="/demo-shared.js"></script>
 </body>
 </html>
