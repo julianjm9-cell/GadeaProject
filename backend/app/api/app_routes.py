@@ -479,6 +479,28 @@ def marketing_asset(filename: str):
     return marketing_file(filename, allowed[filename])
 
 
+@router.get("/assets/brand/{filename}")
+def brand_asset(filename: str):
+    allowed = {
+        "u25-simple.png",
+        "u25-full.png",
+        "eso-simple.png",
+        "eso-full.png",
+        "ingles-simple.png",
+        "ingles-full.png",
+        "diplomator-simple.png",
+        "diplomator-full.png",
+    }
+    if filename not in allowed:
+        raise HTTPException(status_code=404, detail="Asset no encontrado.")
+    static_path = STATIC_DIR / "assets" / "brand" / filename
+    fallback = PROJECT_ROOT / "marketing" / "app_landings_demo" / "assets" / "brand" / filename
+    path = static_path if static_path.exists() else fallback
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Asset no encontrado.")
+    return FileResponse(path, media_type="image/png", headers={"Cache-Control": "public, max-age=3600"})
+
+
 @router.get("/diplomator")
 @router.get("/diplomator.html")
 def diplomator_public_page():

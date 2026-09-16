@@ -74,6 +74,23 @@
     opacity:0.72;
   }
   .brand-area { display:flex; align-items:center; gap:12px; min-width:0; flex-wrap:wrap; }
+  .diplomator-header-icon {
+    width:52px;
+    height:52px;
+    flex:0 0 52px;
+    display:grid;
+    place-items:center;
+    border-radius:14px;
+    background:transparent;
+    box-shadow:0 14px 28px rgba(18,58,115,.18);
+    overflow:hidden;
+  }
+  .diplomator-header-icon img {
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:contain;
+  }
 
   .lang-switcher { display: flex; gap: 3px; background: #f7f5ef; border: 1px solid #e5dccb; padding: 2px; border-radius: 999px; }
 
@@ -113,6 +130,13 @@
   .diplomat-icon .tie { fill:var(--blue); }
   .diplomat-icon .line { stroke:currentColor; stroke-width:1.8; stroke-linecap:round; fill:none; opacity:0.55; }
   .profile-mini:hover, .profile-mini.active { background:var(--blue); color:white; border-color:var(--blue); box-shadow:0 8px 18px rgba(36,84,166,0.22); }
+  .profile-mini img,
+  .profile-avatar img {
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:contain;
+  }
   .utility-links { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
   #tab-perfil > .notice, #tab-perfil > .config-row, #tab-perfil .utility-links { display:none; }
   main { max-width: min(1680px, calc(100vw - 28px)); margin: 0 auto; padding: 26px 24px 44px; }
@@ -781,6 +805,7 @@
 
 <header>
   <div class="brand-area">
+    <div class="diplomator-header-icon" aria-hidden="true"><img src="assets/brand/diplomator-simple.png" alt=""></div>
     <h1><span class="brand-word"><span class="brand-initial">D</span>IPLOMATOR</span></h1>
     <div class="lang-switcher">
       <button class="lang-btn active" id="btnEN" onclick="setLang('en')" title="English C1">EN</button>
@@ -2775,19 +2800,7 @@ function remainingCredits(user = null) {
 }
 
 function diplomatIcon() {
-  return `
-    <svg class="diplomat-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-      <path class="suit" d="M22 15c2.3-5 5.7-7.5 10-7.5S39.7 10 42 15H22z"/>
-      <path class="tie" d="M20 15h24v5H20z"/>
-      <path class="line" d="M24 15h16M25 12c4.2 1.4 9.8 1.4 14 0"/>
-      <circle class="skin" cx="32" cy="21" r="11"/>
-      <path class="shirt" d="M24 39h16l-3 19h-10l-3-19z"/>
-      <path class="suit" d="M11 58c2.6-12.6 10.7-19.5 21-19.5S50.4 45.4 53 58H11z"/>
-      <path class="shirt" d="M25 40l7 8 7-8v18H25V40z"/>
-      <path class="tie" d="M30 47h4l1.8 8-3.8 3-3.8-3L30 47z"/>
-      <path class="line" d="M23 24c5.2 2.6 12.7 2.6 18 0M26 32c3.8 2.2 8.2 2.2 12 0"/>
-      <path class="line" d="M20 43l9 8M44 43l-9 8"/>
-    </svg>`;
+  return '<img src="assets/brand/diplomator-simple.png" alt="">';
 }
 
 function renderDiplomatIcons() {

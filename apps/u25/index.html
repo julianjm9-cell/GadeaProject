@@ -1660,8 +1660,14 @@
       width:62px;
       height:62px;
       border-radius:16px;
-      background:linear-gradient(135deg,var(--primary),var(--accent));
+      background:transparent;
       box-shadow:0 14px 30px rgba(18,58,115,.18);
+    }
+    .brand-logo img {
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit:contain;
     }
     .brand-logo::before,
     .brand-logo::after { display:none; }
@@ -2054,7 +2060,7 @@
 <div class="app">
   <header>
     <div class="brand">
-      <div class="brand-logo" aria-hidden="true"><span>U25</span></div>
+      <div class="brand-logo" aria-hidden="true"><img src="assets/brand/u25-simple.png" alt=""></div>
       <div>
         <h1>ACCESO UNIVERSIDAD +25</h1>
       </div>

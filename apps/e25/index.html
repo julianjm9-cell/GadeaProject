@@ -2031,28 +2031,28 @@
       gap:14px;
     }
     .brand-logo {
-      width:174px;
+      width:62px;
       height:62px;
-      border-radius:0;
+      border-radius:16px;
       background:transparent;
-      box-shadow:none;
-      overflow:visible;
+      box-shadow:0 14px 30px rgba(183,67,56,.16);
+      overflow:hidden;
     }
     .brand-logo img {
-      width:174px;
-      height:62px;
+      width:100%;
+      height:100%;
       object-fit:contain;
-      object-position:left center;
+      object-position:center;
       transform:none;
       mix-blend-mode:normal;
     }
     .brand > div:last-child {
-      position:absolute;
-      width:1px;
-      height:1px;
-      overflow:hidden;
-      clip:rect(0 0 0 0);
-      white-space:nowrap;
+      position:static;
+      width:auto;
+      height:auto;
+      overflow:visible;
+      clip:auto;
+      white-space:normal;
     }
     .brand h1 {
       color:var(--primary);
@@ -2557,8 +2557,8 @@
     }
     @media (max-width:520px) {
       .app { padding-inline:14px; }
-      .brand-logo { width:144px; height:52px; }
-      .brand-logo img { width:144px; height:52px; }
+      .brand-logo { width:50px; height:50px; }
+      .brand-logo img { width:100%; height:100%; }
       .brand h1 { font-size:18px; }
       header .screen-nav { grid-template-columns:1fr 1fr; }
       .workspace-head .tabs { grid-template-columns:1fr; }
@@ -2576,7 +2576,7 @@
 <div class="app">
   <header>
     <div class="brand">
-      <div class="brand-logo"><img src="assets/eso-adultos-logo-clean.png" alt="ESO Adultos"></div>
+      <div class="brand-logo" aria-hidden="true"><img src="assets/brand/eso-simple.png" alt=""></div>
       <div>
         <h1>ESO Adultos</h1>
       </div>

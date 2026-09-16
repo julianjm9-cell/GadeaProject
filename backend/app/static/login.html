@@ -65,6 +65,22 @@
       font-weight:900;
       font-size:22px;
     }
+    .brand-mark.with-image {
+      width:min(250px,100%);
+      height:78px;
+      place-items:start;
+      border:0;
+      border-radius:0;
+      background:transparent;
+      color:inherit;
+    }
+    .brand-mark.with-image img {
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit:contain;
+      object-position:left center;
+    }
     body[data-login-app="u25"] {
       --blue:#6542a6;
       --blue-2:#4b2f82;
@@ -326,6 +342,7 @@ const LOGIN_BRANDS = {
   '/universidad-adultos': {
     app:'u25',
     mark:'U25',
+    logo:'assets/brand/u25-full.png',
     eyebrow:'Prueba acceso universidad +25',
     title:'Accede a tu escritorio virtual.',
     copy:'Todas las funcionalidades para estudiar la prueba de acceso: sesión diaria, biblioteca de materias, generador de exámenes y progreso.',
@@ -334,6 +351,7 @@ const LOGIN_BRANDS = {
   '/eso-adultos': {
     app:'e25',
     mark:'E25',
+    logo:'assets/brand/eso-full.png',
     eyebrow:'ESO Adultos',
     title:'Accede a tu escritorio virtual.',
     copy:'Todas las funcionalidades para estudiar ESO Adultos: sesión diaria, biblioteca de materias, generador de exámenes y progreso.',
@@ -342,6 +360,7 @@ const LOGIN_BRANDS = {
   '/cambridge': {
     app:'cambridge',
     mark:'CAM',
+    logo:'assets/brand/ingles-full.png',
     eyebrow:'Título de inglés',
     title:'Accede a tu escritorio virtual.',
     copy:'Todas las funcionalidades para preparar tu título de inglés: biblioteca de temas, sesión diaria, oral, writing y feedback.',
@@ -350,6 +369,7 @@ const LOGIN_BRANDS = {
   '/app': {
     app:'diplomator',
     mark:'DIP',
+    logo:'assets/brand/diplomator-full.png',
     eyebrow:'Diplomator',
     title:'Accede a tu escritorio virtual.',
     copy:'Todas las funcionalidades para preparar exposiciones: biblioteca de temas, guion, práctica oral y corrección.',
@@ -365,7 +385,14 @@ function applyLoginBrand() {
   if (!brand) return;
   document.body.dataset.loginApp = brand.app;
   document.title = `${brand.eyebrow} | Acceso`;
-  document.getElementById('loginMark').textContent = brand.mark;
+  const mark = document.getElementById('loginMark');
+  if (brand.logo) {
+    mark.classList.add('with-image');
+    mark.innerHTML = `<img src="${brand.logo}" alt="${brand.eyebrow}">`;
+  } else {
+    mark.classList.remove('with-image');
+    mark.textContent = brand.mark;
+  }
   document.getElementById('loginEyebrow').textContent = brand.eyebrow;
   document.getElementById('loginTitle').textContent = brand.title;
   document.getElementById('loginCopy').textContent = brand.copy;
