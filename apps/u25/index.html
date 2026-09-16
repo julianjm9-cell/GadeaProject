@@ -2055,8 +2055,11 @@
       .teacher-panel.collapsed { top:auto; right:12px; bottom:12px; }
     }
     .teacher-avatar {
+      width:44px;
+      height:44px;
+      border-radius:16px;
       overflow:hidden;
-      background:#fff !important;
+      background:linear-gradient(145deg,#ffffff,#eaf3ff) !important;
       border:1px solid rgba(255,255,255,.65);
       box-shadow:0 8px 18px rgba(12,28,45,.18);
     }
@@ -2064,9 +2067,22 @@
       width:100%;
       height:100%;
       display:block;
-      object-fit:cover;
+      object-fit:contain;
       object-position:center top;
-      transform:scale(1.18);
+      transform:scale(1.08);
+    }
+    .teacher-panel.collapsed {
+      width:76px;
+      border-radius:24px;
+    }
+    .teacher-panel.collapsed .teacher-head {
+      min-height:76px;
+      padding:8px;
+    }
+    .teacher-panel.collapsed .teacher-avatar {
+      width:60px;
+      height:60px;
+      border-radius:20px;
     }
   </style>
 </head>
