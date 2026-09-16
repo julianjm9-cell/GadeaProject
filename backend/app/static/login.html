@@ -48,9 +48,9 @@
     .intro {
       display:flex;
       flex-direction:column;
-      justify-content:space-between;
+      justify-content:center;
       min-height:460px;
-      padding:28px;
+      padding:34px;
       overflow:hidden;
     }
     .brand-mark {
@@ -89,7 +89,7 @@
       background:linear-gradient(135deg, #fff, rgba(234,241,255,.9) 54%, #fffdf8);
     }
     .eyebrow {
-      margin-top:22px;
+      margin-top:20px;
       color:var(--gold);
       font-size:11px;
       letter-spacing:0.15em;
@@ -99,7 +99,7 @@
     h1 {
       max-width:520px;
       margin:8px 0 10px;
-      font-size:42px;
+      font-size:38px;
       line-height:1.04;
       letter-spacing:0;
     }
@@ -130,6 +130,51 @@
       font-size:12px;
       font-weight:700;
       line-height:1.35;
+    }
+    .access-message {
+      max-width:430px;
+      display:grid;
+      gap:12px;
+    }
+    .access-message p {
+      font-size:16px;
+    }
+    .contact-box {
+      display:grid;
+      gap:8px;
+      margin-top:18px;
+      padding-top:16px;
+      border-top:1px solid var(--line);
+    }
+    .contact-box p {
+      font-size:13px;
+      font-weight:800;
+      color:var(--muted);
+    }
+    .contact-actions {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+    }
+    .contact-actions a {
+      min-height:38px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:8px 10px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:#fff;
+      color:var(--ink);
+      font-size:13px;
+      font-weight:850;
+      text-decoration:none;
+    }
+    .contact-actions a:first-child {
+      border-color:#bfe6d3;
+      color:#146b43;
+      background:#f1fbf6;
     }
     form {
       display:flex;
@@ -239,16 +284,12 @@
 <main>
   <section class="intro" aria-label="Apps Suite">
     <div>
-      <div class="brand-mark" id="loginMark">ED</div>
-      <div class="eyebrow" id="loginEyebrow">Educa Suite</div>
-      <h1 id="loginTitle">Entra y sigue por donde toca.</h1>
-      <p id="loginCopy">Un solo acceso para tus apps. Despues eliges producto y la plataforma te lleva al siguiente paso.</p>
-    </div>
-    <div class="app-strip" id="loginCards" aria-label="Aplicaciones disponibles">
-      <div class="app-pill">DIPLOMATOR<span>Temas claros y practica oral.</span></div>
-      <div class="app-pill">CAMBRIDGE<span>Speaking y writing con criterio.</span></div>
-      <div class="app-pill">UNIVERSIDAD +25<span>Sesion corta y simulacros.</span></div>
-      <div class="app-pill">ESO ADULTOS<span>Bloques simples y practica.</span></div>
+      <div class="access-message">
+        <div class="brand-mark" id="loginMark">ED</div>
+        <div class="eyebrow" id="loginEyebrow">Educa Suite</div>
+        <h1 id="loginTitle">Accede a tu escritorio virtual.</h1>
+        <p id="loginCopy">Entra con tu usuario y tendrás todas las funcionalidades de estudio en un solo sitio: sesión diaria, biblioteca, práctica y progreso.</p>
+      </div>
     </div>
   </section>
   <form onsubmit="login(event)">
@@ -265,6 +306,13 @@
     <input id="password" type="password" autocomplete="current-password" required>
     <button>Entrar</button>
     <div class="error" id="error"></div>
+    <div class="contact-box" aria-label="Contacto">
+      <p>¿Necesitas acceso o tienes dudas?</p>
+      <div class="contact-actions">
+        <a href="https://wa.me/34663533412" target="_blank" rel="noopener">WhatsApp</a>
+        <a href="mailto:julianjm9@gmail.com">Email</a>
+      </div>
+    </div>
   </form>
 </main>
 <script>
@@ -278,33 +326,33 @@ const LOGIN_BRANDS = {
   '/universidad-adultos': {
     app:'u25',
     mark:'U25',
-    eyebrow:'Acceso Universidad +25',
-    title:'Tu sesion +25, directa y sin ruido.',
-    copy:'Entra para estudiar el siguiente bloque, hacer un simulacro o continuar justo donde lo dejaste.',
+    eyebrow:'Prueba acceso universidad +25',
+    title:'Accede a tu escritorio virtual.',
+    copy:'Todas las funcionalidades para estudiar la prueba de acceso: sesión diaria, biblioteca de materias, generador de exámenes y progreso.',
     cards:['Sesion de hoy|15, 30 o 45 minutos.', 'Simulacro|Practica tipo prueba.']
   },
   '/eso-adultos': {
     app:'e25',
     mark:'E25',
     eyebrow:'ESO Adultos',
-    title:'Entra, haz una tarea y avanza.',
-    copy:'Bloques claros, practica corta y continuidad para no perderse entre materiales.',
+    title:'Accede a tu escritorio virtual.',
+    copy:'Todas las funcionalidades para estudiar ESO Adultos: sesión diaria, biblioteca de materias, generador de exámenes y progreso.',
     cards:['Bloques|Comunicacion, social y cientifico.', 'Practica|Tests breves y repetibles.']
   },
   '/cambridge': {
     app:'cambridge',
     mark:'CAM',
-    eyebrow:'Cambridge Trainer',
-    title:'Speaking y writing, cada cosa en su sitio.',
-    copy:'Accede a tareas por nivel y parte del examen, con feedback orientado a mejorar.',
+    eyebrow:'Título de inglés',
+    title:'Accede a tu escritorio virtual.',
+    copy:'Todas las funcionalidades para preparar tu título de inglés: biblioteca de temas, sesión diaria, oral, writing y feedback.',
     cards:['Speaking|Partes del oral listas.', 'Writing|Estructura y correccion.']
   },
   '/app': {
     app:'diplomator',
     mark:'DIP',
     eyebrow:'Diplomator',
-    title:'Del tema abierto al guion defendible.',
-    copy:'Entra para ordenar ideas, generar puntos y practicar una exposicion oral con criterio.',
+    title:'Accede a tu escritorio virtual.',
+    copy:'Todas las funcionalidades para preparar exposiciones: biblioteca de temas, guion, práctica oral y corrección.',
     cards:['Tema|Puntos y conexiones.', 'Oral|Practica y mejora.']
   }
 };
@@ -321,10 +369,6 @@ function applyLoginBrand() {
   document.getElementById('loginEyebrow').textContent = brand.eyebrow;
   document.getElementById('loginTitle').textContent = brand.title;
   document.getElementById('loginCopy').textContent = brand.copy;
-  document.getElementById('loginCards').innerHTML = brand.cards.map(item => {
-    const [title, text] = item.split('|');
-    return `<div class="app-pill">${title}<span>${text}</span></div>`;
-  }).join('');
 }
 function applyLoginLinks() {
   const next = nextPath();
