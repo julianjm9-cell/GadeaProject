@@ -552,6 +552,7 @@ body {
 
 .landing-copy .btn {
   min-width:170px;
+  flex:0 0 auto;
   justify-content:center;
   padding:13px 22px;
   border-color:var(--main);
@@ -561,11 +562,13 @@ body {
 }
 
 .landing-copy .btn.ghost {
-  min-width:112px;
+  min-width:0;
+  flex:1 1 190px;
   border-color:var(--line);
   background:#fff;
   color:var(--ink);
   box-shadow:none;
+  white-space:nowrap;
 }
 
 .landing-copy .btn.ghost:hover {
@@ -782,6 +785,9 @@ body {
   .landing-copy h1 { font-size:34px; }
   .landing-copy .lead { font-size:18px; }
   .landing-copy .sublead { font-size:15px; }
+  .landing-actions { display:grid; grid-template-columns:1fr; }
+  .landing-copy .btn,
+  .landing-copy .btn.ghost { width:100%; }
   .app-image { min-height:360px; padding:16px; }
   .mock-grid { grid-template-columns:1fr 1fr; }
   .mock-grid article { min-height:72px; padding:12px; }
