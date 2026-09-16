@@ -46,6 +46,7 @@
       backdrop-filter:blur(16px);
     }
     .intro {
+      position:relative;
       display:flex;
       flex-direction:column;
       justify-content:center;
@@ -148,9 +149,22 @@
       line-height:1.35;
     }
     .access-message {
+      position:relative;
+      z-index:1;
       max-width:430px;
       display:grid;
       gap:12px;
+    }
+    .login-teacher {
+      position:absolute;
+      right:18px;
+      bottom:0;
+      width:168px;
+      max-width:42%;
+      height:auto;
+      display:block;
+      filter:drop-shadow(0 20px 28px rgba(23,32,38,.18));
+      pointer-events:none;
     }
     .access-message p {
       font-size:16px;
@@ -293,6 +307,10 @@
       body { padding:14px; }
       .intro, form { padding:20px; }
       .app-strip { grid-template-columns:1fr; }
+      .login-teacher {
+        width:118px;
+        opacity:.92;
+      }
     }
   </style>
 </head>
@@ -307,6 +325,7 @@
         <p id="loginCopy">Entra con tu usuario y tendrás todas las funcionalidades de estudio en un solo sitio: sesión diaria, biblioteca, práctica y progreso.</p>
       </div>
     </div>
+    <img class="login-teacher" src="/assets/brand/teacher-ai.png" alt="">
   </section>
   <form onsubmit="login(event)">
     <h2 class="form-title">Acceder</h2>

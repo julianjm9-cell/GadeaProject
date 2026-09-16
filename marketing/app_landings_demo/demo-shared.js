@@ -246,11 +246,26 @@ function renderMockPreview(key) {
   }
 }
 
+function addLandingTeacher() {
+  if (!document.body.dataset.app || document.querySelector(".landing-teacher")) return;
+  const entryHref = document.querySelector(".landing-actions .btn.primary")?.getAttribute("href") || "#";
+  const teacher = document.createElement("a");
+  teacher.className = "landing-teacher";
+  teacher.href = entryHref;
+  teacher.setAttribute("aria-label", "Abrir Profesor IA");
+  teacher.innerHTML = `
+    <img src="assets/brand/teacher-ai.png" alt="">
+    <span>Profesor IA</span>
+  `;
+  document.body.appendChild(teacher);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const app = DEMOS[document.body.dataset.app || ""];
   if (app) {
     renderDemo(app.first);
     renderMockPreview(app.first);
+    addLandingTeacher();
   }
   document.querySelectorAll("[data-screen]").forEach((button) => {
     button.addEventListener("click", () => {

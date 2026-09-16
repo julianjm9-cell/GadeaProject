@@ -385,6 +385,38 @@ footer {
 }
 .toast.show { opacity:1; transform:translateY(0); }
 
+.landing-teacher {
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:30;
+  width:92px;
+  min-height:104px;
+  display:grid;
+  justify-items:center;
+  gap:5px;
+  padding:8px 8px 7px;
+  border:1px solid color-mix(in srgb,var(--main) 22%,var(--line));
+  border-radius:24px;
+  background:linear-gradient(145deg,#fff,#edf5ff);
+  box-shadow:0 20px 46px rgba(23,32,38,.18);
+}
+
+.landing-teacher img {
+  width:78px;
+  height:78px;
+  display:block;
+  object-fit:contain;
+}
+
+.landing-teacher span {
+  color:var(--main);
+  font-size:11px;
+  font-weight:950;
+  line-height:1.05;
+  text-align:center;
+}
+
 @media (max-width:920px) {
   .hero, .preview { grid-template-columns:1fr; min-height:auto; }
   .product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -809,4 +841,18 @@ body {
   .app-image { min-height:360px; padding:16px; }
   .mock-grid { grid-template-columns:1fr 1fr; }
   .mock-grid article { min-height:72px; padding:12px; }
+  .landing-teacher {
+    width:78px;
+    min-height:88px;
+    right:12px;
+    bottom:12px;
+    border-radius:20px;
+  }
+  .landing-teacher img {
+    width:64px;
+    height:64px;
+  }
+  .landing-teacher span {
+    font-size:10px;
+  }
 }
