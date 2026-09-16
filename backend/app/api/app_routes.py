@@ -490,6 +490,7 @@ def brand_asset(filename: str):
         "ingles-full.png",
         "diplomator-simple.png",
         "diplomator-full.png",
+        "teacher-ai.png",
     }
     if filename not in allowed:
         raise HTTPException(status_code=404, detail="Asset no encontrado.")

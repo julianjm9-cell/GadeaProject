@@ -139,6 +139,45 @@
   }
   .utility-links { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
   #tab-perfil > .notice, #tab-perfil > .config-row, #tab-perfil .utility-links { display:none; }
+  .global-teacher {
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    z-index:40;
+    width:48px;
+    height:48px;
+    border:1px solid #c9d8ec;
+    border-radius:18px;
+    background:#fff;
+    color:#fff;
+    box-shadow:0 16px 40px rgba(18,58,115,.18);
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+    overflow:hidden;
+  }
+  .global-teacher img {
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:cover;
+    object-position:center top;
+    transform:scale(1.2);
+  }
+  .global-teacher span {
+    position:absolute;
+    right:-6px;
+    top:-6px;
+    width:20px;
+    height:20px;
+    display:grid;
+    place-items:center;
+    border-radius:999px;
+    background:var(--blue);
+    color:#fff;
+    font-weight:900;
+    font-size:12px;
+  }
   main { max-width: min(1680px, calc(100vw - 28px)); margin: 0 auto; padding: 26px 24px 44px; }
 
   .tab { display: none; }
@@ -822,6 +861,7 @@
     <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil',this)" title="Perfil">Perfil</button>
   </div>
 </header>
+<button class="global-teacher" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))" title="Profesor IA" aria-label="Profesor IA"><img src="/assets/brand/teacher-ai.png" alt=""><span>+</span></button>
 
 <main>
 

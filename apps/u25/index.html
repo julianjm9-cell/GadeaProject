@@ -2054,6 +2054,20 @@
       .workspace-head .tabs { grid-template-columns:1fr; }
       .teacher-panel.collapsed { top:auto; right:12px; bottom:12px; }
     }
+    .teacher-avatar {
+      overflow:hidden;
+      background:#fff !important;
+      border:1px solid rgba(255,255,255,.65);
+      box-shadow:0 8px 18px rgba(12,28,45,.18);
+    }
+    .teacher-avatar img {
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit:cover;
+      object-position:center top;
+      transform:scale(1.18);
+    }
   </style>
 </head>
 <body>
@@ -3252,7 +3266,7 @@ function renderTeacherPanel() {
   const messages = state.teacherChats?.[ctx.key] || [];
   const suggestions = teacherSuggestions(ctx);
   panel.classList.toggle('collapsed', !state.teacherOpen);
-  panel.innerHTML = `<div class="teacher-head"><div class="teacher-id"><div class="teacher-avatar">P</div><div><strong>Profesor virtual</strong><small>${escapeHtml(ctx.title)}</small></div></div><button class="teacher-toggle" type="button" onclick="toggleTeacherPanel()" title="${state.teacherOpen ? 'Ocultar' : 'Mostrar'}">${state.teacherOpen ? '-' : '+'}</button></div><div class="teacher-body"><div class="teacher-log" id="teacherLog"><div class="teacher-msg"><strong>Profesor:</strong> ${escapeHtml(teacherIntro(ctx))}</div>${messages.map(msg => `<div class="teacher-msg ${msg.role === 'user' ? 'user' : ''}"><strong>${msg.role === 'user' ? 'Tu' : 'Profesor'}:</strong> ${escapeHtml(msg.text).replace(/\n/g,'<br>')}</div>`).join('')}</div><div class="teacher-suggestions">${suggestions.map(item => `<button type="button" onclick='askTeacher(${JSON.stringify(item)})'>${escapeHtml(item)}</button>`).join('')}</div><div class="teacher-row"><textarea id="teacherInput" placeholder="Pregunta al profesor virtual"></textarea><button class="primary" type="button" onclick="askTeacher()">Enviar</button></div></div>`;
+  panel.innerHTML = `<div class="teacher-head"><div class="teacher-id"><div class="teacher-avatar"><img src="/assets/brand/teacher-ai.png" alt=""></div><div><strong>Profesor IA</strong><small>${escapeHtml(ctx.title)}</small></div></div><button class="teacher-toggle" type="button" onclick="toggleTeacherPanel()" title="${state.teacherOpen ? 'Ocultar' : 'Mostrar'}">${state.teacherOpen ? '-' : '+'}</button></div><div class="teacher-body"><div class="teacher-log" id="teacherLog"><div class="teacher-msg"><strong>Profesor:</strong> ${escapeHtml(teacherIntro(ctx))}</div>${messages.map(msg => `<div class="teacher-msg ${msg.role === 'user' ? 'user' : ''}"><strong>${msg.role === 'user' ? 'Tu' : 'Profesor'}:</strong> ${escapeHtml(msg.text).replace(/\n/g,'<br>')}</div>`).join('')}</div><div class="teacher-suggestions">${suggestions.map(item => `<button type="button" onclick='askTeacher(${JSON.stringify(item)})'>${escapeHtml(item)}</button>`).join('')}</div><div class="teacher-row"><textarea id="teacherInput" placeholder="Pregunta al Profesor IA"></textarea><button class="primary" type="button" onclick="askTeacher()">Enviar</button></div></div>`;
   const log = $('teacherLog');
   if (log) log.scrollTop = log.scrollHeight;
 }
