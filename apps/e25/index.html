@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ACCESO ESO ADULTOS</title>
+  <title>ESO Adultos | Tu escritorio virtual</title>
   <style>
     :root {
       --ink:#1d242a;
@@ -2600,6 +2600,325 @@
       height:60px;
       border-radius:20px;
     }
+    /* Inicio: escritorio de estudio */
+    :root {
+      --ink:#172238;
+      --muted:#52637c;
+      --paper:#f7faff;
+      --panel:#fff;
+      --line:#dce6f4;
+      --primary:#1258d6;
+      --primary-dark:#123b87;
+      --accent:#1678e8;
+      --green:#059a75;
+      --soft:#eef5ff;
+      --shadow:0 8px 24px rgba(18,58,115,.07);
+    }
+    body { background:var(--paper); }
+    body::before { display:none; }
+    header { border-bottom-color:var(--line); }
+    .brand h1 { color:var(--ink); }
+    header .screen-nav button.active { background:#eaf2ff; color:var(--primary); box-shadow:none; }
+    #sessionChooser {
+      display:block;
+      padding:20px 0 70px;
+      width:min(1460px,100%);
+      text-align:left;
+    }
+    #sessionChooser[hidden] { display:none; }
+    #sessionChooser .desk-hero {
+      display:block;
+      width:100%;
+      max-width:none;
+      margin:0 0 28px;
+      padding:8px 0 0;
+      text-align:left;
+    }
+    #sessionChooser .desk-hero h2 {
+      margin:0;
+      width:100%;
+      max-width:none;
+      text-align:left;
+      font-size:clamp(30px,3vw,42px);
+      line-height:1.12;
+      color:var(--ink);
+    }
+    #sessionChooser .desk-hero p {
+      display:block;
+      width:100%;
+      text-align:left;
+      max-width:none;
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:17px;
+    }
+    .home-session {
+      display:grid;
+      width:100%;
+      grid-template-columns:minmax(240px,1.2fr) minmax(0,1.6fr) auto;
+      align-items:center;
+      gap:20px;
+      padding:20px 24px;
+      border:1px solid #cce0ff;
+      border-radius:8px;
+      background:#edf5ff;
+    }
+    .home-session-title { display:flex; align-items:center; gap:16px; min-width:0; }
+    .home-icon {
+      width:54px;
+      height:54px;
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+      border-radius:8px;
+      color:#fff;
+      font-size:27px;
+      line-height:1;
+    }
+    .home-icon.blue { background:#1479e7; }
+    .home-icon.green { background:#059a75; }
+    .home-icon.purple { background:#7555d9; }
+    .home-icon.gold { background:#edae30; }
+    .home-session h3 { font-size:24px; color:var(--ink); }
+    .home-session p { margin-top:4px; font-size:14px; }
+    #sessionChooser .duration-options {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      width:100%;
+      margin:0;
+      gap:10px;
+    }
+    #sessionChooser .duration-options button {
+      min-height:82px;
+      padding:12px;
+      display:grid;
+      align-content:center;
+      justify-items:center;
+      gap:4px;
+      border:1px solid var(--line);
+      background:#fff;
+      text-align:center;
+      box-shadow:none;
+    }
+    #sessionChooser .duration-options button.selected {
+      border:2px solid var(--primary);
+      background:#f4f8ff;
+      box-shadow:0 4px 14px rgba(18,88,214,.12);
+    }
+    #sessionChooser .duration-options strong { color:var(--primary-dark); font-size:18px; }
+    #sessionChooser .duration-options span { font-size:12px; font-weight:600; }
+    .home-start { min-width:166px; min-height:52px; }
+    .home-grid {
+      display:grid;
+      width:100%;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+      margin-top:20px;
+    }
+    .home-card {
+      min-width:0;
+      padding:20px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:#fff;
+      box-shadow:var(--shadow);
+    }
+    .home-card-head { display:flex; align-items:flex-start; gap:14px; }
+    .home-card-head > div:nth-child(2) { min-width:0; flex:1; }
+    .home-card h3 { font-size:19px; color:var(--ink); }
+    .home-card p { margin-top:5px; font-size:14px; }
+    .home-card .home-link {
+      align-self:center;
+      width:auto;
+      min-height:36px;
+      padding:6px 8px;
+      border:0;
+      background:transparent;
+      color:var(--primary);
+      font-size:13px;
+      white-space:nowrap;
+      box-shadow:none;
+    }
+    .home-card .home-link:hover { background:var(--soft); }
+    .home-subjects { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:16px; }
+    .home-subjects button {
+      min-height:58px;
+      padding:8px 4px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:3px;
+      border:0;
+      box-shadow:none;
+      font-size:12px;
+    }
+    .home-subjects button:nth-child(1) { background:#fff0f0; color:#9f3d43; }
+    .home-subjects button:nth-child(2) { background:#ecf4ff; color:#1454af; }
+    .home-subjects button:nth-child(3) { background:#eaf9f3; color:#087a5c; }
+    .home-subjects button:nth-child(4) { background:#f1eeff; color:#6346b5; }
+    .home-subjects span { display:block; font-size:17px; line-height:1; }
+    .home-exam-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:18px; }
+    .home-exam-actions button { flex:1 1 170px; min-height:42px; }
+    .home-meter { display:flex; align-items:center; gap:12px; margin-top:20px; }
+    .home-meter-track { flex:1; height:10px; overflow:hidden; border-radius:20px; background:#e4edf9; }
+    .home-meter-track span { display:block; height:100%; width:0; border-radius:20px; background:var(--green); }
+    .home-meter strong { font-size:22px; color:var(--ink); }
+    #sessionChooser .home-next {
+      width:100%;
+      min-height:62px;
+      margin:16px 0 0;
+      padding:12px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      border:0;
+      border-radius:8px;
+      background:#eaf9f3;
+      text-align:left;
+      box-shadow:none;
+    }
+    .home-next strong { display:block; color:var(--ink); font-size:14px; }
+    .home-next small { display:block; margin-top:3px; color:var(--muted); font-size:12px; }
+    .home-resources { display:grid; gap:6px; margin-top:16px; }
+    .home-resources button {
+      min-height:39px;
+      padding:8px 10px;
+      display:flex;
+      justify-content:space-between;
+      border:1px solid var(--line);
+      box-shadow:none;
+      font-size:13px;
+      text-align:left;
+    }
+    @media (max-width:1100px) {
+      .home-session { grid-template-columns:1fr; }
+      .home-start { width:100%; }
+    }
+    @media (max-width:750px) {
+      #sessionChooser { padding-top:8px; }
+      .home-grid { grid-template-columns:1fr; }
+      .home-card-head { flex-wrap:wrap; }
+      .home-card .home-link { margin-left:auto; }
+      .home-session { padding:16px; }
+    }
+    @media (max-width:430px) {
+      #sessionChooser .duration-options { gap:6px; }
+      #sessionChooser .duration-options button { min-height:76px; padding:8px 4px; }
+      #sessionChooser .duration-options strong { font-size:16px; }
+      .home-subjects { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .home-card { padding:16px; }
+    }
+    #progressView {
+      display:grid;
+      width:100%;
+      max-width:1460px;
+      gap:16px;
+      margin:0 auto;
+      padding:20px 0 100px;
+    }
+    #progressView[hidden] { display:none; }
+    .progress-page-heading { padding:8px 0 4px; }
+    .progress-page-heading h2 { font-size:clamp(30px,3vw,42px); color:var(--ink); line-height:1.12; text-transform:none; }
+    .progress-page-heading p { margin-top:8px; font-size:17px; }
+    .progress-overview,
+    .progress-detail-panel {
+      border:1px solid var(--line);
+      border-radius:8px;
+      box-shadow:var(--shadow);
+    }
+    .progress-overview { padding:22px 24px 20px; background:#edf5ff; }
+    .progress-overview-main { display:grid; grid-template-columns:auto minmax(0,1fr) minmax(260px,.65fr); gap:20px; align-items:center; }
+    .progress-target-icon,
+    .progress-detail-icon,
+    .progress-action-icon { display:grid; place-items:center; flex:0 0 auto; border-radius:8px; }
+    .progress-target-icon { width:64px; height:64px; background:#1479e7; color:#fff; font-size:42px; }
+    .progress-overview-copy { min-width:0; }
+    .progress-overview-copy > span { display:block; font-size:15px; font-weight:750; color:var(--ink); }
+    .progress-overview-copy > strong { display:block; margin-top:2px; font-size:clamp(24px,2.5vw,34px); line-height:1.2; color:var(--ink); }
+    .progress-meter-row { display:flex; align-items:center; gap:16px; margin-top:12px; }
+    #progressView .progress-track { flex:1; width:auto; height:12px; margin:0; background:#dce6f4; box-shadow:none; }
+    #progressView .progress-track span { background:var(--green); }
+    .progress-meter-row b { min-width:54px; font-size:24px; color:var(--ink); text-align:right; }
+    .progress-level { min-height:90px; display:flex; align-items:center; gap:14px; padding-left:22px; border-left:1px solid #cbdcf6; }
+    .progress-level-badge { width:62px; height:62px; display:grid; place-items:center; flex:0 0 auto; border-radius:50%; border:5px solid #ffe2a2; background:#dc9e27; color:#fff; font-size:31px; }
+    .progress-level-badge.pending { border-color:#dce6f4; background:#aabbd1; }
+    .progress-level strong { display:block; font-size:18px; line-height:1.25; color:var(--ink); }
+    .progress-level small { display:block; margin-top:4px; color:var(--muted); font-size:13px; line-height:1.35; }
+    .progress-milestones { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:0; margin:26px 0 0; padding:0; list-style:none; }
+    .progress-milestones li { position:relative; min-width:0; text-align:center; }
+    .progress-milestones li:not(:last-child)::after { content:''; position:absolute; z-index:0; left:50%; right:-50%; top:15px; height:4px; background:#cbd8eb; }
+    .progress-milestones li.linked:not(:last-child)::after { background:var(--green); }
+    .progress-milestones .milestone-mark { position:relative; z-index:1; width:34px; height:34px; margin:0 auto 7px; display:grid; place-items:center; border:3px solid #bdd0e9; border-radius:50%; background:#fff; color:var(--muted); font-size:13px; font-weight:900; }
+    .progress-milestones li.complete .milestone-mark { border-color:var(--green); background:var(--green); color:#fff; }
+    .progress-milestones li.current .milestone-mark { border-color:var(--primary); color:var(--primary); box-shadow:0 0 0 4px rgba(18,88,214,.1); }
+    .progress-milestones strong,
+    .progress-milestones small { display:block; overflow-wrap:anywhere; }
+    .progress-milestones strong { color:var(--ink); font-size:13px; }
+    .progress-milestones small { margin-top:2px; color:var(--muted); font-size:12px; }
+    .progress-detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .progress-detail-panel { min-width:0; padding:20px; background:#fff; }
+    .progress-detail-heading { display:flex; align-items:center; gap:12px; min-height:44px; }
+    .progress-detail-heading h3 { flex:1; font-size:20px; color:var(--ink); }
+    .progress-detail-heading button { width:auto; min-height:34px; padding:5px 8px; border:0; box-shadow:none; color:var(--primary); font-size:13px; }
+    .progress-detail-icon { width:42px; height:42px; font-size:24px; color:#fff; }
+    .progress-detail-icon.week { background:var(--green); }
+    .progress-detail-icon.subjects { background:var(--primary); }
+    .progress-week { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; margin-top:18px; }
+    .progress-day { min-width:0; min-height:78px; display:grid; align-content:center; justify-items:center; gap:7px; padding:7px 2px; border-radius:7px; background:#f1f5fc; color:var(--muted); }
+    .progress-day.done { background:#e7f8f2; color:#08795d; }
+    .progress-day.today { outline:2px solid #b8d3fb; outline-offset:-2px; }
+    .progress-day span { font-size:12px; font-weight:700; }
+    .progress-day b { width:25px; height:25px; display:grid; place-items:center; border:2px solid #b8c9df; border-radius:50%; font-size:14px; line-height:1; }
+    .progress-day.done b { border-color:var(--green); background:var(--green); color:#fff; }
+    .progress-day.future b { opacity:.45; }
+    #progressView .progress-facts { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:18px 0 0; padding:0; border:0; }
+    #progressView .progress-facts span { display:grid; align-content:center; min-width:0; min-height:66px; padding:8px; border:0; border-radius:7px; background:#f1f5fc; color:var(--muted); text-align:center; font-size:12px; }
+    #progressView .progress-facts strong { display:block; color:var(--ink); font-size:21px; }
+    #progressView .progress-facts span:last-child { background:#fff8e9; }
+    .progress-subjects { display:grid; gap:8px; margin-top:15px; }
+    .progress-subject-row { width:100%; min-height:43px; display:grid; grid-template-columns:minmax(90px,1fr) minmax(60px,1.4fr) auto; align-items:center; gap:10px; padding:5px 6px; border:0; border-bottom:1px solid var(--line); border-radius:0; box-shadow:none; text-align:left; }
+    .progress-subject-row:last-child { border-bottom:0; }
+    .progress-subject-row:hover { background:#f5f9ff; box-shadow:none; transform:none; }
+    .progress-subject-name { display:flex; align-items:center; gap:7px; min-width:0; color:var(--ink); font-size:13px; font-weight:700; }
+    .progress-subject-symbol { width:26px; height:26px; display:grid; place-items:center; flex:0 0 auto; border-radius:6px; background:color-mix(in srgb,var(--subject-color) 14%,white); color:var(--subject-color); font-size:12px; font-weight:850; }
+    .progress-subject-bar { height:8px; overflow:hidden; border-radius:10px; background:#e2eaf5; }
+    .progress-subject-bar span { display:block; height:100%; background:var(--subject-color); border-radius:10px; }
+    .progress-subject-row > strong { min-width:38px; color:var(--ink); text-align:right; font-size:12px; }
+    .progress-action-band { min-height:86px; display:flex; align-items:center; gap:15px; padding:15px 20px; border:1px solid #c8eade; border-radius:8px; background:#eafaf4; }
+    .progress-action-icon { width:48px; height:48px; background:#d0f4e6; color:var(--green); font-size:33px; }
+    #progressNext { flex:1; min-width:0; margin:0; padding:0; border:0; background:transparent; }
+    #progressNext strong { display:block; color:var(--ink); font-size:13px; }
+    #progressNext small { display:block; margin-top:3px; color:var(--ink); font-size:19px; font-weight:800; line-height:1.25; }
+    #progressContinue { min-height:50px; padding:10px 22px; white-space:nowrap; }
+    @media (max-width:1050px) {
+      .progress-overview-main { grid-template-columns:auto minmax(0,1fr); }
+      .progress-level { grid-column:1 / -1; min-height:0; padding:14px 0 0; border-left:0; border-top:1px solid #cbdcf6; }
+      .progress-detail-grid { grid-template-columns:1fr; }
+    }
+    @media (max-width:650px) {
+      #progressView { padding-top:8px; }
+      .progress-overview { padding:16px; }
+      .progress-overview-main { gap:12px; }
+      .progress-target-icon { width:48px; height:48px; font-size:30px; }
+      .progress-overview-copy > strong { font-size:23px; }
+      .progress-milestones { margin-top:20px; }
+      .progress-milestones strong { font-size:11px; }
+      .progress-milestones small { font-size:10px; }
+      .progress-detail-panel { padding:16px; }
+      .progress-action-band { flex-wrap:wrap; }
+      #progressContinue { width:100%; }
+    }
+    @media (max-width:430px) {
+      .progress-overview-main { grid-template-columns:1fr; }
+      .progress-target-icon { display:none; }
+      .progress-level { grid-column:auto; }
+      .progress-day { min-height:64px; }
+      .progress-day span { font-size:10px; }
+      #progressView .progress-facts { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .progress-subject-row { grid-template-columns:minmax(90px,1fr) minmax(42px,1fr) auto; gap:5px; }
+    }
   </style>
 </head>
 <body>
@@ -2612,9 +2931,9 @@
       </div>
     </div>
     <nav class="screen-nav">
-      <button id="navHome" type="button" onclick="showView('home')">Sesión de hoy</button>
+      <button id="navHome" type="button" onclick="showView('home')">Inicio</button>
       <button id="navModules" type="button" onclick="openLibrary()">Biblioteca</button>
-      <button id="navExam" type="button" onclick="openModule('exam')">Examen</button>
+      <button id="navExam" type="button" onclick="openModule('exam')">Exámenes</button>
       <button id="navProgress" type="button" onclick="showView('progress')">Progreso</button>
     </nav>
     <button class="profile-button" id="profileButton" type="button" onclick="toggleProfile()" title="Perfil" aria-label="Perfil">
@@ -2662,17 +2981,40 @@
     <article class="panel session-chooser" id="sessionChooser">
       <div class="desk-hero">
         <h2>Tu escritorio virtual</h2>
+        <p>Un paso cada día.</p>
       </div>
-      <div class="coach-strip" id="todayInsight"></div>
-      <div class="duration-options">
-        <button type="button" onclick="setSessionDuration(15)"><strong>15 min</strong><span>Repaso rápido</span></button>
-        <button type="button" onclick="setSessionDuration(30)"><strong>30 min</strong><span>Estudiar y practicar</span></button>
-        <button type="button" onclick="setSessionDuration(45)"><strong>45 min</strong><span>Sesión completa</span></button>
+      <div class="home-session">
+        <div class="home-session-title"><span class="home-icon blue" aria-hidden="true">▦</span><div><h3>Sesión diaria</h3><p>Elige cuánto tiempo tienes hoy y sigue con tu aprendizaje.</p></div></div>
+        <div class="duration-options" role="group" aria-label="Duración de la sesión">
+          <button type="button" data-home-duration="15" onclick="selectHomeDuration(15)"><strong>15 min</strong><span>Repaso rápido</span></button>
+          <button type="button" data-home-duration="30" onclick="selectHomeDuration(30)"><strong>30 min</strong><span>Estudio equilibrado</span></button>
+          <button type="button" data-home-duration="45" onclick="selectHomeDuration(45)"><strong>45 min</strong><span>Sesión completa</span></button>
+        </div>
+        <button class="primary home-start" type="button" onclick="setSessionDuration(homeDuration)">Empezar sesión →</button>
       </div>
-      <div class="desk-shortcuts" aria-label="Accesos rapidos">
-        <button type="button" onclick="openLibrary()"><strong>Tus asignaturas</strong><span>Biblioteca ordenada por bloques</span></button>
-        <button type="button" onclick="openModule('exam')"><strong>Examen</strong><span>Simulacros y correccion</span></button>
-        <button type="button" onclick="showView('progress')"><strong>Progreso</strong><span>Continua por donde ibas</span></button>
+      <div class="home-grid">
+        <section class="home-card">
+          <div class="home-card-head"><span class="home-icon green" aria-hidden="true">▤</span><div><h3>Biblioteca de materias</h3><p>Temas, ejercicios y recursos para estudiar a tu ritmo.</p></div><button class="home-link" type="button" onclick="openLibrary()">Ver biblioteca →</button></div>
+          <div class="home-subjects">
+            <button type="button" onclick="openModule('lengua')"><span aria-hidden="true">Aa</span>Lengua</button>
+            <button type="button" onclick="openModule('matematicas')"><span aria-hidden="true">x²</span>Matemáticas</button>
+            <button type="button" onclick="openModule('ciencias')"><span aria-hidden="true">⚗</span>Ciencias</button>
+            <button type="button" onclick="openModule('ingles')"><span aria-hidden="true">EN</span>Inglés</button>
+          </div>
+        </section>
+        <section class="home-card">
+          <div class="home-card-head"><span class="home-icon purple" aria-hidden="true">▤</span><div><h3>Generador de exámenes</h3><p>Practica con pruebas y corrige tus respuestas por foto.</p></div><button class="home-link" type="button" onclick="openModule('exam')">Ir a exámenes →</button></div>
+          <div class="home-exam-actions"><button type="button" onclick="openModule('exam')">Crear examen →</button><button type="button" onclick="openExamCorrection()">Corregir por foto →</button></div>
+        </section>
+        <section class="home-card">
+          <div class="home-card-head"><span class="home-icon green" aria-hidden="true">▥</span><div><h3>Tu progreso</h3><p>Consulta lo que has hecho este mes.</p></div><button class="home-link" type="button" onclick="showView('progress')">Ver progreso →</button></div>
+          <div class="home-meter"><div class="home-meter-track"><span id="homeProgressBar"></span></div><strong id="homeProgressPct">0%</strong></div>
+          <button class="home-next" type="button" onclick="continueProgress()"><span><strong>Siguiente paso</strong><small id="homeNextText">Busca tu próximo tema.</small></span><span aria-hidden="true">→</span></button>
+        </section>
+        <section class="home-card">
+          <div class="home-card-head"><span class="home-icon gold" aria-hidden="true">▣</span><div><h3>Recursos oficiales</h3><p>Consulta el temario y los enlaces de referencia.</p></div><button class="home-link" type="button" onclick="openLibrary('resources')">Ver recursos →</button></div>
+          <div class="home-resources"><button type="button" onclick="openLibrary('resources')">Temario y recursos oficiales <span aria-hidden="true">→</span></button><button type="button" onclick="openLibrary('resources')">Modelos de prueba y enlaces <span aria-hidden="true">→</span></button></div>
+        </section>
       </div>
     </article>
     <article class="panel session-plan" id="sessionPlan" hidden>
@@ -2683,18 +3025,32 @@
     </article>
   </section>
 
-  <section class="progress-view view-section" id="progressView" hidden>
-    <article class="progress-simple panel">
-      <div class="progress-simple-head">
-        <div><span class="pill">MES ACTUAL</span><h2>PROGRESO MENSUAL</h2></div>
-        <strong id="progressPct">0%</strong>
+  <section class="progress-view progress-dashboard view-section" id="progressView" hidden>
+    <div class="progress-page-heading"><h2>Tu progreso</h2><p>Cada paso cuenta.</p></div>
+    <section class="progress-overview" aria-label="Objetivo del mes">
+      <div class="progress-overview-main">
+        <div class="progress-target-icon" aria-hidden="true">◎</div>
+        <div class="progress-overview-copy">
+          <span>Objetivo del mes</span>
+          <strong id="progressMonthCount">0 de 30 acciones</strong>
+          <div class="progress-meter-row"><div class="progress-track" id="progressTrack" role="progressbar" aria-label="Progreso mensual" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="progressBar"></span></div><b id="progressPct">0%</b></div>
+        </div>
+        <div class="progress-level"><span class="progress-level-badge" id="progressLevelBadge" aria-hidden="true">★</span><div><strong id="progressLevel">Primer paso</strong><small id="progressLevelHint">Empieza con una acción de estudio.</small></div></div>
       </div>
-      <div class="progress-track" id="progressTrack" role="progressbar" aria-label="Progreso mensual" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="progressBar"></span></div>
-      <p id="progressText">Empieza con una sesion corta.</p>
-      <div class="progress-facts" id="progressFacts"></div>
-      <div class="progress-next" id="progressNext"></div>
-      <button class="primary" id="progressContinue" type="button" onclick="continueProgress()">Continuar</button>
-    </article>
+      <ol class="progress-milestones" id="progressMilestones" aria-label="Hitos del mes"></ol>
+    </section>
+    <div class="progress-detail-grid">
+      <section class="progress-detail-panel">
+        <div class="progress-detail-heading"><span class="progress-detail-icon week" aria-hidden="true">▦</span><h3>Actividad de la semana</h3></div>
+        <div class="progress-week" id="progressWeek" aria-label="Días de estudio esta semana"></div>
+        <div class="progress-facts" id="progressFacts"></div>
+      </section>
+      <section class="progress-detail-panel">
+        <div class="progress-detail-heading"><span class="progress-detail-icon subjects" aria-hidden="true">▤</span><h3>Por materias</h3><button type="button" onclick="openLibrary()">Ver biblioteca →</button></div>
+        <div class="progress-subjects" id="progressSubjects"></div>
+      </section>
+    </div>
+    <div class="progress-action-band"><span class="progress-action-icon" aria-hidden="true">◎</span><div id="progressNext"><strong>Siguiente paso</strong><small>Busca tu próximo tema.</small></div><button class="primary" id="progressContinue" type="button" onclick="continueProgress()">Continuar estudiando →</button></div>
   </section>
 
   <section class="module-grid view-section" id="moduleGrid" hidden></section>
@@ -3093,6 +3449,7 @@ const QUESTIONS = {
   ]
 };
 let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, teacherChats:{}, testAttempts:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, examMode:null, activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
+let homeDuration = 30;
 let currentUser = null;
 let currentView = 'home';
 const $ = id => document.getElementById(id);
@@ -3495,6 +3852,7 @@ function streakDays() {
   const dates = new Set(state.activityDates || []);
   let streak = 0;
   const cursor = new Date();
+  if (!dates.has(todayKey(cursor))) cursor.setDate(cursor.getDate() - 1);
   while (dates.has(todayKey(cursor))) {
     streak += 1;
     cursor.setDate(cursor.getDate() - 1);
@@ -3514,14 +3872,53 @@ function progressLevels(metrics) {
     {level:5, targetCount:30, title:'Objetivo mensual', goal:'Cerrar el mes preparado', checks:[{text:'30 acciones este mes', done:count >= 30}]}
   ];
 }
-function renderProgressRoadmap(metrics, next) {
-  const levels = progressLevels(metrics);
-  const finalTarget = levels.at(-1).targetCount;
-  const count = metrics.completedItems || 0;
-  const currentIndex = count >= finalTarget ? levels.length - 1 : Math.max(0, levels.findIndex(level => count < level.targetCount));
-  const current = levels[currentIndex];
-  const missing = current.checks.find(check => !check.done);
-  return {current, missing};
+function renderProgressDashboard(pct, monthly, next) {
+  const levels = progressLevels({completedItems:monthly.items});
+  const target = levels.at(-1).targetCount;
+  const achieved = [...levels].reverse().find(level => monthly.items >= level.targetCount);
+  const upcoming = levels.find(level => monthly.items < level.targetCount);
+  $('progressMonthCount').textContent = `${monthly.items} de ${target} acciones`;
+  $('progressPct').textContent = pct + '%';
+  $('progressBar').style.width = pct + '%';
+  $('progressTrack').setAttribute('aria-valuenow', pct);
+  $('progressLevel').textContent = achieved ? `Nivel ${achieved.level} · ${achieved.title}` : 'Nivel inicial';
+  $('progressLevelBadge').classList.toggle('pending', !achieved);
+  $('progressLevelHint').textContent = upcoming
+    ? `Siguiente nivel: ${upcoming.targetCount} acciones · te faltan ${upcoming.targetCount - monthly.items}`
+    : 'Objetivo mensual alcanzado. ¡Sigue a tu ritmo!';
+  const milestoneNames = ['Inicio','Ritmo','Constancia','Avance','Objetivo'];
+  $('progressMilestones').innerHTML = levels.map((level,index) => {
+    const complete = monthly.items >= level.targetCount;
+    const current = upcoming?.level === level.level;
+    const linked = index < levels.length - 1 && monthly.items >= levels[index + 1].targetCount;
+    return `<li class="${complete ? 'complete' : current ? 'current' : ''} ${linked ? 'linked' : ''}" title="${escapeHtml(level.title)}: ${level.targetCount} acciones"><span class="milestone-mark" aria-hidden="true">${complete ? '✓' : current ? '●' : '·'}</span><strong>${milestoneNames[index]}</strong><small>${level.targetCount} acciones</small></li>`;
+  }).join('');
+  const today = new Date();
+  const monday = new Date(today.getFullYear(),today.getMonth(),today.getDate() - (today.getDay() + 6) % 7);
+  const activeDays = new Set(state.activityDates || []);
+  const dayNames = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  $('progressWeek').innerHTML = dayNames.map((name,index) => {
+    const day = new Date(monday);
+    day.setDate(monday.getDate() + index);
+    const done = activeDays.has(todayKey(day));
+    const isToday = todayKey(day) === todayKey(today);
+    const future = day > today;
+    return `<div class="progress-day ${done ? 'done' : ''} ${isToday ? 'today' : ''} ${future ? 'future' : ''}" title="${escapeHtml(day.toLocaleDateString('es-ES'))}: ${done ? 'estudiaste' : future ? 'próximo día' : 'sin actividad'}"><span>${name}</span><b aria-label="${done ? 'Estudiaste' : future ? 'Próximo día' : 'Sin actividad'}">${done ? '✓' : ''}</b></div>`;
+  }).join('');
+  const streak = streakDays();
+  $('progressFacts').innerHTML = `<span><strong>${monthly.sessions}</strong>días activos</span><span><strong>${monthly.tests}</strong>tests</span><span><strong>${monthly.exams}</strong>exámenes</span><span><strong>${streak}</strong>${streak === 1 ? 'día de racha' : 'días de racha'}</span>`;
+  const subjects = MODULES.filter(module => !['exam','oficial'].includes(module.id));
+  const subjectNames = {lengua:'Lengua', ingles:'Inglés', geografia:'Geografía', historia:'Historia', matematicas:'Matemáticas', ciencias:'Ciencias'};
+  $('progressSubjects').innerHTML = subjects.map(module => {
+    const done = taskDoneCount(module.id);
+    const total = module.tasks.length;
+    const value = Math.round(done / total * 100);
+    return `<button class="progress-subject-row" type="button" style="--subject-color:${moduleColor(module.id)}" onclick="openModule('${module.id}')" aria-label="${escapeHtml(subjectNames[module.id] || module.title)}: ${done} de ${total} temas completados"><span class="progress-subject-name"><span class="progress-subject-symbol" aria-hidden="true">${escapeHtml(topicVisual({},module.id))}</span>${escapeHtml(subjectNames[module.id] || module.title)}</span><span class="progress-subject-bar" aria-hidden="true"><span style="width:${value}%"></span></span><strong>${done}/${total}</strong></button>`;
+  }).join('');
+  $('progressNext').innerHTML = next
+    ? `<strong>Siguiente paso</strong><small>${escapeHtml(next.module.title)} · ${escapeHtml(next.topic.title)}</small>`
+    : '<strong>Siguiente paso</strong><small>Repasa tus temas o haz un examen.</small>';
+  $('progressContinue').textContent = next ? 'Continuar estudiando →' : 'Ver biblioteca →';
 }
 function render() {
   renderShell();
@@ -3530,34 +3927,14 @@ function render() {
   renderView();
   renderTeacherPanel();
 }
-function renderDeskHeader() {
-  const name = profileDisplayName();
-  const cleanName = name === 'Perfil' ? 'Marta' : name.split('@')[0];
-  const initial = (cleanName.trim()[0] || 'M').toUpperCase();
-  const formatted = new Intl.DateTimeFormat('es-ES', {weekday:'long', day:'numeric', month:'long'}).format(new Date());
-  if ($('deskUserName')) $('deskUserName').textContent = cleanName;
-  if ($('deskInitial')) $('deskInitial').textContent = initial;
-  if ($('deskDate')) $('deskDate').textContent = formatted.charAt(0).toUpperCase() + formatted.slice(1);
-}
 function renderShell() {
-  renderDeskHeader();
   const pct = progressPct();
-  $('progressPct').textContent = pct + '%';
-  const completed = studyTasks().filter(t => state.done[t.id]).length;
-  const total = studyTasks().length;
+  if ($('homeProgressPct')) $('homeProgressPct').textContent = pct + '%';
+  if ($('homeProgressBar')) $('homeProgressBar').style.width = pct + '%';
   const monthly = monthlyStats();
-  const completedItems = monthly.items;
   const next = nextStudyItem();
-  const avg = averageScore();
-  const streak = streakDays();
-  const exams = monthly.exams;
-  const progressStage = renderProgressRoadmap({pct, completedItems, completed, total, tests:monthly.tests, avg, streak, exams, sessions:monthly.sessions}, next);
-  $('progressBar').style.width = pct + '%';
-  $('progressTrack').setAttribute('aria-valuenow', pct);
-  $('progressText').textContent = `Meta ${progressStage.current.targetCount} acciones`;
-  $('progressFacts').innerHTML = `<span><strong>${completedItems}</strong> acciones</span><span><strong>${monthly.tests}</strong> tests</span><span><strong>${exams}</strong> examenes</span>`;
-  $('progressNext').innerHTML = next ? `<strong>Siguiente</strong><small>${escapeHtml(next.module.title)} - ${escapeHtml(next.topic.title)}</small>` : '<strong>Siguiente</strong><small>Repasar fallos o hacer un examen.</small>';
-  $('progressContinue').textContent = next ? 'Continuar' : 'Ver biblioteca';
+  renderProgressDashboard(pct, monthly, next);
+  if ($('homeNextText')) $('homeNextText').textContent = next ? `${next.module.title} · ${next.topic.title}` : 'Repasa tus temas o haz un examen.';
   if ($('todayInsight')) $('todayInsight').innerHTML = next ? `<span><strong>SIGUIENTE PASO</strong><small>${escapeHtml(next.module.title)} - ${escapeHtml(next.topic.title)}</small></span>` : '<span><strong>TODO HECHO</strong><small>Pasa a examenes completos y repaso de fallos.</small></span>';
   const moduleButton = m => {
     const done = taskDoneCount(m.id);
@@ -3650,7 +4027,8 @@ function showView(view) {
   renderView();
   renderTeacherPanel();
   const target = view === 'home' ? $('homeView') : view === 'modules' ? $('moduleGrid') : view === 'progress' ? $('progressView') : $('workspace');
-  jumpTo(target);
+  if (view === 'home' || view === 'progress') window.scrollTo({top:0, behavior:'auto'});
+  else jumpTo(target);
 }
 function jumpTo(target) { target?.scrollIntoView({behavior:'auto', block:'start'}); }
 function renderView() {
@@ -3703,6 +4081,14 @@ function sessionSteps() {
   if (state.sessionDuration >= 45) steps.push({module:'exam', topic:null, tab:'examen', title:'Examen rapido', detail:'Comprobar'});
   return steps;
 }
+function selectHomeDuration(minutes) {
+  homeDuration = minutes;
+  document.querySelectorAll('[data-home-duration]').forEach(button => {
+    const selected = Number(button.dataset.homeDuration) === minutes;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
+}
 function setSessionDuration(minutes) { state.sessionDuration = minutes; renderStudyCockpit(); renderTeacherPanel(); saveState(); }
 function clearSessionDuration() { state.sessionDuration = null; renderStudyCockpit(); renderTeacherPanel(); saveState(); }
 function openSessionStep(moduleId, tab, topicId='') {
@@ -3723,7 +4109,7 @@ function renderStudyCockpit() {
   const duration = state.sessionDuration;
   $('sessionChooser').hidden = Boolean(duration);
   $('sessionPlan').hidden = !duration;
-  if (!duration) return;
+  if (!duration) { selectHomeDuration(homeDuration); return; }
   const steps = sessionSteps();
   $('sessionDurationPill').textContent = `${duration} minutos`;
   $('sessionPlanTitle').textContent = duration === 15 ? 'UN PASO Y LISTO' : duration === 30 ? 'PLAN CORTO Y COMPLETO' : 'SESION PARA AVANZAR';
@@ -3756,6 +4142,10 @@ function openModule(id) {
   renderView();
   saveState();
   jumpTo($('workspace'));
+}
+function openExamCorrection() {
+  openModule('exam');
+  renderExamCorrection();
 }
 function setTab(tab) { closeProfile(); state.activeTab = tab; if (tab === 'contenidos') { state.activeTopic = null; state.activeLesson = null; } currentView = 'workspace'; renderWorkspace(); renderView(); saveState(); }
 function renderWorkspace() {
@@ -3832,7 +4222,7 @@ function renderTeacherPanel() {
   const messages = state.teacherChats?.[ctx.key] || [];
   const suggestions = teacherSuggestions(ctx);
   panel.classList.toggle('collapsed', !state.teacherOpen);
-  panel.innerHTML = `<div class="teacher-head"><div class="teacher-id"><div class="teacher-avatar"><img src="/assets/brand/teacher-ai.png" alt=""></div><div><strong>Profesor IA</strong><small>${escapeHtml(ctx.title)}</small></div></div><button class="teacher-toggle" type="button" onclick="toggleTeacherPanel()" title="${state.teacherOpen ? 'Ocultar' : 'Mostrar'}">${state.teacherOpen ? '-' : '+'}</button></div><div class="teacher-body"><div class="teacher-log" id="teacherLog"><div class="teacher-msg"><strong>Profesor:</strong> ${escapeHtml(teacherIntro(ctx))}</div>${messages.map(msg => `<div class="teacher-msg ${msg.role === 'user' ? 'user' : ''}"><strong>${msg.role === 'user' ? 'Tu' : 'Profesor'}:</strong> ${escapeHtml(msg.text).replace(/\n/g,'<br>')}</div>`).join('')}</div><div class="teacher-suggestions">${suggestions.map(item => `<button type="button" onclick='askTeacher(${JSON.stringify(item)})'>${escapeHtml(item)}</button>`).join('')}</div><div class="teacher-row"><textarea id="teacherInput" placeholder="Pregunta al Profesor IA"></textarea><button class="primary" type="button" onclick="askTeacher()">Enviar</button></div></div>`;
+  panel.innerHTML = `<div class="teacher-head"><div class="teacher-id"><div class="teacher-avatar"><img src="assets/brand/teacher-ai.png" alt=""></div><div><strong>Profesor IA</strong><small>${escapeHtml(ctx.title)}</small></div></div><button class="teacher-toggle" type="button" onclick="toggleTeacherPanel()" title="${state.teacherOpen ? 'Ocultar' : 'Mostrar'}">${state.teacherOpen ? '-' : '+'}</button></div><div class="teacher-body"><div class="teacher-log" id="teacherLog"><div class="teacher-msg"><strong>Profesor:</strong> ${escapeHtml(teacherIntro(ctx))}</div>${messages.map(msg => `<div class="teacher-msg ${msg.role === 'user' ? 'user' : ''}"><strong>${msg.role === 'user' ? 'Tu' : 'Profesor'}:</strong> ${escapeHtml(msg.text).replace(/\n/g,'<br>')}</div>`).join('')}</div><div class="teacher-suggestions">${suggestions.map(item => `<button type="button" onclick='askTeacher(${JSON.stringify(item)})'>${escapeHtml(item)}</button>`).join('')}</div><div class="teacher-row"><textarea id="teacherInput" placeholder="Pregunta al Profesor IA"></textarea><button class="primary" type="button" onclick="askTeacher()">Enviar</button></div></div>`;
   const log = $('teacherLog');
   if (log) log.scrollTop = log.scrollHeight;
 }

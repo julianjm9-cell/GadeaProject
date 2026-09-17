@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cambridge Trainer</title>
+<title>Título de inglés | Tu escritorio virtual</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap');
 
@@ -1299,6 +1299,56 @@
     .session-empty .icon { width:78px; height:78px; border-radius:20px; }
     .session-empty h2 { font-size:2.25rem; }
   }
+  /* Escritorio y progreso: la práctica oral y de escritura conserva sus vistas. */
+  :root { --ink:#172238; --muted:#52637c; --paper:#f7faff; --blue:#1258d6; --blue-light:#eef5ff; --border:#dce6f4; --sage:#059a75; }
+  body { background:var(--paper); }
+  header { background:#fff; border-color:var(--border); }
+  header h1 { color:var(--ink); font-size:1.4rem; }
+  .main-actions { grid-template-columns:repeat(5,minmax(0,1fr)); width:min(690px,100%); }
+  .nav-pill.active { background:#eaf2ff; color:var(--blue); box-shadow:none; }
+  .cambridge-header-icon { box-shadow:none; }
+  #sessionEmpty { display:block; width:100%; padding:20px 0 64px; text-align:left; }
+  #sessionEmpty h2 { width:100%; max-width:none; margin:0; color:var(--ink); font-family:inherit; font-size:clamp(30px,3vw,42px); line-height:1.12; text-align:left; }
+  #sessionEmpty .desk-subtitle { display:block; width:100%; max-width:none; margin:8px 0 28px; color:var(--muted); font-size:17px; text-align:left; }
+  #sessionEmpty h2, #sessionEmpty .desk-subtitle { margin-inline:0; }
+  .english-session { width:100%; display:grid; grid-template-columns:minmax(210px,1fr) minmax(0,1.6fr) auto; gap:20px; align-items:center; padding:20px 24px; border:1px solid #cce0ff; border-radius:8px; background:#edf5ff; }
+  .english-session-title, .english-card-head { display:flex; align-items:center; gap:14px; min-width:0; }
+  .english-session-title > div, .english-card-head > div:nth-child(2) { min-width:0; flex:1; }
+  .english-icon { width:54px; height:54px; display:grid; place-items:center; flex:0 0 auto; border-radius:8px; background:#1479e7; color:#fff; font-size:25px; line-height:1; }
+  .english-icon.teal { background:#059a75; } .english-icon.purple { background:#7555d9; } .english-icon.gold { background:#edae30; }
+  .english-session h3 { font-size:24px; } .english-session p, .english-card p { margin-top:5px; color:var(--muted); font-size:14px; line-height:1.4; }
+  #sessionEmpty .cambridge-duration-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); width:100%; gap:10px; margin:0; }
+  #sessionEmpty .cambridge-duration-options button { min-height:82px; padding:12px; display:grid; align-content:center; justify-items:center; gap:4px; border:1px solid var(--border); border-radius:8px; background:#fff; text-align:center; box-shadow:none; }
+  #sessionEmpty .cambridge-duration-options button.selected { border:2px solid var(--blue); background:#f4f8ff; box-shadow:0 4px 14px rgba(18,88,214,.12); }
+  #sessionEmpty .cambridge-duration-options strong { color:var(--blue); font-size:18px; } #sessionEmpty .cambridge-duration-options span { font-size:12px; font-weight:600; }
+  .english-start { min-width:166px; min-height:52px; }
+  .english-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:20px; }
+  .english-card { min-width:0; padding:20px; border:1px solid var(--border); border-radius:8px; background:#fff; box-shadow:0 8px 24px rgba(18,58,115,.07); }
+  .english-card h3 { font-size:19px; }
+  .english-card .english-link { align-self:center; min-height:36px; padding:6px 8px; border:0; background:transparent; color:var(--blue); font-size:13px; font-weight:700; white-space:nowrap; cursor:pointer; }
+  .english-topic-chips { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:17px; }
+  .english-topic-chips button { min-height:58px; padding:8px 4px; display:grid; align-content:center; justify-items:center; gap:4px; border:0; border-radius:7px; background:#ecf4ff; color:#1454af; font:700 12px "Segoe UI",Arial,sans-serif; cursor:pointer; }
+  .english-topic-chips button:nth-child(2) { background:#eaf9f3; color:#087a5c; } .english-topic-chips button:nth-child(3) { background:#f1eeff; color:#6346b5; } .english-topic-chips button:nth-child(4) { background:#fff5e7; color:#94600d; }
+  .english-topic-chips span { font-size:17px; line-height:1; }
+  .english-card-steps { display:flex; gap:8px; flex-wrap:wrap; margin-top:20px; }
+  .english-card-steps span { min-height:38px; display:grid; place-items:center; flex:1 1 92px; padding:7px 10px; border:1px solid var(--border); border-radius:7px; background:#f7faff; color:var(--muted); font-size:12px; font-weight:700; text-align:center; }
+  .english-meter { display:flex; align-items:center; gap:12px; margin-top:20px; } .english-meter-track { flex:1; height:10px; overflow:hidden; border-radius:20px; background:#e4edf9; } .english-meter-track span { display:block; height:100%; width:0; border-radius:20px; background:var(--sage); } .english-meter strong { font-size:22px; }
+  .english-next { width:100%; min-height:62px; display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:16px; padding:12px 16px; border:0; border-radius:8px; background:#eaf9f3; text-align:left; cursor:pointer; } .english-next strong, .english-next small { display:block; } .english-next strong { font-size:14px; } .english-next small { margin-top:3px; color:var(--muted); font-size:12px; }
+  .english-progress { display:none; padding:20px 0 64px; } .english-progress.active { display:grid; gap:16px; }
+  .english-progress-heading h2 { font-size:clamp(30px,3vw,42px); line-height:1.12; } .english-progress-heading p { margin-top:8px; color:var(--muted); font-size:17px; }
+  .english-progress-overview, .english-progress-panel { padding:20px; border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px rgba(18,58,115,.07); }
+  .english-progress-overview { background:#edf5ff; } .english-progress-overview-main { display:grid; grid-template-columns:auto minmax(0,1fr) minmax(230px,.65fr); align-items:center; gap:20px; }
+  .english-progress-overview-main > .english-icon { width:64px; height:64px; font-size:38px; } .english-progress-copy > span { display:block; font-size:15px; font-weight:700; } .english-progress-copy > strong { display:block; margin-top:3px; font-size:clamp(24px,2.5vw,34px); }
+  .english-progress-meter { display:flex; align-items:center; gap:14px; margin-top:12px; } .english-progress-meter > div { flex:1; height:12px; overflow:hidden; border-radius:12px; background:#dce6f4; } .english-progress-meter > div span { display:block; width:0; height:100%; border-radius:12px; background:var(--sage); } .english-progress-meter b { min-width:50px; text-align:right; font-size:23px; }
+  .english-progress-level { display:flex; align-items:center; gap:13px; min-height:85px; padding-left:20px; border-left:1px solid #cbdcf6; } .english-progress-level > span { width:58px; height:58px; display:grid; place-items:center; flex:0 0 auto; border:5px solid #ffe2a2; border-radius:50%; background:#dc9e27; color:#fff; font-size:28px; } .english-progress-level > span.pending { border-color:#dce6f4; background:#aabbd1; } .english-progress-level strong, .english-progress-level small { display:block; } .english-progress-level strong { font-size:18px; } .english-progress-level small { margin-top:4px; color:var(--muted); font-size:13px; }
+  .english-milestones { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); margin-top:26px; list-style:none; } .english-milestones li { position:relative; min-width:0; text-align:center; } .english-milestones li:not(:last-child)::after { content:''; position:absolute; left:50%; right:-50%; top:15px; height:4px; background:#cbd8eb; } .english-milestones li.linked:not(:last-child)::after { background:var(--sage); } .english-milestones li span { position:relative; z-index:1; width:34px; height:34px; display:grid; place-items:center; margin:0 auto 7px; border:3px solid #bdd0e9; border-radius:50%; background:#fff; color:var(--muted); } .english-milestones li.complete span { border-color:var(--sage); background:var(--sage); color:#fff; } .english-milestones li.current span { border-color:var(--blue); color:var(--blue); } .english-milestones strong, .english-milestones small { display:block; overflow-wrap:anywhere; } .english-milestones strong { font-size:13px; } .english-milestones small { margin-top:2px; color:var(--muted); font-size:12px; }
+  .english-progress-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; } .english-progress-panel { min-width:0; background:#fff; } .english-progress-panel h3 { font-size:20px; } .english-week { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; margin-top:18px; } .english-week-day { min-height:75px; display:grid; align-content:center; justify-items:center; gap:7px; padding:6px 2px; border-radius:7px; background:#f1f5fc; color:var(--muted); } .english-week-day.done { background:#e7f8f2; color:#08795d; } .english-week-day.today { outline:2px solid #b8d3fb; outline-offset:-2px; } .english-week-day span { font-size:12px; font-weight:700; } .english-week-day b { width:25px; height:25px; display:grid; place-items:center; border:2px solid #b8c9df; border-radius:50%; } .english-week-day.done b { border-color:var(--sage); background:var(--sage); color:#fff; }
+  .english-facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:18px; } .english-facts span { min-height:66px; display:grid; align-content:center; padding:8px; border-radius:7px; background:#f1f5fc; color:var(--muted); text-align:center; font-size:12px; } .english-facts strong { display:block; color:var(--ink); font-size:21px; }
+  .english-skills { display:grid; gap:8px; margin-top:16px; } .english-skill { width:100%; min-height:43px; display:grid; grid-template-columns:minmax(90px,1fr) minmax(50px,1.3fr) auto; align-items:center; gap:10px; padding:5px 6px; border:0; border-bottom:1px solid var(--border); background:#fff; text-align:left; cursor:pointer; } .english-skill:last-child { border-bottom:0; } .english-skill:hover { background:#f5f9ff; } .english-skill > span:first-child { font-size:13px; font-weight:700; } .english-skill-meter { height:8px; overflow:hidden; border-radius:10px; background:#e2eaf5; } .english-skill-meter span { display:block; height:100%; border-radius:10px; background:var(--skill-color); } .english-skill strong { min-width:38px; text-align:right; font-size:12px; }
+  .english-progress-action { display:flex; align-items:center; gap:15px; min-height:86px; padding:15px 20px; border:1px solid #c8eade; border-radius:8px; background:#eafaf4; } .english-progress-action > div { flex:1; } .english-progress-action strong, .english-progress-action small { display:block; } .english-progress-action small { margin-top:3px; font-size:18px; font-weight:700; } .english-progress-action button { min-height:48px; }
+  @media(max-width:1100px) { .english-session { grid-template-columns:1fr; } .english-start { width:100%; } .english-progress-overview-main { grid-template-columns:auto minmax(0,1fr); } .english-progress-level { grid-column:1/-1; min-height:0; padding:14px 0 0; border-left:0; border-top:1px solid #cbdcf6; } .english-progress-grid { grid-template-columns:1fr; } }
+  @media(max-width:750px) { .english-grid { grid-template-columns:1fr; } .english-session { padding:16px; } .english-card-head { flex-wrap:wrap; } .english-card .english-link { margin-left:auto; } }
+  @media(max-width:600px) { .main-actions { grid-template-columns:repeat(6,minmax(0,1fr)); gap:3px; } .main-actions .nav-pill:nth-child(-n+3) { grid-column:span 2; } .main-actions .nav-pill:nth-child(n+4) { grid-column:span 3; } .nav-pill { padding:8px 4px; font-size:.73rem; } #sessionEmpty { padding-top:8px; } .english-topic-chips { grid-template-columns:repeat(2,minmax(0,1fr)); } .english-progress-overview-main { grid-template-columns:1fr; } .english-progress-overview-main > .english-icon { display:none; } .english-progress-level { grid-column:auto; } .english-progress-action { flex-wrap:wrap; } .english-progress-action button { width:100%; } }
 </style>
 </head>
 <body>
@@ -1314,23 +1364,24 @@
 <header>
   <div class="brand-area">
     <div class="cambridge-header-icon" aria-hidden="true"><img src="assets/brand/ingles-simple.png" alt=""></div>
-    <h1>Cambridge Trainer</h1>
+    <h1>Título de inglés</h1>
     <div class="lang-switcher">
       <button class="lang-btn active" id="btnEN" title="English B2/C1/C2">EN</button>
     </div>
   </div>
   <div class="main-actions">
+    <button class="nav-pill active" data-tab-btn="sesion" onclick="showTab('sesion',this)">Inicio</button>
     <button class="nav-pill" data-tab-btn="temas" onclick="showTab('temas',this)">Temas</button>
-    <button class="nav-pill active" data-tab-btn="sesion" onclick="showTab('sesion',this)">Sesión de hoy</button>
-    <button class="nav-pill" data-tab-btn="recitar" onclick="showTab('recitar',this)">Oral</button>
+    <button class="nav-pill" data-tab-btn="recitar" onclick="showTab('recitar',this)">Speaking</button>
     <button class="nav-pill" data-tab-btn="escrita" onclick="showTab('escrita',this)">Writing</button>
+    <button class="nav-pill" data-tab-btn="progreso" onclick="showTab('progreso',this)">Progreso</button>
   </div>
   <div class="header-right">
     <div class="header-meta" id="headerMeta">Sesiones: 0<br>Temas: 0<br>Créditos: -</div>
-    <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil',this)" title="Perfil" aria-label="Perfil">C</button>
+    <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil',this)" title="Perfil" aria-label="Perfil">P</button>
   </div>
 </header>
-<button class="global-teacher" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))" title="Profesor IA" aria-label="Profesor IA"><img src="/assets/brand/teacher-ai.png" alt=""><span>+</span></button>
+<button class="global-teacher" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))" title="Profesor IA" aria-label="Profesor IA"><img src="assets/brand/teacher-ai.png" alt=""><span>+</span></button>
 
 <main>
 
@@ -1338,16 +1389,21 @@
   <div id="tab-sesion" class="tab active">
     <div id="sessionEmpty" class="session-empty">
       <h2>Tu escritorio virtual</h2>
-      <div class="cambridge-next-step"><strong>Siguiente paso</strong><span>Reading and Use of English - práctica guiada</span></div>
-      <div class="cambridge-duration-options" aria-label="Duracion de la sesion">
-        <button type="button" onclick="startSessionForDuration(15)"><strong>15 min</strong><span>Repaso rápido</span></button>
-        <button type="button" onclick="startSessionForDuration(30)"><strong>30 min</strong><span>Estudiar y practicar</span></button>
-        <button type="button" onclick="startSessionForDuration(45)"><strong>45 min</strong><span>Sesión completa</span></button>
+      <p class="desk-subtitle">Un paso cada día con tu inglés.</p>
+      <div class="english-session">
+        <div class="english-session-title"><span class="english-icon" aria-hidden="true">▦</span><div><h3>Sesión diaria</h3><p>Elige cuánto tiempo tienes y continúa practicando.</p></div></div>
+        <div class="cambridge-duration-options" role="group" aria-label="Duración de la sesión">
+          <button type="button" data-english-duration="15" onclick="selectEnglishDuration(15)"><strong>15 min</strong><span>Repaso rápido</span></button>
+          <button type="button" data-english-duration="30" onclick="selectEnglishDuration(30)"><strong>30 min</strong><span>Estudio equilibrado</span></button>
+          <button type="button" data-english-duration="45" onclick="selectEnglishDuration(45)"><strong>45 min</strong><span>Sesión completa</span></button>
+        </div>
+        <button class="btn english-start" type="button" onclick="startSessionForDuration(englishDuration)">Empezar sesión →</button>
       </div>
-      <div class="cambridge-home-actions" aria-label="Accesos rapidos">
-        <button type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))"><strong>Temas</strong><span>Elige de 216 temas</span></button>
-        <button type="button" onclick="showTab('recitar',document.querySelector('[data-tab-btn=&quot;recitar&quot;]'))"><strong>Oral</strong><span>Practica speaking</span></button>
-        <button type="button" onclick="showTab('escrita',document.querySelector('[data-tab-btn=&quot;escrita&quot;]'))"><strong>Writing</strong><span>Corrige textos</span></button>
+      <div class="english-grid">
+        <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">▤</span><div><h3>Biblioteca de temas</h3><p>Speaking, writing, grammar y vocabulario por niveles.</p></div><button class="english-link" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">Ver temas →</button></div><div class="english-topic-chips"><button type="button" onclick="openEnglishTopicGroup('Speaking')"><span aria-hidden="true">◌</span>Speaking</button><button type="button" onclick="openEnglishTopicGroup('Writing')"><span aria-hidden="true">✎</span>Writing</button><button type="button" onclick="openEnglishTopicGroup('Use of English')"><span aria-hidden="true">Aa</span>Grammar</button><button type="button" onclick="openEnglishTopicGroup('Reading')"><span aria-hidden="true">▤</span>Reading</button></div></section>
+        <section class="english-card"><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">◌</span><div><h3>Speaking</h3><p>Prepara tu respuesta, grábate y recibe correcciones.</p></div><button class="english-link" type="button" onclick="showTab('recitar',document.querySelector('[data-tab-btn=&quot;recitar&quot;]'))">Practicar →</button></div><div class="english-card-steps"><span>Preparar</span><span>Grabar</span><span>Corregir</span></div></section>
+        <section class="english-card"><div class="english-card-head"><span class="english-icon gold" aria-hidden="true">✎</span><div><h3>Writing</h3><p>Escribe, genera un modelo y mejora tu texto con feedback.</p></div><button class="english-link" type="button" onclick="showTab('escrita',document.querySelector('[data-tab-btn=&quot;escrita&quot;]'))">Ir a writing →</button></div><div class="english-card-steps"><span>Redactar</span><span>Modelo</span><span>Corregir por foto</span></div></section>
+        <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">▥</span><div><h3>Tu progreso</h3><p>Sesiones guardadas y temas completados.</p></div><button class="english-link" type="button" onclick="showTab('progreso',document.querySelector('[data-tab-btn=&quot;progreso&quot;]'))">Ver progreso →</button></div><div class="english-meter"><div class="english-meter-track"><span id="englishHomeBar"></span></div><strong id="englishHomePct">0%</strong></div><button class="english-next" type="button" onclick="continueEnglishStudy()"><span><strong>Siguiente tema</strong><small id="englishHomeNext">Busca tu próximo tema.</small></span><span aria-hidden="true">→</span></button></section>
       </div>
     </div>
     <div id="sessionActive" class="session-active" style="display:none">
@@ -1407,6 +1463,13 @@
         <button class="btn btn-small btn-blue" onclick="uploadSessionToDrive()">Subir a Drive</button>
       </div>
     </div>
+  </div>
+
+  <div id="tab-progreso" class="tab english-progress">
+    <div class="english-progress-heading"><h2>Tu progreso</h2><p>Cada práctica cuenta.</p></div>
+    <section class="english-progress-overview" aria-label="Objetivo del mes"><div class="english-progress-overview-main"><span class="english-icon" aria-hidden="true">◎</span><div class="english-progress-copy"><span>Objetivo del mes</span><strong id="englishMonthCount">0 de 12 sesiones</strong><div class="english-progress-meter"><div role="progressbar" id="englishProgressTrack" aria-label="Sesiones guardadas este mes" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="englishProgressBar"></span></div><b id="englishProgressPct">0%</b></div></div><div class="english-progress-level"><span id="englishLevelBadge" class="pending" aria-hidden="true">★</span><div><strong id="englishLevel">Nivel inicial</strong><small id="englishLevelHint">Guarda tu primera sesión.</small></div></div></div><ol class="english-milestones" id="englishMilestones" aria-label="Hitos del mes"></ol></section>
+    <div class="english-progress-grid"><section class="english-progress-panel"><h3>Actividad de la semana</h3><div class="english-week" id="englishWeek"></div><div class="english-facts" id="englishFacts"></div></section><section class="english-progress-panel"><h3>Por competencias</h3><div class="english-skills" id="englishSkills"></div></section></div>
+    <div class="english-progress-action"><span class="english-icon teal" aria-hidden="true">→</span><div><strong>Siguiente paso</strong><small id="englishProgressNext">Elige un tema para practicar.</small></div><button class="btn" type="button" onclick="continueEnglishStudy()">Continuar estudiando →</button></div>
   </div>
 
   <!-- TAB: RECITAR -->
@@ -1599,7 +1662,7 @@
     <div class="profile-card">
       <div class="profile-avatar" id="profileAvatar"></div>
       <div>
-        <div class="profile-title" id="profileName">Cuenta CAMBRIDGE TRAINER</div>
+        <div class="profile-title" id="profileName">Cuenta Título de inglés</div>
         <div class="profile-name-row">
           <input class="profile-name-input" id="profileNameInput" maxlength="90" placeholder="Nombre visible">
           <button class="btn btn-small btn-blue" onclick="saveProfileName()">Guardar nombre</button>
@@ -1634,7 +1697,7 @@
       Tu cuenta activa la IA automaticamente al entrar. Usa la clave manual solo si trabajas sin sesion web.
     </div>
     <div class="config-row" id="licenseConfigRow">
-      <label>Clave CAMBRIDGE TRAINER</label>
+      <label>Clave de acceso</label>
       <input type="password" class="api-input" id="licenseKeyInput" placeholder="CAMB-...">
     </div>
   </div>
@@ -1817,6 +1880,7 @@ let state = {
   config: { numPoints: 5, numVocab: 5, profile: DEFAULT_PROFILE, pointFontSize: 13, vocabColumnWidth: 270 }
 };
 let accountUser = null;
+let englishDuration = 30;
 
 let session = {
   topic: null,
@@ -2185,7 +2249,7 @@ async function getCambridgeTrainerLicense() {
 
 async function groqChat(messages, options = {}) {
   const license = await getCambridgeTrainerLicense();
-  if (!license) throw new Error('Falta la clave de licencia CAMBRIDGE TRAINER.');
+  if (!license) throw new Error('Falta la clave de acceso de Título de inglés.');
   if (BACKEND_SUPPORTED) await loadBackendStatus();
   const limits = generationLimits();
   const payload = {
@@ -2379,11 +2443,12 @@ async function init() {
   ensureTopicPageChatToggle();
   ensureReciteChatToggle();
   refreshDriveStatus();
+  selectEnglishDuration(englishDuration);
   updateHeader();
 }
 
 async function selectFolder() {
-  alert('Cambridge Trainer guarda ahora el historial en el servidor, separado por usuario. No necesitas elegir ninguna carpeta.');
+  alert('Título de inglés guarda el historial en el servidor, separado por usuario. No necesitas elegir ninguna carpeta.');
 }
 
 async function persist() {
@@ -2396,6 +2461,103 @@ function updateHeader() {
   const credits = remainingCredits(accountUser) ?? '-';
   document.getElementById('headerMeta').innerHTML =
     `Sesiones: ${state.history.length}<br>${state.completedTopics.length}/${all.length} completados<br>Créditos: ${credits}`;
+  renderEnglishDashboard();
+}
+
+function selectEnglishDuration(minutes) {
+  englishDuration = minutes;
+  document.querySelectorAll('[data-english-duration]').forEach(button => {
+    const selected = Number(button.dataset.englishDuration) === minutes;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
+}
+
+function englishSkillForCategory(category) {
+  if (/speaking|pronunciation/i.test(category)) return 'Speaking';
+  if (/writing/i.test(category)) return 'Writing';
+  if (/use of english/i.test(category)) return 'Use of English';
+  if (/reading/i.test(category)) return 'Reading';
+  if (/listening/i.test(category)) return 'Listening';
+  return 'Preparación de examen';
+}
+
+function englishNextTopic() {
+  return getAllTopics().find(item => !state.completedTopics.includes(item.topic)) || null;
+}
+
+function continueEnglishStudy() {
+  const next = englishNextTopic();
+  if (next) startSessionWithTopic(next.topic, false);
+  else showTab('temas', document.querySelector('[data-tab-btn="temas"]'));
+}
+
+function openEnglishTopicGroup(group) {
+  const category = Object.keys(getTopicGroups()).find(cat => englishSkillForCategory(cat) === group);
+  showTab('temas', document.querySelector('[data-tab-btn="temas"]'));
+  const search = document.getElementById('topicSearchInput');
+  if (search) search.value = '';
+  onTopicSearch('');
+  if (category) setCatTab(category);
+}
+
+function renderEnglishDashboard() {
+  const all = getAllTopics();
+  const next = englishNextTopic();
+  const completed = all.filter(item => state.completedTopics.includes(item.topic)).length;
+  const topicPct = all.length ? Math.round(completed / all.length * 100) : 0;
+  document.getElementById('englishHomePct').textContent = topicPct + '%';
+  document.getElementById('englishHomeBar').style.width = topicPct + '%';
+  document.getElementById('englishHomeNext').textContent = next?.topic || 'Todos los temas completados: sigue practicando.';
+  document.getElementById('englishProgressNext').textContent = next?.topic || 'Elige un tema para repasar.';
+
+  const now = new Date();
+  const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2,'0')}`;
+  const saved = (state.history || []).filter(entry => {
+    const date = new Date(entry.date || '');
+    return !Number.isNaN(date.getTime()) && `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2,'0')}` === month;
+  });
+  const count = saved.length;
+  const goals = [1,3,5,8,12];
+  const pct = Math.min(100, Math.round(count / goals.at(-1) * 100));
+  const achieved = [...goals].reverse().findIndex(goal => count >= goal);
+  const level = achieved < 0 ? 0 : goals.length - achieved;
+  const nextGoal = goals.find(goal => count < goal);
+  document.getElementById('englishMonthCount').textContent = `${count} de ${goals.at(-1)} sesiones`;
+  document.getElementById('englishProgressPct').textContent = pct + '%';
+  document.getElementById('englishProgressBar').style.width = pct + '%';
+  document.getElementById('englishProgressTrack').setAttribute('aria-valuenow', pct);
+  document.getElementById('englishLevel').textContent = level ? `Nivel ${level} · ${['','Inicio','Ritmo','Constancia','Avance','Objetivo'][level]}` : 'Nivel inicial';
+  document.getElementById('englishLevelBadge').classList.toggle('pending', !level);
+  document.getElementById('englishLevelHint').textContent = nextGoal ? `Siguiente nivel: ${nextGoal} ${nextGoal === 1 ? 'sesión' : 'sesiones'} · te ${nextGoal - count === 1 ? 'falta' : 'faltan'} ${nextGoal - count}` : 'Objetivo mensual alcanzado. ¡Sigue a tu ritmo!';
+  document.getElementById('englishMilestones').innerHTML = goals.map((goal,index) => {
+    const complete = count >= goal;
+    return `<li class="${complete ? 'complete' : count < goal && (index === 0 || count >= goals[index - 1]) ? 'current' : ''} ${index < goals.length - 1 && count >= goals[index + 1] ? 'linked' : ''}"><span aria-hidden="true">${complete ? '✓' : count < goal && (index === 0 || count >= goals[index - 1]) ? '●' : '·'}</span><strong>${['Inicio','Ritmo','Constancia','Avance','Objetivo'][index]}</strong><small>${goal} ${goal === 1 ? 'sesión' : 'sesiones'}</small></li>`;
+  }).join('');
+
+  const dates = new Set((state.history || []).map(entry => {
+    const date = new Date(entry.date || '');
+    return Number.isNaN(date.getTime()) ? '' : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  }));
+  const monday = new Date(now.getFullYear(),now.getMonth(),now.getDate() - (now.getDay() + 6) % 7);
+  document.getElementById('englishWeek').innerHTML = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map((name,index) => {
+    const day = new Date(monday);
+    day.setDate(monday.getDate() + index);
+    const key = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`;
+    const done = dates.has(key);
+    return `<div class="english-week-day ${done ? 'done' : ''} ${day.toDateString() === now.toDateString() ? 'today' : ''}" title="${day.toLocaleDateString('es-ES')}: ${done ? 'sesión guardada' : 'sin sesión guardada'}"><span>${name}</span><b aria-label="${done ? 'Sesión guardada' : 'Sin sesión guardada'}">${done ? '✓' : ''}</b></div>`;
+  }).join('');
+  document.getElementById('englishFacts').innerHTML = `<span><strong>${new Set(saved.map(entry => new Date(entry.date).toDateString())).size}</strong>días activos</span><span><strong>${count}</strong>sesiones</span><span><strong>${completed}/${all.length}</strong>temas completados</span>`;
+  const groups = new Map();
+  all.forEach(item => {
+    const key = englishSkillForCategory(item.cat);
+    const group = groups.get(key) || {total:0,done:0};
+    group.total++;
+    if (state.completedTopics.includes(item.topic)) group.done++;
+    groups.set(key,group);
+  });
+  const colors = {'Speaking':'#7555d9','Writing':'#edae30','Use of English':'#1479e7','Reading':'#059a75','Listening':'#0f766e','Preparación de examen':'#b74338'};
+  document.getElementById('englishSkills').innerHTML = [...groups].map(([name,group]) => `<button class="english-skill" type="button" style="--skill-color:${colors[name]}" onclick="openEnglishTopicGroup('${name}')" aria-label="${name}: ${group.done} de ${group.total} temas completados"><span>${name}</span><span class="english-skill-meter" aria-hidden="true"><span style="width:${Math.round(group.done / group.total * 100)}%"></span></span><strong>${group.done}/${group.total}</strong></button>`).join('');
 }
 
 // ── TABS ────────────────────────────────────────────────────────────────
@@ -2413,6 +2575,8 @@ function showTab(name, btn) {
   if (name === 'perfil') refreshProfile();
   if (name === 'recitar') renderRecitePractice();
   if (name === 'escrita') renderWritingPractice();
+  if (name === 'progreso') renderEnglishDashboard();
+  window.scrollTo({top:0,behavior:'auto'});
 }
 
 function renderWritingPractice() {
@@ -2731,7 +2895,7 @@ async function generateSession(topic) {
 
   if (!license) {
     document.getElementById('aiPoints').innerHTML =
-      `<div class="notice">Introduce tu clave CAMBRIDGE TRAINER en la pestaña Configuración.<br><br>Puedes añadir puntos manualmente.</div>`;
+      `<div class="notice">Introduce tu clave de acceso en Configuración.<br><br>Puedes añadir puntos manualmente.</div>`;
     return;
   }
 
@@ -3290,7 +3454,7 @@ function cambridgeIcon() {
 function renderCambridgeIcons() {
   const mini = document.getElementById('profileHeaderBtn');
   const avatar = document.getElementById('profileAvatar');
-  if (mini) mini.innerHTML = cambridgeIcon();
+  if (mini) mini.textContent = 'P';
   if (avatar) avatar.innerHTML = cambridgeIcon();
   document.querySelectorAll('#tab-perfil .profile-actions button').forEach(button => {
     if (button.getAttribute('onclick')?.includes('showUtilityTab')) button.textContent = 'Configuración';
@@ -3302,7 +3466,7 @@ function renderCambridgeIcons() {
 function renderProfile(user = null) {
   accountUser = user;
   renderCambridgeIcons();
-  const name = user?.name || user?.username || 'Cuenta CAMBRIDGE TRAINER';
+  const name = user?.name || user?.username || 'Cuenta Título de inglés';
   const email = user?.email || '';
   const remaining = remainingCredits(user);
   const avatar = document.getElementById('profileAvatar');
@@ -3314,7 +3478,7 @@ function renderProfile(user = null) {
   if (avatar) avatar.innerHTML = cambridgeIcon();
   if (nameEl) nameEl.textContent = name;
   if (nameInput) nameInput.value = name;
-  if (subtitleEl) subtitleEl.textContent = email || 'Acceso local CAMBRIDGE TRAINER';
+  if (subtitleEl) subtitleEl.textContent = email || 'Acceso local Título de inglés';
   if (usageEl) usageEl.textContent = remaining === null ? 'Sin límite' : `${remaining} créditos restantes`;
   if (expiryEl) expiryEl.textContent = formatProfileDate(user?.expires_at);
   updateAccessKeyUi(Boolean(user?.license_key));
@@ -3399,7 +3563,7 @@ function toggleProfileHistory() {
 
 async function saveLicense() {
   const key = document.getElementById('licenseKeyInput').value.trim();
-  if (!key) { alert('Introduce una clave CAMBRIDGE TRAINER válida.'); return; }
+  if (!key) { alert('Introduce una clave de acceso válida.'); return; }
   if (BACKEND_SUPPORTED) await writeTXT('license.txt', key);
   localStorage.setItem('cambridge_trainer_license', key);
   await validateLicense(true);
@@ -3462,7 +3626,7 @@ async function refreshDriveStatus() {
 
 async function handleGoogleDrive() {
   if (!BACKEND_SUPPORTED) {
-    alert('Drive solo se conecta desde la version servidor de Cambridge Trainer.');
+    alert('Drive solo se conecta desde la versión servidor de Título de inglés.');
     return;
   }
   const connected = document.getElementById('driveConnectBtn')?.dataset.connected === '1';
@@ -3470,7 +3634,7 @@ async function handleGoogleDrive() {
     location.href = '/auth/google/drive?next=' + encodeURIComponent('/cambridge?drive=connected');
     return;
   }
-  if (!confirm('Drive esta conectado. ¿Quieres desconectarlo de Cambridge Trainer?')) return;
+  if (!confirm('Drive está conectado. ¿Quieres desconectarlo de Título de inglés?')) return;
   await backendRequest('/auth/google/drive-disconnect', { method: 'POST', body: '{}' });
   updateDriveButton(false);
   const statusEl = document.getElementById('licenseStatus');
@@ -4038,7 +4202,7 @@ async function transcribeReciteAudio() {
     return;
   }
   const license = await getCambridgeTrainerLicense();
-  if (!license) { alert('Introduce tu clave CAMBRIDGE TRAINER en Configuración.'); return; }
+  if (!license) { alert('Introduce tu clave de acceso en Configuración.'); return; }
   setReciteStatus('Transcribiendo audio...');
   const filename = getReciteAudioFilename();
   if (BACKEND_SUPPORTED && await loadBackendStatus()) {
