@@ -1349,6 +1349,31 @@
   @media(max-width:1100px) { .english-session { grid-template-columns:1fr; } .english-start { width:100%; } .english-progress-overview-main { grid-template-columns:auto minmax(0,1fr); } .english-progress-level { grid-column:1/-1; min-height:0; padding:14px 0 0; border-left:0; border-top:1px solid #cbdcf6; } .english-progress-grid { grid-template-columns:1fr; } }
   @media(max-width:750px) { .english-grid { grid-template-columns:1fr; } .english-session { padding:16px; } .english-card-head { flex-wrap:wrap; } .english-card .english-link { margin-left:auto; } }
   @media(max-width:600px) { .main-actions { grid-template-columns:repeat(6,minmax(0,1fr)); gap:3px; } .main-actions .nav-pill:nth-child(-n+3) { grid-column:span 2; } .main-actions .nav-pill:nth-child(n+4) { grid-column:span 3; } .nav-pill { padding:8px 4px; font-size:.73rem; } #sessionEmpty { padding-top:8px; } .english-topic-chips { grid-template-columns:repeat(2,minmax(0,1fr)); } .english-progress-overview-main { grid-template-columns:1fr; } .english-progress-overview-main > .english-icon { display:none; } .english-progress-level { grid-column:auto; } .english-progress-action { flex-wrap:wrap; } .english-progress-action button { width:100%; } }
+  #sessionActive > .chat-panel.compact,
+  #tab-recitar .recite-layout > .chat-panel,
+  #tab-temas .topics-side { display:none !important; }
+  #sessionActive[style*="block"] { grid-template-columns:minmax(0,1fr); }
+  .global-teacher { width:174px; height:60px; display:flex; justify-content:flex-start; gap:8px; padding:7px 10px; border-radius:12px; background:#1258d6; color:#fff; overflow:visible; }
+  .global-teacher img { width:44px; height:44px; flex:0 0 44px; border-radius:8px; background:#eaf2ff; transform:none; }
+  .global-teacher span { position:static; width:auto; height:auto; display:block; border-radius:0; background:none; color:inherit; font-size:13px; font-weight:800; white-space:nowrap; }
+  .global-teacher:focus-visible { outline:3px solid #93c5fd; outline-offset:3px; }
+  .english-teacher-panel { position:fixed; right:18px; bottom:88px; z-index:41; width:min(390px,calc(100vw - 24px)); max-height:calc(100vh - 108px); display:grid; grid-template-rows:auto minmax(130px,1fr) auto; overflow:hidden; border:1px solid #c9d8ec; border-radius:12px; background:#fff; box-shadow:0 22px 55px rgba(18,58,115,.2); }
+  .english-teacher-panel[hidden] { display:none; }
+  .english-teacher-head { min-height:52px; display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#1258d6; color:#fff; }
+  .english-teacher-head button { width:30px; height:30px; border:0; border-radius:6px; background:rgba(255,255,255,.16); color:#fff; font-size:22px; cursor:pointer; }
+  .english-teacher-log { min-height:150px; max-height:min(350px,calc(100vh - 255px)); overflow:auto; padding:14px; font-size:13px; line-height:1.5; }
+  .english-teacher-log .chat-msg { margin-bottom:12px; }
+  .english-teacher-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:end; padding:12px; border-top:1px solid var(--border); }
+  .english-teacher-row textarea { min-width:0; min-height:54px; resize:vertical; }
+  .english-resume { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; padding:12px 16px; border:1px solid var(--border); border-radius:8px; background:#fff; text-align:left; }
+  .english-resume[hidden] { display:none; }
+  .english-resume strong, .english-resume small { display:block; }
+  .english-resume small { margin-top:3px; color:var(--muted); overflow-wrap:anywhere; }
+  main { max-width:1440px; padding-inline:clamp(16px,3vw,48px); }
+  #sessionEmpty, #sessionEmpty .english-session, #sessionEmpty .english-grid { width:100%; max-width:none; margin-inline:0; min-width:0; }
+  @media(max-width:1500px) { #sessionEmpty .english-session { grid-template-columns:minmax(0,1fr); } #sessionEmpty .english-start { width:100%; min-width:0; } }
+  .english-icon { font-family:'Segoe UI Emoji','Segoe UI Symbol',sans-serif; font-size:25px; }
+  @media(max-width:600px) { .global-teacher { right:12px; bottom:12px; } .english-teacher-panel { right:12px; bottom:80px; } .english-resume { flex-wrap:wrap; } .english-resume button { width:100%; } }
 </style>
 </head>
 <body>
@@ -1381,7 +1406,12 @@
     <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil',this)" title="Perfil" aria-label="Perfil">P</button>
   </div>
 </header>
-<button class="global-teacher" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))" title="Profesor IA" aria-label="Profesor IA"><img src="assets/brand/teacher-ai.png" alt=""><span>+</span></button>
+<button class="global-teacher" type="button" onclick="toggleEnglishTeacher()" title="Profesor IA" aria-label="Abrir Profesor IA" aria-expanded="false" aria-controls="englishTeacherPanel"><img src="assets/brand/teacher-ai.png" alt=""><span>Profesor IA</span></button>
+<aside class="english-teacher-panel" id="englishTeacherPanel" aria-label="Profesor IA" hidden>
+  <div class="english-teacher-head"><strong>Profesor IA</strong><button type="button" onclick="toggleEnglishTeacher()" aria-label="Cerrar Profesor IA">&times;</button></div>
+  <div class="english-teacher-log" id="englishTeacherLog" role="log" aria-live="polite"></div>
+  <div class="english-teacher-row"><textarea id="englishTeacherInput" aria-label="Pregunta al Profesor IA" placeholder="Pregunta sobre tu estudio o un tema..."></textarea><button class="btn btn-blue" type="button" onclick="askEnglishTeacher()">Enviar</button></div>
+</aside>
 
 <main>
 
@@ -1391,7 +1421,7 @@
       <h2>Tu escritorio virtual</h2>
       <p class="desk-subtitle">Un paso cada día con tu inglés.</p>
       <div class="english-session">
-        <div class="english-session-title"><span class="english-icon" aria-hidden="true">▦</span><div><h3>Sesión diaria</h3><p>Elige cuánto tiempo tienes y continúa practicando.</p></div></div>
+        <div class="english-session-title"><span class="english-icon" aria-hidden="true">📅</span><div><h3>Sesión diaria</h3><p>Elige cuánto tiempo tienes y continúa practicando.</p></div></div>
         <div class="cambridge-duration-options" role="group" aria-label="Duración de la sesión">
           <button type="button" data-english-duration="15" onclick="selectEnglishDuration(15)"><strong>15 min</strong><span>Repaso rápido</span></button>
           <button type="button" data-english-duration="30" onclick="selectEnglishDuration(30)"><strong>30 min</strong><span>Estudio equilibrado</span></button>
@@ -1399,11 +1429,12 @@
         </div>
         <button class="btn english-start" type="button" onclick="startSessionForDuration(englishDuration)">Empezar sesión →</button>
       </div>
+      <div class="english-resume" id="englishResume" hidden><span><strong>Sesión en curso</strong><small id="englishResumeTopic"></small></span><button class="btn btn-outline" type="button" onclick="resumeEnglishSession()">Reanudar →</button></div>
       <div class="english-grid">
-        <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">▤</span><div><h3>Biblioteca de temas</h3><p>Speaking, writing, grammar y vocabulario por niveles.</p></div><button class="english-link" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">Ver temas →</button></div><div class="english-topic-chips"><button type="button" onclick="openEnglishTopicGroup('Speaking')"><span aria-hidden="true">◌</span>Speaking</button><button type="button" onclick="openEnglishTopicGroup('Writing')"><span aria-hidden="true">✎</span>Writing</button><button type="button" onclick="openEnglishTopicGroup('Use of English')"><span aria-hidden="true">Aa</span>Grammar</button><button type="button" onclick="openEnglishTopicGroup('Reading')"><span aria-hidden="true">▤</span>Reading</button></div></section>
-        <section class="english-card"><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">◌</span><div><h3>Speaking</h3><p>Prepara tu respuesta, grábate y recibe correcciones.</p></div><button class="english-link" type="button" onclick="showTab('recitar',document.querySelector('[data-tab-btn=&quot;recitar&quot;]'))">Practicar →</button></div><div class="english-card-steps"><span>Preparar</span><span>Grabar</span><span>Corregir</span></div></section>
-        <section class="english-card"><div class="english-card-head"><span class="english-icon gold" aria-hidden="true">✎</span><div><h3>Writing</h3><p>Escribe, genera un modelo y mejora tu texto con feedback.</p></div><button class="english-link" type="button" onclick="showTab('escrita',document.querySelector('[data-tab-btn=&quot;escrita&quot;]'))">Ir a writing →</button></div><div class="english-card-steps"><span>Redactar</span><span>Modelo</span><span>Corregir por foto</span></div></section>
-        <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">▥</span><div><h3>Tu progreso</h3><p>Sesiones guardadas y temas completados.</p></div><button class="english-link" type="button" onclick="showTab('progreso',document.querySelector('[data-tab-btn=&quot;progreso&quot;]'))">Ver progreso →</button></div><div class="english-meter"><div class="english-meter-track"><span id="englishHomeBar"></span></div><strong id="englishHomePct">0%</strong></div><button class="english-next" type="button" onclick="continueEnglishStudy()"><span><strong>Siguiente tema</strong><small id="englishHomeNext">Busca tu próximo tema.</small></span><span aria-hidden="true">→</span></button></section>
+        <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">📚</span><div><h3>Biblioteca de temas</h3><p>Speaking, writing, grammar y vocabulario por niveles.</p></div><button class="english-link" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">Ver temas →</button></div><div class="english-topic-chips"><button type="button" onclick="openEnglishTopicGroup('Speaking')"><span aria-hidden="true">💬</span>Speaking</button><button type="button" onclick="openEnglishTopicGroup('Writing')"><span aria-hidden="true">✍️</span>Writing</button><button type="button" onclick="openEnglishTopicGroup('Use of English')"><span aria-hidden="true">Aa</span>Grammar</button><button type="button" onclick="openEnglishTopicGroup('Reading')"><span aria-hidden="true">📖</span>Reading</button></div></section>
+        <section class="english-card"><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">🎙️</span><div><h3>Speaking</h3><p>Prepara tu respuesta, grábate y recibe correcciones.</p></div><button class="english-link" type="button" onclick="showTab('recitar',document.querySelector('[data-tab-btn=&quot;recitar&quot;]'))">Practicar →</button></div><div class="english-card-steps"><span>Preparar</span><span>Grabar</span><span>Corregir</span></div></section>
+        <section class="english-card"><div class="english-card-head"><span class="english-icon gold" aria-hidden="true">✍️</span><div><h3>Writing</h3><p>Escribe, genera un modelo y mejora tu texto con feedback.</p></div><button class="english-link" type="button" onclick="showTab('escrita',document.querySelector('[data-tab-btn=&quot;escrita&quot;]'))">Ir a writing →</button></div><div class="english-card-steps"><span>Redactar</span><span>Modelo</span><span>Corregir por foto</span></div></section>
+        <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">📈</span><div><h3>Tu progreso</h3><p>Sesiones guardadas y temas completados.</p></div><button class="english-link" type="button" onclick="showTab('progreso',document.querySelector('[data-tab-btn=&quot;progreso&quot;]'))">Ver progreso →</button></div><div class="english-meter"><div class="english-meter-track"><span id="englishHomeBar"></span></div><strong id="englishHomePct">0%</strong></div><button class="english-next" type="button" onclick="continueEnglishStudy()"><span><strong>Siguiente tema</strong><small id="englishHomeNext">Busca tu próximo tema.</small></span><span aria-hidden="true">→</span></button></section>
       </div>
     </div>
     <div id="sessionActive" class="session-active" style="display:none">
@@ -1876,7 +1907,7 @@ let state = {
   currentSession: null,
   recitePractice: { topic: '', notes: '', transcript: '', correction: '', selectedMode: 'prep' },
   writingPractice: { taskType: 'essay', level: 'C1 Advanced', prompt: '', answer: '', feedback: '' },
-  topicChats: { session: [], recite: [], temas: [] },
+  topicChats: { session: [], recite: [], temas: [], profesor: [] },
   config: { numPoints: 5, numVocab: 5, profile: DEFAULT_PROFILE, pointFontSize: 13, vocabColumnWidth: 270 }
 };
 let accountUser = null;
@@ -1933,6 +1964,7 @@ function normalizeAppState() {
     session: [],
     recite: [],
     temas: [],
+    profesor: [],
     ...(state.topicChats || {})
   };
 }
@@ -2436,12 +2468,10 @@ async function init() {
   moveTranscribeButtonToHeader();
   renderTopicsTab();
   renderHistory();
-  renderCurrentSession();
   renderRecitePractice();
   renderAllChats();
-  ensureSessionChatToggle();
-  ensureTopicPageChatToggle();
-  ensureReciteChatToggle();
+  renderEnglishHomeSession();
+  renderEnglishTeacher();
   refreshDriveStatus();
   selectEnglishDuration(englishDuration);
   updateHeader();
@@ -2567,6 +2597,11 @@ function showTab(name, btn) {
   document.getElementById('moreMenu')?.classList.remove('open');
   document.getElementById('tab-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
+  if (name === 'sesion') {
+    document.getElementById('sessionActive').style.display = 'none';
+    document.getElementById('sessionEmpty').style.display = 'block';
+    renderEnglishHomeSession();
+  }
   if (name === 'temas') {
     renderTopicsTab();
     ensureTopicPageChatToggle();
@@ -2577,6 +2612,64 @@ function showTab(name, btn) {
   if (name === 'escrita') renderWritingPractice();
   if (name === 'progreso') renderEnglishDashboard();
   window.scrollTo({top:0,behavior:'auto'});
+}
+
+function renderEnglishHomeSession() {
+  const box = document.getElementById('englishResume');
+  if (!box) return;
+  const topic = state.currentSession?.topic;
+  box.hidden = !topic;
+  if (topic) document.getElementById('englishResumeTopic').textContent = topic;
+}
+
+function resumeEnglishSession() {
+  renderCurrentSession();
+  window.scrollTo({top:0,behavior:'auto'});
+}
+
+let englishTeacherBusy = false;
+function toggleEnglishTeacher() {
+  const panel = document.getElementById('englishTeacherPanel');
+  panel.hidden = !panel.hidden;
+  const trigger = document.querySelector('.global-teacher');
+  trigger.setAttribute('aria-expanded', String(!panel.hidden));
+  trigger.setAttribute('aria-label', panel.hidden ? 'Abrir Profesor IA' : 'Cerrar Profesor IA');
+  if (!panel.hidden) {
+    renderEnglishTeacher();
+    document.getElementById('englishTeacherInput').focus();
+  }
+}
+
+function renderEnglishTeacher() {
+  const log = document.getElementById('englishTeacherLog');
+  if (!log) return;
+  const messages = state.topicChats?.profesor || [];
+  log.innerHTML = `<div class="chat-msg"><strong>Profesor:</strong> Pregúntame sobre un tema, speaking, writing o tu sesión.</div>${messages.map(msg => `<div class="chat-msg"><strong>${msg.role === 'user' ? 'Tú' : 'Profesor'}:</strong> ${escHtml(msg.text).replace(/\n/g,'<br>')}</div>`).join('')}${englishTeacherBusy ? '<div class="chat-msg"><strong>Profesor:</strong> Pensando...</div>' : ''}`;
+  log.scrollTop = log.scrollHeight;
+}
+
+async function askEnglishTeacher() {
+  if (englishTeacherBusy) return;
+  const input = document.getElementById('englishTeacherInput');
+  const question = input.value.trim();
+  if (!question) return;
+  input.value = '';
+  state.topicChats.profesor.push({role:'user', text:question});
+  englishTeacherBusy = true;
+  renderEnglishTeacher();
+  const active = document.querySelector('.tab.active')?.id || 'tab-sesion';
+  const context = `Sección: ${active}. Tema actual: ${state.currentSession?.topic || 'sin tema seleccionado'}.`;
+  const recent = state.topicChats.profesor.slice(-8).map(msg => ({role:msg.role, content:msg.text}));
+  try {
+    const answer = await groqChat([{role:'system', content:`You are a helpful English exam tutor for a Spanish-speaking adult preparing B2/C1/C2. Explain in Spanish when useful, but give English examples and correct English in English. Be concise and specific. ${context}`}, ...recent], {max_tokens:1000, temperature:0.3});
+    state.topicChats.profesor.push({role:'assistant', text:answer});
+  } catch (error) {
+    state.topicChats.profesor.push({role:'assistant', text:error.message || 'No se pudo responder. Inténtalo de nuevo.'});
+  } finally {
+    englishTeacherBusy = false;
+    renderEnglishTeacher();
+    persist();
+  }
 }
 
 function renderWritingPractice() {
@@ -2759,9 +2852,7 @@ function renderCurrentSession() {
   };
   document.getElementById('sessionEmpty').style.display = 'none';
   document.getElementById('sessionActive').style.display = 'block';
-  const date = state.currentSession.date ? new Date(state.currentSession.date) : new Date();
-  document.getElementById('sessionDateLabel').textContent =
-    date.toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('sessionDateLabel').textContent = 'Sesión diaria';
   document.getElementById('sessionTopicLabel').textContent = session.topic;
   document.getElementById('sessionLangBadge').textContent = getLangLabel();
   ensureSessionChatToggle();
@@ -2858,9 +2949,7 @@ async function startSessionWithTopic(topic, autoGenerate = false) {
   document.getElementById('sessionActive').style.display = 'block';
   ensureSessionChatToggle();
 
-  const now = new Date();
-  document.getElementById('sessionDateLabel').textContent =
-    now.toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('sessionDateLabel').textContent = 'Sesión diaria';
   document.getElementById('sessionTopicLabel').textContent = topic;
   document.getElementById('sessionLangBadge').textContent = getLangLabel();
   document.getElementById('aiPoints').innerHTML = '';
@@ -2965,7 +3054,7 @@ function renderAIPoints() {
     container.innerHTML = '<div class="empty-msg">✓ Todos los puntos aceptados</div>'; return;
   }
   if (session.aiPoints.length === 0) {
-    container.innerHTML = '<div class="empty-msg">No se generaron puntos</div>'; return;
+    container.innerHTML = '<div class="db-notice">Todavía no has generado una respuesta. Puedes pedirla cuando quieras o añadir tus propias ideas.</div><div class="toolbar"><button class="btn btn-blue" type="button" onclick="generateCurrentSession()">Generar respuesta</button></div>'; return;
   }
   session.aiPoints.forEach((p, i) => {
     if (p.accepted) return;

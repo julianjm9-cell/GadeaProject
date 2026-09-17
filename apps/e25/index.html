@@ -2919,6 +2919,27 @@
       #progressView .progress-facts { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .progress-subject-row { grid-template-columns:minmax(90px,1fr) minmax(42px,1fr) auto; gap:5px; }
     }
+    .teacher-head { width:100%; border:0; text-align:left; cursor:pointer; }
+    .teacher-head:focus-visible { outline:3px solid #93c5fd; outline-offset:-3px; }
+    .teacher-toggle { display:grid; place-items:center; flex:0 0 auto; }
+    .teacher-panel.collapsed { width:174px; border-radius:12px; }
+    .teacher-panel.collapsed .teacher-head { min-height:60px; padding:7px 10px; }
+    .teacher-panel.collapsed .teacher-id > span:not(.teacher-avatar) { display:block; }
+    .teacher-panel.collapsed .teacher-avatar { width:44px; height:44px; flex:0 0 44px; border-radius:8px; }
+    .teacher-panel.collapsed .teacher-toggle { position:static; width:20px; min-width:20px; height:20px; padding:0; border:0; background:transparent; }
+    .app { width:min(1440px,100%); padding-inline:clamp(16px,3vw,48px); }
+    #sessionChooser .desk-hero p { width:100%; max-width:none; margin-inline:0; justify-self:start; }
+    .home-icon { font-family:'Segoe UI Emoji','Segoe UI Symbol',sans-serif; font-size:25px; }
+    .exam-practice-switch { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; width:min(480px,100%); margin:0 auto 16px; padding:4px; border:1px solid var(--line); border-radius:8px; background:#eef5ff; }
+    .exam-practice-switch button { min-height:42px; border:0; background:transparent; box-shadow:none; font-weight:800; }
+    .exam-practice-switch button.active { background:var(--primary); color:#fff; }
+    .exam-ai-box select { width:100%; max-width:480px; }
+    .exam-extra { margin-top:10px; border-top:1px solid var(--line); padding-top:10px; }
+    .exam-extra summary { padding:8px 0; color:var(--primary); font-weight:800; cursor:pointer; }
+    .exam-extra .exam-preset-list { margin:10px 0; }
+    .exam-extra .toolbar { margin-top:12px; }
+    .exam-flow { display:block; padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:var(--soft); color:var(--ink); font-size:13px; font-weight:700; }
+    @media(max-width:600px) { .teacher-panel.collapsed { right:12px; bottom:12px; } }
   </style>
 </head>
 <body>
@@ -2984,7 +3005,7 @@
         <p>Un paso cada día.</p>
       </div>
       <div class="home-session">
-        <div class="home-session-title"><span class="home-icon blue" aria-hidden="true">▦</span><div><h3>Sesión diaria</h3><p>Elige cuánto tiempo tienes hoy y sigue con tu aprendizaje.</p></div></div>
+        <div class="home-session-title"><span class="home-icon blue" aria-hidden="true">📅</span><div><h3>Sesión diaria</h3><p>Elige cuánto tiempo tienes hoy y sigue con tu aprendizaje.</p></div></div>
         <div class="duration-options" role="group" aria-label="Duración de la sesión">
           <button type="button" data-home-duration="15" onclick="selectHomeDuration(15)"><strong>15 min</strong><span>Repaso rápido</span></button>
           <button type="button" data-home-duration="30" onclick="selectHomeDuration(30)"><strong>30 min</strong><span>Estudio equilibrado</span></button>
@@ -2994,7 +3015,7 @@
       </div>
       <div class="home-grid">
         <section class="home-card">
-          <div class="home-card-head"><span class="home-icon green" aria-hidden="true">▤</span><div><h3>Biblioteca de materias</h3><p>Temas, ejercicios y recursos para estudiar a tu ritmo.</p></div><button class="home-link" type="button" onclick="openLibrary()">Ver biblioteca →</button></div>
+          <div class="home-card-head"><span class="home-icon green" aria-hidden="true">📚</span><div><h3>Biblioteca de materias</h3><p>Temas, ejercicios y recursos para estudiar a tu ritmo.</p></div><button class="home-link" type="button" onclick="openLibrary()">Ver biblioteca →</button></div>
           <div class="home-subjects">
             <button type="button" onclick="openModule('lengua')"><span aria-hidden="true">Aa</span>Lengua</button>
             <button type="button" onclick="openModule('matematicas')"><span aria-hidden="true">x²</span>Matemáticas</button>
@@ -3003,16 +3024,16 @@
           </div>
         </section>
         <section class="home-card">
-          <div class="home-card-head"><span class="home-icon purple" aria-hidden="true">▤</span><div><h3>Generador de exámenes</h3><p>Practica con pruebas y corrige tus respuestas por foto.</p></div><button class="home-link" type="button" onclick="openModule('exam')">Ir a exámenes →</button></div>
-          <div class="home-exam-actions"><button type="button" onclick="openModule('exam')">Crear examen →</button><button type="button" onclick="openExamCorrection()">Corregir por foto →</button></div>
+          <div class="home-card-head"><span class="home-icon purple" aria-hidden="true">📝</span><div><h3>Generador de exámenes</h3><p>Practica con pruebas y corrige tus respuestas por foto.</p></div><button class="home-link" type="button" onclick="openModule('exam')">Ir a exámenes →</button></div>
+          <div class="home-exam-actions"><button type="button" onclick="openExamCorrection()">Ya tengo un examen: corregir por foto →</button></div>
         </section>
         <section class="home-card">
-          <div class="home-card-head"><span class="home-icon green" aria-hidden="true">▥</span><div><h3>Tu progreso</h3><p>Consulta lo que has hecho este mes.</p></div><button class="home-link" type="button" onclick="showView('progress')">Ver progreso →</button></div>
+          <div class="home-card-head"><span class="home-icon green" aria-hidden="true">📈</span><div><h3>Tu progreso</h3><p>Consulta lo que has hecho este mes.</p></div><button class="home-link" type="button" onclick="showView('progress')">Ver progreso →</button></div>
           <div class="home-meter"><div class="home-meter-track"><span id="homeProgressBar"></span></div><strong id="homeProgressPct">0%</strong></div>
           <button class="home-next" type="button" onclick="continueProgress()"><span><strong>Siguiente paso</strong><small id="homeNextText">Busca tu próximo tema.</small></span><span aria-hidden="true">→</span></button>
         </section>
         <section class="home-card">
-          <div class="home-card-head"><span class="home-icon gold" aria-hidden="true">▣</span><div><h3>Recursos oficiales</h3><p>Consulta el temario y los enlaces de referencia.</p></div><button class="home-link" type="button" onclick="openLibrary('resources')">Ver recursos →</button></div>
+          <div class="home-card-head"><span class="home-icon gold" aria-hidden="true">🏛️</span><div><h3>Recursos oficiales</h3><p>Consulta el temario y los enlaces de referencia.</p></div><button class="home-link" type="button" onclick="openLibrary('resources')">Ver recursos →</button></div>
           <div class="home-resources"><button type="button" onclick="openLibrary('resources')">Temario y recursos oficiales <span aria-hidden="true">→</span></button><button type="button" onclick="openLibrary('resources')">Modelos de prueba y enlaces <span aria-hidden="true">→</span></button></div>
         </section>
       </div>
@@ -3448,7 +3469,7 @@ const QUESTIONS = {
     ['Una contrasena segura debe...', ['Combinar caracteres y ser unica','Ser 1234','Usarse en todas las cuentas'], 0]
   ]
 };
-let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, teacherChats:{}, testAttempts:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, examMode:null, activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
+let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, teacherChats:{}, testAttempts:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, examMode:null, examPracticeType:'development', activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
 let homeDuration = 30;
 let currentUser = null;
 let currentView = 'home';
@@ -4030,7 +4051,12 @@ function showView(view) {
   if (view === 'home' || view === 'progress') window.scrollTo({top:0, behavior:'auto'});
   else jumpTo(target);
 }
-function jumpTo(target) { target?.scrollIntoView({behavior:'auto', block:'start'}); }
+function jumpTo(target) {
+  if (!target) return;
+  const headerHeight = document.querySelector('header')?.getBoundingClientRect().height || 0;
+  const top = target.getBoundingClientRect().top + window.scrollY - headerHeight - 12;
+  window.scrollTo({top:Math.max(0,top), behavior:'auto'});
+}
 function renderView() {
   const profileOpen = $('profilePanel') && !$('profilePanel').hidden;
   if ($('homeView')) $('homeView').hidden = profileOpen || currentView !== 'home';
@@ -4112,7 +4138,7 @@ function renderStudyCockpit() {
   if (!duration) { selectHomeDuration(homeDuration); return; }
   const steps = sessionSteps();
   $('sessionDurationPill').textContent = `${duration} minutos`;
-  $('sessionPlanTitle').textContent = duration === 15 ? 'UN PASO Y LISTO' : duration === 30 ? 'PLAN CORTO Y COMPLETO' : 'SESION PARA AVANZAR';
+  $('sessionPlanTitle').textContent = 'Sesión diaria';
   $('sessionPlanText').textContent = `${steps.length} paso${steps.length === 1 ? '' : 's'}`;
   if ($('sessionCoach')) $('sessionCoach').innerHTML = `<span><strong>OBJETIVO</strong><small>${duration === 15 ? 'Entender una idea y cerrar con una accion.' : duration === 30 ? 'Aprender, practicar y detectar fallos.' : 'Aprender, practicar y terminar con una prueba realista.'}</small></span>`;
   $('todayPlan').innerHTML = steps.map((step,index) => `<li class="session-step-row"><button class="session-step ${index === 0 ? 'primary' : ''}" type="button" onclick="openSessionStep('${step.module}','${step.tab}','${step.topic || ''}')"><span class="step-number">${index + 1}</span><span><strong>${escapeHtml(step.title)}</strong><small>${escapeHtml(step.detail)}</small></span><span class="topic-arrow">&rsaquo;</span></button></li>`).join('');
@@ -4145,18 +4171,18 @@ function openModule(id) {
 }
 function openExamCorrection() {
   openModule('exam');
-  renderExamCorrection();
+  setTab('correccion');
 }
 function setTab(tab) { closeProfile(); state.activeTab = tab; if (tab === 'contenidos') { state.activeTopic = null; state.activeLesson = null; } currentView = 'workspace'; renderWorkspace(); renderView(); saveState(); }
 function renderWorkspace() {
   const module = moduleById(state.activeModule);
-  if (module.id === 'exam' && ['examen','ejemplos'].includes(state.activeTab)) state.activeTab = 'aleatorio';
+  if (module.id === 'exam' && ['examen','ejemplos','elegir'].includes(state.activeTab)) state.activeTab = 'aleatorio';
   const topicMode = module.id !== 'exam' && module.id !== 'oficial' && state.activeTab === 'contenidos';
   $('workspace').classList.toggle('topic-workspace', topicMode);
   $('workspace').style.setProperty('--module-color', moduleColor(module.id));
-  $('moduleTitle').textContent = module.title;
-  $('moduleText').textContent = state.activeTopic ? module.desc : `${module.tasks.length} temas · ${module.desc}`;
-  const tabs = module.id === 'exam' ? ['aleatorio','elegir','historial'] : module.id === 'oficial' ? ['recursos'] : ['contenidos','test'];
+  $('moduleTitle').textContent = module.id === 'exam' ? 'Exámenes' : module.title;
+  $('moduleText').textContent = module.id === 'exam' ? 'Crea una prueba o corrige un examen que ya tengas.' : state.activeTopic ? module.desc : `${module.tasks.length} temas · ${module.desc}`;
+  const tabs = module.id === 'exam' ? ['aleatorio','correccion','historial'] : module.id === 'oficial' ? ['recursos'] : ['contenidos','test'];
   $('tabs').innerHTML = tabs.map(t => `<button class="${state.activeTab === t ? 'active' : ''}" onclick="setTab('${t}')">${t === 'contenidos' && state.activeTopic ? 'LISTA DE TEMAS' : tabLabel(t)}</button>`).join('');
   $('taskList').innerHTML = `<p class="result-label">Tu lista de pasos</p>` + module.tasks.map(t => `<article class="task-card ${state.done[t.id] ? 'done' : ''}">
     <h3>${t.title}</h3><p>${t.detail}</p>
@@ -4172,7 +4198,7 @@ function renderWorkspace() {
   renderTeacherPanel();
 }
 function tabLabel(tab) {
-  return {contenidos:'TEMAS', test:'TEST', recursos:'RECURSOS', aleatorio:'ALEATORIO', elegir:'ELEGIR EXAMEN', historial:'HISTORIAL'}[tab] || tab.toUpperCase();
+  return {contenidos:'TEMAS', test:'TEST', recursos:'RECURSOS', aleatorio:'CREAR EXAMEN', elegir:'CREAR EXAMEN', correccion:'CORREGIR', historial:'HISTORIAL'}[tab] || tab.toUpperCase();
 }
 function teacherContext() {
   const module = moduleById(state.activeModule);
@@ -4222,7 +4248,7 @@ function renderTeacherPanel() {
   const messages = state.teacherChats?.[ctx.key] || [];
   const suggestions = teacherSuggestions(ctx);
   panel.classList.toggle('collapsed', !state.teacherOpen);
-  panel.innerHTML = `<div class="teacher-head"><div class="teacher-id"><div class="teacher-avatar"><img src="assets/brand/teacher-ai.png" alt=""></div><div><strong>Profesor IA</strong><small>${escapeHtml(ctx.title)}</small></div></div><button class="teacher-toggle" type="button" onclick="toggleTeacherPanel()" title="${state.teacherOpen ? 'Ocultar' : 'Mostrar'}">${state.teacherOpen ? '-' : '+'}</button></div><div class="teacher-body"><div class="teacher-log" id="teacherLog"><div class="teacher-msg"><strong>Profesor:</strong> ${escapeHtml(teacherIntro(ctx))}</div>${messages.map(msg => `<div class="teacher-msg ${msg.role === 'user' ? 'user' : ''}"><strong>${msg.role === 'user' ? 'Tu' : 'Profesor'}:</strong> ${escapeHtml(msg.text).replace(/\n/g,'<br>')}</div>`).join('')}</div><div class="teacher-suggestions">${suggestions.map(item => `<button type="button" onclick='askTeacher(${JSON.stringify(item)})'>${escapeHtml(item)}</button>`).join('')}</div><div class="teacher-row"><textarea id="teacherInput" placeholder="Pregunta al Profesor IA"></textarea><button class="primary" type="button" onclick="askTeacher()">Enviar</button></div></div>`;
+  panel.innerHTML = `<button class="teacher-head" type="button" onclick="toggleTeacherPanel()" aria-expanded="${state.teacherOpen}" aria-controls="teacherBody" title="${state.teacherOpen ? 'Cerrar Profesor IA' : 'Abrir Profesor IA'}"><span class="teacher-id"><span class="teacher-avatar"><img src="assets/brand/teacher-ai.png" alt=""></span><span><strong>Profesor IA</strong><small>${escapeHtml(ctx.title)}</small></span></span><span class="teacher-toggle" aria-hidden="true">${state.teacherOpen ? '−' : '+'}</span></button><div class="teacher-body" id="teacherBody"><div class="teacher-log" id="teacherLog"><div class="teacher-msg"><strong>Profesor:</strong> ${escapeHtml(teacherIntro(ctx))}</div>${messages.map(msg => `<div class="teacher-msg ${msg.role === 'user' ? 'user' : ''}"><strong>${msg.role === 'user' ? 'Tu' : 'Profesor'}:</strong> ${escapeHtml(msg.text).replace(/\n/g,'<br>')}</div>`).join('')}</div><div class="teacher-suggestions">${suggestions.map(item => `<button type="button" onclick='askTeacher(${JSON.stringify(item)})'>${escapeHtml(item)}</button>`).join('')}</div><div class="teacher-row"><textarea id="teacherInput" placeholder="Pregunta al Profesor IA"></textarea><button class="primary" type="button" onclick="askTeacher()">Enviar</button></div></div>`;
   const log = $('teacherLog');
   if (log) log.scrollTop = log.scrollHeight;
 }
@@ -4569,13 +4595,48 @@ function loadExamExample(index) {
 }
 function selectExamMode(mode) { state.examMode = mode; renderExamBuilder(); saveState(); }
 function clearExamMode() { state.examMode = null; renderExamBuilder(); saveState(); }
-function renderRandomExam() {
-  $('viewer').innerHTML = `<div class="exam-hub"><div class="exam-ai-box"><strong>ELIGE TU TIEMPO</strong><div class="exam-action-grid"><button class="exam-action-card" type="button" onclick="createTimedRandomExam('quick')"><strong>15 MIN</strong><span>Una actividad corta de un ambito.</span></button><button class="exam-action-card" type="button" onclick="createTimedRandomExam('complete')"><strong>30 MIN</strong><span>Prueba media con varios ambitos.</span></button><button class="exam-action-card" type="button" onclick="createTimedRandomExam('official')"><strong>45 MIN</strong><span>Modelo parecido a prueba libre real.</span></button></div></div></div>`;
-}
+function renderRandomExam() { renderExamBuilder(); }
 function renderExamBuilder() {
+  if (state.examPracticeType === 'test') { renderExamTestChooser(); return; }
   const examples = examExampleBank().slice(0,6);
   const modelLink = OFFICIAL_LINKS.find(link => link.tags.includes('modelos') || link.tags.includes('examenes')) || OFFICIAL_LINKS[0];
-  $('viewer').innerHTML = `<div class="exam-hub"><div class="exam-ai-box"><strong>PERSONALIZADO</strong><div class="exam-options form-grid"><div><label>Ambito</label><select id="examType"><option>Examen completo de tres ambitos</option><option>Solo Comunicacion</option><option>Solo Social</option><option>Solo Cientifico-tecnologico</option></select></div><div><label>Nivel</label><select id="examLevel"><option>Nivel I</option><option>Nivel II</option><option>Prueba libre final</option></select></div><div><label>Formato</label><select id="examModeSelect"><option value="quick">Rapido</option><option value="complete">Completo</option><option value="official">Estructura real</option></select></div></div><div class="toolbar"><button class="primary" onclick="createExam()">Generar personalizado</button><button type="button" onclick="createAiExam()">Generar con IA</button><a href="${modelLink.url}" target="_blank" rel="noopener">Ver oficial</a></div></div><div class="exam-ai-box"><strong>PREDETERMINADOS</strong><div class="exam-preset-list">${examples.map((example,index) => `<button type="button" onclick="loadExamExample(${index})"><span><strong>${escapeHtml(example.title)}</strong><small>${escapeHtml(example.time)}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div></div></div>`;
+  $('viewer').innerHTML = `<div class="exam-hub"><div class="exam-ai-box"><strong>CREAR EXAMEN</strong><p>Elige una práctica y empieza. Después podrás responder o subir una foto para corregir.</p><div class="exam-action-grid"><button class="exam-action-card" type="button" onclick="createTimedRandomExam('quick')"><strong>20 min</strong><span>Práctica breve</span></button><button class="exam-action-card" type="button" onclick="createTimedRandomExam('complete')"><strong>75 min</strong><span>Varios ámbitos</span></button><button class="exam-action-card" type="button" onclick="createTimedRandomExam('official')"><strong>Estructura real</strong><span>Duración orientativa</span></button></div><details class="exam-extra"><summary>Personalizar o generar con IA</summary><div class="exam-options form-grid"><div><label>Ámbito</label><select id="examType"><option>Examen completo de tres ambitos</option><option>Solo Comunicacion</option><option>Solo Social</option><option>Solo Cientifico-tecnologico</option></select></div><div><label>Nivel</label><select id="examLevel"><option>Nivel I</option><option>Nivel II</option><option>Prueba libre final</option></select></div><div><label>Formato</label><select id="examModeSelect"><option value="quick">Rapido</option><option value="complete">Completo</option><option value="official">Estructura real</option></select></div></div><div class="toolbar"><button class="primary" onclick="createExam()">Crear personalizado</button><button type="button" onclick="createAiExam()">Generar con IA</button></div></details><details class="exam-extra"><summary>Ver modelos y recursos</summary><div class="exam-preset-list">${examples.map((example,index) => `<button type="button" onclick="loadExamExample(${index})"><span><strong>${escapeHtml(example.title)}</strong><small>${escapeHtml(example.time)}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div><a href="${modelLink.url}" target="_blank" rel="noopener">Consultar modelos oficiales ↗</a></details></div></div>`;
+  renderExamPracticeSwitch();
+}
+function setExamPracticeType(type) { state.examPracticeType = type; renderExamBuilder(); saveState(); }
+function renderExamPracticeSwitch() {
+  const switcher = document.createElement('div');
+  switcher.className = 'exam-practice-switch';
+  switcher.setAttribute('role','group');
+  switcher.setAttribute('aria-label','Tipo de práctica');
+  switcher.innerHTML = `<button type="button" class="${state.examPracticeType === 'test' ? '' : 'active'}" aria-pressed="${state.examPracticeType !== 'test'}" onclick="setExamPracticeType('development')">Desarrollo</button><button type="button" class="${state.examPracticeType === 'test' ? 'active' : ''}" aria-pressed="${state.examPracticeType === 'test'}" onclick="setExamPracticeType('test')">Tipo test</button>`;
+  $('viewer').prepend(switcher);
+}
+function renderExamTestChooser() {
+  const subjects = MODULES.filter(module => !['test','exam','oficial'].includes(module.id));
+  $('viewer').innerHTML = `<div class="exam-hub"><div class="exam-ai-box"><strong>TEST DE REPASO</strong><p>Preguntas autocorregibles para practicar conceptos. No sustituye un examen oficial.</p><label for="examTestSubject">Ámbito o asignatura</label><select id="examTestSubject"><option value="all">Todos los ámbitos</option>${subjects.map(module => `<option value="${module.id}">${escapeHtml(module.title)}</option>`).join('')}</select><div class="exam-action-grid"><button class="exam-action-card" type="button" onclick="startExamPracticeTest(6)"><strong>Test corto</strong><span>6 preguntas</span></button><button class="exam-action-card" type="button" onclick="startExamPracticeTest(12)"><strong>Test completo</strong><span>12 preguntas</span></button></div></div></div>`;
+  renderExamPracticeSwitch();
+}
+function startExamPracticeTest(count) {
+  const selected = $('examTestSubject').value;
+  const modules = selected === 'all' ? MODULES.filter(module => !['test','exam','oficial'].includes(module.id)) : [moduleById(selected)];
+  const pools = modules.map(module => [
+    ...module.tasks.flatMap((task,index) => topicQuestionSet(task,module,index % 2).slice(0,2)),
+    ...(QUESTIONS[module.testKey || 'comunicacion'] || QUESTIONS.comunicacion)
+  ]);
+  const questions = [];
+  const seen = new Set();
+  while (questions.length < count && pools.some(pool => pool.length)) {
+    for (const pool of pools) {
+      const question = pool.shift();
+      if (!question || seen.has(question[0])) continue;
+      seen.add(question[0]);
+      questions.push(question);
+      if (questions.length === count) break;
+    }
+  }
+  const testId = `exam:practice:${Date.now()}`;
+  $('viewer').innerHTML = `<div class="test-run-head"><button class="icon-button" type="button" onclick="renderExamBuilder()" aria-label="Volver a elegir tipo de examen" title="Volver">&larr;</button><div><strong>Test de repaso</strong><span>${questions.length} preguntas · elige una respuesta por pregunta</span></div></div><div class="test-status result-label" id="testResult">PENDIENTE</div>` + questions.map((q,index) => `<div class="question" data-test-id="${testId}" data-answer="${q[2]}" data-question="${escapeHtml(q[0])}" data-correct="${escapeHtml(q[1][q[2]])}"><strong>${index + 1}. ${escapeHtml(q[0])}</strong><div class="answers">${q[1].map((answer,option) => `<button type="button" onclick="answer(this,${option})">${escapeHtml(answer)}</button>`).join('')}</div></div>`).join('') + `<button class="primary" id="scoreTestButton" type="button" onclick="scoreTest('${testId}')">Corregir test</button>`;
 }
 function createExam() {
   const type = $('examType').value;
@@ -4584,9 +4645,9 @@ function createExam() {
   state.examMode = mode;
   const topics = selectExamTopics(type, mode);
   const topicBlock = examTopicsText(topics);
-  const body = mode === 'quick' ? `1. ${type}: realiza una actividad breve de comprension o problema.\n\n2. Explica con tus palabras una idea importante del ambito.\n\nTiempo recomendado: 20 minutos.` : mode === 'official' ? `AMBITO DE COMUNICACION\nTexto, comprension, lengua y expresion escrita.\n\nAMBITO SOCIAL\nFuente, conceptos y explicacion de causas y consecuencias.\n\nAMBITO CIENTIFICO-TECNOLOGICO\nProblemas con procedimiento, interpretacion de datos y concepto cientifico.\n\nEstructura y puntuacion orientativa de una prueba libre real. Responde por apartados y controla el tiempo.` : `1. Comunicacion: lee un texto, responde comprension, analiza lengua y redacta una respuesta ordenada.\n\n2. Social: interpreta una fuente, define conceptos y explica causas y consecuencias.\n\n3. Cientifico-tecnologico: resuelve problemas con procedimiento, interpreta datos y explica un concepto cientifico.\n\nPuntuacion orientativa por cada ambito.`;
+  const body = topics.map((item,index) => `${index + 1}. ${item.moduleTitle}: ${item.title}. Explica la idea con tus palabras, aplica un ejemplo y justifica la respuesta.`).join('\n\n') + `\n\nTiempo ${mode === 'quick' ? 'recomendado: 20 minutos' : mode === 'complete' ? 'recomendado: 75 minutos' : 'según convocatoria'}. Puntuación orientativa repartida entre las preguntas.`;
   state.currentExamTopics = topics;
-  state.currentExam = `${examModeInfo().title.toUpperCase()}: ${type}\nNivel: ${level}\n\nTEMAS QUE ENTRAN:\n${topicBlock}\n\n${body}\n\nCuando termines, entra en Corregir para recibir nota y mejora.`;
+  state.currentExam = `${examModeInfo().title.toUpperCase()}: ${type}\nNivel: ${level}\n\nTEMAS QUE ENTRAN:\n${topicBlock}\n\n${body}`;
   state.attempts.unshift({type:'examen creado', at:new Date().toISOString(), note:examModeInfo().title, topics});
   state.activeTab = 'correccion';
   renderWorkspace();
@@ -4604,11 +4665,14 @@ function createTimedRandomExam(mode) {
 async function createAiExam() {
   const target = $('viewer');
   const next = nextStudyItem();
-  const topics = selectExamTopics('Examen completo de tres ambitos', 'complete');
-  state.examMode = 'complete';
+  const type = $('examType')?.value || 'Examen completo de tres ambitos';
+  const level = $('examLevel')?.value || 'Prueba libre final';
+  const mode = $('examModeSelect')?.value || 'complete';
+  const topics = selectExamTopics(type, mode);
+  state.examMode = mode;
   state.currentExamTopics = topics;
   target.innerHTML = '<div class="output">Generando examen con IA...</div>';
-  const prompt = `Genera una prueba original de Graduado ESO adultos. Alumno adulto con poco tiempo. Temas prioritarios: ${examTopicsText(topics)}. Incluye ambito de comunicacion, ambito social y ambito cientifico-tecnologico, tiempo recomendado, puntuacion y criterios breves. Preguntas claras y originales. Siguiente tema pendiente: ${next ? `${next.module.title} - ${next.topic.title}` : 'repaso general'}.`;
+  const prompt = `Genera una prueba original de Graduado ESO adultos. Ambito elegido: ${type}. Nivel: ${level}. Formato: ${examModeInfo().title}. Alumno adulto con poco tiempo. Temas prioritarios: ${examTopicsText(topics)}. Incluye solo los ambitos elegidos, tiempo recomendado, puntuacion y criterios breves. Preguntas claras y originales. Siguiente tema pendiente: ${next ? `${next.module.title} - ${next.topic.title}` : 'repaso general'}.`;
   try {
     const data = await backend('/api/chat', {method:'POST', body:JSON.stringify({purpose:'study', messages:[{role:'user', content:prompt}], temperature:.35, max_tokens:2600})});
     state.currentExam = `EXAMEN CON IA\n\nTEMAS QUE ENTRAN:\n${examTopicsText(topics)}\n\n${data.content || ''}`;
@@ -4622,6 +4686,10 @@ async function createAiExam() {
 }
 function renderExamCorrection() {
   $('viewer').innerHTML = `<div class="exam-flow"><span class="done">1 Elegir examen</span><span class="active">2 Responder</span><span>3 Corregir</span></div>${examTopicsHtml()}<details class="exam-paper" open><summary>Enunciado</summary><textarea id="examPrompt">${escapeHtml(state.currentExam || '')}</textarea></details><div class="ocr-card"><div class="ocr-card-head"><div><div class="ocr-card-title">Subir imagen</div><p class="ocr-card-hint">Sube una foto clara del examen o de la respuesta escrita.</p></div></div><div class="ocr-row"><div><label>Imagen</label><input id="examOcrFile" type="file" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="previewExamOcrFile()"></div><div><label>Usar imagen como</label><select id="examOcrTarget"><option value="answer">Respuesta</option><option value="prompt">Enunciado</option></select></div><button class="primary" type="button" onclick="runExamOcr()">Leer imagen</button></div><div class="ocr-preview" id="examOcrPreview" hidden><img id="examOcrImage" alt="Vista previa del examen"><div><strong id="examOcrName">Imagen seleccionada</strong><p id="examOcrStatus">Lista para leer.</p></div></div><label>Texto de la imagen</label><textarea id="examOcrText" class="ocr-text" placeholder="Aqui aparecera el texto extraido de la imagen. Puedes revisarlo antes de insertarlo."></textarea><div class="toolbar"><button type="button" onclick="insertExamOcrText()">Insertar texto de la imagen</button><button type="button" onclick="clearExamOcr()">Quitar imagen</button></div></div><label>Tu respuesta</label><textarea id="studentAnswer" class="answer-area" placeholder="Escribe o pega tu respuesta"></textarea><div class="toolbar"><button class="primary" onclick="correctExamAi()">Corregir con IA</button><button onclick="saveOnlyAttempt()">Guardar</button></div><div class="output" id="correctionOutput">La correccion aparecera aqui.</div>`;
+  $('viewer').querySelector('.exam-flow').textContent = state.currentExam
+    ? 'Examen preparado. Responde debajo o sube una foto para recibir la corrección.'
+    : '¿Ya tienes un examen? Pega el enunciado o súbelo en una foto y añade tu respuesta.';
+  $('examPrompt').placeholder = 'Escribe o pega aquí el enunciado del examen.';
 }
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -4666,7 +4734,8 @@ function insertExamOcrText() {
   const target = $(targetId);
   if (!target) return;
   target.value = target.value.trim() ? `${target.value.trim()}\n\n${text}` : text;
-  if ($('examOcrStatus')) $('examOcrStatus').textContent = 'Texto insertado en la respuesta.';
+  $('examOcrText').value = '';
+  if ($('examOcrStatus')) $('examOcrStatus').textContent = `Texto insertado en ${targetId === 'examPrompt' ? 'el enunciado' : 'la respuesta'}.`;
 }
 function clearExamOcr() {
   if ($('examOcrFile')) $('examOcrFile').value = '';
@@ -4680,6 +4749,7 @@ async function correctExamAi() {
   const ocrTarget = $('examOcrTarget')?.value || 'answer';
   const examText = `${$('examPrompt').value}${ocrText && ocrTarget === 'prompt' ? `\n\nTEXTO EXTRAIDO DE LA IMAGEN DEL ENUNCIADO:\n${ocrText}` : ''}`;
   const answerText = `${$('studentAnswer').value}${ocrText && ocrTarget !== 'prompt' ? `\n\nTEXTO EXTRAIDO DE LA IMAGEN DE LA RESPUESTA:\n${ocrText}` : ''}`;
+  if (!examText.trim() || !answerText.trim()) { target.textContent = 'Añade el enunciado y tu respuesta, por texto o por foto, antes de corregir.'; return; }
   const prompt = `Corrige este examen de Graduado ESO adultos.\n\nEXAMEN:\n${examText}\n\nRESPUESTA DEL ALUMNO:\n${answerText}\n\nDevuelve: 1) nota sobre 10 por ambito y global, 2) tabla de criterios, 3) errores graves explicados sencillo, 4) correcciones concretas, 5) plan de recuperacion de 7 dias, 6) respuesta modelo breve. Corrige con claridad y sin humillar. Si hay texto extraido de una imagen, ten en cuenta que puede contener errores de lectura y corrige interpretando con prudencia.`;
   try {
     const data = await backend('/api/chat', {method:'POST', body:JSON.stringify({purpose:'study', messages:[{role:'user', content:prompt}], temperature:.25, max_tokens:3200})});
