@@ -20,6 +20,11 @@
     button,input,select,textarea { font:inherit; }
     button { cursor:pointer; }
     [hidden] { display:none !important; }
+    .auth-screen { min-height:100vh; display:grid; place-items:center; padding:24px; background:radial-gradient(circle at 20% 10%,#dbeafe 0,transparent 30%),linear-gradient(180deg,#f8fbff,#edf5ff); }
+    .auth-card { width:min(420px,100%); display:grid; gap:18px; border:1px solid var(--line); border-radius:14px; padding:24px; background:rgba(255,255,255,.96); box-shadow:0 24px 64px rgba(15,44,86,.16); }
+    .auth-brand { display:flex; align-items:center; gap:12px; }
+    .auth-form { display:grid; gap:12px; }
+    .auth-form button { width:100%; min-height:46px; }
     .page { width:100%; min-height:100vh; display:grid; grid-template-columns:268px minmax(0,1fr); }
     .shell,.card,.tabs {
       border:1px solid var(--line); border-radius:8px; background:var(--panel); box-shadow:var(--shadow);
@@ -112,7 +117,22 @@
   </style>
 </head>
 <body>
-<div class="page">
+<section class="auth-screen" id="authScreen">
+  <form class="auth-card" onsubmit="login(event)">
+    <div class="auth-brand">
+      <div class="mark">ED</div>
+      <div><h1>Educa Admin</h1><p class="muted">Acceso privado al panel de control.</p></div>
+    </div>
+    <div class="auth-form">
+      <div><label for="email">Admin</label><input id="email" type="email" autocomplete="username" placeholder="email del superadmin" required></div>
+      <div><label for="password">Clave</label><input id="password" type="password" autocomplete="current-password" placeholder="********" required></div>
+      <button class="primary">Entrar al dashboard</button>
+      <div class="status" id="loginStatus">Introduce tus datos</div>
+    </div>
+  </form>
+</section>
+
+<div class="page" id="adminPage" hidden>
   <aside class="sidebar">
     <div class="brand">
       <div class="mark">ED</div>
@@ -139,13 +159,7 @@
 
   <div class="workspace">
     <header class="shell">
-      <form class="login" onsubmit="login(event)">
-        <div><label for="email">Admin</label><input id="email" type="email" autocomplete="username" placeholder="email del superadmin"></div>
-        <div><label for="password">Clave</label><input id="password" type="password" autocomplete="current-password" placeholder="********"></div>
-        <button class="primary">Entrar</button>
-        <button type="button" onclick="logout()">Salir</button>
-        <div class="status" id="loginStatus">Sin sesion</div>
-      </form>
+      <button type="button" onclick="logout()">Salir del panel</button>
     </header>
 
     <main class="layout">
@@ -162,7 +176,7 @@
             <button class="primary" onclick="setView('eso')"><span class="action-icon">+</span>Crear usuario</button>
             <button onclick="setView('users')"><span class="action-icon">PW</span>Resetear contrasena</button>
             <button onclick="setView('ai')"><span class="action-icon">IA</span>Ver consumo IA</button>
-            <a class="btn" href="/apps" target="_blank" rel="noreferrer"><span class="action-icon">AP</span>Abrir selector</a>
+            <a class="btn" id="appSelectorLink" href="/apps" target="_blank" rel="noreferrer"><span class="action-icon">AP</span>Abrir selector</a>
           </div></div>
           <div class="side-card"><h3>Alertas</h3><div id="alerts"></div></div>
         </aside>
@@ -271,10 +285,10 @@ function creditsUsed(lic){return usage.filter(r=>r.organization_id===lic.organiz
 function table(headers,rows){if(!rows.length)return '<div class="empty">No hay datos todavia.</div>';return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.join('')}</tr>`).join('')}</tbody></table></div>`}
 async function copyText(value){try{await navigator.clipboard.writeText(value);toast('Copiado.')}catch(e){toast('No se pudo copiar automaticamente.')}}
 async function api(path,options={}){const headers={'Content-Type':'application/json',...(options.headers||{})};if(token)headers.Authorization=`Bearer ${token}`;const res=await fetch(path,{...options,headers});if(res.status===401||res.status===403){localStorage.removeItem('educa_admin_token');token='';setLoginState(false)}const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||data.error||`Error ${res.status}`);return data}
-function setLoginState(on){$('loginStatus').textContent=on?'Sesion activa':'Sin sesion';$('loginStatus').classList.toggle('on',!!on)}
+function setLoginState(on){$('authScreen').hidden=!!on;$('adminPage').hidden=!on;$('loginStatus').textContent=on?'Sesion activa':'Introduce tus datos';$('loginStatus').classList.toggle('on',!!on)}
 async function login(event){event.preventDefault();try{const res=await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier:$('email').value.trim(),password:$('password').value})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'No se pudo entrar.');token=data.access_token;localStorage.setItem('educa_admin_token',token);setLoginState(true);await loadAll();toast('Panel cargado.')}catch(e){toast(e.message)}}
 function logout(){token='';localStorage.removeItem('educa_admin_token');setLoginState(false);toast('Sesion cerrada.')}
-async function loadAll(){if(!token){setLoginState(false);renderEmpty();return}setLoginState(true);try{const [o,u,l,us,a]=await Promise.all([api('/admin/organizations'),api('/admin/users'),api('/admin/licenses'),api('/admin/usage').catch(()=>({usage:[]})),api('/admin/ai-settings').catch(()=>null)]);orgs=o;users=u;licenses=l;usage=us.usage||[];ai=a;renderAll()}catch(e){toast(e.message)}}
+async function loadAll(){if(!token){setLoginState(false);return}try{const [o,u,l,us,a]=await Promise.all([api('/admin/organizations'),api('/admin/users'),api('/admin/licenses'),api('/admin/usage').catch(()=>({usage:[]})),api('/admin/ai-settings').catch(()=>null)]);orgs=o;users=u;licenses=l;usage=us.usage||[];ai=a;setLoginState(true);renderAll()}catch(e){setLoginState(false);toast(e.message)}}
 function setView(next){view=next;if(PRODUCTS.some(p=>p.key===next))currentApp=next;document.body.dataset.app=PRODUCTS.some(p=>p.key===next)?next:'';document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.view===next));renderAll()}
 function renderAll(){$('view-overview').hidden=view!=='overview';$('view-app').hidden=!PRODUCTS.some(p=>p.key===view);$('view-users').hidden=view!=='users';$('view-ai').hidden=view!=='ai';renderOverview();if(!$('view-app').hidden)renderApp();if(!$('view-users').hidden)renderUsers();if(!$('view-ai').hidden)renderAI()}
 function metric(label,value,note){return `<div class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong><p class="muted">${esc(note)}</p></div>`}
@@ -295,7 +309,8 @@ async function saveSelectedUser(event){event.preventDefault();const user=users.f
 function renderAI(){$('aiStatusCards').innerHTML=metric('Groq',ai?.groq_configured?'Conectado':'Pendiente',ai?.groq_masked||'Pega una clave gsk_')+metric('OpenAI',ai?.openai_configured?'Conectado':'Opcional',ai?.openai_masked||'Solo si lo usas')+metric('Gemini',ai?.gemini_configured?'Conectado':'Opcional',ai?.gemini_masked||'Solo si lo usas');$('pointsProvider').value=ai?.points_provider||'groq';$('chatProvider').value=ai?.chat_provider||'groq';$('transcribeProvider').value=ai?.transcribe_provider||'groq';$('pointsModel').value=ai?.points_model||ai?.recommended_chat_model||'openai/gpt-oss-120b';$('chatModel').value=ai?.chat_model||ai?.recommended_chat_model||'openai/gpt-oss-120b';$('transcribeModel').value=ai?.transcribe_model||ai?.recommended_transcribe_model||'whisper-large-v3-turbo';$('topicStyleGuide').value=ai?.topic_style_guide||''}
 async function saveAI(event){event.preventDefault();try{const body={points_provider:$('pointsProvider').value,chat_provider:$('chatProvider').value,transcribe_provider:$('transcribeProvider').value,points_model:$('pointsModel').value.trim(),chat_model:$('chatModel').value.trim(),transcribe_model:$('transcribeModel').value.trim(),topic_style_guide:$('topicStyleGuide').value.trim()};if($('groqKey').value.trim())body.groq_api_key=$('groqKey').value.trim();if($('openaiKey').value.trim())body.openai_api_key=$('openaiKey').value.trim();if($('geminiKey').value.trim())body.gemini_api_key=$('geminiKey').value.trim();ai=await api('/admin/ai-settings',{method:'POST',body:JSON.stringify(body)});$('groqKey').value='';$('openaiKey').value='';$('geminiKey').value='';renderAI();toast('IA guardada.')}catch(e){toast(e.message)}}
 async function testAI(){try{const data=await api('/admin/ai-settings/test',{method:'POST',body:'{}'});toast(data.message||'IA conectada.')}catch(e){toast(e.message)}}
-setLoginState(!!token);renderEmpty();loadAll();
+function configureLocalLinks(){if(location.hostname==='127.0.0.1'&&location.port==='8770')$('appSelectorLink').href='http://127.0.0.1:8766/apps'}
+configureLocalLinks();setLoginState(false);if(token)loadAll();
 </script>
 </body>
 </html>
