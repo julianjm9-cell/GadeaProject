@@ -6,12 +6,12 @@
   <title>Admin | Educa Suite</title>
   <style>
     :root {
-      --ink:#172026; --muted:#667483; --paper:#f6f8fb; --panel:#fff; --line:#dce3ec;
-      --main:#2454a6; --main-2:#173d78; --soft:#edf4ff; --green:#0f766e; --red:#b74338;
-      --shadow:0 18px 45px rgba(23,32,38,.09);
+      --ink:#102033; --muted:#64748b; --paper:#f4f8ff; --panel:#fff; --line:#d9e5f4;
+      --main:#1258d6; --main-2:#0d3f9a; --soft:#edf5ff; --green:#0f8a61; --red:#c73d35; --amber:#b7791f;
+      --shadow:0 18px 46px rgba(15,44,86,.10);
     }
     * { box-sizing:border-box; }
-    body { margin:0; min-height:100vh; color:var(--ink); background:var(--paper); font-family:Inter,"Segoe UI",Arial,sans-serif; }
+    body { margin:0; min-height:100vh; color:var(--ink); background:linear-gradient(180deg,#f7fbff 0%,#eef5ff 100%); font-family:Inter,"Segoe UI",Arial,sans-serif; }
     body[data-app="universidad"] { --main:#6542a6; --main-2:#4b2f82; --soft:#f2ecff; }
     body[data-app="eso"] { --main:#b74338; --main-2:#8f3028; --soft:#fff0ec; }
     body[data-app="cambridge"] { --main:#0f766e; --main-2:#0a514c; --soft:#e8fbf7; }
@@ -20,49 +20,67 @@
     button,input,select,textarea { font:inherit; }
     button { cursor:pointer; }
     [hidden] { display:none !important; }
-    .page { width:min(1420px,100%); margin:0 auto; padding:18px; display:grid; gap:14px; }
+    .page { width:100%; min-height:100vh; display:grid; grid-template-columns:268px minmax(0,1fr); }
     .shell,.card,.tabs {
       border:1px solid var(--line); border-radius:8px; background:var(--panel); box-shadow:var(--shadow);
     }
-    .shell { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px; }
+    .workspace { min-width:0; display:grid; align-content:start; gap:18px; padding:20px 24px 32px; }
+    .shell { display:flex; align-items:center; justify-content:flex-end; gap:16px; padding:14px 16px; }
+    .sidebar { position:sticky; top:0; height:100vh; display:grid; grid-template-rows:auto 1fr; gap:18px; padding:24px 14px; border-right:1px solid var(--line); background:rgba(255,255,255,.92); box-shadow:8px 0 28px rgba(15,44,86,.05); }
     .brand { display:flex; align-items:center; gap:12px; min-width:0; }
-    .mark { width:42px; height:42px; display:grid; place-items:center; border-radius:8px; background:var(--main); color:#fff; font-weight:950; }
+    .mark { width:44px; height:44px; display:grid; place-items:center; border-radius:8px; background:var(--main); color:#fff; font-weight:950; box-shadow:0 10px 24px rgba(18,88,214,.22); }
     h1,h2,h3,p { margin:0; }
-    h1 { font-size:24px; line-height:1.1; }
-    h2 { font-size:22px; line-height:1.15; }
+    h1 { font-size:25px; line-height:1.1; }
+    h2 { font-size:24px; line-height:1.15; }
     h3 { font-size:16px; line-height:1.2; }
     .muted { color:var(--muted); font-size:13px; line-height:1.45; }
-    .login { display:grid; grid-template-columns:minmax(190px,1fr) minmax(170px,1fr) auto auto minmax(120px,auto); gap:8px; align-items:end; width:min(840px,100%); }
+    .login { display:grid; grid-template-columns:minmax(180px,1fr) minmax(160px,1fr) auto auto minmax(120px,auto); gap:8px; align-items:end; width:min(820px,100%); }
     label { display:block; margin:0 0 5px; color:var(--muted); font-size:12px; font-weight:850; }
     input,select,textarea { width:100%; min-height:40px; border:1px solid var(--line); border-radius:8px; padding:9px 10px; background:#fff; color:var(--ink); outline:none; }
     textarea { min-height:132px; resize:vertical; }
     input:focus,select:focus,textarea:focus { border-color:var(--main); box-shadow:0 0 0 3px color-mix(in srgb,var(--main) 14%,transparent); }
-    .btn,button { min-height:40px; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--line); border-radius:8px; padding:9px 12px; background:#fff; color:var(--ink); font-weight:850; white-space:nowrap; }
-    .btn:hover,button:hover { border-color:var(--main); color:var(--main); }
-    .primary { background:var(--main); border-color:var(--main); color:#fff; }
-    .primary:hover { background:var(--main-2); color:#fff; }
+    .btn,button { min-height:40px; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--line); border-radius:9px; padding:9px 12px; background:#fff; color:var(--ink); font-weight:850; white-space:nowrap; box-shadow:0 2px 5px rgba(15,44,86,.04); transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease, color .16s ease; }
+    .btn:hover,button:hover { border-color:color-mix(in srgb,var(--main) 42%,var(--line)); color:var(--main); transform:translateY(-1px); box-shadow:0 10px 22px rgba(15,44,86,.10); }
+    .primary { background:linear-gradient(135deg,var(--main),#2577ef); border-color:var(--main); color:#fff; box-shadow:0 12px 26px rgba(18,88,214,.22); }
+    .primary:hover { background:linear-gradient(135deg,var(--main-2),var(--main)); color:#fff; }
     .status { min-height:40px; display:grid; place-items:center; border:1px solid var(--line); border-radius:8px; padding:8px 10px; color:var(--muted); font-size:13px; font-weight:850; background:#fff; }
     .status.on { color:var(--green); background:#effaf6; border-color:#ccece1; }
-    .tabs { display:flex; gap:8px; overflow:auto; padding:8px; box-shadow:0 8px 22px rgba(23,32,38,.05); }
-    .tabs button { flex:0 0 auto; border-color:transparent; background:transparent; }
-    .tabs button.active { background:var(--soft); border-color:color-mix(in srgb,var(--main) 24%,var(--line)); color:var(--main); }
+    .tabs { display:grid; align-content:start; gap:7px; overflow:auto; padding:0; border:0; background:transparent; box-shadow:none; }
+    .tabs button { width:100%; justify-content:flex-start; border-color:transparent; background:transparent; color:#263d58; box-shadow:none; min-height:44px; }
+    .tabs button.active { background:var(--main); border-color:var(--main); color:#fff; box-shadow:0 10px 24px rgba(18,88,214,.20); }
+    .nav-icon, .action-icon { width:28px; height:28px; display:grid; place-items:center; flex:0 0 auto; border-radius:8px; background:#eef5ff; color:var(--main); font-size:13px; font-weight:950; }
+    .nav-icon img { width:100%; height:100%; display:block; object-fit:contain; border-radius:7px; }
+    .tabs button.active .nav-icon { background:rgba(255,255,255,.18); color:#fff; }
+    .tabs button.active .nav-icon img { filter:drop-shadow(0 2px 3px rgba(0,0,0,.08)); }
+    .nav-group { display:grid; gap:7px; }
+    .nav-label { padding:12px 10px 4px; color:#7b8ca2; font-size:11px; font-weight:950; letter-spacing:.08em; text-transform:uppercase; }
     .layout { display:grid; gap:14px; }
     .card { padding:16px; min-width:0; }
+    .screen-card { border-radius:10px; }
     .head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; }
     .grid { display:grid; gap:12px; }
     .grid.two { grid-template-columns:360px minmax(0,1fr); align-items:start; }
     .grid.three { grid-template-columns:repeat(3,minmax(0,1fr)); }
     .grid.four { grid-template-columns:repeat(4,minmax(0,1fr)); }
-    .metric { min-height:96px; display:grid; align-content:space-between; gap:8px; border:1px solid var(--line); border-radius:8px; padding:14px; background:linear-gradient(145deg,#fff,var(--soft)); }
+    .metric { min-height:112px; display:grid; grid-template-columns:auto minmax(0,1fr); align-content:center; align-items:center; gap:12px; border:1px solid var(--line); border-radius:10px; padding:16px; background:#fff; box-shadow:0 12px 28px rgba(15,44,86,.07); }
+    .metric::before { content:""; width:46px; height:46px; grid-row:1 / 4; border-radius:10px; background:linear-gradient(145deg,#eaf3ff,#dcecff); }
     .metric span { color:var(--muted); font-size:12px; font-weight:850; }
     .metric strong { font-size:28px; line-height:1; }
+    .metric p { grid-column:2; }
+    .dashboard-grid { display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:18px; margin-top:14px; align-items:start; }
+    .dashboard-main, .dashboard-side { display:grid; gap:14px; min-width:0; }
     .app-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
-    .app-card { display:grid; gap:12px; border:1px solid var(--line); border-radius:8px; padding:14px; background:#fff; }
+    .app-card { display:grid; gap:12px; border:1px solid var(--line); border-radius:12px; padding:14px; background:#fff; box-shadow:0 12px 28px rgba(15,44,86,.06); transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
+    .app-card:hover { transform:translateY(-2px); border-color:color-mix(in srgb,var(--main) 28%,var(--line)); box-shadow:0 18px 38px rgba(15,44,86,.11); }
     .app-card[data-app="universidad"] { background:linear-gradient(145deg,#fff,#f5efff); }
     .app-card[data-app="eso"] { background:linear-gradient(145deg,#fff,#fff1ed); }
     .app-card[data-app="cambridge"] { background:linear-gradient(145deg,#fff,#eafbf8); }
     .app-card[data-app="diplomator"] { background:linear-gradient(145deg,#fff,#edf4ff); }
     .app-card button { width:100%; }
+    .app-card-head { display:flex; align-items:center; gap:10px; min-width:0; }
+    .app-icon { width:48px; height:48px; display:grid; place-items:center; flex:0 0 auto; border-radius:12px; background:#fff; border:1px solid rgba(255,255,255,.7); box-shadow:0 10px 22px rgba(15,44,86,.10); }
+    .app-icon img { width:42px; height:42px; object-fit:contain; display:block; }
+    .app-card-head strong, .app-card-head p { display:block; min-width:0; }
     .mini-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
     .mini-stats span { border:1px solid color-mix(in srgb,var(--main) 16%,var(--line)); border-radius:8px; padding:8px; background:rgba(255,255,255,.78); color:var(--muted); font-size:12px; }
     .mini-stats strong { display:block; color:var(--ink); font-size:18px; }
@@ -79,50 +97,79 @@
     code { display:inline-block; max-width:240px; overflow:hidden; text-overflow:ellipsis; vertical-align:bottom; padding:2px 5px; border-radius:6px; background:#f5f7fb; border:1px solid var(--line); }
     .empty { border:1px dashed var(--line); border-radius:8px; padding:14px; color:var(--muted); background:#fbfcfd; font-size:13px; }
     .notice { border:1px solid #f0dfba; border-radius:8px; padding:12px; color:#7a520d; background:#fff8e8; font-size:13px; line-height:1.45; }
+    .quick-actions { display:grid; gap:8px; }
+    .quick-actions button, .quick-actions a { width:100%; justify-content:flex-start; min-height:46px; }
+    .quick-actions .primary .action-icon { background:rgba(255,255,255,.18); color:#fff; }
+    .side-card { padding:14px; border:1px solid var(--line); border-radius:10px; background:#fff; box-shadow:0 12px 28px rgba(15,44,86,.07); }
+    .side-card h3 { margin-bottom:10px; }
+    .credentials { display:grid; gap:8px; }
+    .credentials-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center; }
+    .credentials-row code { width:100%; max-width:none; }
     .toast { position:fixed; right:16px; bottom:16px; z-index:10; max-width:min(420px,calc(100vw - 32px)); padding:12px 14px; border-radius:8px; background:#172026; color:#fff; box-shadow:var(--shadow); opacity:0; transform:translateY(8px); pointer-events:none; transition:.18s ease; }
     .toast.show { opacity:1; transform:translateY(0); }
-    @media (max-width:1050px) { .shell{align-items:stretch;flex-direction:column}.login{width:100%;grid-template-columns:1fr 1fr auto auto}.grid.two,.grid.three,.grid.four,.app-strip{grid-template-columns:1fr 1fr} }
-    @media (max-width:680px) { .page{padding:10px}.login,.grid.two,.grid.three,.grid.four,.app-strip,.row{grid-template-columns:1fr}.head{flex-direction:column}h1{font-size:21px} }
+    @media (max-width:1180px) { .dashboard-grid{grid-template-columns:1fr}.dashboard-side{grid-template-columns:1fr 1fr}.shell{align-items:stretch;flex-direction:column}.login{width:100%;grid-template-columns:1fr 1fr auto auto}.grid.two,.grid.three,.grid.four,.app-strip{grid-template-columns:1fr 1fr} }
+    @media (max-width:820px) { .page{grid-template-columns:1fr}.sidebar{position:static;height:auto}.workspace{padding:12px}.tabs{grid-template-columns:1fr 1fr}.dashboard-side,.login,.grid.two,.grid.three,.grid.four,.app-strip,.row{grid-template-columns:1fr}.head{flex-direction:column}h1{font-size:21px} }
   </style>
 </head>
 <body>
 <div class="page">
-  <header class="shell">
+  <aside class="sidebar">
     <div class="brand">
       <div class="mark">ED</div>
-      <div><h1>Panel admin</h1><p class="muted">Usuarios, accesos, creditos e IA de Educa Suite.</p></div>
+      <div><h1>Educa Admin</h1><p class="muted">Panel de control</p></div>
     </div>
-    <form class="login" onsubmit="login(event)">
-      <div><label for="email">Admin</label><input id="email" type="email" autocomplete="username" placeholder="admin@email.com"></div>
-      <div><label for="password">Clave</label><input id="password" type="password" autocomplete="current-password" placeholder="********"></div>
-      <button class="primary">Entrar</button>
-      <button type="button" onclick="logout()">Salir</button>
-      <div class="status" id="loginStatus">Sin sesion</div>
-    </form>
-  </header>
+    <nav class="tabs" id="tabs">
+      <div class="nav-group">
+        <button class="active" data-view="overview" onclick="setView('overview')"><span class="nav-icon">IN</span>Inicio</button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Gestion</div>
+        <button data-view="users" onclick="setView('users')"><span class="nav-icon">US</span>Usuarios</button>
+        <button data-view="ai" onclick="setView('ai')"><span class="nav-icon">IA</span>IA / API</button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Apps</div>
+        <button data-view="universidad" onclick="setView('universidad')"><span class="nav-icon"><img src="assets/brand/u25-simple.png" alt=""></span>Universidad +25</button>
+        <button data-view="eso" onclick="setView('eso')"><span class="nav-icon"><img src="assets/brand/eso-simple.png" alt=""></span>ESO Adultos</button>
+        <button data-view="cambridge" onclick="setView('cambridge')"><span class="nav-icon"><img src="assets/brand/ingles-simple.png" alt=""></span>Titulo de ingles</button>
+        <button data-view="diplomator" onclick="setView('diplomator')"><span class="nav-icon"><img src="assets/brand/diplomator-simple.png" alt=""></span>Diplomator</button>
+      </div>
+    </nav>
+  </aside>
 
-  <nav class="tabs" id="tabs">
-    <button class="active" data-view="overview" onclick="setView('overview')">Resumen</button>
-    <button data-view="universidad" onclick="setView('universidad')">Universidad +25</button>
-    <button data-view="eso" onclick="setView('eso')">ESO Adultos</button>
-    <button data-view="cambridge" onclick="setView('cambridge')">Cambridge</button>
-    <button data-view="diplomator" onclick="setView('diplomator')">Diplomator</button>
-    <button data-view="users" onclick="setView('users')">Usuarios</button>
-    <button data-view="ai" onclick="setView('ai')">IA / API</button>
-  </nav>
+  <div class="workspace">
+    <header class="shell">
+      <form class="login" onsubmit="login(event)">
+        <div><label for="email">Admin</label><input id="email" type="email" autocomplete="username" placeholder="email del superadmin"></div>
+        <div><label for="password">Clave</label><input id="password" type="password" autocomplete="current-password" placeholder="********"></div>
+        <button class="primary">Entrar</button>
+        <button type="button" onclick="logout()">Salir</button>
+        <div class="status" id="loginStatus">Sin sesion</div>
+      </form>
+    </header>
 
-  <main class="layout">
-    <section id="view-overview" class="card">
+    <main class="layout">
+    <section id="view-overview" class="card screen-card">
       <div class="head"><div><h2>Resumen</h2><p class="muted">Lo importante de un vistazo: ventas activas, consumo y estado de IA.</p></div><button onclick="loadAll()">Actualizar</button></div>
       <div class="grid four" id="globalMetrics"></div>
-      <div class="app-strip" id="appCards" style="margin-top:12px"></div>
-      <div class="grid two" style="margin-top:12px">
-        <div><h3>Actividad reciente</h3><div id="recentUsage" style="margin-top:10px"></div></div>
-        <div><h3>Alertas utiles</h3><div id="alerts" style="margin-top:10px"></div></div>
+      <div class="dashboard-grid">
+        <div class="dashboard-main">
+          <div class="app-strip" id="appCards"></div>
+          <div class="side-card"><div class="head"><div><h3>Ultimos usuarios</h3><p class="muted">Alumnos, apps y estado para actuar rapido.</p></div><button onclick="setView('users')">Ver todos</button></div><div id="recentUsage"></div></div>
+        </div>
+        <aside class="dashboard-side">
+          <div class="side-card"><h3>Acciones rapidas</h3><div class="quick-actions">
+            <button class="primary" onclick="setView('eso')"><span class="action-icon">+</span>Crear usuario</button>
+            <button onclick="setView('users')"><span class="action-icon">PW</span>Resetear contrasena</button>
+            <button onclick="setView('ai')"><span class="action-icon">IA</span>Ver consumo IA</button>
+            <a class="btn" href="/apps" target="_blank" rel="noreferrer"><span class="action-icon">AP</span>Abrir selector</a>
+          </div></div>
+          <div class="side-card"><h3>Alertas</h3><div id="alerts"></div></div>
+        </aside>
       </div>
     </section>
 
-    <section id="view-app" class="card" hidden>
+    <section id="view-app" class="card screen-card" hidden>
       <div class="head">
         <div><h2 id="appTitle">App</h2><p class="muted" id="appSubtitle">Usuarios, licencias y consumo de esta app.</p></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" id="appPublicLink" target="_blank" rel="noreferrer">Ver landing</a><a class="btn primary" id="appPrivateLink" target="_blank" rel="noreferrer">Abrir app</a></div>
@@ -135,7 +182,7 @@
           <div class="form-grid" style="margin-top:12px">
             <div><label for="newEmail">Email</label><input id="newEmail" type="email" required placeholder="alumno@email.com"></div>
             <div><label for="newName">Nombre</label><input id="newName" placeholder="Nombre del alumno"></div>
-            <div><label for="newPassword">Contrasena inicial</label><input id="newPassword" minlength="8" required placeholder="minimo 8 caracteres"></div>
+            <div><label for="newPassword">Contrasena inicial</label><input id="newPassword" minlength="8" required placeholder="minimo 8 caracteres" autocomplete="new-password"></div>
             <div class="row"><div><label for="newLimit">Creditos</label><input id="newLimit" type="number" min="0" value="300"></div><div><label for="newDays">Dias</label><input id="newDays" type="number" min="1" value="365"></div></div>
             <button class="primary">Crear usuario y acceso</button>
           </div>
@@ -149,7 +196,7 @@
       </div>
     </section>
 
-    <section id="view-users" class="card" hidden>
+    <section id="view-users" class="card screen-card" hidden>
       <div class="head"><div><h2>Usuarios</h2><p class="muted">Busqueda, estado, creditos y accesos por app.</p></div><input id="userSearch" placeholder="Buscar usuario..." oninput="renderUsers()" style="max-width:320px"></div>
       <div class="grid two">
         <div id="usersTable"></div>
@@ -158,7 +205,7 @@
           <div class="form-grid" style="margin-top:12px">
             <div><label for="editEmail">Email</label><input id="editEmail"></div>
             <div><label for="editName">Nombre</label><input id="editName"></div>
-            <div><label for="editPassword">Nueva contrasena</label><input id="editPassword" minlength="8" placeholder="Opcional"></div>
+            <div><label for="editPassword">Nueva contrasena</label><input id="editPassword" minlength="8" placeholder="Opcional: solo si quieres resetearla" autocomplete="new-password"></div>
             <div class="row"><div><label for="editRole">Rol</label><select id="editRole"><option value="user">Usuario</option><option value="organization_admin">Admin cuenta</option><option value="superadmin">Superadmin</option></select></div><div><label for="editActive">Estado</label><select id="editActive"><option value="true">Activo</option><option value="false">Bloqueado</option></select></div></div>
             <div class="row"><div><label for="editLicense">Licencia</label><select id="editLicense"></select></div><div><label for="editLimit">Creditos licencia</label><input id="editLimit" type="number" min="0"></div></div>
             <div class="row"><div><label for="editLicStatus">Estado licencia</label><select id="editLicStatus"><option value="active">Activa</option><option value="suspended">Suspendida</option><option value="expired">Caducada</option></select></div><div><label for="editLicEnd">Caduca</label><input id="editLicEnd" type="date"></div></div>
@@ -168,7 +215,7 @@
       </div>
     </section>
 
-    <section id="view-ai" class="card" hidden>
+    <section id="view-ai" class="card screen-card" hidden>
       <div class="head"><div><h2>IA / API</h2><p class="muted">Configuracion simple. Groq es la opcion barata para empezar.</p></div><button onclick="testAI()">Probar IA</button></div>
       <div class="grid three" id="aiStatusCards"></div>
       <form class="grid two" style="margin-top:12px" onsubmit="saveAI(event)">
@@ -194,21 +241,23 @@
         <div class="card" style="box-shadow:none;grid-column:1/-1"><h3>Estilo de Diplomator</h3><p class="muted">Instruccion base para generar puntos de estudio con buen tono oral.</p><textarea id="topicStyleGuide"></textarea></div>
       </form>
     </section>
-  </main>
+    </main>
+  </div>
 </div>
 <div id="toast" class="toast"></div>
 <script>
 const PRODUCTS=[
-  {key:'universidad',code:'UNIVERSIDAD_ADULTOS',short:'U25',label:'Universidad +25',public:'/u25',app:'/universidad-adultos',org:'Educa Suite - Universidad +25'},
-  {key:'eso',code:'ESO_ADULTOS',short:'E25',label:'ESO Adultos',public:'/e25',app:'/eso-adultos',org:'Educa Suite - ESO Adultos'},
-  {key:'cambridge',code:'CAMBRIDGE',short:'CAM',label:'Cambridge',public:'/cambridge-info',app:'/cambridge',org:'Educa Suite - Cambridge'},
-  {key:'diplomator',code:'DIPLOMATOR',short:'DIP',label:'Diplomator',public:'/diplomator',app:'/app',org:'Educa Suite - Diplomator'}
+  {key:'universidad',code:'UNIVERSIDAD_ADULTOS',short:'U25',label:'Universidad +25',public:'/u25',app:'/universidad-adultos',org:'Educa Suite - Universidad +25',icon:'assets/brand/u25-simple.png'},
+  {key:'eso',code:'ESO_ADULTOS',short:'E25',label:'ESO Adultos',public:'/e25',app:'/eso-adultos',org:'Educa Suite - ESO Adultos',icon:'assets/brand/eso-simple.png'},
+  {key:'cambridge',code:'CAMBRIDGE',short:'CAM',label:'Titulo de ingles',public:'/cambridge-info',app:'/cambridge',org:'Educa Suite - Cambridge',icon:'assets/brand/ingles-simple.png'},
+  {key:'diplomator',code:'DIPLOMATOR',short:'DIP',label:'Diplomator',public:'/diplomator',app:'/app',org:'Educa Suite - Diplomator',icon:'assets/brand/diplomator-simple.png'}
 ];
 let token=localStorage.getItem('educa_admin_token')||'',view='overview',currentApp='universidad',selectedUserId='';
 let orgs=[],users=[],licenses=[],usage=[],ai=null;
 const $=id=>document.getElementById(id);
 function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3200)}
 function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function jsString(value){return JSON.stringify(String(value??''))}
 function date(value){return value?new Date(value).toLocaleDateString('es-ES'):'-'}
 function badge(value){const text=value===true?'Activo':value===false?'Bloqueado':value||'-';const ok=['active','Activo','true'].includes(String(value))||value===true;return `<span class="badge ${ok?'ok':'off'}">${esc(text)}</span>`}
 function productByKey(key=currentApp){return PRODUCTS.find(p=>p.key===key)||PRODUCTS[0]}
@@ -220,6 +269,7 @@ function appUsage(key=currentApp){const code=productByKey(key).code;return usage
 function appUsers(key=currentApp){const ids=new Set(appLicenses(key).map(l=>l.organization_id));return users.filter(u=>ids.has(u.organization_id))}
 function creditsUsed(lic){return usage.filter(r=>r.organization_id===lic.organization_id&&(r.product_code||'DIPLOMATOR')===(lic.product_code||'DIPLOMATOR')).length}
 function table(headers,rows){if(!rows.length)return '<div class="empty">No hay datos todavia.</div>';return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.join('')}</tr>`).join('')}</tbody></table></div>`}
+async function copyText(value){try{await navigator.clipboard.writeText(value);toast('Copiado.')}catch(e){toast('No se pudo copiar automaticamente.')}}
 async function api(path,options={}){const headers={'Content-Type':'application/json',...(options.headers||{})};if(token)headers.Authorization=`Bearer ${token}`;const res=await fetch(path,{...options,headers});if(res.status===401||res.status===403){localStorage.removeItem('educa_admin_token');token='';setLoginState(false)}const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||data.error||`Error ${res.status}`);return data}
 function setLoginState(on){$('loginStatus').textContent=on?'Sesion activa':'Sin sesion';$('loginStatus').classList.toggle('on',!!on)}
 async function login(event){event.preventDefault();try{const res=await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier:$('email').value.trim(),password:$('password').value})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'No se pudo entrar.');token=data.access_token;localStorage.setItem('educa_admin_token',token);setLoginState(true);await loadAll();toast('Panel cargado.')}catch(e){toast(e.message)}}
@@ -228,17 +278,20 @@ async function loadAll(){if(!token){setLoginState(false);renderEmpty();return}se
 function setView(next){view=next;if(PRODUCTS.some(p=>p.key===next))currentApp=next;document.body.dataset.app=PRODUCTS.some(p=>p.key===next)?next:'';document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.view===next));renderAll()}
 function renderAll(){$('view-overview').hidden=view!=='overview';$('view-app').hidden=!PRODUCTS.some(p=>p.key===view);$('view-users').hidden=view!=='users';$('view-ai').hidden=view!=='ai';renderOverview();if(!$('view-app').hidden)renderApp();if(!$('view-users').hidden)renderUsers();if(!$('view-ai').hidden)renderAI()}
 function metric(label,value,note){return `<div class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong><p class="muted">${esc(note)}</p></div>`}
-function renderEmpty(){$('globalMetrics').innerHTML=metric('Usuarios','-','Entra para cargar datos')+metric('Licencias','-','Accesos activos')+metric('Creditos','-','Consumo')+metric('IA','-','Proveedor');$('appCards').innerHTML='';$('recentUsage').innerHTML='<div class="empty">Inicia sesion como superadmin.</div>';$('alerts').innerHTML='<div class="empty">Sin datos cargados.</div>'}
-function renderOverview(){const activeLicenses=licenses.filter(l=>l.status==='active').length,activeUsers=users.filter(u=>u.is_active).length,tokens=usage.reduce((s,r)=>s+Number(r.input_tokens||0)+Number(r.output_tokens||0),0);const provider=ai?`${ai.chat_provider||ai.ai_provider||'-'} / ${ai.groq_configured||ai.openai_configured||ai.gemini_configured?'ok':'sin clave'}`:'-';$('globalMetrics').innerHTML=metric('Usuarios activos',activeUsers,`${users.length} usuarios totales`)+metric('Licencias activas',activeLicenses,`${licenses.length} licencias totales`)+metric('Creditos usados',usage.length,`${tokens.toLocaleString('es-ES')} tokens`)+metric('IA',provider,ai?.chat_model||'Configura el proveedor');$('appCards').innerHTML=PRODUCTS.map(p=>{const l=appLicenses(p.key),u=appUsers(p.key),use=appUsage(p.key);return `<article class="app-card" data-app="${p.key}"><div><strong>${esc(p.label)}</strong><p class="muted">${esc(p.public)} -> login -> app</p></div><div class="mini-stats"><span><strong>${u.length}</strong>usuarios</span><span><strong>${l.filter(x=>x.status==='active').length}</strong>activos</span><span><strong>${use.length}</strong>creditos</span></div><button onclick="setView('${p.key}')">Gestionar</button></article>`}).join('');$('recentUsage').innerHTML=table(['Usuario','App','Modelo','Fecha'],usage.slice(0,8).map(r=>[`<td>${esc(userEmail(r.user_id))}</td>`,`<td>${esc(productByCode(r.product_code).label)}</td>`,`<td>${esc(r.model||'-')}</td>`,`<td>${date(r.created_at)}</td>`]));const alerts=[];if(!ai||!(ai.groq_configured||ai.openai_configured||ai.gemini_configured))alerts.push('Falta una clave IA valida.');for(const p of PRODUCTS){if(!appLicenses(p.key).some(l=>l.status==='active'))alerts.push(`${p.label}: sin licencias activas.`)}$('alerts').innerHTML=alerts.length?alerts.map(x=>`<div class="notice" style="margin-bottom:8px">${esc(x)}</div>`).join(''):'<div class="empty">Todo lo basico esta en orden.</div>'}
-function renderApp(){const p=productByKey(),lics=appLicenses(),use=appUsage(),list=appUsers(),tokens=use.reduce((s,r)=>s+Number(r.input_tokens||0)+Number(r.output_tokens||0),0);$('appTitle').textContent=p.label;$('appSubtitle').textContent='Gestion simple: usuarios, claves de acceso y creditos de esta app.';$('appPublicLink').href=p.public;$('appPrivateLink').href=p.app;$('appMetrics').innerHTML=metric('Usuarios',list.length,`${list.filter(u=>u.is_active).length} activos`)+metric('Licencias',lics.length,`${lics.filter(l=>l.status==='active').length} activas`)+metric('Creditos usados',use.length,`${tokens.toLocaleString('es-ES')} tokens`)+metric('IA',ai?(ai.points_provider||ai.chat_provider||'-'):'-',ai?.points_model||'Sin cargar');$('appUsersTable').innerHTML=table(['Usuario','Estado','Creditos','Accion'],list.map(u=>{const lic=lics.find(l=>l.organization_id===u.organization_id);const used=lic?creditsUsed(lic):0,limit=lic?.usage_limit||0;return [`<td><strong>${esc(u.full_name||u.email)}</strong><br><span class="muted">${esc(u.email)}</span></td>`,`<td>${badge(u.is_active)}</td>`,`<td>${used}${limit?` / ${limit}`:' / sin limite'}</td>`,`<td><button onclick="openUser('${u.id}')">Editar</button></td>`]}));$('appLicensesTable').innerHTML=table(['Cuenta','Estado','Creditos','Caduca','Clave'],lics.map(l=>[`<td>${esc(orgName(l.organization_id))}</td>`,`<td>${badge(l.status)}</td>`,`<td>${creditsUsed(l)} / ${l.usage_limit||'sin limite'}</td>`,`<td>${date(l.expires_at)}</td>`,`<td><code title="${esc(l.legacy_key||'')}">${esc(l.legacy_key||'')}</code></td>`]));$('appUsageTable').innerHTML=table(['Usuario','Modelo','Tokens','Fecha'],use.slice(0,12).map(r=>[`<td>${esc(userEmail(r.user_id))}</td>`,`<td>${esc(r.model||'-')}</td>`,`<td>${Number(r.input_tokens||0)+Number(r.output_tokens||0)}</td>`,`<td>${date(r.created_at)}</td>`]))}
+function userLicenses(user){return licenses.filter(l=>l.organization_id===user.organization_id)}
+function userCredits(user){return usage.filter(r=>r.organization_id===user.organization_id).length}
+function userLastActivity(user){const rows=usage.filter(r=>r.user_id===user.id||r.organization_id===user.organization_id).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));return rows[0]?.created_at||''}
+function renderEmpty(){$('globalMetrics').innerHTML=metric('Usuarios','-','Entra para cargar datos')+metric('Licencias','-','Accesos activos')+metric('Creditos IA','-','Consumo')+metric('Alertas','-','Estado');$('appCards').innerHTML='';$('recentUsage').innerHTML='<div class="empty">Inicia sesion como superadmin.</div>';$('alerts').innerHTML='<div class="empty">Sin datos cargados.</div>'}
+function renderOverview(){const activeLicenses=licenses.filter(l=>l.status==='active').length,activeUsers=users.filter(u=>u.is_active).length,tokens=usage.reduce((s,r)=>s+Number(r.input_tokens||0)+Number(r.output_tokens||0),0);const now=Date.now(),soon=licenses.filter(l=>l.status==='active'&&l.expires_at&&new Date(l.expires_at).getTime()-now<1000*60*60*24*14).length;const providerReady=ai&&(ai.groq_configured||ai.openai_configured||ai.gemini_configured);$('globalMetrics').innerHTML=metric('Usuarios activos',activeUsers,`${users.length} usuarios totales`)+metric('Licencias activas',activeLicenses,`${soon} por vencer pronto`)+metric('Creditos IA',usage.length,`${tokens.toLocaleString('es-ES')} tokens`)+metric('IA',providerReady?'Conectada':'Pendiente',ai?.chat_model||'Configura proveedor');$('appCards').innerHTML=PRODUCTS.map(p=>{const l=appLicenses(p.key),u=appUsers(p.key),use=appUsage(p.key);return `<article class="app-card" data-app="${p.key}"><div class="app-card-head"><span class="app-icon"><img src="${esc(p.icon)}" alt=""></span><div><strong>${esc(p.label)}</strong><p class="muted">Landing, login y escritorio virtual</p></div></div><div class="mini-stats"><span><strong>${u.length}</strong>usuarios</span><span><strong>${l.filter(x=>x.status==='active').length}</strong>activos</span><span><strong>${use.length}</strong>creditos</span></div><button onclick="setView('${p.key}')"><span class="action-icon">${esc(p.short)}</span>Gestionar</button></article>`}).join('');const latest=[...users].sort((a,b)=>new Date(userLastActivity(b)||0)-new Date(userLastActivity(a)||0)).slice(0,8);$('recentUsage').innerHTML=table(['Alumno','Apps','Estado','Creditos','Ultima sesion','Accion'],latest.map(u=>{const lics=userLicenses(u);return [`<td><strong>${esc(u.full_name||u.email)}</strong><br><span class="muted">${esc(u.email)}</span></td>`,`<td>${lics.map(l=>`<span class="badge">${esc(productByCode(l.product_code).short)}</span>`).join(' ')||'-'}</td>`,`<td>${badge(u.is_active)}</td>`,`<td>${userCredits(u)}</td>`,`<td>${date(userLastActivity(u))}</td>`,`<td><button onclick="openUser('${u.id}')">Ver</button></td>`]}));const inactive=users.filter(u=>u.is_active&&!userLastActivity(u)).length;const alerts=[];if(!providerReady)alerts.push('IA sin clave valida configurada.');if(soon)alerts.push(`${soon} licencia${soon===1?'':'s'} vence${soon===1?'':'n'} en menos de 14 dias.`);if(inactive)alerts.push(`${inactive} usuario${inactive===1?'':'s'} activo${inactive===1?'':'s'} sin actividad registrada.`);for(const p of PRODUCTS){if(!appLicenses(p.key).some(l=>l.status==='active'))alerts.push(`${p.label}: sin licencias activas.`)}$('alerts').innerHTML=alerts.length?alerts.map(x=>`<div class="notice" style="margin-bottom:8px">${esc(x)}</div>`).join(''):'<div class="empty">Todo lo basico esta en orden.</div>'}
+function renderApp(){const p=productByKey(),lics=appLicenses(),use=appUsage(),list=appUsers(),tokens=use.reduce((s,r)=>s+Number(r.input_tokens||0)+Number(r.output_tokens||0),0);$('appTitle').textContent=p.label;$('appSubtitle').textContent='Gestion simple: usuarios, contrasenas reseteables, licencias y creditos de esta app.';$('appPublicLink').href=p.public;$('appPrivateLink').href=p.app;$('appMetrics').innerHTML=metric('Usuarios',list.length,`${list.filter(u=>u.is_active).length} activos`)+metric('Licencias',lics.length,`${lics.filter(l=>l.status==='active').length} activas`)+metric('Creditos usados',use.length,`${tokens.toLocaleString('es-ES')} tokens`)+metric('IA',ai?(ai.points_provider||ai.chat_provider||'-'):'-',ai?.points_model||'Sin cargar');$('appUsersTable').innerHTML=table(['Usuario','Accesos','Estado','Creditos','Accion'],list.map(u=>{const userLics=licenses.filter(l=>l.organization_id===u.organization_id);const lic=lics.find(l=>l.organization_id===u.organization_id);const used=lic?creditsUsed(lic):0,limit=lic?.usage_limit||0;return [`<td><strong>${esc(u.full_name||u.email)}</strong><br><span class="muted">${esc(u.email)}</span></td>`,`<td>${userLics.map(l=>`<span class="badge">${esc(productByCode(l.product_code).short)}</span>`).join(' ')||'-'}</td>`,`<td>${badge(u.is_active)}</td>`,`<td>${used}${limit?` / ${limit}`:' / sin limite'}</td>`,`<td><button onclick="openUser('${u.id}')">Editar</button></td>`]}));$('appLicensesTable').innerHTML=table(['Cuenta','Estado','Creditos','Caduca','Clave'],lics.map(l=>[`<td>${esc(orgName(l.organization_id))}</td>`,`<td>${badge(l.status)}</td>`,`<td>${creditsUsed(l)} / ${l.usage_limit||'sin limite'}</td>`,`<td>${date(l.expires_at)}</td>`,`<td><code title="${esc(l.legacy_key||'')}">${esc(l.legacy_key||'')}</code></td>`]));$('appUsageTable').innerHTML=table(['Usuario','Modelo','Tokens','Fecha'],use.slice(0,12).map(r=>[`<td>${esc(userEmail(r.user_id))}</td>`,`<td>${esc(r.model||'-')}</td>`,`<td>${Number(r.input_tokens||0)+Number(r.output_tokens||0)}</td>`,`<td>${date(r.created_at)}</td>`]))}
 async function ensureProductOrg(product){let org=orgs.find(o=>o.name===product.org);if(org)return org;org=await api('/admin/organizations',{method:'POST',body:JSON.stringify({name:product.org,status:'active'})});orgs.unshift(org);return org}
 function makeLicenseKey(product){return `${product.short}-${Math.random().toString(36).slice(2,10).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`}
-async function createAppUser(event){event.preventDefault();const product=productByKey(),email=$('newEmail').value.trim().toLowerCase(),password=$('newPassword').value;try{const org=await ensureProductOrg(product);let user=users.find(u=>u.email.toLowerCase()===email);if(!user){user=await api('/admin/users',{method:'POST',body:JSON.stringify({organization_id:org.id,email,password,full_name:$('newName').value.trim(),role:'user',is_active:true})})}else{user=await api(`/admin/users/${user.id}`,{method:'PATCH',body:JSON.stringify({password,full_name:$('newName').value.trim()||user.full_name,is_active:true})})}users=users.filter(u=>u.id!==user.id);users.unshift(user);const exists=licenses.some(l=>l.organization_id===user.organization_id&&(l.product_code||'DIPLOMATOR')===product.code&&l.status==='active');if(!exists){const now=new Date(),end=new Date(now.getTime()+Number($('newDays').value||365)*86400000);const lic=await api('/admin/licenses',{method:'POST',body:JSON.stringify({organization_id:user.organization_id,product_code:product.code,legacy_key:makeLicenseKey(product),starts_at:now.toISOString(),expires_at:end.toISOString(),status:'active',usage_limit:Number($('newLimit').value||0)})});licenses.unshift(lic)}$('createdBox').hidden=false;$('createdBox').innerHTML=`<strong>Usuario listo:</strong> ${esc(email)}<br><strong>Clave inicial:</strong> <code>${esc(password)}</code>`;event.target.reset();$('newLimit').value=300;$('newDays').value=365;renderApp();toast('Usuario y acceso listos.')}catch(e){toast(e.message)}}
+async function createAppUser(event){event.preventDefault();const product=productByKey(),email=$('newEmail').value.trim().toLowerCase(),password=$('newPassword').value;try{const org=await ensureProductOrg(product);let user=users.find(u=>u.email.toLowerCase()===email);if(!user){user=await api('/admin/users',{method:'POST',body:JSON.stringify({organization_id:org.id,email,password,full_name:$('newName').value.trim(),role:'user',is_active:true})})}else{user=await api(`/admin/users/${user.id}`,{method:'PATCH',body:JSON.stringify({password,full_name:$('newName').value.trim()||user.full_name,is_active:true})})}users=users.filter(u=>u.id!==user.id);users.unshift(user);const exists=licenses.some(l=>l.organization_id===user.organization_id&&(l.product_code||'DIPLOMATOR')===product.code&&l.status==='active');if(!exists){const now=new Date(),end=new Date(now.getTime()+Number($('newDays').value||365)*86400000);const lic=await api('/admin/licenses',{method:'POST',body:JSON.stringify({organization_id:user.organization_id,product_code:product.code,legacy_key:makeLicenseKey(product),starts_at:now.toISOString(),expires_at:end.toISOString(),status:'active',usage_limit:Number($('newLimit').value||0)})});licenses.unshift(lic)}$('createdBox').hidden=false;$('createdBox').innerHTML=`<div class="credentials"><strong>Usuario listo. Guarda estos datos ahora:</strong><div class="credentials-row"><code>${esc(email)}</code><button type="button" onclick='copyText(${jsString(email)})'>Copiar email</button></div><div class="credentials-row"><code>${esc(password)}</code><button type="button" onclick='copyText(${jsString(password)})'>Copiar clave</button></div><span>La clave se guarda cifrada. Despues no se puede consultar, solo resetear.</span></div>`;event.target.reset();$('newLimit').value=300;$('newDays').value=365;renderApp();toast('Usuario y acceso listos.')}catch(e){toast(e.message)}}
 function renderUsers(){const query=($('userSearch')?.value||'').trim().toLowerCase();const filtered=users.filter(u=>!query||`${u.email} ${u.full_name}`.toLowerCase().includes(query));$('usersTable').innerHTML=table(['Usuario','Apps','Estado','Accion'],filtered.map(u=>{const lics=licenses.filter(l=>l.organization_id===u.organization_id);return [`<td><strong>${esc(u.full_name||u.email)}</strong><br><span class="muted">${esc(u.email)}</span></td>`,`<td>${lics.map(l=>`<span class="badge">${esc(productByCode(l.product_code).short)}</span>`).join(' ')||'-'}</td>`,`<td>${badge(u.is_active)}</td>`,`<td><button onclick="openUser('${u.id}')">Editar</button></td>`]}));renderUserDetail()}
 function openUser(id){selectedUserId=id;setView('users')}
-function renderUserDetail(){const user=users.find(u=>u.id===selectedUserId)||users[0];if(!user)return;selectedUserId=user.id;$('userDetailTitle').textContent=user.full_name||user.email;$('userDetailMeta').textContent=`${user.email} · ${orgName(user.organization_id)}`;$('editEmail').value=user.email||'';$('editName').value=user.full_name||'';$('editPassword').value='';$('editRole').value=user.role||'user';$('editActive').value=String(!!user.is_active);const lics=licenses.filter(l=>l.organization_id===user.organization_id);$('editLicense').innerHTML=lics.map(l=>`<option value="${l.id}">${esc(productByCode(l.product_code).label)}</option>`).join('');const lic=lics[0];if(lic){$('editLicense').value=lic.id;fillLicenseEdit(lic)}$('editLicense').onchange=()=>fillLicenseEdit(licenses.find(l=>l.id===$('editLicense').value))}
+function renderUserDetail(){const user=users.find(u=>u.id===selectedUserId)||users[0];if(!user)return;selectedUserId=user.id;$('userDetailTitle').textContent=user.full_name||user.email;$('userDetailMeta').textContent=`${user.email} · ${orgName(user.organization_id)} · los datos de progreso se guardan por usuario y app`;$('editEmail').value=user.email||'';$('editName').value=user.full_name||'';$('editPassword').value='';$('editRole').value=user.role||'user';$('editActive').value=String(!!user.is_active);const lics=licenses.filter(l=>l.organization_id===user.organization_id);$('editLicense').innerHTML=lics.map(l=>`<option value="${l.id}">${esc(productByCode(l.product_code).label)}</option>`).join('');const lic=lics[0];if(lic){$('editLicense').value=lic.id;fillLicenseEdit(lic)}else{fillLicenseEdit(null)}$('editLicense').onchange=()=>fillLicenseEdit(licenses.find(l=>l.id===$('editLicense').value))}
 function fillLicenseEdit(lic){$('editLimit').value=lic?Number(lic.usage_limit||0):0;$('editLicStatus').value=lic?.status||'active';$('editLicEnd').value=lic?.expires_at?new Date(lic.expires_at).toISOString().slice(0,10):''}
-async function saveSelectedUser(event){event.preventDefault();const user=users.find(u=>u.id===selectedUserId);if(!user)return toast('Selecciona un usuario.');try{const body={email:$('editEmail').value.trim(),full_name:$('editName').value.trim(),role:$('editRole').value,is_active:$('editActive').value==='true'};if($('editPassword').value)body.password=$('editPassword').value;const updated=await api(`/admin/users/${user.id}`,{method:'PATCH',body:JSON.stringify(body)});users=users.map(u=>u.id===updated.id?updated:u);const lic=licenses.find(l=>l.id===$('editLicense').value);if(lic){const patched=await api(`/admin/licenses/${lic.id}`,{method:'PATCH',body:JSON.stringify({usage_limit:Number($('editLimit').value||0),status:$('editLicStatus').value,expires_at:new Date($('editLicEnd').value).toISOString()})});licenses=licenses.map(l=>l.id===patched.id?patched:l)}renderUsers();toast('Usuario guardado.')}catch(e){toast(e.message)}}
+async function saveSelectedUser(event){event.preventDefault();const user=users.find(u=>u.id===selectedUserId);if(!user)return toast('Selecciona un usuario.');try{const body={email:$('editEmail').value.trim(),full_name:$('editName').value.trim(),role:$('editRole').value,is_active:$('editActive').value==='true'};if($('editPassword').value)body.password=$('editPassword').value;const updated=await api(`/admin/users/${user.id}`,{method:'PATCH',body:JSON.stringify(body)});users=users.map(u=>u.id===updated.id?updated:u);const lic=licenses.find(l=>l.id===$('editLicense').value);if(lic){const licenseBody={usage_limit:Number($('editLimit').value||0),status:$('editLicStatus').value};if($('editLicEnd').value)licenseBody.expires_at=new Date($('editLicEnd').value).toISOString();const patched=await api(`/admin/licenses/${lic.id}`,{method:'PATCH',body:JSON.stringify(licenseBody)});licenses=licenses.map(l=>l.id===patched.id?patched:l)}renderUsers();toast($('editPassword').value?'Usuario guardado y contrasena reseteada.':'Usuario guardado.')}catch(e){toast(e.message)}}
 function renderAI(){$('aiStatusCards').innerHTML=metric('Groq',ai?.groq_configured?'Conectado':'Pendiente',ai?.groq_masked||'Pega una clave gsk_')+metric('OpenAI',ai?.openai_configured?'Conectado':'Opcional',ai?.openai_masked||'Solo si lo usas')+metric('Gemini',ai?.gemini_configured?'Conectado':'Opcional',ai?.gemini_masked||'Solo si lo usas');$('pointsProvider').value=ai?.points_provider||'groq';$('chatProvider').value=ai?.chat_provider||'groq';$('transcribeProvider').value=ai?.transcribe_provider||'groq';$('pointsModel').value=ai?.points_model||ai?.recommended_chat_model||'openai/gpt-oss-120b';$('chatModel').value=ai?.chat_model||ai?.recommended_chat_model||'openai/gpt-oss-120b';$('transcribeModel').value=ai?.transcribe_model||ai?.recommended_transcribe_model||'whisper-large-v3-turbo';$('topicStyleGuide').value=ai?.topic_style_guide||''}
 async function saveAI(event){event.preventDefault();try{const body={points_provider:$('pointsProvider').value,chat_provider:$('chatProvider').value,transcribe_provider:$('transcribeProvider').value,points_model:$('pointsModel').value.trim(),chat_model:$('chatModel').value.trim(),transcribe_model:$('transcribeModel').value.trim(),topic_style_guide:$('topicStyleGuide').value.trim()};if($('groqKey').value.trim())body.groq_api_key=$('groqKey').value.trim();if($('openaiKey').value.trim())body.openai_api_key=$('openaiKey').value.trim();if($('geminiKey').value.trim())body.gemini_api_key=$('geminiKey').value.trim();ai=await api('/admin/ai-settings',{method:'POST',body:JSON.stringify(body)});$('groqKey').value='';$('openaiKey').value='';$('geminiKey').value='';renderAI();toast('IA guardada.')}catch(e){toast(e.message)}}
 async function testAI(){try{const data=await api('/admin/ai-settings/test',{method:'POST',body:'{}'});toast(data.message||'IA conectada.')}catch(e){toast(e.message)}}

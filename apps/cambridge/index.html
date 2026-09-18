@@ -2803,7 +2803,7 @@ async function correctWritingPractice() {
   try {
     const feedback = await groqChat([
       { role: 'system', content: 'You are a demanding Cambridge English writing examiner for B2 First, C1 Advanced and C2 Proficiency. Respond in Spanish. Quote improved English phrases only when useful. Do not use markdown headings with ### or **.' },
-      { role: 'user', content: `Nivel: ${data.level}\nTipo de tarea: ${data.taskType}\nEnunciado:\n${data.prompt}\n\nRespuesta del alumno:\n${data.answer}\n\nDevuelve exactamente este formato:\n\nVALORACIÓN CAMBRIDGE\n- Nivel aproximado y puntuación orientativa sobre 20.\n\nCUMPLIMIENTO DE TAREA\n- Qué cumple y qué falta.\n\nORGANIZACIÓN Y COHESIÓN\n- 3 mejoras concretas.\n\nGRAMÁTICA Y VOCABULARIO\n- Errores prioritarios con corrección.\n\nVERSIÓN MEJORADA\nReescribe 1 o 2 fragmentos importantes en inglés.\n\nPLAN DE MEJORA\n- 3 acciones para la próxima redacción.` }
+      { role: 'user', content: `Nivel: ${data.level}\nTipo de tarea: ${data.taskType}\nEnunciado:\n${data.prompt}\n\nRespuesta del alumno:\n${data.answer}\n\nDevuelve exactamente este formato:\n\nVALORACIÓN CAMBRIDGE\n- Nivel aproximado y puntuación orientativa sobre 20.\n\nCUMPLIMIENTO DE TAREA\n- Qué cumple y qué falta.\n\nORGANIZACIÓN Y COHESIÓN\n- 3 mejoras concretas.\n\nERRORES MARCADOS\n- Lista los errores importantes así: Original: "..." / Mejor: "..." / Motivo: ...\n\nGRAMÁTICA Y VOCABULARIO\n- Errores prioritarios con corrección y alternativas naturales en inglés.\n\nVERSIÓN MEJORADA\nReescribe 1 o 2 fragmentos importantes en inglés.\n\nPLAN DE MEJORA\n- 3 acciones para la próxima redacción.` }
     ], { max_tokens: 1900, temperature: 0.25 });
     state.writingPractice.feedback = feedback;
     document.getElementById('writingFeedback').textContent = feedback;
@@ -3003,11 +3003,11 @@ ${profile ? `Student profile: ${profile}` : ''}
 
 Topic: "${topic}"
 
-This is a Cambridge English exam preparation tool. Generate everything in ${langName}, with Spanish translations only inside vocabulary definitions.
+This is a Cambridge English exam preparation tool. Generate the study notes in ${langName}, with Spanish only inside short vocabulary definitions. The notes must be useful as real class notes: exam task, objective, structure, useful language, common mistakes clearly marked and one corrected mini-example when relevant.
 
 Generate exactly ${n} key study points. Each point must include:
 - "title": a precise exam-focused title in ${langName}, max 9 words, not generic.
-- "text": written ENTIRELY IN ${langName.toUpperCase()} at the appropriate Cambridge level, 5-7 full sentences. It must sound natural, accurate and exam-ready: clear enough to reproduce orally or adapt in writing. Include structure, useful phrases, grammar range, examples, register advice and common pitfalls where relevant. Avoid vague filler, memorised-sounding templates and Spanish-influenced phrasing.
+- "text": written ENTIRELY IN ${langName.toUpperCase()} at the appropriate Cambridge level, 6-8 full sentences. It must sound natural, accurate and exam-ready: clear enough to reproduce orally or adapt in writing. Include structure, useful phrases, grammar range, examples, register advice and common pitfalls where relevant. Mark mistakes clearly with labels like "Common mistake:" and "Better:" inside the English text. Avoid vague filler, memorised-sounding templates and Spanish-influenced phrasing.
 - "datedInfo": exactly 3 exam tips, model phrases, grammar notes or task-specific examples directly useful for Cambridge preparation. Each item must have "date" and "text"; use "Tip", "Phrase" or "Exam" as the date label when there is no real date.
 
 For each point, generate exactly ${nv} advanced ${langName} vocabulary words/expressions directly related to that point and suitable for Cambridge exams. For each: the word in ${langName} and a SHORT Spanish translation (max 8 words).

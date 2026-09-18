@@ -566,8 +566,11 @@
       background:#fbf9ff;
     }
     .question { padding:12px; box-shadow:none; display:grid; gap:8px; }
-    .question.correct { border-color:#b8dfca; }
-    .question.wrong { border-color:#efb6ae; }
+    .question.correct { border-color:#83c89f; background:#f2fbf6; }
+    .question.wrong { border-color:#e28d84; background:#fff4f2; }
+    .question-feedback { display:flex; align-items:center; gap:8px; margin-top:4px; font-size:12px; font-weight:950; }
+    .question-feedback.ok { color:#176b46; }
+    .question-feedback.ko { color:#a5332c; }
     .answers { display:grid; gap:7px; }
     .answers button { text-align:left; min-height:36px; }
     .answers button.selected { background:#17202a; border-color:#17202a; color:#fff; }
@@ -1032,7 +1035,11 @@
     .topic-parent { display:block; margin-bottom:5px; color:var(--primary); font-size:12px; font-weight:900; }
     button:disabled { cursor:default; opacity:.72; transform:none; box-shadow:none; }
     .answers button.answer-correct { border-color:#23855f; background:#1f8a5b; color:#fff; font-weight:900; }
+    .answers button.answer-correct::before { content:'✓ '; font-weight:950; }
     .answers button.answer-wrong { border-color:#c94b43; background:#c94b43; color:#fff; font-weight:900; }
+    .answers button.answer-wrong::before { content:'✕ '; font-weight:950; }
+    .test-status.done-ok { color:#176b46; background:#f2fbf6; border-color:#b8dfca; }
+    .test-status.done-ko { color:#a5332c; background:#fff4f2; border-color:#efb6ae; }
     .exam-mode-grid { width:min(740px,100%); margin:18px auto 0; gap:12px; }
     .exam-mode {
       min-height:138px;
@@ -3678,13 +3685,16 @@ function scoreTest(testId='') {
   qs.forEach(q => {
     const selected = Number(q.dataset.selected);
     const correct = Number(q.dataset.answer);
-    q.classList.add(selected === correct ? 'correct' : 'wrong');
+    const isCorrect = selected === correct;
+    q.classList.add(isCorrect ? 'correct' : 'wrong');
+    q.querySelector('.question-feedback')?.remove();
     q.querySelectorAll('.answers button').forEach((button,index) => {
       button.classList.remove('selected');
       if (index === correct) button.classList.add('answer-correct');
       else if (index === selected) button.classList.add('answer-wrong');
       button.disabled = true;
     });
+    q.insertAdjacentHTML('beforeend', `<div class="question-feedback ${isCorrect ? 'ok' : 'ko'}">${isCorrect ? '✓ Acierto' : `✕ Fallo · respuesta correcta: ${escapeHtml(q.dataset.correct || '')}`}</div>`);
   });
   const module = moduleById(state.activeModule);
   qs.filter(q => q.dataset.selected !== q.dataset.answer).forEach(q => {
@@ -3698,6 +3708,7 @@ function scoreTest(testId='') {
   recordStudyActivity();
   state.attempts.unshift({type:'test', at:new Date().toISOString(), note:`${ok}/${qs.length} (${pct}%)`});
   $('testResult').textContent = `RESULTADO: ${ok}/${qs.length} (${pct}%) - ${ok === qs.length ? 'LISTO PARA AVANZAR' : 'FALLOS GUARDADOS PARA REPASAR'}`;
+  $('testResult').classList.add(ok === qs.length ? 'done-ok' : 'done-ko');
   if ($('scoreTestButton')) { $('scoreTestButton').disabled = true; $('scoreTestButton').textContent = 'Test corregido'; }
   renderShell();
   renderStudyCockpit();
