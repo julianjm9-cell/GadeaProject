@@ -717,6 +717,16 @@
     .topic-group-head { display:flex; justify-content:space-between; gap:12px; align-items:end; margin-bottom:10px; }
     .topic-group-head p { margin:0; }
     .subject-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
+    .curriculum-scope { scroll-margin-top:110px; padding:18px 0; border-bottom:1px solid var(--line); }
+    .curriculum-scope:first-child { padding-top:8px; }
+    .curriculum-scope:last-child { border-bottom:0; }
+    .curriculum-scope-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:12px; }
+    .curriculum-scope-title { display:flex; align-items:flex-start; gap:11px; }
+    .curriculum-scope-icon { width:42px; height:42px; display:grid; place-items:center; flex:0 0 auto; border-radius:8px; background:var(--scope-soft); color:var(--scope-color); font-size:18px; font-weight:850; }
+    .curriculum-scope-head h3 { margin:0; font-size:17px; }
+    .curriculum-scope-head p { margin:4px 0 0; color:var(--muted); font-size:12px; line-height:1.45; }
+    .curriculum-scope-score { flex:0 0 auto; padding:6px 9px; border-radius:6px; background:var(--scope-soft); color:var(--scope-color); font-size:11px; font-weight:850; }
+    .curriculum-scope .subject-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
     .topic-tools { margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
     .topic-tools summary { cursor:pointer; color:var(--primary); font-weight:900; }
     .topic-tools .subject-grid { margin-top:10px; }
@@ -810,6 +820,30 @@
     .theory-card { display:grid; gap:8px; padding:14px; border:1px solid var(--line); border-radius:8px; background:#fff; }
     .theory-card strong { color:var(--ink); font-size:13px; }
     .theory-card p { margin:0; color:var(--ink); line-height:1.55; }
+    .model-unit-meta { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:12px; }
+    .model-badge { display:inline-flex; align-items:center; min-height:28px; padding:6px 9px; border-radius:999px; background:#eaf9f3; color:#087a5c; font-size:11px; font-weight:950; text-transform:uppercase; }
+    .model-unit-meta small { color:var(--muted); font-size:11px; font-weight:750; }
+    .model-objective { margin-bottom:12px; padding:13px 14px; border-left:4px solid var(--primary); background:var(--soft); color:var(--ink); line-height:1.5; }
+    .model-objective strong { display:block; margin-bottom:4px; font-size:12px; text-transform:uppercase; color:var(--primary); }
+    .model-learning-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:12px; }
+    .model-learning-block { padding:14px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .model-learning-block h3 { margin:0 0 8px; font-size:14px; }
+    .model-learning-block p { margin:0; color:var(--ink); line-height:1.55; white-space:pre-line; }
+    .model-learning-block ol, .model-learning-block ul { margin:8px 0 0; padding-left:20px; color:var(--ink); line-height:1.55; }
+    .model-learning-block.example { border-color:#b9d3ff; background:#f7faff; }
+    .model-learning-block.practice { border-color:#e7d1a7; background:#fffbf2; }
+    .model-learning-block.evidence { border-color:#addbc9; background:#f3fbf7; }
+    .model-evidence-form { display:grid; gap:9px; margin-top:10px; }
+    .model-evidence-form textarea { min-height:120px; resize:vertical; background:#fff; }
+    .model-checks { display:grid; gap:7px; }
+    .model-checks label { display:flex; align-items:flex-start; gap:8px; color:var(--ink); font-size:12px; line-height:1.35; cursor:pointer; }
+    .model-checks input { width:17px; height:17px; margin-top:1px; accent-color:var(--green); }
+    .model-evidence-status { min-height:20px; color:var(--muted); font-size:12px; font-weight:850; }
+    .model-evidence-status.ready { color:var(--green); }
+    .model-solution { margin-top:10px; border-top:1px solid rgba(37,99,235,.15); padding-top:9px; }
+    .model-solution summary { color:var(--primary); font-weight:900; cursor:pointer; }
+    .model-solution p { margin-top:8px; }
+    @media(max-width:700px) { .model-learning-grid { grid-template-columns:1fr; } }
     .ai-notes-card { margin-top:14px; padding:14px; display:grid; gap:10px; border:1px solid var(--line); border-radius:8px; background:linear-gradient(180deg,#fff,#fbfcfd); }
     .ai-notes-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
     .ai-notes-head strong { color:var(--primary); font-size:13px; text-transform:uppercase; }
@@ -846,6 +880,21 @@
     .exam-action-card:hover { border-color:var(--primary); box-shadow:0 14px 28px color-mix(in srgb,var(--primary) 13%,transparent); }
     .exam-action-card strong { color:var(--primary); font-size:16px; }
     .exam-action-card span { color:var(--muted); font-size:12px; font-weight:850; line-height:1.3; }
+    .official-sim-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .official-sim-card { min-height:220px; display:grid; grid-template-rows:auto auto 1fr auto; gap:10px; padding:16px; border:1px solid color-mix(in srgb,var(--scope-color) 35%,var(--line)); border-radius:8px; background:linear-gradient(180deg,var(--scope-soft),#fff 58%); text-align:left; }
+    .official-sim-card h3 { margin:0; font-size:17px; }
+    .official-sim-card p { margin:0; color:var(--muted); font-size:12px; line-height:1.45; }
+    .official-sim-meta { display:flex; flex-wrap:wrap; gap:6px; }
+    .official-sim-meta span { padding:5px 7px; border-radius:999px; background:#fff; color:var(--scope-color); font-size:10px; font-weight:950; }
+    .official-sim-sections { display:grid; gap:5px; }
+    .official-sim-sections span { display:flex; justify-content:space-between; gap:8px; font-size:11px; line-height:1.3; }
+    .official-sim-sections b { color:var(--scope-color); white-space:nowrap; }
+    .official-rubric { display:grid; gap:7px; margin-bottom:14px; padding:14px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .official-rubric-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .official-rubric-head strong { color:var(--ink); }
+    .official-rubric-head span { color:var(--primary); font-weight:950; }
+    .official-rubric-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; padding-top:7px; border-top:1px solid var(--line); font-size:12px; }
+    @media(max-width:820px) { .official-sim-grid { grid-template-columns:1fr; } }
     .exam-preset-list { display:grid; gap:8px; }
     .exam-preset-list button { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:52px; text-align:left; }
     .exam-ai-box { display:grid; gap:10px; padding:14px; border:1px solid var(--line); border-radius:8px; background:#fff; }
@@ -892,6 +941,20 @@
     .teacher-suggestions button { min-height:32px; padding:7px 9px; border-radius:999px; font-size:11px; }
     .teacher-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:end; }
     .teacher-row textarea { min-height:52px; resize:vertical; font-size:13px; }
+    .teacher-rich { color:var(--ink); line-height:1.5; }
+    .teacher-rich h3 { margin:10px 0 4px; font-size:14px; }
+    .teacher-rich p { margin:0 0 7px; }
+    .teacher-rich .study-bullet { position:relative; padding-left:14px; margin:3px 0; }
+    .teacher-rich .study-bullet::before { content:'•'; position:absolute; left:2px; color:var(--primary); }
+    .teacher-rich table { width:100%; margin:8px 0; border-collapse:collapse; font-size:12px; }
+    .teacher-rich th, .teacher-rich td { padding:6px; border:1px solid var(--line); text-align:left; vertical-align:top; }
+    .teacher-rich th { background:var(--soft); }
+    .teacher-expand { margin-top:6px; padding:5px 7px; min-height:28px; border-radius:6px; font-size:10px; }
+    .teacher-reading-modal { position:fixed; inset:0; z-index:90; display:grid; place-items:center; padding:20px; background:rgba(15,23,42,.58); }
+    .teacher-reading-modal[hidden] { display:none; }
+    .teacher-reading-dialog { width:min(820px,100%); max-height:min(760px,calc(100vh - 40px)); display:grid; grid-template-rows:auto minmax(0,1fr); overflow:hidden; border-radius:10px; background:#fff; box-shadow:0 30px 90px rgba(15,23,42,.28); }
+    .teacher-reading-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid var(--line); }
+    .teacher-reading-content { overflow:auto; padding:18px; }
     .ocr-row { display:grid; grid-template-columns:minmax(180px,1fr) minmax(150px,220px) auto; gap:8px; align-items:end; }
     .ocr-preview { display:grid; grid-template-columns:90px minmax(0,1fr); gap:10px; align-items:center; padding:10px; border:1px dashed var(--line); border-radius:8px; background:#fff; }
     .ocr-preview[hidden] { display:none; }
@@ -2747,7 +2810,7 @@
       box-shadow:none;
     }
     .home-card .home-link:hover { background:var(--soft); }
-    .home-subjects { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:16px; }
+    .home-subjects { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:16px; }
     .home-subjects button {
       min-height:58px;
       padding:8px 4px;
@@ -2760,10 +2823,9 @@
       box-shadow:none;
       font-size:12px;
     }
-    .home-subjects button:nth-child(1) { background:#fff0f0; color:#9f3d43; }
-    .home-subjects button:nth-child(2) { background:#ecf4ff; color:#1454af; }
+    .home-subjects button:nth-child(1) { background:#ecf4ff; color:#1454af; }
+    .home-subjects button:nth-child(2) { background:#fff5e8; color:#9f5f16; }
     .home-subjects button:nth-child(3) { background:#eaf9f3; color:#087a5c; }
-    .home-subjects button:nth-child(4) { background:#f1eeff; color:#6346b5; }
     .home-subjects span { display:block; font-size:17px; line-height:1; }
     .home-exam-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:18px; }
     .home-exam-actions button { flex:1 1 170px; min-height:42px; }
@@ -2814,7 +2876,9 @@
       #sessionChooser .duration-options { gap:6px; }
       #sessionChooser .duration-options button { min-height:76px; padding:8px 4px; }
       #sessionChooser .duration-options strong { font-size:16px; }
-      .home-subjects { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .home-subjects { grid-template-columns:1fr; }
+      .curriculum-scope-head { flex-direction:column; }
+      .curriculum-scope .subject-grid { grid-template-columns:1fr; }
       .home-card { padding:16px; }
     }
     #progressView {
@@ -2893,7 +2957,7 @@
     .progress-subject-bar { height:8px; overflow:hidden; border-radius:10px; background:#e2eaf5; }
     .progress-subject-bar span { display:block; height:100%; background:var(--subject-color); border-radius:10px; }
     .progress-subject-row > strong { min-width:38px; color:var(--ink); text-align:right; font-size:12px; }
-    .progress-action-band { min-height:86px; display:flex; align-items:center; gap:15px; padding:15px 20px; border:1px solid #c8eade; border-radius:8px; background:#eafaf4; }
+    .progress-action-band { min-height:86px; display:flex; align-items:center; gap:15px; padding:15px 210px 15px 20px; border:1px solid #c8eade; border-radius:8px; background:#eafaf4; }
     .progress-action-icon { width:48px; height:48px; background:#d0f4e6; color:var(--green); font-size:33px; }
     #progressNext { flex:1; min-width:0; margin:0; padding:0; border:0; background:transparent; }
     #progressNext strong { display:block; color:var(--ink); font-size:13px; }
@@ -2914,7 +2978,7 @@
       .progress-milestones strong { font-size:11px; }
       .progress-milestones small { font-size:10px; }
       .progress-detail-panel { padding:16px; }
-      .progress-action-band { flex-wrap:wrap; }
+      .progress-action-band { flex-wrap:wrap; padding-right:82px; }
       #progressContinue { width:100%; }
     }
     @media (max-width:430px) {
@@ -2934,7 +2998,7 @@
     .teacher-panel.collapsed .teacher-id > span:not(.teacher-avatar) { display:block; }
     .teacher-panel.collapsed .teacher-avatar { width:44px; height:44px; flex:0 0 44px; border-radius:8px; }
     .teacher-panel.collapsed .teacher-toggle { position:static; width:20px; min-width:20px; height:20px; padding:0; border:0; background:transparent; }
-    .app { width:min(1440px,100%); padding-inline:clamp(16px,3vw,48px); }
+    .app { width:min(1440px,100%); padding-inline:clamp(16px,3vw,48px); padding-bottom:110px; }
     #sessionChooser .desk-hero p { width:100%; max-width:none; margin-inline:0; justify-self:start; }
     .home-icon { font-family:'Segoe UI Emoji','Segoe UI Symbol',sans-serif; font-size:25px; }
     .exam-practice-switch { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; width:min(480px,100%); margin:0 auto 16px; padding:4px; border:1px solid var(--line); border-radius:8px; background:#eef5ff; }
@@ -2946,7 +3010,15 @@
     .exam-extra .exam-preset-list { margin:10px 0; }
     .exam-extra .toolbar { margin-top:12px; }
     .exam-flow { display:block; padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:var(--soft); color:var(--ink); font-size:13px; font-weight:700; }
-    @media(max-width:600px) { .teacher-panel.collapsed { right:12px; bottom:12px; } }
+    @media(max-width:600px) {
+      .app { padding-bottom:90px; }
+      .teacher-panel.collapsed { right:12px; bottom:12px; width:62px; border-radius:12px; }
+      .teacher-panel.collapsed .teacher-head { min-height:60px; padding:8px; }
+      .teacher-panel.collapsed .teacher-id { gap:0; }
+      .teacher-panel.collapsed .teacher-id > span:not(.teacher-avatar) { display:none; }
+      .teacher-panel.collapsed .teacher-avatar { width:44px; height:44px; flex-basis:44px; }
+      .teacher-panel.collapsed .teacher-toggle { display:none; }
+    }
   </style>
 </head>
 <body>
@@ -3024,10 +3096,9 @@
         <section class="home-card">
           <div class="home-card-head"><span class="home-icon green" aria-hidden="true">📚</span><div><h3>Biblioteca de materias</h3><p>Temas, ejercicios y recursos para estudiar a tu ritmo.</p></div><button class="home-link" type="button" onclick="openLibrary()">Ver biblioteca →</button></div>
           <div class="home-subjects">
-            <button type="button" onclick="openModule('lengua')"><span aria-hidden="true">Aa</span>Lengua</button>
-            <button type="button" onclick="openModule('matematicas')"><span aria-hidden="true">x²</span>Matemáticas</button>
-            <button type="button" onclick="openModule('ciencias')"><span aria-hidden="true">⚗</span>Ciencias</button>
-            <button type="button" onclick="openModule('ingles')"><span aria-hidden="true">EN</span>Inglés</button>
+            <button type="button" onclick="openScopeLibrary('comunicacion')"><span aria-hidden="true">Aa</span>Comunicación</button>
+            <button type="button" onclick="openScopeLibrary('social')"><span aria-hidden="true">⌖</span>Social</button>
+            <button type="button" onclick="openScopeLibrary('cientifico')"><span aria-hidden="true">Σ</span>Científico-tecnológico</button>
           </div>
         </section>
         <section class="home-card">
@@ -3102,6 +3173,7 @@
 
   <footer></footer>
   <aside class="teacher-panel" id="teacherPanel"></aside>
+  <div class="teacher-reading-modal" id="teacherReadingModal" hidden onclick="if(event.target===this) closeTeacherAnswer()"><section class="teacher-reading-dialog" role="dialog" aria-modal="true" aria-labelledby="teacherReadingTitle"><div class="teacher-reading-head"><strong id="teacherReadingTitle">Respuesta del Profesor IA</strong><button class="icon-button" type="button" onclick="closeTeacherAnswer()" aria-label="Cerrar" title="Cerrar">&times;</button></div><div class="teacher-reading-content teacher-rich" id="teacherReadingContent"></div></section></div>
 </div>
 
 <script>
@@ -3340,6 +3412,99 @@ const VERIFIED_TOPIC_THEORY = {
   'cie-materia':'Una sustancia pura tiene composicion fija; una mezcla combina sustancias y puede separarse por procedimientos fisicos. En una reaccion quimica los atomos se reorganizan y se conserva su numero, por eso las ecuaciones deben ajustarse.',
   'cie-fisica':'La velocidad relaciona desplazamiento y tiempo; la aceleracion mide el cambio de velocidad. Una fuerza puede cambiar el movimiento o deformar un cuerpo. La energia se transfiere y transforma, pero se conserva en un sistema aislado.'
 };
+const MODEL_UNITS = {
+  'len-comprension': {
+    label:'Unidad modelo revisada',
+    source:'Currículo ESPA Andalucía 2025 · estructura de prueba 2026',
+    reviewed:'20/09/2026',
+    lessons:[
+      {
+        objective:'Distinguir el tema de la idea principal y redactar ambos con precisión.',
+        theory:'El tema indica de qué trata el texto y suele expresarse con pocas palabras: por ejemplo, el horario de una biblioteca. La idea principal dice qué afirma el texto sobre ese tema y se redacta como una oración completa. Para encontrarla, observa el título, las palabras que se repiten y la información que aparece al comienzo y al final.',
+        exampleTitle:'Ejemplo resuelto: una biblioteca en época de exámenes',
+        exampleText:'La biblioteca municipal ampliará su horario del 6 de mayo al 21 de junio. De lunes a viernes permanecerá abierta hasta las 23:00 y los sábados cerrará a las 20:00. Además, habilitará una sala silenciosa con 36 puestos. Para utilizarla será necesario reservar plaza el mismo día mediante la web municipal.',
+        exampleSteps:['Tema: la ampliación de servicios de la biblioteca durante los exámenes.','Idea principal: la biblioteca amplía su horario y abre una sala reservable para facilitar el estudio.','Prueba textual: aparecen nuevas horas, fechas y condiciones de uso.'],
+        practice:'Un centro de adultos abrirá un aula de informática los martes y jueves de 18:00 a 20:00. El acceso será gratuito, pero habrá que inscribirse porque solo hay veinte equipos. Escribe el tema y la idea principal.',
+        solution:'Tema: el aula de informática del centro de adultos. Idea principal: el centro ofrece gratuitamente un aula de informática dos tardes por semana con inscripción previa por plazas limitadas.',
+        errors:['Responder solo “informática”: es demasiado amplio.','Copiar la primera frase sin comprobar si resume todo el texto.','Añadir una opinión personal que el texto no contiene.'],
+        evidence:'Escribe un tema breve y una idea principal completa para el texto de práctica.',
+        pass:'Superada si diferencia tema e idea principal y recoge horario, gratuidad e inscripción sin inventar datos.'
+      },
+      {
+        objective:'Localizar información explícita y responder con datos exactos del texto.',
+        theory:'La información explícita aparece escrita de forma directa. Antes de responder, subraya en la pregunta las palabras clave y busca en el texto nombres, cifras, fechas, lugares o condiciones equivalentes. Después reformula la respuesta y conserva el dato preciso. No uses conocimientos externos.',
+        exampleTitle:'Ejemplo resuelto: aviso de transporte',
+        exampleText:'Desde el 1 de octubre, la línea 7 adelantará su primera salida a las 6:15. Los domingos mantendrá el horario actual y comenzará a las 8:00. Durante las obras de la avenida Central, las paradas Mercado y Teatro se trasladarán a la calle Norte.',
+        exampleSteps:['Pregunta: ¿qué cambia los domingos?','Búsqueda: el texto dice que mantendrán el horario actual.','Respuesta: los domingos no cambia el horario; la primera salida seguirá siendo a las 8:00.'],
+        practice:'Según el aviso, ¿desde qué fecha cambia la primera salida entre semana y qué dos paradas se trasladan?',
+        solution:'El cambio empieza el 1 de octubre y se trasladan las paradas Mercado y Teatro. Ambos datos aparecen literalmente en el aviso.',
+        errors:['Contestar “en octubre” y perder la fecha exacta.','Confundir la calle de destino con el nombre de una parada.','Responder de memoria sin volver al texto.'],
+        evidence:'Responde las dos partes de la pregunta y señala las palabras del texto que prueban cada dato.',
+        pass:'Superada si localiza la fecha y las dos paradas sin omisiones ni información añadida.'
+      },
+      {
+        objective:'Realizar una inferencia razonable y justificarla combinando dos pistas del texto.',
+        theory:'Una inferencia no aparece escrita literalmente, pero se deduce al relacionar pistas. Una respuesta sólida sigue esta fórmula: conclusión + pista 1 + pista 2 + explicación. La inferencia debe ser necesaria o muy probable; si el texto permite varias opciones, evita afirmaciones absolutas.',
+        exampleTitle:'Ejemplo resuelto: curso con depósito',
+        exampleText:'La asociación vecinal ofrece un curso gratuito de reparación de bicicletas. Las plazas son limitadas y, para confirmar la inscripción, se abonará un depósito de 15 euros que se devolverá a quienes asistan al menos a cuatro de las cinco sesiones.',
+        exampleSteps:['Inferencia: el depósito pretende reducir las faltas de asistencia.','Pista 1: las plazas son limitadas.','Pista 2: el dinero se devuelve al asistir a cuatro sesiones.','Explicación: se busca que quien reserve una plaza realmente la utilice.'],
+        practice:'¿Puede afirmarse que el curso cuesta 15 euros? Responde sí o no y justifica con dos datos.',
+        solution:'No. El texto dice que el curso es gratuito y que los 15 euros son un depósito reembolsable si se asiste al menos a cuatro sesiones.',
+        errors:['Inventar una causa posible sin apoyarla en el texto.','Usar una sola pista cuando la pregunta exige relacionar información.','Confundir inferencia con opinión personal.'],
+        evidence:'Redacta una conclusión y justifícala con dos pistas concretas.',
+        pass:'Superada si la conclusión es compatible con el texto y utiliza al menos dos evidencias relevantes.'
+      },
+      {
+        objective:'Reconocer la finalidad y el tipo de texto, y aplicar un método completo de examen.',
+        theory:'La intención responde a para qué se ha escrito: informar, explicar, instruir, convencer, solicitar o expresar. El tipo de texto se reconoce por su organización y sus marcas. Un aviso informa o da instrucciones; una noticia relata hechos; una reclamación expone un problema y pide una solución; un anuncio intenta persuadir. En examen, identifica emisor, destinatario, finalidad y dos rasgos del texto.',
+        exampleTitle:'Ejemplo resuelto: comunicado de consumo de agua',
+        exampleText:'Debido a una reparación urgente, mañana se interrumpirá el suministro de agua entre las 9:00 y las 13:00 en los barrios Norte y Estación. Se recomienda almacenar únicamente el agua necesaria y mantener cerrados los grifos durante el corte. El servicio se restablecerá de forma gradual.',
+        exampleSteps:['Tipo: aviso de servicio público.','Finalidad principal: informar del corte y dar instrucciones para afrontarlo.','Rasgos: incluye fecha y horario precisos, zonas afectadas y recomendaciones directas.'],
+        practice:'Indica quién podría emitir el comunicado, a quién se dirige, cuál es su finalidad y qué dos elementos demuestran tu respuesta.',
+        solution:'Podría emitirlo la empresa de aguas o el ayuntamiento; se dirige a residentes de los barrios Norte y Estación. Informa de un corte y da instrucciones. Lo demuestran el horario y las zonas afectadas, junto con las recomendaciones sobre grifos y almacenamiento.',
+        errors:['Decir solo “es informativo” sin justificar.','Confundir el asunto del agua con la finalidad del texto.','Nombrar un tipo de texto sin señalar ningún rasgo.'],
+        evidence:'Completa emisor, destinatario, finalidad y dos rasgos; termina con una frase que resuma la idea principal.',
+        pass:'Superada si identifica correctamente tres de los cuatro elementos y justifica la finalidad con dos pistas.'
+      }
+    ]
+  }
+};
+const CURATED_UNITS = {
+  'ing-reading': curatedUnit('Currículo ESPA Andalucía 2025 · CEDEC English REA', [
+    {objective:'Identify the main idea of a short everyday text.', theory:'Read the title and the first and last sentences. The main idea must cover the whole text, not just one detail. Choose the option that explains the purpose and general message.', exampleTitle:'Worked example: community course', exampleText:'Free digital skills classes start in October. Adults can attend on Tuesday evenings at the Central Library. Booking is required because places are limited.', exampleSteps:['Topic: digital skills classes.','Main idea: free October classes are available for adults, with advance booking.'], practice:'What is the main idea: the library is closed, adults can join free booked classes, or October has five Tuesdays?', solution:'Adults can join free booked classes. It includes the audience, cost and necessary action.', errors:['Choosing a true detail instead of the whole message.','Translating every word before deciding.'], evidence:'Write the main idea in one English sentence and copy one supporting phrase.', pass:'The sentence covers the whole text and the quotation supports it.'},
+    {objective:'Find names, dates, prices and conditions accurately.', theory:'Underline the key word in the question, scan the text for the same word or a synonym, and copy only the relevant value. Check units, days and negative forms such as not, except or before.', exampleTitle:'Worked example: opening hours', exampleText:'The sports centre opens at 7:00 on weekdays and at 9:00 at weekends. The swimming pool closes thirty minutes before the building.', exampleSteps:['Question key: weekend opening.','Answer: 9:00; the pool closing time is a different detail.'], practice:'When does the centre open on Saturdays, and what closes earlier than the building?', solution:'It opens at 9:00, and the swimming pool closes earlier.', errors:['Using the weekday time.','Ignoring the second part of the question.'], evidence:'Answer both parts in English with exact information.', pass:'Both details are correct and no unrelated information is added.'},
+    {objective:'Judge true or false and correct false statements with evidence.', theory:'A statement is true only when every important part agrees with the text. If one date, quantity or condition changes, it is false. Correct the false part instead of copying the whole paragraph.', exampleTitle:'Worked example: job advert', exampleText:'The café needs a weekend assistant. Experience is helpful but not essential. Applicants must send a CV before 12 June.', exampleSteps:['“Experience is required” is false.','Evidence: it is helpful but not essential.'], practice:'True or false: applications are accepted after 12 June. Correct the statement.', solution:'False. Applicants must send a CV before 12 June.', errors:['Marking true because most words look similar.','Writing false without correcting the detail.'], evidence:'Classify the statement, correct it and quote the decisive phrase.', pass:'The classification, correction and evidence all agree.'},
+    {objective:'Infer meaning from context without inventing information.', theory:'Use the sentence before and after the unknown idea. Combine two clues and choose the least speculative conclusion. An inference is supported by the text even when it is not written word for word.', exampleTitle:'Worked example: delayed journey', exampleText:'Marta looked at the departure board again. Her train now showed 18:40 instead of 18:05, so she called home to say she would arrive later.', exampleSteps:['The train is delayed by 35 minutes.','Her call confirms the delay affects her arrival.'], practice:'Why does Marta call home? Answer with two clues.', solution:'She calls because the train time changed from 18:05 to 18:40 and she will arrive later.', errors:['Guessing a reason not mentioned.','Using only one clue when two are available.'], evidence:'Write one inference and support it with two details in English or clear Spanish.', pass:'The inference is reasonable and both details come from the text.'}
+  ]),
+  'geo-fuentes': curatedUnit('Currículo ESPA Andalucía 2025 · CEDEC Geografía e Historia', [
+    {objective:'Leer título, leyenda y distribución de un mapa temático.', theory:'Un mapa temático representa una variable. Empieza por título, territorio, fecha, unidad y leyenda; después localiza máximos, mínimos y agrupaciones espaciales.', exampleTitle:'Ejemplo: densidad de población', exampleText:'Un mapa provincial usa tonos oscuros para más de 300 hab./km² y tonos claros para menos de 50. Las costas y grandes áreas metropolitanas aparecen más oscuras.', exampleSteps:['La leyenda relaciona color y densidad.','El patrón principal es la concentración costera y metropolitana.'], practice:'Explica dos conclusiones que podrían extraerse y menciona la leyenda.', solution:'La población se concentra más en costas y áreas metropolitanas; las provincias claras tienen menos de 50 hab./km².', errors:['Describir colores sin interpretar la variable.','Olvidar unidad, territorio o fecha.'], evidence:'Redacta dos conclusiones con referencia expresa a la leyenda.', pass:'Incluye patrón espacial, dato de leyenda y una comparación.'},
+    {objective:'Comparar valores y tendencia en una gráfica.', theory:'Lee ejes, unidad y periodo. Compara inicio y final, identifica máximo y mínimo y describe cambios sin explicar causas que la gráfica no demuestra.', exampleTitle:'Ejemplo: consumo de agua', exampleText:'Una gráfica pasa de 140 litros por persona y día en 2020 a 124 en 2024, con un pequeño aumento en 2022.', exampleSteps:['Tendencia general descendente: baja 16 litros.','El aumento de 2022 no cambia la tendencia global.'], practice:'Escribe una comparación, una tendencia y una excepción.', solution:'El consumo final es 16 litros menor; la tendencia es descendente, aunque en 2022 hubo un aumento puntual.', errors:['Confundir descenso con valor negativo.','Inventar la causa del cambio.'], evidence:'Escribe tres frases: comparación, tendencia y excepción.', pass:'Las tres afirmaciones respetan los datos y las unidades.'},
+    {objective:'Interpretar una tabla y calcular una diferencia sencilla.', theory:'Comprueba encabezados y unidades antes de operar. Para una diferencia absoluta resta; para un porcentaje divide la variación entre el valor inicial y multiplica por cien.', exampleTitle:'Ejemplo: empleo por sectores', exampleText:'En una comarca, industria ocupa a 8.200 personas y servicios a 19.500.', exampleSteps:['Diferencia: 19.500 - 8.200 = 11.300.','Servicios emplea a 11.300 personas más.'], practice:'Si agricultura ocupa a 4.600 personas, ¿cuántas más trabajan en industria?', solution:'8.200 - 4.600 = 3.600 personas más en industria.', errors:['Restar en orden incorrecto sin interpretar el signo.','Omitir la unidad personas.'], evidence:'Escribe operación, resultado y conclusión con unidad.', pass:'Cálculo correcto y conclusión coherente.'},
+    {objective:'Redactar una conclusión breve basada en dos datos.', theory:'Una conclusión de fuente combina una tendencia y una comparación. Debe citar cifras o categorías y evitar generalizaciones que la fuente no permite.', exampleTitle:'Ejemplo: cierre interpretativo', exampleText:'La población urbana sube del 68 % al 74 %, mientras la rural baja del 32 % al 26 %.', exampleSteps:['Ambas series suman 100 %.','La conclusión es un avance de la urbanización.'], practice:'Redacta una conclusión de dos frases con los cuatro porcentajes.', solution:'Entre ambos momentos aumenta la población urbana del 68 % al 74 %. A la vez, la rural desciende del 32 % al 26 %, lo que indica mayor urbanización.', errors:['Enumerar cifras sin conclusión.','Afirmar que desaparece el mundo rural.'], evidence:'Entrega una conclusión con al menos dos cifras y una tendencia.', pass:'Usa datos exactos y una interpretación limitada a la fuente.'}
+  ]),
+  'his-fuentes': curatedUnit('Currículo ESPA Andalucía 2025 · CEDEC Historia', [
+    {objective:'Distinguir una fuente primaria por su relación con los hechos.', theory:'Una fuente primaria fue producida en la época estudiada por participantes o testigos: carta, ley, fotografía, cartel o registro. No es necesariamente objetiva.', exampleTitle:'Ejemplo: carta de 1937', exampleText:'Una carta escrita por una enfermera en 1937 describe la escasez de medicinas durante la guerra.', exampleSteps:['Es contemporánea a los hechos.','Aporta una experiencia directa, aunque parcial.'], practice:'¿Por qué es primaria y qué límite tiene?', solution:'Es primaria porque se escribió en 1937 por una testigo. Su límite es ofrecer una experiencia personal, no toda la realidad.', errors:['Confundir primaria con más fiable.','Olvidar autor y fecha.'], evidence:'Clasifica la fuente y explica un valor y un límite.', pass:'Relaciona época, autor y parcialidad.'},
+    {objective:'Reconocer una fuente secundaria y su función.', theory:'Una fuente secundaria analiza hechos después de que ocurrieran usando varias evidencias. Son ejemplos un manual, un documental histórico o un artículo académico.', exampleTitle:'Ejemplo: estudio actual', exampleText:'Un historiador publica en 2024 un libro sobre la industrialización española a partir de censos, leyes y prensa del siglo XIX.', exampleSteps:['Se produce después del proceso.','Interpreta varias fuentes primarias.'], practice:'Indica tipo de fuente y dos razones.', solution:'Es secundaria: se publica mucho después y analiza censos, leyes y prensa.', errors:['Llamarla primaria porque cita documentos.','No diferenciar fecha del estudio y época analizada.'], evidence:'Clasifica y justifica con fecha y método.', pass:'Aporta dos razones válidas.'},
+    {objective:'Ordenar hechos y representar duración y simultaneidad.', theory:'Una línea del tiempo usa una escala regular y fechas comparables. Distingue inicio, final, duración y procesos que coinciden.', exampleTitle:'Ejemplo: cambios políticos', exampleText:'Constitución de 1812; inicio de la industrialización española hacia 1830; revolución de 1868.', exampleSteps:['Orden: 1812, 1830, 1868.','Industrialización es un proceso, no un hecho instantáneo.'], practice:'Ordena los tres elementos y señala cuál es un proceso.', solution:'1812 Constitución, hacia 1830 industrialización, 1868 revolución. La industrialización es el proceso.', errors:['Tratar “hacia 1830” como fecha exacta.','Mezclar orden cronológico y causalidad.'], evidence:'Construye una secuencia y distingue hecho de proceso.', pass:'Orden correcto y clasificación razonada.'},
+    {objective:'Comentar autoría, contexto, intención y fiabilidad.', theory:'Un comentario de fuente responde qué es, quién la crea, cuándo, para quién y con qué finalidad. Después extrae dos ideas y valora qué permite saber y qué no.', exampleTitle:'Ejemplo: cartel electoral', exampleText:'Un cartel pide el voto, destaca logros del partido y usa un lema breve junto a una imagen optimista.', exampleSteps:['Finalidad persuasiva y destinatario electoral.','Es útil para estudiar propaganda, no para comprobar por sí solo los logros.'], practice:'Explica intención, un recurso persuasivo y un límite.', solution:'Busca convencer al electorado; usa lema e imagen positiva. No demuestra por sí mismo que los logros sean ciertos.', errors:['Resumir sin analizar intención.','Declarar que la fuente no sirve por ser parcial.'], evidence:'Escribe un comentario de 80-120 palabras.', pass:'Incluye identificación, intención, dos ideas y límite.'}
+  ]),
+  'mat-proporciones': curatedUnit('Currículo ESPA Andalucía 2025 · CEDEC Matemáticas', [
+    {objective:'Reconocer y simplificar una razón entre dos cantidades.', theory:'Una razón compara cantidades mediante una división. Deben expresarse en unidades compatibles y puede simplificarse como una fracción.', exampleTitle:'Ejemplo: pintura', exampleText:'Una mezcla usa 6 litros de blanco por 2 de azul.', exampleSteps:['Razón blanco:azul = 6:2.','Simplificada, 3:1.'], practice:'Simplifica la razón 12 kg a 8 kg.', solution:'12:8 se divide entre 4 y queda 3:2.', errors:['Sumar cantidades en lugar de compararlas.','Invertir el orden pedido.'], evidence:'Escribe la razón inicial, simplificación y significado.', pass:'Orden y simplificación correctos.'},
+    {objective:'Resolver una proporcionalidad directa con regla de tres.', theory:'En proporcionalidad directa, al multiplicar una magnitud por un factor la otra se multiplica igual. Comprueba primero que el cociente sea constante.', exampleTitle:'Ejemplo: receta', exampleText:'Para 4 personas se usan 300 g de arroz. Para 6 personas: 300 × 6 / 4.', exampleSteps:['Factor: 6/4 = 1,5.','Resultado: 450 g.'], practice:'Tres entradas cuestan 24 euros. ¿Cuánto cuestan cinco?', solution:'24 × 5 / 3 = 40 euros.', errors:['Aplicar regla de tres sin comprobar relación directa.','Omitir euros.'], evidence:'Escribe planteamiento, operación y respuesta.', pass:'Procedimiento, cálculo y unidad correctos.'},
+    {objective:'Calcular porcentajes, aumentos y descuentos.', theory:'El p % de una cantidad es cantidad × p/100. Un descuento resta ese valor; un aumento lo suma. También puede multiplicarse por 1-p/100 o 1+p/100.', exampleTitle:'Ejemplo: descuento', exampleText:'Una chaqueta de 80 euros tiene un 25 % de descuento.', exampleSteps:['Descuento: 80 × 0,25 = 20.','Precio final: 80 - 20 = 60 euros.'], practice:'Una factura de 120 euros aumenta un 10 %. Calcula el total.', solution:'Aumento 12 euros; total 132 euros.', errors:['Dar solo el importe del porcentaje.','Sumar 10 euros en vez del 10 %.'], evidence:'Separa variación y valor final.', pass:'Ambos importes correctos y etiquetados.'},
+    {objective:'Aplicar escalas y repartos proporcionales.', theory:'En escala 1:n, una unidad del dibujo representa n unidades reales. Convierte unidades al final. En un reparto proporcional, cada parte mantiene la razón indicada.', exampleTitle:'Ejemplo: plano', exampleText:'En un plano 1:50, una pared mide 8 cm.', exampleSteps:['Real: 8 × 50 = 400 cm.','Conversión: 4 m.'], practice:'En un mapa 1:100.000, dos puntos están a 3,5 cm. Halla la distancia real.', solution:'3,5 × 100.000 = 350.000 cm = 3,5 km.', errors:['Dividir cuando hay que multiplicar.','No convertir centímetros a kilómetros.'], evidence:'Incluye escala, operación y conversión.', pass:'Resultado de 3,5 km con proceso visible.'}
+  ]),
+  'cie-metodo': curatedUnit('Currículo ESPA Andalucía 2025 · CEDEC Ciencias', [
+    {objective:'Formular una pregunta comprobable y una hipótesis.', theory:'Una pregunta científica relaciona variables medibles. La hipótesis anticipa un resultado y puede expresarse: si cambia X, entonces cambiará Y, porque...', exampleTitle:'Ejemplo: luz y crecimiento', exampleText:'Queremos saber si las horas de luz afectan al crecimiento de plantas de judía.', exampleSteps:['Pregunta: ¿cómo afectan las horas de luz a la altura?','Hipótesis: con más luz crecerán más, hasta un límite.'], practice:'Formula pregunta e hipótesis sobre temperatura y disolución de azúcar.', solution:'¿Cómo afecta la temperatura del agua al tiempo de disolución? Si aumenta, el azúcar se disolverá más rápido porque las partículas se mueven más.', errors:['Plantear una opinión no medible.','Escribir una hipótesis sin relación causal.'], evidence:'Entrega pregunta, hipótesis y justificación.', pass:'Incluye dos variables medibles y una predicción.'},
+    {objective:'Distinguir variable independiente, dependiente y controles.', theory:'La independiente es la que modificamos; la dependiente es la que medimos. Las variables de control se mantienen iguales para que la comparación sea válida.', exampleTitle:'Ejemplo: temperatura', exampleText:'Tres vasos tienen agua a 10, 30 y 60 °C, igual volumen y la misma cantidad de azúcar. Se mide el tiempo de disolución.', exampleSteps:['Independiente: temperatura.','Dependiente: tiempo; controles: agua y azúcar.'], practice:'Identifica las variables del experimento.', solution:'Independiente: temperatura; dependiente: tiempo de disolución; controles: volumen, cantidad de azúcar, recipiente y agitación.', errors:['Confundir lo que se cambia con lo que se mide.','Olvidar controles importantes.'], evidence:'Clasifica las variables y añade dos controles.', pass:'Clasificación correcta y dos controles pertinentes.'},
+    {objective:'Diseñar un experimento repetible y seguro.', theory:'Un procedimiento debe indicar materiales, cantidades, pasos, medición, repeticiones y seguridad. Solo se modifica una variable cada vez.', exampleTitle:'Ejemplo: diseño válido', exampleText:'Se preparan tres temperaturas, se repite tres veces cada condición y se calcula el tiempo medio.', exampleSteps:['Las repeticiones reducen el efecto del azar.','La media permite comparar condiciones.'], practice:'Escribe cuatro pasos para realizar la prueba de forma segura.', solution:'Preparar igual volumen; medir temperatura; añadir igual azúcar e iniciar cronómetro; repetir tres veces sin manipular agua caliente sin protección.', errors:['Cambiar varias condiciones a la vez.','No repetir ni anotar datos.'], evidence:'Redacta un procedimiento numerado con seguridad y repeticiones.', pass:'Es repetible, controla variables e incluye medida segura.'},
+    {objective:'Interpretar datos y redactar una conclusión limitada.', theory:'La conclusión resume la tendencia, cita datos y decide si apoyan la hipótesis. No demuestra más de lo que se midió y debe mencionar anomalías o limitaciones.', exampleTitle:'Ejemplo: resultados', exampleText:'Tiempos medios: 10 °C, 180 s; 30 °C, 95 s; 60 °C, 42 s.', exampleSteps:['A mayor temperatura, menor tiempo.','Los datos apoyan la hipótesis en el intervalo estudiado.'], practice:'Redacta conclusión con dos cifras y una limitación.', solution:'El azúcar se disolvió más rápido al aumentar la temperatura: pasó de 180 s a 10 °C a 42 s a 60 °C. Apoya la hipótesis entre 10 y 60 °C, pero no permite afirmar qué ocurre fuera de ese intervalo.', errors:['Copiar la tabla sin interpretar.','Decir que la hipótesis queda demostrada para siempre.'], evidence:'Escribe tendencia, dos datos, decisión y limitación.', pass:'Los cuatro elementos aparecen y son coherentes.'}
+  ])
+};
+Object.assign(MODEL_UNITS, CURATED_UNITS);
+function curatedUnit(source, lessons) {
+  return {label:'Unidad desarrollada', source, reviewed:'20/09/2026', lessons};
+}
 const DEFAULT_OFFICIAL_LINKS = [
   {
     "title": "Andalucia - Graduado ESO mayores de 18",
@@ -3352,6 +3517,27 @@ const DEFAULT_OFFICIAL_LINKS = [
       "oficial"
     ],
     "desc": "Portal de la prueba: requisitos, tres ambitos, convocatoria y materiales. Esta app usa Andalucia como referencia; otras comunidades pueden variar."
+  },
+  {
+    "title": "Andalucia - Curriculo ESPA 2025",
+    "source": "BOJA",
+    "url": "https://www.juntadeandalucia.es/boja/2025/86/1",
+    "tags": ["normativa", "contenidos", "ambitos", "oficial"],
+    "desc": "Curriculo vigente de ESO para personas adultas en Andalucia: competencias, criterios de evaluacion y saberes basicos."
+  },
+  {
+    "title": "Andalucia - Estructura y convocatoria 2026",
+    "source": "BOJA",
+    "url": "https://www.juntadeandalucia.es/boja/2026/19/38",
+    "tags": ["convocatoria", "estructura", "puntuacion", "examenes", "oficial"],
+    "desc": "Resolucion anual con duracion, secciones, puntuaciones, extensiones y materiales permitidos en 2026."
+  },
+  {
+    "title": "Andalucia - Estructura explicada de las pruebas",
+    "source": "Junta de Andalucia",
+    "url": "https://www.juntadeandalucia.es/educacion/portales/web/educacion-permanente/servicios/pruebas/obtencion-titulo-eso/sobre-las-pruebas/estructura-de-pruebas",
+    "tags": ["estructura", "examenes", "ambitos", "oficial"],
+    "desc": "Resumen oficial por ambitos. Comprueba la convocatoria anual si cambian el formato o la puntuacion."
   },
   {
     "title": "Andalucia - Modelos de convocatorias anteriores",
@@ -3390,6 +3576,41 @@ const DEFAULT_OFFICIAL_LINKS = [
     "desc": "Normativa autonomica de las pruebas para mayores de 18 anos en Andalucia."
   },
   {
+    "title": "CEDEC - Lengua Castellana y Literatura",
+    "source": "INTEF / CEDEC",
+    "url": "https://cedec.intef.es/hacemos-cosas-con-palabras-proyecto-edia-para-lengua-castellana-y-literatura-en-secundaria/",
+    "tags": ["lengua", "contenidos", "redaccion", "consulta"],
+    "desc": "Recursos educativos abiertos de comprension, produccion textual, reflexion linguistica y literatura para Secundaria."
+  },
+  {
+    "title": "CEDEC - Ingles para ESO",
+    "source": "INTEF / CEDEC",
+    "url": "https://cedec.intef.es/proyecto-edia-what-a-digital-world-ingles-con-abp-en-2a-eso/",
+    "tags": ["ingles", "contenidos", "redaccion", "consulta"],
+    "desc": "Recursos abiertos de ingles funcional con lectura, escritura, vocabulario y situaciones comunicativas."
+  },
+  {
+    "title": "CEDEC - Geografia e Historia",
+    "source": "INTEF / CEDEC",
+    "url": "https://cedec.intef.es/situaciones-de-aprendizaje-de-geografia-e-historia-del-proyecto-edia-de-cedec/",
+    "tags": ["social", "geografia", "mapas", "datos", "contenidos"],
+    "desc": "Coleccion abierta para trabajar mapas, fuentes, procesos historicos, economia y ciudadania."
+  },
+  {
+    "title": "CEDEC - Matematicas para Secundaria",
+    "source": "INTEF / CEDEC",
+    "url": "https://cedec.intef.es/situaciones-de-aprendizaje-edia-de-matematicas-para-secundaria/",
+    "tags": ["matematicas", "geometria", "datos", "contenidos"],
+    "desc": "Situaciones de aprendizaje abiertas sobre numeros, algebra, geometria, estadistica y probabilidad."
+  },
+  {
+    "title": "CEDEC - Ciencias para Secundaria",
+    "source": "INTEF / CEDEC",
+    "url": "https://cedec.intef.es/situaciones-de-aprendizaje-de-fisica-y-quimica-y-de-biologia-y-geologia-del-proyecto-edia-de-cedec/",
+    "tags": ["ciencias", "simulaciones", "datos", "contenidos"],
+    "desc": "Recursos abiertos de Biologia, Geologia, Fisica y Quimica con investigacion y actividades aplicadas."
+  },
+  {
     "title": "RAE - Diccionario de la lengua espanola",
     "source": "RAE",
     "url": "https://dle.rae.es/",
@@ -3398,6 +3619,13 @@ const DEFAULT_OFFICIAL_LINKS = [
       "consulta"
     ],
     "desc": "Consulta de vocabulario y ortografia para el ambito de Comunicacion."
+  },
+  {
+    "title": "RAE - Diccionario panhispanico de dudas",
+    "source": "RAE / ASALE",
+    "url": "https://www.rae.es/dpd/",
+    "tags": ["lengua", "consulta", "redaccion"],
+    "desc": "Respuestas razonadas sobre ortografia, puntuacion, gramatica y uso actual del espanol."
   }
 ];
 let OFFICIAL_LINKS = [...DEFAULT_OFFICIAL_LINKS];
@@ -3529,7 +3757,66 @@ const QUESTIONS = {
     ['Una contrasena segura debe ser...', ['larga, unica y dificil de adivinar','igual en todos los servicios','el nombre del usuario'], 0]
   ]
 };
-let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, teacherChats:{}, testAttempts:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, examMode:null, examPracticeType:'development', activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
+let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, learningEvidence:{}, teacherChats:{}, testAttempts:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, examMode:null, examPracticeType:'development', currentExamScope:null, activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
+const OFFICIAL_SCOPES = [
+  {
+    id:'comunicacion', icon:'Aa', title:'Ámbito de Comunicación', color:'#2563eb', soft:'#eaf2ff', modules:['lengua','ingles'],
+    summary:'Lengua Castellana e Inglés. Una única prueba de 100 puntos: 60 de castellano y 40 de lengua extranjera.',
+    pass:'50/100 para superar el ámbito',
+    sections:[
+      'Comprensión y redacción en castellano: 30 puntos; texto mínimo de 200 palabras.',
+      'Conocimiento de la lengua castellana: 20 puntos.',
+      'Conocimiento literario: 10 puntos.',
+      'Comprensión y composición guiada en inglés: 20 puntos; entre 50 y 70 palabras.',
+      'Uso de la lengua inglesa: 20 puntos; diez preguntas tipo test.'
+    ]
+  },
+  {
+    id:'social', icon:'⌖', title:'Ámbito Social', color:'#9f5f16', soft:'#fff5e8', modules:['geografia','historia'],
+    summary:'Geografía, Historia, Ciudadanía, orientación personal y profesional, patrimonio y cultura.',
+    pass:'50/100 para superar el ámbito',
+    sections:[
+      'Conceptos básicos: 25 puntos.',
+      'Comprensión y análisis de documentos escritos: 30 puntos.',
+      'Comprensión y análisis de mapas, gráficas e imágenes: 30 puntos.',
+      'Redacción sobre actualidad social: 15 puntos; mínimo 150 palabras.'
+    ]
+  },
+  {
+    id:'cientifico', icon:'Σ', title:'Ámbito Científico-tecnológico', color:'#087a5c', soft:'#eaf9f3', modules:['matematicas','ciencias'],
+    summary:'Matemáticas, Biología y Geología, Física y Química, Tecnología y Digitalización.',
+    pass:'50/100 para superar el ámbito',
+    sections:[
+      'Conceptos básicos: 15 puntos.',
+      'Comprensión y análisis de un documento escrito: 20 puntos.',
+      'Análisis de gráficas, imágenes, diagramas o esquemas: 30 puntos.',
+      'Redacción científica o tecnológica: 15 puntos; mínimo 150 palabras.',
+      'Resolución de un problema: 20 puntos.'
+    ]
+  }
+];
+const OFFICIAL_SIMULATORS = {
+  comunicacion:{title:'Ámbito de Comunicación', duration:'120 minutos', sections:[
+    {title:'Comprensión y redacción en castellano', points:30, prompt:'Lee este texto: “Cada vez más municipios recuperan locales vacíos para convertirlos en espacios de estudio y formación. El éxito no depende solo de abrir puertas: hacen falta horarios útiles, conexión, silencio y actividades que respondan a las necesidades del barrio”. a) Explica el tema y la idea principal. b) Señala dos condiciones para que el espacio funcione. c) Redacta un texto argumentativo de al menos 200 palabras sobre la utilidad de invertir en formación de personas adultas.'},
+    {title:'Conocimiento de la lengua castellana', points:20, prompt:'Analiza la oración “Los nuevos espacios ofrecen oportunidades a quienes retoman sus estudios”. Identifica sujeto y predicado, clasifica “nuevos” y “sus”, explica el valor de “quienes” y reescribe la oración en pasado manteniendo la concordancia.'},
+    {title:'Conocimiento literario', points:10, prompt:'Explica dos diferencias entre narración y poesía. Después identifica narrador, espacio y conflicto en este fragmento original: “Al cerrar la tienda, Elena encontró bajo la puerta una carta sin remite. La calle estaba vacía y el reloj del ayuntamiento acababa de dar las diez”.'},
+    {title:'English reading and guided writing', points:20, prompt:'Read: “The Riverside Learning Centre offers free evening courses for adults. Classes start on 4 November and take place twice a week. Students must register online before 28 October.” a) Who are the courses for? b) How often are the classes? c) Write 50-70 words to a friend explaining why you want to join and asking them to come with you.'},
+    {title:'Use of English', points:20, prompt:'Choose or write the correct form: 1) She ___ every Tuesday (study/studies). 2) We ___ the form yesterday (send/sent). 3) You ___ register before Friday (must/can to). 4) This course is ___ than the other one (cheap/cheaper). 5) How ___ does it cost? 6) I have lived here ___ 2020. 7) There ___ twenty places. 8) If I have time, I ___ attend. 9) Write the negative of “He works at night”. 10) Order: usually / I / by bus / travel.'}
+  ]},
+  social:{title:'Ámbito Social', duration:'120 minutos', sections:[
+    {title:'Conceptos básicos', points:25, prompt:'Define con precisión y añade un ejemplo: densidad de población, sector terciario, fuente primaria, Estado de derecho y desarrollo sostenible.'},
+    {title:'Documento escrito', points:30, prompt:'Lee este texto original: “La expansión de las ciudades crea empleo y acerca servicios, pero también aumenta el precio de la vivienda y los desplazamientos. Cuando el crecimiento no se planifica, los barrios periféricos pueden quedar peor conectados”. a) Resume. b) Explica dos causas de urbanización. c) Relaciona vivienda y transporte. d) Diferencia hecho y opinión.'},
+    {title:'Información gráfica', points:30, prompt:'Datos de práctica sobre desplazamientos diarios: coche 2015: 56 %, coche 2025: 43 %; transporte público 2015: 24 %, 2025: 34 %; bicicleta y a pie 2015: 20 %, 2025: 23 %. a) Calcula los cambios en puntos porcentuales. b) Describe la tendencia. c) Propón una explicación posible y aclara que los datos no la demuestran por sí solos.'},
+    {title:'Redacción social', points:15, prompt:'Redacta al menos 150 palabras: “¿Qué medidas pueden facilitar que una persona adulta combine empleo, familia y formación?”. Incluye tesis, dos medidas justificadas, una dificultad y conclusión.'}
+  ]},
+  cientifico:{title:'Ámbito Científico-tecnológico', duration:'120 minutos', sections:[
+    {title:'Conceptos básicos', points:15, prompt:'Define con un ejemplo: variable dependiente, mezcla heterogénea, energía renovable, porcentaje y privacidad digital.'},
+    {title:'Documento científico', points:20, prompt:'Lee: “Un aislamiento adecuado reduce el intercambio de calor entre una vivienda y el exterior. Por eso puede disminuir la energía necesaria para mantener una temperatura confortable”. a) Explica la idea principal. b) Relaciona aislamiento y consumo. c) Indica una variable que medirías para comprobarlo.'},
+    {title:'Datos, gráficas y esquemas', points:30, prompt:'Consumo mensual de una vivienda de práctica: enero 420 kWh, febrero 380, marzo 310, abril 240. a) Representa o describe la tendencia. b) Calcula el descenso de enero a abril y su porcentaje respecto a enero. c) Señala una limitación antes de atribuir la bajada al aislamiento.'},
+    {title:'Redacción científica', points:15, prompt:'Redacta al menos 150 palabras sobre cómo reducir el consumo energético de una vivienda sin perder bienestar. Incluye dos medidas, su fundamento y una limitación.'},
+    {title:'Resolución de problema', points:20, prompt:'Una vivienda consumía 420 kWh al mes. Tras una mejora reduce el consumo un 18 %. a) Calcula el ahorro en kWh. b) Calcula el nuevo consumo. c) Si cada kWh cuesta 0,21 €, estima el ahorro mensual. Muestra operaciones, unidades y conclusión.'}
+  ]}
+};
 let homeDuration = 30;
 let currentUser = null;
 let currentView = 'home';
@@ -3549,19 +3836,32 @@ async function backend(path, options={}) {
 }
 async function loadState() {
   try { state = {...state, ...(await backend('/api/state'))}; } catch {}
+  state.done = state.done && typeof state.done === 'object' && !Array.isArray(state.done) ? state.done : {};
+  state.scores = Array.isArray(state.scores) ? state.scores : [];
+  state.attempts = Array.isArray(state.attempts) ? state.attempts : [];
   state.mistakes = Array.isArray(state.mistakes) ? state.mistakes : [];
   state.activityDates = Array.isArray(state.activityDates) ? state.activityDates : [];
   state.monthlyProgress = state.monthlyProgress && typeof state.monthlyProgress === 'object' ? state.monthlyProgress : {};
   state.savedNotes = Array.isArray(state.savedNotes) ? state.savedNotes : [];
   state.lessonNotes = state.lessonNotes && typeof state.lessonNotes === 'object' ? state.lessonNotes : {};
-  state.teacherChats = state.teacherChats && typeof state.teacherChats === 'object' ? state.teacherChats : {};
-  state.testAttempts = state.testAttempts && typeof state.testAttempts === 'object' ? state.testAttempts : {};
+  state.learningEvidence = state.learningEvidence && typeof state.learningEvidence === 'object' ? state.learningEvidence : {};
+  state.teacherChats = state.teacherChats && typeof state.teacherChats === 'object' && !Array.isArray(state.teacherChats) ? state.teacherChats : {};
+  state.testAttempts = state.testAttempts && typeof state.testAttempts === 'object' && !Array.isArray(state.testAttempts) ? state.testAttempts : {};
   state.teacherOpen = state.teacherOpen === true;
   state.libraryTab = ['subjects','resources','saved'].includes(state.libraryTab) ? state.libraryTab : 'subjects';
   state.currentExamTopics = Array.isArray(state.currentExamTopics) ? state.currentExamTopics : [];
-  state.activeLesson = Number.isInteger(state.activeLesson) ? state.activeLesson : null;
   state.sessionDuration = [15,30,45].includes(Number(state.sessionDuration)) ? Number(state.sessionDuration) : null;
   state.examMode = ['quick','complete','official'].includes(state.examMode) ? state.examMode : null;
+  state.examPracticeType = ['development','test'].includes(state.examPracticeType) ? state.examPracticeType : 'development';
+  state.currentExamScope = OFFICIAL_SIMULATORS[state.currentExamScope] ? state.currentExamScope : null;
+  state.activeModule = MODULES.some(module => module.id === state.activeModule) ? state.activeModule : 'lengua';
+  const activeModule = moduleById(state.activeModule);
+  state.activeTopic = activeModule.tasks.some(topic => topic.id === state.activeTopic) ? state.activeTopic : null;
+  const allowedTabs = activeModule.id === 'exam' ? ['aleatorio','correccion','historial'] : activeModule.id === 'oficial' ? ['recursos'] : ['contenidos','test'];
+  state.activeTab = allowedTabs.includes(state.activeTab) ? state.activeTab : allowedTabs[0];
+  const lessonCount = state.activeTopic ? subtopicsFor(activeModule.tasks.find(topic => topic.id === state.activeTopic)).length : 0;
+  state.activeLesson = Number.isInteger(state.activeLesson) && state.activeLesson >= 0 && state.activeLesson < lessonCount ? state.activeLesson : null;
+  state.currentExam = typeof state.currentExam === 'string' ? state.currentExam : '';
   render();
 }
 async function loadOfficialResources() {
@@ -4008,6 +4308,15 @@ function render() {
   renderView();
   renderTeacherPanel();
 }
+function curriculumScopesHtml(moduleButton) {
+  return OFFICIAL_SCOPES.map(scope => {
+    const modules = scope.modules.map(moduleById).filter(Boolean);
+    return `<section class="curriculum-scope" id="scope-${scope.id}" style="--scope-color:${scope.color};--scope-soft:${scope.soft}">
+      <div class="curriculum-scope-head"><div class="curriculum-scope-title"><span class="curriculum-scope-icon" aria-hidden="true">${escapeHtml(scope.icon)}</span><div><h3>${escapeHtml(scope.title)}</h3><p>${escapeHtml(scope.summary)}</p></div></div><span class="curriculum-scope-score">${escapeHtml(scope.pass)}</span></div>
+      <div class="subject-grid">${modules.map(moduleButton).join('')}</div>
+    </section>`;
+  }).join('');
+}
 function renderShell() {
   const pct = progressPct();
   if ($('homeProgressPct')) $('homeProgressPct').textContent = pct + '%';
@@ -4033,7 +4342,7 @@ function renderShell() {
     ? `<div class="simple-resource-list">${OFFICIAL_LINKS.map(link => `<a href="${link.url}" target="_blank" rel="noopener"><span><strong>${escapeHtml(link.title)}</strong><span>${escapeHtml(link.source)}</span></span><b>ABRIR</b></a>`).join('')}</div>`
     : state.libraryTab === 'saved'
       ? renderSavedNotesLibrary()
-      : `<section class="topic-group"><div class="subject-grid">${subjects.map(moduleButton).join('')}</div></section>`;
+      : curriculumScopesHtml(moduleButton);
   $('moduleGrid').innerHTML = tabs + body;
 }
 function renderModuleGrid() {
@@ -4055,7 +4364,7 @@ function renderModuleGrid() {
     ? `<div class="simple-resource-list">${OFFICIAL_LINKS.map(link => `<a href="${link.url}" target="_blank" rel="noopener"><span><strong>${escapeHtml(link.title)}</strong><span>${escapeHtml(link.source)}</span></span><b>ABRIR</b></a>`).join('')}</div>`
     : state.libraryTab === 'saved'
       ? renderSavedNotesLibrary()
-      : `<section class="topic-group"><div class="subject-grid">${subjects.map(moduleButton).join('')}</div></section>`;
+      : curriculumScopesHtml(moduleButton);
   $('moduleGrid').innerHTML = tabs + body;
 }
 function libraryTabsHtml() {
@@ -4078,6 +4387,10 @@ function openLibrary(tab='subjects') {
   renderTeacherPanel();
   saveState();
   jumpTo($('moduleGrid'));
+}
+function openScopeLibrary(scopeId) {
+  openLibrary('subjects');
+  requestAnimationFrame(() => jumpTo(document.getElementById(`scope-${scopeId}`)));
 }
 function nextStudyItem() {
   for (const module of MODULES.filter(item => !['exam','oficial'].includes(item.id))) {
@@ -4163,7 +4476,7 @@ function sessionSteps() {
   const module = recommendedStudyModule();
   const task = module.tasks.find(t => !state.done[t.id]) || module.tasks[0];
   const steps = [{module:module.id, topic:task.id, tab:'contenidos', title:task.title, detail:'Tema'}];
-  if (state.sessionDuration >= 30) steps.push({module:module.id, topic:null, tab:'test', title:'Test corto', detail:'Practica'});
+  if (state.sessionDuration >= 30) steps.push({module:module.id, topic:null, tab:'test', title:'Test corto', detail:'Práctica'});
   if (state.sessionDuration >= 45) steps.push({module:'exam', topic:null, tab:'examen', title:'Examen rapido', detail:'Comprobar'});
   return steps;
 }
@@ -4202,11 +4515,9 @@ function renderStudyCockpit() {
   $('sessionPlanText').textContent = `${steps.length} paso${steps.length === 1 ? '' : 's'}`;
   if ($('sessionCoach')) $('sessionCoach').innerHTML = `<span><strong>OBJETIVO</strong><small>${duration === 15 ? 'Entender una idea y cerrar con una accion.' : duration === 30 ? 'Aprender, practicar y detectar fallos.' : 'Aprender, practicar y terminar con una prueba realista.'}</small></span>`;
   $('todayPlan').innerHTML = steps.map((step,index) => `<li class="session-step-row"><button class="session-step ${index === 0 ? 'primary' : ''}" type="button" onclick="openSessionStep('${step.module}','${step.tab}','${step.topic || ''}')"><span class="step-number">${index + 1}</span><span><strong>${escapeHtml(step.title)}</strong><small>${escapeHtml(step.detail)}</small></span><span class="topic-arrow">&rsaquo;</span></button></li>`).join('');
-  $('officialStructure').innerHTML = [
-    ['Tres partes', 'Lengua e idioma, Sociales, y Matematicas/Ciencias.'],
-    ['Cada parte cuenta', 'Conviene practicar un poco de cada una.'],
-    ['Objetivo', 'Llegar al minimo exigido y saber explicar lo basico.']
-  ].map(([a,b]) => `<li><strong>${a}</strong><span>${b}</span></li>`).join('');
+  $('officialStructure').innerHTML = OFFICIAL_SCOPES.map(scope =>
+    `<li><strong>${escapeHtml(scope.title)}</strong><span>${escapeHtml(scope.pass)}. ${escapeHtml(scope.summary)}</span></li>`
+  ).join('');
   const mistakes = (state.mistakes || []).slice(0,4);
   $('mistakeNotebook').innerHTML = mistakes.length ? mistakes.map(m => `<li><strong>${escapeHtml(m.module || 'Test')}</strong>${escapeHtml(m.question)}<br><span class="result-label">Respuesta buena: ${escapeHtml(m.correct)}</span></li>`).join('') : '<li>Aun no hay fallos. Cuando hagas un test, se guardaran aqui.</li>';
 }
@@ -4275,10 +4586,13 @@ function teacherContext() {
   }
   if (module.id === 'exam') {
     const topics = (state.currentExamTopics || []).map(item => `${item.moduleTitle}: ${item.title}`).join(' | ') || 'Todavia sin temas elegidos.';
-    return {key:`exam:${state.activeTab}:${state.examMode || 'none'}`, title:'Preparacion de examen', brief:`Seccion examen. Pestaña: ${state.activeTab}. Modo: ${state.examMode || 'sin elegir'}. Temas que entran: ${topics}. Enunciado actual: ${state.currentExam || 'sin examen creado'}`};
+    const simulator = OFFICIAL_SIMULATORS[state.currentExamScope];
+    const rubric = simulator ? simulator.sections.map(section => `${section.title}: ${section.points} puntos`).join(' | ') : 'Sin matriz oficial seleccionada.';
+    return {key:`exam:${state.activeTab}:${state.examMode || 'none'}:${state.currentExamScope || 'general'}`, title:simulator?.title || 'Preparacion de examen', brief:`Seccion examen. Pestaña: ${state.activeTab}. Modo: ${state.examMode || 'sin elegir'}. Temas: ${topics}. Matriz: ${rubric}. Enunciado actual: ${state.currentExam || 'sin examen creado'}`};
   }
   if (topic && lesson) {
-    return {key:`lesson:${topic.id}:${state.activeLesson}`, title:lesson.title, brief:`Asignatura: ${module.title}. Tema: ${topic.title}. Leccion: ${lesson.title}. Puntos: ${lessonPoints(topic, lesson, state.activeLesson).join(' | ')}. Ejemplo: ${lesson.example}`};
+    const evidence = state.learningEvidence?.[evidenceKey(topic.id,state.activeLesson)];
+    return {key:`lesson:${topic.id}:${state.activeLesson}`, title:lesson.title, brief:`Asignatura: ${module.title}. Tema: ${topic.title}. Leccion: ${lesson.title}. Objetivo: ${lesson.objective || topic.detail}. Teoria: ${lesson.theory || lesson.note}. Ejemplo: ${lesson.exampleText || lesson.example}. Criterio: ${lesson.pass || 'responder con claridad y justificar'}. Evidencia del alumno: ${evidence?.response || 'todavia no entregada'}. Estado de evidencia: ${evidence?.ready ? 'guardada' : 'pendiente'}.`};
   }
   if (topic) {
     return {key:`topic:${topic.id}`, title:topic.title, brief:`Asignatura: ${module.title}. Tema abierto: ${topic.title}. Objetivo: ${topic.detail}. Apunte base: ${topic.note}.`};
@@ -4295,8 +4609,8 @@ function teacherIntro(ctx) {
 }
 function teacherSuggestions(ctx) {
   if (ctx.key.startsWith('home:')) return ['Que hago primero?', 'Explicamelo en 5 minutos', 'Como cierro la sesion?'];
-  if (ctx.key.startsWith('exam:')) return ['Que entra hoy?', 'Como reparto el tiempo?', 'Dame estrategia de respuesta'];
-  if (ctx.key.startsWith('lesson:')) return ['Explicalo facil', 'Ponme un ejemplo', 'Hazme una pregunta'];
+  if (ctx.key.startsWith('exam:')) return ['Explícame la puntuación', 'Cómo reparto las 2 horas', 'Revisa mi estrategia'];
+  if (ctx.key.startsWith('lesson:')) return ctx.brief.includes('Evidencia del alumno: todavia no entregada') ? ['Dame una pista, no la solución', 'Ponme otro ejemplo', 'Comprueba qué debo entregar'] : ['Revisa mi evidencia', 'Qué puedo mejorar', 'Hazme otra pregunta'];
   if (ctx.key === 'progress') return ['Que me falta para subir?', 'Que hago manana?', 'Donde estoy flojo?'];
   return ['Por donde empiezo?', 'Resumen rapido', 'Errores tipicos'];
 }
@@ -4308,7 +4622,7 @@ function renderTeacherPanel() {
   const messages = state.teacherChats?.[ctx.key] || [];
   const suggestions = teacherSuggestions(ctx);
   panel.classList.toggle('collapsed', !state.teacherOpen);
-  panel.innerHTML = `<button class="teacher-head" type="button" onclick="toggleTeacherPanel()" aria-expanded="${state.teacherOpen}" aria-controls="teacherBody" title="${state.teacherOpen ? 'Cerrar Profesor IA' : 'Abrir Profesor IA'}"><span class="teacher-id"><span class="teacher-avatar"><img src="assets/brand/teacher-ai.png" alt=""></span><span><strong>Profesor IA</strong><small>${escapeHtml(ctx.title)}</small></span></span><span class="teacher-toggle" aria-hidden="true">${state.teacherOpen ? '−' : '+'}</span></button><div class="teacher-body" id="teacherBody"><div class="teacher-log" id="teacherLog"><div class="teacher-msg"><strong>Profesor:</strong> ${escapeHtml(teacherIntro(ctx))}</div>${messages.map(msg => `<div class="teacher-msg ${msg.role === 'user' ? 'user' : ''}"><strong>${msg.role === 'user' ? 'Tu' : 'Profesor'}:</strong> ${escapeHtml(msg.text).replace(/\n/g,'<br>')}</div>`).join('')}</div><div class="teacher-suggestions">${suggestions.map(item => `<button type="button" onclick='askTeacher(${JSON.stringify(item)})'>${escapeHtml(item)}</button>`).join('')}</div><div class="teacher-row"><textarea id="teacherInput" placeholder="Pregunta al Profesor IA"></textarea><button class="primary" type="button" onclick="askTeacher()">Enviar</button></div></div>`;
+  panel.innerHTML = `<button class="teacher-head" type="button" onclick="toggleTeacherPanel()" aria-expanded="${state.teacherOpen}" aria-controls="teacherBody" title="${state.teacherOpen ? 'Cerrar Profesor IA' : 'Abrir Profesor IA'}"><span class="teacher-id"><span class="teacher-avatar"><img src="assets/brand/teacher-ai.png" alt=""></span><span><strong>Profesor IA</strong><small>${escapeHtml(ctx.title)}</small></span></span><span class="teacher-toggle" aria-hidden="true">${state.teacherOpen ? '−' : '+'}</span></button><div class="teacher-body" id="teacherBody"><div class="teacher-log" id="teacherLog"><div class="teacher-msg"><strong>Profesor:</strong> ${escapeHtml(teacherIntro(ctx))}</div>${messages.map((msg,index) => `<div class="teacher-msg ${msg.role === 'user' ? 'user' : ''}"><strong>${msg.role === 'user' ? 'Tu' : 'Profesor'}:</strong><div class="teacher-rich">${msg.role === 'user' ? `<p>${escapeHtml(msg.text)}</p>` : formatStudyText(msg.text)}</div>${msg.role === 'assistant' && msg.text !== 'Pensando...' ? `<button class="teacher-expand" type="button" onclick="openTeacherAnswer(${index})">Ver respuesta ampliada</button>` : ''}</div>`).join('')}</div><div class="teacher-suggestions">${suggestions.map(item => `<button type="button" onclick='askTeacher(${JSON.stringify(item)})'>${escapeHtml(item)}</button>`).join('')}</div><div class="teacher-row"><textarea id="teacherInput" placeholder="Pregunta al Profesor IA"></textarea><button class="primary" type="button" onclick="askTeacher()">Enviar</button></div></div>`;
   const log = $('teacherLog');
   if (log) log.scrollTop = log.scrollHeight;
 }
@@ -4329,9 +4643,8 @@ async function askTeacher(preset='') {
   renderTeacherPanel();
   const history = state.teacherChats[ctx.key].filter(msg => msg.text !== 'Pensando...').slice(-8);
   const messages = [
-    {role:'system', content:`Eres un profesor virtual experto en ${APP_TITLE}. Responde siempre en espanol sencillo para una persona adulta con poco tiempo. Se muy concreto, guia el siguiente paso y evita texto largo. Contexto actual: ${ctx.brief}`},
-    ...history.map(msg => ({role:msg.role === 'user' ? 'user' : 'assistant', content:msg.text})),
-    {role:'user', content:question}
+    {role:'system', content:`Eres el Profesor IA de ${APP_TITLE}. Enseña en español sencillo a una persona adulta con poco tiempo. Usa solo el contexto facilitado y conocimiento académico seguro; no inventes normativa, notas ni datos del alumno. Da pistas antes que soluciones completas. Si revisas una evidencia, aplica el criterio indicado, menciona un acierto, una mejora concreta y el siguiente intento. Si corriges examen, respeta la matriz y aclara que la nota es orientativa. Puedes usar títulos breves, listas, negritas y tablas Markdown cuando ayuden. Contexto actual: ${ctx.brief}`},
+    ...history.map(msg => ({role:msg.role === 'user' ? 'user' : 'assistant', content:msg.text}))
   ];
   try {
     const data = await backend('/api/chat', {method:'POST', body:JSON.stringify({purpose:'study', messages, temperature:.25, max_tokens:900})});
@@ -4344,6 +4657,45 @@ async function askTeacher(preset='') {
   renderTeacherPanel();
   saveState();
 }
+function formatStudyInline(value) {
+  return escapeHtml(value).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`(.+?)`/g,'<code>$1</code>');
+}
+function formatStudyText(value) {
+  const lines = String(value || '').replace(/\r/g,'').split('\n');
+  const html = [];
+  for (let index=0; index<lines.length; index++) {
+    const line = lines[index].trim();
+    if (!line) continue;
+    const next = lines[index + 1]?.trim() || '';
+    if (line.includes('|') && /^\|?\s*:?-{3,}/.test(next)) {
+      const headers = line.replace(/^\||\|$/g,'').split('|').map(cell => cell.trim());
+      const rows = [];
+      index += 2;
+      while (index < lines.length && lines[index].includes('|')) {
+        rows.push(lines[index].trim().replace(/^\||\|$/g,'').split('|').map(cell => cell.trim()));
+        index++;
+      }
+      index--;
+      html.push(`<table><thead><tr>${headers.map(cell => `<th>${formatStudyInline(cell)}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${headers.map((_,cellIndex) => `<td>${formatStudyInline(row[cellIndex] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table>`);
+    } else if (/^#{1,3}\s/.test(line)) {
+      html.push(`<h3>${formatStudyInline(line.replace(/^#{1,3}\s+/,''))}</h3>`);
+    } else if (/^[-*]\s+/.test(line)) {
+      html.push(`<div class="study-bullet">${formatStudyInline(line.replace(/^[-*]\s+/,''))}</div>`);
+    } else {
+      html.push(`<p>${formatStudyInline(line.replace(/^\d+[.)]\s+/,''))}</p>`);
+    }
+  }
+  return html.join('');
+}
+function openTeacherAnswer(index) {
+  const ctx = teacherContext();
+  const message = state.teacherChats?.[ctx.key]?.[index];
+  if (!message || message.role !== 'assistant') return;
+  $('teacherReadingTitle').textContent = `Profesor IA · ${ctx.title}`;
+  $('teacherReadingContent').innerHTML = formatStudyText(message.text);
+  $('teacherReadingModal').hidden = false;
+}
+function closeTeacherAnswer() { if ($('teacherReadingModal')) $('teacherReadingModal').hidden = true; }
 function toggleDone(id) {
   state.done[id] = !state.done[id];
   if (state.done[id]) recordStudyActivity();
@@ -4353,13 +4705,14 @@ function toggleDone(id) {
 function renderContents(module) {
   const topic = module.tasks.find(t => t.id === state.activeTopic);
   if (!topic) {
-    $('viewer').innerHTML = `<div class="topic-library-list">${module.tasks.map((t,index) => `<button class="topic-row ${state.done[t.id] ? 'done' : ''}" type="button" onclick="openTopic('${t.id}')">${topicStatusHtml(t,module,index)}<span><strong>${escapeHtml(t.title)}</strong><small>${state.done[t.id] ? 'COMPLETADO' : `${subtopicsFor(t).length} LECCIONES`}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div>`;
+    $('viewer').innerHTML = `<div class="topic-library-list">${module.tasks.map((t,index) => `<button class="topic-row ${state.done[t.id] ? 'done' : ''}" type="button" onclick="openTopic('${t.id}')">${topicStatusHtml(t,module,index)}<span><strong>${escapeHtml(t.title)}</strong><small>${state.done[t.id] ? 'COMPLETADO' : MODEL_UNITS[t.id] ? 'UNIDAD DESARROLLADA · 4 LECCIONES' : `${subtopicsFor(t).length} LECCIONES`}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div>`;
     return;
   }
   const lessons = subtopicsFor(topic);
   if (!Number.isInteger(state.activeLesson) || !lessons[state.activeLesson]) {
     const doneCount = lessons.filter((lesson,index) => isLessonDone(topic,index)).length;
-    $('viewer').innerHTML = `<section class="topic-detail"><div class="topic-detail-head"><div><h2>${escapeHtml(topic.title).toUpperCase()}</h2><p>${doneCount}/${lessons.length} LECCIONES COMPLETADAS</p></div></div><div class="lesson-grid">${lessons.map((lesson,index) => `<button class="lesson-card ${isLessonDone(topic,index) ? 'done' : ''}" type="button" onclick="openLesson(${index})"><span class="lesson-number">${isLessonDone(topic,index) ? 'OK' : index + 1}</span><span><strong>${escapeHtml(lesson.title)}</strong><small>${isLessonDone(topic,index) ? 'COMPLETADA' : 'TEORIA Y PRACTICA'}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div></section>`;
+    const modelUnit = MODEL_UNITS[topic.id];
+    $('viewer').innerHTML = `<section class="topic-detail"><div class="topic-detail-head"><div><h2>${escapeHtml(topic.title).toUpperCase()}</h2><p>${doneCount}/${lessons.length} LECCIONES COMPLETADAS</p>${modelUnit ? `<span class="model-badge">${escapeHtml(modelUnit.label)}</span>` : ''}</div></div><div class="lesson-grid">${lessons.map((lesson,index) => `<button class="lesson-card ${isLessonDone(topic,index) ? 'done' : ''}" type="button" onclick="openLesson(${index})"><span class="lesson-number">${isLessonDone(topic,index) ? 'OK' : index + 1}</span><span><strong>${escapeHtml(lesson.title)}</strong><small>${isLessonDone(topic,index) ? 'COMPLETADA' : modelUnit ? 'OBJETIVO, EJEMPLO Y PRACTICA' : 'TEORIA Y PRACTICA'}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div></section>`;
     return;
   }
   const lesson = lessons[state.activeLesson];
@@ -4367,10 +4720,12 @@ function renderContents(module) {
 }
 function subtopicsFor(topic) {
   const titles = LESSON_TITLES[topic.id] || ['Conceptos clave','Procedimiento','Practica','Revision'];
+  const modelLessons = MODEL_UNITS[topic.id]?.lessons || [];
   return titles.map((title,index) => ({
     title,
     note:`${topic.note} En esta leccion trabajaras ${title.toLowerCase()} de forma guiada y con los pasos que suelen pedirse en la prueba.`,
-    example:index === 0 ? `Modelo inicial: ${topic.example}` : index === 1 ? `Practica guiada de ${title.toLowerCase()}: parte de esta idea y explica cada paso. ${topic.example}` : index === 2 ? `Pregunta tipo examen: aplica ${title.toLowerCase()} en una respuesta breve y justificada. Referencia: ${topic.example}` : `Revision final: detecta el error, corrigelo y explica por que. Modelo de apoyo: ${topic.example}`
+    example:index === 0 ? `Modelo inicial: ${topic.example}` : index === 1 ? `Practica guiada de ${title.toLowerCase()}: parte de esta idea y explica cada paso. ${topic.example}` : index === 2 ? `Pregunta tipo examen: aplica ${title.toLowerCase()} en una respuesta breve y justificada. Referencia: ${topic.example}` : `Revision final: detecta el error, corrigelo y explica por que. Modelo de apoyo: ${topic.example}`,
+    ...(modelLessons[index] || {})
   }));
 }
 function lessonKey(topicId,index) { return `${topicId}:lesson:${index}`; }
@@ -4381,6 +4736,15 @@ function closeLesson() { state.activeLesson = null; renderWorkspace(); saveState
 function completeLesson(topicId,index) {
   const topic = allTasks().find(item => item.id === topicId);
   if (!topic) return;
+  if (MODEL_UNITS[topicId] && !lessonEvidenceReady(topicId,index)) {
+    const status = $('modelEvidenceStatus');
+    if (status) {
+      status.textContent = 'Antes de completar, escribe tu respuesta, marca al menos dos comprobaciones y guárdala.';
+      status.classList.remove('ready');
+      status.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+    return;
+  }
   saveLessonNotes(topicId,index,false);
   state.done[lessonKey(topicId,index)] = true;
   if (subtopicsFor(topic).every((lesson,lessonIndex) => isLessonDone(topic,lessonIndex))) state.done[topicId] = true;
@@ -4433,6 +4797,17 @@ function lessonPoints(topic, lesson, index) {
   return base.map((text, pointIndex) => pointIndex === 0 && index > 0 ? `Aplicacion practica de ${lesson.title.toLowerCase()} en ${topic.title}.` : text);
 }
 function lessonNoteKey(topicId,index) { return `${topicId}:notes:${index}`; }
+function evidenceKey(topicId,index) { return `${topicId}:evidence:${index}`; }
+function lessonEvidenceReady(topicId,index) { return state.learningEvidence?.[evidenceKey(topicId,index)]?.ready === true; }
+function saveModelEvidence(topicId,index) {
+  const response = String($('modelEvidenceAnswer')?.value || '').trim();
+  const checks = [...document.querySelectorAll('[data-evidence-check]')].map(input => input.checked);
+  const ready = response.length >= 40 && checks.filter(Boolean).length >= 2;
+  state.learningEvidence[evidenceKey(topicId,index)] = {response, checks, ready, submittedAt:new Date().toISOString()};
+  if (ready) recordStudyActivity();
+  saveState();
+  renderWorkspace();
+}
 function moduleStudyProfile(moduleId) {
   return {
     lengua:{exam:'ambito de comunicacion', method:'leer, localizar datos, ordenar ideas y escribir con frases claras', criteria:'comprension, expresion escrita, gramatica y ortografia'},
@@ -4444,6 +4819,25 @@ function moduleStudyProfile(moduleId) {
   }[moduleId] || {exam:'prueba libre de ESO', method:'entender, ordenar, practicar y revisar', criteria:'claridad, correccion y aplicacion'};
 }
 function defaultLessonNotes(topic, lesson, index) {
+  if (lesson.objective) {
+    return `OBJETIVO
+${lesson.objective}
+
+IDEAS CLAVE
+${lesson.theory}
+
+METODO
+1. Lee primero la pregunta.
+2. Localiza una pista concreta en el texto.
+3. Responde con tus palabras.
+4. Justifica y revisa que no hayas inventado informacion.
+
+EVIDENCIA
+${lesson.evidence}
+
+CRITERIO DE SUPERACION
+${lesson.pass}`;
+  }
   const module = moduleById(topic.module);
   const profile = moduleStudyProfile(module.id);
   const points = lessonPoints(topic, lesson, index);
@@ -4476,6 +4870,7 @@ MINI PREGUNTA DE EXAMEN
 Explica ${lesson.title.toLowerCase()} aplicado a ${topic.title.toLowerCase()} y anade un ejemplo sencillo de la vida diaria.`;
 }
 function lessonTheory(topic, lesson, index) {
+  if (lesson.theory) return lesson.theory;
   const module = moduleById(topic.module);
   const profile = moduleStudyProfile(module.id);
   const coreTheory = VERIFIED_TOPIC_THEORY[topic.id] || topic.note;
@@ -4487,9 +4882,25 @@ Para prepararlo, aprende primero la definicion corta y despues practica una resp
 
 Un buen metodo es: 1) leer que pide exactamente, 2) responder lo seguro primero, 3) justificar con una pista o ejemplo, 4) revisar unidades, ortografia y sentido. La meta no es escribir mucho, sino responder justo lo que se pregunta sin dejar pasos importantes fuera.`;
 }
+function modelLessonHtml(topic, lesson) {
+  const unit = MODEL_UNITS[topic.id];
+  if (!unit || !lesson.objective) return '';
+  const evidence = state.learningEvidence?.[evidenceKey(topic.id,state.activeLesson)] || {response:'',checks:[]};
+  const checks = ['He respondido todas las partes.','He usado datos o pistas concretas.','He revisado claridad, ortografía o unidades.'];
+  return `<div class="model-unit-meta"><span class="model-badge">${escapeHtml(unit.label)}</span><small>Revisada ${escapeHtml(unit.reviewed)} · ${escapeHtml(unit.source)}</small></div>
+    <div class="model-objective"><strong>Objetivo de la lección</strong>${escapeHtml(lesson.objective)}</div>
+    <div class="theory-card"><strong>TEORÍA CLARA</strong><p>${escapeHtml(lesson.theory)}</p></div>
+    <div class="model-learning-grid">
+      <section class="model-learning-block example"><h3>${escapeHtml(lesson.exampleTitle)}</h3><p>${escapeHtml(lesson.exampleText)}</p><ol>${lesson.exampleSteps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ol></section>
+      <section class="model-learning-block practice"><h3>Práctica autónoma</h3><p>${escapeHtml(lesson.practice)}</p><details class="model-solution"><summary>Ver solución razonada</summary><p>${escapeHtml(lesson.solution)}</p></details></section>
+      <section class="model-learning-block"><h3>Errores frecuentes</h3><ul>${lesson.errors.map(error => `<li>${escapeHtml(error)}</li>`).join('')}</ul></section>
+      <section class="model-learning-block evidence"><h3>Evidencia y aprobado</h3><p><strong>Entrega:</strong> ${escapeHtml(lesson.evidence)}<br><br><strong>Superación:</strong> ${escapeHtml(lesson.pass)}</p><div class="model-evidence-form"><textarea id="modelEvidenceAnswer" placeholder="Escribe aquí tu respuesta antes de completar la lección.">${escapeHtml(evidence.response || '')}</textarea><div class="model-checks">${checks.map((check,index) => `<label><input type="checkbox" data-evidence-check ${evidence.checks?.[index] ? 'checked' : ''}>${escapeHtml(check)}</label>`).join('')}</div><button class="primary" type="button" onclick="saveModelEvidence('${topic.id}',${state.activeLesson})">Guardar evidencia</button><div class="model-evidence-status ${evidence.ready ? 'ready' : ''}" id="modelEvidenceStatus">${evidence.ready ? 'Evidencia guardada. Ya puedes completar la lección.' : 'Necesitas al menos 40 caracteres y dos comprobaciones.'}</div></div></section>
+    </div>`;
+}
 function lessonContentHtml(topic,lesson,index) {
   const saved = state.lessonNotes?.[lessonNoteKey(topic.id,index)] || defaultLessonNotes(topic, lesson, index);
-  return `<div class="lesson-content"><div class="theory-card"><strong>TEORIA</strong><p>${escapeHtml(lessonTheory(topic,lesson,index)).replace(/\n/g,'<br>')}</p></div><div class="ai-notes-card"><div class="ai-notes-head"><div><strong>APUNTES BASE</strong><p>Estos apuntes ya vienen preparados. Puedes editarlos, guardarlos o mejorarlos con IA si quieres.</p></div></div><textarea class="ai-notes-text" id="lessonAiNotes" placeholder="Aqui apareceran tus apuntes del tema. Puedes escribir, pegar o generar con IA.">${escapeHtml(saved)}</textarea><div class="ai-notes-actions"><button class="primary" type="button" onclick="saveLessonNotes('${topic.id}',${index})">Guardar apuntes</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'improve')">Mejorar con IA</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'generate')">Regenerar IA</button></div><div class="ai-notes-status" id="lessonAiStatus">${state.lessonNotes?.[lessonNoteKey(topic.id,index)] ? 'Apuntes guardados.' : 'Base incluida sin usar IA.'}</div></div><details class="lesson-resources"><summary>RECURSOS</summary><div class="topic-resource-list">${resourcesForTopic(topic).map(link => `<a href="${link.url}" target="_blank" rel="noopener"><span><strong>${escapeHtml(link.title)}</strong><small>${escapeHtml(link.source)}</small></span><span>ABRIR</span></a>`).join('')}</div></details></div>`;
+  const lessonBody = lesson.objective ? modelLessonHtml(topic, lesson) : `<div class="theory-card"><strong>TEORIA</strong><p>${escapeHtml(lessonTheory(topic,lesson,index)).replace(/\n/g,'<br>')}</p></div>`;
+  return `<div class="lesson-content">${lessonBody}<div class="ai-notes-card"><div class="ai-notes-head"><div><strong>APUNTES BASE</strong><p>Estos apuntes ya vienen preparados. Puedes editarlos, guardarlos o mejorarlos con IA si quieres.</p></div></div><textarea class="ai-notes-text" id="lessonAiNotes" placeholder="Aqui apareceran tus apuntes del tema. Puedes escribir, pegar o generar con IA.">${escapeHtml(saved)}</textarea><div class="ai-notes-actions"><button class="primary" type="button" onclick="saveLessonNotes('${topic.id}',${index})">Guardar apuntes</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'improve')">Mejorar con IA</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'generate')">Regenerar IA</button></div><div class="ai-notes-status" id="lessonAiStatus">${state.lessonNotes?.[lessonNoteKey(topic.id,index)] ? 'Apuntes guardados.' : 'Base incluida sin usar IA.'}</div></div><details class="lesson-resources"><summary>RECURSOS</summary><div class="topic-resource-list">${resourcesForTopic(topic).map(link => `<a href="${link.url}" target="_blank" rel="noopener"><span><strong>${escapeHtml(link.title)}</strong><small>${escapeHtml(link.source)}</small></span><span>ABRIR</span></a>`).join('')}</div></details></div>`;
 }
 function contentFor(id, moduleId) {
   const topic = allTasks().find(t => t.id === id);
@@ -4587,8 +4998,8 @@ function scoreTest(testId='') {
 function examModeInfo() {
   return {
     quick:{title:'Examen rapido', desc:'15-20 minutos. Una practica corta para comprobar una asignatura.', button:'Generar rapido', prompt:'una practica corta de 15-20 minutos con 2 o 3 actividades'},
-    complete:{title:'Examen completo', desc:'Simulacro de las asignaturas elegidas con correccion posterior.', button:'Generar completo', prompt:'un simulacro completo de las asignaturas indicadas'},
-    official:{title:'Modelo con estructura oficial', desc:'Estructura, tiempos y puntuacion orientativa de las pruebas libres reales; actividades originales.', button:'Generar estructura real', prompt:'un modelo original que respete de forma realista estructura, tiempos, puntuacion y criterios habituales de las pruebas libres oficiales'}
+    complete:{title:'Repaso global', desc:'75 minutos. Practica combinada de varias materias; no equivale a una prueba oficial completa.', button:'Generar repaso', prompt:'una practica global de 75 minutos con actividades de las materias indicadas'},
+    official:{title:'Estructura oficial', desc:'Guia de secciones, tiempos y puntuacion de las tres pruebas de ambito de Andalucia 2026.', button:'Ver estructura', prompt:'una practica original ajustada a la estructura y puntuacion oficial del ambito elegido'}
   }[state.examMode || 'quick'];
 }
 function examTopicModules(type, mode) {
@@ -4631,14 +5042,14 @@ function examExampleBank() {
     const socialTopic = social[(variant * 2 + 3) % social.length];
     const scienceTopic = science[(variant * 2 + 5) % science.length];
     const mode = group === 0 ? 'quick' : group === 1 ? 'complete' : 'official';
-    const label = group === 0 ? 'Rapido' : group === 1 ? 'Completo' : 'Estructura real';
-    const time = group === 0 ? '20 min' : group === 1 ? '75 min' : 'Tiempo oficial orientativo';
+    const label = group === 0 ? 'Rapido' : group === 1 ? 'Repaso global' : 'Guia oficial';
+    const time = group === 0 ? '20 min' : group === 1 ? '75 min' : '2 h por ambito';
     const focus = [communicationTopic,socialTopic,scienceTopic][variant % 3];
     const body = group === 0
       ? `MODELO RAPIDO ${variant + 1}\nTiempo: 20 minutos\n\n1. ${focus.title}: ${focus.detail} Responde con tus palabras.\n\n2. Aplica lo aprendido en un ejercicio breve y explica cada paso.\n\n3. Revisa que la respuesta este completa y sea facil de entender.`
       : group === 1
         ? `SIMULACRO COMPLETO ${variant + 1}\nTiempo recomendado: 75 minutos\n\nCOMUNICACION\n1. ${communicationTopic.title}: ${communicationTopic.detail} Incluye comprension y expresion escrita.\n\nSOCIAL\n2. ${socialTopic.title}: ${socialTopic.detail} Explica causas, consecuencias o datos.\n\nCIENTIFICO-TECNOLOGICO\n3. ${scienceTopic.title}: ${scienceTopic.detail} Resuelve mostrando el procedimiento.\n\nPuntuacion: 10 puntos repartidos entre los tres ambitos.`
-        : `MODELO CON ESTRUCTURA REAL ${variant + 1}\n\nAMBITO DE COMUNICACION\nTexto con preguntas de comprension, lengua y redaccion. Contenido destacado: ${communicationTopic.title}.\n\nAMBITO SOCIAL\nAnalisis de una fuente, conceptos y explicacion historica o geografica. Contenido destacado: ${socialTopic.title}.\n\nAMBITO CIENTIFICO-TECNOLOGICO\nProblemas, interpretacion de datos y explicacion cientifica. Contenido destacado: ${scienceTopic.title}.\n\nResponde por apartados, justifica los pasos y revisa unidades, vocabulario y presentacion.`;
+        : `GUIA DE ESTRUCTURA OFICIAL 2026\n\n${OFFICIAL_SCOPES.map(scope => `${scope.title.toUpperCase()}\n${scope.sections.join('\n')}`).join('\n\n')}\n\nCada ambito se puntua sobre 100, se supera con 50 puntos y dispone de un maximo de dos horas. Esta guia no es por si sola un simulacro completo.`;
     const topics = [communicationTopic, socialTopic, scienceTopic].filter(Boolean).map(topic => {
       const module = MODULES.find(m => m.tasks.some(t => t.id === topic.id)) || MODULES[0];
       return {module:module.id, moduleTitle:module.title, topicId:topic.id, title:topic.title};
@@ -4650,6 +5061,7 @@ function loadExamExample(index) {
   const example = examExampleBank()[index];
   if (!example) return;
   state.examMode = example.mode;
+  state.currentExamScope = null;
   state.currentExamTopics = example.topics || [];
   state.currentExam = `TEMAS QUE ENTRAN:\n${examTopicsText(state.currentExamTopics)}\n\n${example.body}`;
   state.activeTab = 'correccion';
@@ -4658,14 +5070,44 @@ function loadExamExample(index) {
   saveState();
 }
 function selectExamMode(mode) { state.examMode = mode; renderExamBuilder(); saveState(); }
-function clearExamMode() { state.examMode = null; renderExamBuilder(); saveState(); }
+function clearExamMode() { state.examMode = null; state.currentExamScope = null; renderExamBuilder(); saveState(); }
 function renderRandomExam() { renderExamBuilder(); }
 function renderExamBuilder() {
   if (state.examPracticeType === 'test') { renderExamTestChooser(); return; }
   const examples = examExampleBank().slice(0,6);
   const modelLink = OFFICIAL_LINKS.find(link => link.tags.includes('modelos') || link.tags.includes('examenes')) || OFFICIAL_LINKS[0];
-  $('viewer').innerHTML = `<div class="exam-hub"><div class="exam-ai-box"><strong>CREAR EXAMEN</strong><p>Elige una práctica y empieza. Después podrás responder o subir una foto para corregir.</p><div class="exam-action-grid"><button class="exam-action-card" type="button" onclick="createTimedRandomExam('quick')"><strong>20 min</strong><span>Práctica breve</span></button><button class="exam-action-card" type="button" onclick="createTimedRandomExam('complete')"><strong>75 min</strong><span>Varios ámbitos</span></button><button class="exam-action-card" type="button" onclick="createTimedRandomExam('official')"><strong>Estructura real</strong><span>Duración orientativa</span></button></div><details class="exam-extra"><summary>Personalizar o generar con IA</summary><div class="exam-options form-grid"><div><label>Ámbito</label><select id="examType"><option>Examen completo de tres ambitos</option><option>Solo Comunicacion</option><option>Solo Social</option><option>Solo Cientifico-tecnologico</option></select></div><div><label>Nivel</label><select id="examLevel"><option>Nivel I</option><option>Nivel II</option><option>Prueba libre final</option></select></div><div><label>Formato</label><select id="examModeSelect"><option value="quick">Rapido</option><option value="complete">Completo</option><option value="official">Estructura real</option></select></div></div><div class="toolbar"><button class="primary" onclick="createExam()">Crear personalizado</button><button type="button" onclick="createAiExam()">Generar con IA</button></div></details><details class="exam-extra"><summary>Ver modelos y recursos</summary><div class="exam-preset-list">${examples.map((example,index) => `<button type="button" onclick="loadExamExample(${index})"><span><strong>${escapeHtml(example.title)}</strong><small>${escapeHtml(example.time)}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div><a href="${modelLink.url}" target="_blank" rel="noopener">Consultar modelos oficiales ↗</a></details></div></div>`;
+  $('viewer').innerHTML = `<div class="exam-hub"><div class="exam-ai-box"><strong>CREAR EXAMEN</strong><p>Elige una práctica y empieza. Después podrás responder o subir una foto para corregir.</p><div class="exam-action-grid"><button class="exam-action-card" type="button" onclick="createTimedRandomExam('quick')"><strong>20 min</strong><span>Práctica breve</span></button><button class="exam-action-card" type="button" onclick="createTimedRandomExam('complete')"><strong>75 min</strong><span>Repaso global</span></button><button class="exam-action-card" type="button" onclick="showOfficialSimulators()"><strong>Simulacros oficiales</strong><span>100 puntos · 2 horas por ámbito</span></button></div><details class="exam-extra"><summary>Personalizar o generar con IA</summary><div class="exam-options form-grid"><div><label>Ámbito</label><select id="examType"><option>Repaso de los tres ambitos</option><option>Solo Comunicacion</option><option>Solo Social</option><option>Solo Cientifico-tecnologico</option></select></div><div><label>Nivel</label><select id="examLevel"><option>Nivel I</option><option>Nivel II</option><option selected>Prueba libre final</option></select></div><div><label>Formato</label><select id="examModeSelect"><option value="quick">Rapido</option><option value="complete">Repaso global</option><option value="official">Estructura oficial</option></select></div></div><div class="toolbar"><button class="primary" onclick="createExam()">Crear personalizado</button><button type="button" onclick="createAiExam()">Generar con IA</button></div></details><details class="exam-extra"><summary>Ver modelos y recursos</summary><div class="exam-preset-list">${examples.map((example,index) => `<button type="button" onclick="loadExamExample(${index})"><span><strong>${escapeHtml(example.title)}</strong><small>${escapeHtml(example.time)}</small></span><span class="topic-arrow">&rsaquo;</span></button>`).join('')}</div><a href="${modelLink.url}" target="_blank" rel="noopener">Consultar modelos oficiales ↗</a></details></div></div>`;
   renderExamPracticeSwitch();
+}
+function showOfficialExamStructure() {
+  $('viewer').innerHTML = `<div class="exam-hub"><div class="exam-ai-box"><div class="test-run-head"><button class="icon-button" type="button" onclick="renderExamBuilder()" aria-label="Volver" title="Volver">&larr;</button><div><strong>ESTRUCTURA OFICIAL ANDALUCIA 2026</strong><span>Tres pruebas independientes · 100 puntos cada una · minimo 50 para superar cada ambito</span></div></div>${OFFICIAL_SCOPES.map(scope => `<section class="curriculum-scope" style="--scope-color:${scope.color};--scope-soft:${scope.soft}"><div class="curriculum-scope-head"><div class="curriculum-scope-title"><span class="curriculum-scope-icon" aria-hidden="true">${escapeHtml(scope.icon)}</span><div><h3>${escapeHtml(scope.title)}</h3><p>${escapeHtml(scope.summary)}</p></div></div><span class="curriculum-scope-score">2 horas · ${escapeHtml(scope.pass)}</span></div><ul class="structure-list">${scope.sections.map(section => `<li><span>${escapeHtml(section)}</span></li>`).join('')}</ul><button class="primary" type="button" onclick="startOfficialSimulator('${scope.id}')">Empezar simulacro de ${escapeHtml(scope.title.replace('Ámbito de ','').replace('Ámbito ',''))}</button></section>`).join('')}<p class="result-label">Referencia: Resolución de 23 de enero de 2026. Los enunciados son originales de práctica y respetan la distribución oficial de puntos.</p></div></div>`;
+  renderExamPracticeSwitch();
+}
+function showOfficialSimulators() {
+  $('viewer').innerHTML = `<div class="exam-hub"><div class="exam-ai-box"><div class="test-run-head"><button class="icon-button" type="button" onclick="renderExamBuilder()" aria-label="Volver" title="Volver">&larr;</button><div><strong>SIMULACROS POR ÁMBITO</strong><span>Enunciados originales · estructura Andalucía 2026 · mínimo 50/100</span></div></div><div class="official-sim-grid">${OFFICIAL_SCOPES.map(scope => { const simulator=OFFICIAL_SIMULATORS[scope.id]; return `<article class="official-sim-card" style="--scope-color:${scope.color};--scope-soft:${scope.soft}"><h3>${escapeHtml(simulator.title)}</h3><div class="official-sim-meta"><span>${escapeHtml(simulator.duration)}</span><span>100 puntos</span><span>Aprueba con 50</span></div><div class="official-sim-sections">${simulator.sections.map(section => `<span>${escapeHtml(section.title)}<b>${section.points} pt</b></span>`).join('')}</div><button class="primary" type="button" onclick="startOfficialSimulator('${scope.id}')">Empezar simulacro</button></article>`; }).join('')}</div><button type="button" onclick="showOfficialExamStructure()">Consultar estructura y criterios</button></div></div>`;
+  renderExamPracticeSwitch();
+}
+function officialSimulatorText(scopeId) {
+  const simulator = OFFICIAL_SIMULATORS[scopeId];
+  if (!simulator) return '';
+  return `${simulator.title.toUpperCase()} · SIMULACRO ORIGINAL\nTiempo máximo: ${simulator.duration}\nPuntuación: 100 puntos · mínimo orientativo para superar: 50\n\n${simulator.sections.map((section,index) => `${index + 1}. ${section.title.toUpperCase()} [${section.points} PUNTOS]\n${section.prompt}`).join('\n\n')}`;
+}
+function startOfficialSimulator(scopeId) {
+  const simulator = OFFICIAL_SIMULATORS[scopeId];
+  if (!simulator) return;
+  state.examMode = 'official';
+  state.currentExamScope = scopeId;
+  state.currentExamTopics = selectExamTopics(scopeId, 'complete');
+  state.currentExam = officialSimulatorText(scopeId);
+  state.activeTab = 'correccion';
+  state.attempts.unshift({type:'simulacro oficial', at:new Date().toISOString(), note:simulator.title, scope:scopeId, topics:state.currentExamTopics});
+  renderWorkspace();
+  saveState();
+}
+function officialRubricHtml() {
+  const simulator = OFFICIAL_SIMULATORS[state.currentExamScope];
+  if (!simulator) return '';
+  return `<section class="official-rubric"><div class="official-rubric-head"><strong>${escapeHtml(simulator.title)} · matriz de corrección</strong><span>100 puntos</span></div>${simulator.sections.map(section => `<div class="official-rubric-row"><span>${escapeHtml(section.title)}</span><strong>${section.points} puntos</strong></div>`).join('')}<small>La corrección con IA es orientativa. Comprueba la convocatoria y los criterios oficiales.</small></section>`;
 }
 function setExamPracticeType(type) { state.examPracticeType = type; renderExamBuilder(); saveState(); }
 function renderExamPracticeSwitch() {
@@ -4706,6 +5148,7 @@ function createExam() {
   const level = $('examLevel').value;
   const mode = $('examModeSelect')?.value || state.examMode || 'quick';
   state.examMode = mode;
+  state.currentExamScope = null;
   const topics = selectExamTopics(type, mode);
   const topicBlock = examTopicsText(topics);
   const body = topics.map((item,index) => `${index + 1}. ${item.moduleTitle}: ${item.title}. Explica la idea con tus palabras, aplica un ejemplo y justifica la respuesta.`).join('\n\n') + `\n\nTiempo ${mode === 'quick' ? 'recomendado: 20 minutos' : mode === 'complete' ? 'recomendado: 75 minutos' : 'según convocatoria'}. Puntuación orientativa repartida entre las preguntas.`;
@@ -4733,6 +5176,7 @@ async function createAiExam() {
   const mode = $('examModeSelect')?.value || 'complete';
   const topics = selectExamTopics(type, mode);
   state.examMode = mode;
+  state.currentExamScope = null;
   state.currentExamTopics = topics;
   target.innerHTML = '<div class="output">Generando examen con IA...</div>';
   const prompt = `Genera una prueba original de Graduado ESO adultos. Ambito elegido: ${type}. Nivel: ${level}. Formato: ${examModeInfo().title}. Alumno adulto con poco tiempo. Temas prioritarios: ${examTopicsText(topics)}. Incluye solo los ambitos elegidos, tiempo recomendado, puntuacion y criterios breves. Preguntas claras y originales. Siguiente tema pendiente: ${next ? `${next.module.title} - ${next.topic.title}` : 'repaso general'}.`;
@@ -4748,7 +5192,7 @@ async function createAiExam() {
   }
 }
 function renderExamCorrection() {
-  $('viewer').innerHTML = `<div class="exam-flow"><span class="done">1 Elegir examen</span><span class="active">2 Responder</span><span>3 Corregir</span></div>${examTopicsHtml()}<details class="exam-paper" open><summary>Enunciado</summary><textarea id="examPrompt">${escapeHtml(state.currentExam || '')}</textarea></details><div class="ocr-card"><div class="ocr-card-head"><div><div class="ocr-card-title">Subir imagen</div><p class="ocr-card-hint">Sube una foto clara del examen o de la respuesta escrita.</p></div></div><div class="ocr-row"><div><label>Imagen</label><input id="examOcrFile" type="file" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="previewExamOcrFile()"></div><div><label>Usar imagen como</label><select id="examOcrTarget"><option value="answer">Respuesta</option><option value="prompt">Enunciado</option></select></div><button class="primary" type="button" onclick="runExamOcr()">Leer imagen</button></div><div class="ocr-preview" id="examOcrPreview" hidden><img id="examOcrImage" alt="Vista previa del examen"><div><strong id="examOcrName">Imagen seleccionada</strong><p id="examOcrStatus">Lista para leer.</p></div></div><label>Texto de la imagen</label><textarea id="examOcrText" class="ocr-text" placeholder="Aqui aparecera el texto extraido de la imagen. Puedes revisarlo antes de insertarlo."></textarea><div class="toolbar"><button type="button" onclick="insertExamOcrText()">Insertar texto de la imagen</button><button type="button" onclick="clearExamOcr()">Quitar imagen</button></div></div><label>Tu respuesta</label><textarea id="studentAnswer" class="answer-area" placeholder="Escribe o pega tu respuesta"></textarea><div class="toolbar"><button class="primary" onclick="correctExamAi()">Corregir con IA</button><button onclick="saveOnlyAttempt()">Guardar</button></div><div class="output" id="correctionOutput">La correccion aparecera aqui.</div>`;
+  $('viewer').innerHTML = `<div class="exam-flow"><span class="done">1 Elegir examen</span><span class="active">2 Responder</span><span>3 Corregir</span></div>${officialRubricHtml()}${examTopicsHtml()}<details class="exam-paper" open><summary>Enunciado</summary><textarea id="examPrompt">${escapeHtml(state.currentExam || '')}</textarea></details><div class="ocr-card"><div class="ocr-card-head"><div><div class="ocr-card-title">Subir imagen</div><p class="ocr-card-hint">Sube una foto clara del examen o de la respuesta escrita.</p></div></div><div class="ocr-row"><div><label>Imagen</label><input id="examOcrFile" type="file" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="previewExamOcrFile()"></div><div><label>Usar imagen como</label><select id="examOcrTarget"><option value="answer">Respuesta</option><option value="prompt">Enunciado</option></select></div><button class="primary" type="button" onclick="runExamOcr()">Leer imagen</button></div><div class="ocr-preview" id="examOcrPreview" hidden><img id="examOcrImage" alt="Vista previa del examen"><div><strong id="examOcrName">Imagen seleccionada</strong><p id="examOcrStatus">Lista para leer.</p></div></div><label>Texto de la imagen</label><textarea id="examOcrText" class="ocr-text" placeholder="Aqui aparecera el texto extraido de la imagen. Puedes revisarlo antes de insertarlo."></textarea><div class="toolbar"><button type="button" onclick="insertExamOcrText()">Insertar texto de la imagen</button><button type="button" onclick="clearExamOcr()">Quitar imagen</button></div></div><label>Tu respuesta</label><textarea id="studentAnswer" class="answer-area" placeholder="Responde por apartados e indica el número de cada ejercicio."></textarea><div class="toolbar"><button class="primary" onclick="correctExamAi()">Corregir con IA</button><button onclick="saveOnlyAttempt()">Guardar</button></div><div class="output" id="correctionOutput">La corrección aparecerá aquí. La nota de IA será orientativa.</div>`;
   $('viewer').querySelector('.exam-flow').textContent = state.currentExam
     ? 'Examen preparado. Responde debajo o sube una foto para recibir la corrección.'
     : '¿Ya tienes un examen? Pega el enunciado o súbelo en una foto y añade tu respuesta.';
@@ -4813,11 +5257,16 @@ async function correctExamAi() {
   const examText = `${$('examPrompt').value}${ocrText && ocrTarget === 'prompt' ? `\n\nTEXTO EXTRAIDO DE LA IMAGEN DEL ENUNCIADO:\n${ocrText}` : ''}`;
   const answerText = `${$('studentAnswer').value}${ocrText && ocrTarget !== 'prompt' ? `\n\nTEXTO EXTRAIDO DE LA IMAGEN DE LA RESPUESTA:\n${ocrText}` : ''}`;
   if (!examText.trim() || !answerText.trim()) { target.textContent = 'Añade el enunciado y tu respuesta, por texto o por foto, antes de corregir.'; return; }
-  const prompt = `Corrige este examen de Graduado ESO adultos.\n\nEXAMEN:\n${examText}\n\nRESPUESTA DEL ALUMNO:\n${answerText}\n\nDevuelve: 1) nota sobre 10 por ambito y global, 2) tabla de criterios, 3) errores graves explicados sencillo, 4) correcciones concretas, 5) plan de recuperacion de 7 dias, 6) respuesta modelo breve. Corrige con claridad y sin humillar. Si hay texto extraido de una imagen, ten en cuenta que puede contener errores de lectura y corrige interpretando con prudencia.`;
+  const simulator = OFFICIAL_SIMULATORS[state.currentExamScope];
+  const rubric = simulator ? simulator.sections.map(section => `- ${section.title}: máximo ${section.points} puntos`).join('\n') : '';
+  const prompt = simulator
+    ? `Corrige de forma orientativa este simulacro original del ${simulator.title} para Graduado ESO de adultos en Andalucia.\n\nMATRIZ OBLIGATORIA (total 100):\n${rubric}\n\nEXAMEN:\n${examText}\n\nRESPUESTA DEL ALUMNO:\n${answerText}\n\nDevuelve: 1) tabla con cada seccion, maximo, puntos estimados y justificacion; 2) total sobre 100 y si alcanza 50; 3) control de extensiones exigidas; 4) aciertos; 5) errores y correcciones concretas; 6) siguiente practica recomendada. No redistribuyas puntos entre secciones. No inventes respuestas que el alumno no haya escrito. La estimacion de IA no es una calificacion oficial. Si procede, advierte que ortografia y gramatica pueden penalizar segun la convocatoria. Si hay OCR, indica cualquier fragmento dudoso.`
+    : `Corrige esta practica de Graduado ESO adultos.\n\nEXAMEN:\n${examText}\n\nRESPUESTA DEL ALUMNO:\n${answerText}\n\nDevuelve una valoracion orientativa: tabla de criterios, aciertos, errores explicados con sencillez, correcciones concretas y siguiente practica. No presentes la nota como oficial ni inventes contenido ausente. Si hay texto extraido de una imagen, interpreta con prudencia y marca fragmentos dudosos.`;
   try {
     const data = await backend('/api/chat', {method:'POST', body:JSON.stringify({purpose:'study', messages:[{role:'user', content:prompt}], temperature:.25, max_tokens:3200})});
-    target.textContent = data.content || '';
-    state.attempts.unshift({type:'examen IA', at:new Date().toISOString(), note:'Correccion completa', topics:state.currentExamTopics || []});
+    target.classList.add('teacher-rich');
+    target.innerHTML = formatStudyText(data.content || 'No se ha podido generar la corrección.');
+    state.attempts.unshift({type:simulator ? 'simulacro corregido' : 'examen IA', at:new Date().toISOString(), note:simulator ? `${simulator.title} · corrección orientativa` : 'Correccion completa', scope:state.currentExamScope, topics:state.currentExamTopics || []});
     recordStudyActivity();
     state.done['exam-ai'] = true;
     renderShell();
@@ -4825,7 +5274,7 @@ async function correctExamAi() {
   } catch (e) { target.textContent = e.message; }
 }
 function saveOnlyAttempt() {
-  state.attempts.unshift({type:'examen guardado', at:new Date().toISOString(), note:'Pendiente de correccion', topics:state.currentExamTopics || []});
+  state.attempts.unshift({type:'examen guardado', at:new Date().toISOString(), note:'Pendiente de correccion', scope:state.currentExamScope, topics:state.currentExamTopics || []});
   recordStudyActivity();
   render();
   saveState();

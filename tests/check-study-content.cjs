@@ -11,7 +11,8 @@ for (const app of ['e25', 'u25', 'cambridge']) {
   const context = vm.createContext({});
   const modules = source.match(/const MODULES = ([\s\S]*?);\s*const LESSON_TITLES/)[1];
   const questions = source.match(/const QUESTIONS = ([\s\S]*?);\s*let state/)[1];
-  const theory = source.match(/const VERIFIED_TOPIC_THEORY = ([\s\S]*?);\s*const DEFAULT_OFFICIAL_LINKS/)[1];
+  const theoryMatch = source.match(/const VERIFIED_TOPIC_THEORY = ([\s\S]*?);\s*const MODEL_UNITS/) || source.match(/const VERIFIED_TOPIC_THEORY = ([\s\S]*?);\s*const DEFAULT_OFFICIAL_LINKS/);
+  const theory = theoryMatch[1];
   const fallback = source.match(/const DEFAULT_OFFICIAL_LINKS = ([\s\S]*?);\s*let OFFICIAL_LINKS/)[1];
   vm.runInContext(`const MODULES=${modules}; const QUESTIONS=${questions};`, context);
   vm.runInContext(source.match(/function prepareTestQuestions\([\s\S]*?\n\}/)[0], context);

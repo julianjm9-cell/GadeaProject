@@ -38,6 +38,27 @@
       "desc": "Portal de la prueba: requisitos, tres ambitos, convocatoria y materiales. Esta app usa Andalucia como referencia; otras comunidades pueden variar."
     },
     {
+      "title": "Andalucia - Curriculo ESPA 2025",
+      "source": "BOJA",
+      "url": "https://www.juntadeandalucia.es/boja/2025/86/1",
+      "tags": ["normativa", "contenidos", "ambitos", "oficial"],
+      "desc": "Curriculo vigente de ESO para personas adultas en Andalucia: competencias, criterios de evaluacion y saberes basicos."
+    },
+    {
+      "title": "Andalucia - Estructura y convocatoria 2026",
+      "source": "BOJA",
+      "url": "https://www.juntadeandalucia.es/boja/2026/19/38",
+      "tags": ["convocatoria", "estructura", "puntuacion", "examenes", "oficial"],
+      "desc": "Resolucion anual con duracion, secciones, puntuaciones, extensiones y materiales permitidos en 2026."
+    },
+    {
+      "title": "Andalucia - Estructura explicada de las pruebas",
+      "source": "Junta de Andalucia",
+      "url": "https://www.juntadeandalucia.es/educacion/portales/web/educacion-permanente/servicios/pruebas/obtencion-titulo-eso/sobre-las-pruebas/estructura-de-pruebas",
+      "tags": ["estructura", "examenes", "ambitos", "oficial"],
+      "desc": "Resumen oficial por ambitos. Comprueba la convocatoria anual si cambian el formato o la puntuacion."
+    },
+    {
       "title": "Andalucia - Modelos de convocatorias anteriores",
       "source": "Junta de Andalucia",
       "url": "https://www.juntadeandalucia.es/educacion/portales/web/educacion-permanente/servicios/pruebas/obtencion-titulo-eso/sobre-las-pruebas/modelos-de-convocatorias-anteriores",
@@ -59,11 +80,53 @@
       "desc": "Normativa autonomica de las pruebas para mayores de 18 anos en Andalucia."
     },
     {
+      "title": "CEDEC - Lengua Castellana y Literatura",
+      "source": "INTEF / CEDEC",
+      "url": "https://cedec.intef.es/hacemos-cosas-con-palabras-proyecto-edia-para-lengua-castellana-y-literatura-en-secundaria/",
+      "tags": ["lengua", "contenidos", "redaccion", "consulta"],
+      "desc": "Recursos educativos abiertos de comprension, produccion textual, reflexion linguistica y literatura para Secundaria."
+    },
+    {
+      "title": "CEDEC - Ingles para ESO",
+      "source": "INTEF / CEDEC",
+      "url": "https://cedec.intef.es/proyecto-edia-what-a-digital-world-ingles-con-abp-en-2a-eso/",
+      "tags": ["ingles", "contenidos", "redaccion", "consulta"],
+      "desc": "Recursos abiertos de ingles funcional con lectura, escritura, vocabulario y situaciones comunicativas."
+    },
+    {
+      "title": "CEDEC - Geografia e Historia",
+      "source": "INTEF / CEDEC",
+      "url": "https://cedec.intef.es/situaciones-de-aprendizaje-de-geografia-e-historia-del-proyecto-edia-de-cedec/",
+      "tags": ["social", "geografia", "mapas", "datos", "contenidos"],
+      "desc": "Coleccion abierta para trabajar mapas, fuentes, procesos historicos, economia y ciudadania."
+    },
+    {
+      "title": "CEDEC - Matematicas para Secundaria",
+      "source": "INTEF / CEDEC",
+      "url": "https://cedec.intef.es/situaciones-de-aprendizaje-edia-de-matematicas-para-secundaria/",
+      "tags": ["matematicas", "geometria", "datos", "contenidos"],
+      "desc": "Situaciones de aprendizaje abiertas sobre numeros, algebra, geometria, estadistica y probabilidad."
+    },
+    {
+      "title": "CEDEC - Ciencias para Secundaria",
+      "source": "INTEF / CEDEC",
+      "url": "https://cedec.intef.es/situaciones-de-aprendizaje-de-fisica-y-quimica-y-de-biologia-y-geologia-del-proyecto-edia-de-cedec/",
+      "tags": ["ciencias", "simulaciones", "datos", "contenidos"],
+      "desc": "Recursos abiertos de Biologia, Geologia, Fisica y Quimica con investigacion y actividades aplicadas."
+    },
+    {
       "title": "RAE - Diccionario de la lengua espanola",
       "source": "RAE",
       "url": "https://dle.rae.es/",
       "tags": ["lengua", "consulta"],
       "desc": "Consulta de vocabulario y ortografia para el ambito de Comunicacion."
+    },
+    {
+      "title": "RAE - Diccionario panhispanico de dudas",
+      "source": "RAE / ASALE",
+      "url": "https://www.rae.es/dpd/",
+      "tags": ["lengua", "consulta", "redaccion"],
+      "desc": "Respuestas razonadas sobre ortografia, puntuacion, gramatica y uso actual del espanol."
     }
   ]
 }
