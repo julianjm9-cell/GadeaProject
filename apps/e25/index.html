@@ -3317,118 +3317,87 @@ const LESSON_TITLES = {
   'cie-digitalizacion':['Identidad digital','Privacidad','Contrasenas','Uso responsable'],
   'cie-proyecto':['Necesidad','Diseno','Prototipo','Evaluacion y mejora']
 };
+const VERIFIED_TOPIC_THEORY = {
+  'len-comprension':'El tema expresa de que trata el texto; la idea principal afirma lo esencial sobre ese tema. La informacion explicita aparece escrita, mientras que una inferencia se deduce al relacionar pistas. Cada respuesta debe apoyarse en una palabra, frase o relacion del texto.',
+  'len-resumen':'Un resumen conserva tema, tesis e ideas principales en el mismo orden logico. Se redacta con palabras propias, sin ejemplos secundarios, repeticiones ni opiniones personales. Debe poder entenderse sin consultar el texto original.',
+  'len-gramatica':'Las clases de palabras se reconocen por su forma, significado y funcion. Para analizar una oracion, localiza primero el verbo, comprueba que elemento concuerda con el y despues identifica los complementos mediante pruebas de sustitucion y pregunta.',
+  'len-argumentacion':'Un texto argumentativo combina una tesis con razones que la sostienen. Los argumentos pueden aportar datos, ejemplos, autoridad, analogias o relaciones de causa y consecuencia. Un contraargumento se presenta y se responde sin deformar la postura contraria.',
+  'ing-reading':'Read the title and questions first, then identify names, dates, places and repeated words. Use the surrounding sentence to infer unknown vocabulary. Every answer should be supported by evidence from the text, not by general knowledge.',
+  'ing-grammar':'Use present simple for routines and facts, present continuous for actions in progress, past simple for finished past events and present perfect for past experiences connected to the present. Check subject-verb agreement, auxiliaries and time markers before choosing the tense.',
+  'ing-writing':'A short English text needs a clear opening, logically ordered ideas and a closing. Use basic connectors such as first, because, however and finally. After writing, check verb tense, subject-verb agreement, spelling and whether every part of the task is answered.',
+  'geo-mapas':'Todo mapa debe leerse mediante titulo, orientacion, leyenda y escala. La escala numerica 1:n indica que una unidad en el mapa equivale a n unidades reales. Para calcular una distancia real se multiplica la medida del mapa por el denominador y se convierten las unidades.',
+  'geo-poblacion':'El crecimiento natural es la diferencia entre nacimientos y defunciones; el crecimiento real incorpora tambien el saldo migratorio. Una piramide expansiva tiene base ancha, una estacionaria presenta grupos equilibrados y una regresiva refleja baja natalidad y envejecimiento.',
+  'geo-economia':'El sector primario obtiene recursos, el secundario los transforma y el terciario presta servicios. La localizacion de una actividad depende de materias primas, energia, trabajo, capital, transporte, mercado y decisiones publicas.',
+  'his-contemporanea':'Las revoluciones liberales cuestionaron el absolutismo y extendieron constituciones, ciudadania e igualdad juridica. La industrializacion introdujo maquinas, fabricas y nuevas fuentes de energia, impulso la urbanizacion y consolidó burguesia y proletariado.',
+  'his-sigloxx':'El siglo XX combina guerras mundiales, totalitarismos, descolonizacion, Guerra Fria e integracion europea. Una respuesta historica debe situar el proceso, explicar causas, describir cambios y distinguir consecuencias inmediatas de las de largo plazo.',
+  'his-espana':'La Espana contemporanea pasa por la crisis de la Restauracion, la Segunda Republica, la Guerra Civil, la dictadura franquista y la Transicion. La Constitucion de 1978 establece un Estado social y democratico de derecho y una organizacion territorial autonomica.',
+  'mat-proporciones':'Dos magnitudes son directamente proporcionales si su cociente permanece constante e inversamente proporcionales si su producto permanece constante. Un porcentaje p% equivale a p/100; un aumento se multiplica por 1+p/100 y un descuento por 1-p/100.',
+  'mat-algebra':'Resolver una ecuacion consiste en mantener la igualdad mientras se aisla la incognita mediante operaciones equivalentes en ambos miembros. Al final se sustituye el valor obtenido en la ecuacion inicial para comprobarlo.',
+  'mat-geometria':'Perimetro mide longitud, area mide superficie y volumen mide espacio; sus unidades no son intercambiables. En un triangulo rectangulo se cumple a²+b²=c², donde c es la hipotenusa. Antes de calcular conviene dibujar, anotar datos y convertir unidades.',
+  'mat-estadistica':'La media es la suma de los datos dividida entre su numero; la mediana es el valor central ordenado y la moda el mas frecuente. La medida adecuada depende de los datos: la mediana resiste mejor los valores extremos.',
+  'cie-metodo':'Una investigacion parte de una pregunta comprobable y una hipotesis. Se modifica la variable independiente, se mide la dependiente y se mantienen controladas las demas. La conclusion debe interpretar los datos y decir si apoyan la hipotesis.',
+  'cie-biologia':'La celula es la unidad basica de los seres vivos. La membrana regula intercambios, el nucleo contiene ADN, los ribosomas fabrican proteinas y las mitocondrias participan en la respiracion celular. Los aparatos humanos trabajan coordinados para nutricion, relacion y reproduccion.',
+  'cie-materia':'Una sustancia pura tiene composicion fija; una mezcla combina sustancias y puede separarse por procedimientos fisicos. En una reaccion quimica los atomos se reorganizan y se conserva su numero, por eso las ecuaciones deben ajustarse.',
+  'cie-fisica':'La velocidad relaciona desplazamiento y tiempo; la aceleracion mide el cambio de velocidad. Una fuerza puede cambiar el movimiento o deformar un cuerpo. La energia se transfiere y transforma, pero se conserva en un sistema aislado.'
+};
 const DEFAULT_OFFICIAL_LINKS = [
   {
-    title:'Junta de Andalucia - Graduado ESO mayores de 18',
-    url:'https://www.juntadeandalucia.es/educacion/portales/es/web/educacion-permanente/servicios/pruebas/obtencion-titulo-eso',
-    source:'Junta de Andalucia',
-    tags:['convocatoria','estructura','examenes'],
-    desc:'Portal oficial con requisitos, estructura general, plazos y acceso a informacion de la prueba.'
+    "title": "Andalucia - Graduado ESO mayores de 18",
+    "source": "Junta de Andalucia",
+    "url": "https://www.juntadeandalucia.es/educacion/portales/es/web/educacion-permanente/servicios/pruebas/obtencion-titulo-eso",
+    "tags": [
+      "convocatoria",
+      "estructura",
+      "ambitos",
+      "oficial"
+    ],
+    "desc": "Portal de la prueba: requisitos, tres ambitos, convocatoria y materiales. Esta app usa Andalucia como referencia; otras comunidades pueden variar."
   },
   {
-    title:'Junta de Andalucia - Contenidos y estructura',
-    url:'https://www.juntadeandalucia.es/educacion/portales/web/educacion-permanente/w/pruebas-obtencion-del-titulo-de-graduado-en-eso-para-mayores-de-18-anos-1-duplicar-0-1',
-    source:'Junta de Andalucia',
-    tags:['contenidos','estructura','ambitos'],
-    desc:'Pagina oficial con ambitos de conocimiento, contenidos de referencia y puntuacion minima.'
+    "title": "Andalucia - Modelos de convocatorias anteriores",
+    "source": "Junta de Andalucia",
+    "url": "https://www.juntadeandalucia.es/educacion/portales/web/educacion-permanente/servicios/pruebas/obtencion-titulo-eso/sobre-las-pruebas/modelos-de-convocatorias-anteriores",
+    "tags": [
+      "modelos",
+      "examenes",
+      "ambitos",
+      "oficial"
+    ],
+    "desc": "Modelos publicados por la Consejeria. Los de 2019-2024 responden a un curriculo anterior; revisa los de la convocatoria actual."
   },
   {
-    title:'Junta de Andalucia - Estructura de pruebas',
-    url:'https://www.juntadeandalucia.es/educacion/portales/es/web/educacion-permanente/servicios/pruebas/obtencion-titulo-eso/sobre-las-pruebas/estructura-de-pruebas?redirect=%2Feducacion%2Fportales%2Fes%2Fweb%2Feducacion-permanente%2Fservicios%2Fpruebas%2Fobtencion-titulo-eso%2Fsobre-las-pruebas',
-    source:'Junta de Andalucia',
-    tags:['estructura','puntuacion'],
-    desc:'Estructura oficial por ambitos, apartados, puntuacion y criterios generales.'
+    "title": "BOE - Curriculo de secundaria para adultos",
+    "source": "BOE",
+    "url": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-16814",
+    "tags": [
+      "normativa",
+      "ambitos",
+      "contenidos",
+      "oficial"
+    ],
+    "desc": "Curriculo de adultos en el ambito de gestion del Ministerio. No sustituye la normativa propia de cada comunidad autonoma."
   },
   {
-    title:'BOJA 2026 - Convocatoria y criterios',
-    url:'https://www.juntadeandalucia.es/boja/2026/19/38',
-    source:'BOJA',
-    tags:['convocatoria','estructura','puntuacion'],
-    desc:'Resolucion de 23 de enero de 2026 con horario, organizacion, estructura y criterios de correccion.'
+    "title": "Andalucia - Orden de pruebas de 2026",
+    "source": "BOJA",
+    "url": "https://www.juntadeandalucia.es/boja/2026/14/c01/2",
+    "tags": [
+      "normativa",
+      "convocatoria",
+      "estructura",
+      "oficial"
+    ],
+    "desc": "Normativa autonomica de las pruebas para mayores de 18 anos en Andalucia."
   },
   {
-    title:'Educastur - Orientaciones y modelos ESO',
-    url:'https://www.educastur.es/estudiantes/titulos/eso-orientacion',
-    source:'Educastur',
-    tags:['modelos','PDF'],
-    desc:'Portal oficial con orientaciones, modelos de examen y pruebas liberadas.'
-  },
-  {
-    title:'Educastur - Orientaciones Enero 2026 PDF',
-    url:'https://www.educastur.es/documents/34868/8004174/2025-10-est-epa-titulo-ESO-orientaciones-01-25.pdf/e4bab2fc-ea97-c20a-609f-ff3fbe91eed6?t=1760435189731',
-    source:'Educastur',
-    tags:['PDF','orientaciones'],
-    desc:'PDF oficial de orientaciones para la prueba de Graduado ESO mayores de 18 anos.'
-  },
-  {
-    title:'BOE - Curriculo y prueba ESO adultos',
-    url:'https://www.boe.es/buscar/act.php?id=BOE-A-2023-16814',
-    source:'BOE',
-    tags:['normativa','ambitos'],
-    desc:'Orden estatal con organizacion de ESPA, ambitos y caracteristicas de la prueba.'
-  },
-  {
-    title:'Junta de Andalucia - Informacion general pruebas libres',
-    url:'https://www.juntadeandalucia.es/temas/estudiar/adultos/examenes-libres.html',
-    source:'Junta de Andalucia',
-    tags:['convocatoria','tramites'],
-    desc:'Informacion oficial sobre requisitos, plazos, convocatoria y enlaces generales.'
-  },
-  {
-    title:'INTEF - Procomun',
-    url:'https://procomun.intef.es/',
-    source:'INTEF',
-    tags:['materiales','recursos'],
-    desc:'Banco publico de recursos educativos para reforzar Lengua, Sociales, Ciencias y competencia digital.'
-  },
-  {
-    title:'Diccionario RAE',
-    url:'https://dle.rae.es/',
-    source:'Real Academia Espanola',
-    tags:['lengua','consulta'],
-    desc:'Para comprobar significados, ortografia, acentuacion y vocabulario en el ambito de Comunicacion.'
-  },
-  {
-    title:'Centro Virtual Cervantes - Recursos de espanol',
-    url:'https://cvc.cervantes.es/ensenanza/biblioteca_ele/',
-    source:'Instituto Cervantes',
-    tags:['lengua','redaccion'],
-    desc:'Recursos de comprension y expresion escrita para practicar textos, resumenes y redacciones.'
-  },
-  {
-    title:'Khan Academy en Espanol',
-    url:'https://es.khanacademy.org/',
-    source:'Khan Academy',
-    tags:['matematicas','practica'],
-    desc:'Videos y ejercicios guiados para repasar operaciones, algebra, geometria, estadistica y ciencias.'
-  },
-  {
-    title:'GeoGebra - Matematicas visuales',
-    url:'https://www.geogebra.org/?lang=es',
-    source:'GeoGebra',
-    tags:['matematicas','geometria'],
-    desc:'Herramientas interactivas para entender graficas, funciones, geometria y problemas paso a paso.'
-  },
-  {
-    title:'PhET - Simulaciones de ciencias',
-    url:'https://phet.colorado.edu/es/',
-    source:'Universidad de Colorado Boulder',
-    tags:['ciencias','simulaciones'],
-    desc:'Simulaciones sencillas de fisica, quimica, biologia y matematicas para comprender conceptos visualmente.'
-  },
-  {
-    title:'INE - Recursos educativos y estadisticos',
-    url:'https://www.ine.es/ine/educacion.htm',
-    source:'INE',
-    tags:['social','datos'],
-    desc:'Datos y recursos oficiales para practicar graficos, poblacion, economia y lectura de estadisticas.'
-  },
-  {
-    title:'Instituto Geografico Nacional - Recursos educativos',
-    url:'https://www.ign.es/web/recursos-educativos',
-    source:'IGN',
-    tags:['social','mapas'],
-    desc:'Mapas y materiales reales para reforzar geografia, territorio y lectura de informacion visual.'
+    "title": "RAE - Diccionario de la lengua espanola",
+    "source": "RAE",
+    "url": "https://dle.rae.es/",
+    "tags": [
+      "lengua",
+      "consulta"
+    ],
+    "desc": "Consulta de vocabulario y ortografia para el ambito de Comunicacion."
   }
 ];
 let OFFICIAL_LINKS = [...DEFAULT_OFFICIAL_LINKS];
@@ -3474,6 +3443,90 @@ const QUESTIONS = {
     ['Una mezcla heterogenea...', ['Tiene componentes distinguibles','Es siempre un gas','Solo contiene agua'], 0],
     ['La energia no se crea ni se destruye, se...', ['Transforma','Congela siempre','Divide en metros'], 0],
     ['Una contrasena segura debe...', ['Combinar caracteres y ser unica','Ser 1234','Usarse en todas las cuentas'], 0]
+  ],
+  lengua:[
+    ["En \"Aunque llovia, salimos\", \"aunque\" introduce...",["una concesion","una consecuencia","una finalidad"],0],
+    ["\"Tus ojos son dos luceros\" contiene...",["una metafora","una enumeracion","una onomatopeya"],0],
+    ['En un resumen se debe...', ['Mantener las ideas esenciales con palabras propias','Copiar todas las frases','Anadir una opinion personal'], 0],
+    ['La tesis de un texto argumentativo es...', ['La idea que se defiende','El titulo del texto','El ultimo ejemplo'], 0],
+    ['En "Los alumnos entregaron el trabajo", el sujeto es...', ['Los alumnos','el trabajo','entregaron'], 0],
+    ['La forma correcta es...', ['A ver si vienes','Haber si vienes','Aver si vienes'], 0],
+    ['Un conector de consecuencia es...', ['Por tanto','Sin embargo','En primer lugar'], 0],
+    ['Una noticia debe separar...', ['Hechos y opiniones','Titular y fecha siempre','Sujeto y verbo'], 0],
+    ['En una solicitud formal conviene incluir...', ['Peticion, motivo y datos de contacto','Solo un saludo','Abreviaturas coloquiales'], 0],
+    ['Una fuente fiable indica...', ['Autoria, fecha y procedencia','Solo un titular llamativo','Muchos comentarios'], 0],
+    ['La narracion se organiza alrededor de...', ['Narrador, personajes, tiempo, espacio y accion','Solo versos y rima','Datos estadisticos'], 0],
+    ['Antes de entregar una redaccion hay que revisar...', ['Coherencia, puntuacion y ortografia','Solo la longitud','Unicamente el titulo'], 0]
+  ],
+  ingles:[
+    ["The library closes at 6 pm. It is 5:30 pm. You have...",["thirty minutes","ninety minutes","six hours"],0],
+    ["There ... any milk in the fridge.",["is not","are not","do not"],0],
+    ['Choose the correct sentence.', ['She works every morning.','She work every morning.','She working every morning.'], 0],
+    ['Yesterday I ... to the doctor.', ['went','go','will go'], 0],
+    ['"Could you help me?" is used to...', ['make a polite request','describe the past','compare two prices'], 0],
+    ['The opposite of "expensive" is...', ['cheap','crowded','early'], 0],
+    ['"You must wear a helmet" expresses...', ['obligation','possibility in the past','a comparison'], 0],
+    ['In an email, "Kind regards" is...', ['a closing','a question','a subject line'], 0],
+    ['A sign saying "No entry" means...', ['you cannot go in','the entrance is free','you must wait outside only at night'], 0],
+    ['Choose the correct question.', ['How much does it cost?','How much it costs?','How many does it cost?'], 0],
+    ['"First, then, finally" help to...', ['order ideas','form plurals','express possession'], 0],
+    ['Scanning a timetable means...', ['looking for a specific time or place','translating every word','memorising the whole page'], 0]
+  ],
+  geografia:[
+    ["Una localidad tiene 12 000 habitantes y 40 km2. Su densidad es...",["300 habitantes/km2","480 habitantes/km2","30 habitantes/km2"],0],
+    ["Nacen 80 personas y mueren 100; llegan 50 y se van 20. El crecimiento total es...",["10 personas","-20 personas","50 personas"],0],
+    ['Una escala 1:100 000 indica que 1 cm representa...', ['1 km','100 km','100 m'], 0],
+    ['La densidad de poblacion se calcula...', ['habitantes dividido entre superficie','superficie dividida entre nacimientos','habitantes por renta'], 0],
+    ['Una piramide regresiva suele mostrar...', ['baja natalidad y envejecimiento','alta natalidad','ausencia de poblacion adulta'], 0],
+    ['El sector terciario agrupa...', ['servicios','agricultura y pesca','mineria e industria'], 0],
+    ['Un climograma combina...', ['temperaturas y precipitaciones','relieve y carreteras','poblacion y renta'], 0],
+    ['La cercania al mar suele...', ['suavizar las temperaturas','aumentar siempre la altitud','eliminar las precipitaciones'], 0],
+    ['La emigracion es...', ['la salida de poblacion de un lugar','la llegada de turistas','el crecimiento natural'], 0],
+    ['La UE es...', ['una organizacion de estados europeos','una provincia espanola','un continente distinto de Europa'], 0],
+    ['Para interpretar una grafica primero hay que leer...', ['titulo, ejes, unidades y fuente','solo el color mayor','la conclusion antes que los datos'], 0],
+    ['El desarrollo sostenible busca...', ['cubrir necesidades sin comprometer las futuras','consumir todos los recursos disponibles','evitar cualquier actividad economica'], 0]
+  ],
+  historia:[
+    ["Ordena de mas antiguo a mas reciente:",["Revolucion francesa, Primera Guerra Mundial, Constitucion de 1978","Primera Guerra Mundial, Revolucion francesa, Constitucion de 1978","Constitucion de 1978, Revolucion francesa, Primera Guerra Mundial"],0],
+    ["La soberania nacional significa que el poder politico emana...",["de la nacion","exclusivamente del monarca","del ejercito"],0],
+    ['Una fuente primaria fue creada...', ['en la epoca estudiada','siempre cien anos despues','solo por historiadores actuales'], 0],
+    ['El feudalismo se basaba en...', ['relaciones de dependencia y posesion de tierras','fabricas automatizadas','sufragio universal'], 0],
+    ['La Revolucion Industrial comenzo con...', ['mecanizacion y sistema fabril','desaparicion de las ciudades','fin del comercio'], 0],
+    ['La Ilustracion defendio...', ['razon, educacion y critica del absolutismo','servidumbre feudal','aislamiento cientifico'], 0],
+    ['La Constitucion espanola vigente fue aprobada en...', ['1978','1939','1492'], 0],
+    ['La Transicion espanola condujo...', ['de la dictadura a la democracia','del Imperio romano al feudalismo','de la agricultura a la escritura'], 0],
+    ['Una causa ocurre...', ['antes del hecho y ayuda a explicarlo','siempre despues del hecho','sin relacion con el hecho'], 0],
+    ['Los derechos humanos se caracterizan por ser...', ['universales','exclusivos de cada gobierno','opcionales para algunos grupos'], 0],
+    ['Una linea del tiempo sirve para...', ['ordenar procesos y fechas','calcular densidades','medir distancias reales'], 0],
+    ['El patrimonio historico debe analizarse como...', ['fuente cultural y social','simple decoracion','dato sin contexto'], 0]
+  ],
+  matematicas:[
+    ["Una receta para 4 personas necesita 300 g de arroz. Para 6 necesita...",["450 g","400 g","600 g"],0],
+    ["Un rectangulo mide 8 m por 3 m. Su perimetro es...",["22 m","24 m","11 m"],0],
+    ['El 15% de 200 es...', ['30','15','45'], 0],
+    ['La solucion de 3x + 2 = 14 es...', ['4','6','12'], 0],
+    ['El area de un triangulo es...', ['base por altura dividido entre dos','lado por lado','base mas altura'], 0],
+    ['En un triangulo rectangulo, Pitagoras relaciona...', ['los tres lados','solo los angulos','area y volumen'], 0],
+    ['La media de 5, 7 y 9 es...', ['7','6','8'], 0],
+    ['2,5 km equivalen a...', ['2500 m','250 m','25 000 m'], 0],
+    ['Un precio de 80 euros con 25% de descuento queda en...', ['60 euros','55 euros','75 euros'], 0],
+    ['En una grafica, el eje horizontal suele llamarse...', ['eje X','eje Y','origen doble'], 0],
+    ['La probabilidad de obtener cara con una moneda equilibrada es...', ['1/2','1/3','2'], 0],
+    ['Para comprobar una ecuacion se debe...', ['sustituir la solucion en la ecuacion inicial','cambiar el signo final','redondear siempre'], 0]
+  ],
+  ciencias:[
+    ["Recorres 150 m en 30 s. Tu rapidez media es...",["5 m/s","0,2 m/s","180 m/s"],0],
+    ["Para separar arena insoluble del agua se puede usar...",["filtracion","evaporacion de la arena","imantacion del agua"],0],
+    ['La variable independiente es...', ['la que se modifica','la que se mide como resultado','la conclusion'], 0],
+    ['La mitosis produce...', ['dos celulas geneticamente similares','cuatro gametos distintos','una molecula de agua'], 0],
+    ['La fotosintesis transforma...', ['energia luminosa en energia quimica','oxigeno en minerales','calor en movimiento muscular'], 0],
+    ['En una cadena trofica, los productores son...', ['organismos autotrofos','depredadores finales','descomponedores exclusivamente'], 0],
+    ['Una mezcla heterogenea tiene...', ['componentes distinguibles','una sola sustancia pura','composicion siempre gaseosa'], 0],
+    ['La unidad de energia del SI es...', ['julio','vatio','metro'], 0],
+    ['La rapidez media se calcula...', ['distancia recorrida dividida entre tiempo','tiempo dividido entre masa','fuerza por volumen'], 0],
+    ['En un circuito cerrado...', ['puede circular corriente','nunca circula corriente','desaparece la energia'], 0],
+    ['El efecto invernadero intensificado se relaciona con...', ['aumento de gases como el CO2','desaparicion de la gravedad','menor radiacion solar siempre'], 0],
+    ['Una contrasena segura debe ser...', ['larga, unica y dificil de adivinar','igual en todos los servicios','el nombre del usuario'], 0]
   ]
 };
 let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, teacherChats:{}, testAttempts:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, examMode:null, examPracticeType:'development', activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
@@ -4394,8 +4447,9 @@ function defaultLessonNotes(topic, lesson, index) {
   const module = moduleById(topic.module);
   const profile = moduleStudyProfile(module.id);
   const points = lessonPoints(topic, lesson, index);
+  const coreTheory = VERIFIED_TOPIC_THEORY[topic.id] || topic.note;
   return `RESUMEN CORTO
-${lesson.note}
+${coreTheory}
 
 PARA QUE SIRVE EN EL EXAMEN
 Este punto suele aparecer dentro del ${profile.exam}. El objetivo es responder de forma clara, practica y suficiente, como se pide en las pruebas libres: entender el enunciado, aplicar el contenido y explicar el resultado con tus palabras.
@@ -4424,7 +4478,10 @@ Explica ${lesson.title.toLowerCase()} aplicado a ${topic.title.toLowerCase()} y 
 function lessonTheory(topic, lesson, index) {
   const module = moduleById(topic.module);
   const profile = moduleStudyProfile(module.id);
-  return `${lesson.title} es una parte de ${topic.title} que conviene estudiar de forma practica. En ${module.title}, lo importante es entender la idea, reconocerla en un texto, dato, problema o situacion cotidiana, y explicarla con palabras propias. ${lesson.note}
+  const coreTheory = VERIFIED_TOPIC_THEORY[topic.id] || topic.note;
+  return `${coreTheory}
+
+En esta leccion se trabaja ${lesson.title.toLowerCase()}. ${lesson.note}
 
 Para prepararlo, aprende primero la definicion corta y despues practica una respuesta aplicable. Si la pregunta pide explicar, usa dos frases ordenadas y un ejemplo. Si pide calcular o interpretar, escribe datos, operacion o pista del texto, y conclusion. El corrector suele valorar ${profile.criteria}.
 
@@ -4448,7 +4505,7 @@ function renderTest(module) {
   }).join('')}</div></div><div id="testBox"></div>`;
 }
 function renderOfficialResources() {
-  $('viewer').innerHTML = `<div class="output">ENLACES OFICIALES VERIFICADOS PARA ABRIR MODELOS REALES, MATERIALES DE ESTUDIO, ESTRUCTURA DE LA PRUEBA Y NORMATIVA. Algunos repositorios pueden cambiar el PDF concreto cada convocatoria; por eso se enlaza a paginas oficiales mantenidas por la administracion.</div>
+  $('viewer').innerHTML = `<div class="output">Referencia principal: Andalucia. Comprueba la convocatoria de tu comunidad, porque el programa y la prueba pueden variar. Los modelos antiguos sirven para practicar, pero pueden seguir un curriculo anterior.</div>
   <div class="resource-grid">${OFFICIAL_LINKS.map(link => `<a class="resource-card" href="${link.url}" target="_blank" rel="noopener">
     <div class="resource-tags">${link.tags.map(tag => `<span>${tag}</span>`).join('')}</div>
     <strong>${escapeHtml(link.title)}</strong>
@@ -4457,8 +4514,7 @@ function renderOfficialResources() {
   </a>`).join('')}</div>`;
 }
 function testCards(module) {
-  const topicCards = module.tasks.flatMap(topic => [0,1].map(variant => ({id:`${module.id}:${topic.id}:${variant}`, title:`${topic.title} ${variant + 1}`, detail:variant ? 'Aplicacion y errores frecuentes.' : 'Conceptos clave y respuesta tipo.', label:`TEST ${variant + 1}`})));
-  return [{id:`${module.id}:mixed:0`, title:`${module.title} mixto`, detail:'Preguntas combinadas de toda la asignatura.', label:'MIXTO'}, ...topicCards];
+  return [{id:`${module.id}:mixed:0`, title:`${module.title}: repaso`, detail:'Preguntas de esta asignatura. Opciones en orden aleatorio.', label:'REPASO'}];
 }
 function testById(testId) {
   const [moduleId, topicId, variantRaw] = String(testId || '').split(':');
@@ -4466,23 +4522,20 @@ function testById(testId) {
   const topic = topicId === 'mixed' ? null : module.tasks.find(t => t.id === topicId);
   return {id:testId, module, topic, variant:Number(variantRaw || 0)};
 }
-function topicQuestionSet(topic, module, variant=0) {
-  const profile = moduleStudyProfile(module.id);
-  const examples = [
-    [`${topic.title}: que debes priorizar?`, [topic.detail, 'Responder sin leer el enunciado', 'Copiar una frase sin explicarla'], 0],
-    [`En ${topic.title}, una respuesta buena debe...`, [`Usar este metodo: ${profile.method}`, 'Ser larga aunque no responda', 'Evitar ejemplos siempre'], 0],
-    [`Cual es un ejemplo util para este tema?`, [topic.example, 'Una opinion sin relacion', 'Una palabra aislada sin contexto'], 0],
-    [`Que error conviene evitar en ${topic.title}?`, ['No justificar la respuesta', 'Ordenar las ideas', 'Revisar antes de entregar'], 0],
-    ['Criterio clave de correccion', [profile.criteria, 'Solo decorar la respuesta', 'No terminar la conclusion'], 0],
-    ['Para cerrar la respuesta conviene...', ['Anadir una conclusion breve', 'Dejarla a medias', 'Cambiar de tema'], 0]
-  ];
-  return variant ? examples.slice(2).concat(examples.slice(0,2)) : examples;
-}
 function buildQuestionsForTest(testId) {
   const {module, topic, variant} = testById(testId);
-  const base = [...(QUESTIONS[module.testKey || 'comunicacion'] || QUESTIONS.comunicacion)];
-  const topicQs = topic ? topicQuestionSet(topic, module, variant) : module.tasks.flatMap((task,index) => topicQuestionSet(task, module, index % 2).slice(0,1));
-  return [...topicQs, ...base].slice(0,10);
+  const base = [...(QUESTIONS[module.id] || QUESTIONS[module.testKey || 'comunicacion'] || QUESTIONS.comunicacion)];
+  return prepareTestQuestions(base).slice(0,10);
+}
+function prepareTestQuestions(questions) {
+  return questions.map(([prompt, options, correct]) => {
+    const order = options.map((text, index) => ({text, index}));
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    return [prompt, order.map(option => option.text), order.findIndex(option => option.index === correct)];
+  });
 }
 function startTopicTest(testId) {
   const {module, topic, variant} = testById(testId);
@@ -4632,8 +4685,7 @@ function startExamPracticeTest(count) {
   const selected = $('examTestSubject').value;
   const modules = selected === 'all' ? MODULES.filter(module => !['test','exam','oficial'].includes(module.id)) : [moduleById(selected)];
   const pools = modules.map(module => [
-    ...module.tasks.flatMap((task,index) => topicQuestionSet(task,module,index % 2).slice(0,2)),
-    ...(QUESTIONS[module.testKey || 'comunicacion'] || QUESTIONS.comunicacion)
+    ...prepareTestQuestions(QUESTIONS[module.id] || QUESTIONS[module.testKey || 'comunicacion'] || QUESTIONS.comunicacion)
   ]);
   const questions = [];
   const seen = new Set();

@@ -178,6 +178,49 @@
     font-weight:900;
     font-size:12px;
   }
+  .global-teacher.active { border-color:var(--blue); box-shadow:0 18px 46px rgba(36,84,166,.28); }
+  .teacher-panel {
+    position:fixed; right:18px; bottom:100px; z-index:720; width:min(440px,calc(100vw - 28px));
+    max-height:min(680px,calc(100vh - 124px)); display:none; grid-template-rows:auto minmax(160px,1fr) auto;
+    overflow:hidden; border:1px solid #b9cce8; border-radius:10px; background:#f5f9ff;
+    box-shadow:0 24px 70px rgba(18,58,115,.24);
+  }
+  .teacher-panel.open { display:grid; }
+  .teacher-panel-head { display:flex; align-items:center; gap:11px; padding:12px 14px; border-bottom:1px solid #d5e1f1; background:white; }
+  .teacher-panel-head img { width:46px; height:46px; object-fit:contain; border-radius:10px; background:#eef5ff; }
+  .teacher-panel-head div { flex:1; min-width:0; }
+  .teacher-panel-head strong, .teacher-panel-head small { display:block; }
+  .teacher-panel-head strong { font-size:.86rem; color:var(--ink); }
+  .teacher-panel-head small { margin-top:3px; color:var(--muted); font-size:.63rem; line-height:1.35; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .teacher-close { width:36px; height:36px; border:1px solid var(--border); border-radius:8px; background:white; color:var(--ink); font-size:20px; cursor:pointer; }
+  .teacher-log { min-height:180px; overflow:auto; padding:14px; background:#f7faff; }
+  .teacher-message { max-width:92%; margin-bottom:12px; padding:10px 12px; border:1px solid #d7e2f0; border-radius:9px; background:white; font-size:.73rem; line-height:1.6; overflow-wrap:anywhere; }
+  .teacher-message.user { margin-left:auto; border-color:#b9d0f4; background:#eaf3ff; }
+  .teacher-message-label { display:block; margin-bottom:5px; color:var(--blue); font-size:.58rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+  .teacher-preview { color:#46536a; }
+  .teacher-open-answer { margin-top:9px; border:0; background:transparent; color:var(--blue); padding:0; font:700 .68rem 'IBM Plex Mono',monospace; cursor:pointer; }
+  .teacher-compose { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; padding:12px; border-top:1px solid #d5e1f1; background:white; }
+  .teacher-compose textarea { min-height:64px; max-height:150px; resize:vertical; }
+  .teacher-compose .btn { align-self:stretch; padding-inline:16px; }
+  .teacher-answer-modal { position:fixed; inset:0; z-index:900; display:none; place-items:center; padding:24px; background:rgba(11,25,47,.62); }
+  .teacher-answer-modal.open { display:grid; }
+  .teacher-answer-dialog { width:min(960px,100%); max-height:calc(100vh - 48px); display:grid; grid-template-rows:auto minmax(0,1fr); overflow:hidden; border-radius:10px; background:white; box-shadow:0 30px 90px rgba(0,0,0,.28); }
+  .teacher-answer-head { display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid var(--border); }
+  .teacher-answer-head strong { flex:1; font-family:'Playfair Display',serif; font-size:1.25rem; }
+  .teacher-answer-body { overflow:auto; padding:24px clamp(18px,4vw,48px) 36px; color:#25324a; font:400 .84rem/1.75 'IBM Plex Mono',monospace; }
+  .teacher-rich h1,.teacher-rich h2,.teacher-rich h3 { margin:1.25em 0 .55em; color:var(--ink); font-family:'Playfair Display',serif; line-height:1.2; }
+  .teacher-rich h1:first-child,.teacher-rich h2:first-child,.teacher-rich h3:first-child { margin-top:0; }
+  .teacher-rich h1 { font-size:1.55rem; } .teacher-rich h2 { font-size:1.3rem; } .teacher-rich h3 { font-size:1.08rem; }
+  .teacher-rich p { margin:.75em 0; } .teacher-rich ul,.teacher-rich ol { margin:.7em 0; padding-left:24px; } .teacher-rich li { margin:.38em 0; }
+  .teacher-rich strong { color:#132b50; } .teacher-rich blockquote { margin:1em 0; padding:10px 14px; border-left:4px solid var(--gold); background:#fff9ea; }
+  .teacher-rich code { padding:2px 5px; border-radius:4px; background:#edf3fb; font-size:.78rem; }
+  .teacher-table-wrap { width:100%; overflow:auto; margin:16px 0; border:1px solid var(--border); border-radius:8px; }
+  .teacher-rich table { width:100%; min-width:520px; border-collapse:collapse; background:white; }
+  .teacher-rich th,.teacher-rich td { padding:10px 12px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); text-align:left; vertical-align:top; }
+  .teacher-rich th { background:#edf4ff; color:#16396f; font-weight:800; }
+  .teacher-rich tr:last-child td { border-bottom:0; } .teacher-rich th:last-child,.teacher-rich td:last-child { border-right:0; }
+  body.teacher-modal-open { overflow:hidden; }
+  #sessionActive > .chat-panel.compact,.recite-layout > .chat-panel,.topics-side { display:none !important; }
   main { max-width: min(1680px, calc(100vw - 28px)); margin: 0 auto; padding: 26px 24px 44px; }
 
   .tab { display: none; }
@@ -188,6 +231,13 @@
   .session-empty .icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
   .session-empty h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; margin-bottom: 8px; }
   .session-empty p { font-size: 0.78rem; color: #888; margin-bottom: 28px; }
+  .session-draft { display:none; width:min(620px,100%); margin:0 auto 22px; padding:18px; border:1px solid #bfd0e9; background:var(--blue-light); border-radius:8px; text-align:left; }
+  .session-draft.visible { display:block; }
+  .session-draft-label { color:var(--blue); font-size:0.6rem; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:7px; }
+  .session-draft h3 { margin:0 0 7px; font-family:'Playfair Display',serif; font-size:1.25rem; }
+  .session-draft-meta { color:#667085; font-size:0.7rem; line-height:1.55; }
+  .session-draft-actions { display:flex; gap:9px; margin-top:15px; flex-wrap:wrap; }
+  .session-draft-actions .btn { flex:1 1 190px; }
 
   .btn {
     font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; letter-spacing: 0;
@@ -707,6 +757,12 @@
     .recite-flow { grid-template-columns:1fr; }
   }
   @media (max-width: 520px) {
+    .global-teacher { width:64px; height:64px; right:12px; bottom:12px; border-radius:20px; }
+    .teacher-panel { right:8px; bottom:84px; width:calc(100vw - 16px); max-height:calc(100vh - 96px); }
+    .teacher-compose { grid-template-columns:1fr; }
+    .teacher-answer-modal { padding:8px; }
+    .teacher-answer-dialog { max-height:calc(100vh - 16px); }
+    .teacher-answer-body { padding:18px 14px 28px; font-size:.78rem; }
     .recite-flow { grid-template-columns:1fr; }
     .timer-display { font-size:2.6rem; }
     .selection-toolbar { max-width:calc(100vw - 16px); overflow-x:auto; }
@@ -736,6 +792,9 @@
     .session-empty { padding: 38px 18px; }
     .session-empty h2 { font-size: 1.45rem; }
     .session-empty p { font-size: 0.74rem; line-height: 1.55; }
+    .session-draft { padding:15px; }
+    .session-draft-actions { flex-direction:column; }
+    .session-draft-actions .btn { width:100%; flex:auto; }
     .session-header { position: static; flex-direction: column; gap: 12px; padding: 14px; margin-bottom: 18px; }
     .session-header > div:last-child { width: 100%; align-items: stretch !important; }
     .session-topic { font-size: 1.45rem; max-width: none; }
@@ -861,7 +920,25 @@
     <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil',this)" title="Perfil">Perfil</button>
   </div>
 </header>
-<button class="global-teacher" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))" title="Profesor IA" aria-label="Profesor IA"><img src="assets/brand/teacher-ai.png" alt=""><span>+</span></button>
+<button class="global-teacher" id="globalTeacherButton" type="button" onclick="toggleGlobalTeacher()" title="Profesor IA" aria-label="Abrir Profesor IA" aria-expanded="false"><img src="assets/brand/teacher-ai.png" alt="Profesor IA"></button>
+<section class="teacher-panel" id="globalTeacherPanel" aria-label="Profesor IA" aria-hidden="true">
+  <div class="teacher-panel-head">
+    <img src="assets/brand/teacher-ai.png" alt="">
+    <div><strong>Profesor IA</strong><small id="globalTeacherContext">Ayuda para el tema y la pantalla actuales</small></div>
+    <button class="teacher-close" type="button" onclick="toggleGlobalTeacher(false)" aria-label="Cerrar Profesor IA">&times;</button>
+  </div>
+  <div class="teacher-log" id="globalTeacherLog"></div>
+  <div class="teacher-compose">
+    <textarea class="recite-input" id="globalTeacherInput" spellcheck="true" placeholder="Pregunta, pide un esquema, una tabla o material de estudio..." onkeydown="handleGlobalTeacherKey(event)"></textarea>
+    <button class="btn btn-small btn-blue" id="globalTeacherSend" type="button" onclick="askGlobalTeacher()">Enviar</button>
+  </div>
+</section>
+<div class="teacher-answer-modal" id="teacherAnswerModal" role="dialog" aria-modal="true" aria-labelledby="teacherAnswerTitle" onclick="closeTeacherAnswerFromBackdrop(event)">
+  <article class="teacher-answer-dialog">
+    <div class="teacher-answer-head"><strong id="teacherAnswerTitle">Material del Profesor IA</strong><button class="teacher-close" type="button" onclick="closeTeacherAnswer()" aria-label="Cerrar respuesta">&times;</button></div>
+    <div class="teacher-answer-body teacher-rich" id="teacherAnswerBody"></div>
+  </article>
+</div>
 
 <main>
 
@@ -869,9 +946,18 @@
   <div id="tab-sesion" class="tab active">
     <div id="sessionEmpty" class="session-empty">
       <div class="icon">DIPLOMATOR</div>
-      <h2>Nueva sesión de estudio</h2>
-      <p>Selecciona idioma, elige un tema o usa un tema aleatorio. Los créditos solo se consumen al pulsar <strong>Generar puntos</strong>.</p>
-      <button class="btn" onclick="startSession()">Tema aleatorio -></button>
+      <h2>Sesión diaria</h2>
+      <p id="sessionIntro">Elige un tema o comienza con uno aleatorio; nada se genera hasta que tú lo pidas.</p>
+      <section class="session-draft" id="sessionDraft" aria-live="polite">
+        <div class="session-draft-label">Sesión pendiente</div>
+        <h3 id="sessionDraftTopic"></h3>
+        <div class="session-draft-meta" id="sessionDraftMeta"></div>
+        <div class="session-draft-actions">
+          <button class="btn btn-blue" type="button" onclick="resumeCurrentSession()">Continuar sesión</button>
+          <button class="btn btn-outline" type="button" onclick="discardDraftAndStart()">Empezar una nueva</button>
+        </div>
+      </section>
+      <button class="btn" id="startDailySessionButton" onclick="startSession()">Empezar sesión diaria -></button>
     </div>
     <div id="sessionActive" class="session-active" style="display:none">
       <div class="session-header">
@@ -881,8 +967,9 @@
           <div class="session-lang-badge" id="sessionLangBadge"></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
-          <button class="btn btn-outline btn-small" onclick="startSession()">Tema aleatorio</button>
+          <button class="btn btn-outline btn-small" onclick="replaceWithRandomSession()">Tema aleatorio</button>
           <button class="btn btn-outline btn-small" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">Elegir tema -></button>
+          <button class="btn btn-outline btn-small" onclick="closeCurrentSession()">Cerrar y descartar</button>
         </div>
       </div>
 
@@ -910,17 +997,6 @@
             <textarea id="manualInfoInput" spellcheck="true" placeholder="Ejemplos o datos con fecha, uno por línea. Ej: 2024 - The EU adopted..."></textarea>
           </div>
           <button class="btn btn-small" onclick="addManualPoint()">+ Añadir</button>
-        </div>
-      </div>
-
-      <div class="chat-panel compact">
-        <div class="section-label">Chat del tema</div>
-        <div class="chat-log" id="sessionChatLog">
-          <div class="chat-msg"><strong>Asistente:</strong> Pregúntame dudas concretas sobre el tema de hoy.</div>
-        </div>
-        <div class="chat-row">
-          <textarea class="recite-input" id="sessionChatInput" spellcheck="true" placeholder="Ej: Dame un ejemplo reciente para este punto..."></textarea>
-          <button class="btn btn-small btn-blue" onclick="askSessionChat()">Enviar</button>
         </div>
       </div>
 
@@ -979,16 +1055,6 @@
         </div>
         <div id="reciteStatus" class="db-notice" style="display:none;"></div>
         <div id="reciteCorrection" class="notice" style="display:none;"></div>
-      </div>
-      <div class="chat-panel">
-        <div class="section-label">Chat del tema</div>
-        <div class="chat-log" id="topicChatLog">
-          <div class="chat-msg"><strong>Asistente:</strong> Pregúntame dudas concretas sobre el tema seleccionado.</div>
-        </div>
-        <div class="chat-row">
-          <textarea class="recite-input" id="topicChatInput" spellcheck="true" placeholder="Ej: Dame dos ejemplos recientes para este tema..."></textarea>
-          <button class="btn btn-small btn-blue" onclick="askTopicChat()">Enviar</button>
-        </div>
       </div>
     </div>
   </div>
@@ -1051,18 +1117,6 @@
         </div>
       </div>
 
-      <aside class="topics-side">
-        <div class="chat-panel">
-          <div class="section-label">Chat rápido sobre temas</div>
-          <div class="chat-log" id="topicPageChatLog">
-            <div class="chat-msg"><strong>Asistente:</strong> Pregúntame por ejemplos, enfoques, fechas o argumentos para cualquier tema.</div>
-          </div>
-          <div class="chat-row">
-            <textarea class="recite-input" id="topicPageChatInput" spellcheck="true" placeholder="Ej: Dame un enfoque oral para el Sahel con fechas recientes..."></textarea>
-            <button class="btn btn-small btn-blue" onclick="askTopicPageChat()">Enviar</button>
-          </div>
-        </div>
-      </aside>
     </div>
   </div>
 
@@ -1486,6 +1540,7 @@ function normalizeAppState() {
     session: [],
     recite: [],
     temas: [],
+    profesor: [],
     ...(state.topicChats || {})
   };
 }
@@ -2039,6 +2094,8 @@ async function init() {
   if (loaded && Object.keys(loaded).length > 0) state = { ...state, ...loaded };
 
   normalizeAppState();
+  // Las sesiones pendientes se conservan como borrador, pero nunca se abren solas.
+  session = { topic:null, aiPoints:[], savedPoints:[] };
 
   const license = backend?.user?.license_key || localStorage.getItem('diplomator_license') || '';
   document.getElementById('licenseKeyInput').value = license;
@@ -2068,6 +2125,7 @@ async function init() {
   ensureReciteChatToggle();
   refreshDriveStatus();
   updateHeader();
+  updateGlobalTeacherContext();
 }
 
 async function selectFolder() {
@@ -2100,6 +2158,7 @@ function showTab(name, btn) {
   if (name === 'historial') renderHistory();
   if (name === 'perfil') refreshProfile();
   if (name === 'recitar') renderRecitePractice();
+  updateGlobalTeacherContext();
 }
 
 function toggleMoreMenu(event) {
@@ -2119,13 +2178,42 @@ function persistCurrentSession() {
   state.currentSession = session?.topic ? {
     ...session,
     lang: state.lang,
-    date: state.currentSession?.date || new Date().toISOString()
+    date: state.currentSession?.date || new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   } : null;
   persist();
 }
 
 function renderCurrentSession() {
-  if (!state.currentSession || !state.currentSession.topic) return;
+  resetSessionView();
+  renderSessionDraftPrompt();
+}
+
+function renderSessionDraftPrompt() {
+  const draft = state.currentSession;
+  const draftBox = document.getElementById('sessionDraft');
+  const startButton = document.getElementById('startDailySessionButton');
+  const intro = document.getElementById('sessionIntro');
+  const hasDraft = Boolean(draft?.topic);
+  draftBox?.classList.toggle('visible', hasDraft);
+  if (startButton) startButton.style.display = hasDraft ? 'none' : 'inline-flex';
+  if (intro) intro.textContent = hasDraft
+    ? 'Tienes una sesión pendiente. Continúa donde la dejaste o empieza una nueva.'
+    : 'Elige un tema o comienza con uno aleatorio; nada se genera hasta que tú lo pidas.';
+  if (!hasDraft) return;
+  document.getElementById('sessionDraftTopic').textContent = draft.topic;
+  const savedCount = Array.isArray(draft.savedPoints) ? draft.savedPoints.length : 0;
+  const generatedCount = Array.isArray(draft.aiPoints) ? draft.aiPoints.length : 0;
+  const date = draft.updatedAt || draft.date ? new Date(draft.updatedAt || draft.date) : null;
+  const dateText = date && !Number.isNaN(date.getTime())
+    ? `Última actividad: ${date.toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' })}`
+    : 'Borrador guardado';
+  document.getElementById('sessionDraftMeta').textContent =
+    `${dateText} · ${savedCount} puntos guardados · ${generatedCount} generados`;
+}
+
+function resumeCurrentSession() {
+  if (!state.currentSession?.topic) return;
   session = {
     topic: state.currentSession.topic,
     aiPoints: ensurePointConnections(state.currentSession.aiPoints || []),
@@ -2145,6 +2233,40 @@ function renderCurrentSession() {
   ensureSessionChatToggle();
   renderAIPoints();
   renderSavedPoints();
+  updateGlobalTeacherContext();
+}
+
+function resetSessionView() {
+  document.getElementById('sessionEmpty').style.display = 'block';
+  document.getElementById('sessionActive').style.display = 'none';
+  document.getElementById('aiPoints').innerHTML = '';
+  document.getElementById('savedPoints').innerHTML = '';
+  document.getElementById('savedEmpty').style.display = 'block';
+  ['manualInput','manualTitleInput','manualInfoInput'].forEach(id => {
+    const field = document.getElementById(id);
+    if (field) field.value = '';
+  });
+}
+
+async function closeCurrentSession(skipConfirm = false) {
+  const hasDraft = session.aiPoints?.length || session.savedPoints?.length;
+  if (!skipConfirm && hasDraft && !confirm('Se eliminará esta sesión pendiente. ¿Quieres descartarla?')) return;
+  session = { topic:null, aiPoints:[], savedPoints:[] };
+  state.currentSession = null;
+  resetSessionView();
+  renderSessionDraftPrompt();
+  updateGlobalTeacherContext();
+  await persist();
+}
+
+async function discardDraftAndStart() {
+  const draft = state.currentSession;
+  const hasWork = draft?.aiPoints?.length || draft?.savedPoints?.length;
+  if (hasWork && !confirm('Se eliminará la sesión pendiente. ¿Quieres empezar una nueva?')) return;
+  state.currentSession = null;
+  session = { topic:null, aiPoints:[], savedPoints:[] };
+  await persist();
+  await startSession();
 }
 
 function ensureSessionChatToggle() {
@@ -2212,9 +2334,23 @@ async function startSession() {
   await startSessionWithTopic(topic, false);
 }
 
+async function replaceWithRandomSession() {
+  const hasWork = session.aiPoints?.length || session.savedPoints?.length;
+  if (hasWork && !confirm('Se eliminará la sesión actual. ¿Quieres cambiar a un tema aleatorio?')) return;
+  state.currentSession = null;
+  session = { topic:null, aiPoints:[], savedPoints:[] };
+  await startSession();
+}
+
 async function startSessionWithTopic(topic, autoGenerate = false) {
+  const activeSession = document.getElementById('sessionActive')?.style.display !== 'none';
+  if (activeSession && state.currentSession?.topic && state.currentSession.topic !== topic) {
+    const hasWork = session.aiPoints?.length || session.savedPoints?.length;
+    if (hasWork && !confirm('Se eliminará la sesión actual. ¿Quieres cambiar de tema?')) return;
+  }
   session = { topic, aiPoints: [], savedPoints: [] };
-  state.currentSession = { ...session, lang: state.lang, date: new Date().toISOString() };
+  const nowIso = new Date().toISOString();
+  state.currentSession = { ...session, lang: state.lang, date: nowIso, updatedAt: nowIso };
 
   // Switch to session tab
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -2239,6 +2375,7 @@ async function startSessionWithTopic(topic, autoGenerate = false) {
   document.getElementById('manualInfoInput').value = '';
   setReciteTopic(topic);
   persistCurrentSession();
+  updateGlobalTeacherContext();
 
   if (autoGenerate) {
     await generateSession(topic);
@@ -2597,6 +2734,10 @@ async function saveSession() {
   updateHeader();
   renderProfileHistory();
   renderTopicsTab();   // refresh green markers
+  session = { topic:null, aiPoints:[], savedPoints:[] };
+  resetSessionView();
+  renderSessionDraftPrompt();
+  updateGlobalTeacherContext();
   alert('OK Sesión guardada.');
 }
 
@@ -3781,6 +3922,211 @@ function titleCaseCorrection(title) {
   return labels[title] || title;
 }
 
+function teacherInlineMarkdown(text) {
+  const code = [];
+  let html = escHtml(String(text || '')).replace(/`([^`]+)`/g, (_, value) => {
+    code.push(`<code>${value}</code>`);
+    return `@@TEACHER_CODE_${code.length - 1}@@`;
+  });
+  html = html
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+  code.forEach((value, index) => { html = html.replace(`@@TEACHER_CODE_${index}@@`, value); });
+  return html;
+}
+
+function teacherTableCells(line) {
+  return String(line).trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(cell => cell.trim());
+}
+
+function teacherMarkdownToHtml(markdown) {
+  const lines = String(markdown || '').replace(/\r\n?/g,'\n').split('\n');
+  const output = [];
+  const isTableSeparator = line => /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line || '');
+  const isBlockStart = (line, next='') => !line.trim() || /^#{1,3}\s+/.test(line) || /^```/.test(line) || /^>\s?/.test(line) || /^\s*[-*+]\s+/.test(line) || /^\s*\d+[.)]\s+/.test(line) || (line.includes('|') && isTableSeparator(next));
+  for (let i = 0; i < lines.length;) {
+    const line = lines[i];
+    if (!line.trim()) { i++; continue; }
+    if (/^```/.test(line)) {
+      const language = line.replace(/^```/,'').trim();
+      const body = [];
+      i++;
+      while (i < lines.length && !/^```/.test(lines[i])) body.push(lines[i++]);
+      if (i < lines.length) i++;
+      output.push(`<pre><code data-language="${escHtml(language)}">${escHtml(body.join('\n'))}</code></pre>`);
+      continue;
+    }
+    const heading = line.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      const level = heading[1].length;
+      output.push(`<h${level}>${teacherInlineMarkdown(heading[2])}</h${level}>`);
+      i++;
+      continue;
+    }
+    if (line.includes('|') && isTableSeparator(lines[i + 1])) {
+      const headers = teacherTableCells(line);
+      i += 2;
+      const rows = [];
+      while (i < lines.length && lines[i].includes('|') && lines[i].trim()) rows.push(teacherTableCells(lines[i++]));
+      output.push(`<div class="teacher-table-wrap"><table><thead><tr>${headers.map(cell => `<th>${teacherInlineMarkdown(cell)}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${headers.map((_, index) => `<td>${teacherInlineMarkdown(row[index] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
+      continue;
+    }
+    if (/^\s*[-*+]\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) items.push(lines[i++].replace(/^\s*[-*+]\s+/,''));
+      output.push(`<ul>${items.map(item => `<li>${teacherInlineMarkdown(item)}</li>`).join('')}</ul>`);
+      continue;
+    }
+    if (/^\s*\d+[.)]\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])) items.push(lines[i++].replace(/^\s*\d+[.)]\s+/,''));
+      output.push(`<ol>${items.map(item => `<li>${teacherInlineMarkdown(item)}</li>`).join('')}</ol>`);
+      continue;
+    }
+    if (/^>\s?/.test(line)) {
+      const quote = [];
+      while (i < lines.length && /^>\s?/.test(lines[i])) quote.push(lines[i++].replace(/^>\s?/,''));
+      output.push(`<blockquote>${teacherInlineMarkdown(quote.join('<br>'))}</blockquote>`);
+      continue;
+    }
+    const paragraph = [line.trim()];
+    i++;
+    while (i < lines.length && !isBlockStart(lines[i], lines[i + 1])) paragraph.push(lines[i++].trim());
+    output.push(`<p>${teacherInlineMarkdown(paragraph.join(' '))}</p>`);
+  }
+  return output.join('');
+}
+
+function teacherPlainPreview(text, limit = 260) {
+  const clean = String(text || '')
+    .replace(/```[\s\S]*?```/g,' [contenido] ')
+    .replace(/^#{1,6}\s+/gm,'')
+    .replace(/^\s*[-*+]\s+/gm,'')
+    .replace(/^\s*\d+[.)]\s+/gm,'')
+    .replace(/\|/g,' · ')
+    .replace(/[*_`>#]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+  return clean.length > limit ? `${clean.slice(0, limit).trim()}...` : clean;
+}
+
+function isComplexTeacherAnswer(text) {
+  const value = String(text || '');
+  return value.length > 650 || /^#{1,3}\s+/m.test(value) || /^\s*\|.+\|\s*$/m.test(value) || (value.match(/^\s*[-*+]\s+/gm) || []).length >= 5;
+}
+
+function getGlobalTeacherContext() {
+  const active = document.querySelector('.tab.active')?.id || 'tab-sesion';
+  if (active === 'tab-sesion') return session.topic ? `Sesión diaria: ${session.topic}` : 'Sesión diaria todavía sin tema';
+  if (active === 'tab-recitar') return `Práctica oral: ${document.getElementById('reciteTopicInput')?.value || session.topic || 'sin tema'}`;
+  if (active === 'tab-temas') return `Biblioteca de temas: ${document.getElementById('topicSearchInput')?.value.trim() || 'consulta general'}`;
+  if (active === 'tab-historial') return 'Historial y materiales guardados';
+  if (active === 'tab-perfil') return 'Perfil y configuración de estudio';
+  return 'Diplomator';
+}
+
+function updateGlobalTeacherContext() {
+  const context = document.getElementById('globalTeacherContext');
+  if (context) context.textContent = getGlobalTeacherContext();
+}
+
+function toggleGlobalTeacher(force) {
+  const panel = document.getElementById('globalTeacherPanel');
+  const button = document.getElementById('globalTeacherButton');
+  if (!panel || !button) return;
+  const open = typeof force === 'boolean' ? force : !panel.classList.contains('open');
+  panel.classList.toggle('open', open);
+  button.classList.toggle('active', open);
+  panel.setAttribute('aria-hidden', String(!open));
+  button.setAttribute('aria-expanded', String(open));
+  updateGlobalTeacherContext();
+  if (open) {
+    renderGlobalTeacherChat();
+    setTimeout(() => document.getElementById('globalTeacherInput')?.focus(), 0);
+  }
+}
+
+function renderGlobalTeacherChat(pending = false) {
+  const log = document.getElementById('globalTeacherLog');
+  if (!log) return;
+  const messages = state.topicChats?.profesor || [];
+  let html = messages.length ? '' : '<div class="teacher-message"><span class="teacher-message-label">Profesor IA</span><div class="teacher-preview">Pregúntame una duda o pídeme un esquema, una tabla, argumentos o material para preparar tu exposición.</div></div>';
+  messages.forEach((message, index) => {
+    if (message.role === 'user') {
+      html += `<div class="teacher-message user"><span class="teacher-message-label">Tú</span>${teacherInlineMarkdown(message.text)}</div>`;
+      return;
+    }
+    const complex = isComplexTeacherAnswer(message.text);
+    html += `<div class="teacher-message"><span class="teacher-message-label">Profesor IA</span>${complex ? `<div class="teacher-preview">${escHtml(teacherPlainPreview(message.text))}</div><button class="teacher-open-answer" type="button" onclick="openTeacherAnswer(${index})">Abrir material completo →</button>` : `<div class="teacher-rich">${teacherMarkdownToHtml(message.text)}</div>`}</div>`;
+  });
+  if (pending) html += '<div class="teacher-message"><span class="teacher-message-label">Profesor IA</span><div class="teacher-preview">Preparando la respuesta...</div></div>';
+  log.innerHTML = html;
+  log.scrollTop = log.scrollHeight;
+}
+
+function openTeacherAnswer(index) {
+  const message = state.topicChats?.profesor?.[index];
+  if (!message || message.role !== 'assistant') return;
+  document.getElementById('teacherAnswerBody').innerHTML = teacherMarkdownToHtml(message.text);
+  document.getElementById('teacherAnswerModal').classList.add('open');
+  document.body.classList.add('teacher-modal-open');
+}
+
+function closeTeacherAnswer() {
+  document.getElementById('teacherAnswerModal')?.classList.remove('open');
+  document.body.classList.remove('teacher-modal-open');
+}
+
+function closeTeacherAnswerFromBackdrop(event) {
+  if (event.target?.id === 'teacherAnswerModal') closeTeacherAnswer();
+}
+
+function handleGlobalTeacherKey(event) {
+  if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+    event.preventDefault();
+    askGlobalTeacher();
+  }
+}
+
+async function askGlobalTeacher() {
+  const input = document.getElementById('globalTeacherInput');
+  const send = document.getElementById('globalTeacherSend');
+  const question = input?.value.trim();
+  if (!question || send?.disabled) return;
+  const langName = state.lang === 'fr' ? 'French' : 'English';
+  const context = getGlobalTeacherContext();
+  if (!state.topicChats.profesor) state.topicChats.profesor = [];
+  state.topicChats.profesor.push({role:'user', text:question});
+  input.value = '';
+  send.disabled = true;
+  renderGlobalTeacherChat(true);
+  try {
+    const recent = state.topicChats.profesor.slice(-8).map(message => ({role:message.role, content:message.text}));
+    const answer = await groqChat([
+      {role:'system', content:`You are Profesor IA in Diplomator, a tutor for C1/C2 oral preparation in diplomacy, international relations, current affairs, culture and history. Current interface context: ${context}. The practice language is ${langName}. Answer in Spanish unless the user requests wording or a complete response in ${langName}. Be accurate, concrete and useful for oral study. Use Markdown with clear headings, **bold key concepts**, concise lists and tables only when they improve understanding. Never output raw HTML. For substantial study material, organise it as a polished handout rather than a chatty paragraph.`},
+      ...recent
+    ], {max_tokens:1800, temperature:0.3});
+    state.topicChats.profesor.push({role:'assistant', text:answer});
+    await persist();
+    renderGlobalTeacherChat();
+    if (isComplexTeacherAnswer(answer)) openTeacherAnswer(state.topicChats.profesor.length - 1);
+  } catch (error) {
+    state.topicChats.profesor.push({role:'assistant', text:error.message || 'No se pudo generar la respuesta.'});
+    renderGlobalTeacherChat();
+  } finally {
+    send.disabled = false;
+    input.focus();
+  }
+}
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    if (document.getElementById('teacherAnswerModal')?.classList.contains('open')) closeTeacherAnswer();
+    else toggleGlobalTeacher(false);
+  }
+});
+
 function renderChat(logId, key, fallbackText) {
   const log = document.getElementById(logId);
   if (!log) return;
@@ -3796,6 +4142,7 @@ function renderAllChats() {
   renderChat('sessionChatLog', 'session', 'Pregúntame dudas concretas sobre el tema de hoy.');
   renderChat('topicChatLog', 'recite', 'Pregúntame dudas concretas sobre el tema seleccionado.');
   renderChat('topicPageChatLog', 'temas', 'Pregúntame por ejemplos, enfoques, fechas o argumentos para cualquier tema.');
+  renderGlobalTeacherChat();
 }
 
 async function askTopicChatFrom(inputId, logId, chatKey, topic) {

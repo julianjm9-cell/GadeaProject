@@ -1,62 +1,69 @@
 {
   "universidad_adultos": [
     {
-      "title": "UNED - Acceso a la universidad para mayores de 25",
+      "title": "UNED - Estructura de la prueba +25",
       "source": "UNED",
-      "url": "https://www.uned.es/universidad/inicio/estudios/acceso/mayores-25.html",
-      "tags": ["estructura", "programas", "oficial"],
-      "desc": "Informacion oficial sobre estructura, materias, requisitos y orientaciones de la prueba."
+      "url": "https://www.uned.es/universidad/inicio/estudios/acceso/acceso25/contenido-prueba.html",
+      "tags": ["estructura", "fase general", "fase especifica", "oficial"],
+      "desc": "Fases, ejercicios obligatorios y opciones de la fase especifica. Comprueba siempre la universidad en la que te examinaras."
     },
     {
-      "title": "UNED - Examenes y pruebas de acceso",
+      "title": "UNED - Programas de las asignaturas",
       "source": "UNED",
-      "url": "https://www.uned.es/universidad/inicio/estudiantes/acceso/examenes.html",
-      "tags": ["modelos", "examenes", "oficial"],
-      "desc": "Repositorio oficial para consultar examenes, modelos y convocatorias disponibles."
+      "url": "https://www.uned.es/universidad/inicio/estudios/acceso/acceso25/prueba-25/asignaturas-prueba-25.html",
+      "tags": ["programas", "contenidos", "lengua", "ingles", "matematicas", "ciencias", "geografia", "oficial"],
+      "desc": "Asignaturas y guias del curso vigente; entra en la guia de tu materia para comprobar temario y tipo de examen."
     },
     {
-      "title": "Universidad Complutense - Mayores de 25",
-      "source": "UCM",
-      "url": "https://www.ucm.es/mayores-25",
-      "tags": ["convocatoria", "programas", "oficial"],
-      "desc": "Informacion oficial de convocatoria, materias, calendario y documentacion."
+      "title": "UNED - Informacion de examenes +25",
+      "source": "UNED",
+      "url": "https://www.uned.es/universidad/inicio/estudios/acceso/acceso25/prueba-25/examenes.html",
+      "tags": ["examenes", "calendario", "oficial"],
+      "desc": "Calendario, normas y orientaciones de los examenes de acceso de la UNED."
     },
     {
-      "title": "Instituto Geografico Nacional - Recursos educativos",
-      "source": "IGN",
-      "url": "https://www.ign.es/web/recursos-educativos",
-      "tags": ["geografia", "mapas", "recursos"],
-      "desc": "Material oficial para practicar geografia, mapas y lectura territorial."
+      "title": "RAE - Diccionario de la lengua espanola",
+      "source": "RAE",
+      "url": "https://dle.rae.es/",
+      "tags": ["lengua", "consulta"],
+      "desc": "Consulta de vocabulario y ortografia para Lengua y Comentario de texto."
     }
   ],
   "eso_adultos": [
     {
-      "title": "Educagob - Educacion de personas adultas",
-      "source": "Ministerio de Educacion",
-      "url": "https://educagob.educacionyfp.gob.es/ensenanzas/personas-adultas.html",
-      "tags": ["estructura", "normativa", "oficial"],
-      "desc": "Portal oficial sobre ensenanzas para personas adultas y vias de obtencion del titulo."
-    },
-    {
-      "title": "Junta de Andalucia - Pruebas libres Graduado ESO",
+      "title": "Andalucia - Graduado ESO mayores de 18",
       "source": "Junta de Andalucia",
-      "url": "https://www.juntadeandalucia.es/educacion/portals/web/educacion-permanente/pruebas-libres/eso",
-      "tags": ["modelos", "examenes", "oficial"],
-      "desc": "Modelos y orientaciones oficiales para la prueba libre de Graduado en ESO."
+      "url": "https://www.juntadeandalucia.es/educacion/portales/es/web/educacion-permanente/servicios/pruebas/obtencion-titulo-eso",
+      "tags": ["convocatoria", "estructura", "ambitos", "oficial"],
+      "desc": "Portal de la prueba: requisitos, tres ambitos, convocatoria y materiales. Esta app usa Andalucia como referencia; otras comunidades pueden variar."
     },
     {
-      "title": "CIDEAD - Educacion secundaria para personas adultas",
-      "source": "CIDEAD",
-      "url": "https://www.educacionfpydeportes.gob.es/mc/cidead/ensenanzas/educacion-secundaria-personas-adultas.html",
-      "tags": ["materiales", "contenidos", "oficial"],
-      "desc": "Informacion y orientaciones oficiales para estudios de secundaria de personas adultas."
+      "title": "Andalucia - Modelos de convocatorias anteriores",
+      "source": "Junta de Andalucia",
+      "url": "https://www.juntadeandalucia.es/educacion/portales/web/educacion-permanente/servicios/pruebas/obtencion-titulo-eso/sobre-las-pruebas/modelos-de-convocatorias-anteriores",
+      "tags": ["modelos", "examenes", "ambitos", "oficial"],
+      "desc": "Modelos publicados por la Consejeria. Los de 2019-2024 responden a un curriculo anterior; revisa los de la convocatoria actual."
     },
     {
-      "title": "Procomun - Recursos educativos abiertos",
-      "source": "INTEF",
-      "url": "https://procomun.intef.es/",
-      "tags": ["materiales", "recursos", "contenidos"],
-      "desc": "Banco publico de recursos educativos para reforzar lengua, sociales, ciencias y competencia digital."
+      "title": "BOE - Curriculo de secundaria para adultos",
+      "source": "BOE",
+      "url": "https://www.boe.es/buscar/act.php?id=BOE-A-2023-16814",
+      "tags": ["normativa", "ambitos", "contenidos", "oficial"],
+      "desc": "Curriculo de adultos en el ambito de gestion del Ministerio. No sustituye la normativa propia de cada comunidad autonoma."
+    },
+    {
+      "title": "Andalucia - Orden de pruebas de 2026",
+      "source": "BOJA",
+      "url": "https://www.juntadeandalucia.es/boja/2026/14/c01/2",
+      "tags": ["normativa", "convocatoria", "estructura", "oficial"],
+      "desc": "Normativa autonomica de las pruebas para mayores de 18 anos en Andalucia."
+    },
+    {
+      "title": "RAE - Diccionario de la lengua espanola",
+      "source": "RAE",
+      "url": "https://dle.rae.es/",
+      "tags": ["lengua", "consulta"],
+      "desc": "Consulta de vocabulario y ortografia para el ambito de Comunicacion."
     }
   ]
 }

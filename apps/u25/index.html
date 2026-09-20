@@ -2537,97 +2537,81 @@ const LESSON_TITLES = {
   'oficial-programas':['Asignaturas comunes','Materias por rama','Prioridades de estudio','Consulta oficial'],
   'oficial-examenes':['Modelos reales','Convocatorias','Soluciones y criterios','Simulacro final']
 };
+const VERIFIED_TOPIC_THEORY = {
+  'ct-lectura':'El tema resume el asunto y el enfoque en una frase breve. La idea principal contiene la informacion central y las secundarias la desarrollan mediante causas, datos, ejemplos o consecuencias. Toda interpretacion debe justificarse con una pista textual.',
+  'ct-resumen':'El resumen conserva la jerarquia y el orden logico de las ideas, elimina ejemplos accesorios y se redacta con palabras propias. No incluye opiniones ni citas extensas.',
+  'ct-tesis':'La tesis es la postura central que el autor defiende y puede aparecer de forma explicita o implicita. Para localizarla, pregunta que quiere demostrar el texto y comprueba que los argumentos apoyan esa formulacion.',
+  'ct-argumentos':'Los argumentos pueden basarse en datos, autoridad, ejemplos, analogias, experiencia o relaciones causales. No basta con nombrarlos: hay que citar la idea y explicar que funcion cumple respecto de la tesis.',
+  'ct-valoracion':'La valoracion critica responde razonadamente a la tesis. Incluye una postura matizada, un argumento desarrollado, un ejemplo verificable o cercano y una conclusion coherente.',
+  'lc-morfologia':'El analisis morfologico identifica categoria, estructura y rasgos flexivos. Distingue lexema y morfemas, palabras simples, derivadas y compuestas, y justifica la categoria por su comportamiento en la oracion.',
+  'lc-sintaxis-simple':'El analisis comienza por el nucleo verbal y la concordancia para localizar el sujeto. Despues se delimita el predicado y se identifican complementos mediante sustitucion pronominal, concordancia y uso de preposicion.',
+  'lc-sintaxis-compuesta':'Una oracion compuesta contiene mas de una estructura predicativa. Las proposiciones pueden coordinarse o subordinarse con funcion sustantiva, adjetiva o adverbial. El nexo orienta, pero la funcion debe comprobarse.',
+  'lc-cohesion':'La cohesion conecta el texto mediante conectores, sinonimos, campos semanticos, pronombres, elipsis y repeticion controlada. El analisis debe explicar el mecanismo y el elemento al que remite.',
+  'en-reading':'Read the questions first and locate evidence for gist, detail, reference and inference. Distinguish what the text states from what can reasonably be inferred. Interpret vocabulary through context and word formation.',
+  'en-grammar':'Review verb tenses, modal verbs, passive voice, conditionals, relative clauses and reported speech. Check auxiliaries, agreement, prepositions and time markers before choosing an answer.',
+  'en-writing':'A formal answer needs a clear purpose, appropriate register, paragraph structure and accurate linking. Address every part of the prompt, develop each idea with a reason or example and check grammar and spelling.',
+  'hu-historia':'Una respuesta historica ordena cronologicamente causas, desarrollo y consecuencias. Las fuentes primarias pertenecen al periodo estudiado; las secundarias lo interpretan posteriormente. En ambas se analizan autoria, contexto, proposito y fiabilidad.',
+  'hu-geografia':'El analisis geografico relaciona localizacion, escala, medio natural, poblacion y actividad economica. En mapas, graficos y tablas hay que leer titulo, leyenda, unidades y fuente antes de explicar tendencias y contrastes territoriales.',
+  'cs-economia':'La oferta expresa cuanto desean vender los productores y la demanda cuanto desean comprar los consumidores a cada precio. Si aumenta la demanda sin cambiar la oferta, el precio de equilibrio tiende a subir. La inflacion es una subida general y sostenida de precios.',
+  'cs-empresa':'Beneficio = ingresos - costes totales. Los costes fijos no dependen directamente de la cantidad producida dentro de un rango de actividad; los variables si. En el umbral de rentabilidad, ingresos y costes totales coinciden.',
+  'ci-biologia':'La membrana celular regula intercambios, el ADN almacena informacion hereditaria y el metabolismo permite obtener energia y sintetizar sustancias. La mitosis origina dos celulas con la misma dotacion cromosomica; la meiosis reduce esa dotacion a la mitad y genera variabilidad genetica.',
+  'ci-quimica':'Las reacciones reorganizan atomos: se ajustan los coeficientes para conservar el numero de atomos de cada elemento. La cantidad de sustancia se mide en moles. La molaridad es n/V, con n en moles de soluto y V en litros de disolucion.',
+  'ci-fisica':'La velocidad media es desplazamiento dividido entre tiempo; la rapidez media usa distancia recorrida. La aceleracion mide la variacion de velocidad. Para masa constante, la fuerza resultante cumple F=m·a. Indica siempre magnitudes, unidades y sentido.',
+  'ma-algebra':'Las ecuaciones se resuelven aplicando operaciones equivalentes a ambos miembros. Un sistema exige valores que cumplan todas sus ecuaciones simultaneamente. Comprueba sustituyendo las soluciones y descarta valores que anulen denominadores.',
+  'ma-funciones':'Una funcion asigna a cada valor permitido de x un unico valor de y. El dominio contiene los valores admisibles. En f(x)=2x+1, la pendiente es 2 y la ordenada en el origen es 1; f(3)=7.',
+  'ma-integrales':'Una integral definida mide acumulacion y area con signo. Si F es una primitiva de f, la integral de a a b se calcula como F(b)-F(a). La integral de la velocidad da desplazamiento; la de su valor absoluto da distancia recorrida.',
+  'ti-tecnologia':'La ley de Ohm es V=I·R; la potencia electrica es P=V·I. En serie circula la misma intensidad y las resistencias se suman. En paralelo, las ramas comparten tension. Para una resistencia de 4 ohmios con 12 voltios, I=3 amperios y P=36 vatios.',
+  'ti-programacion':'Un algoritmo es un procedimiento ordenado y finito. La secuencia ejecuta pasos, la seleccion decide entre alternativas y la iteracion repite instrucciones. Prueba casos normales, limites e invalidos; comprueba que los bucles puedan terminar.'
+};
 const DEFAULT_OFFICIAL_LINKS = [
   {
-    title:'UNED - Contenido de la prueba +25',
-    url:'https://www.uned.es/universidad/inicio/estudios/acceso/acceso25/contenido-prueba.html',
-    source:'UNED',
-    tags:['estructura','contenidos'],
-    desc:'Fase general, fase especifica, opciones y materias oficiales de acceso para mayores de 25.'
+    "title": "UNED - Estructura de la prueba +25",
+    "source": "UNED",
+    "url": "https://www.uned.es/universidad/inicio/estudios/acceso/acceso25/contenido-prueba.html",
+    "tags": [
+      "estructura",
+      "fase general",
+      "fase especifica",
+      "oficial"
+    ],
+    "desc": "Fases, ejercicios obligatorios y opciones de la fase especifica. Comprueba siempre la universidad en la que te examinaras."
   },
   {
-    title:'UNED - Programas de asignaturas +25',
-    url:'https://www.uned.es/universidad/inicio/estudios/acceso/acceso25/prueba-25/asignaturas-prueba-25.html',
-    source:'UNED',
-    tags:['programas','contenidos'],
-    desc:'Entrada oficial a los programas de materias de la prueba: Lengua, idiomas y asignaturas especificas.'
+    "title": "UNED - Programas de las asignaturas",
+    "source": "UNED",
+    "url": "https://www.uned.es/universidad/inicio/estudios/acceso/acceso25/prueba-25/asignaturas-prueba-25.html",
+    "tags": [
+      "programas",
+      "contenidos",
+      "lengua",
+      "ingles",
+      "matematicas",
+      "ciencias",
+      "geografia",
+      "oficial"
+    ],
+    "desc": "Asignaturas y guias del curso vigente; entra en la guia de tu materia para comprobar temario y tipo de examen."
   },
   {
-    title:'UNED - Informacion para examenes +25',
-    url:'https://www.uned.es/universidad/inicio/estudios/acceso/acceso25/prueba-25/examenes.html',
-    source:'UNED',
-    tags:['examenes','calendario'],
-    desc:'Informacion oficial de examenes, convocatorias, indicaciones y acceso a recursos relacionados.'
+    "title": "UNED - Informacion de examenes +25",
+    "source": "UNED",
+    "url": "https://www.uned.es/universidad/inicio/estudios/acceso/acceso25/prueba-25/examenes.html",
+    "tags": [
+      "examenes",
+      "calendario",
+      "oficial"
+    ],
+    "desc": "Calendario, normas y orientaciones de los examenes de acceso de la UNED."
   },
   {
-    title:'UNED Akademos - Lengua Castellana 2025/2026',
-    url:'https://akademosweb.uned.es/Default.aspx?cadenaUnica_5=019000&idUnico_5=00001028%2F00001&id_servicio=4&modo_5=6',
-    source:'UNED Akademos',
-    tags:['examen real','PDF'],
-    desc:'Pagina oficial con enunciados de Lengua Castellana del curso de acceso +25 y enlaces a examenes.'
-  },
-  {
-    title:'BOE - Regulacion acceso universitario',
-    url:'https://www.boe.es/buscar/act.php?id=BOE-A-2024-11858',
-    source:'BOE',
-    tags:['normativa','oficial'],
-    desc:'Normativa estatal sobre acceso a Grado y prueba para personas mayores de 25 anos.'
-  },
-  {
-    title:'Canal UNED - Acceso 25/45',
-    url:'https://canal.uned.es/series/6a059586bb0135653d081f5d',
-    source:'UNED',
-    tags:['videos','calificacion'],
-    desc:'Videos oficiales breves sobre calificacion, normativa y funcionamiento del acceso.'
-  },
-  {
-    title:'Comunidad de Madrid - Acceso universidad mayores de 25',
-    url:'https://www.comunidad.madrid/educacion/acceso-universidad-mayores-25-anos',
-    source:'Comunidad de Madrid',
-    tags:['convocatoria','oficial'],
-    desc:'Informacion autonoma sobre requisitos, prueba, matricula y acceso para mayores de 25 anos.'
-  },
-  {
-    title:'Canal Universitats - Prueba mayores de 25',
-    url:'https://universitats.gencat.cat/es/proves-majors/25-anys/index.html',
-    source:'Generalitat de Catalunya',
-    tags:['modelos','convocatoria'],
-    desc:'Portal oficial con informacion de la prueba, materias, calendario y documentacion para mayores de 25.'
-  },
-  {
-    title:'Diccionario RAE',
-    url:'https://dle.rae.es/',
-    source:'Real Academia Espanola',
-    tags:['lengua','consulta'],
-    desc:'Para comprobar significados, usos, acentuacion y dudas de vocabulario durante Lengua y comentario.'
-  },
-  {
-    title:'Centro Virtual Cervantes - Biblioteca del profesor',
-    url:'https://cvc.cervantes.es/ensenanza/biblioteca_ele/',
-    source:'Instituto Cervantes',
-    tags:['lengua','redaccion'],
-    desc:'Materiales fiables para trabajar comprension, expresion escrita y uso correcto del espanol.'
-  },
-  {
-    title:'Cambridge Dictionary',
-    url:'https://dictionary.cambridge.org/es/',
-    source:'Cambridge University Press',
-    tags:['ingles','consulta'],
-    desc:'Diccionario ingles-espanol con pronunciacion, ejemplos y nivel de uso para preparar el idioma.'
-  },
-  {
-    title:'Khan Academy en Espanol',
-    url:'https://es.khanacademy.org/',
-    source:'Khan Academy',
-    tags:['matematicas','ciencias'],
-    desc:'Lecciones y ejercicios guiados para reforzar matematicas y ciencias de la fase especifica.'
-  },
-  {
-    title:'Instituto Geografico Nacional - Recursos educativos',
-    url:'https://www.ign.es/web/recursos-educativos',
-    source:'IGN',
-    tags:['geografia','mapas'],
-    desc:'Mapas, visores y materiales para practicar geografia y lectura de informacion territorial.'
+    "title": "RAE - Diccionario de la lengua espanola",
+    "source": "RAE",
+    "url": "https://dle.rae.es/",
+    "tags": [
+      "lengua",
+      "consulta"
+    ],
+    "desc": "Consulta de vocabulario y ortografia para Lengua y Comentario de texto."
   }
 ];
 let OFFICIAL_LINKS = [...DEFAULT_OFFICIAL_LINKS];
@@ -2659,6 +2643,118 @@ const QUESTIONS = {
     ['La inflacion es...', ['Una bajada general de precios','Un aumento general de precios','La ausencia de moneda'], 1],
     ['El imperialismo del siglo XIX implico...', ['Expansion y dominio colonial','Fin del comercio','Desaparicion de los estados'], 0],
     ['En una funcion lineal la grafica es...', ['Una recta','Una circunferencia','Una nube sin relacion'], 0]
+  ],
+  comentario:[
+    ["\"Debemos ampliar el horario porque muchas personas trabajan por la manana.\" La tesis es...",["Debemos ampliar el horario","Muchas personas trabajan por la manana","No hay tesis"],0],
+    ["Un texto presenta primero ejemplos y termina formulando la tesis. Su estructura es...",["inductiva","deductiva","cronologica necesariamente"],0],
+    ["\"Todos lo compran, por tanto es el mejor\" presenta...",["una apelacion a la mayoria que no demuestra calidad","una demostracion experimental","un argumento causal concluyente"],0],
+    ["En \"El transporte es barato; ademas, reduce emisiones\", \"ademas\" expresa...",["adicion","concesion","consecuencia"],0],
+    ['El tema de un texto debe formularse...', ['de forma breve y precisa','copiando el titulo','como una opinion personal'], 0],
+    ['Un resumen correcto...', ['recoge ideas esenciales sin valorarlas','copia ejemplos completos','anade argumentos propios'], 0],
+    ['La tesis es...', ['la idea que sostiene el autor','la lista de parrafos','el dato mas reciente'], 0],
+    ['Un argumento de autoridad se apoya en...', ['una fuente experta reconocible','una pregunta retorica','una repeticion'], 0],
+    ['La estructura debe justificarse mediante...', ['la funcion de cada parte del texto','el numero de lineas solamente','el gusto personal'], 0],
+    ['Una valoracion critica completa incluye...', ['postura, razon, ejemplo y conclusion','solo acuerdo o desacuerdo','un segundo resumen'], 0],
+    ['Un conector de contraste es...', ['sin embargo','por tanto','ademas'], 0],
+    ['Antes de responder conviene identificar...', ['el verbo de la consigna: resume, explica o valora','solo la extension del texto','la respuesta mas larga'], 0]
+  ],
+  lengua:[
+    ["En \"Espero que vengas\", \"que vengas\" funciona como...",["complemento directo de espero","sujeto de espero","complemento del nombre"],0],
+    ["En \"Ana compro pan y Luis preparo cafe\" hay...",["coordinacion copulativa","subordinacion causal","una oracion simple"],0],
+    ["La palabra \"deshacer\" se forma por...",["prefijacion","composicion de dos lexemas","flexion de genero"],0],
+    ["En \"Dijo que vendria. Eso me alegro\", \"eso\" es...",["una referencia anaforica","un conector adversativo","una forma verbal"],0],
+    ['En "Me gustan los libros", el sujeto es...', ['los libros','me','gustan'], 0],
+    ['Una subordinada adjetiva complementa normalmente...', ['a un sustantivo','a una preposicion','a un numero'], 0],
+    ['La palabra "rapidamente" es...', ['un adverbio','un adjetivo','un pronombre'], 0],
+    ['El complemento directo puede sustituirse por...', ['lo, la, los o las','le o les siempre','muy'], 0],
+    ['"Por consiguiente" introduce...', ['una consecuencia','una oposicion','una condicion'], 0],
+    ['La Generacion del 98 se relaciona con...', ['la reflexion sobre Espana y la renovacion literaria','el teatro medieval','la poesia epica romana'], 0],
+    ['Una coma no debe separar...', ['sujeto y verbo','elementos de una enumeracion','un inciso'], 0],
+    ['La cohesion textual se construye con...', ['conectores, referencias y repeticion controlada','frases aisladas','cambios de tema sin aviso'], 0]
+  ],
+  ingles:[
+    ["Read: \"Applications received after Friday will not be considered.\" Which is correct?",["You must apply no later than Friday.","You can apply during the weekend.","Applications open after Friday."],0],
+    ["She has lived here ... 2020.",["since","for","during"],0],
+    ["He said, \"I am tired.\" Report this later in the past:",["He said that he was tired.","He said that he is tiring.","He said that I were tired."],0],
+    ["Choose the correctly punctuated connector:",["It was expensive. However, we bought it.","It was expensive however we bought it.","It was expensive, because, we bought it."],0],
+    ['Choose the correct option: If I had known, I ... you.', ['would have called','will call','called'], 0],
+    ['"However" normally introduces...', ['contrast','cause','addition'], 0],
+    ['A passive sentence is...', ['The report was published yesterday.','They published the report.','Publish the report.'], 0],
+    ['Scanning a text means...', ['looking for specific information','reading every word aloud','guessing without evidence'], 0],
+    ['Choose the correct relative pronoun: The book ... I bought.', ['that','where','whose'], 0],
+    ['"Despite" is followed by...', ['a noun or gerund','a full clause with a finite verb only','an infinitive with to'], 0],
+    ['In formal writing, the best option is...', ['I am writing to enquire about...','Hey, tell me about...','Wanna know...'], 0],
+    ['A good reading answer should be based on...', ['evidence in the text','general knowledge only','translation of every word'], 0]
+  ],
+  humanidades:[
+    ["Una carta escrita en 1812 por un diputado de Cadiz es...",["una fuente primaria para estudiar aquel contexto","una fuente secundaria por estar escrita","una prueba suficiente de lo que pensaba toda la poblacion"],0],
+    ["El Renacimiento europeo recupera especialmente...",["modelos de la Antiguedad clasica","la estetica industrial","el arte abstracto del siglo XX"],0],
+    ["En una piramide de poblacion, una base estrecha indica habitualmente...",["baja natalidad reciente","alta natalidad reciente","ausencia de emigracion"],0],
+    ["La division de poderes diferencia principalmente...",["legislativo, ejecutivo y judicial","militar, religioso y comercial","municipal, familiar y cultural"],0],
+    ['Una fuente primaria es...', ['un documento producido en la epoca estudiada','un manual reciente','una opinion sin contexto'], 0],
+    ['La Revolucion Industrial transformo...', ['produccion, trabajo y ciudades','solo la pintura','unicamente las fronteras'], 0],
+    ['El imperialismo del siglo XIX implico...', ['expansion y dominio colonial','fin del comercio mundial','desaparicion de los estados'], 0],
+    ['Un climograma representa...', ['temperaturas y precipitaciones','poblacion y empleo','relieve y carreteras'], 0],
+    ['En latin, el nominativo suele funcionar como...', ['sujeto','complemento circunstancial','preposicion'], 0],
+    ['El realismo literario busca...', ['representar la sociedad y sus conflictos','idealizar heroes medievales','eliminar al narrador'], 0],
+    ['La separacion de poderes pretende...', ['limitar la concentracion de poder','suprimir las leyes','eliminar elecciones'], 0],
+    ['Una respuesta historica debe relacionar...', ['causas, proceso y consecuencias','fechas sin explicar','opiniones sin fuentes'], 0]
+  ],
+  sociales:[
+    ["Ingresos de 12 000 euros y costes de 9 500 euros dan un beneficio de...",["2 500 euros","21 500 euros","9 500 euros"],0],
+    ["Con coste fijo de 1 000 euros, precio de 20 y coste variable unitario de 10, el umbral es...",["100 unidades","50 unidades","200 unidades"],0],
+    ["La mediana de 2, 3, 5 y 90 es...",["4","25","5"],0],
+    ["El interes simple de 1 000 euros al 3% anual durante 2 anos es...",["60 euros","30 euros","60,90 euros"],0],
+    ['Si aumenta la demanda y la oferta no cambia, el precio tiende a...', ['subir','desaparecer','bajar siempre'], 0],
+    ['La inflacion es...', ['un aumento general y sostenido de precios','una bajada del desempleo','la ausencia de moneda'], 0],
+    ['El beneficio empresarial es...', ['ingresos menos costes','costes menos ingresos','ventas mas impuestos'], 0],
+    ['Subir de 80 a 100 supone un aumento del...', ['25%','20%','80%'], 0],
+    ['La mediana es...', ['el valor central de los datos ordenados','la suma de todos los datos','el dato mas frecuente'], 0],
+    ['El sector terciario comprende...', ['servicios','agricultura','industria extractiva'], 0],
+    ['La Constitucion es...', ['la norma superior del ordenamiento','un contrato privado','una ordenanza municipal'], 0],
+    ['El etnocentrismo consiste en...', ['juzgar otras culturas desde la propia como medida','estudiar datos economicos','defender la diversidad siempre'], 0]
+  ],
+  ciencias:[
+    ["Se disuelven 0,5 mol en un volumen final de 2 L. La molaridad es...",["0,25 mol/L","1 mol/L","4 mol/L"],0],
+    ["Una fuerza resultante de 12 N actua sobre 3 kg. La aceleracion es...",["4 m/s2","36 m/s2","0,25 m/s2"],0],
+    ["En un cruce Aa x Aa con dominancia completa, la probabilidad de aa es...",["25%","50%","75%"],0],
+    ["El ajuste correcto para formar agua es...",["2 H2 + O2 -> 2 H2O","H2 + O2 -> H2O","2 H2 + 2 O2 -> H2O"],0],
+    ['La mitosis origina...', ['dos celulas geneticamente similares','cuatro gametos','una proteina'], 0],
+    ['Un alelo es...', ['una variante de un gen','un organulo celular','una molecula de glucosa'], 0],
+    ['Al ajustar una reaccion se conserva...', ['el numero de atomos de cada elemento','el volumen siempre','la velocidad'], 0],
+    ['La molaridad se expresa como...', ['moles de soluto por litro de disolucion','gramos por segundo','julios por metro'], 0],
+    ['La velocidad media es...', ['desplazamiento dividido entre tiempo','masa por aceleracion','energia por volumen'], 0],
+    ['La segunda ley de Newton se expresa...', ['F = m·a','E = m·g·h','V = I/R'], 0],
+    ['Las vacunas ayudan a...', ['generar memoria inmunitaria','eliminar todos los microorganismos','sustituir los antibioticos'], 0],
+    ['En un ecosistema, los productores...', ['fabrican materia organica a partir de materia inorganica','se alimentan solo de consumidores','no intercambian energia'], 0]
+  ],
+  matematicas:[
+    ["Si f(x)=x^2, entonces f'(3) es...",["6","9","3"],0],
+    ["El sistema x+y=7, x-y=1 tiene solucion...",["x=4, y=3","x=3, y=4","x=7, y=1"],0],
+    ["El dominio real de 1/(x-2) excluye...",["2","0","-2"],0],
+    ["La integral de 0 a 2 de f(x)=x vale...",["2","4","1"],0],
+    ['La solucion de 2x - 6 = 10 es...', ['8','2','5'], 0],
+    ['El dominio de una funcion es...', ['el conjunto de valores permitidos para x','solo los valores de y positivos','la pendiente'], 0],
+    ['La derivada representa...', ['la tasa de variacion instantanea','el area bajo la curva','la suma de una sucesion'], 0],
+    ['La integral definida puede representar...', ['un area neta bajo una curva','solo una pendiente','una matriz cuadrada'], 0],
+    ['En una matriz, el determinante...', ['ayuda a saber si es invertible','es siempre la suma de filas','solo existe en matrices rectangulares'], 0],
+    ['La probabilidad de un suceso imposible es...', ['0','1','1/2 siempre'], 0],
+    ['La media de 4, 6, 8 y 10 es...', ['7','8','6'], 0],
+    ['En un triangulo rectangulo, sen(alpha) es...', ['cateto opuesto dividido entre hipotenusa','cateto adyacente dividido entre hipotenusa','hipotenusa dividida entre cateto opuesto'], 0]
+  ],
+  tecnologia:[
+    ["Una resistencia de 6 ohmios conectada a 12 V conduce...",["2 A","72 A","0,5 A"],0],
+    ["Dos resistencias de 4 y 6 ohmios en serie equivalen a...",["10 ohmios","2,4 ohmios","2 ohmios"],0],
+    ["A escala 1:50, una longitud dibujada de 4 cm representa...",["2 m","20 m","0,8 m"],0],
+    ["Si x empieza en 1 y se duplica 3 veces, termina en...",["8","6","4"],0],
+    ['La ley de Ohm relaciona...', ['tension, intensidad y resistencia','masa, fuerza y aceleracion','presion y volumen'], 0],
+    ['En un circuito en serie, la intensidad...', ['es la misma en todos los elementos','se anula siempre','depende solo del primer elemento'], 0],
+    ['Un algoritmo es...', ['una secuencia ordenada de pasos','un componente fisico','una unidad de memoria'], 0],
+    ['El sistema binario utiliza...', ['0 y 1','0 a 9','solo letras'], 0],
+    ['Una estructura triangulada se usa porque...', ['aporta rigidez','elimina todas las cargas','no necesita apoyos'], 0],
+    ['La potencia electrica puede calcularse como...', ['P = V·I','P = m/a','P = V+R'], 0],
+    ['El hardware es...', ['la parte fisica de un sistema','el conjunto de programas','un protocolo de red'], 0],
+    ['Una energia renovable es...', ['la solar','el carbon','el petroleo'], 0]
   ]
 };
 let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, teacherChats:{}, testAttempts:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, examMode:null, examPracticeType:'development', activeModule:'comentario', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
@@ -3578,8 +3674,9 @@ function defaultLessonNotes(topic, lesson, index) {
   const module = moduleById(topic.module);
   const profile = moduleStudyProfile(module.id);
   const points = lessonPoints(topic, lesson, index);
+  const coreTheory = VERIFIED_TOPIC_THEORY[topic.id] || topic.note;
   return `RESUMEN CORTO
-${lesson.note}
+${coreTheory}
 
 PARA QUE SIRVE EN EL EXAMEN
 Este punto suele aparecer dentro de ${profile.exam}. El objetivo no es memorizar mucho, sino demostrar que entiendes ${topic.title.toLowerCase()} y sabes aplicarlo en una respuesta breve, ordenada y justificable.
@@ -3608,7 +3705,10 @@ Explica ${lesson.title.toLowerCase()} aplicado a ${topic.title.toLowerCase()} y 
 function lessonTheory(topic, lesson, index) {
   const module = moduleById(topic.module);
   const profile = moduleStudyProfile(module.id);
-  return `${lesson.title} es una parte de ${topic.title} que conviene estudiar con enfoque practico. En ${module.title}, lo importante es reconocer que pide el enunciado, seleccionar la idea central y construir una respuesta ordenada. ${lesson.note}
+  const coreTheory = VERIFIED_TOPIC_THEORY[topic.id] || topic.note;
+  return `${coreTheory}
+
+En esta leccion se trabaja ${lesson.title.toLowerCase()}. ${lesson.note}
 
 Para estudiarlo, empieza por la definicion y despues pasa a la aplicacion. Si la pregunta es teorica, explica el concepto, situa su funcion y anade un ejemplo. Si la pregunta es practica, separa datos, procedimiento y conclusion. En ambos casos, el corrector suele valorar ${profile.criteria}.
 
@@ -3631,7 +3731,7 @@ function renderTest(module) {
   }).join('')}</div></div><div id="testBox"></div>`;
 }
 function renderOfficialResources() {
-  $('viewer').innerHTML = `<div class="output">ENLACES OFICIALES VERIFICADOS PARA ABRIR EXAMENES, PROGRAMAS, ESTRUCTURA Y NORMATIVA. Algunos repositorios oficiales pueden pedir sesion o cambiar el PDF concreto, por eso se enlaza a la pagina oficial mantenida por el organismo.</div>
+  $('viewer').innerHTML = `<div class="output">Referencia principal: UNED. Comprueba las asignaturas, programas y criterios de la universidad donde te examinaras. Las materias especificas y el formato pueden variar entre universidades.</div>
   <div class="resource-grid">${OFFICIAL_LINKS.map(link => `<a class="resource-card" href="${link.url}" target="_blank" rel="noopener">
     <div class="resource-tags">${link.tags.map(tag => `<span>${tag}</span>`).join('')}</div>
     <strong>${escapeHtml(link.title)}</strong>
@@ -3640,8 +3740,7 @@ function renderOfficialResources() {
   </a>`).join('')}</div>`;
 }
 function testCards(module) {
-  const topicCards = module.tasks.flatMap(topic => [0,1].map(variant => ({id:`${module.id}:${topic.id}:${variant}`, title:`${topic.title} ${variant + 1}`, detail:variant ? 'Aplicacion y errores frecuentes.' : 'Conceptos clave y respuesta tipo.', label:`TEST ${variant + 1}`})));
-  return [{id:`${module.id}:mixed:0`, title:`${module.title} mixto`, detail:'Preguntas combinadas de toda la asignatura.', label:'MIXTO'}, ...topicCards];
+  return [{id:`${module.id}:mixed:0`, title:`${module.title}: repaso`, detail:'Preguntas de esta asignatura. Opciones en orden aleatorio.', label:'REPASO'}];
 }
 function testById(testId) {
   const [moduleId, topicId, variantRaw] = String(testId || '').split(':');
@@ -3649,23 +3748,20 @@ function testById(testId) {
   const topic = topicId === 'mixed' ? null : module.tasks.find(t => t.id === topicId);
   return {id:testId, module, topic, variant:Number(variantRaw || 0)};
 }
-function topicQuestionSet(topic, module, variant=0) {
-  const profile = moduleStudyProfile(module.id);
-  const examples = [
-    [`${topic.title}: que debes priorizar?`, [topic.detail, 'Responder sin leer el enunciado', 'Copiar una frase sin explicarla'], 0],
-    [`En ${topic.title}, una respuesta buena debe...`, [`Usar este metodo: ${profile.method}`, 'Ser larga aunque no responda', 'Evitar ejemplos siempre'], 0],
-    [`Cual es un ejemplo util para este tema?`, [topic.example, 'Una opinion sin relacion', 'Una palabra aislada sin contexto'], 0],
-    [`Que error conviene evitar en ${topic.title}?`, ['No justificar la respuesta', 'Ordenar las ideas', 'Revisar antes de entregar'], 0],
-    ['Criterio clave de correccion', [profile.criteria, 'Solo decorar la respuesta', 'No terminar la conclusion'], 0],
-    ['Para cerrar la respuesta conviene...', ['Anadir una conclusion breve', 'Dejarla a medias', 'Cambiar de tema'], 0]
-  ];
-  return variant ? examples.slice(2).concat(examples.slice(0,2)) : examples;
-}
 function buildQuestionsForTest(testId) {
   const {module, topic, variant} = testById(testId);
-  const base = [...(QUESTIONS[module.testKey || 'general'] || QUESTIONS.general)];
-  const topicQs = topic ? topicQuestionSet(topic, module, variant) : module.tasks.flatMap((task,index) => topicQuestionSet(task, module, index % 2).slice(0,1));
-  return [...topicQs, ...base].slice(0,10);
+  const base = [...(QUESTIONS[module.id] || QUESTIONS[module.testKey || 'general'] || QUESTIONS.general)];
+  return prepareTestQuestions(base).slice(0,10);
+}
+function prepareTestQuestions(questions) {
+  return questions.map(([prompt, options, correct]) => {
+    const order = options.map((text, index) => ({text, index}));
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    return [prompt, order.map(option => option.text), order.findIndex(option => option.index === correct)];
+  });
 }
 function startTopicTest(testId) {
   const {module, topic, variant} = testById(testId);
@@ -3819,8 +3915,7 @@ function startExamPracticeTest(count) {
   const selected = $('examTestSubject').value;
   const modules = selected === 'all' ? MODULES.filter(module => !['test','exam','oficial'].includes(module.id)) : [moduleById(selected)];
   const pools = modules.map(module => [
-    ...module.tasks.flatMap((task,index) => topicQuestionSet(task,module,index % 2).slice(0,2)),
-    ...(QUESTIONS[module.testKey || 'general'] || QUESTIONS.general)
+    ...prepareTestQuestions(QUESTIONS[module.id] || QUESTIONS[module.testKey || 'general'] || QUESTIONS.general)
   ]);
   const questions = [];
   const seen = new Set();

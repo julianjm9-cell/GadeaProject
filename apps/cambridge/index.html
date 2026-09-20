@@ -1317,6 +1317,9 @@
   .english-icon { width:54px; height:54px; display:grid; place-items:center; flex:0 0 auto; border-radius:8px; background:#1479e7; color:#fff; font-size:25px; line-height:1; }
   .english-icon.teal { background:#059a75; } .english-icon.purple { background:#7555d9; } .english-icon.gold { background:#edae30; }
   .english-session h3 { font-size:24px; } .english-session p, .english-card p { margin-top:5px; color:var(--muted); font-size:14px; line-height:1.4; }
+  .english-level-control { display:flex; align-items:center; gap:8px; margin-top:10px; }
+  .english-level-control label { color:var(--muted); font-size:11px; font-weight:800; text-transform:uppercase; }
+  .english-level-control select { min-height:34px; padding:5px 30px 5px 10px; border:1px solid #b9ccea; border-radius:7px; background:#fff; color:var(--ink); font:700 12px "Segoe UI",Arial,sans-serif; }
   #sessionEmpty .cambridge-duration-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); width:100%; gap:10px; margin:0; }
   #sessionEmpty .cambridge-duration-options button { min-height:82px; padding:12px; display:grid; align-content:center; justify-items:center; gap:4px; border:1px solid var(--border); border-radius:8px; background:#fff; text-align:center; box-shadow:none; }
   #sessionEmpty .cambridge-duration-options button.selected { border:2px solid var(--blue); background:#f4f8ff; box-shadow:0 4px 14px rgba(18,88,214,.12); }
@@ -1332,6 +1335,12 @@
   .english-topic-chips span { font-size:17px; line-height:1; }
   .english-card-steps { display:flex; gap:8px; flex-wrap:wrap; margin-top:20px; }
   .english-card-steps span { min-height:38px; display:grid; place-items:center; flex:1 1 92px; padding:7px 10px; border:1px solid var(--border); border-radius:7px; background:#f7faff; color:var(--muted); font-size:12px; font-weight:700; text-align:center; }
+  .official-english-resources { margin-top:22px; padding:16px; border:1px solid var(--border); border-radius:8px; background:#fff; }
+  .official-english-resources summary { cursor:pointer; color:var(--ink); font-size:14px; font-weight:800; }
+  .official-english-links { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:14px; }
+  .official-english-links a { display:grid; gap:4px; min-height:76px; padding:12px; border:1px solid var(--border); border-radius:7px; color:var(--ink); text-decoration:none; }
+  .official-english-links a:hover { border-color:var(--blue); background:#f4f8ff; }
+  .official-english-links strong { font-size:13px; } .official-english-links small { color:var(--muted); font-size:11px; line-height:1.35; }
   .english-meter { display:flex; align-items:center; gap:12px; margin-top:20px; } .english-meter-track { flex:1; height:10px; overflow:hidden; border-radius:20px; background:#e4edf9; } .english-meter-track span { display:block; height:100%; width:0; border-radius:20px; background:var(--sage); } .english-meter strong { font-size:22px; }
   .english-next { width:100%; min-height:62px; display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:16px; padding:12px 16px; border:0; border-radius:8px; background:#eaf9f3; text-align:left; cursor:pointer; } .english-next strong, .english-next small { display:block; } .english-next strong { font-size:14px; } .english-next small { margin-top:3px; color:var(--muted); font-size:12px; }
   .english-progress { display:none; padding:20px 0 64px; } .english-progress.active { display:grid; gap:16px; }
@@ -1348,7 +1357,7 @@
   .english-progress-action { display:flex; align-items:center; gap:15px; min-height:86px; padding:15px 20px; border:1px solid #c8eade; border-radius:8px; background:#eafaf4; } .english-progress-action > div { flex:1; } .english-progress-action strong, .english-progress-action small { display:block; } .english-progress-action small { margin-top:3px; font-size:18px; font-weight:700; } .english-progress-action button { min-height:48px; }
   @media(max-width:1100px) { .english-session { grid-template-columns:1fr; } .english-start { width:100%; } .english-progress-overview-main { grid-template-columns:auto minmax(0,1fr); } .english-progress-level { grid-column:1/-1; min-height:0; padding:14px 0 0; border-left:0; border-top:1px solid #cbdcf6; } .english-progress-grid { grid-template-columns:1fr; } }
   @media(max-width:750px) { .english-grid { grid-template-columns:1fr; } .english-session { padding:16px; } .english-card-head { flex-wrap:wrap; } .english-card .english-link { margin-left:auto; } }
-  @media(max-width:600px) { .main-actions { grid-template-columns:repeat(6,minmax(0,1fr)); gap:3px; } .main-actions .nav-pill:nth-child(-n+3) { grid-column:span 2; } .main-actions .nav-pill:nth-child(n+4) { grid-column:span 3; } .nav-pill { padding:8px 4px; font-size:.73rem; } #sessionEmpty { padding-top:8px; } .english-topic-chips { grid-template-columns:repeat(2,minmax(0,1fr)); } .english-progress-overview-main { grid-template-columns:1fr; } .english-progress-overview-main > .english-icon { display:none; } .english-progress-level { grid-column:auto; } .english-progress-action { flex-wrap:wrap; } .english-progress-action button { width:100%; } }
+  @media(max-width:600px) { .main-actions { grid-template-columns:repeat(6,minmax(0,1fr)); gap:3px; } .main-actions .nav-pill:nth-child(-n+3) { grid-column:span 2; } .main-actions .nav-pill:nth-child(n+4) { grid-column:span 3; } .nav-pill { padding:8px 4px; font-size:.73rem; } #sessionEmpty { padding-top:8px; } .english-topic-chips { grid-template-columns:repeat(2,minmax(0,1fr)); } .english-progress-overview-main { grid-template-columns:1fr; } .english-progress-overview-main > .english-icon { display:none; } .english-progress-level { grid-column:auto; } .english-progress-action { flex-wrap:wrap; } .english-progress-action button { width:100%; } .official-english-links { grid-template-columns:1fr; } }
   #sessionActive > .chat-panel.compact,
   #tab-recitar .recite-layout > .chat-panel,
   #tab-temas .topics-side { display:none !important; }
@@ -1421,7 +1430,7 @@
       <h2>Tu escritorio virtual</h2>
       <p class="desk-subtitle">Un paso cada día con tu inglés.</p>
       <div class="english-session">
-        <div class="english-session-title"><span class="english-icon" aria-hidden="true">📅</span><div><h3>Sesión diaria</h3><p>Elige cuánto tiempo tienes y continúa practicando.</p></div></div>
+        <div class="english-session-title"><span class="english-icon" aria-hidden="true">📅</span><div><h3>Sesión diaria</h3><p>Elige nivel y tiempo para practicar el examen correcto.</p><div class="english-level-control"><label for="examLevelSelect">Nivel</label><select id="examLevelSelect" onchange="setExamLevel(this.value)"><option value="B2 First">B2 First</option><option value="C1 Advanced">C1 Advanced</option><option value="C2 Proficiency">C2 Proficiency</option></select></div></div></div>
         <div class="cambridge-duration-options" role="group" aria-label="Duración de la sesión">
           <button type="button" data-english-duration="15" onclick="selectEnglishDuration(15)"><strong>15 min</strong><span>Repaso rápido</span></button>
           <button type="button" data-english-duration="30" onclick="selectEnglishDuration(30)"><strong>30 min</strong><span>Estudio equilibrado</span></button>
@@ -1654,6 +1663,14 @@
           <div class="cat-tabs" id="cattabs-all"></div>
           <div class="topics-grid" id="topicsgrid-all"></div>
         </div>
+        <details class="official-english-resources">
+          <summary>Recursos oficiales de Cambridge English</summary>
+          <div class="official-english-links">
+            <a href="https://www.cambridgeenglish.org/exams-and-tests/qualifications/first/preparation/" target="_blank" rel="noopener"><strong>B2 First: pruebas de muestra</strong><small>Formato, sample tests, soluciones y materiales oficiales.</small></a>
+            <a href="https://www.cambridgeenglish.org/exams-and-tests/qualifications/advanced/preparation/" target="_blank" rel="noopener"><strong>C1 Advanced: pruebas de muestra</strong><small>Modelos digitales y en papel, claves y criterios.</small></a>
+            <a href="https://www.cambridgeenglish.org/exams-and-tests/qualifications/proficiency/preparation/" target="_blank" rel="noopener"><strong>C2 Proficiency: preparación</strong><small>Formato, handbook y recursos oficiales del nivel.</small></a>
+          </div>
+        </details>
       </div>
 
       <aside class="topics-side">
@@ -1899,9 +1916,15 @@ function getAllTopics() {
 
 // ── STATE ───────────────────────────────────────────────────────────────
 const DEFAULT_PROFILE = `The student is preparing for Cambridge English exams (B2 First, C1 Advanced or C2 Proficiency), especially Speaking, Writing, Reading and Use of English. The output should sound natural, accurate and exam-ready: clear structure, strong cohesion, idiomatic but controlled vocabulary, useful collocations and practical examiner-focused advice. Avoid generic textbook wording and memorised essays. Prioritise model answers, alternative phrases, register, discourse management, task fulfilment and common mistakes for Spanish-speaking learners.`;
+const EXAM_BLUEPRINTS = {
+  'B2 First': 'Reading and Use of English: 75 minutes, 7 parts and 52 questions. Writing: 80 minutes, 2 tasks and 140-190 words per task. Listening: about 40 minutes, 4 parts and 30 questions. Speaking: 4 parts, about 14 minutes per pair.',
+  'C1 Advanced': 'Reading and Use of English: 90 minutes, 8 parts and 56 questions. Writing: 90 minutes, 2 tasks and 220-260 words per task. Listening: about 40 minutes, 4 parts and 30 questions. Speaking: 4 parts, about 15 minutes per pair.',
+  'C2 Proficiency': 'Reading and Use of English: 90 minutes, 7 parts and 53 questions. Writing: 90 minutes, 2 tasks; Part 1 is 240-280 words and Part 2 is 280-320 words. Listening: about 40 minutes, 4 parts and 30 questions. Speaking: 3 parts, about 16 minutes per pair.'
+};
 
 let state = {
   lang: 'en',
+  examLevel: 'C1 Advanced',
   completedTopics: [],   // array of topic strings that have been saved
   history: [],
   currentSession: null,
@@ -1951,6 +1974,7 @@ function normalizeAppState() {
   if (!state.history) state.history = [];
   if (!('currentSession' in state)) state.currentSession = null;
   state.lang = 'en';
+  state.examLevel = ['B2 First','C1 Advanced','C2 Proficiency'].includes(state.examLevel) ? state.examLevel : 'C1 Advanced';
   if (!state.writingPractice) state.writingPractice = { taskType: 'essay', level: 'C1 Advanced', prompt: '', answer: '', feedback: '' };
   state.recitePractice = {
     topic: '',
@@ -1977,10 +2001,17 @@ function renderTopicsTab() {
 
 function getTopicGroups() {
   const groups = {};
+  const activeCode = (state.examLevel || 'C1 Advanced').slice(0,2);
+  const belongsToActiveLevel = (label) => {
+    const match = String(label || '').match(/^(B2|C1|C2)\b/);
+    return !match || match[1] === activeCode;
+  };
   for (const year of Object.keys(TOPIC_DB).sort((a,b) => Number(b) - Number(a))) {
     for (const cat of Object.keys(TOPIC_DB[year])) {
+      if (!belongsToActiveLevel(cat)) continue;
       if (!groups[cat]) groups[cat] = [];
       for (const topic of TOPIC_DB[year][cat]) {
+        if (!belongsToActiveLevel(topic)) continue;
         if (!groups[cat].includes(topic)) groups[cat].push(topic);
       }
     }
@@ -2115,7 +2146,22 @@ function setLang(lang) {
 }
 
 function getLangLabel() {
-  return 'English B2/C1/C2';
+  return state.examLevel || 'C1 Advanced';
+}
+
+function setExamLevel(level) {
+  if (!['B2 First','C1 Advanced','C2 Proficiency'].includes(level)) return;
+  state.examLevel = level;
+  state.writingPractice = {...(state.writingPractice || {}), level};
+  const levelSelect = document.getElementById('examLevelSelect');
+  if (levelSelect) levelSelect.value = level;
+  currentCat = '';
+  const writingLevel = document.getElementById('writingLevel');
+  if (writingLevel) writingLevel.value = level;
+  const badge = document.getElementById('sessionLangBadge');
+  if (badge) badge.textContent = level;
+  renderTopicsTab();
+  persist();
 }
 
 // ── FONT SIZE ────────────────────────────────────────────────────────────
@@ -2456,6 +2502,8 @@ async function init() {
   document.getElementById('numPoints').value      = state.config.numPoints;
   document.getElementById('numVocab').value       = state.config.numVocab;
   document.getElementById('profileContext').value = state.config.profile;
+  document.getElementById('examLevelSelect').value = state.examLevel;
+  document.getElementById('writingLevel').value = state.examLevel;
   document.getElementById('pointFontSize').value  = state.config.pointFontSize;
   document.getElementById('pointSizeLabel').textContent = state.config.pointFontSize + 'px';
   updatePointSize(state.config.pointFontSize);
@@ -2661,7 +2709,7 @@ async function askEnglishTeacher() {
   const context = `Sección: ${active}. Tema actual: ${state.currentSession?.topic || 'sin tema seleccionado'}.`;
   const recent = state.topicChats.profesor.slice(-8).map(msg => ({role:msg.role, content:msg.text}));
   try {
-    const answer = await groqChat([{role:'system', content:`You are a helpful English exam tutor for a Spanish-speaking adult preparing B2/C1/C2. Explain in Spanish when useful, but give English examples and correct English in English. Be concise and specific. ${context}`}, ...recent], {max_tokens:1000, temperature:0.3});
+    const answer = await groqChat([{role:'system', content:`You are a helpful Cambridge English tutor for a Spanish-speaking adult preparing ${state.examLevel}. Explain in Spanish when useful, but give English examples and corrections in English. Follow this official exam blueprint: ${EXAM_BLUEPRINTS[state.examLevel]}. Be concise and specific. ${context}`}, ...recent], {max_tokens:1000, temperature:0.3});
     state.topicChats.profesor.push({role:'assistant', text:answer});
   } catch (error) {
     state.topicChats.profesor.push({role:'assistant', text:error.message || 'No se pudo responder. Inténtalo de nuevo.'});
@@ -2675,7 +2723,7 @@ async function askEnglishTeacher() {
 function renderWritingPractice() {
   const data = state.writingPractice || {};
   if (document.getElementById('writingTaskType')) document.getElementById('writingTaskType').value = data.taskType || 'essay';
-  if (document.getElementById('writingLevel')) document.getElementById('writingLevel').value = data.level || 'C1 Advanced';
+  if (document.getElementById('writingLevel')) document.getElementById('writingLevel').value = state.examLevel;
   if (document.getElementById('writingPrompt')) document.getElementById('writingPrompt').value = data.prompt || '';
   if (document.getElementById('writingAnswer')) document.getElementById('writingAnswer').value = data.answer || '';
   const feedback = document.getElementById('writingFeedback');
@@ -2690,6 +2738,11 @@ function persistWritingPractice() {
     answer: document.getElementById('writingAnswer')?.value || '',
     feedback: state.writingPractice?.feedback || ''
   };
+  const selectedLevel = state.writingPractice.level;
+  if (selectedLevel !== state.examLevel) {
+    setExamLevel(selectedLevel);
+    return;
+  }
   persist();
 }
 
@@ -2783,7 +2836,7 @@ async function generateWritingModel() {
   setWritingStatus('Generando modelo Cambridge...');
   try {
     const model = await groqChat([
-      { role: 'system', content: 'You are a Cambridge English writing examiner and preparation teacher. Respond in clear Spanish, but write model answers in English. Do not use markdown headings with ### or **.' },
+      { role: 'system', content: `You are a Cambridge English writing preparation teacher for ${data.level}. Exam format: ${EXAM_BLUEPRINTS[data.level]}. Follow the task-specific word range. If the requested task is not part of this qualification, explain that it is additional practice. Respond in clear Spanish, but write model answers in English. Do not use markdown headings with ### or **.` },
       { role: 'user', content: `Nivel: ${data.level}\nTipo de tarea: ${data.taskType}\nEnunciado:\n${prompt}\n\nGenera una respuesta modelo en inglés y después explica en español: estructura, registro, conectores útiles y 5 expresiones reutilizables.` }
     ], { max_tokens: 1900, temperature: 0.35 });
     state.writingPractice.feedback = model;
@@ -2802,7 +2855,7 @@ async function correctWritingPractice() {
   setWritingStatus('Corrigiendo writing...');
   try {
     const feedback = await groqChat([
-      { role: 'system', content: 'You are a demanding Cambridge English writing examiner for B2 First, C1 Advanced and C2 Proficiency. Respond in Spanish. Quote improved English phrases only when useful. Do not use markdown headings with ### or **.' },
+      { role: 'system', content: `You are a Cambridge English writing preparation teacher for ${data.level}. Exam format: ${EXAM_BLUEPRINTS[data.level]}. Assess Content, Communicative Achievement, Organisation and Language separately, each out of 5. Scores are practice estimates, not official certification. Do not invent requirements missing from the prompt; explicitly identify missing task information. Respond in Spanish and quote corrections in English. Do not use markdown headings with ### or **.` },
       { role: 'user', content: `Nivel: ${data.level}\nTipo de tarea: ${data.taskType}\nEnunciado:\n${data.prompt}\n\nRespuesta del alumno:\n${data.answer}\n\nDevuelve exactamente este formato:\n\nVALORACIÓN CAMBRIDGE\n- Nivel aproximado y puntuación orientativa sobre 20.\n\nCUMPLIMIENTO DE TAREA\n- Qué cumple y qué falta.\n\nORGANIZACIÓN Y COHESIÓN\n- 3 mejoras concretas.\n\nERRORES MARCADOS\n- Lista los errores importantes así: Original: "..." / Mejor: "..." / Motivo: ...\n\nGRAMÁTICA Y VOCABULARIO\n- Errores prioritarios con corrección y alternativas naturales en inglés.\n\nVERSIÓN MEJORADA\nReescribe 1 o 2 fragmentos importantes en inglés.\n\nPLAN DE MEJORA\n- 3 acciones para la próxima redacción.` }
     ], { max_tokens: 1900, temperature: 0.25 });
     state.writingPractice.feedback = feedback;
@@ -2815,7 +2868,7 @@ async function correctWritingPractice() {
 }
 
 function clearWritingPractice() {
-  state.writingPractice = { taskType: 'essay', level: 'C1 Advanced', prompt: '', answer: '', feedback: '' };
+  state.writingPractice = { taskType: 'essay', level: state.examLevel, prompt: '', answer: '', feedback: '' };
   renderWritingPractice();
   persist();
   setWritingStatus('');
@@ -2994,16 +3047,19 @@ async function generateSession(topic) {
   const nv = Math.min(parseInt(document.getElementById('numVocab').value) || 5, limits.maxVocab);
   const profile = (document.getElementById('profileContext').value || '').slice(0, limits.profileChars);
   const langName = 'English';
+  const examLevel = state.examLevel || 'C1 Advanced';
+  const examBlueprint = EXAM_BLUEPRINTS[examLevel];
 
   document.getElementById('loadingBar').style.display = 'block';
   document.getElementById('aiPoints').innerHTML = '';
 
-  const prompt = `You are a senior Cambridge English ${langName} examiner and preparation teacher for B2 First, C1 Advanced and C2 Proficiency.
+  const prompt = `You are a senior Cambridge English examiner and preparation teacher specialised in ${examLevel}.
 ${profile ? `Student profile: ${profile}` : ''}
 
 Topic: "${topic}"
+Official exam blueprint for this session: ${examBlueprint}
 
-This is a Cambridge English exam preparation tool. Generate the study notes in ${langName}, with Spanish only inside short vocabulary definitions. The notes must be useful as real class notes: exam task, objective, structure, useful language, common mistakes clearly marked and one corrected mini-example when relevant.
+This is a ${examLevel} preparation tool. Generate the study notes in ${langName}, with Spanish only inside short vocabulary definitions. Tie every point to a real task or assessment criterion at this level. Do not mix task formats, word counts or timings from other Cambridge levels. The notes must be useful as real class notes: exam task, objective, structure, useful language, common mistakes clearly marked and one corrected mini-example when relevant.
 
 Generate exactly ${n} key study points. Each point must include:
 - "title": a precise exam-focused title in ${langName}, max 9 words, not generic.
@@ -3248,7 +3304,7 @@ async function polishSavedPoint(i) {
   editor.innerHTML = 'Puliendo texto...';
   try {
     const improved = await groqChat([
-      { role: 'system', content: `You are a strict C1/C2 ${langName} oral-exam editor. Improve style, precisión, grammar and argumentative quality. Keep the same language. Return only the improved paragraph, no markdown.` },
+      { role: 'system', content: `You are a strict ${state.examLevel} ${langName} exam editor. Improve style, precision, grammar and task fulfilment at that exact level. Keep the same language. Return only the improved paragraph, no markdown.` },
       { role: 'user', content: `Title: ${titleEl?.value || ''}\nText:\n${stripHtml(editor.dataset.previous || '')}` }
     ], { max_tokens: 900, temperature: 0.25 });
     editor.innerHTML = escHtml(improved).replace(/\n/g,'<br>');
@@ -4329,7 +4385,7 @@ async function correctRecitation() {
   const langName = 'English';
   try {
     const correction = await groqChat([
-      { role: 'system', content: `You are a demanding Cambridge English ${langName} speaking examiner for B2/C1/C2 candidates. Respond in clear Spanish. Be práctical, specific and well structured. Quote improved ${langName} phrases only when useful. Do not use markdown symbols like ### or **.` },
+      { role: 'system', content: `You are a Cambridge English ${langName} speaking preparation teacher for ${state.examLevel}. Follow this exam blueprint: ${EXAM_BLUEPRINTS[state.examLevel]}. You only receive a transcript: do not claim to assess pronunciation, intonation, real timing or interaction without audio or a partner exchange. Assess the available evidence and state those limitations briefly. Respond in clear Spanish. Quote improved English phrases. Do not use markdown symbols like ### or **.` },
       { role: 'user', content: `Tema: ${topic}\nTranscripción:\n${transcript}\n\nDevuelve exactamente este formato, con títulos en mayúsculas y bullets claros:\n\nRESUMEN\n- Valoración global en 2 frases según criterios Cambridge.\n\nPUNTOS FUERTES\n- 2 o 3 cosas que ya funcionan.\n\nCORRECCIONES PRIORITARIAS\n- 3 a 5 mejoras concretas: estructura, gramática, vocabulario, pronunciación, interacción, cumplimiento de tarea o ritmo oral.\n\nVERSIÓN MEJORADA\nEscribe una versión mejorada de 1 o 2 fragmentos importantes de la respuesta, manteniendo el idioma de la exposición.\n\nPLAN PARA LA SIGUIENTE PRÁCTICA\n- 3 acciones concretas para repetir mejor la práctica Cambridge.` }
     ], { max_tokens: 1800, temperature: 0.25 });
     box.className = 'notice correction-report';
@@ -4412,7 +4468,7 @@ async function askTopicChatFrom(inputId, logId, chatKey, topic) {
   log.innerHTML += `<div class="chat-msg" id="${waitId}"><strong>Asistente:</strong> Pensando...</div>`;
   try {
     const answer = await groqChat([
-      { role: 'system', content: `You are a concise expert tutor for a C1/C2 ${langName} oral exam. Answer in Spanish unless the user asks for phrasing in ${langName}. Give concrete facts, dates, examples and elegant oral formulations. Topic: ${topic}` },
+      { role: 'system', content: `You are a concise expert tutor for a ${state.examLevel} ${langName} exam. Answer in Spanish unless the user asks for phrasing in ${langName}. Give concrete examples and oral formulations appropriate to that exact level. Topic: ${topic}` },
       { role: 'user', content: question }
     ], { max_tokens: 1100, temperature: 0.3 });
     document.getElementById(waitId).innerHTML = `<strong>Asistente:</strong> ${escHtml(answer).replace(/\n/g,'<br>')}`;
