@@ -3180,23 +3180,24 @@
     .next-ui .session-step.complete { border-color:#9dd8c2; background:#e9f7f1; }
     .next-ui .session-step.complete .step-number { background:#23866b; }
     @media(max-width:760px){.next-ui .curriculum-scope{padding:15px}.next-ui .workspace-head{border-radius:14px}.next-ui .workspace .viewer,.next-ui .workspace .task-list{border-radius:14px}.next-ui .library-tabs{top:4px;overflow:auto;flex-wrap:nowrap}.next-ui .library-tabs button{white-space:nowrap}}
-    /* Acabado final del modo renovado: escena vectorial, tacto y accesibilidad. */
+    /* Escena de Progreso: ilustraciones con luz natural y objetos equipables. */
     .next-ui { color-scheme:light; overflow-x:clip; }
     .app > .next-view { min-width:0; }
     .next-ui .app,.next-ui .app > * { min-width:0; }
-    .next-ui .next-desk-scene { isolation:isolate; background:#eaf3f8 url('assets/desk/room.svg') center/cover no-repeat; }
+    .next-ui .next-desk-scene { isolation:isolate; background:#eaf3f8 url('assets/desk/room-warm.png') center/cover no-repeat; }
     .next-ui .next-scene-window,.next-ui .next-scene-screen { display:none; }
-    .next-ui .next-desk-scene .desk-object { position:absolute; display:block; margin:0; color:inherit; background:none!important; box-shadow:none; filter:drop-shadow(0 6px 5px rgba(38,48,58,.2)); transform:none; overflow:visible; }
-    .next-ui .next-desk-scene .desk-object[data-category="desk"] { z-index:3; left:17%; right:auto; bottom:2%; width:70%; height:45%; }
-    .next-ui .next-desk-scene .desk-object[data-category="chair"] { z-index:5; left:5%; bottom:-2%; width:27%; height:49%; }
-    .next-ui .next-desk-scene .desk-object[data-category="lamp"] { z-index:4; left:18%; top:27%; width:18%; height:39%; border:0; }
-    .next-ui .next-desk-scene .desk-object[data-category="plant"] { z-index:4; right:5%; top:28%; width:18%; height:39%; border:0; }
-    .next-ui .next-desk-scene .desk-object[data-category="shelf"] { z-index:2; right:4%; top:8%; width:37%; height:24%; }
-    .next-ui .next-desk-scene .desk-object[data-category="poster"] { z-index:2; right:34%; top:5%; width:16%; height:32%; padding:0; border:0; }
-    .next-ui .next-desk-scene .desk-object[data-category="mug"] { z-index:5; right:20%; bottom:25%; width:9%; height:20%; }
-    .next-ui .next-desk-scene .desk-object[data-category="trophy"] { z-index:3; right:3%; top:6%; width:11%; height:24%; border-radius:0; }
+    .next-ui .next-desk-scene .desk-object { position:absolute; display:block; margin:0; padding:0; object-fit:contain; background:none!important; border:0!important; border-radius:0!important; box-shadow:none!important; filter:drop-shadow(0 7px 6px rgba(38,48,58,.18)); overflow:visible; }
+    .next-ui .next-desk-scene .desk-object[data-category="desk"] { z-index:3; left:-2%; right:auto; bottom:-18%; width:106%; height:110%; }
+    .next-ui .next-desk-scene .desk-object[data-category="chair"] { z-index:5; left:-6%; bottom:-24%; width:44%; height:100%; }
+    .next-ui .next-desk-scene .desk-object[data-category="lamp"] { z-index:4; left:23%; top:0; width:24%; height:50%; }
+    .next-ui .next-desk-scene .desk-object[data-category="plant"] { z-index:4; right:2%; top:22%; width:31%; height:71%; }
+    .next-ui .next-desk-scene .desk-object[data-category="shelf"] { z-index:2; right:3%; top:-3%; width:42%; height:45%; }
+    .next-ui .next-desk-scene .desk-object[data-category="poster"] { z-index:2; right:40%; top:0; width:24%; height:50%; }
+    .next-ui .next-desk-scene .desk-object[data-category="mug"] { z-index:5; right:20%; bottom:16%; width:17%; height:32%; }
+    .next-ui .next-desk-scene .desk-object[data-category="trophy"] { z-index:4; right:6%; top:7%; width:18%; height:34%; }
     .next-ui .next-item-visual { overflow:hidden; }
-    .next-ui .next-item-visual svg { width:100%; height:96px; }
+    .next-ui .next-item-visual { height:120px; }
+    .next-ui .next-item-visual img { width:100%; height:116px; object-fit:contain; }
     .next-ui button,.next-ui [role="button"] { min-height:44px; }
     .next-ui button:focus-visible,.next-ui a:focus-visible,.next-ui input:focus-visible,.next-ui select:focus-visible,.next-ui textarea:focus-visible { outline:3px solid #0b66c3; outline-offset:3px; }
     .next-ui .next-tabs button[aria-selected="true"],.next-ui .next-filters button[aria-pressed="true"] { background:#fff; color:#176ed8; box-shadow:0 2px 7px rgba(20,54,90,.12); }
@@ -6055,10 +6056,11 @@ function recentStudyDays() {
   }
   return days;
 }
-function deskAssetSvg(visual, label='', className='') {
+function deskAssetImage(visual, label='', className='', category='') {
   const safeVisual = String(visual || 'desk-light').replace(/[^a-z0-9-]/gi,'');
-  const accessible = label ? `role="img" aria-label="${escapeHtml(label)}"` : 'aria-hidden="true"';
-  return `<svg class="${escapeHtml(className)}" viewBox="0 0 200 160" ${accessible} focusable="false"><use href="assets/desk/items.svg#${safeVisual}"></use></svg>`;
+  const accessible = label ? `alt="${escapeHtml(label)}"` : 'alt="" aria-hidden="true"';
+  const categoryAttr = category ? ` data-category="${escapeHtml(category)}"` : '';
+  return `<img class="${escapeHtml(className)}" src="assets/desk/${safeVisual}.png" data-visual="${safeVisual}"${categoryAttr} ${accessible} loading="${className ? 'eager' : 'lazy'}" decoding="async">`;
 }
 function deskSceneHtml(profile=gamification.profile, compact=false) {
   const catalog = Array.isArray(profile?.catalog) ? profile.catalog : [];
@@ -6066,7 +6068,7 @@ function deskSceneHtml(profile=gamification.profile, compact=false) {
   const objects = Object.entries(equipped).map(([category,itemId]) => {
     const item = catalog.find(entry => entry.id === itemId);
     if (!item) return '';
-    return deskAssetSvg(item.visual, '', 'desk-object').replace('<svg ', `<svg data-category="${escapeHtml(category)}" data-visual="${escapeHtml(item.visual || '')}" `);
+    return deskAssetImage(item.visual, '', 'desk-object', category);
   }).join('');
   const objectNames = Object.values(equipped).map(itemId => catalog.find(entry => entry.id === itemId)?.name).filter(Boolean);
   const description = objectNames.length ? `Escritorio personalizado. Objetos equipados: ${objectNames.join(', ')}.` : 'Escritorio inicial, preparado para personalizar.';
@@ -6134,12 +6136,13 @@ async function equipDeskItem(itemId) {
   }
 }
 function nextItemCard(item, mode='shop') {
+  const categoryNames = {desk:'mesa',chair:'silla',lamp:'lámpara',plant:'planta',shelf:'estantería',poster:'lámina',mug:'taza',trophy:'trofeo'};
   let action = '';
   if (item.equipped) action = '<button type="button" disabled>En uso</button>';
   else if (item.owned) action = `<button class="primary" type="button" onclick="equipDeskItem('${item.id}')">Equipar</button>`;
   else if (!item.unlocked) action = `<button type="button" disabled>${item.unlock_condition ? 'Bloqueado · Logro' : `Bloqueado · Nivel ${item.minimum_level}`}</button>`;
   else action = `<button class="primary" type="button" onclick="buyDeskItem('${item.id}')">Comprar</button>`;
-  return `<article class="next-card next-item"><div class="next-item-visual">${deskAssetSvg(item.visual,item.name)}</div><h4>${escapeHtml(item.name)}</h4><p>${mode === 'customize' ? 'Selecciona este objeto para tu escritorio.' : `Categoría: ${escapeHtml(item.category)}`}</p><div class="next-item-meta"><span>${item.price ? `${item.price} monedas` : 'Incluido'}</span><span>Nivel ${item.minimum_level}</span></div>${action}</article>`;
+  return `<article class="next-card next-item"><div class="next-item-visual">${deskAssetImage(item.visual,item.name)}</div><h4>${escapeHtml(item.name)}</h4><p>${mode === 'customize' ? 'Selecciona este objeto para tu escritorio.' : `Categoría: ${escapeHtml(categoryNames[item.category] || item.category)}`}</p><div class="next-item-meta"><span>${item.price ? `${item.price} monedas` : 'Incluido'}</span><span>Nivel ${item.minimum_level}</span></div>${action}</article>`;
 }
 function renderNextHome() {
   if (!REDESIGN_MODE || !$('nextHomeView')) return;

@@ -49,9 +49,11 @@ const catalog = [
   await page.getByRole('button',{name:'Reintentar'}).click();
   await page.waitForFunction(() => document.querySelector('#nextProgressBody')?.textContent.includes('Cojo ritmo'));
   assert.equal(await page.locator('#navProgress').getAttribute('aria-current'),'page','La navegación debe exponer la sección activa');
-  assert.equal(await page.locator('.next-desk-scene:visible svg.desk-object').count(),4,'La escena visible debe usar los assets SVG equipados');
+  assert.equal(await page.locator('.next-desk-scene:visible img.desk-object').count(),4,'La escena visible debe usar las imágenes equipadas');
 
-  assert.match(await page.locator('.next-desk-scene:visible').evaluate(element => getComputedStyle(element).backgroundImage),/room\.svg/,'La escena debe usar el fondo final');
+  assert.match(await page.locator('.next-desk-scene:visible').evaluate(element => getComputedStyle(element).backgroundImage),/room-warm\.png/,'La escena debe usar el fondo final');
+  await page.waitForFunction(() => [...document.querySelectorAll('.next-desk-scene img.desk-object')].filter(image => image.getClientRects().length).every(image => image.complete && image.naturalWidth > 0));
+  assert.equal(await page.locator('.next-desk-scene:visible img.desk-object').evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0)),true,'Las imágenes equipadas deben cargar');
 
   const secondPage = await context.newPage();
   secondPage.on('pageerror',error => errors.push(error.message));

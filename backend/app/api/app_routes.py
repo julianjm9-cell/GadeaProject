@@ -505,7 +505,13 @@ def brand_asset(filename: str):
 
 @router.get("/assets/desk/{filename}")
 def eso_desk_asset(filename: str):
-    allowed = {"room.svg", "items.svg"}
+    allowed = {
+        "room.svg", "items.svg", "room-warm.png",
+        "desk-light.png", "chair-blue.png", "lamp-blue.png", "plant-small.png",
+        "desk-oak.png", "chair-comfort.png", "lamp-warm.png", "plant-monstera.png",
+        "shelf-wood.png", "poster-focus.png", "poster-steps.png", "mug-steps.png",
+        "plant-olive.png", "trophy-first.png",
+    }
     if filename not in allowed:
         raise HTTPException(status_code=404, detail="Asset no encontrado.")
     static_path = STATIC_DIR / "assets" / "desk" / filename
@@ -513,7 +519,8 @@ def eso_desk_asset(filename: str):
     path = static_path if static_path.exists() else fallback
     if not path.exists():
         raise HTTPException(status_code=404, detail="Asset no encontrado.")
-    return FileResponse(path, media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=86400"})
+    media_type = "image/png" if filename.endswith(".png") else "image/svg+xml"
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/diplomator")

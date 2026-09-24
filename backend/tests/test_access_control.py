@@ -142,12 +142,12 @@ def test_public_marketing_pages_load_without_login(client, path):
     assert "text/html" in response.headers["content-type"]
 
 
-@pytest.mark.parametrize("filename", ["room.svg", "items.svg"])
+@pytest.mark.parametrize("filename", ["room.svg", "items.svg", "room-warm.png", "desk-light.png", "trophy-first.png"])
 def test_eso_desk_assets_are_served_for_the_production_page(client, filename):
     test_client, _ = client
     response = test_client.get(f"/assets/desk/{filename}")
     assert response.status_code == 200
-    assert "image/svg+xml" in response.headers["content-type"]
+    assert ("image/png" if filename.endswith(".png") else "image/svg+xml") in response.headers["content-type"]
 
 
 def test_unknown_eso_desk_asset_is_rejected(client):
