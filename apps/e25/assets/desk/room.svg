@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">Habitación de estudio luminosa</title>
+  <desc id="desc">Pared clara, ventana, suelo de madera y luz cálida para el escritorio personalizable.</desc>
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f8fcff"/><stop offset="1" stop-color="#e7f1f8"/></linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d6a273"/><stop offset="1" stop-color="#a9653d"/></linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#a8d7f4"/><stop offset=".62" stop-color="#e9f7ff"/><stop offset=".63" stop-color="#9fc28c"/></linearGradient>
+    <radialGradient id="light" cx="22%" cy="22%" r="70%"><stop stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+  </defs>
+  <path fill="url(#wall)" d="M0 0h1200v455H0z"/>
+  <path fill="url(#floor)" d="M0 455h1200v225H0z"/>
+  <path fill="#8f5638" opacity=".22" d="M0 492h1200v5H0zm0 62h1200v5H0zm0 62h1200v5H0z"/>
+  <path fill="#fff" d="M70 55h345v280H70z"/>
+  <path fill="url(#sky)" d="M91 76h303v238H91z"/>
+  <path stroke="#fff" stroke-width="15" d="M242 76v238M91 194h303"/>
+  <path fill="#52784f" opacity=".55" d="M91 280c58-54 114-37 151-4 39-47 100-51 152-5v43H91z"/>
+  <path fill="#bfd7e6" d="M0 438h1200v20H0z"/>
+  <ellipse fill="#6e432c" opacity=".18" cx="650" cy="615" rx="430" ry="45"/>
+  <path fill="url(#light)" d="M0 0h1200v680H0z"/>
+</svg>

@@ -13,6 +13,7 @@ COPY apps/diplomator/index.html /app/app/static/student.html
 COPY apps/cambridge/index.html /app/app/static/cambridge.html
 COPY apps/u25/index.html /app/app/static/universidad-adultos.html
 COPY apps/e25/index.html /app/app/static/eso-adultos.html
+COPY apps/e25/assets/desk /app/app/static/assets/desk
 COPY marketing/app_landings_demo /app/app/static/marketing
 
 EXPOSE 8000

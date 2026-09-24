@@ -28,6 +28,7 @@ from app.services.ai_config import (
 )
 from app.services.audit import audit
 from app.services.licenses import check_access, check_legacy_license
+from app.services.gamification import award_event, equip_item, get_or_create_profile, level_for_xp, profile_payload, public_config, purchase_item
 from app.services.resources import load_resource_catalog
 
 
@@ -502,6 +503,19 @@ def brand_asset(filename: str):
     return FileResponse(path, media_type="image/png", headers={"Cache-Control": "public, max-age=3600"})
 
 
+@router.get("/assets/desk/{filename}")
+def eso_desk_asset(filename: str):
+    allowed = {"room.svg", "items.svg"}
+    if filename not in allowed:
+        raise HTTPException(status_code=404, detail="Asset no encontrado.")
+    static_path = STATIC_DIR / "assets" / "desk" / filename
+    fallback = PROJECT_ROOT / "apps" / "e25" / "assets" / "desk" / filename
+    path = static_path if static_path.exists() else fallback
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Asset no encontrado.")
+    return FileResponse(path, media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=86400"})
+
+
 @router.get("/diplomator")
 @router.get("/diplomator.html")
 def diplomator_public_page():
@@ -802,6 +816,81 @@ async def upload_drive_document(
 @router.get("/api/state")
 def get_state(request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db)):
     return app_state_data(state_row(db, user), request_app_key(request))
+
+
+@router.get("/api/gamification")
+def get_gamification(request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db)):
+    if request_app_key(request) != "eso_adultos":
+        raise HTTPException(status_code=404, detail="El progreso de escritorio solo está disponible en ESO Adultos.")
+    profile = get_or_create_profile(db, user)
+    db.commit()
+    db.refresh(profile)
+    return {"profile": profile_payload(db, profile), "config": public_config()}
+
+
+@router.post("/api/gamification/rewards")
+def grant_gamification_reward(payload: dict, request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db)):
+    if request_app_key(request) != "eso_adultos":
+        raise HTTPException(status_code=404, detail="El progreso de escritorio solo está disponible en ESO Adultos.")
+    metadata = payload.get("metadata") or {}
+    if not isinstance(metadata, dict) or len(json.dumps(metadata, ensure_ascii=False)) > 4000:
+        raise HTTPException(status_code=422, detail="Metadatos de recompensa no válidos.")
+    try:
+        result = award_event(db, user, payload.get("event_type", ""), payload.get("source_id", ""), metadata)
+        db.commit()
+        db.refresh(result.profile)
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except IntegrityError:
+        db.rollback()
+        profile = get_or_create_profile(db, user)
+        db.commit()
+        db.refresh(profile)
+        return {"awarded": False, "duplicate": True, "profile": profile_payload(db, profile), "unlocked_achievements": []}
+    current_level = level_for_xp(result.profile.xp)["level"]
+    return {
+        "awarded": result.awarded,
+        "duplicate": result.duplicate,
+        "event_type": result.event_type,
+        "source_id": result.source_id,
+        "xp_awarded": result.xp_awarded,
+        "coins_awarded": result.coins_awarded,
+        "level_up": current_level > result.previous_level,
+        "unlocked_achievements": list(result.unlocked_achievements),
+        "profile": profile_payload(db, result.profile),
+    }
+
+
+@router.post("/api/gamification/purchases")
+def buy_gamification_item(payload: dict, request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db)):
+    if request_app_key(request) != "eso_adultos":
+        raise HTTPException(status_code=404, detail="La tienda del escritorio solo está disponible en ESO Adultos.")
+    try:
+        profile = purchase_item(db, user, payload.get("item_id", ""))
+        db.commit()
+        db.refresh(profile)
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Este objeto ya forma parte de tu inventario.") from exc
+    return {"ok": True, "profile": profile_payload(db, profile)}
+
+
+@router.post("/api/gamification/equipment")
+def set_gamification_equipment(payload: dict, request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db)):
+    if request_app_key(request) != "eso_adultos":
+        raise HTTPException(status_code=404, detail="La personalización del escritorio solo está disponible en ESO Adultos.")
+    try:
+        profile = equip_item(db, user, payload.get("item_id", ""))
+        db.commit()
+        db.refresh(profile)
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"ok": True, "profile": profile_payload(db, profile)}
 
 
 @router.post("/api/state")

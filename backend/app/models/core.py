@@ -109,6 +109,66 @@ class ClientState(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
 
 
+class GamificationProfile(Base, TimestampMixin):
+    __tablename__ = "gamification_profiles"
+    __table_args__ = (UniqueConstraint("organization_id", "user_id", "app_key", name="uq_gamification_profile_owner_app"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
+    organization_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("organizations.id"), nullable=False, index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    app_key: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    xp: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    coins: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    schema_version: Mapped[int] = mapped_column(Integer, default=2, nullable=False)
+
+
+class GamificationRewardEvent(Base):
+    __tablename__ = "gamification_reward_events"
+    __table_args__ = (UniqueConstraint("profile_id", "event_key", name="uq_gamification_reward_event"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
+    profile_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("gamification_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    event_key: Mapped[str] = mapped_column(String(320), nullable=False)
+    event_type: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    source_id: Mapped[str] = mapped_column(String(220), nullable=False)
+    xp_awarded: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    coins_awarded: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    event_metadata: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
+class GamificationAchievement(Base):
+    __tablename__ = "gamification_achievements"
+    __table_args__ = (UniqueConstraint("profile_id", "achievement_id", name="uq_gamification_achievement"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
+    profile_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("gamification_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    achievement_id: Mapped[str] = mapped_column(String(120), nullable=False)
+    xp_awarded: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    coins_awarded: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    unlocked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
+class GamificationOwnedItem(Base):
+    __tablename__ = "gamification_owned_items"
+    __table_args__ = (UniqueConstraint("profile_id", "item_id", name="uq_gamification_owned_item"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
+    profile_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("gamification_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    item_id: Mapped[str] = mapped_column(String(120), nullable=False)
+    acquired_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
+class GamificationEquippedItem(Base, TimestampMixin):
+    __tablename__ = "gamification_equipped_items"
+    __table_args__ = (UniqueConstraint("profile_id", "category", name="uq_gamification_equipped_category"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
+    profile_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("gamification_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    category: Mapped[str] = mapped_column(String(80), nullable=False)
+    item_id: Mapped[str] = mapped_column(String(120), nullable=False)
+
+
 class Conversation(Base):
     __tablename__ = "conversations"
 

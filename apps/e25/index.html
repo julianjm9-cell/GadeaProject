@@ -3099,6 +3099,114 @@
       .subject-lesson-action { grid-column:2; grid-row:3; justify-self:start; }
       .subject-lesson-arrow { grid-column:3; grid-row:1/3; }
     }
+    /* Nueva experiencia del escritorio. Es la vista predeterminada; ?ui=classic conserva temporalmente la anterior. */
+    .next-view { width:100%; max-width:1460px; margin:0 auto; padding:22px 0 100px; }
+    .next-view[hidden] { display:none; }
+    #navExam[hidden] { display:none!important; }
+    .next-ui header .screen-nav { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .next-ui .brand-logo { width:156px; height:58px; border-radius:0; background:transparent; box-shadow:none; }
+    .next-ui .brand-logo img { width:100%; height:100%; object-fit:contain; }
+    .next-ui .brand h1 { display:none; }
+    .next-eyebrow { margin:0 0 5px; color:#176ed8; font-size:12px; font-weight:850; letter-spacing:.07em; text-transform:uppercase; }
+    .next-heading { margin:0; color:#12315f; font-size:clamp(30px,3.4vw,46px); line-height:1.08; letter-spacing:-.025em; }
+    .next-lede { margin:8px 0 0; color:#5e6d81; font-size:16px; }
+    .next-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:23px 0 16px; }
+    .next-metric { min-height:82px; display:flex; align-items:center; gap:13px; padding:15px 17px; border:1px solid #dce6f1; border-radius:16px; background:#fff; box-shadow:0 10px 28px rgba(26,57,91,.08); }
+    .next-metric-mark { width:42px; height:42px; display:grid; place-items:center; flex:0 0 auto; border-radius:12px; background:#eaf3ff; color:#176ed8; font-weight:900; }
+    .next-metric:nth-child(2) .next-metric-mark { background:#fff5d8; color:#b87b0b; }
+    .next-metric:nth-child(3) .next-metric-mark { background:#e9f7f1; color:#23866b; }
+    .next-metric span { display:block; color:#5e6d81; font-size:11px; }
+    .next-metric strong { display:block; color:#12315f; font-size:19px; line-height:1.25; }
+    .next-home-grid,.next-progress-grid { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(290px,.72fr); gap:16px; align-items:start; }
+    .next-card { border:1px solid #dce6f1; border-radius:18px; background:#fff; box-shadow:0 12px 32px rgba(26,57,91,.09); }
+    .next-card-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 20px 0; }
+    .next-card-head h3 { margin:0; color:#12315f; font-size:22px; }
+    .next-link { width:auto; min-height:36px; padding:6px 8px; border:0; background:transparent; color:#176ed8; box-shadow:none; font-weight:800; }
+    .next-desk-scene { position:relative; min-height:330px; margin:14px; overflow:hidden; border-radius:15px; background:linear-gradient(#e8f3fb 0 64%,#d9ad7c 64% 68%,#b87947 68%); }
+    .next-desk-scene.compact { min-height:245px; }
+    .next-scene-window { position:absolute; left:6%; top:9%; width:30%; height:39%; border:8px solid #fff; background:linear-gradient(#b9dcf5 62%,#9fcf9e 63%); }
+    .next-scene-screen { position:absolute; left:31%; top:45%; width:38%; height:27%; border:7px solid #34445b; border-radius:7px 7px 2px 2px; background:linear-gradient(145deg,#85bbeb,#dbeeff); box-shadow:0 8px 17px rgba(30,39,53,.25); }
+    .next-scene-screen::after { content:''; position:absolute; left:-13%; right:-13%; bottom:-13px; height:8px; border-radius:2px 2px 8px 8px; background:#505f70; }
+    .desk-object { position:absolute; display:grid; place-items:center; font-weight:850; box-shadow:0 5px 10px rgba(47,36,26,.14); }
+    .desk-object[data-category="desk"] { left:20%; right:9%; bottom:23%; height:14px; background:#d39a63; color:transparent; }
+    .desk-object[data-visual="desk-oak"] { background:#9c6035; }
+    .desk-object[data-category="chair"] { left:12%; bottom:1%; width:72px; height:100px; border-radius:28px 28px 8px 8px; background:#397fc4; color:transparent; transform:scale(.72); transform-origin:bottom; }
+    .desk-object[data-visual="chair-comfort"] { width:88px; background:#3e4a58; }
+    .desk-object[data-category="lamp"] { left:13%; top:33%; width:52px; height:78px; border-left:6px solid #40516a; color:transparent; box-shadow:none; }
+    .desk-object[data-category="lamp"]::after { content:''; position:absolute; left:20px; top:-3px; width:39px; height:28px; background:#3980c8; clip-path:polygon(20% 0,80% 0,100% 100%,0 100%); }
+    .desk-object[data-visual="lamp-warm"]::after { background:#efb841; }
+    .desk-object[data-category="plant"] { right:8%; top:24%; width:58px; height:78px; border-radius:70% 12% 45% 15%; background:#4f9a58; color:transparent; box-shadow:none; }
+    .desk-object[data-category="plant"]::after { content:''; position:absolute; left:11px; bottom:-13px; width:39px; height:31px; border-radius:4px 4px 12px 12px; background:#d98943; }
+    .desk-object[data-visual="plant-monstera"] { width:74px; height:90px; background:#3f9253; }
+    .desk-object[data-category="shelf"] { right:6%; top:14%; width:35%; height:10px; background:#a96739; color:transparent; }
+    .desk-object[data-category="poster"] { right:35%; top:8%; width:90px; height:72px; padding:8px; border:6px solid #96613c; background:#fff8df; color:#715223; font-size:10px; text-align:center; }
+    .desk-object[data-category="mug"] { right:22%; bottom:29%; width:34px; height:39px; border-radius:4px 4px 9px 9px; background:#fff; color:transparent; }
+    .desk-object[data-category="trophy"] { right:9%; top:12%; width:46px; height:46px; border-radius:50%; background:#e0a52c; color:#fff; }
+    .next-scene-caption { padding:0 20px 18px; color:#5e6d81; font-size:12px; }
+    .next-session { padding:20px; }
+    .next-session h3 { margin:0; color:#12315f; font-size:22px; }.next-session>p{margin:5px 0 14px;color:#5e6d81}
+    .next-duration { display:flex; gap:7px; margin-bottom:13px; }.next-duration button{width:auto;min-height:38px;padding:7px 11px;border-radius:999px}.next-duration button.selected{border-color:#176ed8;background:#eaf3ff;color:#176ed8}
+    .next-primary { border-color:#176ed8!important; background:#176ed8!important; color:#fff!important; }
+    .next-rhythm { margin-top:17px; padding-top:15px; border-top:1px solid #dce6f1; }.next-rhythm-head{display:flex;justify-content:space-between;gap:8px;color:#5e6d81;font-size:12px}.next-rhythm-head strong{color:#12315f;font-size:14px}.next-week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:11px;text-align:center;color:#5e6d81;font-size:10px}.next-day b{width:24px;height:24px;display:grid;place-items:center;margin:5px auto 0;border:2px solid #cbd9e7;border-radius:50%;color:#fff}.next-day.done b{border-color:#23866b;background:#23866b}
+    .next-tabs { display:flex; gap:5px; width:max-content; max-width:100%; margin:21px 0 16px; padding:5px; border-radius:12px; background:#e9f0f7; }.next-tabs button{width:auto;min-height:38px;padding:7px 15px;border:0;background:transparent;box-shadow:none;color:#5e6d81}.next-tabs button.active{background:#fff;color:#176ed8;box-shadow:0 2px 7px rgba(20,54,90,.1)}
+    .next-progress-main { padding:20px; }.next-level-row{display:flex;align-items:center;justify-content:space-between;gap:15px}.next-level-row span{color:#5e6d81;font-size:12px}.next-level-row strong{display:block;color:#12315f;font-size:24px}.next-coins{padding:8px 12px;border-radius:999px;background:#fff5d8;color:#845b0d!important;font-weight:850}.next-xp{height:10px;margin:14px 0 6px;overflow:hidden;border-radius:999px;background:#e1eaf3}.next-xp i{display:block;height:100%;border-radius:inherit;background:#176ed8}.next-xp-meta{display:flex;justify-content:space-between;color:#5e6d81;font-size:11px}.next-actions{display:flex;gap:8px;margin-top:12px}.next-side{display:grid;gap:12px}.next-info{padding:18px}.next-info strong{display:block;color:#12315f;font-size:28px}.next-info span{color:#5e6d81;font-size:12px}
+    .next-catalog { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }.next-item{padding:15px}.next-item-visual{height:100px;display:grid;place-items:center;margin-bottom:10px;border-radius:12px;background:linear-gradient(145deg,#edf5ff,#fff8e9);color:#176ed8;font-size:30px;font-weight:900}.next-item h4{margin:0;color:#12315f}.next-item p{min-height:35px;margin:4px 0 10px;color:#5e6d81;font-size:12px}.next-item-meta{display:flex;justify-content:space-between;gap:6px;margin-bottom:9px;font-size:12px}.next-message{min-height:22px;margin:12px 0;color:#5e6d81;font-size:13px}.next-message.error{color:#b23e3e}.next-empty{padding:24px;text-align:center;color:#5e6d81}
+    .next-filters{display:flex;gap:7px;margin:0 0 14px;overflow:auto;padding-bottom:3px}.next-filters button{width:auto;min-height:36px;padding:6px 12px;border-radius:999px;white-space:nowrap}.next-filters button.active{border-color:#176ed8;background:#eaf3ff;color:#176ed8}
+    @media(max-width:900px){.next-home-grid,.next-progress-grid{grid-template-columns:1fr}.next-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:650px){.next-view{padding-top:8px}.next-summary{grid-template-columns:1fr 1fr}.next-metric:nth-child(3){grid-column:1/-1}.next-session{grid-row:1}.next-desk-card{grid-row:2}.next-desk-scene{min-height:245px}.next-catalog{grid-template-columns:1fr}.next-actions{display:grid}.next-tabs{width:100%;overflow:auto}.next-tabs button{flex:1;white-space:nowrap}.next-ui header{min-height:72px}.next-ui header .screen-nav{position:fixed;z-index:40;left:0;right:0;bottom:0;width:100%;display:grid;grid-template-columns:repeat(3,1fr);padding:7px 8px calc(7px + env(safe-area-inset-bottom));border:0;border-top:1px solid #dce6f1;border-radius:0;background:rgba(255,255,255,.97);box-shadow:0 -7px 22px rgba(22,49,83,.08)}.next-ui header .screen-nav button{min-height:46px}.next-ui .teacher-panel.collapsed{bottom:78px}.next-ui .brand-logo{width:142px;height:48px}}
+    .next-ui #moduleGrid { gap:18px; padding-top:22px; }
+    .next-ui .library-tabs { position:sticky; top:8px; z-index:12; padding:5px; border:1px solid #dce6f1; border-radius:13px; background:rgba(244,248,253,.96); box-shadow:0 8px 24px rgba(26,57,91,.08); backdrop-filter:blur(10px); }
+    .next-ui .library-tabs button { min-height:42px; border-radius:9px; color:#5e6d81; }
+    .next-ui .library-tabs button.active { background:#fff; color:#176ed8; box-shadow:0 2px 8px rgba(26,57,91,.1); }
+    .next-ui .curriculum-scope { padding:22px; border:1px solid #dce6f1; border-radius:18px; background:#fff; box-shadow:0 12px 30px rgba(26,57,91,.08); }
+    .next-ui .module-card { min-height:210px; border-color:#dce6f1; border-radius:15px; box-shadow:none; }
+    .next-ui .module-card:hover { border-color:#8bbcf2; box-shadow:0 10px 24px rgba(26,57,91,.1); }
+    .next-ui .workspace { overflow:visible; border:0; background:transparent; box-shadow:none; }
+    .next-ui .workspace-head { margin-bottom:14px; border:1px solid #dce6f1; border-radius:18px; background:#fff; box-shadow:0 10px 28px rgba(26,57,91,.08); }
+    .next-ui .workspace .content-grid { gap:16px; }
+    .next-ui .workspace .viewer,.next-ui .workspace .task-list { border:1px solid #dce6f1; border-radius:18px; background:#fff; box-shadow:0 10px 28px rgba(26,57,91,.07); }
+    .next-ui .subject-next { border-radius:14px; background:#eaf3ff; }
+    .next-ui .subject-topic { border-radius:12px; }
+    .next-ui .lesson-head h2 { color:#12315f; font-size:clamp(27px,3vw,38px); letter-spacing:-.02em; text-transform:none; }
+    .next-ui .lesson-content { gap:16px; }
+    .next-ui .lesson-content .topic-reading,.next-ui .model-learning-block,.next-ui .model-evidence,.next-ui .ai-notes-card,.next-ui .lesson-resources { border-color:#dce6f1; border-radius:14px; }
+    .next-ui .lesson-content .topic-reading { font-size:16px; line-height:1.68; }
+    .next-ui .question { padding:18px; border-color:#dce6f1; border-radius:14px; }
+    .next-ui .answers button { min-height:44px; border-radius:10px; text-align:left; }
+    .next-ui .test-library-head,.next-ui .test-card,.next-ui .exam-ai-box,.next-ui .official-sim-card,.next-ui .exam-history-card { border-color:#dce6f1; border-radius:14px; }
+    .next-ui .profile-panel { border-color:#dce6f1; border-radius:18px; background:#fff; box-shadow:0 18px 42px rgba(26,57,91,.13); }
+    .next-ui .profile-avatar { background:#176ed8; }
+    .next-ui .session-plan { border-color:#dce6f1; border-radius:18px; box-shadow:0 12px 30px rgba(26,57,91,.09); }
+    .next-ui .session-step.complete { border-color:#9dd8c2; background:#e9f7f1; }
+    .next-ui .session-step.complete .step-number { background:#23866b; }
+    @media(max-width:760px){.next-ui .curriculum-scope{padding:15px}.next-ui .workspace-head{border-radius:14px}.next-ui .workspace .viewer,.next-ui .workspace .task-list{border-radius:14px}.next-ui .library-tabs{top:4px;overflow:auto;flex-wrap:nowrap}.next-ui .library-tabs button{white-space:nowrap}}
+    /* Acabado final del modo renovado: escena vectorial, tacto y accesibilidad. */
+    .next-ui { color-scheme:light; overflow-x:clip; }
+    .next-ui .app,.next-ui .app > * { min-width:0; }
+    .next-ui .next-desk-scene { isolation:isolate; background:#eaf3f8 url('assets/desk/room.svg') center/cover no-repeat; }
+    .next-ui .next-scene-window,.next-ui .next-scene-screen { display:none; }
+    .next-ui .next-desk-scene .desk-object { position:absolute; display:block; margin:0; color:inherit; background:none!important; box-shadow:none; filter:drop-shadow(0 6px 5px rgba(38,48,58,.2)); transform:none; overflow:visible; }
+    .next-ui .next-desk-scene .desk-object[data-category="desk"] { z-index:3; left:17%; right:auto; bottom:2%; width:70%; height:45%; }
+    .next-ui .next-desk-scene .desk-object[data-category="chair"] { z-index:5; left:5%; bottom:-2%; width:27%; height:49%; }
+    .next-ui .next-desk-scene .desk-object[data-category="lamp"] { z-index:4; left:18%; top:27%; width:18%; height:39%; border:0; }
+    .next-ui .next-desk-scene .desk-object[data-category="plant"] { z-index:4; right:5%; top:28%; width:18%; height:39%; border:0; }
+    .next-ui .next-desk-scene .desk-object[data-category="shelf"] { z-index:2; right:4%; top:8%; width:37%; height:24%; }
+    .next-ui .next-desk-scene .desk-object[data-category="poster"] { z-index:2; right:34%; top:5%; width:16%; height:32%; padding:0; border:0; }
+    .next-ui .next-desk-scene .desk-object[data-category="mug"] { z-index:5; right:20%; bottom:25%; width:9%; height:20%; }
+    .next-ui .next-desk-scene .desk-object[data-category="trophy"] { z-index:3; right:3%; top:6%; width:11%; height:24%; border-radius:0; }
+    .next-ui .next-item-visual { overflow:hidden; }
+    .next-ui .next-item-visual svg { width:100%; height:96px; }
+    .next-ui button,.next-ui [role="button"] { min-height:44px; }
+    .next-ui button:focus-visible,.next-ui a:focus-visible,.next-ui input:focus-visible,.next-ui select:focus-visible,.next-ui textarea:focus-visible { outline:3px solid #0b66c3; outline-offset:3px; }
+    .next-ui .next-tabs button[aria-selected="true"],.next-ui .next-filters button[aria-pressed="true"] { background:#fff; color:#176ed8; box-shadow:0 2px 7px rgba(20,54,90,.12); }
+    .next-ui .next-duration button[aria-pressed="true"] { border-color:#176ed8; background:#eaf3ff; color:#1259aa; }
+    .next-ui .next-retry { max-width:560px; margin:20px auto; padding:28px; text-align:center; }
+    .next-ui .next-retry h3 { margin:0 0 8px; color:#12315f; }
+    .next-ui .next-retry p { margin:0 0 16px; color:#5e6d81; }
+    .next-ui.is-desk-busy .next-progress-main button,.next-ui.is-desk-busy .next-catalog button { pointer-events:none; opacity:.7; }
+    @media(max-width:650px){.next-ui .app{width:100%;padding-inline:14px;overflow:clip}.next-ui header{width:100%;min-width:0;backdrop-filter:none;transform:none}.next-ui .next-desk-scene .desk-object[data-category="poster"]{width:21%;right:31%}.next-ui .next-desk-scene .desk-object[data-category="shelf"]{width:41%}.next-ui .next-card-head{align-items:flex-start;flex-wrap:wrap}.next-ui .next-card-head h3{font-size:20px}.next-ui .next-filters,.next-ui .next-tabs{max-width:100%}}
+    @media(prefers-reduced-motion:reduce){.next-ui *,.next-ui *::before,.next-ui *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+    @media(forced-colors:active){.next-ui .next-card,.next-ui .next-metric,.next-ui .workspace-head,.next-ui .workspace .viewer,.next-ui .workspace .task-list{border:1px solid CanvasText}.next-ui .next-xp i,.next-ui .next-day.done b{background:Highlight}.next-ui button:focus-visible{outline-color:Highlight}}
   </style>
 </head>
 <body>
@@ -3110,13 +3218,13 @@
         <h1>ESO Adultos</h1>
       </div>
     </div>
-    <nav class="screen-nav">
-      <button id="navHome" type="button" onclick="showView('home')">Inicio</button>
-      <button id="navModules" type="button" onclick="openLibrary()">Biblioteca</button>
-      <button id="navExam" type="button" onclick="openModule('exam')">Exámenes</button>
-      <button id="navProgress" type="button" onclick="showView('progress')">Progreso</button>
+    <nav class="screen-nav" aria-label="Navegación principal">
+      <button id="navHome" type="button" onclick="showView('home')" aria-controls="homeView nextHomeView">Inicio</button>
+      <button id="navModules" type="button" onclick="openLibrary()" aria-controls="moduleGrid workspace">Biblioteca</button>
+      <button id="navExam" type="button" onclick="openModule('exam')" aria-controls="workspace">Exámenes</button>
+      <button id="navProgress" type="button" onclick="showView('progress')" aria-controls="progressView nextProgressView">Progreso</button>
     </nav>
-    <button class="profile-button" id="profileButton" type="button" onclick="toggleProfile()" title="Perfil" aria-label="Perfil">
+    <button class="profile-button" id="profileButton" type="button" onclick="toggleProfile()" title="Perfil" aria-label="Perfil" aria-expanded="false" aria-controls="profilePanel">
       <span class="profile-icon" id="profileIcon">E</span>
     </button>
   </header>
@@ -3204,6 +3312,12 @@
     </article>
   </section>
 
+  <section class="next-view" id="nextHomeView" tabindex="-1" aria-labelledby="nextGreeting" hidden>
+    <p class="next-eyebrow" id="nextHomeDate"></p><h2 class="next-heading" id="nextGreeting">Buenos días</h2><p class="next-lede" id="nextHomeLead">Tu siguiente sesión está preparada.</p>
+    <div class="next-summary"><article class="next-metric"><span class="next-metric-mark">%</span><div><span>Temario completado</span><strong id="nextAcademicPct">0 %</strong></div></article><article class="next-metric"><span class="next-metric-mark">★</span><div><span>Nivel del escritorio</span><strong id="nextDeskLevel">1 · Inicio</strong></div></article><article class="next-metric"><span class="next-metric-mark">✓</span><div><span>Tu ritmo</span><strong id="nextRhythmMetric">0 de 7 días</strong></div></article></div>
+    <div class="next-home-grid"><article class="next-card next-desk-card"><div class="next-card-head"><h3>Mi escritorio</h3><button class="next-link" type="button" onclick="showView('progress')">Ver progreso →</button></div><div id="nextHomeDesk"></div><p class="next-scene-caption">Tu espacio refleja las recompensas y objetos que eliges. El avance académico se muestra por separado.</p></article><aside class="next-card next-session"><h3>Tu sesión de hoy</h3><p id="nextSessionCopy">Elige el tiempo que tienes disponible.</p><div class="next-duration" role="group" aria-label="Duración"><button type="button" data-next-duration="15" onclick="selectNextDuration(15)">15 min</button><button type="button" data-next-duration="30" onclick="selectNextDuration(30)">30 min</button><button type="button" data-next-duration="45" onclick="selectNextDuration(45)">45 min</button></div><button class="primary next-primary" id="nextContinue" type="button" onclick="startNextSession()">Continuar estudiando</button><div class="next-rhythm"><div class="next-rhythm-head"><strong>Tu ritmo</strong><span id="nextRhythmText">0 días estudiados</span></div><div class="next-week" id="nextWeek"></div></div></aside></div>
+  </section>
+
   <section class="progress-view progress-dashboard view-section" id="progressView" hidden>
     <div class="progress-page-heading"><h2>Tu progreso</h2><p>Cada paso cuenta.</p></div>
     <section class="progress-overview" aria-label="Objetivo del mes">
@@ -3230,6 +3344,12 @@
       </section>
     </div>
     <div class="progress-action-band"><span class="progress-action-icon" aria-hidden="true">◎</span><div id="progressNext"><strong>Siguiente paso</strong><small>Busca tu próximo tema.</small></div><button class="primary" id="progressContinue" type="button" onclick="continueProgress()">Continuar estudiando →</button></div>
+  </section>
+
+  <section class="next-view" id="nextProgressView" tabindex="-1" aria-labelledby="nextProgressHeading" hidden>
+    <p class="next-eyebrow">Progreso personal</p><h2 class="next-heading" id="nextProgressHeading">Tu escritorio crece contigo</h2><p class="next-lede">Recompensas y aprendizaje se muestran por separado para que sepas siempre qué significa cada avance.</p>
+    <nav class="next-tabs" aria-label="Secciones de progreso" role="tablist"><button class="active" type="button" role="tab" aria-selected="true" data-next-tab="desk" onclick="setNextProgressTab('desk')">Mi escritorio</button><button type="button" role="tab" aria-selected="false" data-next-tab="achievements" onclick="setNextProgressTab('achievements')">Logros</button><button type="button" role="tab" aria-selected="false" data-next-tab="stats" onclick="setNextProgressTab('stats')">Estadísticas</button></nav>
+    <div id="nextProgressBody"></div><div class="next-message" id="nextDeskMessage" role="status" aria-live="polite"></div>
   </section>
 
   <section class="module-grid view-section" id="moduleGrid" hidden></section>
@@ -3261,6 +3381,7 @@
 
 <script>
 const APP_KEY = 'eso_adultos';
+const REDESIGN_MODE = new URLSearchParams(location.search).get('ui') !== 'classic';
 const APP_TITLE = 'ACCESO ESO ADULTOS';
 const MODULES = [
   {
@@ -5740,7 +5861,17 @@ const QUESTIONS = {
     ['Una contrasena segura debe ser...', ['larga, unica y dificil de adivinar','igual en todos los servicios','el nombre del usuario'], 0]
   ]
 };
-let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, learningEvidence:{}, teacherChats:{}, testAttempts:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, examMode:null, examPracticeType:'development', currentExamScope:null, activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
+let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, learningEvidence:{}, teacherChats:{}, testAttempts:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, activeSession:null, examMode:null, examPracticeType:'development', currentExamScope:null, activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
+let gamification = {profile:null, config:null, lastError:'', loading:true};
+let deskRequestPending = false;
+const deskSyncChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('eso-adultos-desk') : null;
+if (deskSyncChannel) deskSyncChannel.addEventListener('message', event => {
+  if (event.data?.type === 'profile-updated') void loadGamification(false);
+});
+let nextProgressTab = 'desk';
+let nextProgressMode = 'overview';
+let nextDuration = 15;
+let nextShopCategory = 'all';
 const OFFICIAL_SCOPES = [
   {
     id:'comunicacion', icon:'Aa', title:'Ámbito de Comunicación', color:'#2563eb', soft:'#eaf2ff', modules:['lengua','ingles'],
@@ -5805,10 +5936,18 @@ let currentUser = null;
 let currentView = 'home';
 const $ = id => document.getElementById(id);
 function init() {
+  if (REDESIGN_MODE) {
+    if ($('navModules')) $('navModules').textContent = 'Asignaturas';
+    if ($('navExam')) $('navExam').hidden = true;
+    const brandImage = document.querySelector('.brand-logo img');
+    if (brandImage) brandImage.src = 'assets/brand/eso-full.png';
+    document.body.classList.add('next-ui');
+  }
   renderProfile();
   loadProfile();
   loadOfficialResources();
   loadState();
+  loadGamification();
 }
 async function backend(path, options={}) {
   const res = await fetch(path, {credentials:'same-origin', ...options, headers:{'Content-Type':'application/json','X-Client-App':APP_KEY, ...(options.headers||{})}});
@@ -5834,6 +5973,12 @@ async function loadState() {
   state.libraryTab = ['subjects','resources','saved'].includes(state.libraryTab) ? state.libraryTab : 'subjects';
   state.currentExamTopics = Array.isArray(state.currentExamTopics) ? state.currentExamTopics : [];
   state.sessionDuration = [15,30,45].includes(Number(state.sessionDuration)) ? Number(state.sessionDuration) : null;
+  state.activeSession = state.activeSession && typeof state.activeSession === 'object' && !Array.isArray(state.activeSession) ? state.activeSession : null;
+  if (state.activeSession) {
+    state.activeSession.steps = Array.isArray(state.activeSession.steps) ? state.activeSession.steps : [];
+    state.activeSession.stepKeys = Array.isArray(state.activeSession.stepKeys) ? state.activeSession.stepKeys : [];
+    state.activeSession.completedStepKeys = Array.isArray(state.activeSession.completedStepKeys) ? state.activeSession.completedStepKeys : [];
+  }
   state.examMode = ['quick','complete','official'].includes(state.examMode) ? state.examMode : null;
   state.examPracticeType = ['development','test'].includes(state.examPracticeType) ? state.examPracticeType : 'development';
   state.currentExamScope = OFFICIAL_SIMULATORS[state.currentExamScope] ? state.currentExamScope : null;
@@ -5859,6 +6004,199 @@ async function loadOfficialResources() {
 async function saveState() {
   try { await backend('/api/state', {method:'POST', body:JSON.stringify(state)}); } catch {}
 }
+async function loadGamification(showLoading=true) {
+  if (showLoading) {
+    gamification = {...gamification, loading:true, lastError:''};
+    renderNextProgress();
+  }
+  try {
+    const data = await backend('/api/gamification');
+    gamification = {profile:data.profile || null, config:data.config || null, lastError:'', loading:false};
+    renderNextExperience();
+  } catch (error) {
+    gamification = {...gamification, loading:false, lastError:error.message || 'No se pudo cargar el progreso del escritorio.'};
+    console.warn('Progreso del escritorio:', gamification.lastError);
+    renderNextExperience();
+  }
+}
+function publishDeskUpdate() {
+  if (deskSyncChannel) deskSyncChannel.postMessage({type:'profile-updated'});
+}
+async function grantGamificationReward(eventType, sourceId, metadata={}) {
+  try {
+    const data = await backend('/api/gamification/rewards', {method:'POST', body:JSON.stringify({event_type:eventType, source_id:sourceId, metadata})});
+    gamification = {...gamification, profile:data.profile || gamification.profile, lastError:''};
+    renderNextExperience();
+    return data;
+  } catch (error) {
+    gamification.lastError = error.message || 'No se pudo registrar la recompensa.';
+    console.warn('Recompensa pendiente:', gamification.lastError);
+    return null;
+  }
+}
+function academicProgressPct() {
+  const topics = studyTasks();
+  return topics.length ? Math.round(topics.filter(topic => state.done[topic.id]).length / topics.length * 100) : 0;
+}
+function recentStudyDays() {
+  const active = new Set(state.activityDates || []);
+  const days = [];
+  const today = new Date();
+  for (let offset=6; offset>=0; offset-=1) {
+    const day = new Date(today);
+    day.setDate(today.getDate() - offset);
+    days.push({date:day, key:todayKey(day), done:active.has(todayKey(day))});
+  }
+  return days;
+}
+function deskAssetSvg(visual, label='', className='') {
+  const safeVisual = String(visual || 'desk-light').replace(/[^a-z0-9-]/gi,'');
+  const accessible = label ? `role="img" aria-label="${escapeHtml(label)}"` : 'aria-hidden="true"';
+  return `<svg class="${escapeHtml(className)}" viewBox="0 0 200 160" ${accessible} focusable="false"><use href="assets/desk/items.svg#${safeVisual}"></use></svg>`;
+}
+function deskSceneHtml(profile=gamification.profile, compact=false) {
+  const catalog = Array.isArray(profile?.catalog) ? profile.catalog : [];
+  const equipped = profile?.equipped_items || {};
+  const objects = Object.entries(equipped).map(([category,itemId]) => {
+    const item = catalog.find(entry => entry.id === itemId);
+    if (!item) return '';
+    return deskAssetSvg(item.visual, '', 'desk-object').replace('<svg ', `<svg data-category="${escapeHtml(category)}" data-visual="${escapeHtml(item.visual || '')}" `);
+  }).join('');
+  const objectNames = Object.values(equipped).map(itemId => catalog.find(entry => entry.id === itemId)?.name).filter(Boolean);
+  const description = objectNames.length ? `Escritorio personalizado. Objetos equipados: ${objectNames.join(', ')}.` : 'Escritorio inicial, preparado para personalizar.';
+  return `<div class="next-desk-scene ${compact ? 'compact' : ''}" role="img" aria-label="${escapeHtml(description)}"><span class="next-scene-window"></span><span class="next-scene-screen"></span>${objects}</div>`;
+}
+function selectNextDuration(minutes) {
+  nextDuration = minutes;
+  document.querySelectorAll('[data-next-duration]').forEach(button => {
+    const selected = Number(button.dataset.nextDuration) === minutes;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
+}
+function startNextSession() {
+  setSessionDuration(nextDuration);
+  const step = sessionSteps()[0];
+  if (step) openSessionStep(step.module, step.tab, step.topic || '');
+}
+function setNextProgressTab(tab) {
+  nextProgressTab = ['desk','achievements','stats'].includes(tab) ? tab : 'desk';
+  nextProgressMode = 'overview';
+  renderNextProgress();
+}
+function openNextShop() { nextProgressTab = 'desk'; nextProgressMode = 'shop'; nextShopCategory = 'all'; renderNextProgress(); }
+function openNextCustomizer() { nextProgressTab = 'desk'; nextProgressMode = 'customize'; nextShopCategory = 'all'; renderNextProgress(); }
+function setNextShopCategory(category) { nextShopCategory = category; renderNextProgress(); }
+async function buyDeskItem(itemId) {
+  if (deskRequestPending) return;
+  deskRequestPending = true;
+  document.body.classList.add('is-desk-busy');
+  const message = $('nextDeskMessage');
+  if (message) { message.className='next-message'; message.textContent='Procesando compra…'; }
+  try {
+    const data = await backend('/api/gamification/purchases', {method:'POST', body:JSON.stringify({item_id:itemId})});
+    gamification.profile = data.profile;
+    const item = data.profile?.catalog?.find(entry => entry.id === itemId);
+    renderNextExperience();
+    if ($('nextDeskMessage')) $('nextDeskMessage').textContent = `Compra realizada: ${item?.name || 'objeto añadido al inventario'}. Ya puedes equiparlo.`;
+    publishDeskUpdate();
+  } catch (error) {
+    if (message) { message.className='next-message error'; message.textContent=error.message; }
+  } finally {
+    deskRequestPending = false;
+    document.body.classList.remove('is-desk-busy');
+  }
+}
+async function equipDeskItem(itemId) {
+  if (deskRequestPending) return;
+  deskRequestPending = true;
+  document.body.classList.add('is-desk-busy');
+  const message = $('nextDeskMessage');
+  if (message) { message.className='next-message'; message.textContent='Aplicando al escritorio…'; }
+  try {
+    const data = await backend('/api/gamification/equipment', {method:'POST', body:JSON.stringify({item_id:itemId})});
+    gamification.profile = data.profile;
+    const item = data.profile?.catalog?.find(entry => entry.id === itemId);
+    renderNextExperience();
+    if ($('nextDeskMessage')) $('nextDeskMessage').textContent = `${item?.name || 'El objeto'} aparece ahora en tu escritorio.`;
+    publishDeskUpdate();
+  } catch (error) {
+    if (message) { message.className='next-message error'; message.textContent=error.message; }
+  } finally {
+    deskRequestPending = false;
+    document.body.classList.remove('is-desk-busy');
+  }
+}
+function nextItemCard(item, mode='shop') {
+  let action = '';
+  if (item.equipped) action = '<button type="button" disabled>En uso</button>';
+  else if (item.owned) action = `<button class="primary" type="button" onclick="equipDeskItem('${item.id}')">Equipar</button>`;
+  else if (!item.unlocked) action = `<button type="button" disabled>${item.unlock_condition ? 'Bloqueado · Logro' : `Bloqueado · Nivel ${item.minimum_level}`}</button>`;
+  else action = `<button class="primary" type="button" onclick="buyDeskItem('${item.id}')">Comprar</button>`;
+  return `<article class="next-card next-item"><div class="next-item-visual">${deskAssetSvg(item.visual,item.name)}</div><h4>${escapeHtml(item.name)}</h4><p>${mode === 'customize' ? 'Selecciona este objeto para tu escritorio.' : `Categoría: ${escapeHtml(item.category)}`}</p><div class="next-item-meta"><span>${item.price ? `${item.price} monedas` : 'Incluido'}</span><span>Nivel ${item.minimum_level}</span></div>${action}</article>`;
+}
+function renderNextHome() {
+  if (!REDESIGN_MODE || !$('nextHomeView')) return;
+  const profile = gamification.profile;
+  const next = nextStudyItem();
+  const days = recentStudyDays();
+  const activeCount = days.filter(day => day.done).length;
+  const firstName = profileDisplayName().split(/[ @]/)[0];
+  $('nextHomeDate').textContent = new Date().toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+  $('nextGreeting').textContent = firstName && firstName !== 'Perfil' ? `Buenos días, ${firstName}` : 'Buenos días';
+  $('nextHomeLead').textContent = next ? `Puedes continuar ${next.module.title} con una sesión de ${nextDuration} minutos.` : 'Has completado el recorrido. Puedes repasar o preparar un simulacro.';
+  $('nextAcademicPct').textContent = `${academicProgressPct()} %`;
+  $('nextDeskLevel').textContent = profile ? `${profile.level.level} · ${profile.level.name}` : '1 · Inicio';
+  $('nextRhythmMetric').textContent = `${activeCount} de 7 días`;
+  $('nextHomeDesk').innerHTML = deskSceneHtml(profile);
+  $('nextContinue').innerHTML = next ? `Continuar ${escapeHtml(next.module.title)}<small style="display:block;font-weight:500">${escapeHtml(next.topic.title)} · ${nextDuration} min</small>` : 'Ver asignaturas';
+  $('nextRhythmText').textContent = `${activeCount} ${activeCount === 1 ? 'día estudiado' : 'días estudiados'}`;
+  $('nextWeek').innerHTML = days.map(day => `<span class="next-day ${day.done ? 'done' : ''}">${day.date.toLocaleDateString('es-ES',{weekday:'narrow'})}<b>${day.done ? '✓' : ''}</b></span>`).join('');
+  selectNextDuration(nextDuration);
+}
+function renderNextProgress() {
+  if (!REDESIGN_MODE || !$('nextProgressBody')) return;
+  document.querySelectorAll('[data-next-tab]').forEach(button => {
+    const selected = button.dataset.nextTab === nextProgressTab;
+    button.classList.toggle('active', selected);
+    button.setAttribute('aria-selected', String(selected));
+    button.tabIndex = selected ? 0 : -1;
+  });
+  const profile = gamification.profile;
+  if (!profile && gamification.lastError) {
+    $('nextProgressBody').innerHTML = `<div class="next-card next-retry" role="alert"><h3>No hemos podido cargar tu escritorio</h3><p>${escapeHtml(gamification.lastError)} Tu progreso académico sigue guardado.</p><button class="primary next-primary" type="button" onclick="loadGamification()">Reintentar</button></div>`;
+    return;
+  }
+  if (!profile) { $('nextProgressBody').innerHTML='<div class="next-card next-empty" role="status">Cargando el progreso del escritorio…</div>'; return; }
+  if (nextProgressTab === 'achievements') {
+    const owned = new Map((profile.achievements || []).map(item => [item.id,item]));
+    const definitions = gamification.config?.achievements || [];
+    $('nextProgressBody').innerHTML = `<div class="next-catalog">${definitions.map(item => `<article class="next-card next-item" style="opacity:${owned.has(item.id) ? 1 : .58}"><div class="next-item-visual">★</div><h4>${escapeHtml(item.name)}</h4><p>${owned.has(item.id) ? 'Logro conseguido' : 'Sigue estudiando para conseguirlo'}</p><div class="next-item-meta"><span>+${item.xp} XP</span><span>+${item.coins} monedas</span></div></article>`).join('') || '<div class="next-card next-empty">Todavía no hay logros disponibles.</div>'}</div>`;
+    return;
+  }
+  if (nextProgressTab === 'stats') {
+    const topics = studyTasks();
+    const tests = Object.values(state.testAttempts || {});
+    const average = tests.length ? Math.round(tests.reduce((sum,item)=>sum+Number(item.score||0),0)/tests.length) : 0;
+    $('nextProgressBody').innerHTML = `<div class="next-catalog"><article class="next-card next-info"><strong>${topics.filter(item=>state.done[item.id]).length}/${topics.length}</strong><span>temas completados</span></article><article class="next-card next-info"><strong>${(state.activityDates||[]).length}</strong><span>días con actividad registrados</span></article><article class="next-card next-info"><strong>${tests.length ? `${average} %` : '—'}</strong><span>media en tests realizados</span></article></div>`;
+    return;
+  }
+  if (nextProgressMode === 'shop' || nextProgressMode === 'customize') {
+    const available = (profile.catalog || []).filter(item => nextProgressMode === 'shop' || item.owned);
+    const categories = [...new Set(available.map(item => item.category))];
+    const labels = {desk:'Mesas',chair:'Sillas',lamp:'Lámparas',plant:'Plantas',shelf:'Estanterías',poster:'Pósteres',mug:'Tazas',trophy:'Trofeos'};
+    const items = available.filter(item => nextShopCategory === 'all' || item.category === nextShopCategory);
+    $('nextProgressBody').innerHTML = `<div class="next-card-head" style="padding:0 0 14px"><h3>${nextProgressMode === 'shop' ? 'Tienda' : 'Personalizar escritorio'}</h3><button class="next-link" type="button" onclick="nextProgressMode='overview';renderNextProgress()">← Volver a mi escritorio</button></div><div class="next-filters" role="group" aria-label="Filtrar objetos"><button class="${nextShopCategory === 'all' ? 'active' : ''}" aria-pressed="${nextShopCategory === 'all'}" type="button" onclick="setNextShopCategory('all')">Todo</button>${categories.map(category=>`<button class="${nextShopCategory === category ? 'active' : ''}" aria-pressed="${nextShopCategory === category}" type="button" onclick="setNextShopCategory('${category}')">${labels[category] || category}</button>`).join('')}</div><div class="next-catalog">${items.map(item => nextItemCard(item,nextProgressMode)).join('') || '<div class="next-card next-empty">No hay objetos en esta categoría.</div>'}</div>`;
+    return;
+  }
+  const level = profile.level;
+  const nextMin = level.next_min_xp;
+  const previousMin = level.min_xp;
+  const xpPct = nextMin ? Math.max(0,Math.min(100,Math.round((profile.xp-previousMin)/(nextMin-previousMin)*100))) : 100;
+  const days = recentStudyDays().filter(day=>day.done).length;
+  $('nextProgressBody').innerHTML = `<div class="next-progress-grid"><article class="next-card next-progress-main"><div class="next-level-row"><div><span>Nivel del escritorio</span><strong>${level.level} · ${escapeHtml(level.name)}</strong></div><span class="next-coins">${profile.coins} monedas</span></div><div class="next-xp"><i style="width:${xpPct}%"></i></div><div class="next-xp-meta"><span>${profile.xp} XP</span><span>${nextMin ? `${nextMin-profile.xp} XP para el nivel ${level.level+1}` : 'Nivel máximo'}</span></div>${deskSceneHtml(profile,true)}<div class="next-actions"><button class="primary next-primary" type="button" onclick="openNextCustomizer()">Personalizar escritorio</button><button type="button" onclick="openNextShop()">Ir a la tienda</button></div></article><aside class="next-side"><article class="next-card next-info"><strong>${academicProgressPct()} %</strong><span>Temario completado</span></article><article class="next-card next-info"><strong>${days} de 7</strong><span>Tu ritmo reciente</span></article><article class="next-card next-info"><strong>${profile.owned_items?.length || 0}/${profile.catalog?.length || 0}</strong><span>Objetos en el inventario</span></article></aside></div>`;
+}
+function renderNextExperience() { renderNextHome(); renderNextProgress(); }
 async function loadProfile() {
   try {
     const data = await backend('/api/me');
@@ -5901,6 +6239,7 @@ function toggleProfile(force) {
   const nextOpen = typeof force === 'boolean' ? force : panel.hidden;
   panel.hidden = !nextOpen;
   button?.classList.toggle('active', nextOpen);
+  button?.setAttribute('aria-expanded', String(nextOpen));
   if (nextOpen) loadProfile();
   renderView();
 }
@@ -5910,6 +6249,7 @@ function closeProfile() {
   if (!panel || panel.hidden) return false;
   panel.hidden = true;
   button?.classList.remove('active');
+  button?.setAttribute('aria-expanded', 'false');
   return true;
 }
 async function saveProfileName() {
@@ -6327,6 +6667,7 @@ function renderShell() {
       ? renderSavedNotesLibrary()
       : curriculumScopesHtml(moduleButton);
   $('moduleGrid').innerHTML = tabs + body;
+  renderNextExperience();
 }
 function renderModuleGrid() {
   if (!$('moduleGrid')) return;
@@ -6351,7 +6692,8 @@ function renderModuleGrid() {
   $('moduleGrid').innerHTML = tabs + body;
 }
 function libraryTabsHtml() {
-  return `<div class="library-tabs"><button type="button" class="${state.libraryTab === 'subjects' ? 'active' : ''}" onclick="setLibraryTab('subjects')">ASIGNATURAS</button><button type="button" class="${state.libraryTab === 'resources' ? 'active' : ''}" onclick="setLibraryTab('resources')">RECURSOS</button><button type="button" class="${state.libraryTab === 'saved' ? 'active' : ''}" onclick="setLibraryTab('saved')">APUNTES GUARDADOS</button></div>`;
+  const simulators = REDESIGN_MODE ? '<button type="button" onclick="openModule(\'exam\')">SIMULACROS</button>' : '';
+  return `<div class="library-tabs"><button type="button" class="${state.libraryTab === 'subjects' ? 'active' : ''}" onclick="setLibraryTab('subjects')">ASIGNATURAS</button>${simulators}<button type="button" class="${state.libraryTab === 'resources' ? 'active' : ''}" onclick="setLibraryTab('resources')">RECURSOS</button><button type="button" class="${state.libraryTab === 'saved' ? 'active' : ''}" onclick="setLibraryTab('saved')">APUNTES GUARDADOS</button></div>`;
 }
 function setLibraryTab(tab) {
   state.libraryTab = tab;
@@ -6389,12 +6731,22 @@ function continueProgress() {
   openTopic(next.topic.id);
 }
 function todayKey(date = new Date()) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
+function isoWeekKey(date = new Date()) {
+  const value = new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
+  value.setUTCDate(value.getUTCDate() + 4 - (value.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(value.getUTCFullYear(),0,1));
+  const week = Math.ceil((((value - yearStart) / 86400000) + 1) / 7);
+  return `${value.getUTCFullYear()}-W${String(week).padStart(2,'0')}`;
+}
 function recordStudyActivity() {
   const today = todayKey();
   state.activityDates = [today, ...(state.activityDates || []).filter(day => day !== today)].slice(0,90);
   const key = monthKey();
   state.monthlyProgress = state.monthlyProgress && typeof state.monthlyProgress === 'object' ? state.monthlyProgress : {};
   state.monthlyProgress[key] = Number(state.monthlyProgress[key] || 0) + 1;
+  const currentWeek = isoWeekKey();
+  const activeThisWeek = new Set(state.activityDates.filter(day => isoWeekKey(new Date(`${day}T12:00:00`)) === currentWeek));
+  if (activeThisWeek.size >= 4) void grantGamificationReward('WEEKLY_RHYTHM_REACHED', currentWeek, {active_days:activeThisWeek.size});
 }
 function showView(view) {
   if (view === 'modules') return openLibrary(state.libraryTab || 'subjects');
@@ -6403,7 +6755,7 @@ function showView(view) {
   if (view === 'modules') renderModuleGrid();
   renderView();
   renderTeacherPanel();
-  const target = view === 'home' ? $('homeView') : view === 'modules' ? $('moduleGrid') : view === 'progress' ? $('progressView') : $('workspace');
+  const target = view === 'home' ? (REDESIGN_MODE ? $('nextHomeView') : $('homeView')) : view === 'modules' ? $('moduleGrid') : view === 'progress' ? (REDESIGN_MODE ? $('nextProgressView') : $('progressView')) : $('workspace');
   if (view === 'home' || view === 'progress') window.scrollTo({top:0, behavior:'auto'});
   else jumpTo(target);
 }
@@ -6415,15 +6767,23 @@ function jumpTo(target) {
 }
 function renderView() {
   const profileOpen = $('profilePanel') && !$('profilePanel').hidden;
-  if ($('homeView')) $('homeView').hidden = profileOpen || currentView !== 'home';
+  if ($('homeView')) $('homeView').hidden = REDESIGN_MODE || profileOpen || currentView !== 'home';
+  if ($('nextHomeView')) $('nextHomeView').hidden = !REDESIGN_MODE || profileOpen || currentView !== 'home';
   if ($('planView')) $('planView').hidden = profileOpen || currentView !== 'home';
-  if ($('progressView')) $('progressView').hidden = profileOpen || currentView !== 'progress';
+  if ($('progressView')) $('progressView').hidden = REDESIGN_MODE || profileOpen || currentView !== 'progress';
+  if ($('nextProgressView')) $('nextProgressView').hidden = !REDESIGN_MODE || profileOpen || currentView !== 'progress';
   if ($('moduleGrid')) $('moduleGrid').hidden = profileOpen || currentView !== 'modules';
   if ($('workspace')) $('workspace').hidden = profileOpen || currentView !== 'workspace';
   if ($('navHome')) $('navHome').classList.toggle('active', currentView === 'home');
   if ($('navModules')) $('navModules').classList.toggle('active', currentView === 'modules' || (currentView === 'workspace' && state.activeModule !== 'exam'));
   if ($('navExam')) $('navExam').classList.toggle('active', currentView === 'workspace' && state.activeModule === 'exam');
   if ($('navProgress')) $('navProgress').classList.toggle('active', currentView === 'progress');
+  [['navHome',currentView === 'home'],['navModules',currentView === 'modules' || (currentView === 'workspace' && state.activeModule !== 'exam')],['navExam',currentView === 'workspace' && state.activeModule === 'exam'],['navProgress',currentView === 'progress']].forEach(([id,active]) => {
+    const button = $(id);
+    if (!button) return;
+    if (active) button.setAttribute('aria-current','page');
+    else button.removeAttribute('aria-current');
+  });
 }
 function recommendedModule() {
   return MODULES.find(m => m.tasks.some(t => !state.done[t.id])) || MODULES[0];
@@ -6455,13 +6815,18 @@ function moduleIconHtml(module) {
 function topicStatusHtml(topic, module, index) {
   return `<span class="topic-status"><span class="topic-visual">${escapeHtml(topicVisual(topic, module.id))}</span><small>${state.done[topic.id] ? 'OK' : index + 1}</small></span>`;
 }
-function sessionSteps() {
+function buildSessionSteps() {
   const module = recommendedStudyModule();
   const task = module.tasks.find(t => !state.done[t.id]) || module.tasks[0];
-  const steps = [{module:module.id, topic:task.id, tab:'contenidos', title:task.title, detail:'Tema'}];
-  if (state.sessionDuration >= 30) steps.push({module:module.id, topic:null, tab:'test', title:'Test corto', detail:'Práctica'});
-  if (state.sessionDuration >= 45) steps.push({module:'exam', topic:null, tab:'examen', title:'Examen rapido', detail:'Comprobar'});
+  const steps = [{key:`study:${task.id}`, module:module.id, topic:task.id, tab:'contenidos', title:task.title, detail:'Tema'}];
+  if (state.sessionDuration >= 30) steps.push({key:`test:${module.id}`, module:module.id, topic:null, tab:'test', title:'Test corto', detail:'Práctica'});
+  if (state.sessionDuration >= 45) steps.push({key:'exam', module:'exam', topic:null, tab:'examen', title:'Examen rápido', detail:'Comprobar'});
   return steps;
+}
+function sessionSteps() {
+  const session = state.activeSession;
+  if (session?.day === todayKey() && Number(session.duration) === Number(state.sessionDuration) && Array.isArray(session.steps) && session.steps.length) return session.steps;
+  return buildSessionSteps();
 }
 function selectHomeDuration(minutes) {
   homeDuration = minutes;
@@ -6471,8 +6836,28 @@ function selectHomeDuration(minutes) {
     button.setAttribute('aria-pressed', String(selected));
   });
 }
-function setSessionDuration(minutes) { state.sessionDuration = minutes; renderStudyCockpit(); renderTeacherPanel(); saveState(); }
-function clearSessionDuration() { state.sessionDuration = null; renderStudyCockpit(); renderTeacherPanel(); saveState(); }
+function setSessionDuration(minutes) {
+  state.sessionDuration = minutes;
+  const today = todayKey();
+  const canResume = state.activeSession?.day === today && !state.activeSession.completedAt && Number(state.activeSession.duration) === minutes;
+  if (!canResume) {
+    const id = globalThis.crypto?.randomUUID?.() || `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const steps = buildSessionSteps();
+    state.activeSession = {id, day:today, duration:minutes, steps, stepKeys:steps.map(step=>step.key), completedStepKeys:[], completedAt:null};
+  }
+  renderStudyCockpit(); renderTeacherPanel(); saveState();
+}
+function clearSessionDuration() { state.sessionDuration = null; state.activeSession = null; renderStudyCockpit(); renderTeacherPanel(); saveState(); }
+function markStudySessionStep(stepKey) {
+  const session = state.activeSession;
+  if (!session || session.day !== todayKey() || session.completedAt || !session.stepKeys.includes(stepKey)) return false;
+  if (!session.completedStepKeys.includes(stepKey)) session.completedStepKeys.push(stepKey);
+  if (session.stepKeys.every(key => session.completedStepKeys.includes(key))) {
+    session.completedAt = new Date().toISOString();
+    void grantGamificationReward('DAILY_SESSION_COMPLETED', session.day, {duration:session.duration, session_id:session.id});
+  }
+  return true;
+}
 function openSessionStep(moduleId, tab, topicId='') {
   closeProfile();
   state.activeModule = moduleId;
@@ -6495,9 +6880,10 @@ function renderStudyCockpit() {
   const steps = sessionSteps();
   $('sessionDurationPill').textContent = `${duration} minutos`;
   $('sessionPlanTitle').textContent = 'Sesión diaria';
-  $('sessionPlanText').textContent = `${steps.length} paso${steps.length === 1 ? '' : 's'}`;
+  const completed = state.activeSession?.completedStepKeys?.length || 0;
+  $('sessionPlanText').textContent = `${completed} de ${steps.length} pasos completados`;
   if ($('sessionCoach')) $('sessionCoach').innerHTML = `<span><strong>OBJETIVO</strong><small>${duration === 15 ? 'Entender una idea y cerrar con una accion.' : duration === 30 ? 'Aprender, practicar y detectar fallos.' : 'Aprender, practicar y terminar con una prueba realista.'}</small></span>`;
-  $('todayPlan').innerHTML = steps.map((step,index) => `<li class="session-step-row"><button class="session-step ${index === 0 ? 'primary' : ''}" type="button" onclick="openSessionStep('${step.module}','${step.tab}','${step.topic || ''}')"><span class="step-number">${index + 1}</span><span><strong>${escapeHtml(step.title)}</strong><small>${escapeHtml(step.detail)}</small></span><span class="topic-arrow">&rsaquo;</span></button></li>`).join('');
+  $('todayPlan').innerHTML = steps.map((step,index) => { const done = state.activeSession?.completedStepKeys?.includes(step.key); return `<li class="session-step-row"><button class="session-step ${done ? 'complete' : index === completed ? 'primary' : ''}" type="button" onclick="openSessionStep('${step.module}','${step.tab}','${step.topic || ''}')"><span class="step-number">${done ? '✓' : index + 1}</span><span><strong>${escapeHtml(step.title)}</strong><small>${done ? 'Completado' : escapeHtml(step.detail)}</small></span><span class="topic-arrow">&rsaquo;</span></button></li>`; }).join('');
   $('officialStructure').innerHTML = OFFICIAL_SCOPES.map(scope =>
     `<li><strong>${escapeHtml(scope.title)}</strong><span>${escapeHtml(scope.pass)}. ${escapeHtml(scope.summary)}</span></li>`
   ).join('');
@@ -6783,6 +7169,7 @@ function completeLesson(topicId,index) {
   const topic = allTasks().find(item => item.id === topicId);
   if (!topic) return;
   const wasDone = isLessonDone(topic,index);
+  const topicWasDone = Boolean(state.done[topicId]);
   if (MODEL_UNITS[topicId] && !wasDone && !saveModelEvidence(topicId,index,false)) {
     const status = $('modelEvidenceStatus');
     if (status) {
@@ -6797,6 +7184,14 @@ function completeLesson(topicId,index) {
     state.done[lessonKey(topicId,index)] = true;
     if (subtopicsFor(topic).every((lesson,lessonIndex) => isLessonDone(topic,lessonIndex))) state.done[topicId] = true;
     recordStudyActivity();
+    void grantGamificationReward('LESSON_COMPLETED', lessonKey(topicId,index), {topic_id:topicId, lesson_index:index});
+    markStudySessionStep(`study:${topicId}`);
+    if (!topicWasDone && state.done[topicId]) {
+      void grantGamificationReward('TOPIC_COMPLETED', topicId, {module_id:topic.module});
+      const subject = moduleById(topic.module);
+      const subjectLessonsComplete = subject.tasks.every(item => subtopicsFor(item).every((lesson,lessonIndex) => Boolean(state.done[lessonKey(item.id,lessonIndex)])));
+      if (subjectLessonsComplete) void grantGamificationReward('SUBJECT_COMPLETED', subject.id);
+    }
   }
   state.activeLesson = index + 1 < subtopicsFor(topic).length ? index + 1 : null;
   render();
@@ -7062,6 +7457,7 @@ function scoreTest(testId='') {
   });
   const pct = Math.round(ok / Math.max(1, qs.length) * 100);
   const id = testId || qs[0]?.dataset.testId || `${state.activeModule}:mixed:0`;
+  const previousBest = Number(state.testAttempts[id]?.score || 0);
   state.testAttempts[id] = {score:pct, ok, total:qs.length, at:new Date().toISOString()};
   document.querySelectorAll('[data-test-card]').forEach(card => {
     if (card.dataset.testCard !== id) return;
@@ -7077,6 +7473,8 @@ function scoreTest(testId='') {
   state.scores.push(pct);
   recordStudyActivity();
   state.attempts.unshift({type:'test', at:new Date().toISOString(), note:`${ok}/${qs.length} (${pct}%)`});
+  if (pct >= 70 && previousBest < 70) void grantGamificationReward('TEST_PASSED', id, {score:pct, module_id:state.activeModule});
+  markStudySessionStep(`test:${module.id}`);
   $('testResult').textContent = `RESULTADO: ${ok}/${qs.length} (${pct}%) - ${ok === qs.length ? 'LISTO PARA AVANZAR' : 'FALLOS GUARDADOS PARA REPASAR'}`;
   $('testResult').classList.add(ok === qs.length ? 'done-ok' : 'done-ko');
   if ($('scoreTestButton')) { $('scoreTestButton').disabled = true; $('scoreTestButton').textContent = 'Test corregido'; }
@@ -7356,10 +7754,14 @@ async function correctExamAi() {
     const data = await backend('/api/chat', {method:'POST', body:JSON.stringify({purpose:'study', messages:[{role:'user', content:prompt}], temperature:.25, max_tokens:3200})});
     target.classList.add('teacher-rich');
     target.innerHTML = formatStudyText(data.content || 'No se ha podido generar la corrección.');
-    state.attempts.unshift({type:simulator ? 'simulacro corregido' : 'examen IA', at:new Date().toISOString(), note:simulator ? `${simulator.title} · corrección orientativa` : 'Correccion completa', scope:state.currentExamScope, topics:state.currentExamTopics || []});
+    const attemptId = globalThis.crypto?.randomUUID?.() || `attempt-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    state.attempts.unshift({id:attemptId, type:simulator ? 'simulacro corregido' : 'examen IA', at:new Date().toISOString(), note:simulator ? `${simulator.title} · corrección orientativa` : 'Correccion completa', scope:state.currentExamScope, topics:state.currentExamTopics || []});
     recordStudyActivity();
     state.done['exam-ai'] = true;
+    if (simulator) void grantGamificationReward('MOCK_EXAM_COMPLETED', attemptId, {scope:state.currentExamScope});
+    markStudySessionStep('exam');
     renderShell();
+    renderStudyCockpit();
     saveState();
   } catch (e) { target.textContent = e.message; }
 }

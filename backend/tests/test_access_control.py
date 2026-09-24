@@ -76,6 +76,42 @@ def login(test_client: TestClient, email="cliente@example.com", password="tempor
     return test_client.post("/auth/login", json={"email": email, "password": password})
 
 
+def test_eso_gamification_reward_is_idempotent(client):
+    test_client, db_factory = client
+    seed_user(db_factory, product_codes=("ESO_ADULTOS",))
+    assert login(test_client).status_code == 200
+    headers = {"X-Client-App": "eso_adultos"}
+
+    initial = test_client.get("/api/gamification", headers=headers)
+    assert initial.status_code == 200
+    assert initial.json()["profile"]["xp"] == 0
+
+    payload = {"event_type": "LESSON_COMPLETED", "source_id": "mat-numeros:lesson:0"}
+    first = test_client.post("/api/gamification/rewards", json=payload, headers=headers)
+    duplicate = test_client.post("/api/gamification/rewards", json=payload, headers=headers)
+
+    assert first.status_code == 200
+    assert first.json()["awarded"] is True
+    assert first.json()["profile"]["xp"] == 50
+    assert first.json()["profile"]["coins"] == 15
+    assert duplicate.status_code == 200
+    assert duplicate.json()["duplicate"] is True
+    assert duplicate.json()["profile"]["xp"] == 50
+    assert duplicate.json()["profile"]["coins"] == 15
+
+    for index in range(1, 5):
+        lesson = {"event_type": "LESSON_COMPLETED", "source_id": f"mat-numeros:lesson:{index}"}
+        assert test_client.post("/api/gamification/rewards", json=lesson, headers=headers).status_code == 200
+    assert test_client.post("/api/gamification/rewards", json={"event_type": "TOPIC_COMPLETED", "source_id": "mat-numeros"}, headers=headers).status_code == 200
+
+    purchase = test_client.post("/api/gamification/purchases", json={"item_id": "lamp_warm"}, headers=headers)
+    assert purchase.status_code == 200
+    assert purchase.json()["profile"]["coins"] == 15
+    equipment = test_client.post("/api/gamification/equipment", json={"item_id": "lamp_warm"}, headers=headers)
+    assert equipment.status_code == 200
+    assert equipment.json()["profile"]["equipped_items"]["lamp"] == "lamp_warm"
+
+
 def test_requires_login(client):
     test_client, _ = client
     response = test_client.get("/api/state")
@@ -104,6 +140,19 @@ def test_public_marketing_pages_load_without_login(client, path):
     response = test_client.get(path)
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
+
+
+@pytest.mark.parametrize("filename", ["room.svg", "items.svg"])
+def test_eso_desk_assets_are_served_for_the_production_page(client, filename):
+    test_client, _ = client
+    response = test_client.get(f"/assets/desk/{filename}")
+    assert response.status_code == 200
+    assert "image/svg+xml" in response.headers["content-type"]
+
+
+def test_unknown_eso_desk_asset_is_rejected(client):
+    test_client, _ = client
+    assert test_client.get("/assets/desk/unknown.svg").status_code == 404
 
 
 @pytest.mark.parametrize("path", ["/login", "/u25/login", "/e25/login", "/cambridge-info/login", "/diplomator/login"])

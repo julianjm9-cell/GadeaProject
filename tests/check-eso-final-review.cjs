@@ -29,7 +29,7 @@ const resources = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'back
     }
     return route.fulfill({contentType:'application/json', body:'{}'});
   });
-  await page.goto('http://127.0.0.1:8770/apps/e25/index.html');
+  await page.goto('http://127.0.0.1:8770/apps/e25/index.html?ui=classic');
   await page.waitForTimeout(500);
 
   assert.equal(await page.locator('#homeView').isVisible(), true, 'Debe recuperarse de un estado antiguo');
