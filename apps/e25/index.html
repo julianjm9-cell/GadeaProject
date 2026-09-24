@@ -3099,7 +3099,7 @@
       .subject-lesson-action { grid-column:2; grid-row:3; justify-self:start; }
       .subject-lesson-arrow { grid-column:3; grid-row:1/3; }
     }
-    /* Nueva experiencia del escritorio. Es la vista predeterminada; ?ui=classic conserva temporalmente la anterior. */
+    /* Nueva experiencia del escritorio. Se mantiene aislada en ?ui=next hasta completar su paridad funcional. */
     .next-view { width:100%; max-width:1460px; margin:0 auto; padding:22px 0 100px; }
     .next-view[hidden] { display:none; }
     #navExam[hidden] { display:none!important; }
@@ -3381,7 +3381,7 @@
 
 <script>
 const APP_KEY = 'eso_adultos';
-const REDESIGN_MODE = new URLSearchParams(location.search).get('ui') !== 'classic';
+const REDESIGN_MODE = new URLSearchParams(location.search).get('ui') === 'next';
 const APP_TITLE = 'ACCESO ESO ADULTOS';
 const MODULES = [
   {

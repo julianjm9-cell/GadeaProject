@@ -42,7 +42,7 @@ const catalog = [
 
   const page = await context.newPage();
   page.on('pageerror',error => errors.push(error.message));
-  await page.goto('http://127.0.0.1:8770/apps/e25/index.html');
+  await page.goto('http://127.0.0.1:8770/apps/e25/index.html?ui=next');
   await page.locator('#navProgress').click();
   await page.getByRole('alert').waitFor();
   assert.match(await page.getByRole('alert').innerText(),/temporalmente no disponible/i,'El fallo de red debe explicarse');
@@ -58,7 +58,7 @@ const catalog = [
 
   const secondPage = await context.newPage();
   secondPage.on('pageerror',error => errors.push(error.message));
-  await secondPage.goto('http://127.0.0.1:8770/apps/e25/index.html');
+  await secondPage.goto('http://127.0.0.1:8770/apps/e25/index.html?ui=next');
   await secondPage.waitForFunction(() => window.gamification?.profile || document.querySelector('#nextDeskLevel')?.textContent.includes('Cojo ritmo'));
   await page.locator('#navProgress').click();
   await page.getByRole('button',{name:'Ir a la tienda'}).click();

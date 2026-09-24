@@ -98,7 +98,7 @@ Entrega: recorrido completo con identidad consistente y acceso a todos los conte
 
 ## Paquete 5 — Assets finales, validación y entrega
 
-Estado: implementado y configurado como interfaz predeterminada el 24/09/2026. La interfaz anterior queda disponible temporalmente con `?ui=classic`. Ver `docs/eso-paquete-05-validacion-y-entrega.md`.
+Estado: implementado en modo de revisión el 24/09/2026. La interfaz anterior vuelve a ser la predeterminada y la renovación queda disponible con `?ui=next` hasta alcanzar paridad funcional. Ver `docs/eso-paquete-05-validacion-y-entrega.md`.
 
 Objetivo: llevar la versión funcional a un acabado visual coherente y verificable.
 

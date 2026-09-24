@@ -12,7 +12,7 @@ const assert = require('node:assert/strict');
     if (url.pathname === '/api/resources') return route.fulfill({contentType:'application/json', body:'{"resources":[]}'});
     return route.fulfill({contentType:'application/json', body:'{}'});
   });
-  await page.goto('http://127.0.0.1:8770/apps/e25/index.html?ui=classic');
+  await page.goto('http://127.0.0.1:8770/apps/e25/index.html');
   await page.waitForTimeout(500);
 
   assert.equal(await page.locator('.home-subjects button').count(), 3);

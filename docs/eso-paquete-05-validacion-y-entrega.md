@@ -1,10 +1,10 @@
 # ESO Adultos — Paquete 05: assets, validación y entrega
 
-Fecha: 24/09/2026. Estado: implementado y preparado para entrega. La renovación es la interfaz predeterminada; `?ui=classic` mantiene temporalmente la anterior como vía de reversión.
+Fecha: 24/09/2026. Estado: implementado en modo de revisión `?ui=next`. La interfaz completa anterior vuelve a ser la predeterminada hasta que la renovación alcance paridad funcional.
 
 ## Resultado
 
-La renovación queda integrada en la aplicación real como interfaz predeterminada. Reutiliza los contenidos, el estado académico, la cuenta, el Profesor IA y los simulacros existentes. La activación sigue siendo reversible: la URL normal muestra la renovación y `?ui=classic` conserva la interfaz anterior.
+La renovación queda integrada en la aplicación real como modo de revisión. Reutiliza los contenidos, el estado académico, la cuenta, el Profesor IA y los simulacros existentes, pero la URL normal conserva la interfaz completa anterior. `?ui=next` permite seguir revisando la renovación sin afectar al servicio publicado.
 
 ## Assets del escritorio
 
