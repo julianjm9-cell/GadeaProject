@@ -42,24 +42,21 @@ const catalog = [
 
   const page = await context.newPage();
   page.on('pageerror',error => errors.push(error.message));
-  await page.goto('http://127.0.0.1:8770/apps/e25/index.html?ui=next');
+  await page.goto('http://127.0.0.1:8770/apps/e25/index.html');
   await page.locator('#navProgress').click();
   await page.getByRole('alert').waitFor();
   assert.match(await page.getByRole('alert').innerText(),/temporalmente no disponible/i,'El fallo de red debe explicarse');
   await page.getByRole('button',{name:'Reintentar'}).click();
-  await page.waitForFunction(() => document.querySelector('#nextDeskLevel')?.textContent.includes('Cojo ritmo'));
+  await page.waitForFunction(() => document.querySelector('#nextProgressBody')?.textContent.includes('Cojo ritmo'));
   assert.equal(await page.locator('#navProgress').getAttribute('aria-current'),'page','La navegación debe exponer la sección activa');
   assert.equal(await page.locator('.next-desk-scene:visible svg.desk-object').count(),4,'La escena visible debe usar los assets SVG equipados');
 
-  await page.locator('#navHome').click();
-  await page.locator('[data-next-duration="15"]').click();
-  assert.equal(await page.locator('[data-next-duration="15"]').getAttribute('aria-pressed'),'true','La duración debe comunicar su selección');
   assert.match(await page.locator('.next-desk-scene:visible').evaluate(element => getComputedStyle(element).backgroundImage),/room\.svg/,'La escena debe usar el fondo final');
 
   const secondPage = await context.newPage();
   secondPage.on('pageerror',error => errors.push(error.message));
-  await secondPage.goto('http://127.0.0.1:8770/apps/e25/index.html?ui=next');
-  await secondPage.waitForFunction(() => window.gamification?.profile || document.querySelector('#nextDeskLevel')?.textContent.includes('Cojo ritmo'));
+  await secondPage.goto('http://127.0.0.1:8770/apps/e25/index.html');
+  await secondPage.waitForFunction(() => document.querySelector('#nextProgressBody')?.textContent.includes('Cojo ritmo'));
   await page.locator('#navProgress').click();
   await page.getByRole('button',{name:'Ir a la tienda'}).click();
   await page.evaluate(() => Promise.all([buyDeskItem('lamp_warm'),buyDeskItem('lamp_warm')]));
@@ -70,7 +67,7 @@ const catalog = [
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),true,'El acabado final no debe desbordar en móvil');
   await page.screenshot({path:'tools/eso-next-final-mobile.png',fullPage:true});
   await page.setViewportSize({width:1280,height:900});
-  await page.locator('#navHome').click();
+  await page.getByRole('button',{name:/Volver a mi escritorio/}).click();
   await page.screenshot({path:'tools/eso-next-final-desktop.png',fullPage:true});
   assert.deepEqual(errors,[],'El recorrido final no debe producir errores JavaScript');
   await browser.close();

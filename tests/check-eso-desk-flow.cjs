@@ -38,11 +38,9 @@ const baseCatalog = [
     return route.fulfill({contentType:'application/json',body:'{}'});
   });
 
-  await page.goto('http://127.0.0.1:8770/apps/e25/index.html?ui=next');
-  await page.waitForFunction(() => document.querySelector('#nextDeskLevel')?.textContent.includes('Cojo ritmo'));
-  assert.equal(await page.locator('#nextHomeView').isVisible(), true, 'La nueva Inicio debe estar activa en modo next');
-  assert.equal(await page.locator('#homeView').isVisible(), false, 'La Inicio anterior debe quedar como respaldo');
-  assert.equal(await page.locator('#navExam').isVisible(), false, 'Exámenes no debe ocupar una pestaña global en la nueva navegación');
+  await page.goto('http://127.0.0.1:8770/apps/e25/index.html');
+  assert.equal(await page.locator('#homeView').isVisible(), true, 'Inicio debe conservar la interfaz existente');
+  assert.equal(await page.locator('#navExam').isVisible(), true, 'Exámenes debe seguir en la navegación principal');
 
   await page.locator('#navProgress').click();
   await page.getByRole('button',{name:'Ir a la tienda'}).click();
@@ -52,18 +50,19 @@ const baseCatalog = [
   assert.equal(profile.coins, 230, 'La compra debe descontar exactamente el precio');
   assert.equal(profile.equipped_items.lamp, 'lamp_warm', 'El objeto adquirido debe poder equiparse');
 
-  await page.locator('#navHome').click();
-  assert.equal(await page.locator('#nextHomeDesk [data-visual="lamp-warm"]').count(), 1, 'Inicio debe mostrar el objeto equipado');
+  await page.getByRole('button',{name:/Volver a mi escritorio/}).click();
+  assert.equal(await page.locator('#nextProgressBody [data-visual="lamp-warm"]').count(), 1, 'Progreso debe mostrar el objeto equipado');
   await page.reload();
-  await page.waitForFunction(() => document.querySelector('#nextHomeDesk [data-visual="lamp-warm"]'));
-  assert.equal(await page.locator('#nextHomeDesk [data-visual="lamp-warm"]').count(), 1, 'El objeto debe seguir equipado después de recargar');
-  await page.screenshot({path:'tools/eso-next-home-desktop.png', fullPage:true});
+  await page.locator('#navProgress').click();
+  await page.waitForFunction(() => document.querySelector('#nextProgressBody [data-visual="lamp-warm"]'));
+  assert.equal(await page.locator('#nextProgressBody [data-visual="lamp-warm"]').count(), 1, 'El objeto debe seguir equipado después de recargar');
+  await page.screenshot({path:'tools/eso-progress-only-desktop.png', fullPage:true});
 
   await page.setViewportSize({width:390,height:844});
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'La nueva Inicio no debe desbordar en móvil');
-  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('header .screen-nav')).position), 'fixed', 'La navegación móvil debe permanecer accesible abajo');
-  await page.screenshot({path:'tools/eso-next-home-mobile.png', fullPage:true});
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'Progreso no debe desbordar en móvil');
+  assert.equal(await page.locator('#navExam').isVisible(), true, 'Exámenes debe seguir disponible en móvil');
+  await page.screenshot({path:'tools/eso-progress-only-mobile.png', fullPage:true});
   assert.deepEqual(errors, [], 'El flujo no debe producir errores JavaScript');
   await browser.close();
-  console.log('ESO: compra, equipamiento, Inicio y persistencia visual del escritorio OK');
+  console.log('ESO: compra, equipamiento y persistencia dentro de Progreso OK');
 })().catch(error => { console.error(error); process.exit(1); });

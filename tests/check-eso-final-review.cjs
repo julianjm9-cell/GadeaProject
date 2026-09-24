@@ -77,6 +77,8 @@ const resources = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'back
   assert.match(await page.locator('#correctionOutput').innerText(), /orientativa/i);
 
   await page.evaluate(() => showView('progress'));
+  assert.equal(await page.locator('#nextProgressView').isVisible(), true, 'La sección Progreso debe mostrar el escritorio nuevo');
+  await page.locator('[data-next-tab="study"]').click();
   assert.equal(await page.locator('#progressView').isVisible(), true);
   assert.equal(await page.locator('#progressSubjects .progress-subject-row').count(), 6);
   await page.screenshot({path:'tools/eso-revision-final.png', fullPage:true});
