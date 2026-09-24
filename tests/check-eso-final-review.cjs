@@ -9,12 +9,17 @@ const resources = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'back
   const browser = await chromium.launch({headless:true, channel:'msedge'});
   const page = await browser.newPage({viewport:{width:1440,height:1000}});
   const errors = [];
+  let chatPrompt = '';
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.route('**/api/**', route => {
     const url = new URL(route.request().url());
     if (url.pathname === '/api/me') return route.fulfill({contentType:'application/json', body:'{"user":{"name":"Alumno","email":"alumno@example.com","status":"Activo"}}'});
     if (url.pathname === '/api/resources') return route.fulfill({contentType:'application/json', body:JSON.stringify({resources})});
+    if (url.pathname === '/api/chat') {
+      chatPrompt = route.request().postDataJSON().messages[0].content;
+      return route.fulfill({contentType:'application/json', body:'{"content":"Short English study notes."}'});
+    }
     if (url.pathname === '/api/state' && route.request().method() === 'GET') {
       return route.fulfill({contentType:'application/json', body:JSON.stringify({
         done:null, scores:'antiguo', attempts:null, teacherChats:[], testAttempts:[],
@@ -44,7 +49,13 @@ const resources = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'back
   await page.evaluate(() => { openModule('lengua'); openTopic('len-comprension'); openLesson(0); });
   assert.equal(await page.locator('.model-objective').isVisible(), true);
   assert.equal(await page.locator('#modelEvidenceAnswer').isVisible(), true);
-  assert.equal(await page.getByRole('button', {name:'Guardar evidencia'}).isVisible(), true);
+  assert.equal(await page.getByRole('button', {name:'Guardar y continuar'}).isVisible(), true);
+
+  await page.evaluate(() => { openModule('ingles'); openTopic('ing-reading'); openLesson(0); });
+  await page.locator('.ai-notes-card summary').click();
+  await page.getByRole('button', {name:'Generar con IA'}).click();
+  await page.waitForFunction(() => document.querySelector('#lessonAiNotes')?.value === 'Short English study notes.');
+  assert.match(chatPrompt, /Write the complete answer in English/);
 
   await page.evaluate(() => { openModule('lengua'); setTab('test'); startTopicTest('lengua:mixed:0'); });
   const questions = page.locator('.question');

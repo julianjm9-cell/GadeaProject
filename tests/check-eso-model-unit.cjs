@@ -27,13 +27,14 @@ const assert = require('assert');
   assert.match(await page.locator('.model-objective').innerText(), /Objetivo de la lección/i);
   assert.match(await page.locator('.model-solution summary').innerText(), /solución razonada/i);
   assert((await page.locator('.topic-resource-list a').count()) >= 2, 'La unidad debe mostrar recursos relacionados');
-  await page.getByRole('button', {name:/Completar lecci.n/i}).click();
-  assert.match(await page.locator('#modelEvidenceStatus').innerText(), /Antes de completar/i, 'Debe bloquear el completado sin evidencia');
+  await page.getByRole('button', {name:'Guardar y continuar'}).click();
+  assert.match(await page.locator('#modelEvidenceStatus').innerText(), /al menos 40 caracteres/i, 'Debe bloquear el avance sin práctica');
   await page.locator('#modelEvidenceAnswer').fill('El tema es el aula de informática. La idea principal explica que ofrece acceso gratuito con horario e inscripción por plazas limitadas.');
   await page.locator('[data-evidence-check]').nth(0).check();
   await page.locator('[data-evidence-check]').nth(1).check();
-  await page.getByRole('button', {name:'Guardar evidencia'}).click();
-  assert.match(await page.locator('#modelEvidenceStatus').innerText(), /Evidencia guardada/i);
+  await page.getByRole('button', {name:'Guardar y continuar'}).click();
+  assert.equal(await page.evaluate(() => state.activeLesson), 1, 'Debe avanzar a la siguiente lección');
+  await page.evaluate(() => openLesson(0));
   assert.equal(await page.locator('#modelEvidenceAnswer').inputValue(), 'El tema es el aula de informática. La idea principal explica que ofrece acceso gratuito con horario e inscripción por plazas limitadas.');
   await page.screenshot({path:path.resolve(__dirname, '../tools/eso-unidad-modelo.png'), fullPage:true});
 
