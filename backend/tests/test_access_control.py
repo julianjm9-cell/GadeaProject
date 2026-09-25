@@ -14,7 +14,7 @@ from app.api import app_routes, auth as auth_api
 from app.api.app_routes import add_points_focus_instruction, points_credit_cost_from_content, record_usage
 from app.api.auth import LOGIN_BUCKET, ensure_google_access
 from app.main import app
-from app.models import License, Organization, UsageRecord, User
+from app.models import AppSetting, License, Organization, UsageRecord, User
 from app.security.passwords import hash_password
 from app.services.ai_config import GROQ_CHAT_DEFAULT, GROQ_TRANSCRIBE_DEFAULT
 from app.services.licenses import check_access, license_for_user
@@ -379,6 +379,22 @@ def test_ai_settings_default_to_current_groq_models(client):
     assert capabilities["chat"]["provider"] == data["chat_provider"]
     assert capabilities["transcribe"]["model"] == data["transcribe_model"]
     assert {"points", "chat", "ocr", "transcribe"} == set(capabilities)
+
+
+def test_ai_settings_reports_the_ocr_fallback_model_actually_used(client):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin")
+    with db_factory() as db:
+        db.add(AppSetting(key="chat_provider", value="groq"))
+        db.add(AppSetting(key="chat_model", value="openai/gpt-oss-120b"))
+        db.add(AppSetting(key="openai_api_key", value="sk-test-key"))
+        db.commit()
+    token = login(test_client).json()["access_token"]
+    response = test_client.get("/admin/ai-settings", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+    ocr = next(item for item in response.json()["capabilities"] if item["id"] == "ocr")
+    assert ocr["provider"] == "openai"
+    assert ocr["model"] == "gpt-4o-mini"
 
 
 def test_point_generation_records_one_credit_per_point(client):

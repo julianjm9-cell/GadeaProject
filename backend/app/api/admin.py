@@ -166,16 +166,17 @@ def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends
         "groq": "panel" if get_setting(db, "groq_api_key", "") else ("servidor" if settings.groq_api_key else "sin clave"),
         "gemini": "panel" if get_setting(db, "gemini_api_key", "") else ("servidor" if settings.gemini_api_key else "sin clave"),
     }
-    if chat_provider == "gemini" and configured["gemini"]:
-        ocr_provider, ocr_model = "gemini", chat_model
-    elif chat_provider == "openai" and configured["openai"]:
-        ocr_provider, ocr_model = "openai", chat_model
-    elif configured["openai"]:
-        ocr_provider, ocr_model = "openai", normalize_chat_model("openai", "")
-    elif configured["gemini"]:
-        ocr_provider, ocr_model = "gemini", normalize_chat_model("gemini", "")
+    # Mirror vision_provider_config: its fallback does not use the chat model.
+    if chat_provider == "gemini" and gemini_key:
+        ocr_provider, ocr_model = "gemini", get_setting(db, "chat_model", "") or "gemini-2.5-flash"
+    elif chat_provider == "openai" and openai_key:
+        ocr_provider, ocr_model = "openai", get_setting(db, "chat_model", "") or "gpt-4o-mini"
+    elif openai_key:
+        ocr_provider, ocr_model = "openai", "gpt-4o-mini"
+    elif gemini_key:
+        ocr_provider, ocr_model = "gemini", "gemini-2.5-flash"
     else:
-        ocr_provider, ocr_model = chat_provider, normalize_chat_model(chat_provider, chat_model)
+        ocr_provider, ocr_model = "openai", "gpt-4o-mini"
     capabilities = [
         {"id": "points", "label": "Apuntes Diplomator", "apps": ["DIPLOMATOR"], "provider": points_provider, "model": points_model, "configured": configured.get(points_provider, False), "key_source": sources.get(points_provider, "sin clave")},
         {"id": "chat", "label": "Chat y generación", "apps": list(PRODUCT_CODES), "provider": chat_provider, "model": chat_model, "configured": configured.get(chat_provider, False), "key_source": sources.get(chat_provider, "sin clave")},
@@ -200,6 +201,7 @@ def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends
         "groq_masked": mask_secret(groq_key) if valid_groq_key(groq_key) else "",
         "gemini_configured": valid_gemini_key(gemini_key),
         "gemini_masked": mask_secret(gemini_key) if valid_gemini_key(gemini_key) else "",
+        "key_sources": sources,
         "points_model": points_model,
         "chat_model": chat_model,
         "transcribe_model": transcribe_model,
