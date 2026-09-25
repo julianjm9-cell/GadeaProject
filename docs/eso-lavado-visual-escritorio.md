@@ -6,4 +6,4 @@ En ordenador, Inicio presenta una escena del escritorio, la duración de la sesi
 
 Las capturas de revisión son `tools/eso-refresh-home-desktop.png`, `tools/eso-refresh-library-desktop.png`, `tools/eso-refresh-subject-desktop.png`, `tools/eso-refresh-exams-desktop.png` y `tools/eso-refresh-home-mobile.png`. Usan datos de prueba; el contenido y el progreso de cada persona se cargan de su cuenta.
 
-La rama de revisión es `codex/eso-desktop-refresh`. La publicación debe incorporar esta rama junto con la mejora de Progreso que ya contiene. No hay que sustituir la aplicación por el prototipo HTML de `docs/prototypes`.
+El cambio se preparó en `codex/eso-desktop-refresh` y se incorporó a `main` junto con la mejora de Progreso. No hay que sustituir la aplicación por el prototipo HTML de `docs/prototypes`.

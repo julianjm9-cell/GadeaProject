@@ -17,4 +17,4 @@ La escena del escritorio usa ahora 15 imágenes PNG propias en `apps/e25/assets/
 
 La vista previa revisada está en `tools/eso-progress-only-desktop.png` y `tools/eso-progress-only-mobile.png`. Las capturas usan un perfil de prueba; los porcentajes y monedas reales vendrán de los datos de cada alumno.
 
-La rama `codex/eso-progress-only` contiene esta integración para revisión local. La rama `main` sigue siendo la versión que recibe Hostinger y no debe publicar este cambio hasta completar la revisión funcional y visual.
+La integración fue revisada junto con el lavado visual de escritorio y quedó incorporada a `main`. Hostinger recibe esta versión al actualizar el repositorio y reconstruir los contenedores.
