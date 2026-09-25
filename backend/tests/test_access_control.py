@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.database.session import Base, get_db
-from app.api import auth as auth_api
+from app.api import app_routes, auth as auth_api
 from app.api.app_routes import add_points_focus_instruction, points_credit_cost_from_content, record_usage
 from app.api.auth import LOGIN_BUCKET, ensure_google_access
 from app.main import app
@@ -153,11 +153,17 @@ def test_eso_desk_assets_are_served_for_the_production_page(client, filename):
     assert ("image/png" if filename.endswith(".png") else "image/svg+xml") in response.headers["content-type"]
 
 
-def test_hazlotu_logo_is_served_for_the_public_page(client):
+def test_hazlotu_logo_is_served_from_packaged_marketing_assets(client, tmp_path, monkeypatch):
+    logo = tmp_path / "marketing" / "assets" / "brand" / "hazlotu-logo.png"
+    logo.parent.mkdir(parents=True)
+    logo.write_bytes(b"transparent-logo")
+    monkeypatch.setattr(app_routes, "STATIC_DIR", tmp_path)
+    monkeypatch.setattr(app_routes, "PROJECT_ROOT", tmp_path / "missing-project-root")
     test_client, _ = client
     response = test_client.get("/assets/brand/hazlotu-logo.png")
     assert response.status_code == 200
     assert "image/png" in response.headers["content-type"]
+    assert response.content == b"transparent-logo"
 
 
 def test_unknown_eso_desk_asset_is_rejected(client):

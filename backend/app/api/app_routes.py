@@ -518,9 +518,12 @@ def brand_asset(filename: str):
     }
     if filename not in allowed:
         raise HTTPException(status_code=404, detail="Asset no encontrado.")
-    static_path = STATIC_DIR / "assets" / "brand" / filename
-    fallback = PROJECT_ROOT / "marketing" / "app_landings_demo" / "assets" / "brand" / filename
-    path = static_path if static_path.exists() else fallback
+    candidates = (
+        STATIC_DIR / "assets" / "brand" / filename,
+        STATIC_DIR / "marketing" / "assets" / "brand" / filename,
+        PROJECT_ROOT / "marketing" / "app_landings_demo" / "assets" / "brand" / filename,
+    )
+    path = next((candidate for candidate in candidates if candidate.exists()), candidates[-1])
     if not path.exists():
         raise HTTPException(status_code=404, detail="Asset no encontrado.")
     return FileResponse(path, media_type="image/png", headers={"Cache-Control": "public, max-age=3600"})
