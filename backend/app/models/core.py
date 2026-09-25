@@ -60,6 +60,7 @@ class License(Base, TimestampMixin):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
     organization_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("organizations.id"), nullable=False, index=True)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
     product_code: Mapped[str] = mapped_column(String(80), default="DIPLOMATOR", nullable=False, index=True)
     plan: Mapped[str] = mapped_column(String(80), default="MVP", nullable=False)
     status: Mapped[str] = mapped_column(String(32), default="active", nullable=False)

@@ -27,7 +27,7 @@ from app.services.ai_config import (
     normalize_transcribe_model,
 )
 from app.services.audit import audit
-from app.services.licenses import check_access, check_legacy_license
+from app.services.licenses import check_access, check_legacy_license, usage_count_for_license
 from app.services.gamification import award_event, equip_item, get_or_create_profile, level_for_xp, profile_payload, public_config, purchase_item
 from app.services.resources import load_resource_catalog
 
@@ -351,7 +351,16 @@ def provider_error(prefix: str, response: httpx.Response) -> HTTPException:
     return HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
 
 
-DEFAULT_TOPIC_STYLE_GUIDE = """Model the structure on strong Diplomator reference topics: start each point as part of an oral presentation, not as isolated notes; organise the answer around clear axes such as evolution/history, importance/impact, challenges/controversies and legacy/future prospects; move from context to concrete facts and then to significance; include named actors, dates, places, reforms, institutions, controversies and consequences; use simple but elegant oral transitions such as "This leads us to...", "Beyond this aspect..." or their natural equivalent in the target language. The tone must be exam-ready, diplomatic and analytical: fluent enough to recite, but dense enough to sound informed."""
+DEFAULT_TOPIC_STYLE_GUIDE = """Treat the selected topic as a strict boundary. Build a coherent oral presentation from the few angles that directly answer that exact topic; never force a standard history, impact, controversy or future section when it is not relevant. Prefer specific explanations, mechanisms, examples and dates that help explain the subject. Every paragraph must earn its place: remove generic introductions, broad international-relations filler, moral conclusions and nearby subjects that were not requested. The student profile controls language and difficulty only; it is never source material. Use natural transitions and an informed C1/C2 tone. Include only facts you can state confidently and never invent dates, statistics, institutions or quotations."""
+
+POINTS_FOCUS_SYSTEM_PROMPT = """You create study notes for Diplomator. The user's quoted topic is the complete scope of the answer. Stay tightly on that topic and ignore nearby themes unless they are essential to explain it. The requested number of points is a layout requirement, not permission to add filler. Choose only topic-specific angles, make each point distinct, and remove any sentence that could be pasted unchanged into an unrelated topic. A style guide is subordinate to relevance. Do not invent facts. Return only the requested JSON."""
+
+
+def add_points_focus_instruction(payload: dict) -> None:
+    messages = payload.get("messages")
+    if not isinstance(messages, list):
+        return
+    payload["messages"] = [{"role": "system", "content": POINTS_FOCUS_SYSTEM_PROMPT}, *messages]
 
 
 def public_limits(db: Session | None = None) -> dict:
@@ -362,27 +371,29 @@ def public_limits(db: Session | None = None) -> dict:
         "profile_chars": settings.profile_chars,
     }
     if db is not None:
-        limits["topic_style_guide"] = setting_value(db, "topic_style_guide") or DEFAULT_TOPIC_STYLE_GUIDE
+        saved_guide = setting_value(db, "topic_style_guide")
+        limits["topic_style_guide"] = (
+            DEFAULT_TOPIC_STYLE_GUIDE
+            if not saved_guide or saved_guide.startswith("Model the structure on strong Diplomator reference topics")
+            else saved_guide
+        )
     return limits
 
 
 def active_usage_count(db: Session, user: User, license_obj: License) -> int:
-    return len(
-        list(
-            db.scalars(
-                select(UsageRecord.id).where(
-                    UsageRecord.organization_id == user.organization_id,
-                    UsageRecord.user_id == user.id,
-                    UsageRecord.product_code == license_obj.product_code,
-                    UsageRecord.created_at >= license_obj.starts_at,
-                    UsageRecord.created_at <= license_obj.expires_at,
-                )
-            )
-        )
+    return usage_count_for_license(
+        db,
+        user.id,
+        user.organization_id,
+        license_obj.starts_at,
+        license_obj.expires_at,
+        license_obj.product_code,
     )
 
 
 def public_app_user(db: Session, user: User, license_obj: License) -> dict:
+    used_credits = active_usage_count(db, user, license_obj)
+    total_credits = int(license_obj.usage_limit or 0)
     return {
         "id": str(user.id),
         "organization_id": str(user.organization_id),
@@ -396,8 +407,12 @@ def public_app_user(db: Session, user: User, license_obj: License) -> dict:
         "plan": license_obj.plan,
         "notes": "",
         "expires_at": license_obj.expires_at.isoformat(),
-        "monthly_quota": license_obj.usage_limit,
-        "usage_month": active_usage_count(db, user, license_obj),
+        "monthly_quota": total_credits,
+        "usage_month": used_credits,
+        "total_credits": total_credits,
+        "used_credits": used_credits,
+        "available_credits": None if total_credits == 0 else max(total_credits - used_credits, 0),
+        "unlimited_credits": total_credits == 0,
         "google_connected": bool(user.google_sub),
         "drive_connected": bool(user.drive_refresh_token),
         "drive_folder_id": user.drive_folder_id or "",
@@ -919,6 +934,8 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
     provider_key = "points_provider" if purpose == "points" else "chat_provider"
     api_key, chat_url, chat_provider = chat_provider_config(db, provider_key)
     payload["model"] = chat_model_for_purpose(db, chat_provider, purpose)
+    if purpose == "points":
+        add_points_focus_instruction(payload)
     async with httpx.AsyncClient(timeout=120) as client:
         res = await client.post(chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
     if res.status_code >= 400:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from uuid import UUID
 
 import pytest
 from fastapi.testclient import TestClient
@@ -10,12 +11,13 @@ from sqlalchemy.pool import StaticPool
 
 from app.database.session import Base, get_db
 from app.api import auth as auth_api
-from app.api.app_routes import points_credit_cost_from_content, record_usage
+from app.api.app_routes import add_points_focus_instruction, points_credit_cost_from_content, record_usage
 from app.api.auth import LOGIN_BUCKET, ensure_google_access
 from app.main import app
 from app.models import License, Organization, UsageRecord, User
 from app.security.passwords import hash_password
 from app.services.ai_config import GROQ_CHAT_DEFAULT, GROQ_TRANSCRIBE_DEFAULT
+from app.services.licenses import check_access, license_for_user
 
 
 @pytest.fixture()
@@ -59,6 +61,7 @@ def seed_user(db_factory, *, org_status="active", user_active=True, license_stat
             db.add(
                 License(
                     organization_id=org.id,
+                    user_id=user.id,
                     product_code=product_code,
                     plan="MVP",
                     status=license_status,
@@ -287,6 +290,65 @@ def test_superadmin_can_access_admin(client):
     assert response.status_code == 200
 
 
+def test_credit_limit_is_scoped_to_each_user(client):
+    _, db_factory = client
+    with db_factory() as db:
+        org = Organization(name="Cuenta compartida", status="active")
+        db.add(org)
+        db.flush()
+        first = User(organization_id=org.id, email="first@example.com", password_hash=hash_password("temporal123"), full_name="First", role="user", is_active=True)
+        second = User(organization_id=org.id, email="second@example.com", password_hash=hash_password("temporal123"), full_name="Second", role="user", is_active=True)
+        db.add_all([first, second])
+        db.flush()
+        now = datetime.now(timezone.utc)
+        shared = License(organization_id=org.id, product_code="DIPLOMATOR", status="active", starts_at=now - timedelta(days=1), expires_at=now + timedelta(days=30), usage_limit=1, legacy_key="DIPLO-SHARED")
+        db.add(shared)
+        db.add(UsageRecord(organization_id=org.id, user_id=first.id, product_code="DIPLOMATOR", model="test", input_tokens=1, output_tokens=1, estimated_cost=0))
+        db.commit()
+        assert check_access(db, first).ok is False
+        assert check_access(db, second).ok is True
+
+
+def test_admin_accounts_reports_exact_balances_and_creates_personal_override(client):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin", email="admin@example.com")
+    token = login(test_client, email="admin@example.com").json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    with db_factory() as db:
+        org = Organization(name="Clientes", status="active")
+        db.add(org)
+        db.flush()
+        first = User(organization_id=org.id, email="uno@example.com", password_hash=hash_password("temporal123"), full_name="Uno", role="user", is_active=True)
+        second = User(organization_id=org.id, email="dos@example.com", password_hash=hash_password("temporal123"), full_name="Dos", role="user", is_active=True)
+        db.add_all([first, second])
+        db.flush()
+        first_id, second_id = str(first.id), str(second.id)
+        now = datetime.now(timezone.utc)
+        db.add(License(organization_id=org.id, product_code="DIPLOMATOR", status="active", starts_at=now - timedelta(days=1), expires_at=now + timedelta(days=30), usage_limit=10, legacy_key="DIPLO-CLIENTS"))
+        for _ in range(3):
+            db.add(UsageRecord(organization_id=org.id, user_id=first.id, product_code="DIPLOMATOR", model="test", input_tokens=1, output_tokens=1, estimated_cost=0))
+        db.add(UsageRecord(organization_id=org.id, user_id=second.id, product_code="DIPLOMATOR", model="test", input_tokens=1, output_tokens=1, estimated_cost=0))
+        db.commit()
+
+    response = test_client.get("/admin/accounts", headers=headers)
+    assert response.status_code == 200
+    accounts = {row["id"]: row for row in response.json()["accounts"]}
+    first_access = accounts[first_id]["accesses"][0]
+    second_access = accounts[second_id]["accesses"][0]
+    assert (first_access["total_credits"], first_access["used_credits"], first_access["available_credits"]) == (10, 3, 7)
+    assert (second_access["total_credits"], second_access["used_credits"], second_access["available_credits"]) == (10, 1, 9)
+
+    patched = test_client.patch(f"/admin/users/{first_id}/access/DIPLOMATOR", headers=headers, json={"usage_limit": 20})
+    assert patched.status_code == 200
+    assert patched.json()["access"]["scope"] == "personal"
+    assert patched.json()["access"]["available_credits"] == 17
+    with db_factory() as db:
+        first = db.get(User, UUID(first_id))
+        second = db.get(User, UUID(second_id))
+        assert license_for_user(db, first).usage_limit == 20
+        assert license_for_user(db, second).usage_limit == 10
+
+
 def test_ai_settings_default_to_current_groq_models(client):
     test_client, db_factory = client
     seed_user(db_factory, role="superadmin")
@@ -298,13 +360,19 @@ def test_ai_settings_default_to_current_groq_models(client):
     assert data["points_model"] == GROQ_CHAT_DEFAULT
     assert data["chat_model"] == GROQ_CHAT_DEFAULT
     assert data["transcribe_model"] == GROQ_TRANSCRIBE_DEFAULT
+    capabilities = {item["id"]: item for item in data["capabilities"]}
+    assert capabilities["points"]["provider"] == data["points_provider"]
+    assert capabilities["points"]["model"] == data["points_model"]
+    assert capabilities["chat"]["provider"] == data["chat_provider"]
+    assert capabilities["transcribe"]["model"] == data["transcribe_model"]
+    assert {"points", "chat", "ocr", "transcribe"} == set(capabilities)
 
 
 def test_point_generation_records_one_credit_per_point(client):
     _, db_factory = client
     _, user_id = seed_user(db_factory)
     with db_factory() as db:
-        user = db.get(User, user_id)
+        user = db.get(User, UUID(user_id))
         record_usage(db, user, "test-model", 10, 20, "DIPLOMATOR", credit_cost=5)
         db.commit()
         rows = db.query(UsageRecord).filter(UsageRecord.user_id == user.id).all()
@@ -320,6 +388,14 @@ def test_point_generation_charges_actual_returned_points():
 
 def test_point_generation_falls_back_when_response_is_not_countable():
     assert points_credit_cost_from_content('{"message":"ok"}', fallback=5) == 5
+
+
+def test_point_generation_receives_a_strict_topic_system_instruction():
+    payload = {"messages": [{"role": "user", "content": 'EXACT TOPIC: "The Marshall Plan"'}]}
+    add_points_focus_instruction(payload)
+    assert payload["messages"][0]["role"] == "system"
+    assert "complete scope" in payload["messages"][0]["content"]
+    assert payload["messages"][1]["content"] == 'EXACT TOPIC: "The Marshall Plan"'
 
 
 def test_ai_settings_replaces_deprecated_groq_model(client):

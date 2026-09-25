@@ -1468,7 +1468,7 @@ function getTopicsForCategory(year, cat) {
 
 // -- STATE ---------------------------------------------------------------
 const DEFAULT_PROFILE = `The student is preparing high-level C1/C2 oral answers in English and French, with a focus on diplomacy, international relations, current affairs, culture, history and public policy. The output should sound like a polished oral briefing: analytical, elegant, precise and easy to recite. Avoid generic textbook wording. Prioritise clear argument structure, useful transitions, concrete dates, named actors, recent examples, historical context, controversies, consequences and advanced vocabulary that can be reused in an exam. Each idea should help the student speak with authority for several minutes, not merely memorise facts.`;
-const DIPLOMATOR_EXAMPLE_STYLE = `Model the structure on strong Diplomator reference topics: start each point as part of an oral presentation, not as isolated notes; organise the answer around clear axes such as evolution/history, importance/impact, challenges/controversies and legacy/future prospects; move from context to concrete facts and then to significance; include named actors, dates, places, reforms, institutions, controversies and consequences; use simple but elegant oral transitions such as "This leads us to...", "Beyond this aspect..." or their natural equivalent in the target language. The tone must be exam-ready, diplomatic and analytical: fluent enough to recite, but dense enough to sound informed.`;
+const DIPLOMATOR_EXAMPLE_STYLE = `Treat the selected topic as a strict boundary. Build a coherent oral presentation from the few angles that directly answer that exact topic; never force a standard history, impact, controversy or future section when it is not relevant. Prefer specific explanations, mechanisms, examples and dates that help explain the subject. Every paragraph must earn its place: remove generic introductions, broad international-relations filler, moral conclusions and nearby subjects that were not requested. The student profile controls language and difficulty only; it is never source material. Use natural transitions and an informed C1/C2 tone. Include only facts you can state confidently and never invent dates, statistics, institutions or quotations.`;
 
 let state = {
   lang: 'en',
@@ -2415,28 +2415,28 @@ async function generateSession(topic) {
   document.getElementById('loadingBar').style.display = 'block';
   document.getElementById('aiPoints').innerHTML = '';
 
-  const prompt = `You are a senior C1/C2 ${langName} language teacher, a diplomatic briefing writer and an expert in international relations.
-${profile ? `Student profile: ${profile}` : ''}
-Reference style guide: ${limits.topicStyleGuide}
+  const prompt = `You are a senior C1/C2 ${langName} teacher and a rigorous briefing writer.
+${profile ? `Student profile (use only to adjust language and difficulty, never as factual content): ${profile}` : ''}
 
-Topic: "${topic}"
+EXACT TOPIC: "${topic}"
 
-This is a ${langName} oral-exam preparation tool. Generate everything in ${langName}.
+The quoted topic is a strict content boundary. First identify privately what the topic actually asks and select only the ${n} most useful, non-overlapping angles needed to explain it. Do not drift into adjacent subjects. Do not add a generic history, geopolitical context, controversy, impact or future section unless that angle directly helps answer this exact topic. If a sentence could fit almost any topic, remove it.
 
-Generate exactly ${n} key study points. This number is mandatory: the "points" array must contain ${n} objects, no fewer and no more.
-The points must work as one coherent oral presentation: each point should develop a different angle, and the order must feel intentional.
-Do not compress several points into one object. Do not stop after the first point.
+Reference style guide (apply only where it fits the exact topic): ${limits.topicStyleGuide}
+
+Write everything in ${langName} for oral-exam preparation. Generate exactly ${n} points, in a logical order, with no filler and no repeated ideas.
 
 Each point must include:
-- "title": a precise analytical title in ${langName}, max 9 words, not generic.
-- "text": written ENTIRELY IN ${langName.toUpperCase()} at polished C1/C2 level, 5-7 full sentences. It must sound like a high-quality oral briefing: nuanced, structured, historically grounded, and useful to recite. Avoid vague filler, school-level phrasing, generic moralising and empty introductions. Include context, turning points, actors, controversies, mechanisms and significance.
-- "connection": a mini oral connector written in ${langName}, 1-2 elegant sentences, 25-45 words. For points 1 to ${n - 1}, it must explicitly bridge this point to the next point so the presentation flows naturally and names the logic of the transition. For the final point, write a concise closing transition.
-- "datedInfo": exactly 3 examples, facts or dates directly useful for oral recitation. Each item must have "date" and "text". Use concrete years or full dates when possible and include at least one recent reference when the topic allows it.
+- "title": a precise, topic-specific title in ${langName}, maximum 9 words.
+- "text": 4-6 complete sentences in polished C1/C2 ${langName}. Start with the substance, explain it clearly, and use named examples only when they are directly relevant. Do not invent facts, dates, statistics, institutions or quotations.
+- "connection": 1-2 natural sentences in ${langName} that link this point to the next. The final point must close the presentation briefly.
+- "datedInfo": exactly 2 concrete facts, examples or dates that clarify this point. A date is optional when chronology is irrelevant; use an empty "date" rather than forcing one.
+- "vocab": exactly ${nv} advanced ${langName} words or expressions used for this specific point, each with a Spanish translation of at most 8 words.
 
-For each point, generate exactly ${nv} advanced ${langName} vocabulary words/expressions (C1) directly related to that point. For each: the word in ${langName} and a SHORT Spanish translation (max 8 words).
+Before answering, silently check that every point directly answers "${topic}", that the points do not overlap, and that no generic section was added merely to fill the requested count.
 
-Respond ONLY with valid JSON, no markdown:
-{"points":[{"title":"...","text":"...","connection":"...","datedInfo":[{"date":"...","text":"..."}],"vocab":[{"word":"...","def":"..."}]}]}`;
+Respond only with valid JSON, without markdown:
+{"points":[{"title":"...","text":"...","connection":"...","datedInfo":[{"date":"","text":"..."}],"vocab":[{"word":"...","def":"..."}]}]}`;
 
   try {
     const raw = await groqChat([{ role: 'user', content: prompt }], {

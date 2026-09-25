@@ -169,6 +169,7 @@ def ensure_google_access(db: Session, user: User, product_codes: tuple[str, ...]
         active = db.scalar(
             select(License).where(
                 License.organization_id == user.organization_id,
+                License.user_id == user.id,
                 License.product_code == product_code,
                 License.status == "active",
                 License.starts_at <= now,
@@ -181,6 +182,7 @@ def ensure_google_access(db: Session, user: User, product_codes: tuple[str, ...]
         db.add(
             License(
                 organization_id=user.organization_id,
+                user_id=user.id,
                 product_code=product_code,
                 status="active",
                 starts_at=now - timedelta(minutes=1),

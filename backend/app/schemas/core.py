@@ -77,23 +77,25 @@ class UserOut(BaseModel):
 
 class LicenseCreate(BaseModel):
     organization_id: UUID
+    user_id: UUID | None = None
     product_code: str = "DIPLOMATOR"
     plan: str = "MVP"
     status: str = "active"
     starts_at: datetime
     expires_at: datetime
-    usage_limit: int = 300
+    usage_limit: int = Field(default=300, ge=0)
     legacy_key: str | None = None
 
 
 class LicensePatch(BaseModel):
     organization_id: UUID | None = None
+    user_id: UUID | None = None
     product_code: str | None = None
     plan: str | None = None
     status: str | None = None
     starts_at: datetime | None = None
     expires_at: datetime | None = None
-    usage_limit: int | None = None
+    usage_limit: int | None = Field(default=None, ge=0)
     legacy_key: str | None = None
 
 
@@ -102,6 +104,7 @@ class LicenseOut(BaseModel):
 
     id: UUID
     organization_id: UUID
+    user_id: UUID | None
     product_code: str
     plan: str
     status: str
@@ -111,6 +114,13 @@ class LicenseOut(BaseModel):
     legacy_key: str | None
     created_at: datetime
     updated_at: datetime
+
+
+class UserAccessPatch(BaseModel):
+    usage_limit: int = Field(ge=0)
+    status: str | None = None
+    starts_at: datetime | None = None
+    expires_at: datetime | None = None
 
 
 class UsageOut(BaseModel):

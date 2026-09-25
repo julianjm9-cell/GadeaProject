@@ -25,12 +25,12 @@
     .auth-brand { display:flex; align-items:center; gap:12px; }
     .auth-form { display:grid; gap:12px; }
     .auth-form button { width:100%; min-height:46px; }
-    .page { width:100%; min-height:100vh; display:grid; grid-template-columns:268px minmax(0,1fr); }
+    .page { width:100%; min-height:100vh; display:grid; grid-template-columns:238px minmax(0,1fr); }
     .shell,.card,.tabs {
-      border:1px solid var(--line); border-radius:8px; background:var(--panel); box-shadow:var(--shadow);
+      border:1px solid var(--line); border-radius:16px; background:var(--panel); box-shadow:0 12px 34px rgba(15,44,86,.07);
     }
-    .workspace { min-width:0; display:grid; align-content:start; gap:18px; padding:20px 24px 32px; }
-    .shell { display:flex; align-items:center; justify-content:flex-end; gap:16px; padding:14px 16px; }
+    .workspace { min-width:0; display:grid; align-content:start; gap:18px; padding:22px clamp(18px,3vw,42px) 42px; }
+    .shell { min-height:58px; display:flex; align-items:center; justify-content:flex-end; gap:16px; padding:9px 12px; background:rgba(255,255,255,.78); backdrop-filter:blur(14px); }
     .sidebar { position:sticky; top:0; height:100vh; display:grid; grid-template-rows:auto 1fr; gap:18px; padding:24px 14px; border-right:1px solid var(--line); background:rgba(255,255,255,.92); box-shadow:8px 0 28px rgba(15,44,86,.05); }
     .brand { display:flex; align-items:center; gap:12px; min-width:0; }
     .mark { width:44px; height:44px; display:grid; place-items:center; border-radius:8px; background:var(--main); color:#fff; font-weight:950; box-shadow:0 10px 24px rgba(18,88,214,.22); }
@@ -60,18 +60,18 @@
     .nav-group { display:grid; gap:7px; }
     .nav-label { padding:12px 10px 4px; color:#7b8ca2; font-size:11px; font-weight:950; letter-spacing:.08em; text-transform:uppercase; }
     .layout { display:grid; gap:14px; }
-    .card { padding:16px; min-width:0; }
+    .card { padding:20px; min-width:0; }
     .screen-card { border-radius:10px; }
     .head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; }
     .grid { display:grid; gap:12px; }
     .grid.two { grid-template-columns:360px minmax(0,1fr); align-items:start; }
     .grid.three { grid-template-columns:repeat(3,minmax(0,1fr)); }
     .grid.four { grid-template-columns:repeat(4,minmax(0,1fr)); }
-    .metric { min-height:112px; display:grid; grid-template-columns:auto minmax(0,1fr); align-content:center; align-items:center; gap:12px; border:1px solid var(--line); border-radius:10px; padding:16px; background:#fff; box-shadow:0 12px 28px rgba(15,44,86,.07); }
-    .metric::before { content:""; width:46px; height:46px; grid-row:1 / 4; border-radius:10px; background:linear-gradient(145deg,#eaf3ff,#dcecff); }
+    .metric { min-height:108px; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; gap:7px; border:1px solid var(--line); border-radius:14px; padding:17px; background:linear-gradient(145deg,#fff,#f8fbff); box-shadow:none; }
+    .metric::before { display:none; }
     .metric span { color:var(--muted); font-size:12px; font-weight:850; }
     .metric strong { font-size:28px; line-height:1; }
-    .metric p { grid-column:2; }
+    .metric p { margin:0; }
     .dashboard-grid { display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:18px; margin-top:14px; align-items:start; }
     .dashboard-main, .dashboard-side { display:grid; gap:14px; min-width:0; }
     .app-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
@@ -107,6 +107,17 @@
     .quick-actions .primary .action-icon { background:rgba(255,255,255,.18); color:#fff; }
     .side-card { padding:14px; border:1px solid var(--line); border-radius:10px; background:#fff; box-shadow:0 12px 28px rgba(15,44,86,.07); }
     .side-card h3 { margin-bottom:10px; }
+    details.management-panel, details.secondary-panel, details.advanced-panel { border:1px solid var(--line); border-radius:14px; background:#fff; overflow:hidden; }
+    details.management-panel > summary, details.secondary-panel > summary, details.advanced-panel > summary { cursor:pointer; list-style:none; padding:15px 17px; color:var(--main); font-weight:900; }
+    details.management-panel > summary::-webkit-details-marker, details.secondary-panel > summary::-webkit-details-marker, details.advanced-panel > summary::-webkit-details-marker { display:none; }
+    details.management-panel > summary::after, details.secondary-panel > summary::after, details.advanced-panel > summary::after { content:'+'; float:right; font-size:20px; line-height:1; }
+    details[open] > summary::after { content:'−'; }
+    details.management-panel form, details.secondary-panel > div, details.advanced-panel > div { border-top:1px solid var(--line); padding:17px; }
+    .capability-card { min-height:150px; display:grid; align-content:start; gap:7px; border:1px solid var(--line); border-radius:14px; padding:16px; background:#fff; }
+    .capability-card strong { font-size:15px; }
+    .capability-card code { max-width:100%; }
+    .capability-card button { margin-top:4px; min-height:34px; padding:6px 10px; }
+    .section-kicker { display:block; margin-bottom:6px; color:var(--main); font-size:11px; font-weight:950; letter-spacing:.09em; text-transform:uppercase; }
     .credentials { display:grid; gap:8px; }
     .credentials-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center; }
     .credentials-row code { width:100%; max-width:none; }
@@ -189,8 +200,10 @@
         <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" id="appPublicLink" target="_blank" rel="noreferrer">Ver landing</a><a class="btn primary" id="appPrivateLink" target="_blank" rel="noreferrer">Abrir app</a></div>
       </div>
       <div class="grid four" id="appMetrics"></div>
-      <div class="grid two" style="margin-top:12px">
-        <form class="card" style="box-shadow:none" onsubmit="createAppUser(event)">
+      <div class="grid two" style="margin-top:16px">
+        <details class="management-panel">
+        <summary>Dar acceso a un usuario</summary>
+        <form onsubmit="createAppUser(event)">
           <h3>Crear usuario para esta app</h3>
           <p class="muted">Crea el usuario, su cuenta interna y una licencia activa en un solo paso.</p>
           <div class="form-grid" style="margin-top:12px">
@@ -202,12 +215,10 @@
           </div>
           <div id="createdBox" class="notice" hidden style="margin-top:12px"></div>
         </form>
+        </details>
         <div><div class="head"><div><h3>Usuarios de esta app</h3><p class="muted">Pulsa un usuario para editarlo.</p></div></div><div id="appUsersTable"></div></div>
       </div>
-      <div class="grid two" style="margin-top:12px">
-        <div><h3>Licencias</h3><div id="appLicensesTable" style="margin-top:10px"></div></div>
-        <div><h3>Consumo reciente</h3><div id="appUsageTable" style="margin-top:10px"></div></div>
-      </div>
+      <details class="secondary-panel" style="margin-top:16px"><summary>Actividad y vencimientos</summary><div class="grid two"><div><h3>Saldos por usuario</h3><div id="appLicensesTable" style="margin-top:10px"></div></div><div><h3>Consumo reciente</h3><div id="appUsageTable" style="margin-top:10px"></div></div></div></details>
     </section>
 
     <section id="view-users" class="card screen-card" hidden>
@@ -219,11 +230,11 @@
           <div class="form-grid" style="margin-top:12px">
             <div><label for="editEmail">Email</label><input id="editEmail"></div>
             <div><label for="editName">Nombre</label><input id="editName"></div>
-            <div><label for="editPassword">Nueva contrasena</label><input id="editPassword" minlength="8" placeholder="Opcional: solo si quieres resetearla" autocomplete="new-password"></div>
-            <div class="row"><div><label for="editRole">Rol</label><select id="editRole"><option value="user">Usuario</option><option value="organization_admin">Admin cuenta</option><option value="superadmin">Superadmin</option></select></div><div><label for="editActive">Estado</label><select id="editActive"><option value="true">Activo</option><option value="false">Bloqueado</option></select></div></div>
+            <div><label for="editActive">Estado del usuario</label><select id="editActive"><option value="true">Activo</option><option value="false">Bloqueado</option></select></div>
             <div class="row"><div><label for="editLicense">Licencia</label><select id="editLicense"></select></div><div><label for="editRemaining">Creditos disponibles</label><input id="editRemaining" type="number" min="0" oninput="syncCreditFields('remaining')"></div></div>
             <div class="row"><div><label for="editUsed">Creditos usados</label><input id="editUsed" type="number" readonly></div><div><label for="editLimit">Limite total</label><input id="editLimit" type="number" min="0" oninput="syncCreditFields('limit')"></div></div>
             <div class="row"><div><label for="editLicStatus">Estado licencia</label><select id="editLicStatus"><option value="active">Activa</option><option value="suspended">Suspendida</option><option value="expired">Caducada</option></select></div><div><label for="editLicEnd">Caduca</label><input id="editLicEnd" type="date"></div></div>
+            <details class="advanced-panel"><summary>Cuenta y seguridad</summary><div class="form-grid"><div><label for="editPassword">Nueva contrasena</label><input id="editPassword" minlength="8" placeholder="Solo si quieres cambiarla" autocomplete="new-password"></div><div><label for="editRole">Rol</label><select id="editRole"><option value="user">Usuario</option><option value="organization_admin">Admin cuenta</option><option value="superadmin">Superadmin</option></select></div></div></details>
             <button class="primary">Guardar cambios</button>
           </div>
         </form>
@@ -231,8 +242,8 @@
     </section>
 
     <section id="view-ai" class="card screen-card" hidden>
-      <div class="head"><div><h2>IA / API</h2><p class="muted">Configuracion simple. Groq es la opcion barata para empezar.</p></div><button onclick="testAI()">Probar IA</button></div>
-      <div class="grid three" id="aiStatusCards"></div>
+      <div class="head"><div><span class="section-kicker">Configuración efectiva</span><h2>Inteligencia artificial</h2><p class="muted">Qué servicio usa realmente cada función de las aplicaciones.</p></div></div>
+      <div class="grid four" id="aiStatusCards"></div>
       <form class="grid two" style="margin-top:12px" onsubmit="saveAI(event)">
         <div class="card" style="box-shadow:none">
           <h3>Proveedor y modelos</h3>
@@ -244,16 +255,16 @@
             <div><label for="transcribeModel">Modelo audio</label><input id="transcribeModel" placeholder="whisper-large-v3-turbo"></div>
           </div>
         </div>
-        <div class="card" style="box-shadow:none">
-          <h3>Claves API</h3><p class="muted">Si un campo queda vacio, se mantiene la clave guardada.</p>
+        <details class="advanced-panel">
+          <summary>Claves API</summary><div><p class="muted">Si un campo queda vacio, se mantiene la clave guardada.</p>
           <div class="form-grid" style="margin-top:12px">
             <div><label for="groqKey">Groq API key</label><input id="groqKey" placeholder="gsk_..."></div>
             <div><label for="openaiKey">OpenAI API key</label><input id="openaiKey" placeholder="sk-..."></div>
             <div><label for="geminiKey">Gemini API key</label><input id="geminiKey" placeholder="AIza..."></div>
-            <button class="primary">Guardar IA</button>
-          </div>
-        </div>
-        <div class="card" style="box-shadow:none;grid-column:1/-1"><h3>Estilo de Diplomator</h3><p class="muted">Instruccion base para generar puntos de estudio con buen tono oral.</p><textarea id="topicStyleGuide"></textarea></div>
+          </div></div>
+        </details>
+        <details class="advanced-panel" style="grid-column:1/-1"><summary>Estilo de Diplomator</summary><div><p class="muted">Instrucción base para generar apuntes.</p><textarea id="topicStyleGuide"></textarea></div></details>
+        <button class="primary" style="grid-column:1/-1;justify-self:end">Guardar configuración</button>
       </form>
     </section>
     </main>
@@ -268,7 +279,7 @@ const PRODUCTS=[
   {key:'diplomator',code:'DIPLOMATOR',short:'DIP',label:'Diplomator',public:'/diplomator',app:'/app',org:'Educa Suite - Diplomator',icon:'assets/brand/diplomator-simple.png'}
 ];
 let token=localStorage.getItem('educa_admin_token')||'',view='overview',currentApp='universidad',selectedUserId='',selectedLicenseId='';
-let orgs=[],users=[],licenses=[],usage=[],ai=null;
+let orgs=[],users=[],licenses=[],usage=[],accounts=[],ai=null;
 const $=id=>document.getElementById(id);
 function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3200)}
 function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -289,7 +300,7 @@ async function api(path,options={}){const headers={'Content-Type':'application/j
 function setLoginState(on){$('authScreen').hidden=!!on;$('adminPage').hidden=!on;$('loginStatus').textContent=on?'Sesion activa':'Introduce tus datos';$('loginStatus').classList.toggle('on',!!on)}
 async function login(event){event.preventDefault();try{const res=await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier:$('email').value.trim(),password:$('password').value})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'No se pudo entrar.');token=data.access_token;localStorage.setItem('educa_admin_token',token);setLoginState(true);await loadAll();toast('Panel cargado.')}catch(e){toast(e.message)}}
 function logout(){token='';localStorage.removeItem('educa_admin_token');setLoginState(false);toast('Sesion cerrada.')}
-async function loadAll(){if(!token){setLoginState(false);return}try{const [o,u,l,us,a]=await Promise.all([api('/admin/organizations'),api('/admin/users'),api('/admin/licenses'),api('/admin/usage').catch(()=>({usage:[]})),api('/admin/ai-settings').catch(()=>null)]);orgs=o;users=u;licenses=l;usage=us.usage||[];ai=a;setLoginState(true);renderAll()}catch(e){setLoginState(false);toast(e.message)}}
+async function loadAll(){if(!token){setLoginState(false);return}try{const [o,u,l,us,ac,a]=await Promise.all([api('/admin/organizations'),api('/admin/users'),api('/admin/licenses'),api('/admin/usage').catch(()=>({usage:[]})),api('/admin/accounts'),api('/admin/ai-settings').catch(()=>null)]);orgs=o;users=u;licenses=l;usage=us.usage||[];accounts=ac.accounts||[];ai=a;setLoginState(true);renderAll()}catch(e){setLoginState(false);toast(e.message)}}
 function setView(next){view=next;if(PRODUCTS.some(p=>p.key===next))currentApp=next;document.body.dataset.app=PRODUCTS.some(p=>p.key===next)?next:'';document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.view===next));renderAll()}
 function renderAll(){$('view-overview').hidden=view!=='overview';$('view-app').hidden=!PRODUCTS.some(p=>p.key===view);$('view-users').hidden=view!=='users';$('view-ai').hidden=view!=='ai';renderOverview();if(!$('view-app').hidden)renderApp();if(!$('view-users').hidden)renderUsers();if(!$('view-ai').hidden)renderAI()}
 function metric(label,value,note){return `<div class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong><p class="muted">${esc(note)}</p></div>`}
@@ -301,7 +312,30 @@ function renderOverview(){const activeLicenses=licenses.filter(l=>l.status==='ac
 function renderApp(){const p=productByKey(),lics=appLicenses(),use=appUsage(),list=appUsers(),tokens=use.reduce((s,r)=>s+Number(r.input_tokens||0)+Number(r.output_tokens||0),0);$('appTitle').textContent=p.label;$('appSubtitle').textContent='Gestion simple: usuarios, contrasenas reseteables, licencias y creditos de esta app.';$('appPublicLink').href=p.public;$('appPrivateLink').href=p.app;$('appMetrics').innerHTML=metric('Usuarios',list.length,`${list.filter(u=>u.is_active).length} activos`)+metric('Licencias',lics.length,`${lics.filter(l=>l.status==='active').length} activas`)+metric('Creditos usados',use.length,`${tokens.toLocaleString('es-ES')} tokens`)+metric('IA',ai?(ai.points_provider||ai.chat_provider||'-'):'-',ai?.points_model||'Sin cargar');$('appUsersTable').innerHTML=table(['Usuario','Accesos','Estado','Creditos','Accion'],list.map(u=>{const userLics=licenses.filter(l=>l.organization_id===u.organization_id);const lic=lics.find(l=>l.organization_id===u.organization_id);const used=lic?creditsUsed(lic):0,limit=lic?.usage_limit||0;return [`<td><strong>${esc(u.full_name||u.email)}</strong><br><span class="muted">${esc(u.email)}</span></td>`,`<td>${userLics.map(l=>`<span class="badge">${esc(productByCode(l.product_code).short)}</span>`).join(' ')||'-'}</td>`,`<td>${badge(u.is_active)}</td>`,`<td>${used}${limit?` / ${limit}`:' / sin limite'}</td>`,`<td><button onclick="openUser('${u.id}','${lic?.id||''}')">Editar creditos</button></td>`]}));$('appLicensesTable').innerHTML=table(['Cuenta','Estado','Creditos','Caduca'],lics.map(l=>[`<td>${esc(orgName(l.organization_id))}</td>`,`<td>${badge(l.status)}</td>`,`<td>${creditsUsed(l)} / ${l.usage_limit||'sin limite'}</td>`,`<td>${date(l.expires_at)}</td>`]));$('appUsageTable').innerHTML=table(['Usuario','Modelo','Tokens','Fecha'],use.slice(0,12).map(r=>[`<td>${esc(userEmail(r.user_id))}</td>`,`<td>${esc(r.model||'-')}</td>`,`<td>${Number(r.input_tokens||0)+Number(r.output_tokens||0)}</td>`,`<td>${date(r.created_at)}</td>`]))}
 async function ensureProductOrg(product){let org=orgs.find(o=>o.name===product.org);if(org)return org;org=await api('/admin/organizations',{method:'POST',body:JSON.stringify({name:product.org,status:'active'})});orgs.unshift(org);return org}
 function makeLicenseKey(product){return `${product.short}-${Math.random().toString(36).slice(2,10).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`}
-async function createAppUser(event){event.preventDefault();const product=productByKey(),email=$('newEmail').value.trim().toLowerCase(),password=$('newPassword').value;try{const org=await ensureProductOrg(product);let user=users.find(u=>u.email.toLowerCase()===email);if(!user){user=await api('/admin/users',{method:'POST',body:JSON.stringify({organization_id:org.id,email,password,full_name:$('newName').value.trim(),role:'user',is_active:true})})}else{user=await api(`/admin/users/${user.id}`,{method:'PATCH',body:JSON.stringify({password,full_name:$('newName').value.trim()||user.full_name,is_active:true})})}users=users.filter(u=>u.id!==user.id);users.unshift(user);const exists=licenses.some(l=>l.organization_id===user.organization_id&&(l.product_code||'DIPLOMATOR')===product.code&&l.status==='active');if(!exists){const now=new Date(),end=new Date(now.getTime()+Number($('newDays').value||365)*86400000);const lic=await api('/admin/licenses',{method:'POST',body:JSON.stringify({organization_id:user.organization_id,product_code:product.code,legacy_key:makeLicenseKey(product),starts_at:now.toISOString(),expires_at:end.toISOString(),status:'active',usage_limit:Number($('newLimit').value||0)})});licenses.unshift(lic)}$('createdBox').hidden=false;$('createdBox').innerHTML=`<div class="credentials"><strong>Usuario listo. Guarda estos datos ahora:</strong><div class="credentials-row"><code>${esc(email)}</code><button type="button" onclick='copyText(${jsString(email)})'>Copiar email</button></div><div class="credentials-row"><code>${esc(password)}</code><button type="button" onclick='copyText(${jsString(password)})'>Copiar clave</button></div><span>La clave se guarda cifrada. Despues no se puede consultar, solo resetear.</span></div>`;event.target.reset();$('newLimit').value=300;$('newDays').value=365;renderApp();toast('Usuario y acceso listos.')}catch(e){toast(e.message)}}
+async function createAppUser(event){
+  event.preventDefault();
+  const product=productByKey(),email=$('newEmail').value.trim().toLowerCase(),password=$('newPassword').value;
+  try{
+    const org=await ensureProductOrg(product);
+    let user=users.find(u=>u.email.toLowerCase()===email);
+    if(!user){
+      user=await api('/admin/users',{method:'POST',body:JSON.stringify({organization_id:org.id,email,password,full_name:$('newName').value.trim(),role:'user',is_active:true})});
+    }else{
+      const update={full_name:$('newName').value.trim()||user.full_name,is_active:true};
+      user=await api(`/admin/users/${user.id}`,{method:'PATCH',body:JSON.stringify(update)});
+    }
+    users=users.filter(u=>u.id!==user.id);users.unshift(user);
+    const exists=licenses.some(l=>l.user_id===user.id&&(l.product_code||'DIPLOMATOR')===product.code&&l.status==='active');
+    if(!exists){
+      const now=new Date(),end=new Date(now.getTime()+Number($('newDays').value||365)*86400000);
+      const lic=await api('/admin/licenses',{method:'POST',body:JSON.stringify({organization_id:user.organization_id,user_id:user.id,product_code:product.code,legacy_key:makeLicenseKey(product),starts_at:now.toISOString(),expires_at:end.toISOString(),status:'active',usage_limit:Number($('newLimit').value||0)})});
+      licenses.unshift(lic);
+    }
+    $('createdBox').hidden=false;
+    $('createdBox').innerHTML=`<div class="credentials"><strong>Usuario listo.</strong><div class="credentials-row"><code>${esc(email)}</code><button type="button" onclick='copyText(${jsString(email)})'>Copiar email</button></div>${user.created_at===user.updated_at?`<div class="credentials-row"><code>${esc(password)}</code><button type="button" onclick='copyText(${jsString(password)})'>Copiar clave</button></div>`:'<span>El usuario ya existia; se ha conservado su contrasena.</span>'}</div>`;
+    event.target.reset();$('newLimit').value=300;$('newDays').value=365;await loadAll();toast('Usuario y acceso listos.');
+  }catch(e){toast(e.message)}
+}
 function renderUsers(){const query=($('userSearch')?.value||'').trim().toLowerCase();const filtered=users.filter(u=>!query||`${u.email} ${u.full_name}`.toLowerCase().includes(query));$('usersTable').innerHTML=table(['Usuario','Apps','Estado','Accion'],filtered.map(u=>{const lics=licenses.filter(l=>l.organization_id===u.organization_id);return [`<td><strong>${esc(u.full_name||u.email)}</strong><br><span class="muted">${esc(u.email)}</span></td>`,`<td>${lics.map(l=>`<span class="badge">${esc(productByCode(l.product_code).short)}</span>`).join(' ')||'-'}</td>`,`<td>${badge(u.is_active)}</td>`,`<td><button onclick="openUser('${u.id}')">Editar</button></td>`]}));renderUserDetail()}
 function openUser(id,licenseId=''){selectedUserId=id;selectedLicenseId=licenseId;setView('users')}
 function renderUserDetail(){const user=users.find(u=>u.id===selectedUserId)||users[0];if(!user)return;selectedUserId=user.id;$('userDetailTitle').textContent=user.full_name||user.email;$('userDetailMeta').textContent=`${user.email} · ${orgName(user.organization_id)} · los datos de progreso se guardan por usuario y app`;$('editEmail').value=user.email||'';$('editName').value=user.full_name||'';$('editPassword').value='';$('editRole').value=user.role||'user';$('editActive').value=String(!!user.is_active);const lics=licenses.filter(l=>l.organization_id===user.organization_id);$('editLicense').innerHTML=lics.map(l=>`<option value="${l.id}">${esc(productByCode(l.product_code).label)}</option>`).join('');const lic=lics.find(l=>l.id===selectedLicenseId)||lics[0];if(lic){$('editLicense').value=lic.id;selectedLicenseId=lic.id;fillLicenseEdit(lic)}else{fillLicenseEdit(null)}$('editLicense').onchange=()=>{selectedLicenseId=$('editLicense').value;fillLicenseEdit(licenses.find(l=>l.id===selectedLicenseId))}}
@@ -311,6 +345,53 @@ async function saveSelectedUser(event){event.preventDefault();const user=users.f
 function renderAI(){$('aiStatusCards').innerHTML=metric('Groq',ai?.groq_configured?'Conectado':'Pendiente',ai?.groq_masked||'Pega una clave gsk_')+metric('OpenAI',ai?.openai_configured?'Conectado':'Opcional',ai?.openai_masked||'Solo si lo usas')+metric('Gemini',ai?.gemini_configured?'Conectado':'Opcional',ai?.gemini_masked||'Solo si lo usas');$('pointsProvider').value=ai?.points_provider||'groq';$('chatProvider').value=ai?.chat_provider||'groq';$('transcribeProvider').value=ai?.transcribe_provider||'groq';$('pointsModel').value=ai?.points_model||ai?.recommended_chat_model||'openai/gpt-oss-120b';$('chatModel').value=ai?.chat_model||ai?.recommended_chat_model||'openai/gpt-oss-120b';$('transcribeModel').value=ai?.transcribe_model||ai?.recommended_transcribe_model||'whisper-large-v3-turbo';$('topicStyleGuide').value=ai?.topic_style_guide||''}
 async function saveAI(event){event.preventDefault();try{const body={points_provider:$('pointsProvider').value,chat_provider:$('chatProvider').value,transcribe_provider:$('transcribeProvider').value,points_model:$('pointsModel').value.trim(),chat_model:$('chatModel').value.trim(),transcribe_model:$('transcribeModel').value.trim(),topic_style_guide:$('topicStyleGuide').value.trim()};if($('groqKey').value.trim())body.groq_api_key=$('groqKey').value.trim();if($('openaiKey').value.trim())body.openai_api_key=$('openaiKey').value.trim();if($('geminiKey').value.trim())body.gemini_api_key=$('geminiKey').value.trim();ai=await api('/admin/ai-settings',{method:'POST',body:JSON.stringify(body)});$('groqKey').value='';$('openaiKey').value='';$('geminiKey').value='';renderAI();toast('IA guardada.')}catch(e){toast(e.message)}}
 async function testAI(){try{const data=await api('/admin/ai-settings/test',{method:'POST',body:'{}'});toast(data.message||'IA conectada.')}catch(e){toast(e.message)}}
+function renderAI(){
+  const capabilities=ai?.capabilities||[];
+  $('aiStatusCards').innerHTML=capabilities.length?capabilities.map(capability=>`<article class="capability-card"><div>${badge(capability.configured?'active':'Sin clave')}</div><strong>${esc(capability.label)}</strong><span class="muted">${esc(capability.provider)} · clave en ${esc(capability.key_source)}</span><code title="${esc(capability.model)}">${esc(capability.model)}</code><button type="button" onclick="testAI('${capability.id}')">${capability.id==='transcribe'?'Validar configuración':'Probar conexión'}</button></article>`).join(''):'<div class="empty">No se pudo cargar la configuración efectiva.</div>';
+  $('pointsProvider').value=ai?.points_provider||'groq';$('chatProvider').value=ai?.chat_provider||'groq';$('transcribeProvider').value=ai?.transcribe_provider||'groq';$('pointsModel').value=ai?.points_model||ai?.recommended_chat_model||'openai/gpt-oss-120b';$('chatModel').value=ai?.chat_model||ai?.recommended_chat_model||'openai/gpt-oss-120b';$('transcribeModel').value=ai?.transcribe_model||ai?.recommended_transcribe_model||'whisper-large-v3-turbo';$('topicStyleGuide').value=ai?.topic_style_guide||'';
+}
+async function testAI(capability='chat'){try{const data=await api('/admin/ai-settings/test',{method:'POST',body:JSON.stringify({capability})});toast(data.message||'Configuración correcta.')}catch(e){toast(e.message)}}
+function accountForUser(user){return accounts.find(account=>account.id===user.id)||{...user,accesses:[]}}
+function accessFor(user,productCode){return accountForUser(user).accesses.find(access=>access.product_code===productCode)}
+function appAccounts(key=currentApp){const code=productByKey(key).code;return accounts.filter(account=>account.accesses.some(access=>access.product_code===code))}
+function accessCredits(access){if(!access)return '-';return access.unlimited?`${access.used_credits} usados · sin limite`:`${access.available_credits} disponibles · ${access.used_credits} usados · ${access.total_credits} totales`}
+function userLastActivity(user){const rows=usage.filter(row=>row.user_id===user.id).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));return rows[0]?.created_at||''}
+function renderOverview(){
+  const allAccesses=accounts.flatMap(account=>account.accesses),activeAccesses=allAccesses.filter(access=>access.effective_status==='active');
+  const activeUsers=accounts.filter(account=>account.is_active&&account.accesses.some(access=>access.effective_status==='active')).length;
+  const creditsUsed=allAccesses.reduce((sum,access)=>sum+Number(access.used_credits||0),0);
+  const now=Date.now(),soon=activeAccesses.filter(access=>new Date(access.expires_at).getTime()-now<1000*60*60*24*14).length;
+  const providerReady=ai&&(ai.groq_configured||ai.openai_configured||ai.gemini_configured);
+  $('globalMetrics').innerHTML=metric('Usuarios activos',activeUsers,`${accounts.length} usuarios registrados`)+metric('Accesos activos',activeAccesses.length,`${soon} caducan pronto`)+metric('Creditos gastados',creditsUsed,'Suma exacta de cada usuario')+metric('IA',providerReady?'Configurada':'Pendiente',ai?.chat_model||'Configura proveedor');
+  $('appCards').innerHTML=PRODUCTS.map(product=>{const rows=appAccounts(product.key),accesses=rows.map(row=>row.accesses.find(access=>access.product_code===product.code)),used=accesses.reduce((sum,access)=>sum+access.used_credits,0);return `<article class="app-card" data-app="${product.key}"><div class="app-card-head"><span class="app-icon"><img src="${esc(product.icon)}" alt=""></span><div><strong>${esc(product.label)}</strong><p class="muted">Usuarios y creditos reales</p></div></div><div class="mini-stats"><span><strong>${rows.length}</strong>usuarios</span><span><strong>${accesses.filter(access=>access.effective_status==='active').length}</strong>activos</span><span><strong>${used}</strong>gastados</span></div><button onclick="setView('${product.key}')"><span class="action-icon">${esc(product.short)}</span>Gestionar</button></article>`}).join('');
+  const latest=[...users].sort((a,b)=>new Date(userLastActivity(b)||0)-new Date(userLastActivity(a)||0)).slice(0,8);
+  $('recentUsage').innerHTML=table(['Alumno','Apps','Estado','Gastados','Ultima sesion','Accion'],latest.map(user=>{const account=accountForUser(user),used=account.accesses.reduce((sum,access)=>sum+access.used_credits,0);return [`<td><strong>${esc(user.full_name||user.email)}</strong><br><span class="muted">${esc(user.email)}</span></td>`,`<td>${account.accesses.map(access=>`<span class="badge">${esc(productByCode(access.product_code).short)}</span>`).join(' ')||'-'}</td>`,`<td>${badge(user.is_active)}</td>`,`<td>${used}</td>`,`<td>${date(userLastActivity(user))}</td>`,`<td><button onclick="openUser('${user.id}')">Ver</button></td>`] }));
+  const alerts=[];if(!providerReady)alerts.push('La IA no tiene ninguna clave valida.');if(soon)alerts.push(`${soon} acceso${soon===1?'':'s'} caduca${soon===1?'':'n'} en menos de 14 dias.`);for(const product of PRODUCTS){if(!appAccounts(product.key).some(account=>accessFor(account,product.code)?.effective_status==='active'))alerts.push(`${product.label}: sin accesos activos.`)}$('alerts').innerHTML=alerts.length?alerts.map(message=>`<div class="notice" style="margin-bottom:8px">${esc(message)}</div>`).join(''):'<div class="empty">Todo lo basico esta en orden.</div>';
+}
+function renderApp(){
+  const product=productByKey(),rows=appAccounts(),accesses=rows.map(account=>account.accesses.find(access=>access.product_code===product.code)),recent=appUsage(),tokens=recent.reduce((sum,row)=>sum+Number(row.input_tokens||0)+Number(row.output_tokens||0),0);
+  $('appTitle').textContent=product.label;$('appSubtitle').textContent='Cada fila muestra el saldo real de ese usuario.';$('appPublicLink').href=product.public;$('appPrivateLink').href=product.app;
+  $('appMetrics').innerHTML=metric('Usuarios',rows.length,`${rows.filter(account=>account.is_active).length} habilitados`)+metric('Accesos activos',accesses.filter(access=>access.effective_status==='active').length,`${accesses.filter(access=>access.effective_status!=='active').length} inactivos`)+metric('Creditos gastados',accesses.reduce((sum,access)=>sum+access.used_credits,0),`${tokens.toLocaleString('es-ES')} tokens recientes`)+metric('IA',ai?(ai.points_provider||ai.chat_provider||'-'):'-',ai?.points_model||'Sin cargar');
+  $('appUsersTable').innerHTML=table(['Usuario','Estado','Totales','Gastados','Disponibles','Accion'],rows.map(account=>{const access=account.accesses.find(item=>item.product_code===product.code);return [`<td><strong>${esc(account.full_name||account.email)}</strong><br><span class="muted">${esc(account.email)}</span></td>`,`<td>${badge(access.effective_status)}</td>`,`<td>${access.unlimited?'Sin limite':access.total_credits}</td>`,`<td>${access.used_credits}</td>`,`<td><strong>${access.unlimited?'Ilimitados':access.available_credits}</strong></td>`,`<td><button onclick="openUser('${account.id}','${product.code}')">Editar</button></td>`] }));
+  $('appLicensesTable').innerHTML=table(['Usuario','Saldo','Caduca'],rows.map(account=>{const access=account.accesses.find(item=>item.product_code===product.code);return [`<td>${esc(account.full_name||account.email)}</td>`,`<td>${esc(accessCredits(access))}</td>`,`<td>${date(access.expires_at)}</td>`]}));
+  $('appUsageTable').innerHTML=table(['Usuario','Modelo','Tokens','Fecha'],recent.slice(0,12).map(row=>[`<td>${esc(userEmail(row.user_id))}</td>`,`<td>${esc(row.model||'-')}</td>`,`<td>${Number(row.input_tokens||0)+Number(row.output_tokens||0)}</td>`,`<td>${date(row.created_at)}</td>`]));
+}
+function renderUsers(){
+  const query=($('userSearch')?.value||'').trim().toLowerCase(),filtered=users.filter(user=>!query||`${user.email} ${user.full_name}`.toLowerCase().includes(query));
+  $('usersTable').innerHTML=table(['Usuario','Apps','Estado','Accion'],filtered.map(user=>{const account=accountForUser(user);return [`<td><strong>${esc(user.full_name||user.email)}</strong><br><span class="muted">${esc(user.email)}</span></td>`,`<td>${account.accesses.map(access=>`<span class="badge ${access.effective_status==='active'?'ok':'off'}">${esc(productByCode(access.product_code).short)}</span>`).join(' ')||'-'}</td>`,`<td>${badge(user.is_active)}</td>`,`<td><button onclick="openUser('${user.id}')">Editar</button></td>`]}));renderUserDetail();
+}
+function renderUserDetail(){
+  const user=users.find(item=>item.id===selectedUserId)||users[0];if(!user)return;selectedUserId=user.id;const account=accountForUser(user);
+  $('userDetailTitle').textContent=user.full_name||user.email;$('userDetailMeta').textContent=`${user.email} · ${account.organization_name||orgName(user.organization_id)}`;$('editEmail').value=user.email||'';$('editName').value=user.full_name||'';$('editPassword').value='';$('editRole').value=user.role||'user';$('editActive').value=String(!!user.is_active);
+  $('editLicense').innerHTML=account.accesses.map(access=>`<option value="${access.product_code}">${esc(productByCode(access.product_code).label)}</option>`).join('');
+  const access=account.accesses.find(item=>item.product_code===selectedLicenseId)||account.accesses[0];if(access){selectedLicenseId=access.product_code;$('editLicense').value=selectedLicenseId;fillLicenseEdit(access)}else{selectedLicenseId='';fillLicenseEdit(null)}
+  $('editLicense').onchange=()=>{selectedLicenseId=$('editLicense').value;fillLicenseEdit(account.accesses.find(item=>item.product_code===selectedLicenseId))};
+}
+function fillLicenseEdit(access){$('editUsed').value=access?.used_credits||0;$('editRemaining').value=access?.unlimited?0:(access?.available_credits||0);$('editLimit').value=access?.total_credits||0;$('editLicStatus').value=access?.status||'active';$('editLicEnd').value=access?.expires_at?new Date(access.expires_at).toISOString().slice(0,10):''}
+async function saveSelectedUser(event){
+  event.preventDefault();const user=users.find(item=>item.id===selectedUserId);if(!user)return toast('Selecciona un usuario.');const resetPassword=$('editPassword').value;
+  try{const body={email:$('editEmail').value.trim(),full_name:$('editName').value.trim(),role:$('editRole').value,is_active:$('editActive').value==='true'};if(resetPassword)body.password=resetPassword;await api(`/admin/users/${user.id}`,{method:'PATCH',body:JSON.stringify(body)});if(selectedLicenseId){const accessBody={usage_limit:Number($('editLimit').value||0),status:$('editLicStatus').value};if($('editLicEnd').value)accessBody.expires_at=new Date($('editLicEnd').value).toISOString();await api(`/admin/users/${user.id}/access/${selectedLicenseId}`,{method:'PATCH',body:JSON.stringify(accessBody)})}await loadAll();setView('users');toast(resetPassword?'Usuario guardado y contrasena reseteada.':'Usuario y creditos guardados.')}catch(e){toast(e.message)}
+}
 function configureLocalLinks(){if(location.hostname==='127.0.0.1'&&location.port==='8770')$('appSelectorLink').href='http://127.0.0.1:8766/apps'}
 configureLocalLinks();setLoginState(false);if(token)loadAll();
 </script>

@@ -75,6 +75,7 @@ def current_license(request: Request, user: User = Depends(current_user), db: Se
         now = utcnow()
         license_obj = License(
             organization_id=user.organization_id,
+            user_id=user.id,
             product_code=product_code,
             status="active",
             starts_at=now - timedelta(minutes=1),
