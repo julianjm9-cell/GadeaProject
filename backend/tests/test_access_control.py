@@ -137,7 +137,7 @@ def test_google_status_reports_disabled_when_not_configured(client, monkeypatch)
     assert response.json()["enabled"] is False
 
 
-@pytest.mark.parametrize("path", ["/", "/suite", "/u25", "/e25", "/cambridge-info", "/diplomator"])
+@pytest.mark.parametrize("path", ["/", "/suite", "/u25", "/e25", "/cambridge-info", "/diplomator", "/hazlatu", "/hazlo-tu"])
 def test_public_marketing_pages_load_without_login(client, path):
     test_client, _ = client
     response = test_client.get(path)

@@ -470,6 +470,13 @@ def suite_public_page():
     return marketing_file("index.html", "text/html")
 
 
+@router.get("/hazlatu")
+@router.get("/hazlo-tu")
+@router.get("/hazlatu.html")
+def hazlatu_public_page():
+    return marketing_file("hazlatu.html", "text/html")
+
+
 @router.get("/marketing-assets/demo-shared.css")
 @router.get("/demo-shared.css")
 def marketing_css():
