@@ -153,6 +153,13 @@ def test_eso_desk_assets_are_served_for_the_production_page(client, filename):
     assert ("image/png" if filename.endswith(".png") else "image/svg+xml") in response.headers["content-type"]
 
 
+def test_hazlotu_logo_is_served_for_the_public_page(client):
+    test_client, _ = client
+    response = test_client.get("/assets/brand/hazlotu-logo.png")
+    assert response.status_code == 200
+    assert "image/png" in response.headers["content-type"]
+
+
 def test_unknown_eso_desk_asset_is_rejected(client):
     test_client, _ = client
     assert test_client.get("/assets/desk/unknown.svg").status_code == 404

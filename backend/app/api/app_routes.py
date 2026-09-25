@@ -513,6 +513,7 @@ def brand_asset(filename: str):
         "ingles-full.png",
         "diplomator-simple.png",
         "diplomator-full.png",
+        "hazlotu-logo.png",
         "teacher-ai.png",
     }
     if filename not in allowed:
