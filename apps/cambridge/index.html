@@ -3790,10 +3790,10 @@ async function logoutWeb() {
   localStorage.removeItem('cambridge_trainer_license');
   if (BACKEND_SUPPORTED) {
     await fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
-    location.href = '/login';
+    location.href = '/cambridge-info';
     return;
   }
-  location.href = 'login.html';
+  location.href = '../../marketing/app_landings_demo/cambridge.html';
 }
 
 async function saveConfig() {

@@ -24,7 +24,7 @@ El registro con contraseña valida el formato del correo, pero todavía no enví
 
 1. Completado: landing de ESO siguiendo el mockup público, con versión de ordenador y móvil, seis preguntas desplegables y condiciones de registro leídas del servidor.
 2. Completado: inicio de la app con sesión de 15, 30 o 45 minutos, fotografía de escritorio y cuatro accesos únicos. Se conserva la creación y reanudación de sesiones y su progreso.
-3. Quitar el selector de apps de los perfiles y devolver el cierre de sesión a la landing correspondiente en las cuatro apps.
+3. Completado: perfiles sin selector general de apps. Cerrar sesión devuelve a la landing correspondiente de ESO, Universidad +25, Cambridge o Diplomator; mantiene la eliminación de las cookies del servidor y las claves locales de Cambridge y Diplomator.
 
 La vista de dispositivos de la landing es ilustrativa y representa el diseño del inicio; no sustituye ni modifica la app actual. La fotografía generada se guarda en `marketing/app_landings_demo/assets/landing/eso-study-desk.png` y se sirve en `/assets/landing/eso-study-desk.png`. Las capturas verificadas se guardan en `tools/eso-landing-v2-desktop.png` y `tools/eso-landing-v2-mobile.png`.
 

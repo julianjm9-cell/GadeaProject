@@ -3398,7 +3398,7 @@
           <div class="drive-status" id="driveStatus">Drive pendiente de comprobar.</div>
           </div>
         </details>
-        <div class="profile-utility"><a href="/apps">Todas las apps</a><button type="button" onclick="logout()">Cerrar sesion</button></div>
+        <div class="profile-utility"><button type="button" onclick="logout()">Cerrar sesion</button></div>
         <div class="profile-message" id="profileMessage"></div>
       </div>
     </div>
@@ -7910,7 +7910,7 @@ function renderExamHistory() {
 }
 async function logout() {
   await fetch('/auth/logout', {method:'POST', credentials:'same-origin'}).catch(()=>{});
-  location.href = '/login';
+  location.href = location.protocol === 'file:' ? '../../marketing/app_landings_demo/eso-adultos.html' : '/eso-adultos-info';
 }
 function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
