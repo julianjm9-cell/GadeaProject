@@ -318,6 +318,20 @@ def test_unknown_eso_desk_asset_is_rejected(client):
     assert test_client.get("/assets/desk/unknown.svg").status_code == 404
 
 
+def test_eso_landing_image_is_served_in_the_packaged_app(client, tmp_path, monkeypatch):
+    image = tmp_path / "marketing" / "assets" / "landing" / "eso-study-desk.png"
+    image.parent.mkdir(parents=True)
+    image.write_bytes(b"landing-image")
+    monkeypatch.setattr(app_routes, "STATIC_DIR", tmp_path)
+    monkeypatch.setattr(app_routes, "PROJECT_ROOT", tmp_path / "missing-project")
+    test_client, _ = client
+    response = test_client.get("/assets/landing/eso-study-desk.png")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    assert response.content == b"landing-image"
+    assert test_client.get("/assets/landing/unknown.png").status_code == 404
+
+
 @pytest.mark.parametrize("path", ["/login", "/u25/login", "/e25/login", "/cambridge-info/login", "/diplomator/login"])
 def test_login_pages_load_without_login(client, path):
     test_client, _ = client

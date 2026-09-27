@@ -504,6 +504,13 @@ def marketing_asset(filename: str):
     return marketing_file(filename, allowed[filename])
 
 
+@router.get("/assets/landing/{filename}")
+def eso_landing_asset(filename: str):
+    if filename != "eso-study-desk.png":
+        raise HTTPException(status_code=404, detail="Asset no encontrado.")
+    return marketing_file(f"assets/landing/{filename}", "image/png")
+
+
 @router.get("/assets/brand/{filename}")
 def brand_asset(filename: str):
     allowed = {
