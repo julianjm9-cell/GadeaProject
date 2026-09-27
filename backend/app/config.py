@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     google_redirect_uri: str = "http://127.0.0.1:8890/auth/google/callback"
     google_signup_license_days: int = 365
     google_signup_usage_limit: int = 300
+    eso_signup_enabled: bool = True
+    eso_signup_credits: int = Field(default=100, ge=1)
+    eso_signup_days: int = Field(default=365, ge=1)
 
     bootstrap_superadmin_email: str = ""
     bootstrap_superadmin_password: str = ""

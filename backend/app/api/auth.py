@@ -11,17 +11,18 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 from jose import JWTError, jwt
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import current_user
 from app.config import get_settings
 from app.database.session import get_db
 from app.models import License, Organization, User
-from app.schemas.core import ApiOk, LoginRequest, TokenResponse
+from app.schemas.core import ApiOk, EsoRegisterRequest, LoginRequest, TokenResponse
 from app.security.passwords import hash_password, verify_password
 from app.security.tokens import create_token, decode_token
 from app.services.audit import audit
-from app.services.licenses import check_access
+from app.services.licenses import check_access, license_for_user
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -30,11 +31,11 @@ PRODUCT_CODES = ("DIPLOMATOR", "CAMBRIDGE", "UNIVERSIDAD_ADULTOS", "ESO_ADULTOS"
 SAFE_NEXT_PATHS = ("/apps", "/app", "/cambridge", "/universidad-adultos", "/eso-adultos")
 
 
-def rate_limit_key(identifier: str) -> None:
+def rate_limit_key(identifier: str, limit: int = 8) -> None:
     now = monotonic()
     key = identifier.lower().strip()[:255]
     attempts = [t for t in LOGIN_BUCKET.get(key, []) if now - t < 300]
-    if len(attempts) >= 8:
+    if len(attempts) >= limit:
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Demasiados intentos. Espera unos minutos.")
     attempts.append(now)
     LOGIN_BUCKET[key] = attempts
@@ -166,17 +167,10 @@ def ensure_google_access(db: Session, user: User, product_codes: tuple[str, ...]
     settings = get_settings()
     now = datetime.now(timezone.utc)
     for product_code in product_codes:
-        active = db.scalar(
-            select(License).where(
-                License.organization_id == user.organization_id,
-                License.user_id == user.id,
-                License.product_code == product_code,
-                License.status == "active",
-                License.starts_at <= now,
-                License.expires_at >= now,
-            )
-        )
-        if active:
+        # Never renew suspended/expired access or replenish credits on login.
+        if license_for_user(db, user, product_code):
+            continue
+        if product_code == "ESO_ADULTOS" and not settings.eso_signup_enabled:
             continue
         prefix = {"CAMBRIDGE": "CAMB", "UNIVERSIDAD_ADULTOS": "U25", "ESO_ADULTOS": "E25"}.get(product_code, "DIPLO")
         db.add(
@@ -186,27 +180,35 @@ def ensure_google_access(db: Session, user: User, product_codes: tuple[str, ...]
                 product_code=product_code,
                 status="active",
                 starts_at=now - timedelta(minutes=1),
-                expires_at=now + timedelta(days=settings.google_signup_license_days),
-                usage_limit=settings.google_signup_usage_limit,
+                expires_at=now + timedelta(days=settings.eso_signup_days if product_code == "ESO_ADULTOS" else settings.google_signup_license_days),
+                usage_limit=settings.eso_signup_credits if product_code == "ESO_ADULTOS" else settings.google_signup_usage_limit,
+                plan="ESO_FREE" if product_code == "ESO_ADULTOS" else "MVP",
                 legacy_key=f"{prefix}-GOOGLE-{secrets.token_urlsafe(10).upper()}",
             )
         )
+    # The OAuth callback checks access before committing (autoflush is disabled).
+    db.flush()
 
 
-def get_or_create_google_user(db: Session, info: dict) -> User:
+def get_or_create_google_user(db: Session, info: dict, product_codes: tuple[str, ...] = ("DIPLOMATOR",)) -> User:
     email = str(info.get("email") or "").strip().lower()
     google_sub = str(info.get("sub") or "").strip()
-    if not email or not google_sub:
+    if not email or not google_sub or info.get("email_verified") is not True:
         raise HTTPException(status_code=400, detail="Google no devolvio email valido.")
-    user = db.scalar(select(User).where(User.google_sub == google_sub)) or db.scalar(select(User).where(User.email == email))
+    user = db.scalar(select(User).where(User.google_sub == google_sub).with_for_update()) or db.scalar(select(User).where(User.email == email).with_for_update())
     if user:
+        org = db.get(Organization, user.organization_id)
+        if not user.is_active or not org or org.status != "active":
+            raise HTTPException(status_code=403, detail="Cuenta desactivada.")
         user.google_sub = google_sub
         user.google_picture = str(info.get("picture") or "")[:500]
         if not user.full_name:
             user.full_name = str(info.get("name") or email)[:200]
-        ensure_google_access(db, user)
+        ensure_google_access(db, user, product_codes)
         return user
-    org = Organization(name=f"DIPLOMATOR - {email}", status="active")
+    if "ESO_ADULTOS" in product_codes and not get_settings().eso_signup_enabled:
+        raise HTTPException(status_code=403, detail="El registro gratuito está cerrado temporalmente.")
+    org = Organization(name=f"Cuenta - {email}"[:200], status="active")
     db.add(org)
     db.flush()
     user = User(
@@ -221,9 +223,44 @@ def get_or_create_google_user(db: Session, info: dict) -> User:
     )
     db.add(user)
     db.flush()
-    ensure_google_access(db, user)
+    ensure_google_access(db, user, product_codes)
     audit(db, actor=user, organization_id=user.organization_id, action="google_user_created", entity_type="user", entity_id=str(user.id), metadata={"email": email})
     return user
+
+
+@router.get("/eso/signup-settings")
+def eso_signup_settings():
+    settings = get_settings()
+    return {"enabled": settings.eso_signup_enabled, "credits": settings.eso_signup_credits, "days": settings.eso_signup_days}
+
+
+@router.post("/eso/register", response_model=TokenResponse, status_code=201)
+def register_eso(payload: EsoRegisterRequest, request: Request, response: Response, db: Session = Depends(get_db)):
+    settings = get_settings()
+    if not settings.eso_signup_enabled:
+        raise HTTPException(status_code=403, detail="El registro gratuito está cerrado temporalmente.")
+    email = str(payload.email).strip().lower()
+    # Allow shared connections/proxies while limiting repeated attempts per email.
+    rate_limit_key(f"register-ip:{request.client.host if request.client else 'unknown'}", limit=60)
+    rate_limit_key(f"register-email:{email}")
+    if len(payload.password.encode("utf-8")) > 72 or not payload.full_name.strip():
+        raise HTTPException(status_code=422, detail="Revisa el nombre y la longitud de la contraseña.")
+    if db.scalar(select(User).where(User.email == email)):
+        raise HTTPException(status_code=409, detail="Este correo ya tiene cuenta. Inicia sesión para acceder a ESO.")
+    try:
+        org = Organization(name=f"ESO Adultos - {email}"[:200], status="active")
+        db.add(org)
+        db.flush()
+        user = User(organization_id=org.id, email=email, full_name=payload.full_name.strip(), password_hash=hash_password(payload.password), role="user", is_active=True)
+        db.add(user)
+        db.flush()
+        ensure_google_access(db, user, ("ESO_ADULTOS",))
+        audit(db, actor=user, organization_id=org.id, action="eso_user_registered", entity_type="user", entity_id=str(user.id), metadata={"credits": settings.eso_signup_credits})
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Este correo ya tiene cuenta. Inicia sesión para acceder a ESO.")
+    return issue_login_response(user, response)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -234,11 +271,17 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     user = db.scalar(select(User).where(User.email == identifier))
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=generic)
+    if payload.enroll_eso:
+        user = db.scalar(select(User).where(User.id == user.id).with_for_update())
+        org = db.get(Organization, user.organization_id)
+        if user.is_active and org and org.status == "active":
+            ensure_google_access(db, user, ("ESO_ADULTOS",))
+            db.commit()
     decision = check_access(db, user)
     for product_code in PRODUCT_CODES[1:]:
         if decision.ok:
             break
-        decision = check_access(db, user, product_code)
+        decision = check_access(db, user, product_code, require_credits=product_code != "ESO_ADULTOS")
     if not decision.ok:
         audit(db, actor=user, organization_id=user.organization_id, action="access_blocked", entity_type="user", entity_id=str(user.id), metadata={"reason": decision.message})
         db.commit()
@@ -318,12 +361,14 @@ async def google_callback(request: Request, response: Response, code: str | None
         redirect = RedirectResponse(next_path)
         redirect.delete_cookie("diplomator_google_state")
         return redirect
-    user = get_or_create_google_user(db, info)
+    target = clean_next_path(str(payload.get("next") or "/apps"))
+    product = {"/eso-adultos": "ESO_ADULTOS", "/universidad-adultos": "UNIVERSIDAD_ADULTOS", "/cambridge": "CAMBRIDGE"}.get(target.split("?")[0], "DIPLOMATOR")
+    user = get_or_create_google_user(db, info, (product,))
     decision = check_access(db, user)
     for product_code in PRODUCT_CODES[1:]:
         if decision.ok:
             break
-        decision = check_access(db, user, product_code)
+        decision = check_access(db, user, product_code, require_credits=product_code != "ESO_ADULTOS")
     if not decision.ok:
         db.commit()
         return RedirectResponse("/login?google_error=access")
@@ -347,7 +392,7 @@ def me(user: User = Depends(current_user), db: Session = Depends(get_db)) -> dic
     for product_code in PRODUCT_CODES[1:]:
         if decision.ok:
             break
-        decision = check_access(db, user, product_code)
+        decision = check_access(db, user, product_code, require_credits=product_code != "ESO_ADULTOS")
     return {"ok": decision.ok, "user": public_user(user), "license": {"ok": decision.ok, "message": decision.message}}
 
 
@@ -367,7 +412,7 @@ def refresh(request: Request, response: Response, refresh_token: str | None = No
     for product_code in PRODUCT_CODES[1:]:
         if decision.ok:
             break
-        decision = check_access(db, user, product_code)
+        decision = check_access(db, user, product_code, require_credits=product_code != "ESO_ADULTOS")
     if not decision.ok:
         raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=decision.message)
     settings = get_settings()

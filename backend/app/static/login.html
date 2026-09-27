@@ -309,18 +309,23 @@
     </div>
   </section>
   <form onsubmit="login(event)">
-    <h2 class="form-title">Acceder</h2>
-    <p>Usa el acceso que te han dado.</p>
+    <h2 class="form-title" id="formTitle">Acceder</h2>
+    <p id="formCopy">Usa el acceso que te han dado.</p>
+    <div id="signupFields" hidden><label for="fullName">Tu nombre</label><input id="fullName" maxlength="200" autocomplete="name"></div>
     <a class="google-button" id="googleLogin" href="/auth/google/login?next=/apps">
       <span class="google-icon">G</span>
       Acceder con Google
     </a>
     <div class="divider">o</div>
     <label for="email">Usuario o email</label>
-    <input id="email" type="text" autocomplete="username" required>
+    <input id="email" type="text" maxlength="255" autocomplete="username" required>
     <label for="password">Contrase&ntilde;a</label>
     <input id="password" type="password" autocomplete="current-password" required>
-    <button>Entrar</button>
+    <div id="signupConfirm" hidden><label for="confirmPassword">Repite la contraseña</label><input id="confirmPassword" type="password" autocomplete="new-password"></div>
+    <button id="submitButton">Entrar</button>
+    <p id="signupToggle" hidden><a id="signupToggleLink" href="#" onclick="toggleSignup();return false">Crear cuenta gratis</a></p>
+    <p id="signupAllowance" hidden></p>
+    <p id="esoBack" hidden><a href="/e25">Volver a ESO Adultos</a></p>
     <div class="error" id="error"></div>
     <div class="contact-box" aria-label="Contacto">
       <p>¿Necesitas acceso o tienes dudas?</p>
@@ -338,6 +343,39 @@ const LOGIN_TARGETS = {
   '/cambridge-info/login': '/cambridge',
   '/diplomator/login': '/app'
 };
+let signupMode = false;
+let signupAvailable = false;
+function toggleSignup(force) {
+  signupMode = signupAvailable && (force === undefined ? !signupMode : force);
+  document.getElementById('signupFields').hidden = !signupMode;
+  document.getElementById('signupConfirm').hidden = !signupMode;
+  document.getElementById('fullName').required = signupMode;
+  document.getElementById('confirmPassword').required = signupMode;
+  document.getElementById('email').type = signupMode ? 'email' : 'text';
+  const password = document.getElementById('password');
+  password.minLength = signupMode ? 8 : 1;
+  password.autocomplete = signupMode ? 'new-password' : 'current-password';
+  document.getElementById('formTitle').textContent = signupMode ? 'Crear cuenta gratis' : 'Acceder';
+  document.getElementById('formCopy').textContent = signupMode ? 'Tu cuenta y tu progreso, en un solo lugar.' : nextPath() === '/eso-adultos' && signupAvailable ? 'Entra con tu cuenta. Si aún no tienes acceso a ESO, se añadirá el acceso gratuito una sola vez.' : 'Entra con tu cuenta y su acceso actual.';
+  document.getElementById('submitButton').textContent = signupMode ? 'Crear cuenta y empezar' : 'Entrar';
+  document.getElementById('signupToggleLink').textContent = signupMode ? 'Ya tengo cuenta: iniciar sesión' : 'Crear cuenta gratis';
+  document.getElementById('error').textContent = '';
+}
+async function loadSignupSettings() {
+  if (nextPath() !== '/eso-adultos') return;
+  document.getElementById('esoBack').hidden = false;
+  try {
+    const response = await fetch('/auth/eso/signup-settings');
+    if (!response.ok) throw new Error('No se pudo consultar el registro.');
+    const settings = await response.json();
+    signupAvailable = settings.enabled;
+    document.getElementById('signupToggle').hidden = !signupAvailable;
+    const allowance = document.getElementById('signupAllowance');
+    allowance.hidden = false;
+    allowance.textContent = signupAvailable ? `Acceso gratuito durante ${settings.days} días y ${settings.credits} créditos iniciales de IA, una sola vez. Al agotarlos, puedes seguir estudiando sin IA.` : 'El registro gratuito está cerrado temporalmente.';
+    toggleSignup(new URLSearchParams(location.search).get('mode') === 'register');
+  } catch (error) { document.getElementById('error').textContent = error.message; }
+}
 const LOGIN_BRANDS = {
   '/universidad-adultos': {
     app:'u25',
@@ -424,20 +462,30 @@ async function login(event) {
   event.preventDefault();
   const error = document.getElementById('error');
   error.textContent = '';
-  const res = await fetch('/auth/login', {
+  if (signupMode && document.getElementById('password').value !== document.getElementById('confirmPassword').value) {
+    error.textContent = 'Las contraseñas no coinciden.'; return;
+  }
+  const button = document.getElementById('submitButton');
+  button.disabled = true;
+  try {
+  const body = signupMode ? {email:document.getElementById('email').value.trim(),full_name:document.getElementById('fullName').value.trim(),password:document.getElementById('password').value} : {identifier:document.getElementById('email').value.trim(),password:document.getElementById('password').value,enroll_eso:nextPath() === '/eso-adultos'};
+  const res = await fetch(signupMode ? '/auth/eso/register' : '/auth/login', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({identifier:document.getElementById('email').value.trim(), password:document.getElementById('password').value})
+    body:JSON.stringify(body)
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || data.ok === false) {
-    error.textContent = data.detail || data.error || 'No se pudo iniciar sesion.';
+    error.textContent = typeof data.detail === 'string' ? data.detail : 'Revisa los datos introducidos.';
     return;
   }
   location.href = nextPath();
+  } catch (_) { error.textContent = 'No se pudo conectar. Prueba de nuevo.'; }
+  finally { button.disabled = false; }
 }
 applyLoginBrand();
 applyLoginLinks();
+loadSignupSettings();
 </script>
 </body>
 </html>

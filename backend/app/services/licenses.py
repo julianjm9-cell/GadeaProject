@@ -61,7 +61,7 @@ def license_for_user(db: Session, user: User, product_code: str = PRODUCT_CODE) 
     )
 
 
-def check_access(db: Session, user: User, product_code: str = PRODUCT_CODE) -> LicenseDecision:
+def check_access(db: Session, user: User, product_code: str = PRODUCT_CODE, *, require_credits: bool = True) -> LicenseDecision:
     if not user.is_active:
         return LicenseDecision(False, "Usuario desactivado.")
     org = db.get(Organization, user.organization_id)
@@ -75,7 +75,7 @@ def check_access(db: Session, user: User, product_code: str = PRODUCT_CODE) -> L
     if not license_is_current(license_obj):
         return LicenseDecision(False, "Licencia no valida.", license_obj)
     used = usage_count_for_license(db, user.id, user.organization_id, license_obj.starts_at, license_obj.expires_at, product_code)
-    if license_obj.usage_limit and used >= license_obj.usage_limit:
+    if require_credits and license_obj.usage_limit and used >= license_obj.usage_limit:
         return LicenseDecision(False, "Limite de uso agotado.", license_obj)
     return LicenseDecision(True, "Licencia activa.", license_obj)
 

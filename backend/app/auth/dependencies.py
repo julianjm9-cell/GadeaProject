@@ -70,7 +70,7 @@ def license_prefix(product_code: str) -> str:
 
 def current_license(request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)) -> License:
     product_code = product_code_from_request(request)
-    decision: LicenseDecision = check_access(db, user, product_code)
+    decision: LicenseDecision = check_access(db, user, product_code, require_credits=product_code != "ESO_ADULTOS")
     if decision.ok and not decision.license and user.role == "superadmin":
         now = utcnow()
         license_obj = License(

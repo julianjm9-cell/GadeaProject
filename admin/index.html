@@ -315,11 +315,12 @@ function renderApp(){
   $('appPublicLink').href=product.public;
   $('appPrivateLink').href=product.app;
   $('appMetrics').innerHTML=metric('Alumnos',rows.length,'Con acceso a esta app')+metric('Accesos activos',active,`${rows.length-active} inactivos`)+metric('Créditos gastados',used,'Suma del consumo de estos alumnos');
-  $('appUsersTable').innerHTML=table(['Alumno','Acceso','Total','Gastados','Disponibles',''],visible.map(account=>{
+  $('appUsersTable').innerHTML=table(['Alumno','Acceso','Registro','Total','Gastados','Disponibles',''],visible.map(account=>{
     const access=account.accesses.find(item=>item.product_code===product.code);
     return [
       `<td><strong>${esc(account.full_name||account.email)}</strong><br><span class="muted">${esc(account.email)}</span></td>`,
       `<td>${badge(access.effective_status==='active'?'active':'inactive')}</td>`,
+      `<td>${account.created_at?esc(new Date(account.created_at).toLocaleDateString('es-ES')):'—'}${access.plan==='ESO_FREE'?'<br><span class="muted">Registro gratuito</span>':''}</td>`,
       `<td>${access.unlimited?'Sin límite':access.total_credits}</td>`,
       `<td>${access.used_credits}</td>`,
       `<td><strong>${accessCredits(access)}</strong></td>`,

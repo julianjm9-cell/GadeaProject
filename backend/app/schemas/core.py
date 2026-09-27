@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class ApiOk(BaseModel):
@@ -14,6 +14,13 @@ class LoginRequest(BaseModel):
     email: str | None = None
     identifier: str | None = None
     password: str
+    enroll_eso: bool = False
+
+
+class EsoRegisterRequest(BaseModel):
+    email: EmailStr = Field(max_length=255)
+    full_name: str = Field(min_length=1, max_length=200)
+    password: str = Field(min_length=8, max_length=72)
 
 
 class TokenResponse(BaseModel):

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -135,6 +136,152 @@ def test_google_status_reports_disabled_when_not_configured(client, monkeypatch)
     response = test_client.get("/auth/google/status")
     assert response.status_code == 200
     assert response.json()["enabled"] is False
+
+
+def register_eso(test_client, email="nuevo@example.com"):
+    return test_client.post("/auth/eso/register", json={"email": email, "full_name": "Nueva alumna", "password": "segura12345"})
+
+
+def test_eso_registration_creates_only_eso_and_appears_in_admin(client):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin", email="admin@example.com")
+    admin_token = login(test_client, email="admin@example.com").json()["access_token"]
+    response = register_eso(test_client)
+    assert response.status_code == 201
+    assert response.json()["user"]["role"] == "user"
+    assert test_client.get("/api/state", headers={"X-Client-App": "eso_adultos"}).status_code == 200
+    assert test_client.get("/api/state", headers={"X-Client-App": "cambridge"}).status_code == 402
+    rows = test_client.get("/admin/accounts", headers={"Authorization": f"Bearer {admin_token}"}).json()["accounts"]
+    user = next(row for row in rows if row["email"] == "nuevo@example.com")
+    assert user["created_at"]
+    assert len(user["accesses"]) == 1
+    access = user["accesses"][0]
+    assert access["plan"] == "ESO_FREE"
+    assert access["total_credits"] == 100
+    assert access["used_credits"] == 0
+    assert access["available_credits"] == 100
+
+
+def test_existing_account_enrolls_only_after_password_login_and_once(client):
+    test_client, db_factory = client
+    _, user_id = seed_user(db_factory)
+    assert test_client.post("/auth/login", json={"email": "cliente@example.com", "password": "wrong", "enroll_eso": True}).status_code == 401
+    payload = {"email": "cliente@example.com", "password": "temporal123", "enroll_eso": True}
+    assert test_client.post("/auth/login", json=payload).status_code == 200
+    with db_factory() as db:
+        lic = license_for_user(db, db.get(User, UUID(user_id)), "ESO_ADULTOS")
+        lic.usage_limit = 17
+        lic.expires_at = datetime.now(timezone.utc) - timedelta(days=1)
+        db.commit()
+    # Existing DIP access still permits account login; the ESO grant is not renewed.
+    assert test_client.post("/auth/login", json=payload).status_code == 200
+    with db_factory() as db:
+        licenses = db.query(License).filter(License.user_id == UUID(user_id), License.product_code == "ESO_ADULTOS").all()
+        assert len(licenses) == 1
+        assert licenses[0].usage_limit == 17
+        assert not check_access(db, db.get(User, UUID(user_id)), "ESO_ADULTOS").ok
+
+
+def test_duplicate_eso_registration_does_not_replace_account(client):
+    test_client, db_factory = client
+    assert register_eso(test_client).status_code == 201
+    assert register_eso(test_client, "NUEVO@example.com").status_code == 409
+    with db_factory() as db:
+        assert db.query(User).count() == 1
+        assert db.query(License).count() == 1
+
+
+def test_disabled_and_invalid_eso_registration(client, monkeypatch):
+    test_client, db_factory = client
+    assert test_client.post("/auth/eso/register", json={"email": "bad", "full_name": " ", "password": "short"}).status_code == 422
+    monkeypatch.setattr(auth_api.get_settings(), "eso_signup_enabled", False)
+    assert register_eso(test_client).status_code == 403
+    assert test_client.get("/auth/eso/signup-settings").json()["enabled"] is False
+    with db_factory() as db:
+        with pytest.raises(HTTPException) as error:
+            auth_api.get_or_create_google_user(db, {"email": "closed@example.com", "sub": "closed-sub", "email_verified": True}, ("ESO_ADULTOS",))
+        assert error.value.status_code == 403
+        assert db.query(User).count() == 0
+
+
+def test_eso_registration_rate_limit(client):
+    test_client, _ = client
+    assert register_eso(test_client).status_code == 201
+    for _ in range(7):
+        assert register_eso(test_client).status_code == 409
+    assert register_eso(test_client).status_code == 429
+
+
+def test_exhausted_eso_credits_allow_study_but_block_all_ai(client):
+    test_client, db_factory = client
+    assert register_eso(test_client).status_code == 201
+    with db_factory() as db:
+        user = db.query(User).one()
+        lic = license_for_user(db, user, "ESO_ADULTOS")
+        lic.usage_limit = 1
+        record_usage(db, user, "test", 0, 0, "ESO_ADULTOS")
+        db.commit()
+    assert login(test_client, "nuevo@example.com", "segura12345").status_code == 200
+    headers = {"X-Client-App": "eso_adultos"}
+    assert test_client.post("/api/state", json={"lesson": "saved"}, headers=headers).status_code == 200
+    assert test_client.get("/api/state", headers=headers).json() == {"lesson": "saved"}
+    assert test_client.get("/api/me", headers=headers).json()["user"]["available_credits"] == 0
+    assert test_client.get("/api/gamification", headers=headers).status_code == 200
+    assert test_client.post("/auth/refresh").status_code == 200
+    for path in ("/api/chat", "/api/ocr", "/api/transcribe"):
+        response = test_client.post(path, json={}, headers=headers)
+        assert response.status_code == 402
+        assert "Creditos insuficientes" in response.json()["detail"]
+
+
+def test_google_eso_signup_is_scoped_and_never_replenishes(client):
+    _, db_factory = client
+    info = {"email": "google-eso@example.com", "sub": "eso-sub", "name": "Google ESO", "email_verified": True}
+    with db_factory() as db:
+        user = auth_api.get_or_create_google_user(db, info, ("ESO_ADULTOS",))
+        db.commit()
+        lic = license_for_user(db, user, "ESO_ADULTOS")
+        lic.status = "suspended"
+        lic.usage_limit = 5
+        db.commit()
+        auth_api.get_or_create_google_user(db, info, ("ESO_ADULTOS",))
+        db.commit()
+        assert db.query(License).count() == 1
+        assert lic.usage_limit == 5
+        assert lic.status == "suspended"
+
+
+def test_blocked_account_cannot_receive_free_eso_access(client):
+    test_client, db_factory = client
+    seed_user(db_factory, user_active=False)
+    response = test_client.post("/auth/login", json={"email": "cliente@example.com", "password": "temporal123", "enroll_eso": True})
+    assert response.status_code == 402
+    with db_factory() as db:
+        assert db.query(License).filter(License.product_code == "ESO_ADULTOS").count() == 0
+
+
+def test_google_callback_grants_only_the_requested_app(client, monkeypatch):
+    test_client, db_factory = client
+    monkeypatch.setattr(auth_api, "decode_google_state", lambda _: {"purpose": "login", "next": "/eso-adultos"})
+    async def exchange(_):
+        return {"userinfo": {"email": "google-callback@example.com", "sub": "callback-sub", "name": "Google", "email_verified": True}}
+    monkeypatch.setattr(auth_api, "exchange_google_code", exchange)
+    response = test_client.get("/auth/google/callback?code=test&state=test", follow_redirects=False)
+    assert response.headers["location"] == "/eso-adultos"
+    with db_factory() as db:
+        assert [lic.product_code for lic in db.query(License).all()] == ["ESO_ADULTOS"]
+
+
+def test_eso_initial_credit_configuration_is_used(client, monkeypatch):
+    test_client, db_factory = client
+    monkeypatch.setattr(auth_api.get_settings(), "eso_signup_credits", 25)
+    monkeypatch.setattr(auth_api.get_settings(), "eso_signup_days", 30)
+    assert test_client.get("/auth/eso/signup-settings").json()["credits"] == 25
+    assert register_eso(test_client).status_code == 201
+    with db_factory() as db:
+        lic = db.query(License).one()
+        assert lic.usage_limit == 25
+        assert 29 <= (lic.expires_at - datetime.now()).days <= 30
 
 
 @pytest.mark.parametrize("path", ["/", "/suite", "/u25", "/e25", "/cambridge-info", "/diplomator", "/hazlatu", "/hazlo-tu"])

@@ -395,6 +395,7 @@ def list_accounts(_: User = Depends(require_superadmin), db: Session = Depends(g
             "full_name": user.full_name,
             "role": user.role,
             "is_active": user.is_active,
+            "created_at": user.created_at.isoformat(),
             "accesses": accesses,
         })
     return {"ok": True, "accounts": rows}

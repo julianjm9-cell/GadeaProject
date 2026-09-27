@@ -319,6 +319,8 @@ def points_credit_cost_from_content(content: str, fallback: int) -> int:
 def ensure_credit_balance(db: Session, user: User, license_obj: License, credit_cost: int) -> None:
     if not license_obj.usage_limit:
         return
+    # Serialize paid AI requests from the same account until usage is committed.
+    db.scalar(select(User).where(User.id == user.id).with_for_update())
     used = active_usage_count(db, user, license_obj)
     if used + credit_cost > license_obj.usage_limit:
         remaining = max(license_obj.usage_limit - used, 0)
@@ -628,7 +630,7 @@ def eso_adultos_page(request: Request, db: Session = Depends(get_db)):
 def api_apps(user: User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     result = []
     for product in PRODUCTS.values():
-        decision = check_access(db, user, product["code"])
+        decision = check_access(db, user, product["code"], require_credits=product["code"] != "ESO_ADULTOS")
         result.append({**product, "available": decision.ok, "message": decision.message})
     return {"ok": True, "apps": result}
 
@@ -966,6 +968,7 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
 
 @router.post("/api/ocr")
 async def ocr(payload: dict, request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db), app_key_override: str | None = None):
+    ensure_credit_balance(db, user, _, 1)
     data_url, _ = image_data_url_from_payload(payload)
     api_key, chat_url, provider, model = vision_provider_config(db)
     target = str(payload.get("target") or "answer").strip().lower()
@@ -1005,6 +1008,7 @@ async def ocr(payload: dict, request: Request, user: User = Depends(current_user
 
 @router.post("/api/transcribe")
 async def transcribe(payload: dict, request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db), app_key_override: str | None = None):
+    ensure_credit_balance(db, user, _, 1)
     settings = get_settings()
     api_key, transcribe_url, transcribe_provider = transcribe_provider_config(db)
     audio_b64 = str(payload.get("audio", ""))
