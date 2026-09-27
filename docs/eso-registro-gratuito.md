@@ -23,10 +23,10 @@ El registro con contraseña valida el formato del correo, pero todavía no enví
 ## Pendientes del plan visual
 
 1. Completado: landing de ESO siguiendo el mockup público, con versión de ordenador y móvil, seis preguntas desplegables y condiciones de registro leídas del servidor.
-2. Simplificar el inicio de la app conservando sesión diaria, exámenes y progreso.
+2. Completado: inicio de la app con sesión de 15, 30 o 45 minutos, fotografía de escritorio y cuatro accesos únicos. Se conserva la creación y reanudación de sesiones y su progreso.
 3. Quitar el selector de apps de los perfiles y devolver el cierre de sesión a la landing correspondiente en las cuatro apps.
 
-La vista de dispositivos de la landing es ilustrativa y anticipa el diseño del paquete 3; no sustituye ni modifica la app actual. La fotografía generada se guarda en `marketing/app_landings_demo/assets/landing/eso-study-desk.png` y se sirve en `/assets/landing/eso-study-desk.png`. Las capturas verificadas se guardan en `tools/eso-landing-v2-desktop.png` y `tools/eso-landing-v2-mobile.png`.
+La vista de dispositivos de la landing es ilustrativa y representa el diseño del inicio; no sustituye ni modifica la app actual. La fotografía generada se guarda en `marketing/app_landings_demo/assets/landing/eso-study-desk.png` y se sirve en `/assets/landing/eso-study-desk.png`. Las capturas verificadas se guardan en `tools/eso-landing-v2-desktop.png` y `tools/eso-landing-v2-mobile.png`.
 
 ## Comprobación
 

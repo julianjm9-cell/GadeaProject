@@ -3327,6 +3327,25 @@
     @media(max-width:520px){.desktop-refresh .home-grid{grid-template-columns:1fr}.desktop-refresh .home-card{min-height:0}.desktop-refresh .home-subjects{grid-template-columns:repeat(3,minmax(0,1fr))}.desktop-refresh .home-resources{grid-template-columns:1fr 1fr}.desktop-refresh .home-resources button{font-size:10px}.desktop-refresh #sessionChooser .duration-options button{min-height:60px}.desktop-refresh #sessionChooser .duration-options span{font-size:10px}.exam-start-head{margin-bottom:18px}.exam-journeys button{grid-template-columns:45px minmax(0,1fr) auto;min-height:74px;padding:12px;gap:11px}.exam-journeys i{width:45px;height:45px;border-radius:12px}.exam-answer-card{padding:15px}.exam-answer-card .answer-area{min-height:175px}}
 
     @media(max-width:600px){.desktop-refresh .teacher-panel.collapsed{width:48px;right:10px;bottom:10px}.desktop-refresh .teacher-panel.collapsed .teacher-head{min-height:48px;padding:4px}.desktop-refresh .teacher-panel.collapsed .teacher-avatar{width:38px;height:38px;flex-basis:38px}}
+
+/* Inicio simplificado: sesión y cuatro destinos. */
+.desktop-refresh #sessionChooser{padding:18px 0 24px}
+.desktop-refresh .today-hero{display:grid;grid-template-columns:1.2fr 1fr;gap:30px;align-items:center;padding:32px;background:#fff;border:1px solid #e7f0fb;border-radius:26px;box-shadow:var(--shadow)}
+.desktop-refresh .today-session{min-width:0;text-align:left}.desktop-refresh .today-session h2{margin:0 0 28px;font-size:clamp(28px,3.3vw,46px);line-height:1.15;color:#10194c;text-transform:uppercase;letter-spacing:-.035em}
+.desktop-refresh #sessionChooser .duration-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0}
+.desktop-refresh #sessionChooser .duration-options button{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;min-height:110px;padding:15px 8px;border:1px solid #d7e7ff;border-radius:15px;background:#f7fbff;color:#1645df;box-shadow:none}
+.desktop-refresh #sessionChooser .duration-options button strong{font-size:clamp(22px,2.1vw,30px)}.desktop-refresh #sessionChooser .duration-options button span{font-size:14px;color:#526ba2}.desktop-refresh #sessionChooser .duration-options button.selected{border:2px solid #1268ff;background:#eaf3ff}
+.desktop-refresh .today-start{display:flex;justify-content:center;align-items:center;gap:15px;width:100%;min-height:66px;margin-top:24px;border-radius:16px;font-size:21px;background:linear-gradient(110deg,#0875ff,#1768e9)}
+.desktop-refresh .today-desk{display:block;width:100%;height:310px;object-fit:cover;border-radius:20px}
+.desktop-refresh .today-shortcuts{width:100%;justify-self:stretch;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:22px}
+.desktop-refresh .today-shortcut{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-width:0;min-height:210px;overflow:hidden;padding:24px;border:1px solid #e7f0fb;border-radius:24px;background:#fff;box-shadow:var(--shadow);text-align:left;color:#10194c}
+.desktop-refresh .today-shortcut:hover{border-color:#b5d4ff;transform:translateY(-2px)}.desktop-refresh .today-shortcut > :not(.shortcut-art){position:relative;z-index:1}.desktop-refresh .today-shortcut strong{font-size:23px;line-height:1.2;margin-top:3px}.desktop-refresh .shortcut-description{font-size:16px;font-weight:400;color:#6075a4}
+.desktop-refresh .today-shortcut .home-icon{width:60px;height:60px;border-radius:17px}.desktop-refresh .today-shortcut .home-icon svg{width:32px;height:32px}.desktop-refresh .today-shortcut .shortcut-arrow{position:absolute;right:23px;top:28px;display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:#edf4ff;color:#0864ff;font-size:26px}
+.desktop-refresh .shortcut-art{position:absolute;bottom:-52px;right:-35px;width:210px;height:135px;border-radius:50%;transform:rotate(-18deg);background:linear-gradient(130deg,#eafaf7,#b8e5d7);opacity:.7}.desktop-refresh .tone-1 .shortcut-art{background:linear-gradient(130deg,#f4efff,#dcd1ff)}.desktop-refresh .tone-2 .shortcut-art{background:linear-gradient(130deg,#edfcff,#b2e9e7)}.desktop-refresh .tone-3 .shortcut-art{background:linear-gradient(130deg,#fff8e7,#ffdf9e)}
+@media(min-width:1151px){.desktop-refresh header{margin-top:16px;margin-inline:0;border:1px solid #e7f0fb;border-radius:24px}}
+@media(max-width:1050px){.desktop-refresh .today-hero{gap:22px;padding:26px}.desktop-refresh .today-desk{height:290px}.desktop-refresh .today-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}.desktop-refresh .today-shortcut{min-height:170px}}
+@media(max-width:700px){.desktop-refresh .today-hero{grid-template-columns:1fr;padding:22px;gap:20px}.desktop-refresh .today-session h2{font-size:28px;margin-bottom:20px}.desktop-refresh .today-desk{height:190px}.desktop-refresh #sessionChooser .duration-options{gap:8px}.desktop-refresh #sessionChooser .duration-options button{min-height:95px;padding:12px 5px}.desktop-refresh #sessionChooser .duration-options button span{font-size:12px}.desktop-refresh .today-start{min-height:56px;font-size:18px;margin-top:16px}.desktop-refresh .today-shortcuts{gap:12px}.desktop-refresh .today-shortcut{padding:18px;min-height:180px}.desktop-refresh .today-shortcut strong{font-size:19px}.desktop-refresh .shortcut-description{font-size:13px}.desktop-refresh .today-shortcut .home-icon{width:48px;height:48px}.desktop-refresh .today-shortcut .shortcut-arrow{right:13px;top:20px;width:30px;height:30px;font-size:21px}}
+@media(max-width:380px){.desktop-refresh .today-shortcuts{grid-template-columns:1fr}.desktop-refresh .today-shortcut{min-height:145px}}
   </style>
 </head>
 <body>
@@ -3387,42 +3406,11 @@
 
   <section class="session-flow view-section" id="homeView">
     <article class="panel session-chooser" id="sessionChooser">
-      <div class="desk-hero">
-        <div class="desk-hero-copy"><span class="home-eyebrow">TU ESPACIO DE ESTUDIO</span><h2>Hoy, un paso más</h2><p>Elige tu tiempo y sigue donde lo dejaste.</p><button class="home-hero-action" type="button" onclick="showView('progress')">Ver mi escritorio <span aria-hidden="true">→</span></button></div>
-        <div class="home-desk-preview next-ui" id="homeDeskPreview"></div>
-      </div>
-      <div class="home-session">
-        <div class="home-session-title"><span class="home-icon blue" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-13 5h2m4 0h2"/></svg></span><div><h3>Tu sesión de hoy</h3><p>¿Cuánto tiempo tienes?</p></div></div>
-        <div class="duration-options" role="group" aria-label="Duración de la sesión">
+<div class="today-hero"><div class="today-session"><h2>Sesión de hoy</h2>        <div class="duration-options" role="group" aria-label="Duración de la sesión">
           <button type="button" data-home-duration="15" onclick="selectHomeDuration(15)"><strong>15 min</strong><span>Repaso rápido</span></button>
           <button type="button" data-home-duration="30" onclick="selectHomeDuration(30)"><strong>30 min</strong><span>Estudio equilibrado</span></button>
           <button type="button" data-home-duration="45" onclick="selectHomeDuration(45)"><strong>45 min</strong><span>Sesión completa</span></button>
-        </div>
-        <button class="primary home-start" type="button" onclick="setSessionDuration(homeDuration)">Empezar sesión →</button>
-      </div>
-      <div class="home-grid">
-        <section class="home-card">
-          <div class="home-card-head"><span class="home-icon green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 6c-2.8-2-5.8-2.4-9-2v15c3.2-.4 6.2 0 9 2 2.8-2 5.8-2.4 9-2V4c-3.2-.4-6.2 0-9 2Zm0 0v15"/></svg></span><div><h3>Asignaturas</h3><p>Temas y ejercicios</p></div><button class="home-link" type="button" onclick="openLibrary()">Abrir →</button></div>
-          <div class="home-subjects">
-            <button type="button" onclick="openScopeLibrary('comunicacion')"><span aria-hidden="true">Aa</span>Comunicación</button>
-            <button type="button" onclick="openScopeLibrary('social')"><span aria-hidden="true">⌖</span>Social</button>
-            <button type="button" onclick="openScopeLibrary('cientifico')"><span aria-hidden="true">Σ</span>Científico-tecnológico</button>
-          </div>
-        </section>
-        <section class="home-card">
-          <div class="home-card-head"><span class="home-icon purple" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm8 0v5h4M9 12h6m-6 4h6"/></svg></span><div><h3>Exámenes</h3><p>Practica y corrige</p></div><button class="home-link" type="button" onclick="openModule('exam')">Abrir →</button></div>
-          <div class="home-exam-actions"><button type="button" onclick="openExamCorrection()">Ya tengo un examen: corregir por foto →</button></div>
-        </section>
-        <section class="home-card">
-          <div class="home-card-head"><span class="home-icon green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V4m0 16h16M8 16l4-4 3 2 5-7"/></svg></span><div><h3>Progreso</h3><p>Mira tus avances</p></div><button class="home-link" type="button" onclick="showView('progress')">Abrir →</button></div>
-          <div class="home-meter"><div class="home-meter-track"><span id="homeProgressBar"></span></div><strong id="homeProgressPct">0%</strong></div>
-          <button class="home-next" type="button" onclick="continueProgress()"><span><strong>Siguiente paso</strong><small id="homeNextText">Busca tu próximo tema.</small></span><span aria-hidden="true">→</span></button>
-        </section>
-        <section class="home-card">
-          <div class="home-card-head"><span class="home-icon gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 9 9-5 9 5-9 5-9-5Zm2 4 7 4 7-4M5 17l7 4 7-4"/></svg></span><div><h3>Recursos</h3><p>Temario oficial</p></div><button class="home-link" type="button" onclick="openLibrary('resources')">Abrir →</button></div>
-          <div class="home-resources"><button type="button" onclick="openLibrary('resources')">Temario y recursos oficiales <span aria-hidden="true">→</span></button><button type="button" onclick="openLibrary('resources')">Modelos de prueba y enlaces <span aria-hidden="true">→</span></button></div>
-        </section>
-      </div>
+        </div><button class="primary today-start" type="button" onclick="setSessionDuration(homeDuration)">Empezar sesión <span aria-hidden="true">→</span></button></div><img class="today-desk" src="assets/landing/eso-study-desk.png" alt="Escritorio de estudio con luz natural, portátil y plantas" width="1672" height="941"></div><div class="today-shortcuts" aria-label="Accesos rápidos"><button class="today-shortcut tone-0" type="button" onclick="openLibrary()"><span class="home-icon green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 6c-2.8-2-5.8-2.4-9-2v15c3.2-.4 6.2 0 9 2 2.8-2 5.8-2.4 9-2V4c-3.2-.4-6.2 0-9 2Zm0 0v15"/></svg></span><span class="shortcut-arrow" aria-hidden="true">→</span><strong>Asignaturas</strong><span class="shortcut-description">Temas y ejercicios</span><span class="shortcut-art" aria-hidden="true"></span></button><button class="today-shortcut tone-1" type="button" onclick="openModule('exam')"><span class="home-icon purple" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm8 0v5h4M9 12h6m-6 4h6"/></svg></span><span class="shortcut-arrow" aria-hidden="true">→</span><strong>Exámenes</strong><span class="shortcut-description">Practica y corrige</span><span class="shortcut-art" aria-hidden="true"></span></button><button class="today-shortcut tone-2" type="button" onclick="showView('progress')"><span class="home-icon green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V4m0 16h16M8 16l4-4 3 2 5-7"/></svg></span><span class="shortcut-arrow" aria-hidden="true">→</span><strong>Progreso</strong><span class="shortcut-description">Mira tus avances</span><span class="shortcut-art" aria-hidden="true"></span></button><button class="today-shortcut tone-3" type="button" onclick="openLibrary('resources')"><span class="home-icon gold" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 9 9-5 9 5-9 5-9-5Zm2 4 7 4 7-4M5 17l7 4 7-4"/></svg></span><span class="shortcut-arrow" aria-hidden="true">→</span><strong>Recursos</strong><span class="shortcut-description">Temario oficial</span><span class="shortcut-art" aria-hidden="true"></span></button></div>
     </article>
     <article class="panel session-plan" id="sessionPlan" hidden>
       <div class="session-plan-head"><button class="icon-button" type="button" onclick="clearSessionDuration()" aria-label="Cambiar tiempo" title="Cambiar tiempo">&larr;</button><div><span class="pill" id="sessionDurationPill">15 minutos</span><h2 id="sessionPlanTitle">Tu plan de hoy</h2><p id="sessionPlanText"></p></div></div>
