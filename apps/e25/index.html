@@ -3364,6 +3364,11 @@
 @media(max-width:1050px){.exam-entry-cards{grid-template-columns:1fr 1fr}.exam-wizard-grid{grid-template-columns:1fr 1fr}.exam-ready{grid-column:1/-1}.exam-ready-art{display:none}}
 @media(max-width:650px){.exam-entry-cards{grid-template-columns:1fr}.exam-wizard{padding:15px}.exam-wizard-grid{grid-template-columns:1fr;gap:14px}.exam-ready{grid-column:auto}.exam-entry-cards button{min-height:80px}.exam-models-link small{font-size:12px}}
 .desktop-refresh #workspace:has(.exam-redesign) #tabs{display:none}.desktop-refresh #workspace:has(.exam-redesign) .viewer{border:0;padding:12px 0;background:transparent}
+
+/* Perfil: identidad y acceso en dos columnas, con créditos reales. */
+.desktop-refresh #profilePanel{padding:0;margin-top:20px;overflow:hidden}.profile-layout{display:grid;grid-template-columns:.9fr 1.1fr}.profile-personal{padding:32px;border-right:1px solid #e6eef9}.profile-access{padding:28px}.profile-personal-heading{display:flex;align-items:center;gap:22px;margin-bottom:24px}.profile-personal-heading h2{margin:0;color:#10194c;font-size:30px}.profile-personal-heading p{margin:7px 0;color:#6075a4;font-size:14px}.desktop-refresh .profile-personal .profile-avatar{width:100px;height:100px;flex-shrink:0;border-radius:50%;background:#e9f2ff;border:7px solid #f5f9ff;color:#1677ff;font-size:42px;display:grid;place-items:center}.desktop-refresh .profile-personal .profile-name-row{display:grid;grid-template-columns:1fr;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid #e6eef9}.profile-name-row label{font-size:14px;font-weight:700;color:#142b50}.profile-personal input{width:100%;min-width:0}.profile-personal .profile-message{min-height:22px;margin-top:12px;font-size:14px}.profile-session-notice{display:flex;gap:16px;padding:20px;background:#f4f9ff;border-radius:16px;margin-top:16px}.profile-session-notice>span{color:#1677ff;font-size:26px}.profile-session-notice strong{font-size:14px}.profile-session-notice p{font-size:13px;color:#6075a4;line-height:1.6;margin:7px 0 0}.desktop-refresh .profile-access .profile-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 20px}.profile-access .profile-stat{display:flex;flex-direction:column;gap:12px;align-items:flex-start;padding:18px 14px;border:1px solid #edf3fb;border-radius:14px;background:#f2f7ff;min-width:0}.profile-access .profile-stat:nth-child(2){background:#fffaf1}.profile-access .profile-stat:nth-child(3){background:#f0fbf6}.profile-stat>span{font-size:11px;color:#6075a4;font-weight:700}.profile-access .profile-stat strong{font-size:21px;color:#10194c;overflow-wrap:anywhere}.profile-stat small{font-size:11px;color:#6075a4;line-height:1.5}.profile-access-summary{display:flex;align-items:flex-start;gap:18px;padding:22px;border:1px solid #e0ebfa;border-radius:16px;margin-bottom:18px}.profile-access-summary h3{margin:0;font-size:19px;color:#10194c}.profile-access-summary p{font-size:14px;color:#6075a4;line-height:1.6;margin:8px 0}.profile-access-summary strong{color:#16866b;font-size:14px}.profile-access-symbol{display:grid;place-items:center;flex-shrink:0;width:48px;height:48px;border-radius:50%;color:#1677ff;background:#edf5ff;font-size:25px}.profile-access .document-settings{border:1px solid #e0ebfa;border-radius:16px;padding:18px;margin:0}.profile-access .document-settings summary{font-size:18px;font-weight:700;color:#142b50;cursor:pointer}.profile-access .document-manager{display:grid;gap:12px;margin-top:18px}.profile-access .document-manager h3{font-size:16px}.profile-access .document-manager p{font-size:13px;line-height:1.6}.profile-access .profile-utility{display:flex;justify-content:center;padding-top:20px;margin-top:20px;border-top:1px solid #e6eef9}.profile-access .profile-utility button{color:#1768d2;background:white;border:1px solid #d9e7fa;box-shadow:none}
+@media(max-width:900px){.profile-layout{grid-template-columns:1fr}.profile-personal{border-right:0;border-bottom:1px solid #e6eef9}.profile-personal,.profile-access{padding:24px}}
+@media(max-width:500px){.profile-personal-heading{gap:15px}.profile-personal-heading h2{font-size:25px}.desktop-refresh .profile-personal .profile-avatar{width:75px;height:75px;font-size:32px}.desktop-refresh .profile-access .profile-grid{grid-template-columns:1fr}.profile-access .profile-stat{padding:16px}.profile-access-summary{padding:16px}}
   </style>
 </head>
 <body>
@@ -3387,20 +3392,9 @@
   </header>
 
   <section class="panel profile-panel" id="profilePanel" hidden>
-    <div class="profile-card">
-      <div class="profile-avatar" id="profileAvatar">E</div>
-      <div>
-        <div class="profile-title" id="profileName">Cuenta ESO Adultos</div>
-        <p class="profile-subtitle" id="profileSubtitle">Gestiona tu nombre visible, tu acceso y el consumo mensual de esta cuenta.</p>
-        <div class="profile-name-row">
-          <input id="profileNameInput" maxlength="90" placeholder="Nombre visible">
-          <button class="primary" type="button" onclick="saveProfileName()">Guardar nombre</button>
-        </div>
-        <div class="profile-grid">
-          <div class="profile-stat"><span>Uso mensual</span><strong id="profileUsage">-</strong></div>
-          <div class="profile-stat"><span>Caduca</span><strong id="profileExpiry">-</strong></div>
-          <div class="profile-stat"><span>Estado</span><strong id="profileStatus">-</strong></div>
-        </div>
+    <div class="profile-layout">
+      <div class="profile-personal"><div class="profile-personal-heading"><div class="profile-avatar" id="profileAvatar">E</div><div><h2>Mi perfil</h2><p>Gestiona tu cuenta y tu acceso.</p></div></div><div class="profile-title" id="profileName">Cuenta ESO Adultos</div><p class="profile-subtitle" id="profileSubtitle">Comprobando cuenta…</p><div class="profile-name-row"><label for="profileNameInput">Nombre visible</label><input id="profileNameInput" maxlength="90" placeholder="Nombre visible" autocomplete="name"><button class="primary" type="button" onclick="saveProfileName()">Guardar nombre</button></div><div class="profile-message" id="profileMessage" role="status" aria-live="polite"></div><div class="profile-session-notice"><span aria-hidden="true">◎</span><div><strong>Tu cuenta de ESO Adultos</strong><p>El nombre se actualiza en tu cuenta. Tus contenidos y avances se conservan.</p></div></div></div>
+      <div class="profile-access"><div class="profile-grid"><div class="profile-stat"><span>Créditos gastados</span><strong id="profileUsage">—</strong><small id="profileUsageDetail">Comprobando consumo</small></div><div class="profile-stat"><span>Caduca</span><strong id="profileExpiry">—</strong><small>Fecha de fin de tu acceso</small></div><div class="profile-stat"><span>Estado</span><strong id="profileStatus">—</strong><small id="profileStatusDetail">Comprobando acceso</small></div></div><section class="profile-access-summary"><span class="profile-access-symbol" aria-hidden="true">✓</span><div><h3>Mi acceso</h3><p id="profileAccessText">Comprobando los datos de tu cuenta.</p><strong id="profileAvailable">—</strong></div></section>
         <details class="document-settings">
           <summary>Drive</summary>
           <div class="document-manager">
@@ -3416,8 +3410,8 @@
           <div class="drive-status" id="driveStatus">Drive pendiente de comprobar.</div>
           </div>
         </details>
-        <div class="profile-utility"><button type="button" onclick="logout()">Cerrar sesion</button></div>
-        <div class="profile-message" id="profileMessage"></div>
+        <div class="profile-utility"><button type="button" onclick="logout()">Cerrar sesión</button></div>
+        
       </div>
     </div>
   </section>
@@ -6368,7 +6362,7 @@ function profileInitial() {
 }
 function renderProfile() {
   const name = profileDisplayName();
-  const email = currentUser?.email || currentUser?.username || 'Sesion iniciada';
+  const email = currentUser?.email || currentUser?.username || 'Datos de cuenta no disponibles';
   const quota = Number(currentUser?.monthly_quota || 0);
   const usage = Number(currentUser?.usage_month || 0);
   const expires = formatDate(currentUser?.expires_at);
@@ -6378,9 +6372,19 @@ function renderProfile() {
   if ($('profileName')) $('profileName').textContent = name === 'Perfil' ? 'Cuenta ESO Adultos' : name;
   if ($('profileSubtitle')) $('profileSubtitle').textContent = email;
   if ($('profileNameInput')) $('profileNameInput').value = name === 'Perfil' ? '' : name;
-  if ($('profileUsage')) $('profileUsage').textContent = quota ? `${usage}/${quota}` : String(usage);
+  const total = Number(currentUser?.total_credits ?? quota);
+  const used = Number(currentUser?.used_credits ?? usage);
+  const unlimited = currentUser?.unlimited_credits === true || (currentUser && total === 0);
+  const available = Number(currentUser?.available_credits ?? Math.max(total-used,0));
+  const expired = currentUser?.expires_at && new Date(currentUser.expires_at).getTime() <= Date.now();
+  const active = Boolean(currentUser && ['active','activo'].includes(String(currentUser.status).toLowerCase()) && !expired);
+  if ($('profileUsage')) $('profileUsage').textContent = currentUser ? String(used) : '—';
+  if ($('profileUsageDetail')) $('profileUsageDetail').textContent = currentUser ? unlimited ? 'Sin límite de créditos' : `De ${total} créditos totales` : 'Datos no disponibles';
+  if ($('profileAvailable')) $('profileAvailable').textContent = currentUser ? unlimited ? 'Créditos sin límite' : `${available} créditos disponibles` : 'No se ha podido consultar la cuenta';
+  if ($('profileAccessText')) $('profileAccessText').textContent = active ? 'Tu acceso está activo. Consulta tus materias y continúa estudiando.' : currentUser ? 'Tu acceso no está activo. Comprueba el estado y la fecha de caducidad.' : 'Los datos se mostrarán al conectar con tu cuenta.';
+  if ($('profileStatusDetail')) $('profileStatusDetail').textContent = active ? 'Acceso a ESO Adultos' : 'Revisa tu acceso';
   if ($('profileExpiry')) $('profileExpiry').textContent = expires;
-  if ($('profileStatus')) $('profileStatus').textContent = currentUser?.status || 'Activo';
+  if ($('profileStatus')) $('profileStatus').textContent = !currentUser ? 'Sin datos' : expired ? 'Caducado' : active ? 'Activo' : ({suspended:'Suspendido',revoked:'Revocado',expired:'Caducado'}[currentUser.status] || currentUser.status || 'Sin datos');
   if ($('driveFolderInput')) $('driveFolderInput').value = currentUser?.drive_folder_id || '';
   updateDriveUi(Boolean(currentUser?.drive_connected), currentUser?.drive_folder_id || '');
 }
