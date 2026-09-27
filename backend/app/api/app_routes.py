@@ -6,7 +6,7 @@ import os
 import re
 from decimal import Decimal
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -828,6 +828,52 @@ def save_local_document(payload: dict, user: User = Depends(current_user), _: Li
     db.add(Document(organization_id=user.organization_id, user_id=user.id, filename=filename, storage_path=str(target)))
     db.commit()
     return {"ok": True, "filename": filename, "path": str(target)}
+
+
+@router.post("/api/profesor/materials")
+def upload_profesor_material(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    if license_obj.product_code != "PROFESOR_PARTICULAR":
+        raise HTTPException(403, "Requiere acceso a Profesor Particular.")
+    filename = safe_document_name(str(payload.get("filename") or "material"))[:200]
+    suffix = Path(filename).suffix.lower()
+    if suffix not in {".pdf", ".docx", ".png", ".jpg", ".jpeg", ".webp", ".txt"}:
+        raise HTTPException(422, "Admite PDF, DOCX, imágenes PNG/JPG/WebP y TXT.")
+    encoded = payload.get("base64")
+    if not isinstance(encoded, str) or len(encoded) > 11_184_812:
+        raise HTTPException(413, "El archivo no puede superar 8 MB.")
+    try:
+        raw = base64.b64decode(encoded, validate=True)
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(422, "Archivo no válido.") from exc
+    if not raw or len(raw) > 8 * 1024 * 1024:
+        raise HTTPException(413, "El archivo debe contener datos y no superar 8 MB.")
+    root = LOCAL_DOCUMENT_DIR / str(user.organization_id) / str(user.id) / "profesor_materials"
+    root.mkdir(parents=True, exist_ok=True)
+    document_id = uuid4()
+    target = root / f"{document_id}{suffix}"
+    target.write_bytes(raw)
+    row = Document(id=document_id, organization_id=user.organization_id, user_id=user.id, filename=filename, storage_path=str(target))
+    try:
+        db.add(row)
+        db.commit()
+    except Exception:
+        target.unlink(missing_ok=True)
+        raise
+    return {"id": str(document_id), "filename": filename, "size": len(raw)}
+
+
+@router.get("/api/profesor/materials/{document_id}")
+def download_profesor_material(document_id: UUID, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    if license_obj.product_code != "PROFESOR_PARTICULAR":
+        raise HTTPException(403, "Requiere acceso a Profesor Particular.")
+    row = db.get(Document, document_id)
+    if not row or row.user_id != user.id or row.organization_id != user.organization_id:
+        raise HTTPException(404, "Material no encontrado.")
+    root = (LOCAL_DOCUMENT_DIR / str(user.organization_id) / str(user.id) / "profesor_materials").resolve()
+    target = Path(row.storage_path).resolve()
+    if not target.is_relative_to(root) or not target.is_file():
+        raise HTTPException(404, "Material no encontrado.")
+    return FileResponse(target, filename=row.filename, media_type="application/octet-stream", headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "private, no-store"})
 
 
 @router.post("/api/drive/upload-document")

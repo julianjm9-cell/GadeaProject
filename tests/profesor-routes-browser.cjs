@@ -22,16 +22,16 @@ const base=process.env.PROFESOR_TEST_URL||'http://127.0.0.1:8891';
   await page.locator('#nav').getByRole('button',{name:'Clases',exact:true}).click();
   await page.getByLabel('Filtrar clases').selectOption('Finalizada');
   await page.getByText('No hay clases en esta vista.').waitFor();
-  await page.getByRole('button',{name:/Ver pendientes/}).click();
-  await page.getByRole('heading',{name:'Tus pendientes'}).waitFor();
-  await page.locator('#dialog').getByRole('button',{name:/Preparar clase de Lucía/}).click();
-  await page.getByRole('heading',{name:'Preparar · Lucía Martín'}).waitFor();
+  await page.getByRole('button',{name:/Ver mis tareas/}).click();
+  await page.getByRole('heading',{name:'Mis tareas',exact:true}).waitFor();
+  await page.locator('#dialog').getByRole('button',{name:'Editar',exact:true}).first().click();
+  await page.getByRole('heading',{name:'Editar tarea'}).waitFor();
   await page.getByRole('button',{name:'Cerrar',exact:true}).click();
   await page.setViewportSize({width:390,height:844});
   await page.locator('#nav').getByRole('button',{name:'Inicio',exact:true}).click();
   await page.screenshot({path:'tools/profesor-home-mobile.png',fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
-  for(const name of ['Alumnos','Clases','Biblioteca','Calendario','IA']){
+  for(const name of ['Alumnos','Clases','Biblioteca','Calendario','Cobros','IA']){
    await page.locator('#nav').getByRole('button',{name,exact:true}).click();
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false,`Overflow: ${name}`);
   }

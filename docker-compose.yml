@@ -32,6 +32,8 @@ services:
         condition: service_healthy
     ports:
       - "8890:8000"
+    volumes:
+      - educa_suite_documents:/app/data/documents
     networks:
       - suite_internal
     healthcheck:
@@ -78,6 +80,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  educa_suite_documents:
   educa_suite_postgres:
   caddy_data:
   caddy_config:

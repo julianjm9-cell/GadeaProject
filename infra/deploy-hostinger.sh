@@ -36,8 +36,16 @@ test -s "$BACKUP_DIR/database.dump.partial"
 docker compose exec -T postgres pg_restore --list < "$BACKUP_DIR/database.dump.partial" > /dev/null
 mv -- "$BACKUP_DIR/database.dump.partial" "$BACKUP_DIR/database.dump"
 printf 'Copia verificada: %s\n' "$BACKUP_DIR"
+if [[ -n "$(docker compose ps -q backend)" ]]; then
+  docker compose exec -T backend python -c 'import io, pathlib, sys, tarfile; root=pathlib.Path("/app/data/documents"); archive=tarfile.open(fileobj=sys.stdout.buffer, mode="w|"); archive.add(root, arcname="documents") if root.exists() else None; archive.close()' > "$BACKUP_DIR/documents.tar"
+fi
 
 printf '\n[3/5] Aplicando migraciones…\n'
+if [[ -f "$BACKUP_DIR/documents.tar" ]]; then
+  # On first deployment of the persistent volume, recover existing container files.
+  # A populated volume is already current and must not be overwritten by a backup.
+  docker compose run --rm --no-deps -T backend python -c 'import pathlib,sys,tarfile; root=pathlib.Path("/app/data/documents"); empty=not root.exists() or not any(root.iterdir()); tarfile.open(fileobj=sys.stdin.buffer,mode="r|").extractall(path="/app/data",filter="data") if empty else sys.stdin.buffer.read()' < "$BACKUP_DIR/documents.tar"
+fi
 docker compose run --rm --no-deps backend alembic upgrade head
 
 printf '\n[4/5] Actualizando los servicios…\n'

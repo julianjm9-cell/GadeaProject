@@ -36,7 +36,7 @@ const path=require('node:path');
   await page.getByRole('button',{name:'Asignar actividad'}).click();
   await page.locator('#nav').getByRole('button',{name:'Alumnos'}).click();
   await page.getByLabel('Buscar alumno',{exact:true}).fill('Alumno prueba');
-  await page.getByRole('button',{name:'Abrir',exact:true}).click();
+  await page.getByRole('button',{name:'Abrir espacio',exact:true}).click();
   await page.getByRole('button',{name:'Actividades',exact:true}).click();
   await page.getByRole('button',{name:'Abrir actividad'}).click();
   await page.getByLabel('Respuesta del alumno').fill('3');

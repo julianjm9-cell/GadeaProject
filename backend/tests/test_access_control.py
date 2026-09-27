@@ -201,6 +201,38 @@ def test_deployment_smoke_check_routes(client, monkeypatch):
     deployment_check.check_deployment()
 
 
+def test_profesor_material_files_are_private_and_persistent(client, monkeypatch, tmp_path):
+    import base64
+    test_client, db_factory = client
+    monkeypatch.setattr(app_routes, "LOCAL_DOCUMENT_DIR", tmp_path)
+    seed_user(db_factory, product_codes=("PROFESOR_PARTICULAR", "ESO_ADULTOS"))
+    login(test_client)
+    payload = {"filename": "apuntes.txt", "base64": base64.b64encode(b"Practicar ecuaciones").decode()}
+    upload = test_client.post("/api/profesor/materials?app=profesor_particular", json=payload)
+    assert upload.status_code == 200
+    url = f'/api/profesor/materials/{upload.json()["id"]}?app=profesor_particular'
+    download = test_client.get(url)
+    assert download.status_code == 200
+    assert download.content == b"Practicar ecuaciones"
+    assert "attachment" in download.headers["content-disposition"]
+    assert download.headers["x-content-type-options"] == "nosniff"
+    assert test_client.post("/api/profesor/materials?app=eso_adultos", json=payload).status_code == 403
+    seed_user(db_factory, email="otro-profesor@example.com", product_codes=("PROFESOR_PARTICULAR",))
+    login(test_client, email="otro-profesor@example.com")
+    assert test_client.get(url).status_code == 404
+    assert test_client.get(url.replace("profesor_particular", "eso_adultos")).status_code == 402
+
+
+def test_profesor_rejects_invalid_materials(client, monkeypatch, tmp_path):
+    test_client, db_factory = client
+    monkeypatch.setattr(app_routes, "LOCAL_DOCUMENT_DIR", tmp_path)
+    seed_user(db_factory, product_codes=("PROFESOR_PARTICULAR",))
+    login(test_client)
+    for payload, code in [({"filename": "script.html", "base64": "YQ=="}, 422), ({"filename": "foto.png", "base64": "bad!"}, 422), ({"filename": "texto.txt", "base64": ""}, 413), ({"filename": "texto.txt", "base64": "A" * 11_184_813}, 413)]:
+        assert test_client.post("/api/profesor/materials?app=profesor_particular", json=payload).status_code == code
+    assert not list(tmp_path.rglob("*"))
+
+
 def test_eso_gamification_reward_is_idempotent(client):
     test_client, db_factory = client
     seed_user(db_factory, product_codes=("ESO_ADULTOS",))

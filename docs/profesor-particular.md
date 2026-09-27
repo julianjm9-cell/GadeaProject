@@ -1,6 +1,6 @@
 # Profesor Particular
 
-Aplicación de la suite renovada a partir de la referencia visual aportada: menú lateral, barra de búsqueda, paleta azul clara, tarjetas compactas y un inicio organizado en clases de hoy, pendientes, semana y alumnos. En móvil, la navegación pasa a una barra inferior.
+Aplicación de la suite con estética azul clara inspirada en ESO Adultos. El inicio da protagonismo a los alumnos, con tarjetas visuales y búsqueda; debajo aparecen próximas clases, tareas personales y calendario. En móvil, la navegación pasa a una barra inferior.
 
 ## Acceso
 
@@ -12,7 +12,11 @@ Para revisar sin backend, abrir `apps/profesor/index.html` o servirlo con `?demo
 
 ## Primera versión implementada
 
-- Inicio con clases de hoy, pendientes accionables, calendario semanal, alumnos y accesos a la IA.
+- Inicio con alumnos destacados, próximas clases preparables, calendario semanal y accesos a la IA, biblioteca y cobros.
+- Tareas personales: crear, editar, ordenar, completar y reabrir; alumno, fecha y prioridad opcionales.
+- Resumen por alumno y asignatura: último trabajo, aspectos a reforzar y próximo paso. Preparación contextual con notas de la última clase y actividades pendientes.
+- Archivos PDF, DOCX, imágenes y TXT de hasta 8 MB, privados por alumno o reutilizables desde la biblioteca. Descarga autenticada y almacenamiento persistente en Docker; en demo, IndexedDB local.
+- Cobros manuales: tarifas por alumno, importe por clase, registro y reversión de cobros, bonos pagados y consumo de sesiones. Sin pasarela de pago.
 - Buscador global con destinos reales para alumnos, clases y recursos; historial de navegación y enlaces internos.
 - Vista global de clases con filtros, búsqueda de biblioteca, cuenta del profesor y cierre de sesión.
 - Registro con email/contraseña y Google cuando está configurado; cuentas existentes conservadas.
@@ -28,7 +32,7 @@ Para revisar sin backend, abrir `apps/profesor/index.html` o servirlo con `?demo
 
 ## Límites de esta entrega
 
-Es una primera versión operativa para el profesor. La miniapp del alumno es un espacio dentro de su cuenta, no un portal con credenciales propias. Las entregas se registran durante una sesión supervisada. El acceso independiente de alumnos, fotos/archivos/audio, currículo completo por curso, calendario mensual, juegos avanzados, pagos e integraciones externas quedan para siguientes fases del documento. Los currículos iniciales son ejemplos de objetivos editables en estado, no un catálogo oficial completo. La generación de clase con IA devuelve un bloque de texto editable; el profesor puede dividirlo manualmente en bloques adicionales.
+La miniapp del alumno es un espacio dentro de la cuenta del profesor, no un portal con credenciales propias. Las entregas se registran durante una sesión supervisada. El acceso independiente de alumnos, audio, currículo completo por curso, calendario mensual, juegos avanzados, cobro online e integraciones externas quedan para siguientes fases. Los currículos iniciales son ejemplos de objetivos editables en estado, no un catálogo oficial completo. La generación de clase con IA devuelve un bloque de texto editable; el profesor puede dividirlo manualmente en bloques adicionales.
 
 La demo no simula respuestas de IA. En una cuenta real hace falta configurar un proveedor y disponer de créditos. No se ha realizado una llamada de pago como parte de la validación.
 
@@ -38,7 +42,7 @@ La demo no simula respuestas de IA. En una cuenta real hace falta configurar un 
 
 Las pruebas de integración de producto se encuentran en `backend/tests/test_access_control.py` y usan base de datos SQLite en memoria.
 
-Validación de esta entrega: recorrido de navegador correcto en escritorio y móvil; 68 pruebas de acceso y registro; cuatro pruebas existentes de inicio de ESO Adultos correctas. La imagen Docker incluye el archivo nuevo, pero no se ha construido en esta sesión porque el motor Docker no estaba disponible.
+`node tests/profesor-workspace-browser.cjs` verifica tareas, resúmenes, preparación contextual, archivos, tarifas, cobros, bonos, persistencia y adaptación móvil. Las 71 pruebas de acceso y registro incluyen aislamiento de archivos entre profesores y validación de subidas. Docker y el despliegue en Hostinger requieren validación en el servidor; no se han ejecutado en esta revisión.
 
 ## Configuración de registro
 
