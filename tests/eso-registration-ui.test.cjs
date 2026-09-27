@@ -21,7 +21,7 @@ function page() {
     }
   });
   const source = fs.readFileSync(path.join(__dirname, '../backend/app/static/login.html'), 'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
-  vm.runInContext(source.replace('applyLoginBrand();\napplyLoginLinks();\nloadSignupSettings();', ''), context);
+  vm.runInContext(source.replace(/applyLoginBrand\(\);\r?\napplyLoginLinks\(\);\r?\nloadSignupSettings\(\);/, ''), context);
   return { get, location, calls, run: code => vm.runInContext(code, context) };
 }
 

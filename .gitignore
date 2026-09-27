@@ -11,6 +11,7 @@ tools/
 *.log
 *.tmp
 backups/
+.deploy-hostinger.lock
 license_server/.env
 license_server/data/
 .env

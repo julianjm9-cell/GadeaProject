@@ -5,7 +5,7 @@ Revises: 0002_app_settings
 Create Date: 2026-07-15
 """
 
-from alembic import op
+from alembic import context, op
 import sqlalchemy as sa
 
 
@@ -16,12 +16,22 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("users", sa.Column("google_sub", sa.String(255), nullable=True))
-    op.add_column("users", sa.Column("google_picture", sa.String(500), nullable=True))
-    op.add_column("users", sa.Column("drive_refresh_token", sa.Text(), nullable=True))
-    op.add_column("users", sa.Column("drive_folder_id", sa.String(255), nullable=True))
-    op.add_column("users", sa.Column("drive_connected_at", sa.DateTime(timezone=True), nullable=True))
-    op.create_index("ix_users_google_sub", "users", ["google_sub"], unique=True)
+    # Older app versions create these fields at startup before Alembic runs.
+    inspector = None if context.is_offline_mode() else sa.inspect(op.get_bind())
+    existing = {column["name"] for column in inspector.get_columns("users")} if inspector else set()
+    columns = (
+        sa.Column("google_sub", sa.String(255), nullable=True),
+        sa.Column("google_picture", sa.String(500), nullable=True),
+        sa.Column("drive_refresh_token", sa.Text(), nullable=True),
+        sa.Column("drive_folder_id", sa.String(255), nullable=True),
+        sa.Column("drive_connected_at", sa.DateTime(timezone=True), nullable=True),
+    )
+    for column in columns:
+        if column.name not in existing:
+            op.add_column("users", column)
+    indexes = {index["name"] for index in inspector.get_indexes("users")} if inspector else set()
+    if "ix_users_google_sub" not in indexes:
+        op.create_index("ix_users_google_sub", "users", ["google_sub"], unique=True)
 
 
 def downgrade() -> None:

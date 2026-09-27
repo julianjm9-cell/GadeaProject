@@ -181,6 +181,7 @@
         <div class="nav-label">Apps</div>
         <button data-view="universidad" onclick="setView('universidad')"><span class="nav-icon"><img src="assets/brand/u25-simple.png" alt=""></span>Universidad +25</button>
         <button data-view="eso" onclick="setView('eso')"><span class="nav-icon"><img src="assets/brand/eso-simple.png" alt=""></span>ESO Adultos</button>
+        <button data-view="profesor" onclick="setView('profesor')"><span class="nav-icon" aria-hidden="true">p.</span>Profesor Particular</button>
         <button data-view="cambridge" onclick="setView('cambridge')"><span class="nav-icon"><img src="assets/brand/ingles-simple.png" alt=""></span>Titulo de ingles</button>
         <button data-view="diplomator" onclick="setView('diplomator')"><span class="nav-icon"><img src="assets/brand/diplomator-simple.png" alt=""></span>Diplomator</button>
       </div>
@@ -196,7 +197,7 @@
     <section id="view-overview" class="card screen-card">
       <div class="head"><div><h2>Resumen</h2><p class="muted">Estado actual de las aplicaciones.</p></div><button onclick="loadAll()">Actualizar</button></div>
       <div class="grid four" id="globalMetrics"></div>
-      <p class="overview-note">Para añadir o editar un alumno, elige su aplicación en el menú de la izquierda.</p>
+      <p class="overview-note">Para añadir o editar una cuenta, elige su aplicación en el menú de la izquierda.</p>
     </section>
 
     <section id="view-app" class="card screen-card" hidden>
@@ -207,7 +208,7 @@
       <div class="grid three" id="appMetrics"></div>
       <div class="app-toolbar"><div><h3>Alumnos de esta aplicación</h3><p class="muted">El gasto es real; el saldo se calcula automáticamente.</p></div><div class="section-actions"><input id="appUserSearch" aria-label="Buscar alumno en esta aplicación" placeholder="Buscar alumno..." oninput="renderApp()"><button class="primary" type="button" onclick="toggleCreateUser()">+ Añadir alumno</button></div></div>
       <form id="createUserForm" class="app-form" onsubmit="createAppUser(event)" hidden>
-        <div class="head"><div><h3>Añadir alumno a <span id="createAppName"></span></h3><p class="muted">Si el correo ya existe, se conserva su cuenta y se añade acceso a esta app.</p></div><button type="button" onclick="toggleCreateUser(false)">Cerrar</button></div>
+        <div class="head"><div><h3><span id="createAccountLabel">Añadir alumno a</span> <span id="createAppName"></span></h3><p class="muted">Si el correo ya existe, se conserva su cuenta y se añade acceso a esta app.</p></div><button type="button" onclick="toggleCreateUser(false)">Cerrar</button></div>
         <div class="form-grid">
           <div class="row"><div><label for="newEmail">Correo electrónico</label><input id="newEmail" type="email" required placeholder="alumno@email.com" oninput="updateCreateAccountHint()"></div><div><label for="newName">Nombre</label><input id="newName" placeholder="Nombre del alumno"></div></div>
           <p class="muted" id="newAccountHint">Si es una cuenta nueva, indica una contraseña inicial.</p>
@@ -262,6 +263,7 @@
 <div id="toast" class="toast"></div>
 <script>
 const PRODUCTS=[
+  {key:'profesor',code:'PROFESOR_PARTICULAR',short:'PP',label:'Profesor Particular',public:'/profesor',app:'/profesor-particular',org:'Educa Suite - Profesor Particular',icon:'assets/brand/profesor.svg'},
   {key:'universidad',code:'UNIVERSIDAD_ADULTOS',short:'U25',label:'Universidad +25',public:'/u25',app:'/universidad-adultos',org:'Educa Suite - Universidad +25',icon:'assets/brand/u25-simple.png'},
   {key:'eso',code:'ESO_ADULTOS',short:'E25',label:'ESO Adultos',public:'/e25',app:'/eso-adultos',org:'Educa Suite - ESO Adultos',icon:'assets/brand/eso-simple.png'},
   {key:'cambridge',code:'CAMBRIDGE',short:'CAM',label:'Titulo de ingles',public:'/cambridge-info',app:'/cambridge',org:'Educa Suite - Cambridge',icon:'assets/brand/ingles-simple.png'},
@@ -296,9 +298,9 @@ function renderOverview(){
   const capabilities=ai?.capabilities||[];
   const ready=capabilities.filter(capability=>capability.configured).length;
   $('globalMetrics').innerHTML=
-    metric('Alumnos activos',activeUsers,`${accounts.length} cuentas registradas`)+
-    metric('Accesos activos',activeAccesses.length,'Suma de las cuatro apps')+
-    metric('Créditos gastados',used,'Consumo registrado por alumno y app')+
+    metric('Usuarios activos',activeUsers,`${accounts.length} cuentas registradas`)+
+    metric('Accesos activos',activeAccesses.length,`Suma de las ${PRODUCTS.length} apps`)+
+    metric('Créditos gastados',used,'Consumo registrado por cuenta y app')+
     metric('IA',`${ready} / ${capabilities.length||4}`,'Funciones con clave disponible');
 }
 function renderApp(){
@@ -310,17 +312,26 @@ function renderApp(){
   const active=accesses.filter(access=>access.effective_status==='active').length;
   const used=accesses.reduce((sum,access)=>sum+Number(access.used_credits||0),0);
   $('appTitle').textContent=product.label;
-  $('appSubtitle').textContent='Gestiona los alumnos y sus créditos en esta aplicación.';
+  const isTeacher=product.key==='profesor';
+  const accountLabel=isTeacher?'Profesores':'Alumnos';
+  $('appSubtitle').textContent=isTeacher?'Gestiona cuentas de profesores, accesos y créditos de IA.':'Gestiona los alumnos y sus créditos en esta aplicación.';
+  document.querySelector('.app-toolbar h3').textContent=accountLabel+' de esta aplicación';
+  document.querySelector('.app-toolbar .primary').textContent=isTeacher?'+ Añadir profesor':'+ Añadir alumno';
+  $('appUserSearch').placeholder=isTeacher?'Buscar profesor…':'Buscar alumno…';
+  $('appUserSearch').setAttribute('aria-label','Buscar '+(isTeacher?'profesor':'alumno')+' en esta aplicación');
   $('createAppName').textContent=product.label;
+  $('createAccountLabel').textContent=isTeacher?'Añadir profesor a':'Añadir alumno a';
+  $('newName').placeholder=isTeacher?'Nombre del profesor':'Nombre del alumno';
+  $('newEmail').placeholder=isTeacher?'profesor@email.com':'alumno@email.com';
   $('appPublicLink').href=product.public;
   $('appPrivateLink').href=product.app;
-  $('appMetrics').innerHTML=metric('Alumnos',rows.length,'Con acceso a esta app')+metric('Accesos activos',active,`${rows.length-active} inactivos`)+metric('Créditos gastados',used,'Suma del consumo de estos alumnos');
-  $('appUsersTable').innerHTML=table(['Alumno','Acceso','Registro','Total','Gastados','Disponibles',''],visible.map(account=>{
+  $('appMetrics').innerHTML=metric(accountLabel,rows.length,'Con acceso a esta app')+metric('Accesos activos',active,`${rows.length-active} inactivos`)+metric('Créditos gastados',used,'Suma del consumo de estas cuentas');
+  $('appUsersTable').innerHTML=table([isTeacher?'Profesor':'Alumno','Acceso','Registro','Total','Gastados','Disponibles',''],visible.map(account=>{
     const access=account.accesses.find(item=>item.product_code===product.code);
     return [
       `<td><strong>${esc(account.full_name||account.email)}</strong><br><span class="muted">${esc(account.email)}</span></td>`,
       `<td>${badge(access.effective_status==='active'?'active':'inactive')}</td>`,
-      `<td>${account.created_at?esc(new Date(account.created_at).toLocaleDateString('es-ES')):'—'}${access.plan==='ESO_FREE'?'<br><span class="muted">Registro gratuito</span>':''}</td>`,
+      `<td>${account.created_at?esc(new Date(account.created_at).toLocaleDateString('es-ES')):'—'}${['ESO_FREE','PROFESOR_FREE'].includes(access.plan)?'<br><span class="muted">Registro gratuito</span>':''}</td>`,
       `<td>${access.unlimited?'Sin límite':access.total_credits}</td>`,
       `<td>${access.used_credits}</td>`,
       `<td><strong>${accessCredits(access)}</strong></td>`,

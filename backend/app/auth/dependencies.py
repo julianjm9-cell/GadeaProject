@@ -51,6 +51,8 @@ def current_organization(user: User = Depends(current_user), db: Session = Depen
 
 def product_code_from_request(request: Request) -> str:
     raw = str(request.headers.get("x-client-app") or request.query_params.get("app") or "").strip().lower()
+    if raw in {"profesor_particular", "profesor-particular"} or request.url.path.startswith("/profesor-particular"):
+        return "PROFESOR_PARTICULAR"
     if raw in {"cambridge", "cambridgetrainer", "cambridge-trainer"} or request.url.path.startswith("/cambridge"):
         return "CAMBRIDGE"
     if raw in {"universidad_adultos", "universidad-adultos", "acceso-universidad-adultos", "adult_uni"} or request.url.path.startswith("/universidad-adultos"):
@@ -62,6 +64,7 @@ def product_code_from_request(request: Request) -> str:
 
 def license_prefix(product_code: str) -> str:
     return {
+        "PROFESOR_PARTICULAR": "PROFE",
         "CAMBRIDGE": "CAMB",
         "UNIVERSIDAD_ADULTOS": "U25",
         "ESO_ADULTOS": "E25",
@@ -70,7 +73,7 @@ def license_prefix(product_code: str) -> str:
 
 def current_license(request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)) -> License:
     product_code = product_code_from_request(request)
-    decision: LicenseDecision = check_access(db, user, product_code, require_credits=product_code != "ESO_ADULTOS")
+    decision: LicenseDecision = check_access(db, user, product_code, require_credits=product_code not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR"})
     if decision.ok and not decision.license and user.role == "superadmin":
         now = utcnow()
         license_obj = License(

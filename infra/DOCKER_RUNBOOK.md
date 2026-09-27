@@ -36,6 +36,16 @@ Cuando conectes dominio, cambia `SITE_ADDRESS=tu-dominio.com`, `COOKIE_SECURE=tr
 
 ## Actualizar version
 
+Para Hostinger, desde el repositorio ya instalado:
+
+```bash
+git pull --ff-only origin main && bash infra/deploy-hostinger.sh
+```
+
+Incluye backup verificado, migraciones y comprobaciones. Detalles en `infra/HOSTINGER_UPDATE.md`.
+
+Alternativa manual:
+
 ```bash
 git pull
 docker compose --profile proxy up -d --build

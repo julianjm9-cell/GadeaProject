@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     eso_signup_enabled: bool = True
     eso_signup_credits: int = Field(default=100, ge=1)
     eso_signup_days: int = Field(default=365, ge=1)
+    profesor_signup_enabled: bool = True
+    profesor_signup_credits: int = Field(default=100, ge=1)
+    profesor_signup_days: int = Field(default=365, ge=1)
 
     bootstrap_superadmin_email: str = ""
     bootstrap_superadmin_password: str = ""

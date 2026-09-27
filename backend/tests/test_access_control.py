@@ -80,6 +80,127 @@ def login(test_client: TestClient, email="cliente@example.com", password="tempor
     return test_client.post("/auth/login", json={"email": email, "password": password})
 
 
+def test_profesor_product_login_and_state_isolation(client):
+    test_client, db_factory = client
+    seed_user(db_factory, product_codes=("PROFESOR_PARTICULAR", "ESO_ADULTOS"))
+    assert login(test_client).status_code == 200
+    products = test_client.get("/api/apps").json()["apps"]
+    product = next(p for p in products if p["code"] == "PROFESOR_PARTICULAR")
+    assert product["available"] is True
+    assert product["path"] == "/profesor-particular"
+    assert test_client.get(product["path"]).status_code == 200
+    teacher_data = {"version": 1, "students": [{"id": "student-a", "name": "Alumno A"}]}
+    assert test_client.post("/api/state?app=profesor_particular", json=teacher_data).status_code == 200
+    assert test_client.post("/api/state?app=eso_adultos", json={"done": {"topic": True}}).status_code == 200
+    assert test_client.get("/api/state?app=profesor-particular").json() == teacher_data
+    assert test_client.get("/api/state?app=eso_adultos").json() == {"done": {"topic": True}}
+    seed_user(db_factory, email="profesor2@example.com", product_codes=("PROFESOR_PARTICULAR",))
+    assert login(test_client, email="profesor2@example.com").status_code == 200
+    assert test_client.get("/api/state?app=profesor_particular").json() == {}
+
+
+def test_profesor_requires_its_own_license(client):
+    test_client, db_factory = client
+    seed_user(db_factory, product_codes=("ESO_ADULTOS",))
+    assert login(test_client).status_code == 200
+    assert test_client.get("/api/state?app=profesor_particular").status_code == 402
+    assert test_client.post("/api/state?app=profesor_particular", json={"students": []}).status_code == 402
+
+
+def test_profesor_login_redirect_is_preserved(client):
+    test_client, _ = client
+    response = test_client.get("/profesor-particular", follow_redirects=False)
+    assert response.status_code == 307
+    assert response.headers["location"] == "/login?next=/profesor-particular"
+    assert auth_api.clean_next_path("/profesor-particular") == "/profesor-particular"
+
+
+def test_profesor_public_routes_and_landing_links(client):
+    test_client, _ = client
+    landing = test_client.get("/profesor")
+    assert landing.status_code == 200
+    assert '/profesor/login?mode=register' in landing.text
+    assert '/profesor/demo' in landing.text
+    assert 'href="/profesor"' in test_client.get("/").text
+    assert test_client.get("/profesor/login").status_code == 200
+    assert test_client.get("/profesor/demo").status_code == 200
+
+
+def test_profesor_registration_and_admin_access_management(client):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin", email="admin@example.com")
+    admin_token = login(test_client, email="admin@example.com").json()["access_token"]
+    payload = {"email": "teacher@example.com", "full_name": "Laura Profesora", "password": "segura12345"}
+    response = test_client.post("/auth/profesor/register", json=payload)
+    assert response.status_code == 201
+    teacher_id = response.json()["user"]["id"]
+    assert test_client.get("/api/state?app=profesor_particular").status_code == 200
+    assert test_client.get("/api/state?app=eso_adultos").status_code == 402
+    assert test_client.post("/auth/profesor/register", json=payload).status_code == 409
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    accounts = test_client.get("/admin/accounts", headers=headers).json()["accounts"]
+    teacher = next(a for a in accounts if a["id"] == teacher_id)
+    assert [a["product_code"] for a in teacher["accesses"]] == ["PROFESOR_PARTICULAR"]
+    assert teacher["accesses"][0]["plan"] == "PROFESOR_FREE"
+    result = test_client.patch(f"/admin/users/{teacher_id}/access/PROFESOR_PARTICULAR", headers=headers, json={"status": "suspended", "usage_limit": 100})
+    assert result.status_code == 200
+    assert test_client.get("/api/state?app=profesor_particular").status_code == 402
+    assert test_client.post("/auth/login", json={"identifier": payload["email"], "password": payload["password"], "enroll_profesor": True}).status_code == 402
+
+
+def test_profesor_enrollment_does_not_replenish_credits(client):
+    test_client, db_factory = client
+    _, user_id = seed_user(db_factory, product_codes=("ESO_ADULTOS",))
+    credentials = {"identifier": "cliente@example.com", "password": "temporal123", "enroll_profesor": True}
+    assert test_client.post("/auth/login", json=credentials).status_code == 200
+    with db_factory() as db:
+        user = db.get(User, UUID(user_id))
+        license_obj = license_for_user(db, user, "PROFESOR_PARTICULAR")
+        license_obj.usage_limit = 7
+        original_id = license_obj.id
+        db.commit()
+    assert test_client.post("/auth/login", json=credentials).status_code == 200
+    with db_factory() as db:
+        license_obj = license_for_user(db, db.get(User, UUID(user_id)), "PROFESOR_PARTICULAR")
+        assert license_obj.id == original_id
+        assert license_obj.usage_limit == 7
+
+
+def test_profesor_signup_can_be_disabled(client, monkeypatch):
+    test_client, db_factory = client
+    monkeypatch.setattr(auth_api.get_settings(), "profesor_signup_enabled", False)
+    payload = {"email": "teacher@example.com", "full_name": "Laura", "password": "segura12345"}
+    assert test_client.get("/auth/profesor/signup-settings").json()["enabled"] is False
+    assert test_client.post("/auth/profesor/register", json=payload).status_code == 403
+    seed_user(db_factory, product_codes=("ESO_ADULTOS",))
+    test_client.post("/auth/login", json={"identifier": "cliente@example.com", "password": "temporal123", "enroll_profesor": True})
+    assert test_client.get("/api/state?app=profesor_particular").status_code == 402
+
+
+def test_deployment_smoke_check_routes(client, monkeypatch):
+    from io import BytesIO
+    from pathlib import Path
+    from urllib.error import HTTPError
+    from app import deployment_check
+
+    test_client, db_factory = client
+
+    def open_local(url, timeout=20):
+        if url == "http://admin/":
+            return BytesIO((Path(__file__).parents[2] / "admin" / "index.html").read_bytes())
+        response = test_client.get(url.replace("http://127.0.0.1:8000", ""))
+        if response.status_code >= 400:
+            raise HTTPError(url, response.status_code, "HTTP error", None, None)
+        result = BytesIO(response.content)
+        result.status = response.status_code
+        result.url = str(response.url)
+        return result
+
+    monkeypatch.setattr(deployment_check, "urlopen", open_local)
+    monkeypatch.setattr(deployment_check, "engine", db_factory.kw["bind"])
+    deployment_check.check_deployment()
+
+
 def test_eso_gamification_reward_is_idempotent(client):
     test_client, db_factory = client
     seed_user(db_factory, product_codes=("ESO_ADULTOS",))

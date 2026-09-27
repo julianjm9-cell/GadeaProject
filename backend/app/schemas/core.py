@@ -15,6 +15,7 @@ class LoginRequest(BaseModel):
     identifier: str | None = None
     password: str
     enroll_eso: bool = False
+    enroll_profesor: bool = False
 
 
 class EsoRegisterRequest(BaseModel):

@@ -37,6 +37,12 @@ STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 LOCAL_DOCUMENT_DIR = Path(os.getenv("DOCUMENT_EXPORT_DIR") or ("/app/data/documents" if Path("/app").exists() else PROJECT_ROOT / "backend" / "data" / "documents"))
 PRODUCTS = {
+    "profesor_particular": {
+        "code": "PROFESOR_PARTICULAR",
+        "name": "Profesor Particular",
+        "path": "/profesor-particular",
+        "description": "Tu agenda, tus alumnos y cada clase en un mismo escritorio.",
+    },
     "diplomator": {
         "code": "DIPLOMATOR",
         "name": "Diplomator",
@@ -63,6 +69,8 @@ PRODUCTS = {
     },
 }
 APP_ALIASES = {
+    "profesor_particular": "profesor_particular",
+    "profesor-particular": "profesor_particular",
     "diplomator": "diplomator",
     "gadea": "diplomator",
     "cambridge": "cambridge",
@@ -506,7 +514,7 @@ def marketing_asset(filename: str):
 
 @router.get("/assets/landing/{filename}")
 def eso_landing_asset(filename: str):
-    if filename != "eso-study-desk.png":
+    if filename not in {"eso-study-desk.png", "profesor-dashboard.png"}:
         raise HTTPException(status_code=404, detail="Asset no encontrado.")
     return marketing_file(f"assets/landing/{filename}", "image/png")
 
@@ -584,7 +592,19 @@ def eso_public_page():
     return marketing_file("eso-adultos.html", "text/html")
 
 
+@router.get("/profesor")
+@router.get("/profesor-info")
+def profesor_landing():
+    return marketing_file("profesor-particular.html", "text/html")
+
+
+@router.get("/profesor/demo")
+def profesor_demo():
+    return static_html("profesor-particular.html", PROJECT_ROOT / "apps" / "profesor" / "index.html")
+
+
 @router.get("/login")
+@router.get("/profesor/login")
 @router.get("/u25/login")
 @router.get("/e25/login")
 @router.get("/cambridge-info/login")
@@ -633,11 +653,19 @@ def eso_adultos_page(request: Request, db: Session = Depends(get_db)):
     return static_html("eso-adultos.html", PROJECT_ROOT / "apps" / "e25" / "index.html")
 
 
+@router.get("/profesor-particular")
+def profesor_particular_page(request: Request, db: Session = Depends(get_db)):
+    user = page_user_or_redirect(request, db, "/profesor-particular")
+    if isinstance(user, RedirectResponse):
+        return user
+    return static_html("profesor-particular.html", PROJECT_ROOT / "apps" / "profesor" / "index.html")
+
+
 @router.get("/api/apps")
 def api_apps(user: User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     result = []
     for product in PRODUCTS.values():
-        decision = check_access(db, user, product["code"], require_credits=product["code"] != "ESO_ADULTOS")
+        decision = check_access(db, user, product["code"], require_credits=product["code"] not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR"})
         result.append({**product, "available": decision.ok, "message": decision.message})
     return {"ok": True, "apps": result}
 

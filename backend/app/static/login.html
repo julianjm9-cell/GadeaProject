@@ -294,7 +294,9 @@
       .intro, form { padding:20px; }
       .app-strip { grid-template-columns:1fr; }
     }
-  </style>
+  body[data-login-app="profesor"]{--blue:#1463df;--blue-2:#0f4cac;--line:#e4edf8;--paper:#f4f8fc;--shadow:0 12px 40px #1b43700b;color:#172c50}body[data-login-app="profesor"] .intro,body[data-login-app="profesor"] form{border-radius:18px;border-color:#e4edf8}body[data-login-app="profesor"] .intro{background:linear-gradient(145deg,#edf5ff,#fff)}body[data-login-app="profesor"] .brand-mark{background:#1463df;color:#fff;border:0;border-radius:14px}body[data-login-app="profesor"] input{border-color:#dce7f5;border-radius:9px}body[data-login-app="profesor"] button{border-radius:9px}body[data-login-app="profesor"] #loginTitle{font-size:40px;letter-spacing:-1px;line-height:1.1}
+body[data-login-app="profesor"] .eyebrow{color:#1463df}.google-button[hidden],.divider[hidden]{display:none!important}
+</style>
 </head>
 <body>
 <main>
@@ -338,6 +340,7 @@
 </main>
 <script>
 const LOGIN_TARGETS = {
+  '/profesor/login': '/profesor-particular',
   '/u25/login': '/universidad-adultos',
   '/e25/login': '/eso-adultos',
   '/cambridge-info/login': '/cambridge',
@@ -362,21 +365,24 @@ function toggleSignup(force) {
   document.getElementById('error').textContent = '';
 }
 async function loadSignupSettings() {
-  if (nextPath() !== '/eso-adultos') return;
+  if (!['/eso-adultos','/profesor-particular'].includes(nextPath())) return;
+  const profesor = nextPath() === '/profesor-particular';
+  if (profesor) { const back = document.querySelector('#esoBack a'); back.href='/profesor'; back.textContent='Volver a Profesor Particular'; }
   document.getElementById('esoBack').hidden = false;
   try {
-    const response = await fetch('/auth/eso/signup-settings');
+    const response = await fetch(nextPath() === '/profesor-particular' ? '/auth/profesor/signup-settings' : '/auth/eso/signup-settings');
     if (!response.ok) throw new Error('No se pudo consultar el registro.');
     const settings = await response.json();
     signupAvailable = settings.enabled;
     document.getElementById('signupToggle').hidden = !signupAvailable;
     const allowance = document.getElementById('signupAllowance');
     allowance.hidden = false;
-    allowance.textContent = signupAvailable ? `Acceso gratuito durante ${settings.days} días y ${settings.credits} créditos iniciales de IA, una sola vez. Al agotarlos, puedes seguir estudiando sin IA.` : 'El registro gratuito está cerrado temporalmente.';
+    allowance.textContent = signupAvailable ? `Acceso gratuito durante ${settings.days} días y ${settings.credits} créditos iniciales de IA, una sola vez. Al agotarlos, puedes seguir usando la app sin IA.` : 'El registro gratuito está cerrado temporalmente.';
     toggleSignup(new URLSearchParams(location.search).get('mode') === 'register');
   } catch (error) { document.getElementById('error').textContent = error.message; }
 }
 const LOGIN_BRANDS = {
+  '/profesor-particular': {app:'profesor',mark:'p.',eyebrow:'Profesor Particular',title:'Tu próxima clase empieza aquí.',copy:'Un espacio para organizar tus alumnos, preparar cada clase y acompañar su progreso. Entra y continúa donde lo dejaste.'},
   '/universidad-adultos': {
     app:'u25',
     mark:'U25',
@@ -416,7 +422,7 @@ const LOGIN_BRANDS = {
 };
 function nextPath() {
   const requested = new URLSearchParams(location.search).get('next') || LOGIN_TARGETS[location.pathname] || '/apps';
-  return ['/app', '/cambridge', '/universidad-adultos', '/eso-adultos', '/apps'].includes(requested) ? requested : '/apps';
+  return ['/app', '/cambridge', '/universidad-adultos', '/eso-adultos', '/profesor-particular', '/apps'].includes(requested) ? requested : '/apps';
 }
 function applyLoginBrand() {
   const brand = LOGIN_BRANDS[nextPath()];
@@ -468,8 +474,8 @@ async function login(event) {
   const button = document.getElementById('submitButton');
   button.disabled = true;
   try {
-  const body = signupMode ? {email:document.getElementById('email').value.trim(),full_name:document.getElementById('fullName').value.trim(),password:document.getElementById('password').value} : {identifier:document.getElementById('email').value.trim(),password:document.getElementById('password').value,enroll_eso:nextPath() === '/eso-adultos'};
-  const res = await fetch(signupMode ? '/auth/eso/register' : '/auth/login', {
+  const body = signupMode ? {email:document.getElementById('email').value.trim(),full_name:document.getElementById('fullName').value.trim(),password:document.getElementById('password').value} : {identifier:document.getElementById('email').value.trim(),password:document.getElementById('password').value,enroll_eso:nextPath() === '/eso-adultos',enroll_profesor:nextPath() === '/profesor-particular'};
+  const res = await fetch(signupMode ? (nextPath() === '/profesor-particular' ? '/auth/profesor/register' : '/auth/eso/register') : '/auth/login', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify(body)

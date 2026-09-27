@@ -37,7 +37,7 @@ from app.services.resources import load_resource_catalog, save_resource_catalog
 router = APIRouter(prefix="/admin", tags=["admin"])
 AI_SETTING_KEYS = ("points_provider", "chat_provider", "transcribe_provider", "openai_api_key", "groq_api_key", "gemini_api_key", "points_model", "chat_model", "transcribe_model", "topic_style_guide")
 DEFAULT_TOPIC_STYLE_GUIDE = """Treat the selected topic as a strict boundary. Build a coherent oral presentation from the few angles that directly answer that exact topic; never force a standard history, impact, controversy or future section when it is not relevant. Prefer specific explanations, mechanisms, examples and dates that help explain the subject. Every paragraph must earn its place: remove generic introductions, broad international-relations filler, moral conclusions and nearby subjects that were not requested. The student profile controls language and difficulty only; it is never source material. Use natural transitions and an informed C1/C2 tone. Include only facts you can state confidently and never invent dates, statistics, institutions or quotations."""
-PRODUCT_CODES = ("UNIVERSIDAD_ADULTOS", "ESO_ADULTOS", "CAMBRIDGE", "DIPLOMATOR")
+PRODUCT_CODES = ("UNIVERSIDAD_ADULTOS", "ESO_ADULTOS", "CAMBRIDGE", "DIPLOMATOR", "PROFESOR_PARTICULAR")
 
 
 def get_or_404(db: Session, model, item_id: UUID):

@@ -1,0 +1,76 @@
+const {chromium}=require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const base=process.env.PROFESOR_TEST_URL||'http://127.0.0.1:8891';
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:'msedge'});
+ try{
+  const page=await browser.newPage({viewport:{width:1440,height:940}}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(base+'/profesor/demo');
+  await page.getByRole('heading',{name:/Hola, Laura/}).waitFor();
+  await page.screenshot({path:'tools/profesor-home-desktop.png',fullPage:true});
+  await page.screenshot({path:'marketing/app_landings_demo/assets/landing/profesor-dashboard.png'});
+  // Search has real destinations, and browser history restores each student view.
+  await page.getByLabel('Buscar alumnos, clases y recursos').fill('Lucía');
+  await page.locator('#searchResults').getByRole('button',{name:/Lucía Martín Alumno/}).click();
+  await page.getByRole('heading',{name:'Lucía Martín',exact:true,level:1}).waitFor();
+  assert.match(page.url(),/#alumnos\/lucia/);
+  await page.getByRole('button',{name:'Progreso',exact:true}).click();
+  await page.reload();
+  await page.getByRole('heading',{name:'Lo que ya sabe hacer'}).waitFor();
+  await page.locator('#nav').getByRole('button',{name:'Clases',exact:true}).click();
+  await page.getByLabel('Filtrar clases').selectOption('Finalizada');
+  await page.getByText('No hay clases en esta vista.').waitFor();
+  await page.getByRole('button',{name:/Ver pendientes/}).click();
+  await page.getByRole('heading',{name:'Tus pendientes'}).waitFor();
+  await page.locator('#dialog').getByRole('button',{name:/Preparar clase de Lucía/}).click();
+  await page.getByRole('heading',{name:'Preparar · Lucía Martín'}).waitFor();
+  await page.getByRole('button',{name:'Cerrar',exact:true}).click();
+  await page.setViewportSize({width:390,height:844});
+  await page.locator('#nav').getByRole('button',{name:'Inicio',exact:true}).click();
+  await page.screenshot({path:'tools/profesor-home-mobile.png',fullPage:true});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
+  for(const name of ['Alumnos','Clases','Biblioteca','Calendario','IA']){
+   await page.locator('#nav').getByRole('button',{name,exact:true}).click();
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false,`Overflow: ${name}`);
+  }
+  await page.setViewportSize({width:1440,height:940});
+  await page.goto(base+'/');
+  await page.getByRole('link',{name:/Profesor Particular/}).click();
+  assert.equal(new URL(page.url()).pathname,'/profesor');
+  await page.locator('.preview img').evaluate(img=>img.decode());
+  await page.screenshot({path:'tools/profesor-landing-desktop.png',fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  await page.screenshot({path:'tools/profesor-landing-mobile.png',fullPage:true});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
+  await page.getByRole('link',{name:'Crear mi cuenta →'}).click();
+  await page.getByLabel('Tu nombre').waitFor();
+  assert.equal(await page.title(),'Profesor Particular | Acceso');
+  await page.screenshot({path:'tools/profesor-login-mobile.png',fullPage:true});
+  await page.setViewportSize({width:1440,height:940});
+  await page.screenshot({path:'tools/profesor-login-desktop.png',fullPage:true});
+  const email=`profesor-browser-${Date.now()}@example.com`,password='PruebaLocal123!';
+  await page.getByLabel('Tu nombre').fill('Profesora de prueba');
+  await page.getByLabel('Usuario o email').fill(email);
+  await page.getByLabel('Contraseña',{exact:true}).fill(password);
+  await page.getByLabel('Repite la contraseña').fill(password);
+  await page.getByRole('button',{name:'Crear cuenta y empezar'}).click();
+  await page.waitForURL('**/profesor-particular#inicio');
+  await page.getByRole('heading',{name:/Hola, Profesora/}).waitFor();
+  await page.getByRole('button',{name:'Mi cuenta',exact:true}).click();
+  await page.getByLabel('Nombre',{exact:true}).fill('Laura Docente');
+  await page.getByRole('button',{name:'Guardar nombre'}).click();
+  await page.getByRole('heading',{name:/Hola, Laura/}).waitFor();
+  await page.getByRole('button',{name:'Mi cuenta',exact:true}).click();
+  await page.getByRole('button',{name:'Cerrar sesión',exact:true}).click();
+  await page.waitForURL('**/profesor/login');
+  await page.getByLabel('Usuario o email').fill(email);
+  await page.getByLabel('Contraseña',{exact:true}).fill(password);
+  await page.getByRole('button',{name:'Entrar',exact:true}).click();
+  await page.waitForURL('**/profesor-particular#inicio');
+  await page.getByRole('heading',{name:/Hola, Laura/}).waitFor();
+  assert.deepEqual(errors,[]);
+  console.log('OK: portada → landing → registro → app → perfil → logout → login. Búsqueda, pendientes, rutas internas y móvil correctos.');
+ }finally{await browser.close()}
+})().catch(e=>{console.error(e);process.exitCode=1});

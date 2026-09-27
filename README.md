@@ -10,6 +10,7 @@ Suite SaaS multiapp para vender y administrar productos educativos con login, li
   - `apps/cambridge/index.html`: app Cambridge Trainer. En SaaS se sirve como `/cambridge`.
   - `apps/u25/index.html`: app ACCESO UNIVERSIDAD +25. En SaaS se sirve como `/universidad-adultos`.
   - `apps/e25/index.html`: app ACCESO ESO ADULTOS. En SaaS se sirve como `/eso-adultos`.
+  - `apps/profesor/index.html`: app Profesor Particular, basada en el diseño actual de ESO Adultos. En SaaS se sirve como `/profesor-particular`. Alcance y validación en `docs/profesor-particular.md`.
 - `admin/`: dashboard web estatico para usuarios, licencias, consumo, negocio, recursos, observabilidad e IA.
 - `marketing/`: landings publicas, demos visuales y materiales comerciales.
 - `infra/`: reverse proxy, backups y piezas de operacion.
@@ -73,15 +74,19 @@ Runbook Docker: `infra/DOCKER_RUNBOOK.md`.
 
 Rutas publicas de venta:
 
-- `/`: landing inicial con acceso a las cuatro apps.
+- `/`: landing inicial con acceso a las cinco apps.
 - `/suite`: alias de la landing inicial.
 - `/u25`: web publica de ACCESO UNIVERSIDAD +25.
 - `/e25`: web publica de ACCESO ESO ADULTOS.
 - `/diplomator`: web publica de DIPLOMATOR.
 - `/cambridge-info`: web publica de CAMBRIDGE TRAINER.
+- `/profesor`: landing de Profesor Particular.
+- `/profesor/login`: login y registro de profesores.
+- `/profesor/demo`: demostración sin cuenta.
 
 Rutas privadas tras login:
 
+- `/profesor-particular`
 - `/universidad-adultos`
 - `/eso-adultos`
 - `/app`
