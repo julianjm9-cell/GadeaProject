@@ -16,7 +16,15 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
     checks = {
         "/health": b'"ok"',
         "/": b'href="/profesor"',
-        "/profesor": b"/profesor/login?mode=register",
+        "/profesor": b"/profesor/register",
+        "/e25": b"/e25/register",
+        "/e25/login": b"LOGIN_TARGETS",
+        "/e25/register": b"signupMode",
+        "/profesor/register": b"signupMode",
+        "/diplomator": b"/diplomator/login",
+        "/diplomator/login": b"diplomator-access",
+        "/assets/landing/diplomator-dashboard.png": b"\x89PNG\r\n\x1a\n",
+        "/assets/landing/eso-dashboard.png": b"\x89PNG\r\n\x1a\n",
         "/profesor/login": b"/profesor-particular",
         "/profesor/demo": b"globalSearch",
         "/profesor-particular": b"LOGIN_TARGETS",  # Unauthenticated request must reach login.
@@ -39,7 +47,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
     else:
         raise AssertionError("El estado privado no debe ser público")
     with urlopen(admin + "/", timeout=20) as response:
-        assert b"PROFESOR_PARTICULAR" in response.read(), "El dashboard no incluye Profesor Particular"
+        page = response.read()
+        assert b"PROFESOR_PARTICULAR" in page and b"aiAppPicker" in page, "El dashboard no incluye la nueva selección de modelos"
     print("OK PostgreSQL, registro, autenticación y dashboard")
 
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.services.ai_config import app_ai_override
 
 import base64
 import json
@@ -158,9 +159,9 @@ def setting_value(db: Session, key: str) -> str:
     return (row.value if row else "").strip()
 
 
-def chat_provider_config(db: Session, setting_key: str = "chat_provider") -> tuple[str, str, str]:
+def chat_provider_config(db: Session, setting_key: str = "chat_provider", product: str = "") -> tuple[str, str, str]:
     settings = get_settings()
-    provider = (setting_value(db, setting_key) or setting_value(db, "chat_provider") or setting_value(db, "ai_provider") or settings.ai_provider).lower()
+    provider = (app_ai_override(db, product, "points" if setting_key == "points_provider" else "chat").get("provider") or setting_value(db, setting_key) or setting_value(db, "chat_provider") or setting_value(db, "ai_provider") or settings.ai_provider).lower()
     openai_api_key = setting_value(db, "openai_api_key") or settings.openai_api_key
     groq_api_key = setting_value(db, "groq_api_key") or settings.groq_api_key
     gemini_api_key = setting_value(db, "gemini_api_key") or settings.gemini_api_key
@@ -181,9 +182,9 @@ def chat_provider_config(db: Session, setting_key: str = "chat_provider") -> tup
     return openai_api_key, str(settings.openai_chat_url), "openai"
 
 
-def transcribe_provider_config(db: Session) -> tuple[str, str, str]:
+def transcribe_provider_config(db: Session, product: str = "") -> tuple[str, str, str]:
     settings = get_settings()
-    provider = (setting_value(db, "transcribe_provider") or setting_value(db, "ai_provider") or settings.ai_provider).lower()
+    provider = (app_ai_override(db, product, "transcribe").get("provider") or setting_value(db, "transcribe_provider") or setting_value(db, "ai_provider") or settings.ai_provider).lower()
     if provider == "groq":
         api_key = setting_value(db, "groq_api_key") or settings.groq_api_key
         if not api_key:
@@ -199,16 +200,26 @@ def transcribe_provider_config(db: Session) -> tuple[str, str, str]:
     return api_key, str(settings.openai_transcribe_url), "openai"
 
 
-def chat_model_for_purpose(db: Session, provider: str, purpose: str) -> str:
+def chat_model_for_purpose(db: Session, provider: str, purpose: str, product: str = "") -> str:
+    override = app_ai_override(db, product, "points" if purpose == "points" else "chat")
+    if override:
+        return override["model"]
     if purpose == "points":
         return normalize_chat_model(provider, setting_value(db, "points_model") or setting_value(db, "chat_model") or default_chat_model(provider))
     return normalize_chat_model(provider, setting_value(db, "chat_model") or default_chat_model(provider))
 
 
-def vision_provider_config(db: Session) -> tuple[str, str, str, str]:
+def vision_provider_config(db: Session, product: str = "") -> tuple[str, str, str, str]:
     settings = get_settings()
     openai_api_key = setting_value(db, "openai_api_key") or settings.openai_api_key
     gemini_api_key = setting_value(db, "gemini_api_key") or settings.gemini_api_key
+    override = app_ai_override(db, product, "ocr")
+    if override:
+        provider = override["provider"]
+        key = openai_api_key if provider == "openai" else gemini_api_key
+        if not key:
+            raise HTTPException(status_code=500, detail=f"Falta la clave de {provider} configurada para imágenes.")
+        return key, str(settings.openai_chat_url if provider == "openai" else settings.gemini_chat_url), provider, override["model"]
     preferred = (setting_value(db, "chat_provider") or setting_value(db, "ai_provider") or settings.ai_provider).lower()
 
     if preferred == "gemini" and gemini_api_key:
@@ -514,7 +525,7 @@ def marketing_asset(filename: str):
 
 @router.get("/assets/landing/{filename}")
 def eso_landing_asset(filename: str):
-    if filename not in {"eso-study-desk.png", "profesor-dashboard.png"}:
+    if filename not in {"eso-study-desk.png", "profesor-dashboard.png", "eso-dashboard.png", "eso-mobile.png", "profesor-mobile.png", "diplomator-dashboard.png", "diplomator-mobile.png"}:
         raise HTTPException(status_code=404, detail="Asset no encontrado.")
     return marketing_file(f"assets/landing/{filename}", "image/png")
 
@@ -605,11 +616,15 @@ def profesor_demo():
 
 @router.get("/login")
 @router.get("/profesor/login")
+@router.get("/profesor/register")
+@router.get("/e25/register")
 @router.get("/u25/login")
 @router.get("/e25/login")
 @router.get("/cambridge-info/login")
 @router.get("/diplomator/login")
-def login_page():
+def login_page(request: Request):
+    if request.url.path in {"/diplomator/login", "/e25/login", "/e25/register", "/profesor/login", "/profesor/register"} or request.query_params.get("next") in {"/app", "/eso-adultos", "/profesor-particular"}:
+        return static_html("product-access.html", PROJECT_ROOT / "backend" / "app" / "static" / "product-access.html")
     return static_html("login.html", PROJECT_ROOT / "backend" / "app" / "static" / "login.html")
 
 
@@ -1026,8 +1041,8 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
     requested_credit_cost = requested_credit_cost_from_payload(payload, purpose)
     ensure_credit_balance(db, user, license_obj, requested_credit_cost)
     provider_key = "points_provider" if purpose == "points" else "chat_provider"
-    api_key, chat_url, chat_provider = chat_provider_config(db, provider_key)
-    payload["model"] = chat_model_for_purpose(db, chat_provider, purpose)
+    api_key, chat_url, chat_provider = chat_provider_config(db, provider_key, license_obj.product_code)
+    payload["model"] = chat_model_for_purpose(db, chat_provider, purpose, license_obj.product_code)
     if purpose == "points":
         add_points_focus_instruction(payload)
     async with httpx.AsyncClient(timeout=120) as client:
@@ -1050,8 +1065,9 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
 @router.post("/api/ocr")
 async def ocr(payload: dict, request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db), app_key_override: str | None = None):
     ensure_credit_balance(db, user, _, 1)
+    product = _.product_code
     data_url, _ = image_data_url_from_payload(payload)
-    api_key, chat_url, provider, model = vision_provider_config(db)
+    api_key, chat_url, provider, model = vision_provider_config(db, product)
     target = str(payload.get("target") or "answer").strip().lower()
     label = "enunciado" if target == "prompt" else "respuesta del alumno"
     request_payload = {
@@ -1091,7 +1107,7 @@ async def ocr(payload: dict, request: Request, user: User = Depends(current_user
 async def transcribe(payload: dict, request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db), app_key_override: str | None = None):
     ensure_credit_balance(db, user, _, 1)
     settings = get_settings()
-    api_key, transcribe_url, transcribe_provider = transcribe_provider_config(db)
+    api_key, transcribe_url, transcribe_provider = transcribe_provider_config(db, _.product_code)
     audio_b64 = str(payload.get("audio", ""))
     if "," in audio_b64:
         audio_b64 = audio_b64.split(",", 1)[1]
@@ -1099,7 +1115,7 @@ async def transcribe(payload: dict, request: Request, user: User = Depends(curre
     if len(audio) > 25 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="Audio demasiado grande.")
     files = {"file": (payload.get("filename") or "audio.webm", audio, payload.get("contentType") or "audio/webm")}
-    transcribe_model = normalize_transcribe_model(transcribe_provider, setting_value(db, "transcribe_model") or settings.transcribe_model or GROQ_TRANSCRIBE_DEFAULT)
+    transcribe_model = normalize_transcribe_model(transcribe_provider, app_ai_override(db, _.product_code, "transcribe").get("model") or setting_value(db, "transcribe_model") or settings.transcribe_model or GROQ_TRANSCRIBE_DEFAULT)
     data = {"model": transcribe_model, "language": payload.get("language") or "en"}
     async with httpx.AsyncClient(timeout=180) as client:
         res = await client.post(transcribe_url, headers={"Authorization": f"Bearer {api_key}"}, data=data, files=files)

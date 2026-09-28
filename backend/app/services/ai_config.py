@@ -66,3 +66,11 @@ def normalize_transcribe_model(provider: str, model: str) -> str:
     elif not model or model.startswith("whisper-large"):
         return OPENAI_TRANSCRIBE_DEFAULT
     return model
+
+
+def app_ai_override(db, product: str, capability: str) -> dict:
+    """Only explicit per-product choices override the existing suite configuration."""
+    import json
+    from app.models import AppSetting
+    row = db.get(AppSetting, f"ai.{product}.{capability}") if product else None
+    return json.loads(row.value) if row and row.value else {}

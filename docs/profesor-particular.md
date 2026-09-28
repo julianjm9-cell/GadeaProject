@@ -4,7 +4,7 @@ Aplicación de la suite con estética azul clara inspirada en ESO Adultos. El in
 
 ## Acceso
 
-Recorrido público: portada `/` → landing `/profesor` → login/registro `/profesor/login` → app `/profesor-particular`. La demo pública está en `/profesor/demo`.
+Recorrido público: portada `/` → landing `/profesor` → login `/profesor/login` o registro `/profesor/register` → app `/profesor-particular`. La demo pública está en `/profesor/demo`.
 
 En la suite: `/profesor-particular`, con login y licencia `PROFESOR_PARTICULAR`. Disponible en `/apps`, portada y administración; incluida en la imagen Docker. El estado se almacena mediante `/api/state?app=profesor_particular`, aislado por cuenta, organización y producto como las demás apps.
 
@@ -49,3 +49,9 @@ Las pruebas de integración de producto se encuentran en `backend/tests/test_acc
 `PROFESOR_SIGNUP_ENABLED` (por defecto `true`), `PROFESOR_SIGNUP_DAYS` (365) y `PROFESOR_SIGNUP_CREDITS` (100) controlan el acceso inicial. La landing y el login muestran los valores del servidor. El acceso se otorga una sola vez; no renueva licencias suspendidas/caducadas ni repone créditos. La administración permite modificar el acceso de cada cuenta.
 
 `node tests/profesor-routes-browser.cjs` verifica el recorrido público, registro real en el backend local, perfil, logout/login, búsqueda, rutas internas y navegación móvil. Requiere un backend de pruebas independiente en `http://127.0.0.1:8891`, configurable con `PROFESOR_TEST_URL`; crea cuentas de prueba y genera la captura de la landing a partir de la demo.
+
+## Landings y acceso visual
+
+ESO Adultos y Profesor Particular comparten una composición de landing con mockups de ordenador y móvil. Los accesos separados son `/e25/login`, `/e25/register`, `/profesor/login` y `/profesor/register`. Los enlaces antiguos con `?mode=register` y los redirects `/login?next=...` siguen funcionando. Las condiciones gratuitas se consultan en la pregunta «¿Es gratis?» y en el desplegable del registro.
+
+`node tests/product-access-browser.cjs` comprueba el orden de la portada, las apps en desarrollo, registro y login reales de ambas apps, errores, compatibilidad de rutas y cierre del registro. Usa `PRODUCT_TEST_URL` para seleccionar un backend de pruebas; crea cuentas de prueba.

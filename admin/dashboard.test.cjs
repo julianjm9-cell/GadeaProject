@@ -12,12 +12,12 @@ function loadDashboard() {
     if (!elements.has(id)) elements.set(id, {
       value: '', innerHTML: '', textContent: '', hidden: false,
       classList: { add() {}, remove() {}, toggle() {} },
-      reset() {}, focus() {}, scrollIntoView() {}
+      setAttribute() {}, reset() {}, focus() {}, scrollIntoView() {}
     });
     return elements.get(id);
   };
   const context = vm.createContext({
-    document: { getElementById: element, querySelectorAll: () => [] },
+    document: { getElementById: element, querySelector: element, querySelectorAll: () => [] },
     localStorage: { getItem: () => '', removeItem() {} },
     window: {}, setTimeout: () => 0, clearTimeout() {},
     console, Date, Math, JSON

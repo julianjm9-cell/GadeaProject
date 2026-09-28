@@ -58,7 +58,7 @@ def seed_user(db_factory, *, org_status="active", user_active=True, license_stat
         db.flush()
         now = datetime.now(timezone.utc)
         for product_code in product_codes:
-            prefix = {"CAMBRIDGE": "CAMB", "UNIVERSIDAD_ADULTOS": "U25", "ESO_ADULTOS": "E25"}.get(product_code, "DIPLO")
+            prefix = {"PROFESOR_PARTICULAR": "PROFE", "CAMBRIDGE": "CAMB", "UNIVERSIDAD_ADULTOS": "U25", "ESO_ADULTOS": "E25"}.get(product_code, "DIPLO")
             db.add(
                 License(
                     organization_id=org.id,
@@ -119,8 +119,8 @@ def test_profesor_public_routes_and_landing_links(client):
     test_client, _ = client
     landing = test_client.get("/profesor")
     assert landing.status_code == 200
-    assert '/profesor/login?mode=register' in landing.text
-    assert '/profesor/demo' in landing.text
+    assert '/profesor/register' in landing.text
+    assert '/assets/landing/profesor-dashboard.png' in landing.text
     assert 'href="/profesor"' in test_client.get("/").text
     assert test_client.get("/profesor/login").status_code == 200
     assert test_client.get("/profesor/demo").status_code == 200
@@ -485,7 +485,7 @@ def test_eso_landing_image_is_served_in_the_packaged_app(client, tmp_path, monke
     assert test_client.get("/assets/landing/unknown.png").status_code == 404
 
 
-@pytest.mark.parametrize("path", ["/login", "/u25/login", "/e25/login", "/cambridge-info/login", "/diplomator/login"])
+@pytest.mark.parametrize("path", ["/login", "/u25/login", "/e25/login", "/e25/register", "/profesor/login", "/profesor/register", "/cambridge-info/login", "/diplomator/login"])
 def test_login_pages_load_without_login(client, path):
     test_client, _ = client
     response = test_client.get(path)
@@ -578,7 +578,7 @@ def test_app_state_is_separate_by_product(client):
     assert test_client.get("/api/state", headers={**headers, "X-Client-App": "eso_adultos"}).json() == {"app": "eso"}
 
 
-def test_google_signup_creates_access_for_both_apps(client):
+def test_google_signup_excludes_manually_licensed_diplomator(client):
     _, db_factory = client
     with db_factory() as db:
         org = Organization(name="Google Org", status="active")
@@ -598,7 +598,8 @@ def test_google_signup_creates_access_for_both_apps(client):
         ensure_google_access(db, user)
         db.commit()
         codes = {license_obj.product_code for license_obj in db.query(License).filter(License.organization_id == org.id).all()}
-    assert {"DIPLOMATOR", "CAMBRIDGE", "UNIVERSIDAD_ADULTOS", "ESO_ADULTOS"} <= codes
+    assert {"CAMBRIDGE", "UNIVERSIDAD_ADULTOS", "ESO_ADULTOS"} <= codes
+    assert "DIPLOMATOR" not in codes
 
 
 def test_regular_user_cannot_access_admin(client):
@@ -779,3 +780,92 @@ def test_ai_settings_rejects_openai_key_in_groq_field(client):
         },
     )
     assert response.status_code == 400
+
+
+def test_diplomator_google_requires_existing_account_and_preserves_license(client):
+    test_client, db_factory = client
+    with db_factory() as db:
+        with pytest.raises(HTTPException) as exc:
+            auth_api.get_or_create_google_user(db, {"email": "newdip@example.com", "sub": "newdip", "email_verified": True}, ("DIPLOMATOR",))
+        assert exc.value.status_code == 403
+        assert db.query(User).count() == 0
+    seed_user(db_factory)
+    with db_factory() as db:
+        before = db.query(License).one()
+        license_id, credits = before.id, before.usage_limit
+        user = auth_api.get_or_create_google_user(db, {"email": "cliente@example.com", "sub": "existingdip", "email_verified": True}, ("DIPLOMATOR",))
+        db.commit()
+        assert db.query(License).count() == 1
+        assert db.query(License).one().id == license_id
+        assert db.query(License).one().usage_limit == credits
+    assert login(test_client).status_code == 200
+    assert test_client.get("/app").status_code == 200
+    assert test_client.get("/diplomator/register").status_code == 404
+
+
+def test_app_ai_models_are_isolated_and_used_by_requests(client, monkeypatch):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin", product_codes=("ESO_ADULTOS", "PROFESOR_PARTICULAR", "DIPLOMATOR"))
+    assert login(test_client).status_code == 200
+    assert test_client.post("/admin/ai-settings/keys", json={"openai_api_key": "sk-test-only", "groq_api_key": "gsk_test-only"}).status_code == 200
+    current = test_client.get("/admin/ai-settings").json()
+    professor_before = current["apps"]["PROFESOR_PARTICULAR"]
+    response = test_client.post("/admin/ai-settings/apps/ESO_ADULTOS", json={"capabilities": {
+        "chat": {"provider": "openai", "model": "test-eso-chat"},
+        "ocr": {"provider": "openai", "model": "test-eso-vision"},
+        "transcribe": {"provider": "groq", "model": "test-eso-audio"},
+    }})
+    assert response.status_code == 200
+    assert response.json()["apps"]["PROFESOR_PARTICULAR"] == professor_before
+    sent = []
+    class FakeResponse:
+        status_code = 200
+        def json(self):
+            return {"text": "Audio", "choices": [{"message": {"content": "Respuesta"}}], "usage": {"prompt_tokens": 1, "completion_tokens": 1}}
+    class FakeClient:
+        def __init__(self, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kwargs):
+            sent.append((url, kwargs))
+            return FakeResponse()
+    monkeypatch.setattr(app_routes.httpx, "AsyncClient", FakeClient)
+    assert test_client.post("/api/chat?app=eso_adultos", json={"model": "client-cannot-override", "messages": []}).status_code == 200
+    assert sent[-1][1]["json"]["model"] == "test-eso-chat"
+    assert test_client.post("/api/ocr?app=eso_adultos", json={"image": "aGVsbG8=", "mime_type": "image/png"}).status_code == 200
+    assert sent[-1][1]["json"]["model"] == "test-eso-vision"
+    assert test_client.post("/api/transcribe?app=eso_adultos", json={"audio": "aGVsbG8="}).status_code == 200
+    assert sent[-1][1]["data"]["model"] == "test-eso-audio"
+    assert test_client.post("/api/chat?app=profesor_particular", json={"messages": []}).status_code == 200
+    assert sent[-1][1]["json"]["model"] == next(c["model"] for c in professor_before if c["id"] == "chat")
+    assert test_client.post("/admin/ai-settings/apps/DIPLOMATOR", json={"capabilities": {"points": {"provider": "openai", "model": "test-dip-points"}}}).status_code == 200
+    assert test_client.post("/api/chat?app=diplomator", json={"purpose": "points", "messages": []}).status_code == 200
+    assert sent[-1][1]["json"]["model"] == "test-dip-points"
+    test = test_client.post("/admin/ai-settings/test", json={"product": "ESO_ADULTOS", "capability": "chat"})
+    assert test.status_code == 200
+    assert sent[-1][1]["json"]["model"] == "test-eso-chat"
+    reset = test_client.post("/admin/ai-settings/apps/ESO_ADULTOS", json={"capabilities": {"chat": None}})
+    assert next(c for c in reset.json()["apps"]["ESO_ADULTOS"] if c["id"] == "chat")["inherited"] is True
+
+
+def test_app_ai_validation_and_key_updates_do_not_overwrite_models(client):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin")
+    login(test_client)
+    before = test_client.get("/admin/ai-settings").json()
+    for product, changes in [("UNKNOWN", {"chat": None}), ("ESO_ADULTOS", {"points": None}), ("ESO_ADULTOS", {"ocr": {"provider": "groq", "model": "anything"}}), ("ESO_ADULTOS", {"chat": {"provider": "openai", "model": "bad model"}})]:
+        assert test_client.post("/admin/ai-settings/apps/"+product, json={"capabilities": changes}).status_code == 400
+    assert test_client.get("/admin/ai-settings").json()["apps"] == before["apps"]
+    keys = test_client.post("/admin/ai-settings/keys", json={"openai_api_key": "sk-test-key"})
+    assert keys.status_code == 200
+    assert keys.json()["chat_model"] == before["chat_model"]
+    assert "sk-test-key" not in keys.text
+    assert test_client.post("/admin/ai-settings/keys", json={"groq_api_key": "sk-wrong"}).status_code == 400
+
+
+def test_app_ai_configuration_requires_admin(client):
+    test_client, db_factory = client
+    seed_user(db_factory)
+    login(test_client)
+    assert test_client.post("/admin/ai-settings/apps/ESO_ADULTOS", json={"capabilities": {"chat": None}}).status_code == 403
+    assert test_client.post("/admin/ai-settings/keys", json={"openai_api_key": "sk-test"}).status_code == 403

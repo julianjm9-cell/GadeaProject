@@ -167,6 +167,8 @@ def ensure_google_access(db: Session, user: User, product_codes: tuple[str, ...]
     settings = get_settings()
     now = datetime.now(timezone.utc)
     for product_code in product_codes:
+        if product_code == "DIPLOMATOR":
+            continue  # Diplomator access is assigned by administration only.
         # Never renew suspended/expired access or replenish credits on login.
         if license_for_user(db, user, product_code):
             continue
@@ -208,6 +210,8 @@ def get_or_create_google_user(db: Session, info: dict, product_codes: tuple[str,
             user.full_name = str(info.get("name") or email)[:200]
         ensure_google_access(db, user, product_codes)
         return user
+    if "DIPLOMATOR" in product_codes:
+        raise HTTPException(status_code=403, detail="Diplomator requiere una cuenta y una licencia asignadas.")
     if "PROFESOR_PARTICULAR" in product_codes and not get_settings().profesor_signup_enabled:
         raise HTTPException(status_code=403, detail="El registro está cerrado temporalmente.")
     if "ESO_ADULTOS" in product_codes and not get_settings().eso_signup_enabled:

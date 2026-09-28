@@ -47,21 +47,21 @@
   <main class="page">
     <section class="hero" aria-labelledby="title">
       <div class="hero-copy">
-        <p class="brand-note"><img src="assets/brand/eso-simple.png" alt="" width="34" height="34">Tu escritorio de estudio</p>
+
         <h1 id="title">ESO ADULTOS</h1>
         <p class="tagline">Estudia la ESO de forma simple</p>
         <p class="intro">Sesión diaria, asignaturas, exámenes, seguimiento de tu progreso y ayuda de la IA. Todo en un mismo lugar, a tu ritmo.</p>
-        <div class="actions"><a class="cta" id="registerLink" href="/e25/login?mode=register">Crear cuenta gratis <svg aria-hidden="true"><use href="#arrow"/></svg></a><a class="signin" href="/e25/login">Ya tengo cuenta</a></div>
-        <p class="allowance" id="signupSummary">Acceso gratuito con créditos iniciales de IA. Consulta las condiciones al registrarte.</p>
+        <div class="actions"><a class="cta" id="registerLink" href="/e25/register">Crear cuenta gratis <svg aria-hidden="true"><use href="#arrow"/></svg></a><a class="signin" href="/e25/login">Ya tengo cuenta</a></div>
+
       </div>
       <figure class="devices" aria-label="Vista ilustrativa de ESO Adultos en ordenador y móvil">
         <div class="laptop" aria-hidden="true"><div class="laptop-screen"><div class="preview" id="desktopPreview"></div></div><div class="laptop-base"></div></div>
         <div class="phone" aria-hidden="true"><div class="preview" id="mobilePreview"></div></div>
-        <figcaption>Una vista de tu escritorio de estudio.</figcaption>
+
       </figure>
     </section>
     <section class="faq" aria-labelledby="faqTitle">
-      <div class="faq-heading"><h2 id="faqTitle">Preguntas frecuentes</h2><p>Resuelve aquí tus dudas sobre ESO Adultos.</p></div>
+      <div class="faq-heading"><h2 id="faqTitle">Preguntas frecuentes</h2></div>
       <div class="faq-grid">
         <details><summary>¿Para qué sirve?</summary><p>Para preparar la ESO con una rutina sencilla: estudiar un tema, practicar y ver tu avance. Es una herramienta de apoyo al estudio; el título se obtiene a través de las vías oficiales.</p></details>
         <details><summary>¿Es gratis?</summary><p id="priceAnswer">Puedes crear una cuenta gratuita con créditos iniciales para la IA. La cantidad y duración del acceso se muestran al registrarte. Los créditos no se renuevan automáticamente; si se agotan, puedes seguir estudiando contenidos y guardando tu progreso sin IA mientras tu acceso siga vigente.</p></details>
@@ -71,7 +71,7 @@
         <details><summary>¿Necesito experiencia previa?</summary><p>No necesitas saber usar IA ni escribir instrucciones especiales. La app te guía y puedes avanzar a tu ritmo desde el ordenador o el móvil.</p></details>
       </div>
     </section>
-    <footer class="footer"><span>ESO Adultos · Estudia a tu ritmo</span><div class="footer-contact"><a href="mailto:julianjm9@gmail.com">Contacto</a><a href="https://wa.me/34663533412" target="_blank" rel="noopener noreferrer">WhatsApp</a></div></footer>
+    <footer class="footer"><span>ESO Adultos · Estudia a tu ritmo</span></footer>
   </main>
   <script>
     const previewIcon = name => `<svg aria-hidden="true"><use href="#${name}"/></svg>`;
@@ -88,12 +88,10 @@
         if (!settings.enabled) {
           const link = document.getElementById('registerLink');
           link.href = '/e25/login'; link.innerHTML = `Entrar ${previewIcon('arrow')}`;
-          document.getElementById('signupSummary').textContent = 'El registro gratuito está cerrado temporalmente. Puedes entrar con tu cuenta.';
           document.getElementById('priceAnswer').textContent = 'El registro gratuito está cerrado temporalmente. Si ya tienes una cuenta, puedes entrar con tu acceso y consultar tus créditos desde el perfil.';
           return;
         }
         if (!Number.isSafeInteger(settings.credits) || settings.credits < 1 || !Number.isSafeInteger(settings.days) || settings.days < 1) return;
-        document.getElementById('signupSummary').textContent = `${settings.credits} créditos iniciales de IA · ${settings.days} días de acceso gratuito.`;
         document.getElementById('priceAnswer').textContent = `El registro es gratuito e incluye ${settings.days} días de acceso y ${settings.credits} créditos iniciales de IA, concedidos una sola vez por cuenta. No se renuevan automáticamente. Si se agotan, puedes seguir estudiando contenidos y guardando tu progreso sin IA mientras tu acceso siga vigente.`;
       } catch (_) { /* Keep the registration link without promising a fixed allowance. */ }
     }

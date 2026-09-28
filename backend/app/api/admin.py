@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import json
 import secrets
 import zipfile
 from datetime import datetime, timezone
@@ -21,6 +22,7 @@ from app.models import AppSetting, AuditLog, License, Organization, UsageRecord,
 from app.schemas.core import LicenseCreate, LicenseOut, LicensePatch, OrganizationCreate, OrganizationOut, OrganizationPatch, UserAccessPatch, UserCreate, UserOut, UserPatch
 from app.security.passwords import hash_password
 from app.services.ai_config import (
+    app_ai_override,
     GROQ_CHAT_DEFAULT,
     GROQ_TRANSCRIBE_DEFAULT,
     normalize_chat_model,
@@ -206,6 +208,19 @@ def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends
         "chat_model": chat_model,
         "transcribe_model": transcribe_model,
         "capabilities": capabilities,
+        "apps": {product: [dict(cap, **{
+            "provider": app_ai_override(db, product, cap["id"]).get("provider", cap["provider"]),
+            "model": app_ai_override(db, product, cap["id"]).get("model", cap["model"]),
+            "inherited": not bool(app_ai_override(db, product, cap["id"])),
+            "configured": configured.get(app_ai_override(db, product, cap["id"]).get("provider", cap["provider"]), False),
+            "key_source": sources.get(app_ai_override(db, product, cap["id"]).get("provider", cap["provider"]), "sin clave"),
+        }) for cap in capabilities if product in cap["apps"]] for product in PRODUCT_CODES},
+        "model_choices": {
+            "chat": {"groq": [GROQ_CHAT_DEFAULT, "openai/gpt-oss-20b"], "openai": ["gpt-4o-mini"], "gemini": ["gemini-2.5-flash"]},
+            "points": {"groq": [GROQ_CHAT_DEFAULT, "openai/gpt-oss-20b"], "openai": ["gpt-4o-mini"], "gemini": ["gemini-2.5-flash"]},
+            "ocr": {"openai": ["gpt-4o-mini"], "gemini": ["gemini-2.5-flash"]},
+            "transcribe": {"groq": [GROQ_TRANSCRIBE_DEFAULT], "openai": ["whisper-1"]},
+        },
         "recommended_provider": "groq",
         "recommended_chat_model": GROQ_CHAT_DEFAULT,
         "recommended_transcribe_model": GROQ_TRANSCRIBE_DEFAULT,
@@ -251,12 +266,61 @@ def save_ai_settings(payload: dict, actor: User = Depends(require_superadmin), d
     return get_ai_settings(actor, db)
 
 
+@router.post("/ai-settings/apps/{product}")
+def save_app_ai_settings(product: str, payload: dict, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    if product not in PRODUCT_CODES:
+        raise HTTPException(status_code=400, detail="Aplicación no válida.")
+    changes = payload.get("capabilities")
+    if not isinstance(changes, dict) or not changes:
+        raise HTTPException(status_code=400, detail="Selecciona una función de IA.")
+    clean = {}
+    for capability, value in changes.items():
+        providers = {"chat": {"groq", "openai", "gemini"}, "points": {"groq", "openai", "gemini"}, "ocr": {"openai", "gemini"}, "transcribe": {"groq", "openai"}}
+        if capability not in providers or (capability == "points" and product != "DIPLOMATOR"):
+            raise HTTPException(status_code=400, detail="Función no disponible para esta app.")
+        if value is None:
+            clean[capability] = ""
+            continue
+        if not isinstance(value, dict) or value.get("provider") not in providers[capability]:
+            raise HTTPException(status_code=400, detail="Proveedor no compatible con esta función.")
+        model = value.get("model")
+        if not isinstance(model, str) or not model.strip() or len(model) > 120 or any(c.isspace() for c in model):
+            raise HTTPException(status_code=400, detail="Indica un identificador de modelo válido, sin espacios.")
+        clean[capability] = json.dumps({"provider": value["provider"], "model": model})
+    for capability, value in clean.items():
+        set_setting(db, f"ai.{product}.{capability}", value)
+    audit(db, actor=actor, organization_id=actor.organization_id, action="app_ai_settings_updated", entity_type="app_settings", entity_id=product, metadata={"capabilities": list(clean)})
+    db.commit()
+    return get_ai_settings(actor, db)
+
+
+@router.post("/ai-settings/keys")
+def save_ai_keys(payload: dict, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    values = {}
+    validators = {"groq": valid_groq_key, "openai": valid_openai_key, "gemini": valid_gemini_key}
+    for provider, validate in validators.items():
+        key = str(payload.get(provider + "_api_key") or "").strip()
+        if key:
+            if not validate(key):
+                raise HTTPException(status_code=400, detail=f"La clave de {provider} no tiene un formato válido.")
+            values[provider + "_api_key"] = key
+    for key, value in values.items():
+        set_setting(db, key, value)
+    audit(db, actor=actor, organization_id=actor.organization_id, action="ai_keys_updated", entity_type="app_settings", entity_id="ai", metadata={"providers": list(values)})
+    db.commit()
+    return get_ai_settings(actor, db)
+
+
 @router.post("/ai-settings/test")
 async def test_ai_settings(payload: dict, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
     settings = get_settings()
     capability_id = str(payload.get("capability") or "chat").strip().lower()
     current = get_ai_settings(actor, db)
-    capability = next((item for item in current["capabilities"] if item["id"] == capability_id), None)
+    product = payload.get("product")
+    if product is not None and product not in PRODUCT_CODES:
+        raise HTTPException(status_code=400, detail="Aplicación no válida.")
+    candidates = current["apps"][product] if product else current["capabilities"]
+    capability = next((item for item in candidates if item["id"] == capability_id), None)
     if not capability:
         raise HTTPException(status_code=400, detail="Funcion IA no valida.")
     provider = capability["provider"]
