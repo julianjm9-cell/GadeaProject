@@ -9,8 +9,8 @@ function nextPath(){return target}function reveal(b){const p=document.getElement
 document.title=product+' | '+(signupMode?'Registro':'Acceso');
 document.getElementById('introTitle').innerHTML=diplomator?'Ideas claras.<span>Una voz segura.</span>':teacher?'Tus clases, <span>más simples</span>':'Accede a tu <span>espacio de estudio</span>';
 document.getElementById('introCopy').textContent=diplomator?'Temas, guiones y práctica oral en inglés y francés. Retoma tu preparación desde donde la dejaste.':teacher?'Tus alumnos, materiales y próximas clases en un mismo lugar.':'Todas las herramientas de ESO Adultos en un mismo lugar: asignaturas, exámenes y seguimiento de tu progreso.';
-document.getElementById('brand').innerHTML=(diplomator?'<img src="/assets/brand/diplomator-simple.png" alt="">':teacher?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m1 8 11-5 11 5-11 5L1 8Zm4 3v6c4 3 10 3 14 0v-6m3-2v8"/></svg>':'<img src="/assets/brand/eso-simple.png" alt="">')+product;
-document.getElementById('devicePreview').innerHTML=`<figure class="devices" aria-label="${product} en ordenador y móvil"><div class="laptop"><div class="laptop-screen"><img src="/assets/landing/${asset}-dashboard.png" alt="Escritorio de ${product}"></div><div class="laptop-base"></div></div><div class="phone"><img src="/assets/landing/${asset}-mobile.png" alt="${product} en móvil"></div></figure>`;
+document.getElementById('brand').innerHTML=(diplomator?'<img src="/assets/brand/diplomator-simple-v2.png" alt="">':teacher?'<img src="/assets/brand/profesor-simple-v2.png" alt="">':'<img src="/assets/brand/eso-simple-v2.png" alt="">')+product;
+document.getElementById('devicePreview').innerHTML=`<figure class="devices" aria-label="${product} en ordenador y móvil"><div class="laptop"><div class="laptop-screen"><img src="/assets/landing/${asset}-dashboard.png?v=real-brand4" alt="Escritorio de ${product}"></div><div class="laptop-base"></div></div><div class="phone"><img src="/assets/landing/${asset}-mobile.png?v=real-brand4" alt="${product} en móvil"></div></figure>`;
 document.getElementById('formTitle').textContent=signupMode?'Crear cuenta gratis':'Iniciar sesión';document.getElementById('formCopy').textContent=signupMode?'Empieza con tu nombre, email y contraseña.':'Entra con tu cuenta para continuar.';
 for(const id of ['signupFields','signupConfirm'])document.getElementById(id).hidden=!signupMode;
 document.getElementById('fullName').required=signupMode;document.getElementById('confirmPassword').required=signupMode;document.getElementById('email').type=signupMode?'email':'text';document.getElementById('password').minLength=signupMode?8:1;document.getElementById('password').autocomplete=signupMode?'new-password':'current-password';document.getElementById('submitButton').textContent=signupMode?'Crear cuenta y empezar':'Entrar';document.getElementById('submitButton').disabled=signupMode;
@@ -43,4 +43,5 @@ async function login(event) {
   } catch (_) { error.textContent = 'No se pudo conectar. Prueba de nuevo.'; }
   finally { button.disabled = false; }
 }
-</script></body></html>
+</script><script>{const icon=document.createElement("link");icon.rel="icon";icon.type="image/png";icon.href=teacher?"/assets/brand/profesor-simple-v2.png":diplomator?"/assets/brand/diplomator-simple-v2.png":"/assets/brand/eso-simple-v2.png";document.head.append(icon);}</script>
+</body></html>

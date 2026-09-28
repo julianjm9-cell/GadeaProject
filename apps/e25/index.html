@@ -3370,12 +3370,14 @@
 @media(max-width:900px){.profile-layout{grid-template-columns:1fr}.profile-personal{border-right:0;border-bottom:1px solid #e6eef9}.profile-personal,.profile-access{padding:24px}}
 @media(max-width:500px){.profile-personal-heading{gap:15px}.profile-personal-heading h2{font-size:25px}.desktop-refresh .profile-personal .profile-avatar{width:75px;height:75px;font-size:32px}.desktop-refresh .profile-access .profile-grid{grid-template-columns:1fr}.profile-access .profile-stat{padding:16px}.profile-access-summary{padding:16px}}
   </style>
+<link rel="icon" type="image/png" href="/assets/brand/eso-simple-v2.png">
+<style>.desktop-refresh .brand-logo{width:64px;height:42px;flex-shrink:0}.desktop-refresh .brand h1{display:block;font-size:18px;white-space:nowrap}@media(max-width:760px){.desktop-refresh .brand-logo{width:50px;height:34px}.desktop-refresh .brand h1{font-size:16px}}</style>
 </head>
 <body>
 <div class="app">
   <header>
     <div class="brand">
-      <div class="brand-logo" aria-hidden="true"><img src="assets/brand/eso-simple.png" alt=""></div>
+      <div class="brand-logo" aria-hidden="true"><img src="assets/brand/eso-simple-v2.png" alt=""></div>
       <div>
         <h1>ESO Adultos</h1>
       </div>
@@ -6062,7 +6064,7 @@ function init() {
   }
   document.body.classList.add('desktop-refresh');
   const brandImage = document.querySelector('.brand-logo img');
-  if (brandImage) brandImage.src = 'assets/brand/eso-full.png';
+  if (brandImage) brandImage.src = 'assets/brand/eso-simple-v2.png';
   if (REDESIGN_MODE) {
     if ($('navModules')) $('navModules').textContent = 'Asignaturas';
     if ($('navExam')) $('navExam').hidden = true;

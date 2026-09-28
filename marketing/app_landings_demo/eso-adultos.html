@@ -34,7 +34,7 @@
     @media(min-width:761px) and (max-height:800px){.page{padding:12px 32px 10px;gap:8px}.hero{min-height:0}.devices{padding-top:5px;padding-bottom:18px}.faq-heading{margin-bottom:10px}.faq h2{font-size:27px}.faq summary{min-height:42px;padding-block:8px}.footer{margin-top:0}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}.cta:hover{transform:none}}
   </style>
-</head>
+<link rel="icon" type="image/png" href="/assets/brand/eso-simple-v2.png"><style>.hero-logo{display:block;width:220px;height:165px;object-fit:contain;object-position:left center}.preview-brand img{width:4.8cqw}.phone .preview-brand img{width:14cqw}@media(min-width:761px) and (max-height:800px){.hero-logo{width:176px;height:132px}.intro{margin-bottom:18px}.tagline{margin-bottom:12px}}</style><style>.landing-brand{display:flex;align-items:center;gap:16px;margin:0 0 24px;font-family:Inter,"Segoe UI",Arial,sans-serif;font-size:clamp(27px,3vw,40px);font-weight:800;letter-spacing:-.045em;line-height:1.1}.landing-brand img{display:block;width:80px;height:80px;object-fit:contain;flex:0 0 80px}.landing-brand span{max-width:340px}@media(min-width:761px) and (max-height:800px){.landing-brand{margin-bottom:20px;font-size:34px}.landing-brand img{width:68px;height:68px;flex-basis:68px}}@media(max-width:760px){.landing-brand{gap:12px;font-size:30px;margin-bottom:22px}.landing-brand img{width:64px;height:64px;flex-basis:64px}}@media(max-width:380px){.landing-brand{font-size:27px}.landing-brand img{width:56px;height:56px;flex-basis:56px}}</style></head>
 <body>
   <svg class="icon-defs" aria-hidden="true"><defs>
     <symbol id="book" viewBox="0 0 24 24"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15"/></symbol>
@@ -48,7 +48,7 @@
     <section class="hero" aria-labelledby="title">
       <div class="hero-copy">
 
-        <h1 id="title">ESO ADULTOS</h1>
+        <h1 id="title" class="landing-brand"><img src="/assets/brand/eso-simple-v2.png" alt=""><span>ESO Adultos</span></h1>
         <p class="tagline">Estudia la ESO de forma simple</p>
         <p class="intro">Sesión diaria, asignaturas, exámenes, seguimiento de tu progreso y ayuda de la IA. Todo en un mismo lugar, a tu ritmo.</p>
         <div class="actions"><a class="cta" id="registerLink" href="/e25/register">Crear cuenta gratis <svg aria-hidden="true"><use href="#arrow"/></svg></a><a class="signin" href="/e25/login">Ya tengo cuenta</a></div>
@@ -76,7 +76,7 @@
   <script>
     const previewIcon = name => `<svg aria-hidden="true"><use href="#${name}"/></svg>`;
     const sections = [['book','Asignaturas','Temas y ejercicios','green'],['exam','Exámenes','Practica y corrige','purple'],['progress','Progreso','Mira tus avances','mint'],['resources','Recursos','Temario oficial','amber']];
-    const previewMarkup = `<div class="preview-header"><span class="preview-brand"><img src="assets/brand/eso-simple.png" alt="">ESO Adultos</span><span class="avatar">P</span></div><div class="preview-layout"><div class="preview-menu"><span>${previewIcon('home')}Inicio</span>${sections.map(([icon,title])=>`<span>${previewIcon(icon)}${title}</span>`).join('')}</div><div class="preview-main"><div class="greeting"><h3>¡Buenas tardes!</h3><p>Continúa tu progreso de hoy.</p></div><div class="preview-session"><div><h4>SESIÓN DE HOY</h4><div class="durations"><span><b>15 min</b>Repaso rápido</span><span><b>30 min</b>Estudio equilibrado</span><span><b>45 min</b>Sesión completa</span></div><div class="preview-start">Empezar sesión →</div></div><img src="assets/landing/eso-study-desk.png" alt="" width="640" height="360"></div><h4 class="quick-title">Acceso rápido</h4><div class="preview-quick">${sections.map(([icon,title,copy,color])=>`<div class="preview-tile"><span class="tile-icon ${color}">${previewIcon(icon)}</span><b>${title}</b><small>${copy}</small></div>`).join('')}</div></div></div>`;
+    const previewMarkup = `<div class="preview-header"><span class="preview-brand"><img src="assets/brand/eso-simple-v2.png" alt="">ESO Adultos</span><span class="avatar">P</span></div><div class="preview-layout"><div class="preview-menu"><span>${previewIcon('home')}Inicio</span>${sections.map(([icon,title])=>`<span>${previewIcon(icon)}${title}</span>`).join('')}</div><div class="preview-main"><div class="greeting"><h3>¡Buenas tardes!</h3><p>Continúa tu progreso de hoy.</p></div><div class="preview-session"><div><h4>SESIÓN DE HOY</h4><div class="durations"><span><b>15 min</b>Repaso rápido</span><span><b>30 min</b>Estudio equilibrado</span><span><b>45 min</b>Sesión completa</span></div><div class="preview-start">Empezar sesión →</div></div><img src="assets/landing/eso-study-desk.png" alt="" width="640" height="360"></div><h4 class="quick-title">Acceso rápido</h4><div class="preview-quick">${sections.map(([icon,title,copy,color])=>`<div class="preview-tile"><span class="tile-icon ${color}">${previewIcon(icon)}</span><b>${title}</b><small>${copy}</small></div>`).join('')}</div></div></div>`;
     document.getElementById('desktopPreview').innerHTML = previewMarkup;
     document.getElementById('mobilePreview').innerHTML = previewMarkup;
     async function loadFreeAccess() {

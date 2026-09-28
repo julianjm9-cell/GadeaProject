@@ -13,7 +13,7 @@
     * { box-sizing:border-box; }
     body { margin:0; min-height:100vh; color:var(--ink); background:linear-gradient(180deg,#f7fbff 0%,#eef5ff 100%); font-family:Inter,"Segoe UI",Arial,sans-serif; }
     body[data-app="universidad"] { --main:#6542a6; --main-2:#4b2f82; --soft:#f2ecff; }
-    body[data-app="eso"] { --main:#b74338; --main-2:#8f3028; --soft:#fff0ec; }
+    body[data-app="eso"] { --main:#0065ff; --main-2:#0047b8; --soft:#edf5ff; }
     body[data-app="cambridge"] { --main:#0f766e; --main-2:#0a514c; --soft:#e8fbf7; }
     body[data-app="diplomator"] { --main:#2454a6; --main-2:#173d78; --soft:#edf4ff; }
     a { color:inherit; text-decoration:none; }
@@ -182,9 +182,9 @@
       </div>
       <div class="nav-group">
         <div class="nav-label">Apps</div>
-        <button data-view="eso" onclick="setView('eso')"><span class="nav-icon"><img src="assets/brand/eso-simple.png" alt=""></span>ESO Adultos</button>
-        <button data-view="profesor" onclick="setView('profesor')"><span class="nav-icon"><img src="assets/brand/profesor.svg" alt=""></span>Profesor Particular</button>
-        <button data-view="diplomator" onclick="setView('diplomator')"><span class="nav-icon"><img src="assets/brand/diplomator-simple.png" alt=""></span>Diplomator</button>
+        <button data-view="eso" onclick="setView('eso')"><span class="nav-icon"><img src="assets/brand/eso-simple-v2.png" alt=""></span>ESO Adultos</button>
+        <button data-view="profesor" onclick="setView('profesor')"><span class="nav-icon"><img src="assets/brand/profesor-simple-v2.png" alt=""></span>Profesor Particular</button>
+        <button data-view="diplomator" onclick="setView('diplomator')"><span class="nav-icon"><img src="assets/brand/diplomator-simple-v2.png" alt=""></span>Diplomator</button>
         <button data-view="universidad" onclick="setView('universidad')"><span class="nav-icon"><img src="assets/brand/u25-simple.png" alt=""></span>Universidad +25</button>
         <button data-view="cambridge" onclick="setView('cambridge')"><span class="nav-icon"><img src="assets/brand/ingles-simple.png" alt=""></span>Titulo de ingles</button>
       </div>
@@ -269,11 +269,11 @@
 <div id="toast" class="toast"></div>
 <script>
 const PRODUCTS=[
-  {key:'profesor',code:'PROFESOR_PARTICULAR',short:'PP',label:'Profesor Particular',public:'/profesor',app:'/profesor-particular',org:'Educa Suite - Profesor Particular',icon:'assets/brand/profesor.svg'},
+  {key:'profesor',code:'PROFESOR_PARTICULAR',short:'PP',label:'Profesor Particular',public:'/profesor',app:'/profesor-particular',org:'Educa Suite - Profesor Particular',icon:'assets/brand/profesor-simple-v2.png'},
   {key:'universidad',code:'UNIVERSIDAD_ADULTOS',short:'U25',label:'Universidad +25',public:'/u25',app:'/universidad-adultos',org:'Educa Suite - Universidad +25',icon:'assets/brand/u25-simple.png'},
-  {key:'eso',code:'ESO_ADULTOS',short:'E25',label:'ESO Adultos',public:'/e25',app:'/eso-adultos',org:'Educa Suite - ESO Adultos',icon:'assets/brand/eso-simple.png'},
+  {key:'eso',code:'ESO_ADULTOS',short:'E25',label:'ESO Adultos',public:'/e25',app:'/eso-adultos',org:'Educa Suite - ESO Adultos',icon:'assets/brand/eso-simple-v2.png'},
   {key:'cambridge',code:'CAMBRIDGE',short:'CAM',label:'Titulo de ingles',public:'/cambridge-info',app:'/cambridge',org:'Educa Suite - Cambridge',icon:'assets/brand/ingles-simple.png'},
-  {key:'diplomator',code:'DIPLOMATOR',short:'DIP',label:'Diplomator',public:'/diplomator',app:'/app',org:'Educa Suite - Diplomator',icon:'assets/brand/diplomator-simple.png'}
+  {key:'diplomator',code:'DIPLOMATOR',short:'DIP',label:'Diplomator',public:'/diplomator',app:'/app',org:'Educa Suite - Diplomator',icon:'assets/brand/diplomator-simple-v2.png'}
 ];
 const PRODUCT_ORDER=['eso','profesor','diplomator','universidad','cambridge'];PRODUCTS.sort((a,b)=>PRODUCT_ORDER.indexOf(a.key)-PRODUCT_ORDER.indexOf(b.key));
 let aiApp='ESO_ADULTOS';const aiDrafts={};

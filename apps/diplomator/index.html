@@ -890,7 +890,7 @@
     .recite-stage { padding: 14px; }
   }
 </style>
-</head>
+<link rel="icon" type="image/png" href="/assets/brand/diplomator-simple-v2.png"><style>.brand-area h1{font-family:Arial,sans-serif;text-transform:none;letter-spacing:-.04em;font-weight:800}.brand-word{color:#062653;gap:0}.brand-word .brand-initial{font-size:1em;font-style:normal;color:inherit}.brand-word:after{display:none}.diplomator-header-icon{box-shadow:none;border-radius:0}.profile-mini,.profile-avatar{background:#062653!important}.profile-mini img,.profile-avatar img{object-fit:contain;padding:4px}</style></head>
 <body>
 <div class="selection-toolbar" id="selectionToolbar" aria-label="Formato de texto">
   <button type="button" title="Negrita" onmousedown="applySelectionFormat(event,'bold')">B</button>
@@ -903,8 +903,8 @@
 
 <header>
   <div class="brand-area">
-    <div class="diplomator-header-icon" aria-hidden="true"><img src="assets/brand/diplomator-simple.png" alt=""></div>
-    <h1><span class="brand-word"><span class="brand-initial">D</span>IPLOMATOR</span></h1>
+    <div class="diplomator-header-icon" aria-hidden="true"><img src="assets/brand/diplomator-simple-v2.png" alt=""></div>
+    <h1><span class="brand-word"><span class="brand-initial">D</span>iplomator</span></h1>
     <div class="lang-switcher">
       <button class="lang-btn active" id="btnEN" onclick="setLang('en')" title="English C1">EN</button>
       <button class="lang-btn" id="btnFR" onclick="setLang('fr')" title="Français C1">FR</button>
@@ -2824,7 +2824,8 @@ function renderHistoryBody(i) {
           <span style="font-size:0.6rem;color:var(--gold);min-width:20px;flex-shrink:0;padding-top:2px;">${String(j+1).padStart(2,'0')}</span>
           <div style="flex:1;min-width:0;">
             <div id="hptext-${i}-${j}" style="font-size:0.8rem;line-height:1.65;">${inlinePointEditorHtml('history', i, j, p)}</div>
-            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+
               <button class="btn btn-small btn-danger" onclick="deleteHistoryPoint(${i},${j})">x Eliminar</button>
             </div>
           </div>
@@ -2981,7 +2982,7 @@ function remainingCredits(user = null) {
 }
 
 function diplomatIcon() {
-  return '<img src="assets/brand/diplomator-simple.png" alt="">';
+  return '<img src="assets/brand/diplomator-white-v2.png" alt="">';
 }
 
 function renderDiplomatIcons() {
@@ -3245,7 +3246,7 @@ function wrapWordHtml(title, bodyHtml) {
   .date-item, .vocab-item { margin:4px 0; }
   .label { color:#c7922f; font-weight:bold; }
 </style>
-</head>
+<link rel="icon" type="image/png" href="/assets/brand/diplomator-simple-v2.png"><style>.brand-area h1{font-family:Arial,sans-serif;text-transform:none;letter-spacing:-.04em;font-weight:800}.brand-word{color:#062653;gap:0}.brand-word .brand-initial{font-size:1em;font-style:normal;color:inherit}.brand-word:after{display:none}.diplomator-header-icon{box-shadow:none;border-radius:0}.profile-mini,.profile-avatar{background:#062653!important}.profile-mini img,.profile-avatar img{object-fit:contain;padding:4px}</style></head>
 <body>${bodyHtml}</body>
 </html>`;
 }
