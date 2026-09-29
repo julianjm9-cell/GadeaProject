@@ -1039,6 +1039,53 @@ def save_state(payload: dict, request: Request, user: User = Depends(current_use
     return {"ok": True}
 
 
+@router.post("/api/profesor/generate")
+async def generate_teacher_material(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    from app.services.teacher_generator import generator_context, parse_material, SYSTEM
+    if license_obj.product_code != "PROFESOR_PARTICULAR":
+        raise HTTPException(403, "Esta función requiere acceso a Profesor Particular.")
+    request_id, context = generator_context(payload)
+    # Lock the same account row used by credit accounting, including unlimited plans.
+    db.scalar(select(User).where(User.id == user.id).with_for_update())
+    title = "teacher-generator:" + request_id
+    previous = db.scalar(select(Conversation).where(Conversation.user_id == user.id, Conversation.organization_id == user.organization_id, Conversation.title == title))
+    if previous:
+        message = db.scalar(select(Message).where(Message.conversation_id == previous.id, Message.role == "assistant"))
+        result = json.loads(message.content)
+        if result["context"] != context:
+            raise HTTPException(409, "Este identificador ya se utilizó con otro contexto.")
+        return {"ok": True, "questions": result["questions"], "credits": 1, "reused": True}
+    ensure_credit_balance(db, user, license_obj, 1)
+    try:
+        api_key, url, provider = chat_provider_config(db, product="PROFESOR_PARTICULAR")
+    except HTTPException as exc:
+        raise HTTPException(503, "Configura el proveedor y la clave de Profesor Particular en Administración → IA.") from exc
+    model = chat_model_for_purpose(db, provider, "chat", "PROFESOR_PARTICULAR")
+    try:
+        async with httpx.AsyncClient(timeout=120) as client:
+            response = await client.post(url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json={"model": model, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps(context, ensure_ascii=False)}]})
+    except httpx.TimeoutException as exc:
+        raise HTTPException(504, "La IA ha tardado demasiado. No se han descontado créditos.") from exc
+    except httpx.RequestError as exc:
+        raise HTTPException(502, "No se pudo conectar con la IA. No se han descontado créditos.") from exc
+    if response.status_code >= 400:
+        raise provider_error("No se pudo generar el material. No se han descontado créditos", response)
+    try:
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+    except (ValueError, KeyError, TypeError, IndexError) as exc:
+        raise HTTPException(502, "Respuesta del proveedor no válida. No se han descontado créditos.") from exc
+    questions = parse_material(content, context)
+    input_tokens, output_tokens = token_usage(data)
+    record_usage(db, user, model, input_tokens, output_tokens, "PROFESOR_PARTICULAR", 1)
+    conv = Conversation(organization_id=user.organization_id, user_id=user.id, title=title)
+    db.add(conv)
+    db.flush()
+    db.add(Message(conversation_id=conv.id, organization_id=user.organization_id, user_id=user.id, role="assistant", content=json.dumps({"context": context, "questions": questions}, ensure_ascii=False)))
+    db.commit()
+    return {"ok": True, "questions": questions, "credits": 1, "reused": False}
+
+
 @router.post("/api/chat")
 async def chat(payload: dict, request: Request, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db), app_key_override: str | None = None):
     settings = get_settings()
