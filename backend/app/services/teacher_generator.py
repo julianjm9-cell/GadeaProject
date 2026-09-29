@@ -4,7 +4,7 @@ import re
 from uuid import UUID
 from fastapi import HTTPException
 
-TYPES = ('pairs', 'gaps', 'quiz', 'short', 'order', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'memory', 'sentence', 'timeline', 'error', 'wordsearch', 'crossword', 'dragdrop', 'visualquiz', 'imagepoint')
+TYPES = ('pairs', 'gaps', 'quiz', 'short', 'order', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'memory', 'sentence', 'timeline', 'error', 'wordsearch', 'crossword', 'dragdrop')
 
 
 def puzzle_word(value):
@@ -51,6 +51,8 @@ def crossword_layout_possible(words):
     return False
 
 def generator_context(payload):
+    if payload.get('visualquiz', 0) or payload.get('imagepoint', 0):
+        raise HTTPException(422, 'Los ejercicios con foto se preparan manualmente.')
     try:
         request_id = str(UUID(str(payload.get('request_id', ''))))
     except ValueError:
@@ -98,7 +100,7 @@ def parse_material(content, context):
             if kind == 'gaps' and prompt.count('___') != 1:
                 raise ValueError()
             options = []
-            if kind in ('quiz', 'classify', 'boolean', 'order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop', 'visualquiz'):
+            if kind in ('quiz', 'classify', 'boolean', 'order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop'):
                 options = q['options']
                 if not isinstance(options, list) or not 2 <= len(options) <= (8 if kind in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'dragdrop') else 7 if kind == 'crossword' else 5) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in options):
                     raise ValueError()
@@ -109,14 +111,6 @@ def parse_material(content, context):
                     raise ValueError()
             if kind == 'boolean' and set(options) != {'Verdadero', 'Falso'}:
                 raise ValueError()
-            image_query = ''
-            if kind in ('visualquiz', 'imagepoint'):
-                image_query = q.get('imageQuery') or context['theme'] or context['topic']
-                if not isinstance(image_query, str) or len(image_query.strip()) < 2:
-                    raise ValueError()
-                image_query = image_query.strip()[:100]
-                if kind == 'imagepoint':
-                    answer = 'Zona marcada'
             if kind in ('order', 'sentence', 'timeline'):
                 answer = ' → '.join(options)
             if kind == 'memory':
@@ -134,7 +128,7 @@ def parse_material(content, context):
             text = q.get('text', '')
             if not isinstance(text, str) or len(text) > 3000 or (kind == 'reading' and not text.strip()):
                 raise ValueError()
-            cleaned.append(dict(type=kind, prompt=prompt, answer=answer, options=options, text=text.strip(), **({'imageQuery': image_query} if image_query else {})))
+            cleaned.append(dict(type=kind, prompt=prompt, answer=answer, options=options, text=text.strip()))
         for kind in TYPES:
             if sum(q['type'] == kind for q in cleaned) != context[kind]:
                 raise ValueError()
@@ -188,13 +182,4 @@ puedan cruzarse en una cuadrícula; pistas distintas y concretas. answer es "Com
 En dragdrop, options contiene de 3 a 8 parejas "elemento | destino"; ambos lados
 son únicos y cortos. El alumno coloca cada elemento en su destino. answer es "Completado".
 La app construye las cuadrículas y el tablero: NO generes cuadrículas en el JSON.
-En visualquiz, escribe una pregunta de opción múltiple sobre algo claramente visible en
-una foto o ilustración. Incluye de 2 a 5 opciones y answer igual a una de ellas.
-Incluye imageQuery con una búsqueda concreta de 2 a 100 caracteres para Pixabay
-que encuentre imágenes compatibles con la respuesta. No afirmes detalles que no
-puedan comprobarse al escoger la imagen. El profesor elegirá y revisará la foto.
-En imagepoint, prompt pide señalar un objeto o zona visible; answer es "Zona marcada"
-e imageQuery busca una imagen en la que esa zona se identifique con claridad.
-No generes image, target ni enlaces: el profesor escogerá la imagen y marcará el
-punto correcto después. En los demás tipos no incluyas imageQuery.
 """
