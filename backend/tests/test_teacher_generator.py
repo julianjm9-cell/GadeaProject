@@ -151,3 +151,35 @@ def test_puzzle_generation_charges_only_for_valid_board(client, monkeypatch):
     assert result.status_code==200,result.text
     assert [q['type'] for q in result.json()['questions']]==['wordsearch','crossword','dragdrop']
     with factory() as db:assert db.scalar(select(func.count()).select_from(UsageRecord))==1
+
+
+def test_visual_generation_returns_drafts_without_image_and_charges_once(client, monkeypatch):
+    questions = [
+        dict(type='visualquiz', prompt='¿Qué deporte aparece?', answer='Fútbol',
+             options=['Fútbol', 'Baloncesto', 'Tenis'], imageQuery='personas jugando fútbol'),
+        dict(type='imagepoint', prompt='Señala el balón.', answer='Zona marcada',
+             imageQuery='balón de fútbol en el campo'),
+    ]
+    web, factory, _ = setup(client, monkeypatch, content=json.dumps({'questions': questions}))
+    body = request()
+    body.update(gaps=0, visualquiz=1, imagepoint=1)
+    response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
+    assert response.status_code == 200, response.text
+    generated = response.json()['questions']
+    assert [q['imageQuery'] for q in generated] == [q['imageQuery'] for q in questions]
+    assert all('image' not in q and 'target' not in q for q in generated)
+    with factory() as db:
+        assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
+
+
+def test_visual_generation_falls_back_to_theme_when_query_missing(client, monkeypatch):
+    question = dict(type='visualquiz', prompt='¿Qué deporte aparece?', answer='Fútbol',
+                    options=['Fútbol', 'Baloncesto'])
+    web, factory, _ = setup(client, monkeypatch, content=json.dumps({'questions': [question]}))
+    body = request()
+    body.update(gaps=0, visualquiz=1)
+    response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
+    assert response.status_code == 200, response.text
+    assert response.json()['questions'][0]['imageQuery'] == 'Animales'
+    with factory() as db:
+        assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
