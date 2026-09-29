@@ -17,7 +17,7 @@ class TeacherPdfTests(unittest.TestCase):
         image = BytesIO()
         Image.new("RGB", (500, 300), "#cceeff").save(image, "PNG")
         self.image = image.getvalue()
-        image_ref = {"id": "owned-image", "filename": "animal.png"}
+        image_ref = {"id": "owned-image", "filename": "animal.png", "credit": "Imagen de Ana en Pixabay"}
         self.material = {"title": "Los animales", "subject": "Ciencias", "activity": {
             "context": {"course": "4.º Primaria"},
             "questions": [
@@ -39,6 +39,7 @@ class TeacherPdfTests(unittest.TestCase):
             self.assertIn("Los animales", text)
             self.assertIn("Señala la cabeza", text)
             self.assertIn("Ave acuática", text)
+            self.assertIn("Imagen de Ana en Pixabay", text)
         self.assertNotIn("Solución:", worksheet)
         self.assertIn("Solución:", solutions)
         self.assertIn("Zona marcada por el profesor", solutions)

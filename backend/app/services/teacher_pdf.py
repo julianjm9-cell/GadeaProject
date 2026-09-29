@@ -189,6 +189,8 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
                     section.append(_MarkedImage(raw, width*scale, height*scale, x, y))
                 else:
                     section.append(Image(BytesIO(raw), width=width*scale, height=height*scale, hAlign="CENTER"))
+                if image.get("credit"):
+                    section.append(Paragraph(_text(image["credit"], 160), styles["TeacherSmall"]))
             except Exception as exc:
                 raise ValueError(f"La imagen del ejercicio {index} no se puede incluir en el PDF.") from exc
         options = _lines(q.get("options"))

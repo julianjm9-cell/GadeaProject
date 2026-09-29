@@ -37,7 +37,7 @@ from app.services.resources import load_resource_catalog, save_resource_catalog
 
 
 router = APIRouter(prefix="/admin", tags=["admin"])
-AI_SETTING_KEYS = ("points_provider", "chat_provider", "transcribe_provider", "openai_api_key", "groq_api_key", "gemini_api_key", "points_model", "chat_model", "transcribe_model", "topic_style_guide")
+AI_SETTING_KEYS = ("points_provider", "chat_provider", "transcribe_provider", "openai_api_key", "groq_api_key", "gemini_api_key", "pixabay_api_key", "points_model", "chat_model", "transcribe_model", "topic_style_guide")
 DEFAULT_TOPIC_STYLE_GUIDE = """Treat the selected topic as a strict boundary. Build a coherent oral presentation from the few angles that directly answer that exact topic; never force a standard history, impact, controversy or future section when it is not relevant. Prefer specific explanations, mechanisms, examples and dates that help explain the subject. Every paragraph must earn its place: remove generic introductions, broad international-relations filler, moral conclusions and nearby subjects that were not requested. The student profile controls language and difficulty only; it is never source material. Use natural transitions and an informed C1/C2 tone. Include only facts you can state confidently and never invent dates, statistics, institutions or quotations."""
 PRODUCT_CODES = ("UNIVERSIDAD_ADULTOS", "ESO_ADULTOS", "CAMBRIDGE", "DIPLOMATOR", "PROFESOR_PARTICULAR")
 HAZLOTU_PASSWORD_KEY = "hazlotu_access_password_hash"
@@ -61,6 +61,10 @@ def mask_secret(value: str) -> str:
     if len(value) <= 8:
         return "*" * len(value)
     return f"{value[:3]}...{value[-4:]}"
+
+
+def valid_pixabay_key(value: str) -> bool:
+    return 20 <= len(value) <= 120 and value.isascii() and all(char.isalnum() or char in "-_" for char in value)
 
 
 def get_setting(db: Session, key: str, default: str = "") -> str:
@@ -172,6 +176,7 @@ def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends
     openai_key = setting_or_env(db, "openai_api_key", settings.openai_api_key)
     groq_key = setting_or_env(db, "groq_api_key", settings.groq_api_key)
     gemini_key = setting_or_env(db, "gemini_api_key", settings.gemini_api_key)
+    pixabay_key = setting_or_env(db, "pixabay_api_key", settings.pixabay_api_key)
     points_model = normalize_chat_model(points_provider, get_setting(db, "points_model", get_setting(db, "chat_model", settings.chat_model)))
     chat_model = normalize_chat_model(chat_provider, get_setting(db, "chat_model", settings.chat_model))
     transcribe_model = normalize_transcribe_model(transcribe_provider, get_setting(db, "transcribe_model", settings.transcribe_model))
@@ -220,6 +225,8 @@ def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends
         "groq_masked": mask_secret(groq_key) if valid_groq_key(groq_key) else "",
         "gemini_configured": valid_gemini_key(gemini_key),
         "gemini_masked": mask_secret(gemini_key) if valid_gemini_key(gemini_key) else "",
+        "pixabay_configured": valid_pixabay_key(pixabay_key),
+        "pixabay_masked": mask_secret(pixabay_key) if valid_pixabay_key(pixabay_key) else "",
         "key_sources": sources,
         "points_model": points_model,
         "chat_model": chat_model,
@@ -314,7 +321,7 @@ def save_app_ai_settings(product: str, payload: dict, actor: User = Depends(requ
 @router.post("/ai-settings/keys")
 def save_ai_keys(payload: dict, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
     values = {}
-    validators = {"groq": valid_groq_key, "openai": valid_openai_key, "gemini": valid_gemini_key}
+    validators = {"groq": valid_groq_key, "openai": valid_openai_key, "gemini": valid_gemini_key, "pixabay": valid_pixabay_key}
     for provider, validate in validators.items():
         key = str(payload.get(provider + "_api_key") or "").strip()
         if key:

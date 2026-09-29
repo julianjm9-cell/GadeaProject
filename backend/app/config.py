@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     groq_api_key: str = ""
     gemini_api_key: str = ""
+    pixabay_api_key: str = ""
     openai_chat_url: AnyHttpUrl = "https://api.openai.com/v1/chat/completions"
     openai_transcribe_url: AnyHttpUrl = "https://api.openai.com/v1/audio/transcriptions"
     groq_chat_url: AnyHttpUrl = "https://api.groq.com/openai/v1/chat/completions"

@@ -47,6 +47,16 @@ test('HazloTú password is sent only when both fields match', async () => {
   assert.equal(element('hazlotuPassword').value,'');
 });
 
+test('Pixabay key is saved from connections without changing models', async () => {
+  const {run, element}=loadDashboard();
+  run(`ai={apps:{},capabilities:[]};globalThis.calls=[];api=async(path,options)=>{calls.push({path,body:JSON.parse(options.body)});return {apps:{},capabilities:[],pixabay_configured:true}}`);
+  element('pixabayKey').value='12345678-'+'a'.repeat(32);
+  await run('saveConnections({preventDefault(){}})');
+  assert.equal(run('calls[0].path'),'/admin/ai-settings/keys');
+  assert.equal(run('calls[0].body.pixabay_api_key'),'12345678-'+'a'.repeat(32));
+  assert.equal(element('pixabayKey').value,'');
+});
+
 test('editing an ESO student grants credits only to ESO', async () => {
   const { run, element } = loadDashboard();
   run(`currentApp='eso';users=[{id:'u1',email:'alumno@example.com',full_name:'Alumno',is_active:true}];accounts=[{id:'u1',email:'alumno@example.com',full_name:'Alumno',is_active:true,accesses:[{product_code:'ESO_ADULTOS',status:'active',effective_status:'active',total_credits:20,used_credits:5,available_credits:15,expires_at:'2027-01-01T00:00:00Z'},{product_code:'DIPLOMATOR',status:'active',effective_status:'active',total_credits:40,used_credits:10,available_credits:30}]}];renderApp();openUser('u1')`);

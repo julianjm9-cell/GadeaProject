@@ -50,6 +50,14 @@ Las pruebas de integración de producto se encuentran en `backend/tests/test_acc
 
 `node tests/profesor-routes-browser.cjs` verifica el recorrido público, registro real en el backend local, perfil, logout/login, búsqueda, rutas internas y navegación móvil. Requiere un backend de pruebas independiente en `http://127.0.0.1:8891`, configurable con `PROFESOR_TEST_URL`; crea cuentas de prueba y genera la captura de la landing a partir de la demo.
 
+## Imágenes de Pixabay para actividades visuales
+
+El superadministrador puede guardar o sustituir la clave en **Admin → Modelos IA → Claves y conexiones → Pixabay**. La clave queda en la configuración del servidor y nunca se entrega al navegador. También se admite `PIXABAY_API_KEY` en el entorno del backend.
+
+En **Material → Crear material**, los ejercicios «Quiz visual» y «Señalar imagen» permiten buscar fotos o ilustraciones de Pixabay en español. El profesor elige una imagen antes de guardar; la app descarga una copia privada y conserva el crédito del autor para la ficha PDF. La subida de archivos sigue disponible para materiales generales de la biblioteca, pero no aparece en el editor de ejercicios visuales. La demo pública muestra el editor y avisa de que la búsqueda requiere entrar con una cuenta.
+
+Las búsquedas y consultas de imágenes se cachean durante 24 horas. Las imágenes elegidas no dependen de enlaces permanentes de Pixabay. `backend/tests/test_teacher_pixabay.py`, `backend/tests/test_teacher_pdf.py` y `tests/profesor-visual-browser.cjs` comprueban búsqueda, aislamiento, PDF y recorrido del editor con el proveedor simulado.
+
 ## Landings y acceso visual
 
 ESO Adultos y Profesor Particular comparten una composición de landing con mockups de ordenador y móvil. Los accesos separados son `/e25/login`, `/e25/register`, `/profesor/login` y `/profesor/register`. Los enlaces antiguos con `?mode=register` y los redirects `/login?next=...` siguen funcionando. Las condiciones gratuitas se consultan en la pregunta «¿Es gratis?» y en el desplegable del registro.

@@ -8,13 +8,14 @@ import json
 import os
 import re
 import time
+from io import BytesIO
 from decimal import Decimal
 from pathlib import Path
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urljoin, urlparse
 from uuid import UUID, uuid4
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
@@ -943,6 +944,122 @@ def upload_profesor_material(payload: dict, user: User = Depends(current_user), 
         target.unlink(missing_ok=True)
         raise
     return {"id": str(document_id), "filename": filename, "size": len(raw)}
+
+
+def _pixabay_key(db: Session) -> str:
+    row = db.get(AppSetting, "pixabay_api_key")
+    key = (row.value if row else "").strip() or get_settings().pixabay_api_key.strip()
+    if not key:
+        raise HTTPException(503, "El administrador debe configurar la clave de Pixabay.")
+    return key
+
+
+def _profesor_image_access(license_obj: License) -> None:
+    if license_obj.product_code != "PROFESOR_PARTICULAR":
+        raise HTTPException(403, "Requiere acceso a Profesor Particular.")
+
+
+def _pixabay_url_permitted(url: str) -> bool:
+    parsed = urlparse(url)
+    return parsed.scheme == "https" and (parsed.hostname == "pixabay.com" or (parsed.hostname or "").endswith(".pixabay.com"))
+
+
+async def _pixabay_data(params: dict, key: str) -> dict:
+    # Pixabay requests must be cached for 24 hours. Never write the API key to disk.
+    cache_dir = LOCAL_DOCUMENT_DIR / "pixabay_cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_name = hashlib.sha256(json.dumps(params, sort_keys=True).encode()).hexdigest() + ".json"
+    cache_path = cache_dir / cache_name
+    try:
+        if time.time() - cache_path.stat().st_mtime < 86400:
+            return json.loads(cache_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError):
+        pass
+    try:
+        async with httpx.AsyncClient(timeout=25) as client:
+            response = await client.get("https://pixabay.com/api/", params={"key": key, **params})
+            response.raise_for_status()
+            data = response.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        raise HTTPException(502, "No se pudo consultar Pixabay. Revisa la clave o inténtalo más tarde.") from exc
+    if not isinstance(data, dict) or not isinstance(data.get("hits"), list):
+        raise HTTPException(502, "Pixabay ha devuelto una respuesta inesperada.")
+    temporary = cache_path.with_name(cache_path.name + "." + uuid4().hex + ".tmp")
+    temporary.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    temporary.replace(cache_path)
+    return data
+
+
+@router.get("/api/profesor/images/search")
+async def search_profesor_images(q: str = Query(min_length=2, max_length=100), kind: str = "photo", user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    _profesor_image_access(license_obj)
+    rate_limit_key(f"pixabay-search:{user.id}", limit=60)
+    query = q.strip()
+    if len(query) < 2:
+        raise HTTPException(422, "Escribe al menos dos letras para buscar.")
+    if kind not in {"photo", "illustration"}:
+        raise HTTPException(422, "Elige fotos o ilustraciones.")
+    data = await _pixabay_data({"q": query, "lang": "es", "image_type": kind, "safesearch": "true", "per_page": 12, "page": 1}, _pixabay_key(db))
+    return {"images": [{"id": hit["id"], "preview": hit["webformatURL"], "author": str(hit.get("user") or "Pixabay")[:100], "page": hit.get("pageURL") if _pixabay_url_permitted(str(hit.get("pageURL") or "")) else "https://pixabay.com/", "tags": str(hit.get("tags") or "")[:200]} for hit in data["hits"] if isinstance(hit, dict) and isinstance(hit.get("id"), int) and not isinstance(hit["id"], bool) and _pixabay_url_permitted(str(hit.get("webformatURL") or ""))]}
+
+
+@router.post("/api/profesor/images/import")
+async def import_profesor_image(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    _profesor_image_access(license_obj)
+    rate_limit_key(f"pixabay-import:{user.id}", limit=60)
+    image_id = payload.get("id")
+    if not isinstance(image_id, int) or isinstance(image_id, bool) or image_id < 1:
+        raise HTTPException(422, "Selecciona una imagen de Pixabay.")
+    data = await _pixabay_data({"id": image_id}, _pixabay_key(db))
+    hit = next((item for item in data["hits"] if isinstance(item, dict) and item.get("id") == image_id), None)
+    if not hit:
+        raise HTTPException(404, "La imagen ya no está disponible en Pixabay.")
+    image_url = str(hit.get("webformatURL") or "")
+    if not _pixabay_url_permitted(image_url):
+        raise HTTPException(502, "Pixabay ha devuelto una dirección de imagen no válida.")
+    try:
+        async with httpx.AsyncClient(timeout=30, follow_redirects=False) as client:
+            for _ in range(4):
+                response = await client.get(image_url)
+                if response.status_code not in {301, 302, 303, 307, 308}:
+                    break
+                image_url = urljoin(image_url, response.headers.get("location", ""))
+                if not _pixabay_url_permitted(image_url):
+                    raise HTTPException(502, "La imagen se ha redirigido fuera de Pixabay.")
+            response.raise_for_status()
+            raw = response.content
+    except httpx.HTTPError as exc:
+        raise HTTPException(502, "No se pudo descargar la imagen de Pixabay.") from exc
+    if not raw or len(raw) > 8 * 1024 * 1024:
+        raise HTTPException(422, "La imagen de Pixabay es demasiado grande.")
+    from PIL import Image as PILImage, UnidentifiedImageError
+    try:
+        with PILImage.open(BytesIO(raw)) as image:
+            if image.width * image.height > 20_000_000:
+                raise ValueError()
+            output = BytesIO()
+            image.convert("RGB").save(output, format="JPEG", quality=88)
+            raw = output.getvalue()
+    except (OSError, ValueError, UnidentifiedImageError) as exc:
+        raise HTTPException(422, "Pixabay ha devuelto una imagen no válida.") from exc
+    if len(raw) > 8 * 1024 * 1024:
+        raise HTTPException(422, "La imagen de Pixabay es demasiado grande.")
+    root = LOCAL_DOCUMENT_DIR / str(user.organization_id) / str(user.id) / "profesor_materials"
+    root.mkdir(parents=True, exist_ok=True)
+    document_id = uuid4()
+    target = root / f"{document_id}.jpg"
+    target.write_bytes(raw)
+    filename = f"pixabay-{image_id}.jpg"
+    row = Document(id=document_id, organization_id=user.organization_id, user_id=user.id, filename=filename, storage_path=str(target))
+    try:
+        db.add(row)
+        db.commit()
+    except Exception:
+        target.unlink(missing_ok=True)
+        raise
+    author = str(hit.get("user") or "Pixabay")[:100]
+    page = str(hit.get("pageURL") or "")
+    return {"id": str(document_id), "filename": filename, "size": len(raw), "credit": f"Imagen de {author} en Pixabay", "creditUrl": page if _pixabay_url_permitted(page) else "https://pixabay.com/"}
 
 
 @router.get("/api/profesor/materials/{document_id}")
