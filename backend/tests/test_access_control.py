@@ -689,6 +689,31 @@ def test_superadmin_can_access_admin(client):
     assert response.status_code == 200
 
 
+def test_admin_can_delete_user_and_private_documents(client, monkeypatch, tmp_path):
+    test_client, db_factory = client
+    _, admin_id = seed_user(db_factory, role="superadmin", email="admin-delete@example.com")
+    org_id, user_id = seed_user(db_factory, email="delete@example.com")
+    monkeypatch.setattr(app_routes, "LOCAL_DOCUMENT_DIR", tmp_path)
+    user_dir = tmp_path / org_id / user_id / "profesor_materials"
+    user_dir.mkdir(parents=True)
+    document_path = user_dir / "material.txt"
+    document_path.write_text("material privado", encoding="utf-8")
+    with db_factory() as db:
+        from app.models import Document
+        db.add(Document(organization_id=UUID(org_id), user_id=UUID(user_id), filename="material.txt", storage_path=str(document_path)))
+        db.commit()
+    token = login(test_client, email="admin-delete@example.com").json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    assert test_client.delete(f"/admin/users/{admin_id}", headers=headers).status_code == 403
+    response = test_client.delete(f"/admin/users/{user_id}", headers=headers)
+    assert response.status_code == 200
+    assert not user_dir.exists()
+    with db_factory() as db:
+        assert db.get(User, UUID(user_id)) is None
+        assert db.query(License).filter_by(user_id=UUID(user_id)).count() == 0
+        assert db.query(Document).filter_by(user_id=UUID(user_id)).count() == 0
+
+
 def test_credit_limit_is_scoped_to_each_user(client):
     _, db_factory = client
     with db_factory() as db:

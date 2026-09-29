@@ -1,0 +1,43 @@
+const { chromium } = require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const { pathToFileURL } = require('url');
+const path = require('path');
+const assert = require('node:assert/strict');
+
+(async () => {
+  const browser = await chromium.launch({ headless: true, channel: 'msedge' });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(pathToFileURL(path.resolve('admin/index.html')).href);
+  await page.evaluate(() => {
+    const account = { id: 'user-1', email: 'ana@example.com', full_name: 'Ana', is_active: true, accesses: [{ product_code: 'ESO_ADULTOS', effective_status: 'active', status: 'active', total_credits: 30, used_credits: 7, available_credits: 23, unlimited: false }] };
+    users = [account]; accounts = [account]; ai = { capabilities: [] }; hazlotuAccess = { configured: true };
+    window.requests = [];
+    api = async (url, options) => { requests.push({ url, method: options.method, body: options.body && JSON.parse(options.body) }); return { ok: true }; };
+    loadAll = async () => renderAll();
+    setLoginState(true); setView('overview');
+  });
+  assert.equal(await page.locator('#globalMetrics button').count(), 4);
+  assert.equal(await page.locator('#overviewProducts').count(), 0);
+  assert.match(await page.locator('#tabs [data-view="hazlotu"]').innerText(), /HazloTú/);
+  await page.locator('#globalMetrics button').first().click();
+  assert.equal(await page.locator('#appUsersTable tbody tr').count(), 1);
+  const search = await page.locator('#appUserSearch').boundingBox();
+  const add = await page.getByRole('button', { name: '+ Nuevo usuario' }).boundingBox();
+  assert.ok(Math.abs(search.y - add.y) < 12);
+  await page.locator('#appUsersTable button').click();
+  assert.equal(await page.locator('#editAvailable').inputValue(), '23');
+  assert.equal(await page.locator('#editUsed').inputValue(), '7');
+  assert.ok(await page.locator('#editUsed').getAttribute('readonly') !== null);
+  await page.locator('#editAvailable').fill('40');
+  await page.getByRole('button', { name: 'Guardar cambios' }).click();
+  const requests = await page.evaluate(() => window.requests);
+  assert.equal(requests.find(request => request.url.endsWith('/access/ESO_ADULTOS')).body.usage_limit, 47);
+  await page.locator('#appUsersTable button').click();
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Eliminar usuario' }).click();
+  assert.ok((await page.evaluate(() => window.requests)).some(request => request.url === '/admin/users/user-1' && request.method === 'DELETE'));
+  assert.deepEqual(errors, []);
+  await browser.close();
+  console.log('OK: inicio, navegación, barra de usuarios y saldo editable.');
+})().catch(error => { console.error(error); process.exit(1); });

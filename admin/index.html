@@ -31,7 +31,7 @@
     }
     .workspace { min-width:0; display:grid; align-content:start; gap:18px; padding:22px clamp(18px,3vw,42px) 42px; }
     .shell { min-height:58px; display:flex; align-items:center; justify-content:flex-end; gap:16px; padding:9px 12px; background:rgba(255,255,255,.78); backdrop-filter:blur(14px); }
-    .sidebar { position:sticky; top:0; height:100vh; display:grid; grid-template-rows:auto 1fr; gap:18px; padding:24px 14px; border-right:1px solid var(--line); background:rgba(255,255,255,.92); box-shadow:8px 0 28px rgba(15,44,86,.05); }
+    .sidebar { position:sticky; top:0; height:100vh; display:grid; align-content:start; gap:18px; padding:24px 14px; border-right:1px solid var(--line); background:rgba(255,255,255,.92); box-shadow:8px 0 28px rgba(15,44,86,.05); }
     .brand { display:flex; align-items:center; gap:12px; min-width:0; }
     .mark { width:44px; height:44px; display:grid; place-items:center; border-radius:8px; background:var(--main); color:#fff; font-weight:950; box-shadow:0 10px 24px rgba(18,88,214,.22); }
     h1,h2,h3,p { margin:0; }
@@ -57,6 +57,7 @@
     .nav-icon img { width:100%; height:100%; display:block; object-fit:contain; border-radius:7px; }
     .tabs button.active .nav-icon { background:rgba(255,255,255,.18); color:#fff; }
     .tabs button.active .nav-icon img { filter:drop-shadow(0 2px 3px rgba(0,0,0,.08)); }
+    .logout-link { justify-content:flex-start; width:100%; margin-top:20px; border:0; background:transparent; box-shadow:none; color:var(--muted); }
     .nav-group { display:grid; gap:7px; }
     .nav-label { padding:12px 10px 4px; color:#7b8ca2; font-size:11px; font-weight:950; letter-spacing:.08em; text-transform:uppercase; }
     .layout { display:grid; gap:14px; }
@@ -125,6 +126,11 @@
     .section-actions { display:flex; gap:8px; flex-wrap:wrap; }
     .app-toolbar { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:18px 0 12px; }
     .app-toolbar input { max-width:300px; }
+    .app-toolbar .section-actions { flex-wrap:nowrap; align-items:center; }
+    .overview-link { text-align:left; cursor:pointer; width:100%; }
+    .overview-link:hover { border-color:var(--main); background:#edf5ff; transform:translateY(-2px); }
+    .danger { color:var(--red); border-color:#f2cfca; }
+    .danger:hover { color:#a62c28; border-color:#e8aaa4; background:#fff4f3; }
     .app-form { margin-top:16px; border:1px solid var(--line); border-radius:14px; padding:18px; background:#fbfdff; }
     .form-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; margin-top:14px; }
     .credit-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0; }
@@ -144,7 +150,7 @@
     .toast.show { opacity:1; transform:translateY(0); }
     @media (max-width:1180px) { .dashboard-grid{grid-template-columns:1fr}.dashboard-side{grid-template-columns:1fr 1fr}.shell{align-items:stretch;flex-direction:column}.login{width:100%;grid-template-columns:1fr 1fr auto auto}.grid.two,.grid.three,.grid.four,.app-strip{grid-template-columns:1fr 1fr} }
     @media (max-width:820px) { .page{grid-template-columns:1fr}.sidebar{position:static;height:auto}.workspace{padding:12px}.tabs{grid-template-columns:1fr 1fr}.dashboard-side,.login,.grid.two,.grid.three,.grid.four,.app-strip,.row,.ai-capabilities{grid-template-columns:1fr}.head{flex-direction:column}h1{font-size:21px} }
-    @media (max-width:520px) { .credit-summary{grid-template-columns:1fr}.app-toolbar{align-items:stretch;flex-direction:column}.app-toolbar input{max-width:none} }
+    @media (max-width:520px) { .credit-summary{grid-template-columns:1fr}.app-toolbar{align-items:stretch;flex-direction:column}.app-toolbar .section-actions{flex-wrap:wrap}.app-toolbar input{max-width:none} }
 
 :root{--shadow:0 10px 30px #23457108;--line:#e2eaf5;--main:#1463e6;--ink:#152c50}body{background:radial-gradient(ellipse at 100% 0,#e8f2ff,transparent 55%),#f5f8fd}.page{max-width:none;grid-template-columns:225px minmax(0,1fr)}.sidebar{background:#ffffffc9;border-right:1px solid var(--line);padding:28px 16px}.brand{margin-bottom:25px}.brand .mark{border-radius:14px;background:linear-gradient(135deg,#258aff,#1657d3);color:white}.brand h1{font-size:18px}.tabs button{font-size:13px;font-weight:600;border-radius:11px}.tabs button.active{background:#eaf2ff;color:#1463e6;box-shadow:none;border-color:transparent}.tabs button.active .nav-icon{background:#dceaff;color:#1463e6}.nav-label{font-size:9px;letter-spacing:.12em}.workspace{padding:20px 28px;min-width:0}.shell{background:transparent;border:0;box-shadow:none;padding:0 0 20px;display:flex;align-items:center;justify-content:space-between}.shell>div{display:grid;gap:4px}.shell strong{font-size:14px}.shell .muted{font-size:11px}.screen-card{border:0;background:transparent;box-shadow:none;padding:10px 0}.head h2{font-size:29px;letter-spacing:-.9px}.head .muted{font-size:13px;font-weight:400;margin-top:7px}button{border-radius:9px;box-shadow:none;font-size:12px;min-height:36px;font-weight:600}input,select,textarea{border-radius:9px;background:#fbfdff;border-color:#dce6f4;font-size:13px}label{font-size:11px;font-weight:650;color:#536b8c}.metric{border-radius:17px;min-height:115px;padding:20px;background:#fff}.metric strong{color:#2467ba;font-size:29px}.metric span{font-weight:600}.metric .muted{font-size:11px}.overview-apps-title{margin-top:32px}.overview-products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.overview-product{background:white;border:1px solid var(--line);border-radius:18px;padding:20px}.product-identity{display:flex;align-items:center;gap:12px}.product-identity img{width:44px;height:44px;object-fit:contain}.product-identity h3{font-size:15px}.product-identity small{color:var(--muted);font-size:11px}.product-model{background:#f4f8fe;border-radius:10px;padding:13px;margin:19px 0;display:grid;gap:6px}.product-model span,.product-model small{font-size:10px;color:#7488a6}.product-model strong{font-size:12px;overflow-wrap:anywhere}.product-actions{display:flex;gap:8px}.product-actions button{flex:1}.ai-app-picker{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:23px 0}.ai-app-picker button{display:flex;align-items:center;justify-content:flex-start;gap:10px;padding:13px 11px;background:#fff;border:1px solid var(--line);min-width:0;font-size:12px;border-radius:13px}.ai-app-picker button.selected{border-color:#4c91ef;background:#edf5ff;box-shadow:0 0 0 2px #1463e612;color:#175fc5}.ai-app-picker img{width:30px;height:30px;object-fit:contain}.ai-app-picker span{white-space:normal;text-align:left}.ai-selected{display:flex;justify-content:space-between;align-items:center;margin:20px 0 15px}.ai-selected h3{font-size:20px}.ai-selected p{font-size:12px;margin-top:5px}.ai-selected .badge{font-size:10px;font-weight:500}.ai-editor{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.model-card{background:white;border:1px solid var(--line);border-radius:18px;padding:20px;min-width:0}.model-card-head{display:flex;gap:11px;align-items:center}.function-icon{width:38px;height:38px;display:grid;place-items:center;flex-shrink:0;border-radius:11px;color:#4b7ecc;background:#edf4ff;font-size:22px}.function-icon.ocr{color:#8666c7;background:#f1ecff}.function-icon.transcribe{color:#389980;background:#e8f6ef}.function-icon.points{color:#b78c3e;background:#fff6e5}.model-card-head h3{font-size:14px}.model-card-head p{font-size:11px;line-height:1.45;color:#7d8ba4;margin-top:5px}.connection-state{display:inline-block;font-size:10px;margin:15px 0 7px;padding:5px 8px;border-radius:6px}.connection-state.ready{background:#edf8f2;color:#288366}.connection-state.missing{background:#fff5e6;color:#a57829}.model-fields{display:grid;gap:1px}.model-card select{width:100%;font-size:12px;min-height:38px}.model-test{display:grid;gap:7px;border-top:1px solid #edf2f8;margin-top:17px;padding-top:14px}.model-test button{font-size:11px;justify-self:start}.model-test small,.model-test span{font-size:10px;color:#8190a7}.model-test span{color:#347e68}.ai-savebar{display:flex;align-items:center;gap:9px;background:#eaf2ff;border:1px solid #dce9fd;padding:13px 17px;border-radius:13px;margin:17px 0}.ai-savebar p{flex:1;font-size:12px;color:#6481a6;margin:0}.connections,.shared-settings{margin-top:15px}.connections>summary,.shared-settings>summary{font-size:12px;font-weight:600;padding:16px;color:#587190}.connections form,.shared-settings>form,.shared-settings>p{padding:0 20px 18px}.connections .ai-form-section{border:0;margin:0;padding:4px 0}.shared-settings h3{font-size:15px}.table-wrap{border-radius:14px}th{font-size:10px;padding:13px}td{padding:14px 12px}.app-form{border-radius:17px}.app-toolbar{margin-top:24px}.app-toolbar .muted{font-size:12px}.auth-card{border-radius:24px}.auth-card h1{letter-spacing:-1px}@media(min-width:1500px){.ai-editor{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-width:1100px){.workspace{padding:18px}.ai-app-picker{grid-template-columns:repeat(3,1fr)}.ai-editor,.overview-products{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:820px){.page{grid-template-columns:1fr}.sidebar{padding:16px;height:auto}.brand{margin-bottom:12px}.tabs{display:flex;overflow:auto}.nav-group{display:flex;flex-shrink:0}.nav-label{display:none}.tabs button{width:auto}.workspace{padding:18px 14px}.head h2{font-size:25px}.ai-editor,.overview-products{grid-template-columns:1fr}.ai-app-picker{grid-template-columns:repeat(2,minmax(0,1fr))}.ai-selected{align-items:flex-start;gap:10px}.ai-savebar{flex-wrap:wrap}.ai-savebar p{flex-basis:100%}.shell>div .muted{display:none}.grid.four{grid-template-columns:1fr 1fr}.shell{flex-direction:row}.ai-app-picker button{font-size:11px}.table-wrap{max-width:100%;overflow:auto}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 @media(min-width:1200px){.ai-editor:has(.model-card:nth-child(4)){grid-template-columns:repeat(4,minmax(0,1fr))}}
@@ -153,10 +159,7 @@
 <body>
 <section class="auth-screen" id="authScreen">
   <form class="auth-card" onsubmit="login(event)">
-    <div class="auth-brand">
-      <div class="mark">ED</div>
-      <div><h1>Educa Admin</h1><p class="muted">Acceso privado al panel de control.</p></div>
-    </div>
+    <h1>Administración</h1>
     <div class="auth-form">
       <div><label for="email">Admin</label><input id="email" type="email" autocomplete="username" placeholder="email del superadmin" required></div>
       <div><label for="password">Clave</label><input id="password" type="password" autocomplete="current-password" placeholder="********" required></div>
@@ -168,10 +171,6 @@
 
 <div class="page" id="adminPage" hidden>
   <aside class="sidebar">
-    <div class="brand">
-      <div class="mark">ED</div>
-      <div><h1>Educa Admin</h1><p class="muted">Panel de control</p></div>
-    </div>
     <nav class="tabs" id="tabs">
       <div class="nav-group">
         <button class="active" data-view="overview" onclick="setView('overview')"><span class="nav-icon">IN</span>Inicio</button>
@@ -179,42 +178,37 @@
       <div class="nav-group">
         <div class="nav-label">Gestion</div>
         <button data-view="ai" onclick="setView('ai')"><span class="nav-icon">IA</span>Modelos de IA</button>
-        <button data-view="hazlotu" onclick="setView('hazlotu')"><span class="nav-icon">HT</span>Acceso HazloTú</button>
       </div>
       <div class="nav-group">
         <div class="nav-label">Apps</div>
         <button data-view="eso" onclick="setView('eso')"><span class="nav-icon"><img src="assets/brand/eso-simple-v2.png" alt=""></span>ESO Adultos</button>
         <button data-view="profesor" onclick="setView('profesor')"><span class="nav-icon"><img src="assets/brand/profesor-simple-v2.png" alt=""></span>Profesor Particular</button>
         <button data-view="diplomator" onclick="setView('diplomator')"><span class="nav-icon"><img src="assets/brand/diplomator-simple-v2.png" alt=""></span>Diplomator</button>
+        <button data-view="hazlotu" onclick="setView('hazlotu')"><span class="nav-icon"><img src="assets/brand/hazlotu-logo.png" alt=""></span>HazloTú</button>
         <button data-view="universidad" onclick="setView('universidad')"><span class="nav-icon"><img src="assets/brand/u25-simple.png" alt=""></span>Universidad +25</button>
         <button data-view="cambridge" onclick="setView('cambridge')"><span class="nav-icon"><img src="assets/brand/ingles-simple.png" alt=""></span>Titulo de ingles</button>
       </div>
     </nav>
+    <button class="logout-link" type="button" onclick="logout()">Cerrar sesión</button>
   </aside>
 
   <div class="workspace">
-    <header class="shell"><div><strong>Tu centro de control</strong><span class="muted">Usuarios, accesos e inteligencia artificial</span></div>
-      <button type="button" onclick="logout()">Salir del panel</button>
-    </header>
-
     <main class="layout">
     <section id="view-overview" class="card screen-card">
-      <div class="head"><div><h2>Resumen</h2><p class="muted">Estado actual de las aplicaciones.</p></div><button onclick="loadAll()">Actualizar</button></div>
       <div class="grid four" id="globalMetrics"></div>
-      <div class="head overview-apps-title"><div><h3>Tus aplicaciones</h3><p class="muted">Gestiona sus usuarios o configura su inteligencia artificial.</p></div></div><div id="overviewProducts" class="overview-products"></div>
     </section>
 
     <section id="view-app" class="card screen-card" hidden>
       <div class="head">
-        <div><h2 id="appTitle">App</h2><p class="muted" id="appSubtitle">Usuarios, licencias y consumo de esta app.</p></div>
+        <div><h2 id="appTitle">App</h2></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" id="appPublicLink" target="_blank" rel="noreferrer">Ver landing</a><a class="btn primary" id="appPrivateLink" target="_blank" rel="noreferrer">Abrir app</a></div>
       </div>
       <div class="grid three" id="appMetrics"></div>
-      <div class="app-toolbar"><div><h3>Alumnos de esta aplicación</h3><p class="muted">El gasto es real; el saldo se calcula automáticamente.</p></div><div class="section-actions"><input id="appUserSearch" aria-label="Buscar alumno en esta aplicación" placeholder="Buscar alumno..." oninput="renderApp()"><button class="primary" type="button" onclick="toggleCreateUser()">+ Añadir alumno</button></div></div>
+      <div class="app-toolbar"><h3>Usuarios</h3><div class="section-actions"><input id="appUserSearch" aria-label="Buscar usuario" placeholder="Buscar usuario..." oninput="renderApp()"><button class="primary" type="button" onclick="toggleCreateUser()">+ Nuevo usuario</button></div></div>
       <form id="createUserForm" class="app-form" onsubmit="createAppUser(event)" hidden>
-        <div class="head"><div><h3><span id="createAccountLabel">Añadir alumno a</span> <span id="createAppName"></span></h3><p class="muted">Si el correo ya existe, se conserva su cuenta y se añade acceso a esta app.</p></div><button type="button" onclick="toggleCreateUser(false)">Cerrar</button></div>
+        <div class="head"><div><h3><span id="createAccountLabel">Nuevo usuario en</span> <span id="createAppName"></span></h3></div><button type="button" onclick="toggleCreateUser(false)">Cerrar</button></div>
         <div class="form-grid">
-          <div class="row"><div><label for="newEmail">Correo electrónico</label><input id="newEmail" type="email" required placeholder="alumno@email.com" oninput="updateCreateAccountHint()"></div><div><label for="newName">Nombre</label><input id="newName" placeholder="Nombre del alumno"></div></div>
+          <div class="row"><div><label for="newEmail">Correo electrónico</label><input id="newEmail" type="email" required placeholder="usuario@email.com" oninput="updateCreateAccountHint()"></div><div><label for="newName">Usuario</label><input id="newName" placeholder="Nombre de usuario"></div></div>
           <p class="muted" id="newAccountHint">Si es una cuenta nueva, indica una contraseña inicial.</p>
           <div><label for="newPassword">Contraseña inicial (solo para cuentas nuevas)</label><input id="newPassword" type="password" minlength="8" placeholder="Mínimo 8 caracteres" autocomplete="new-password"></div>
           <label id="newReactivateBox" hidden><input id="newReactivate" type="checkbox" style="width:auto;min-height:0;margin-right:7px">Reactivar esta cuenta. También recuperará el acceso a sus otras apps.</label>
@@ -224,25 +218,21 @@
         <div id="createdBox" class="notice" hidden style="margin-top:12px"></div>
       </form>
       <form id="editUserForm" class="app-form" onsubmit="saveSelectedUser(event)" hidden>
-        <div class="head"><div><h3 id="userDetailTitle">Editar alumno</h3><p class="muted" id="userDetailMeta"></p></div><button type="button" onclick="closeUserEditor()">Cerrar</button></div>
+        <div class="head"><h3 id="userDetailTitle">Editar usuario</h3><button type="button" onclick="closeUserEditor()">Cerrar</button></div>
         <div class="form-grid">
-          <div class="row"><div><label for="editEmail">Correo electrónico</label><input id="editEmail" type="email" required></div><div><label for="editName">Nombre</label><input id="editName"></div></div>
-          <p class="muted">El nombre y el correo pertenecen a la cuenta y se actualizarán también en las otras apps donde tenga acceso.</p>
-          <div class="credit-summary"><div><span>Total asignado</span><strong id="creditTotalPreview">0</strong></div><div><span>Gastados</span><strong id="creditUsedPreview">0</strong></div><div><span>Disponibles</span><strong id="creditAvailablePreview">0</strong></div></div>
-          <div class="row"><div><label for="editLimit">Nuevo total de créditos (0 = sin límite)</label><input id="editLimit" type="number" min="0" step="1" required oninput="updateCreditPreview()"></div><div><label for="editAddCredits">Añadir créditos al total</label><input id="editAddCredits" type="number" min="0" step="1" value="0" oninput="updateCreditPreview()"></div></div>
-          <p class="muted credit-hint">Los créditos gastados no se modifican. El saldo disponible es el total menos lo gastado.</p>
-          <div class="row"><div><label for="editLicStatus">Acceso a esta app</label><select id="editLicStatus"><option value="active">Activo</option><option value="suspended">Suspendido</option><option value="expired">Caducado</option></select></div><div><label for="editLicEnd">Fecha de vencimiento</label><input id="editLicEnd" type="date" required></div></div>
-          <details class="advanced-panel"><summary>Cuenta y contraseña</summary><div class="form-grid"><div><label for="editPassword">Nueva contraseña</label><input id="editPassword" type="password" minlength="8" placeholder="Déjalo vacío para conservarla" autocomplete="new-password"></div><div><label for="editActive">Estado general de la cuenta</label><select id="editActive"><option value="true">Activa</option><option value="false">Bloqueada</option></select></div><p class="muted">La contraseña y el bloqueo de cuenta afectan a todas sus apps.</p></div></details>
-          <div class="form-actions"><button class="primary">Guardar cambios</button></div>
+          <div class="row"><div><label for="editName">Usuario</label><input id="editName"></div><div><label for="editEmail">Correo electrónico</label><input id="editEmail" type="email" required></div></div>
+          <div><label for="editPassword">Nueva contraseña</label><input id="editPassword" type="password" minlength="8" placeholder="Dejar vacío para conservarla" autocomplete="new-password"></div>
+          <div class="row"><div><label for="editAvailable">Créditos disponibles</label><input id="editAvailable" type="number" min="0" step="1" required></div><div><label for="editUsed">Créditos gastados</label><input id="editUsed" type="number" readonly></div></div>
+          <div class="form-actions"><button class="danger" type="button" onclick="deleteSelectedUser()">Eliminar usuario</button><button class="primary">Guardar cambios</button></div>
         </div>
       </form>
       <div id="appUsersTable" style="margin-top:16px"></div>
     </section>
 
     <section id="view-ai" class="card screen-card" hidden>
-      <div class="head"><div><span class="section-kicker">CONTROL DE IA</span><h2>Un modelo para cada aplicación</h2><p class="muted">Elige la app, ajusta sus funciones y guarda sus cambios.</p></div><button onclick="showAIConnections()">Claves y conexiones</button></div>
+      <div class="head"><h2>Modelos de IA</h2><button onclick="showAIConnections()">Claves y conexiones</button></div>
       <div id="aiAppPicker" class="ai-app-picker" aria-label="Aplicación que quieres configurar"></div>
-      <div class="ai-selected"><div><h3 id="aiAppTitle"></h3><p class="muted" id="aiAppHint"></p></div><span id="aiDirty" class="badge"></span></div>
+      <div class="ai-selected"><h3 id="aiAppTitle"></h3><span id="aiDirty" class="badge"></span></div>
       <form onsubmit="saveAppAI(event)"><div id="aiEditor" class="ai-editor"></div><div class="ai-savebar"><p id="aiSaveMessage" aria-live="polite">Los cambios solo afectan a esta aplicación.</p><button type="button" onclick="discardAppAI()">Descartar</button><button class="primary" id="saveAppAIButton">Guardar esta aplicación</button></div></form>
       <details id="aiConnections" class="advanced-panel connections"><summary>Claves y conexiones</summary><form onsubmit="saveConnections(event)">        <div class="ai-form-section"><h3>Claves de los servicios</h3><p class="muted">Pega una clave para añadirla o cambiarla; un campo vacío conserva la actual. Pixabay se usa solo para buscar imágenes en Profesor Particular.</p><div class="grid three" style="margin-top:12px">
           <div><label for="groqKey">Groq <span id="groqKeyStatus"></span></label><input id="groqKey" type="password" autocomplete="new-password" placeholder="Nueva clave Groq"></div>
@@ -266,13 +256,12 @@
       </form></details>
     </section>
     <section id="view-hazlotu" class="card screen-card" hidden>
-      <div class="head"><div><span class="section-kicker">PROYECTO PRIVADO</span><h2>Acceso a HazloTú</h2><p class="muted">Controla la contraseña necesaria para abrir la web del proyecto.</p></div><a class="btn" href="/hazlo-tu" target="_blank" rel="noreferrer">Ver acceso</a></div>
+      <div class="head"><h2>HazloTú</h2></div>
       <div class="app-form" style="max-width:580px">
         <p id="hazlotuAccessStatus" class="muted" aria-live="polite">Comprobando estado…</p>
         <form class="form-grid" onsubmit="saveHazlotuAccess(event)">
           <div><label for="hazlotuPassword">Nueva contraseña</label><input id="hazlotuPassword" type="password" minlength="10" maxlength="72" autocomplete="new-password" required placeholder="Mínimo 10 caracteres"></div>
           <div><label for="hazlotuPasswordConfirm">Repite la contraseña</label><input id="hazlotuPasswordConfirm" type="password" minlength="10" maxlength="72" autocomplete="new-password" required></div>
-          <p class="muted">Al cambiarla, los accesos anteriores dejarán de funcionar. La contraseña no se mostrará después de guardarla.</p>
           <div class="form-actions"><button class="primary">Guardar contraseña</button></div>
         </form>
       </div>
@@ -308,25 +297,19 @@ function setView(next){view=next;if(PRODUCTS.some(p=>p.key===next)){if(currentAp
 function renderAll(){$('view-overview').hidden=view!=='overview';$('view-app').hidden=!PRODUCTS.some(p=>p.key===view);$('view-ai').hidden=view!=='ai';$('view-hazlotu').hidden=view!=='hazlotu';$('hazlotuAccessStatus').textContent=hazlotuAccess?.configured?'Contraseña configurada. La web está protegida.':'Sin contraseña configurada. La web permanece cerrada.';renderOverview();if(!$('view-app').hidden)renderApp();if(!$('view-ai').hidden)renderAI()}
 let hazlotuAccess=null;
 async function saveHazlotuAccess(event){event.preventDefault();const password=$('hazlotuPassword').value;if(password!==$('hazlotuPasswordConfirm').value)return toast('Las contraseñas no coinciden.');try{hazlotuAccess=await api('/admin/hazlotu-access',{method:'POST',body:JSON.stringify({password})});$('hazlotuPassword').value='';$('hazlotuPasswordConfirm').value='';renderAll();toast('Contraseña de HazloTú actualizada.')}catch(e){toast(e.message)}}
-function metric(label,value,note){return `<div class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong><p class="muted">${esc(note)}</p></div>`}
+function metric(label,value){return `<div class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`}
 const aiTestResults={};
 function accountForUser(user){return accounts.find(account=>account.id===user.id)||{...user,accesses:[]}}
 function accessFor(user,productCode){return accountForUser(user).accesses.find(access=>access.product_code===productCode)}
 function appAccounts(key=currentApp){const code=productByKey(key).code;return accounts.filter(account=>account.accesses.some(access=>access.product_code===code))}
 function accessCredits(access){return access.unlimited?'Sin límite':String(access.available_credits)}
 function renderOverview(){
-  const allAccesses=accounts.flatMap(account=>account.accesses);
-  const activeAccesses=allAccesses.filter(access=>access.effective_status==='active');
-  const activeUsers=accounts.filter(account=>account.is_active&&account.accesses.some(access=>access.effective_status==='active')).length;
-  const used=allAccesses.reduce((total,access)=>total+Number(access.used_credits||0),0);
   const capabilities=ai?.capabilities||[];
   const ready=capabilities.filter(capability=>capability.configured).length;
-  $('globalMetrics').innerHTML=
-    metric('Usuarios activos',activeUsers,`${accounts.length} cuentas registradas`)+
-    metric('Accesos activos',activeAccesses.length,`Suma de las ${PRODUCTS.length} apps`)+
-    metric('Créditos gastados',used,'Consumo registrado por cuenta y app')+
-    metric('IA',`${ready} / ${capabilities.length||4}`,'Conexiones generales disponibles');
-  $('overviewProducts').innerHTML=PRODUCTS.map(p=>{const count=appAccounts(p.key).length,c=(ai?.apps?.[p.code]||ai?.capabilities||[]).find(c=>c.id==='chat');return `<article class="overview-product"><div class="product-identity"><img src="${p.icon}" alt=""><div><h3>${p.label}</h3><small>${count} ${p.key==='profesor'?'profesores':'usuarios'}</small></div></div><div class="product-model"><span>Modelo de texto</span><strong>${esc(c?.model||'Sin configurar')}</strong><small>${c?.configured?'Clave disponible':'Falta configurar la conexión'}</small></div><div class="product-actions"><button onclick="setView('${p.key}')">Usuarios →</button><button class="primary" onclick="openAppAI('${p.code}')">Configurar IA</button></div></article>`}).join('');
+  $('globalMetrics').innerHTML=['eso','profesor','diplomator'].map(key=>{
+    const product=productByKey(key),count=appAccounts(key).length;
+    return `<button type="button" class="metric overview-link" onclick="setView('${key}')"><span>${esc(product.label)} →</span><strong>${count} ${count===1?'usuario':'usuarios'}</strong></button>`;
+  }).join('')+`<button type="button" class="metric overview-link" onclick="setView('ai')"><span>Modelos de IA →</span><strong>${ready} / ${capabilities.length||4}</strong></button>`;
 }
 function renderApp(){
   const product=productByKey();
@@ -337,29 +320,18 @@ function renderApp(){
   const active=accesses.filter(access=>access.effective_status==='active').length;
   const used=accesses.reduce((sum,access)=>sum+Number(access.used_credits||0),0);
   $('appTitle').textContent=product.label;
-  const isTeacher=product.key==='profesor';
-  const accountLabel=isTeacher?'Profesores':'Alumnos';
-  $('appSubtitle').textContent=isTeacher?'Gestiona cuentas de profesores, accesos y créditos de IA.':'Gestiona los alumnos y sus créditos en esta aplicación.';
-  document.querySelector('.app-toolbar h3').textContent=accountLabel+' de esta aplicación';
-  document.querySelector('.app-toolbar .primary').textContent=isTeacher?'+ Añadir profesor':'+ Añadir alumno';
-  $('appUserSearch').placeholder=isTeacher?'Buscar profesor…':'Buscar alumno…';
-  $('appUserSearch').setAttribute('aria-label','Buscar '+(isTeacher?'profesor':'alumno')+' en esta aplicación');
+  const accountLabel='Usuarios';
   $('createAppName').textContent=product.label;
-  $('createAccountLabel').textContent=isTeacher?'Añadir profesor a':'Añadir alumno a';
-  $('newName').placeholder=isTeacher?'Nombre del profesor':'Nombre del alumno';
-  $('newEmail').placeholder=isTeacher?'profesor@email.com':'alumno@email.com';
   $('appPublicLink').href=product.public;
   $('appPrivateLink').href=product.app;
-  $('appMetrics').innerHTML=metric(accountLabel,rows.length,'Con acceso a esta app')+metric('Accesos activos',active,`${rows.length-active} inactivos`)+metric('Créditos gastados',used,'Suma del consumo de estas cuentas');
-  $('appUsersTable').innerHTML=table([isTeacher?'Profesor':'Alumno','Acceso','Registro','Total','Gastados','Disponibles',''],visible.map(account=>{
+  $('appMetrics').innerHTML=metric(accountLabel,rows.length)+metric('Accesos activos',active)+metric('Créditos gastados',used);
+  $('appUsersTable').innerHTML=table(['Usuario','Acceso','Disponibles','Gastados',''],visible.map(account=>{
     const access=account.accesses.find(item=>item.product_code===product.code);
     return [
       `<td><strong>${esc(account.full_name||account.email)}</strong><br><span class="muted">${esc(account.email)}</span></td>`,
       `<td>${badge(access.effective_status==='active'?'active':'inactive')}</td>`,
-      `<td>${account.created_at?esc(new Date(account.created_at).toLocaleDateString('es-ES')):'—'}${['ESO_FREE','PROFESOR_FREE'].includes(access.plan)?'<br><span class="muted">Registro gratuito</span>':''}</td>`,
-      `<td>${access.unlimited?'Sin límite':access.total_credits}</td>`,
-      `<td>${access.used_credits}</td>`,
       `<td><strong>${accessCredits(access)}</strong></td>`,
+      `<td>${access.used_credits}</td>`,
       `<td><button type="button" onclick="openUser('${account.id}')">Editar</button></td>`
     ];
   }));
@@ -398,7 +370,7 @@ async function createAppUser(event){
   if(!Number.isSafeInteger(total)||total<0||!Number.isSafeInteger(days)||days<1)return toast('Revisa créditos y duración.');
   if(!existing&&password.length<8)return toast('La cuenta nueva necesita una contraseña de al menos 8 caracteres.');
   if(existing&&existing.role!=='user')return toast('Esta cuenta tiene un rol administrativo. Revisa el correo antes de continuar.');
-  if(existing&&accessFor(existing,product.code))return toast('El alumno ya tiene acceso a esta app. Usa Editar para cambiarlo.');
+  if(existing&&accessFor(existing,product.code))return toast('El usuario ya tiene acceso a esta app. Usa Editar para cambiarlo.');
   if(existing&&!existing.is_active&&!$('newReactivate').checked)return toast('Confirma la reactivación de la cuenta existente.');
   try{
     const org=existing?null:await ensureProductOrg(product);
@@ -410,57 +382,48 @@ async function createAppUser(event){
     $('createdBox').hidden=false;
     $('createdBox').innerHTML=`<strong>Acceso creado para ${esc(email)}.</strong>${existing?' La cuenta conserva su contraseña.':' Guarda la contraseña inicial que acabas de asignar.'}`;
     event.target.reset();$('newLimit').value=300;$('newDays').value=365;updateCreateAccountHint();
-    toast('Alumno añadido a esta app.');
+    toast('Usuario añadido a esta app.');
   }catch(error){await loadAll();toast(error.message)}
 }
 function openUser(id){
   const user=users.find(item=>item.id===id);
   const access=user&&accessFor(user,productByKey().code);
-  if(!user||!access)return toast('No se encontró el acceso de este alumno en la app.');
+  if(!user||!access)return toast('No se encontró el acceso de este usuario en la app.');
   toggleCreateUser(false);
   selectedUserId=id;
   $('editUserForm').hidden=false;
   $('userDetailTitle').textContent=user.full_name||user.email;
-  $('userDetailMeta').textContent=`Editando el acceso a ${productByKey().label}`;
   $('editEmail').value=user.email||'';
   $('editName').value=user.full_name||'';
-  $('editActive').value=String(!!user.is_active);
   $('editPassword').value='';
-  $('editLimit').value=Number(access.total_credits||0);
-  $('editAddCredits').value=0;
-  $('editLicStatus').value=access.status;
-  $('editLicEnd').value=access.expires_at?access.expires_at.slice(0,10):'';
-  updateCreditPreview();
+  $('editAvailable').value=access.unlimited?0:Number(access.available_credits||0);
+  $('editUsed').value=Number(access.used_credits||0);
+  $('editAvailable').title=access.unlimited?'Esta licencia no tiene límite. Escribe un número mayor que 0 para establecer un saldo.':'';
   $('editUserForm').scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function updateCreditPreview(){
-  const user=users.find(item=>item.id===selectedUserId);
-  const access=user&&accessFor(user,productByKey().code);
-  if(!access)return;
-  const base=Number($('editLimit').value||0),extra=Number($('editAddCredits').value||0);
-  const total=base+extra,used=Number(access.used_credits||0);
-  $('creditTotalPreview').textContent=total===0?'Sin límite':String(total);
-  $('creditUsedPreview').textContent=String(used);
-  $('creditAvailablePreview').textContent=total===0?'Sin límite':String(Math.max(total-used,0));
 }
 async function saveSelectedUser(event){
   event.preventDefault();
   const user=users.find(item=>item.id===selectedUserId),product=productByKey();
   const access=user&&accessFor(user,product.code);
-  if(!access)return toast('Selecciona un alumno de esta app.');
-  const base=Number($('editLimit').value),extra=Number($('editAddCredits').value||0),total=base+extra;
-  if(!Number.isSafeInteger(base)||base<0||!Number.isSafeInteger(extra)||extra<0||!Number.isSafeInteger(total))return toast('Los créditos deben ser números enteros positivos.');
-  if(total!==0&&total<access.used_credits)return toast('El nuevo total no puede ser menor que los créditos ya gastados.');
-  if(!$('editLicEnd').value)return toast('Indica una fecha de vencimiento.');
+  if(!access)return toast('Selecciona un usuario de esta app.');
+  const available=Number($('editAvailable').value),total=access.unlimited&&available===0?0:available+Number(access.used_credits||0);
+  if(!Number.isSafeInteger(available)||available<0||!Number.isSafeInteger(total))return toast('Indica un saldo válido.');
+  if(!access.unlimited&&total===0)return toast('Esta licencia necesita al menos 1 crédito total; 0 significaría acceso sin límite.');
   try{
-    const body={email:$('editEmail').value.trim(),full_name:$('editName').value.trim(),is_active:$('editActive').value==='true'};
+    const body={email:$('editEmail').value.trim(),full_name:$('editName').value.trim()};
     if($('editPassword').value)body.password=$('editPassword').value;
     await api(`/admin/users/${user.id}`,{method:'PATCH',body:JSON.stringify(body)});
-    await api(`/admin/users/${user.id}/access/${product.code}`,{method:'PATCH',body:JSON.stringify({usage_limit:total,status:$('editLicStatus').value,expires_at:new Date(`${$('editLicEnd').value}T23:59:59`).toISOString()})});
+    if(total!==Number(access.total_credits||0))await api(`/admin/users/${user.id}/access/${product.code}`,{method:'PATCH',body:JSON.stringify({usage_limit:total})});
     await loadAll();
     closeUserEditor();
-    toast('Alumno y créditos actualizados.');
+    toast('Usuario actualizado.');
   }catch(error){await loadAll();toast(error.message)}
+}
+async function deleteSelectedUser(){
+  const user=users.find(item=>item.id===selectedUserId);
+  if(!user)return;
+  if(!confirm(`¿Eliminar la cuenta de ${user.full_name||user.email}? Esta acción no se puede deshacer.`))return;
+  try{const result=await api(`/admin/users/${user.id}`,{method:'DELETE'});closeUserEditor();await loadAll();toast(result.local_files_removed===false?'Cuenta eliminada; revisa los archivos locales del servidor.':'Usuario eliminado.')}catch(error){toast(error.message)}
 }
 const AI_LABELS={chat:['Texto y asistente','Explicaciones, ejercicios y conversación.','✦'],points:['Apuntes y guiones','Desarrollo de temas de Diplomator.','▤'],ocr:['Lectura de imágenes','Texto de fotografías y documentos.','▧'],transcribe:['Audio a texto','Transcripción de grabaciones.','♪']};
 function savedCaps(){return ai?.apps?.[aiApp]||(ai?.capabilities||[]).filter(c=>!c.apps||c.apps.includes(aiApp))}
@@ -470,8 +433,8 @@ function openAppAI(code){aiApp=code;setView('ai')}
 function showAIConnections(){$('aiConnections').open=true;$('aiConnections').scrollIntoView({behavior:'smooth',block:'start'})}
 function renderAI(hydrate=true){
  $('aiAppPicker').innerHTML=PRODUCTS.map(p=>`<button type="button" class="${aiApp===p.code?'selected':''}" aria-pressed="${aiApp===p.code}" onclick="openAppAI('${p.code}')"><img src="${p.icon}" alt=""><span>${p.label}</span></button>`).join('');
- $('aiAppTitle').textContent=PRODUCTS.find(p=>p.code===aiApp)?.label||'Aplicación';$('aiAppHint').textContent='Cada función puede usar un proveedor y un modelo distintos.';
- const caps=draftCaps();$('aiEditor').innerHTML=caps.map(c=>{const [label,copy,icon]=AI_LABELS[c.id],providers=ai?.model_choices?.[c.id]||{groq:[],openai:[]};const models=providers[c.provider]||[];const choices=[...new Set([c.model,...models])];const configured=!!ai?.[c.provider+'_configured'];return `<article class="model-card"><div class="model-card-head"><span class="function-icon ${c.id}">${icon}</span><div><h3>${label}</h3><p>${copy}</p></div></div><span class="connection-state ${configured?'ready':'missing'}">${configured?'● Clave disponible':'○ Falta clave de '+esc(c.provider)}</span><label for="inherit-${c.id}">Configuración</label><select id="inherit-${c.id}" onchange="editAI('${c.id}','inherited',this.value==='true')"><option value="false" ${!c.inherited?'selected':''}>Personalizar para esta app</option><option value="true" ${c.inherited?'selected':''}>Usar ajustes generales</option></select><div class="model-fields"><div><label for="provider-${c.id}">Proveedor</label><select id="provider-${c.id}" ${c.inherited?'disabled':''} onchange="editAI('${c.id}','provider',this.value)">${Object.keys(providers).map(p=>`<option value="${p}" ${p===c.provider?'selected':''}>${p==='openai'?'OpenAI':p==='groq'?'Groq':'Gemini'}</option>`).join('')}</select></div><div><label for="model-${c.id}">Modelo</label><select id="model-${c.id}" ${c.inherited?'disabled':''} onchange="chooseModel('${c.id}',this.value)">${choices.map(m=>`<option value="${esc(m)}" ${m===c.model?'selected':''}>${esc(m)}</option>`).join('')}<option value="__custom">Otro modelo…</option></select></div></div><div id="custom-box-${c.id}" hidden><label for="custom-${c.id}">Identificador del modelo</label><input id="custom-${c.id}" value="${esc(c.model)}" placeholder="Identificador exacto del proveedor" oninput="customModel('${c.id}',this.value)"></div><div class="model-test"><button type="button" onclick="testAI('${c.id}')" ${appDirty()||!configured?'disabled':''}>${c.id==='transcribe'?'Validar ajustes':'Probar modelo guardado'}</button><small>${c.id==='transcribe'?'No envía audio.':'Envía una petición breve al proveedor.'}</small><span>${esc(aiTestResults[aiApp+':'+c.id]||'')}</span></div></article>`}).join('')||'<div class="empty">No se pudo cargar la IA. Pulsa Actualizar para reintentar.</div>';
+ $('aiAppTitle').textContent=PRODUCTS.find(p=>p.code===aiApp)?.label||'Aplicación';
+ const caps=draftCaps();$('aiEditor').innerHTML=caps.map(c=>{const [label,,icon]=AI_LABELS[c.id],providers=ai?.model_choices?.[c.id]||{groq:[],openai:[]};const models=providers[c.provider]||[];const choices=[...new Set([c.model,...models])];const configured=!!ai?.[c.provider+'_configured'];return `<article class="model-card"><div class="model-card-head"><span class="function-icon ${c.id}">${icon}</span><h3>${label}</h3></div><span class="connection-state ${configured?'ready':'missing'}">${configured?'● Clave disponible':'○ Falta clave de '+esc(c.provider)}</span><label for="inherit-${c.id}">Configuración</label><select id="inherit-${c.id}" onchange="editAI('${c.id}','inherited',this.value==='true')"><option value="false" ${!c.inherited?'selected':''}>Personalizar para esta app</option><option value="true" ${c.inherited?'selected':''}>Usar ajustes generales</option></select><div class="model-fields"><div><label for="provider-${c.id}">Proveedor</label><select id="provider-${c.id}" ${c.inherited?'disabled':''} onchange="editAI('${c.id}','provider',this.value)">${Object.keys(providers).map(p=>`<option value="${p}" ${p===c.provider?'selected':''}>${p==='openai'?'OpenAI':p==='groq'?'Groq':'Gemini'}</option>`).join('')}</select></div><div><label for="model-${c.id}">Modelo</label><select id="model-${c.id}" ${c.inherited?'disabled':''} onchange="chooseModel('${c.id}',this.value)">${choices.map(m=>`<option value="${esc(m)}" ${m===c.model?'selected':''}>${esc(m)}</option>`).join('')}<option value="__custom">Otro modelo…</option></select></div></div><div id="custom-box-${c.id}" hidden><label for="custom-${c.id}">Identificador del modelo</label><input id="custom-${c.id}" value="${esc(c.model)}" placeholder="Identificador exacto del proveedor" oninput="customModel('${c.id}',this.value)"></div><div class="model-test"><button type="button" onclick="testAI('${c.id}')" ${appDirty()||!configured?'disabled':''}>${c.id==='transcribe'?'Validar ajustes':'Probar modelo guardado'}</button><span>${esc(aiTestResults[aiApp+':'+c.id]||'')}</span></div></article>`}).join('')||'<div class="empty">No se pudo cargar la IA.</div>';
  updateAIDirty();
  for(const provider of ['groq','openai','gemini','pixabay'])$(provider+'KeyStatus').textContent=ai?.[provider+'_configured']?'· conectada':'· sin clave';
  if(hydrate){for(const c of ['chat','points','transcribe']){$(c+'Provider').value=ai?.[c+'_provider']||'groq';$(c+'Model').value=ai?.[c+'_model']||''}$('topicStyleGuide').value=ai?.topic_style_guide||''}

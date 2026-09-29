@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import secrets
+import shutil
 import zipfile
 from datetime import datetime, timezone
 from io import BytesIO
@@ -10,7 +11,7 @@ from xml.etree import ElementTree as ET
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 import httpx
@@ -18,7 +19,7 @@ import httpx
 from app.auth.dependencies import require_superadmin
 from app.config import get_settings
 from app.database.session import get_db
-from app.models import AppSetting, AuditLog, License, Organization, UsageRecord, User
+from app.models import AppSetting, AuditLog, ClientState, Conversation, Document, GamificationAchievement, GamificationEquippedItem, GamificationOwnedItem, GamificationProfile, GamificationRewardEvent, License, Message, Organization, UsageRecord, User
 from app.schemas.core import LicenseCreate, LicenseOut, LicensePatch, OrganizationCreate, OrganizationOut, OrganizationPatch, UserAccessPatch, UserCreate, UserOut, UserPatch
 from app.security.passwords import hash_password
 from app.services.ai_config import (
@@ -586,6 +587,35 @@ def patch_user(user_id: UUID, payload: UserPatch, actor: User = Depends(require_
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.delete("/users/{user_id}")
+def delete_user(user_id: UUID, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    user = get_or_404(db, User, user_id)
+    if user.id == actor.id or user.role != "user":
+        raise HTTPException(status_code=403, detail="Solo se pueden eliminar cuentas de usuario.")
+    profile_ids = list(db.scalars(select(GamificationProfile.id).where(GamificationProfile.user_id == user_id)))
+    if profile_ids:
+        for model in (GamificationRewardEvent, GamificationAchievement, GamificationOwnedItem, GamificationEquippedItem):
+            db.execute(delete(model).where(model.profile_id.in_(profile_ids)))
+    for model in (Message, Conversation, Document, GamificationProfile, ClientState, UsageRecord, License):
+        db.execute(delete(model).where(model.user_id == user_id))
+    db.execute(update(AuditLog).where(AuditLog.actor_user_id == user_id).values(actor_user_id=None))
+    organization_id = user.organization_id
+    email = user.email
+    db.delete(user)
+    audit(db, actor=actor, organization_id=organization_id, action="user_deleted", entity_type="user", entity_id=str(user_id), metadata={"email": email})
+    db.commit()
+    from app.api.app_routes import LOCAL_DOCUMENT_DIR
+    document_root = LOCAL_DOCUMENT_DIR.resolve()
+    user_documents = (document_root / str(organization_id) / str(user_id)).resolve()
+    files_removed = True
+    if user_documents.is_relative_to(document_root) and user_documents.is_dir():
+        try:
+            shutil.rmtree(user_documents)
+        except OSError:
+            files_removed = False
+    return {"ok": True, "local_files_removed": files_removed}
 
 
 @router.get("/licenses", response_model=list[LicenseOut])
