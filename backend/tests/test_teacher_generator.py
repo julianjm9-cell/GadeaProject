@@ -57,6 +57,15 @@ def test_requires_login(client):
     web,_=client
     assert web.post('/api/profesor/generate?app=profesor_particular',json=request()).status_code in (401,403)
 
+
+def test_expired_access_can_refresh_before_generation(client, monkeypatch):
+    web, _, calls = setup(client, monkeypatch)
+    web.cookies.delete('diplomator_access')
+    assert web.post('/api/profesor/generate?app=profesor_particular',json=request()).status_code == 401
+    assert web.post('/auth/refresh').status_code == 200
+    assert web.post('/api/profesor/generate?app=profesor_particular',json=request()).status_code == 200
+    assert len(calls) == 1
+
 def test_insufficient_balance_no_provider(client,monkeypatch):
     from app.models import User, License
     web,factory,calls=setup(client,monkeypatch)
