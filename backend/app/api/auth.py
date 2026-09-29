@@ -204,6 +204,8 @@ def get_or_create_google_user(db: Session, info: dict, product_codes: tuple[str,
         org = db.get(Organization, user.organization_id)
         if not user.is_active or not org or org.status != "active":
             raise HTTPException(status_code=403, detail="Cuenta desactivada.")
+        if user.google_sub and user.google_sub != google_sub:
+            raise HTTPException(status_code=409, detail="Esta cuenta ya está vinculada a otra cuenta de Google.")
         user.google_sub = google_sub
         user.google_picture = str(info.get("picture") or "")[:500]
         if not user.full_name:
@@ -378,14 +380,16 @@ def google_drive_disconnect(user: User = Depends(current_user), db: Session = De
 
 @router.get("/google/callback")
 async def google_callback(request: Request, response: Response, code: str | None = None, state: str | None = None, error: str | None = None, db: Session = Depends(get_db)):
-    if error:
-        return RedirectResponse("/login?google_error=1")
-    if not code or not state:
+    cookie_state = request.cookies.get("diplomator_google_state") or ""
+    if not state or not cookie_state or not secrets.compare_digest(state, cookie_state):
         return RedirectResponse("/login?google_error=state")
     try:
         payload = decode_google_state(state)
-    except ValueError:
+    except HTTPException:
         return RedirectResponse("/login?google_error=state")
+    target = clean_next_path(str(payload.get("next") or "/apps"))
+    if error or not code:
+        return RedirectResponse("/login?" + urlencode({"google_error": "1", "next": target}))
     token_data = await exchange_google_code(code)
     info = token_data["userinfo"]
     purpose = str(payload.get("purpose") or "login")
@@ -410,17 +414,22 @@ async def google_callback(request: Request, response: Response, code: str | None
         redirect = RedirectResponse(next_path)
         redirect.delete_cookie("diplomator_google_state")
         return redirect
-    target = clean_next_path(str(payload.get("next") or "/apps"))
     product = {"/profesor-particular": "PROFESOR_PARTICULAR", "/eso-adultos": "ESO_ADULTOS", "/universidad-adultos": "UNIVERSIDAD_ADULTOS", "/cambridge": "CAMBRIDGE"}.get(target.split("?")[0], "DIPLOMATOR")
-    user = get_or_create_google_user(db, info, (product,))
-    decision = check_access(db, user)
-    for product_code in PRODUCT_CODES[1:]:
-        if decision.ok:
-            break
-        decision = check_access(db, user, product_code, require_credits=product_code not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR"})
+    try:
+        user = get_or_create_google_user(db, info, (product,))
+    except HTTPException as exc:
+        db.rollback()
+        reason = "account" if exc.status_code == 409 else "access"
+        return RedirectResponse("/login?" + urlencode({"google_error": reason, "next": target}))
+    decision = check_access(db, user, product, require_credits=product not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR"})
+    if target == "/apps" and not decision.ok:
+        for product_code in PRODUCT_CODES[1:]:
+            decision = check_access(db, user, product_code, require_credits=product_code not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR"})
+            if decision.ok:
+                break
     if not decision.ok:
-        db.commit()
-        return RedirectResponse("/login?google_error=access")
+        db.rollback()
+        return RedirectResponse("/login?" + urlencode({"google_error": "access", "next": target}))
     db.commit()
     login_response = RedirectResponse(clean_next_path(str(payload.get("next") or "/apps")))
     issue_login_response(user, login_response)

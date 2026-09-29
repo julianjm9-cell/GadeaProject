@@ -70,6 +70,7 @@ docker compose exec backend python -m app.bootstrap
 
 En `.env`, cambia `TU_IP_PUBLICA` por la IPv4 del servidor. En Hostinger es la IP que aparece en el panel del VPS.
 Si conectas dominio mas adelante, usa `SITE_ADDRESS=tu-dominio.com`, `COOKIE_SECURE=true`, `CORS_ORIGINS=https://tu-dominio.com` y `GOOGLE_REDIRECT_URI=https://tu-dominio.com/auth/google/callback`.
+Acceso con Google para ESO Adultos y Profesor Particular: `docs/google-login.md`.
 Runbook Docker: `infra/DOCKER_RUNBOOK.md`.
 
 Rutas publicas de venta:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from urllib.parse import parse_qs, urlparse
 from uuid import UUID
 
 import pytest
@@ -332,6 +333,19 @@ def test_google_status_reports_disabled_when_not_configured(client, monkeypatch)
     assert response.json()["enabled"] is False
 
 
+def test_google_login_uses_the_site_callback_and_basic_identity_scopes(client, monkeypatch):
+    test_client, _ = client
+    settings = auth_api.get_settings()
+    monkeypatch.setattr(settings, "google_client_id", "test-client-id")
+    monkeypatch.setattr(settings, "google_client_secret", "test-client-secret")
+    monkeypatch.setattr(settings, "google_redirect_uri", "https://educame.tech/auth/google/callback")
+    response = test_client.get("/auth/google/login?next=/profesor-particular", follow_redirects=False)
+    params = parse_qs(urlparse(response.headers["location"]).query)
+    assert params["redirect_uri"] == ["https://educame.tech/auth/google/callback"]
+    assert params["scope"] == ["openid email profile"]
+    assert params["state"] == [test_client.cookies.get("diplomator_google_state")]
+
+
 def register_eso(test_client, email="nuevo@example.com"):
     return test_client.post("/auth/eso/register", json={"email": email, "full_name": "Nueva alumna", "password": "segura12345"})
 
@@ -456,6 +470,7 @@ def test_blocked_account_cannot_receive_free_eso_access(client):
 
 def test_google_callback_grants_only_the_requested_app(client, monkeypatch):
     test_client, db_factory = client
+    test_client.cookies.set("diplomator_google_state", "test")
     monkeypatch.setattr(auth_api, "decode_google_state", lambda _: {"purpose": "login", "next": "/eso-adultos"})
     async def exchange(_):
         return {"userinfo": {"email": "google-callback@example.com", "sub": "callback-sub", "name": "Google", "email_verified": True}}
@@ -464,6 +479,38 @@ def test_google_callback_grants_only_the_requested_app(client, monkeypatch):
     assert response.headers["location"] == "/eso-adultos"
     with db_factory() as db:
         assert [lic.product_code for lic in db.query(License).all()] == ["ESO_ADULTOS"]
+
+
+def test_google_callback_rejects_missing_or_changed_state_before_token_exchange(client, monkeypatch):
+    test_client, _ = client
+
+    async def exchange(_):
+        raise AssertionError("No se debe intercambiar un código sin el estado del navegador")
+
+    monkeypatch.setattr(auth_api, "exchange_google_code", exchange)
+    response = test_client.get("/auth/google/callback?code=test&state=test", follow_redirects=False)
+    assert response.headers["location"] == "/login?google_error=state"
+    test_client.cookies.set("diplomator_google_state", "different")
+    response = test_client.get("/auth/google/callback?code=test&state=test", follow_redirects=False)
+    assert response.headers["location"] == "/login?google_error=state"
+
+
+def test_google_callback_requires_access_to_selected_app(client, monkeypatch):
+    test_client, db_factory = client
+    seed_user(db_factory, email="google-existing@example.com", product_codes=("ESO_ADULTOS",))
+    test_client.cookies.set("diplomator_google_state", "test")
+    monkeypatch.setattr(auth_api.get_settings(), "profesor_signup_enabled", False)
+    monkeypatch.setattr(auth_api, "decode_google_state", lambda _: {"purpose": "login", "next": "/profesor-particular"})
+
+    async def exchange(_):
+        return {"userinfo": {"email": "google-existing@example.com", "sub": "existing-sub", "email_verified": True}}
+
+    monkeypatch.setattr(auth_api, "exchange_google_code", exchange)
+    response = test_client.get("/auth/google/callback?code=test&state=test", follow_redirects=False)
+    assert response.headers["location"] == "/login?google_error=access&next=%2Fprofesor-particular"
+    with db_factory() as db:
+        assert {lic.product_code for lic in db.query(License).all()} == {"ESO_ADULTOS"}
+        assert db.query(User).filter(User.email == "google-existing@example.com").one().google_sub is None
 
 
 def test_eso_initial_credit_configuration_is_used(client, monkeypatch):
