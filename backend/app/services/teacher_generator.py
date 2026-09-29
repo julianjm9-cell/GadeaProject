@@ -7,6 +7,24 @@ from fastapi import HTTPException
 TYPES = ('pairs', 'gaps', 'quiz', 'short', 'order', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'memory', 'sentence', 'timeline', 'error', 'wordsearch', 'crossword', 'dragdrop')
 
 
+def course_guidance(course):
+    match = re.search(r'([1-6])\s*(?:[.º°ªo]*\s*)?(primaria|eso|bachillerato)', course, re.IGNORECASE)
+    if not match:
+        return 'Ajusta vocabulario, profundidad y ejemplos al curso indicado; no presupongas conocimientos de etapas posteriores.'
+    year, stage = int(match.group(1)), match.group(2).lower()
+    if stage == 'primaria':
+        if year <= 2:
+            return 'Primaria inicial: frases muy breves, ejemplos cotidianos y una sola operación o idea por ejercicio.'
+        if year <= 4:
+            return 'Primaria intermedia: lenguaje claro, situaciones cercanas y pasos cortos con dificultad gradual.'
+        return 'Primaria final: problemas contextualizados y razonamiento guiado sin contenidos propios de ESO.'
+    if stage == 'eso':
+        if year <= 2:
+            return 'ESO inicial: vocabulario académico sencillo, aplicaciones concretas y dificultad progresiva.'
+        return 'ESO final: conceptos y procedimientos más profundos, ejemplos propios de secundaria y precisión en las soluciones.'
+    return 'Bachillerato: mayor rigor conceptual, autonomía y aplicaciones acordes con esta etapa.'
+
+
 def puzzle_word(value):
     import unicodedata
     raw = value.strip().upper().replace('Ñ', '\u0001')
@@ -65,6 +83,7 @@ def generator_context(payload):
         context[key] = value.strip()
     if not context['topic'] or not context['subject']:
         raise HTTPException(422, 'Indica asignatura y contenido.')
+    context['levelGuidance'] = course_guidance(context['course'])
     for key in TYPES:
         value = payload.get(key, 0)
         if type(value) is not int or not 0 <= value <= 10:
@@ -141,8 +160,11 @@ def parse_material(content, context):
 
 SYSTEM = '''Crea material educativo correcto para colegio e instituto. Devuelve SOLO JSON:
 {"questions":[{"type":"uno de los tipos solicitados","prompt":"enunciado","answer":"solución","options":[]}]}
-Respeta exactamente las cantidades de cada tipo y el nivel del curso. El contenido académico es topic;
-theme es ambientación opcional, no sustituye al contenido. duration es orientativa.
+Respeta exactamente las cantidades de cada tipo y el nivel del curso. course y
+levelGuidance determinan la dificultad, el vocabulario, los ejemplos y el alcance de
+cada ejercicio. No introduzcas contenidos de cursos posteriores. El contenido
+académico es topic; theme solo ambienta ejemplos si encaja con la materia y la edad,
+no sustituye al contenido. duration es orientativa.
 En pairs cada prompt tiene una respuesta única y las respuestas no se repiten.
 En gaps incluye exactamente un ___ por enunciado, respuesta breve y sin ambigüedad.
 Cada ejercicio tiene UNA sola tarea; no añadas otra pregunta después del hueco.

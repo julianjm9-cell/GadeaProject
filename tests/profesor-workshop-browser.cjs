@@ -11,7 +11,7 @@ const path=require('node:path');
     await page.getByRole('button',{name:'Crear material',exact:true}).click();
     assert.equal(await page.getByRole('button',{name:'Perfil',exact:true}).count(),0);
     assert.equal(await page.getByRole('button',{name:'Acceso',exact:true}).count(),0);
-    assert.equal(await page.locator('[data-exercise]').count(),14);
+    assert.equal(await page.locator('[data-exercise]').count(),19);
     assert.equal(await page.locator('[data-planned]').count(),0);
     assert.equal(await page.locator('#workshopContinue').isDisabled(),true);
 
@@ -30,6 +30,6 @@ const path=require('node:path');
 
     await page.setViewportSize({width:390,height:844});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-    console.log('PASS 14 usable formats, explicit selection, live counts and mobile');
+    console.log('PASS 19 usable formats, explicit selection, live counts and mobile');
   }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exit(1)});

@@ -23,7 +23,7 @@ const path=require('node:path');
   });
   await page.getByRole('button',{name:'Crear material',exact:true}).click();
   await page.getByLabel('Contenido o tema').fill('Deportes');
-  await page.locator('#workshopCourse').fill('3.º ESO');
+  await page.locator('#workshopCourse').selectOption('3.º ESO');
   assert.equal(await page.locator('[data-exercise="visualquiz"]').isVisible(),false);
   await page.locator('.photo-manual summary').click();
   await page.locator('[data-exercise="visualquiz"]').click();

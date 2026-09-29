@@ -11,7 +11,7 @@ const path=require('node:path');
   await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
   await page.getByRole('button',{name:'+ Alumno',exact:true}).click();
   await page.getByLabel('Nombre del alumno').fill('Eva Música');
-  await page.getByLabel('Curso o nivel').fill('5.º Primaria');
+  await page.getByLabel('Curso',{exact:true}).selectOption('5.º Primaria');
   await page.getByRole('checkbox',{name:'Matemáticas'}).uncheck();
   await page.getByLabel('Otra asignatura (opcional)').fill('Música');
   await page.getByRole('button',{name:'Crear alumno'}).click();

@@ -23,7 +23,7 @@ const path=require('node:path');
   },png);
   await page.getByRole('button',{name:'Crear material',exact:true}).click();
   await page.getByLabel('Contenido o tema').fill('Bosque');
-  await page.locator('#workshopCourse').fill('4.º Primaria');
+  await page.locator('#workshopCourse').selectOption('4.º Primaria');
   await page.locator('.photo-manual summary').click();
   await page.locator('[data-exercise="visualquiz"]').click();
   await page.locator('[data-exercise="imagepoint"]').click();

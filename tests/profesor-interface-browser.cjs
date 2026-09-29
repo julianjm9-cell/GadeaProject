@@ -1,0 +1,77 @@
+const {chromium}=require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const assert=require('node:assert/strict');
+const {pathToFileURL}=require('node:url');
+const path=require('node:path');
+
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:'msedge'});
+ try{
+  const page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href+'#inicio');
+  await page.getByRole('button',{name:'Calendario',exact:true}).click();
+  assert.equal(await page.locator('.home-calendar-day').count(),7);
+  await page.getByRole('button',{name:'Mes',exact:true}).click();
+  assert(await page.locator('.home-calendar-day').count()>=28);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
+  await page.setViewportSize({width:1366,height:768});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight>innerHeight+2),false);
+  await page.setViewportSize({width:1440,height:900});
+  const month=await page.locator('.calendar-period-nav strong').innerText();
+  await page.locator('.calendar-period-nav').getByRole('button',{name:'›'}).click();
+  assert.notEqual(await page.locator('.calendar-period-nav strong').innerText(),month);
+  await page.getByRole('button',{name:'Semana',exact:true}).click();
+  assert.equal(await page.locator('.home-calendar-day').count(),7);
+  await page.setViewportSize({width:390,height:844});
+  await page.getByRole('button',{name:'Mes',exact:true}).click();
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
+  await page.setViewportSize({width:1440,height:900});
+  await page.getByRole('button',{name:'Lista',exact:true}).click();
+
+  await page.locator('.home-task-row .task-check').first().click();
+  await page.locator('.home-completed summary').click();
+  assert.equal(await page.locator('.home-completed .home-task-row.completed').count(),1);
+  assert.equal(await page.locator('.home-completed .home-task-copy strong').first().evaluate(el=>getComputedStyle(el).textDecorationLine.includes('line-through')),true);
+
+  await page.locator('.home-primary-nav').getByRole('button',{name:'Material'}).click();
+  assert.equal(await page.getByRole('heading',{name:/^Materiales/}).count(),1);
+  assert.equal(await page.getByText('De la idea a la clase').count(),0);
+  const card=page.locator('.material-hub-card').first();
+  assert((await card.boundingBox()).width<350);
+  await card.hover();
+  assert.equal(await card.locator('.material-hover-preview').isVisible(),true);
+
+  await page.locator('.home-primary-nav').getByRole('button',{name:'Alumnos'}).click();
+  assert((await page.locator('.workspace-students .home-student-card').first().boundingBox()).width<350);
+  await page.getByRole('button',{name:'Mi cuenta'}).click();
+  assert.equal(await page.locator('#profileEmail').isEnabled(),true);
+  assert.equal(await page.locator('#profileEmail').getAttribute('readonly')!==null,true);
+  await page.locator('#profileHeadline').fill('Matemáticas para Primaria y ESO');
+  await page.locator('#profileDuration').selectOption('45');
+  await page.locator('.teacher-profile-subjects').getByRole('checkbox',{name:'Matemáticas'}).check();
+  await page.getByRole('button',{name:'Guardar perfil'}).click();
+  await page.evaluate(()=>saveQueue);
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('profesor-demo-v1')).teacherProfile.defaultDuration),45);
+  await page.getByRole('button',{name:'Mi cuenta'}).click();
+  assert.equal(await page.locator('#profileHeadline').inputValue(),'Matemáticas para Primaria y ESO');
+  assert.equal(await page.locator('#profileDuration').inputValue(),'45');
+  await page.getByRole('button',{name:'Cerrar',exact:true}).click();
+  await page.locator('.home-primary-nav').getByRole('button',{name:'Inicio'}).click();
+  await page.getByRole('button',{name:'+ Clase',exact:true}).click();
+  assert.equal(await page.locator('#duration').inputValue(),'45');
+  await page.getByRole('button',{name:'Cerrar',exact:true}).click();
+  await page.locator('.home-primary-nav').getByRole('button',{name:'Alumnos'}).click();
+  await page.getByRole('button',{name:'+ Alumno',exact:true}).click();
+  assert.equal(await page.locator('#course').evaluate(el=>el.tagName),'SELECT');
+  await page.getByLabel('Nombre del alumno').fill('Eva Prueba');
+  await page.locator('#course').selectOption('5.º Primaria');
+  await page.getByRole('button',{name:'Crear alumno'}).click();
+  await page.locator('.home-primary-nav').getByRole('button',{name:'Material'}).click();
+  await page.getByRole('button',{name:'Crear material',exact:true}).click();
+  assert.equal(await page.locator('#workshopCourse').evaluate(el=>el.tagName),'SELECT');
+  await page.getByLabel('Alumno (opcional)').selectOption({label:'Eva Prueba'});
+  assert.equal(await page.locator('#workshopCourse').inputValue(),'5.º Primaria');
+  assert.deepEqual(errors,[]);
+  console.log('PASS courses, compact cards, hover preview, completed tasks, calendar periods and profile preferences');
+ }finally{await browser.close()}
+})().catch(error=>{console.error(error);process.exit(1)});

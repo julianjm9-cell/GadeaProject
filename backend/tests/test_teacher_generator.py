@@ -53,6 +53,18 @@ def test_invalid_counts_no_provider(client,monkeypatch):
     assert web.post('/api/profesor/generate?app=profesor_particular',json=body).status_code==422
     assert not calls
 
+
+def test_course_guidance_reaches_model_without_private_student_data(client, monkeypatch):
+    web, _, calls = setup(client, monkeypatch)
+    body = request()
+    body['course'] = '3.º ESO'
+    response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
+    assert response.status_code == 200, response.text
+    context = json.loads(calls[0]['messages'][1]['content'])
+    assert context['course'] == '3.º ESO'
+    assert 'ESO final' in context['levelGuidance']
+    assert 'studentId' not in context
+
 def test_requires_login(client):
     web,_=client
     assert web.post('/api/profesor/generate?app=profesor_particular',json=request()).status_code in (401,403)
