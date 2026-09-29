@@ -233,6 +233,47 @@ def test_profesor_rejects_invalid_materials(client, monkeypatch, tmp_path):
     assert not list(tmp_path.rglob("*"))
 
 
+def test_profesor_visual_material_preview_and_pdf_are_private(client, monkeypatch, tmp_path):
+    import base64
+    from io import BytesIO
+    from PIL import Image
+    from pypdf import PdfReader
+
+    test_client, db_factory = client
+    monkeypatch.setattr(app_routes, "LOCAL_DOCUMENT_DIR", tmp_path)
+    seed_user(db_factory, product_codes=("PROFESOR_PARTICULAR",))
+    login(test_client)
+    image_file = BytesIO()
+    Image.new("RGB", (32, 20), "#2567dd").save(image_file, format="PNG")
+    uploaded = test_client.post("/api/profesor/materials?app=profesor_particular", json={
+        "filename": "dibujo.png", "base64": base64.b64encode(image_file.getvalue()).decode(),
+    })
+    assert uploaded.status_code == 200
+    image_id = uploaded.json()["id"]
+    preview = test_client.get(f"/api/profesor/materials/{image_id}/preview?app=profesor_particular")
+    assert preview.status_code == 200
+    assert preview.headers["content-type"].startswith("image/png")
+    assert "attachment" not in preview.headers.get("content-disposition", "")
+    material = {"title": "Los animales", "subject": "Ciencias", "activity": {
+        "context": {"course": "4.º Primaria"}, "questions": [
+            {"type": "visualquiz", "prompt": "¿Qué animal aparece?", "answer": "Gato",
+             "options": ["Gato", "Perro"], "image": {"id": image_id, "filename": "dibujo.png"}},
+            {"type": "imagepoint", "prompt": "Señala la cabeza", "answer": "Zona marcada",
+             "target": {"x": 50, "y": 40}, "image": {"id": image_id, "filename": "dibujo.png"}},
+        ]}}
+    for version in ("worksheet", "solutions"):
+        response = test_client.post("/api/profesor/export-pdf?app=profesor_particular", json={"material": material, "version": version})
+        assert response.status_code == 200, response.text
+        assert response.content.startswith(b"%PDF")
+        text = " ".join(page.extract_text() for page in PdfReader(BytesIO(response.content)).pages)
+        assert "Los animales" in text and "Señala la cabeza" in text
+        assert ("Solución:" in text) is (version == "solutions")
+    seed_user(db_factory, email="otro-profesor@example.com", product_codes=("PROFESOR_PARTICULAR",))
+    login(test_client, email="otro-profesor@example.com")
+    assert test_client.get(f"/api/profesor/materials/{image_id}/preview?app=profesor_particular").status_code == 404
+    assert test_client.post("/api/profesor/export-pdf?app=profesor_particular", json={"material": material, "version": "worksheet"}).status_code == 404
+
+
 def test_eso_gamification_reward_is_idempotent(client):
     test_client, db_factory = client
     seed_user(db_factory, product_codes=("ESO_ADULTOS",))

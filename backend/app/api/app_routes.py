@@ -15,7 +15,7 @@ from uuid import UUID, uuid4
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -947,6 +947,11 @@ def upload_profesor_material(payload: dict, user: User = Depends(current_user), 
 
 @router.get("/api/profesor/materials/{document_id}")
 def download_profesor_material(document_id: UUID, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    row, target = _private_profesor_document(document_id, user, license_obj, db)
+    return FileResponse(target, filename=row.filename, media_type="application/octet-stream", headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "private, no-store"})
+
+
+def _private_profesor_document(document_id: UUID, user: User, license_obj: License, db: Session):
     if license_obj.product_code != "PROFESOR_PARTICULAR":
         raise HTTPException(403, "Requiere acceso a Profesor Particular.")
     row = db.get(Document, document_id)
@@ -956,7 +961,60 @@ def download_profesor_material(document_id: UUID, user: User = Depends(current_u
     target = Path(row.storage_path).resolve()
     if not target.is_relative_to(root) or not target.is_file():
         raise HTTPException(404, "Material no encontrado.")
-    return FileResponse(target, filename=row.filename, media_type="application/octet-stream", headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "private, no-store"})
+    return row, target
+
+
+@router.get("/api/profesor/materials/{document_id}/preview")
+def preview_profesor_image(document_id: UUID, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    row, target = _private_profesor_document(document_id, user, license_obj, db)
+    mime = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}.get(target.suffix.lower())
+    if not mime:
+        raise HTTPException(415, "Este archivo no es una imagen.")
+    from PIL import Image as PILImage, UnidentifiedImageError
+    expected = {".png": "PNG", ".jpg": "JPEG", ".jpeg": "JPEG", ".webp": "WEBP"}[target.suffix.lower()]
+    try:
+        with PILImage.open(target) as image:
+            if image.format != expected or image.width * image.height > 20_000_000:
+                raise ValueError("Formato o tamaño de imagen no válido.")
+            image.verify()
+    except (OSError, ValueError, UnidentifiedImageError) as exc:
+        raise HTTPException(422, "La imagen no es válida.") from exc
+    return FileResponse(target, media_type=mime, headers={"X-Content-Type-Options": "nosniff", "Cache-Control": "private, no-store"})
+
+
+@router.post("/api/profesor/export-pdf")
+def export_profesor_pdf(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    if license_obj.product_code != "PROFESOR_PARTICULAR":
+        raise HTTPException(403, "Requiere acceso a Profesor Particular.")
+    if payload.get("version") not in ("worksheet", "solutions"):
+        raise HTTPException(422, "Elige ficha o soluciones.")
+    material = payload.get("material")
+    if len(json.dumps(material, ensure_ascii=False, default=str)) > 200_000:
+        raise HTTPException(413, "El material es demasiado grande.")
+    from app.services.teacher_pdf import render_teacher_pdf
+    def load_image(value: str) -> bytes:
+        try:
+            document_id = UUID(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Referencia de imagen no válida.") from exc
+        _, target = _private_profesor_document(document_id, user, license_obj, db)
+        if target.suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp"}:
+            raise ValueError("El recurso seleccionado no es una imagen.")
+        from PIL import Image as PILImage, UnidentifiedImageError
+        try:
+            with PILImage.open(target) as image:
+                if image.width * image.height > 20_000_000:
+                    raise ValueError("La imagen es demasiado grande para el PDF.")
+                image.verify()
+        except (OSError, UnidentifiedImageError) as exc:
+            raise ValueError("La imagen no es válida.") from exc
+        return target.read_bytes()
+    try:
+        pdf = render_teacher_pdf(material, payload["version"] == "solutions", load_image)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    filename = "profesor-soluciones.pdf" if payload["version"] == "solutions" else "profesor-ficha.pdf"
+    return Response(pdf, media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="{filename}"', "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})
 
 
 @router.post("/api/drive/upload-document")

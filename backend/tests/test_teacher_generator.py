@@ -109,3 +109,36 @@ def test_game_formats_and_invalid_memory():
     assert result[1]['answer']=='Completado'
     questions[1]['options']=['Gato | Cat','Perro | Cat']
     with pytest.raises(HTTPException):parse_material(json.dumps({'questions':questions}),context)
+
+
+def test_puzzle_formats_are_validated_before_charging(client, monkeypatch):
+    from app.services.teacher_generator import generator_context, parse_material, TYPES
+    from fastapi import HTTPException
+    data=request();data.update({k:0 for k in TYPES})
+    data.update(wordsearch=1,crossword=1,dragdrop=1)
+    _,context=generator_context(data)
+    questions=[
+        dict(type='wordsearch',prompt='Encuentra los animales',answer='Completado',options=['GATO','PATO','RANA']),
+        dict(type='crossword',prompt='Completa el crucigrama',answer='Completado',options=['GATO | Felino','PATO | Ave acuática','RATA | Roedor']),
+        dict(type='dragdrop',prompt='Une cada animal con su grupo',answer='Completado',options=['Gato | Mamífero','Pato | Ave','Rana | Anfibio']),
+    ]
+    assert len(parse_material(json.dumps({'questions':questions}),context))==3
+    questions[1]['options']=['GATO | Felino','PERRO | Canino','BUHO | Ave']
+    with pytest.raises(HTTPException):parse_material(json.dumps({'questions':questions}),context)
+    questions[1]['options']=['GATO | Felino','PATO | Ave acuática','RATA | Roedor']
+    questions[2]['options']=['Gato | Mamífero','Pato | Ave','Rana | Ave']
+    with pytest.raises(HTTPException):parse_material(json.dumps({'questions':questions}),context)
+
+
+def test_puzzle_generation_charges_only_for_valid_board(client, monkeypatch):
+    questions=[
+        dict(type='wordsearch',prompt='Encuentra los animales',answer='Completado',options=['GATO','PATO','RANA']),
+        dict(type='crossword',prompt='Completa el crucigrama',answer='Completado',options=['GATO | Felino','PATO | Ave acuática','RATA | Roedor']),
+        dict(type='dragdrop',prompt='Relaciona',answer='Completado',options=['Gato | Mamífero','Pato | Ave','Rana | Anfibio']),
+    ]
+    web,factory,_=setup(client,monkeypatch,content=json.dumps({'questions':questions}))
+    body=request();body.update(gaps=0,wordsearch=1,crossword=1,dragdrop=1)
+    result=web.post('/api/profesor/generate?app=profesor_particular',json=body)
+    assert result.status_code==200,result.text
+    assert [q['type'] for q in result.json()['questions']]==['wordsearch','crossword','dragdrop']
+    with factory() as db:assert db.scalar(select(func.count()).select_from(UsageRecord))==1

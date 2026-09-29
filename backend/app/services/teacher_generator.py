@@ -4,7 +4,51 @@ import re
 from uuid import UUID
 from fastapi import HTTPException
 
-TYPES = ('pairs', 'gaps', 'quiz', 'short', 'order', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'memory', 'sentence', 'timeline', 'error')
+TYPES = ('pairs', 'gaps', 'quiz', 'short', 'order', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'memory', 'sentence', 'timeline', 'error', 'wordsearch', 'crossword', 'dragdrop')
+
+
+def puzzle_word(value):
+    import unicodedata
+    raw = value.strip().upper().replace('Ñ', '\u0001')
+    raw = ''.join(c for c in unicodedata.normalize('NFD', raw) if not unicodedata.combining(c)).replace('\u0001', 'Ñ')
+    return raw if re.fullmatch(r'[A-ZÑ]{3,12}', raw) else ''
+
+
+def puzzle_rows(kind, options):
+    if kind == 'wordsearch':
+        words = [puzzle_word(item) for item in options]
+        if not 3 <= len(words) <= 8 or any(not word for word in words) or len(set(words)) != len(words):
+            raise ValueError()
+        return words
+    pairs = [[part.strip() for part in item.split('|')] for item in options]
+    limit = 7 if kind == 'crossword' else 8
+    if not 3 <= len(pairs) <= limit or any(len(pair) != 2 or not pair[0] or not pair[1] for pair in pairs):
+        raise ValueError()
+    if kind == 'crossword':
+        words = [puzzle_word(pair[0]) for pair in pairs]
+        if any(not word or len(pair[1]) > 120 for word, pair in zip(words, pairs)) or len(set(words)) != len(words):
+            raise ValueError()
+        if not crossword_layout_possible(words):
+            raise ValueError()
+    else:
+        left = [pair[0].casefold() for pair in pairs]
+        right = [pair[1].casefold() for pair in pairs]
+        if any(len(part) > 100 for pair in pairs for part in pair) or len(set(left)) != len(left) or len(set(right)) != len(right):
+            raise ValueError()
+    return pairs
+
+
+def crossword_layout_possible(words):
+    for anchor in sorted(words, key=len, reverse=True):
+        others = [word for word in words if word != anchor]
+        def place(index, occupied):
+            if index == len(others):
+                return True
+            word = others[index]
+            return any(row not in occupied and letter in word and place(index + 1, occupied | {row}) for row, letter in enumerate(anchor))
+        if place(0, set()):
+            return True
+    return False
 
 def generator_context(payload):
     try:
@@ -54,12 +98,14 @@ def parse_material(content, context):
             if kind == 'gaps' and prompt.count('___') != 1:
                 raise ValueError()
             options = []
-            if kind in ('quiz', 'classify', 'boolean', 'order', 'sentence', 'timeline', 'memory'):
+            if kind in ('quiz', 'classify', 'boolean', 'order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop'):
                 options = q['options']
-                if not isinstance(options, list) or not 2 <= len(options) <= (8 if kind in ('order', 'sentence', 'timeline', 'memory') else 5) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in options):
+                if not isinstance(options, list) or not 2 <= len(options) <= (8 if kind in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'dragdrop') else 7 if kind == 'crossword' else 5) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in options):
                     raise ValueError()
                 options = [v.strip() for v in options]
-                if len(set(v.casefold() for v in options)) != len(options) or (kind not in ('order', 'sentence', 'timeline', 'memory') and answer not in options):
+                if len('\n'.join(options)) > 1500:
+                    raise ValueError()
+                if len(set(v.casefold() for v in options)) != len(options) or (kind not in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop') and answer not in options):
                     raise ValueError()
             if kind == 'boolean' and set(options) != {'Verdadero', 'Falso'}:
                 raise ValueError()
@@ -71,6 +117,9 @@ def parse_material(content, context):
                     raise ValueError()
                 if any(len({pair[side].casefold() for pair in pairs}) != len(pairs) for side in (0, 1)):
                     raise ValueError()
+                answer = 'Completado'
+            if kind in ('wordsearch', 'crossword', 'dragdrop'):
+                puzzle_rows(kind, options)
                 answer = 'Completado'
             if len(answer) > 1500:
                 raise ValueError()
@@ -123,4 +172,12 @@ En timeline, options son entre 2 y 8 hechos EN ORDEN CRONOLÓGICO CORRECTO, con 
 cuando proceda. answer resume el orden. Evita hechos simultáneos o ambiguos.
 En error, prompt contiene un ejemplo erróneo y pide corregirlo; answer explica el error
 y su corrección. No presentes datos erróneos como correctos fuera de este ejercicio.
+En wordsearch, cada pregunta representa UNA sopa de letras. options contiene de 3 a 8
+palabras distintas de 3 a 12 letras, sin espacios ni signos. answer es "Completado".
+En crossword, options contiene de 3 a 7 entradas "PALABRA | pista". Cada palabra
+tiene de 3 a 12 letras, sin espacios. Elige palabras con letras compartidas para que
+puedan cruzarse en una cuadrícula; pistas distintas y concretas. answer es "Completado".
+En dragdrop, options contiene de 3 a 8 parejas "elemento | destino"; ambos lados
+son únicos y cortos. El alumno coloca cada elemento en su destino. answer es "Completado".
+La app construye las cuadrículas y el tablero: NO generes cuadrículas en el JSON.
 """
