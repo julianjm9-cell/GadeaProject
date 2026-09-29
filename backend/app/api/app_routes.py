@@ -2,25 +2,31 @@ from __future__ import annotations
 from app.services.ai_config import app_ai_override
 
 import base64
+import hashlib
+import hmac
 import json
 import os
 import re
+import time
 from decimal import Decimal
 from pathlib import Path
+from urllib.parse import parse_qs
 from uuid import UUID, uuid4
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import current_license, current_user
+from app.api.auth import rate_limit_key
 from app.config import get_settings
 from app.database.session import get_db
 from app.models import AppSetting, ClientState, Conversation, Document, License, Message, UsageRecord, User
 from app.security.tokens import decode_token
+from app.security.passwords import verify_password
 from app.services.ai_config import (
     GROQ_TRANSCRIBE_DEFAULT,
     default_chat_model,
@@ -491,11 +497,66 @@ def suite_public_page():
     return marketing_file("index.html", "text/html")
 
 
+HAZLOTU_PASSWORD_KEY = "hazlotu_access_password_hash"
+HAZLOTU_COOKIE = "hazlotu_access"
+HAZLOTU_ACCESS_SECONDS = 60 * 60 * 12
+
+
+def hazlotu_access_token(password_hash: str, issued: int) -> str:
+    fingerprint = hashlib.sha256(password_hash.encode()).hexdigest()[:16]
+    payload = f"{issued}.{fingerprint}"
+    signature = hmac.new(get_settings().jwt_secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
+    return f"{payload}.{signature}"
+
+
+def hazlotu_access_valid(token: str, password_hash: str) -> bool:
+    try:
+        issued_text, fingerprint, signature = token.split(".")
+        issued = int(issued_text)
+    except (ValueError, TypeError):
+        return False
+    if issued > time.time() or time.time() - issued > HAZLOTU_ACCESS_SECONDS:
+        return False
+    expected = hazlotu_access_token(password_hash, issued)
+    return hmac.compare_digest(token, expected)
+
+
+def hazlotu_gate(error: bool = False, configured: bool = True) -> HTMLResponse:
+    message = '<p class="error" role="alert">Contraseña incorrecta. Inténtalo de nuevo.</p>' if error else ""
+    form = ('<form action="/hazlo-tu/unlock" method="post"><label for="password">Contraseña de acceso</label>'
+            '<input id="password" name="password" type="password" autocomplete="current-password" required autofocus>'
+            '<button type="submit">Entrar <span aria-hidden="true">→</span></button></form>') if configured else '<p class="pending">El acceso aún no está configurado. La contraseña se establece desde el panel de administración.</p>'
+    html = f'''<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Acceso privado · HazloTú</title><link rel="icon" href="/assets/brand/hazlotu-logo.png"><style>*{{box-sizing:border-box}}body{{min-height:100dvh;margin:0;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 85% 10%,#cce9ff,transparent 35%),linear-gradient(135deg,#f7fbff,#eaf3ff);font-family:Inter,system-ui,sans-serif;color:#0b255d}}.card{{width:min(430px,100%);padding:36px;border:1px solid #d7e6fa;border-radius:26px;background:#fff;box-shadow:0 24px 70px #174a8b1c}}img{{width:68px;height:68px;object-fit:contain}}h1{{font-size:32px;letter-spacing:-.04em;margin:14px 0 6px}}p{{color:#637a9c;line-height:1.5;margin:0 0 25px}}label{{display:block;font-size:13px;font-weight:700;margin-bottom:8px}}input{{width:100%;height:48px;padding:12px 14px;border:1px solid #bfd4f0;border-radius:12px;font:inherit}}input:focus{{outline:3px solid #b9d8ff}}button{{width:100%;height:48px;margin-top:16px;border:0;border-radius:12px;background:#086bf3;color:#fff;font:inherit;font-weight:700;cursor:pointer}}.error{{color:#b52d47;margin:0 0 14px}}.pending{{margin:0 0 16px}}a{{display:inline-block;margin-top:22px;color:#3265aa;text-decoration:none;font-size:13px}}</style></head><body><main class="card"><img src="/assets/brand/hazlotu-logo.png" alt=""><h1>HazloTú</h1><p>Este proyecto es privado por ahora. Introduce la contraseña para verlo.</p>{message}{form}<a href="/">← Volver a las aplicaciones</a></main></body></html>'''
+    return HTMLResponse(html, headers={"Cache-Control": "no-store"})
+
+
 @router.get("/hazlatu")
 @router.get("/hazlo-tu")
 @router.get("/hazlatu.html")
-def hazlatu_public_page():
-    return marketing_file("hazlatu.html", "text/html")
+def hazlatu_public_page(request: Request, db: Session = Depends(get_db)):
+    if request.url.path != "/hazlo-tu":
+        return RedirectResponse("/hazlo-tu", status_code=308)
+    password_hash = setting_value(db, HAZLOTU_PASSWORD_KEY)
+    if not password_hash or not hazlotu_access_valid(request.cookies.get(HAZLOTU_COOKIE, ""), password_hash):
+        return hazlotu_gate(request.query_params.get("error") == "1", bool(password_hash))
+    response = marketing_file("hazlatu.html", "text/html")
+    response.headers["Cache-Control"] = "private, no-store"
+    return response
+
+
+@router.post("/hazlo-tu/unlock")
+async def hazlotu_unlock(request: Request, db: Session = Depends(get_db)):
+    rate_limit_key(f"hazlotu:{request.client.host if request.client else 'unknown'}", limit=15)
+    body = await request.body()
+    if len(body) > 4096:
+        raise HTTPException(status_code=413, detail="Solicitud demasiado grande.")
+    password = parse_qs(body.decode("utf-8", errors="replace")).get("password", [""])[0]
+    password_hash = setting_value(db, HAZLOTU_PASSWORD_KEY)
+    if not password_hash or not verify_password(password, password_hash):
+        return RedirectResponse("/hazlo-tu?error=1", status_code=303, headers={"Cache-Control": "no-store"})
+    response = RedirectResponse("/hazlo-tu", status_code=303, headers={"Cache-Control": "no-store"})
+    response.set_cookie(HAZLOTU_COOKIE, hazlotu_access_token(password_hash, int(time.time())), max_age=HAZLOTU_ACCESS_SECONDS, secure=get_settings().cookie_secure, httponly=True, samesite="lax", path="/hazlo-tu")
+    return response
 
 
 @router.get("/marketing-assets/demo-shared.css")

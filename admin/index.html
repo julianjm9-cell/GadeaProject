@@ -179,6 +179,7 @@
       <div class="nav-group">
         <div class="nav-label">Gestion</div>
         <button data-view="ai" onclick="setView('ai')"><span class="nav-icon">IA</span>Modelos de IA</button>
+        <button data-view="hazlotu" onclick="setView('hazlotu')"><span class="nav-icon">HT</span>Acceso HazloTú</button>
       </div>
       <div class="nav-group">
         <div class="nav-label">Apps</div>
@@ -263,6 +264,18 @@
         <div class="form-actions"><button class="primary">Guardar ajustes generales</button></div>
       </form></details>
     </section>
+    <section id="view-hazlotu" class="card screen-card" hidden>
+      <div class="head"><div><span class="section-kicker">PROYECTO PRIVADO</span><h2>Acceso a HazloTú</h2><p class="muted">Controla la contraseña necesaria para abrir la web del proyecto.</p></div><a class="btn" href="/hazlo-tu" target="_blank" rel="noreferrer">Ver acceso</a></div>
+      <div class="app-form" style="max-width:580px">
+        <p id="hazlotuAccessStatus" class="muted" aria-live="polite">Comprobando estado…</p>
+        <form class="form-grid" onsubmit="saveHazlotuAccess(event)">
+          <div><label for="hazlotuPassword">Nueva contraseña</label><input id="hazlotuPassword" type="password" minlength="10" maxlength="72" autocomplete="new-password" required placeholder="Mínimo 10 caracteres"></div>
+          <div><label for="hazlotuPasswordConfirm">Repite la contraseña</label><input id="hazlotuPasswordConfirm" type="password" minlength="10" maxlength="72" autocomplete="new-password" required></div>
+          <p class="muted">Al cambiarla, los accesos anteriores dejarán de funcionar. La contraseña no se mostrará después de guardarla.</p>
+          <div class="form-actions"><button class="primary">Guardar contraseña</button></div>
+        </form>
+      </div>
+    </section>
     </main>
   </div>
 </div>
@@ -289,9 +302,11 @@ async function api(path,options={}){const headers={'Content-Type':'application/j
 function setLoginState(on){$('authScreen').hidden=!!on;$('adminPage').hidden=!on;$('loginStatus').textContent=on?'Sesion activa':'Introduce tus datos';$('loginStatus').classList.toggle('on',!!on)}
 async function login(event){event.preventDefault();try{const res=await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier:$('email').value.trim(),password:$('password').value})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'No se pudo entrar.');token=data.access_token;localStorage.setItem('educa_admin_token',token);setLoginState(true);await loadAll();toast('Panel cargado.')}catch(e){toast(e.message)}}
 function logout(){token='';localStorage.removeItem('educa_admin_token');setLoginState(false);toast('Sesion cerrada.')}
-async function loadAll(){if(!token){setLoginState(false);return}try{const [o,u,ac,a]=await Promise.all([api('/admin/organizations'),api('/admin/users'),api('/admin/accounts'),api('/admin/ai-settings').catch(()=>null)]);orgs=o;users=u;accounts=ac.accounts||[];ai=a;setLoginState(true);renderAll()}catch(e){setLoginState(false);toast(e.message)}}
+async function loadAll(){if(!token){setLoginState(false);return}try{const [o,u,ac,a,h]=await Promise.all([api('/admin/organizations'),api('/admin/users'),api('/admin/accounts'),api('/admin/ai-settings').catch(()=>null),api('/admin/hazlotu-access')]);orgs=o;users=u;accounts=ac.accounts||[];ai=a;hazlotuAccess=h;setLoginState(true);renderAll()}catch(e){setLoginState(false);toast(e.message)}}
 function setView(next){view=next;if(PRODUCTS.some(p=>p.key===next)){if(currentApp!==next)$('appUserSearch').value='';currentApp=next;closeUserEditor();toggleCreateUser(false)}document.body.dataset.app=PRODUCTS.some(p=>p.key===next)?next:'';document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.view===next));renderAll()}
-function renderAll(){$('view-overview').hidden=view!=='overview';$('view-app').hidden=!PRODUCTS.some(p=>p.key===view);$('view-ai').hidden=view!=='ai';renderOverview();if(!$('view-app').hidden)renderApp();if(!$('view-ai').hidden)renderAI()}
+function renderAll(){$('view-overview').hidden=view!=='overview';$('view-app').hidden=!PRODUCTS.some(p=>p.key===view);$('view-ai').hidden=view!=='ai';$('view-hazlotu').hidden=view!=='hazlotu';$('hazlotuAccessStatus').textContent=hazlotuAccess?.configured?'Contraseña configurada. La web está protegida.':'Sin contraseña configurada. La web permanece cerrada.';renderOverview();if(!$('view-app').hidden)renderApp();if(!$('view-ai').hidden)renderAI()}
+let hazlotuAccess=null;
+async function saveHazlotuAccess(event){event.preventDefault();const password=$('hazlotuPassword').value;if(password!==$('hazlotuPasswordConfirm').value)return toast('Las contraseñas no coinciden.');try{hazlotuAccess=await api('/admin/hazlotu-access',{method:'POST',body:JSON.stringify({password})});$('hazlotuPassword').value='';$('hazlotuPasswordConfirm').value='';renderAll();toast('Contraseña de HazloTú actualizada.')}catch(e){toast(e.message)}}
 function metric(label,value,note){return `<div class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong><p class="muted">${esc(note)}</p></div>`}
 const aiTestResults={};
 function accountForUser(user){return accounts.find(account=>account.id===user.id)||{...user,accesses:[]}}

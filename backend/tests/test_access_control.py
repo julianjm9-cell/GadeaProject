@@ -437,12 +437,42 @@ def test_eso_initial_credit_configuration_is_used(client, monkeypatch):
         assert 29 <= (lic.expires_at - datetime.now()).days <= 30
 
 
-@pytest.mark.parametrize("path", ["/", "/suite", "/u25", "/e25", "/cambridge-info", "/diplomator", "/hazlatu", "/hazlo-tu"])
+@pytest.mark.parametrize("path", ["/", "/suite", "/u25", "/e25", "/cambridge-info", "/diplomator"])
 def test_public_marketing_pages_load_without_login(client, path):
     test_client, _ = client
     response = test_client.get(path)
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
+
+
+def test_hazlotu_access_is_admin_managed_and_rotation_revokes_cookies(client):
+    test_client, db_factory = client
+    for path in ("/hazlo-tu", "/hazlatu", "/hazlatu.html"):
+        response = test_client.get(path)
+        assert response.status_code == 200
+        assert "Proyecto privado" not in response.text
+        assert "El acceso aún no está configurado" in response.text
+    assert test_client.get("/admin/hazlotu-access").status_code == 401
+    seed_user(db_factory, role="superadmin", email="admin@example.com")
+    token = login(test_client, email="admin@example.com").json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    assert test_client.post("/admin/hazlotu-access", json={"password": "short"}, headers=headers).status_code == 400
+    response = test_client.post("/admin/hazlotu-access", json={"password": "hazlotu-privado-2026"}, headers=headers)
+    assert response.status_code == 200
+    assert response.json() == {"configured": True}
+    assert "password" not in test_client.get("/admin/hazlotu-access", headers=headers).text
+    with db_factory() as db:
+        assert db.get(AppSetting, "hazlotu_access_password_hash").value != "hazlotu-privado-2026"
+    assert "Contraseña de acceso" in test_client.get("/hazlo-tu").text
+    wrong = test_client.post("/hazlo-tu/unlock", data={"password": "incorrecta"}, follow_redirects=False)
+    assert wrong.status_code == 303
+    assert "hazlotu_access" not in wrong.cookies
+    right = test_client.post("/hazlo-tu/unlock", data={"password": "hazlotu-privado-2026"}, follow_redirects=False)
+    assert right.status_code == 303
+    assert right.cookies.get("hazlotu_access")
+    assert "Tu idea, tu herramienta" in test_client.get("/hazlo-tu").text
+    assert test_client.post("/admin/hazlotu-access", json={"password": "nueva-clave-privada"}, headers=headers).status_code == 200
+    assert "Contraseña de acceso" in test_client.get("/hazlo-tu").text
 
 
 @pytest.mark.parametrize("filename", ["room.svg", "items.svg", "room-warm.png", "desk-light.png", "trophy-first.png"])

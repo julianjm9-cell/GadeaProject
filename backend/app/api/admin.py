@@ -40,6 +40,7 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 AI_SETTING_KEYS = ("points_provider", "chat_provider", "transcribe_provider", "openai_api_key", "groq_api_key", "gemini_api_key", "points_model", "chat_model", "transcribe_model", "topic_style_guide")
 DEFAULT_TOPIC_STYLE_GUIDE = """Treat the selected topic as a strict boundary. Build a coherent oral presentation from the few angles that directly answer that exact topic; never force a standard history, impact, controversy or future section when it is not relevant. Prefer specific explanations, mechanisms, examples and dates that help explain the subject. Every paragraph must earn its place: remove generic introductions, broad international-relations filler, moral conclusions and nearby subjects that were not requested. The student profile controls language and difficulty only; it is never source material. Use natural transitions and an informed C1/C2 tone. Include only facts you can state confidently and never invent dates, statistics, institutions or quotations."""
 PRODUCT_CODES = ("UNIVERSIDAD_ADULTOS", "ESO_ADULTOS", "CAMBRIDGE", "DIPLOMATOR", "PROFESOR_PARTICULAR")
+HAZLOTU_PASSWORD_KEY = "hazlotu_access_password_hash"
 
 
 def get_or_404(db: Session, model, item_id: UUID):
@@ -77,6 +78,22 @@ def set_setting(db: Session, key: str, value: str) -> None:
         row.value = value
     else:
         db.add(AppSetting(key=key, value=value))
+
+
+@router.get("/hazlotu-access")
+def get_hazlotu_access(_: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    return {"configured": bool(get_setting(db, HAZLOTU_PASSWORD_KEY))}
+
+
+@router.post("/hazlotu-access")
+def save_hazlotu_access(payload: dict, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    password = str(payload.get("password") or "")
+    if not 10 <= len(password) <= 72 or len(password.encode("utf-8")) > 72 or password != password.strip():
+        raise HTTPException(status_code=400, detail="Usa una contraseña de 10 a 72 caracteres (máximo 72 bytes), sin espacios al inicio o al final.")
+    set_setting(db, HAZLOTU_PASSWORD_KEY, hash_password(password))
+    audit(db, actor=actor, organization_id=actor.organization_id, action="hazlotu_password_updated", entity_type="app_settings", entity_id="hazlotu", metadata={})
+    db.commit()
+    return {"configured": True}
 
 
 def docx_paragraphs(raw: bytes) -> list[str]:
