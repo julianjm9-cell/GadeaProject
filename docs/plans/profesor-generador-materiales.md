@@ -183,4 +183,11 @@ próximo despliegue autorizado.
 - Cabecera común con Inicio, Material y Alumnos en toda la app, incluidos los espacios de alumno. Calendario, clases, cobros e IA siguen disponibles como acciones de contexto, sin ocupar navegación principal.
 - Inicio conserva alumnos, agenda y tareas. Material reúne el creador, el alta de archivos, los recursos del profesor y la preparación de guiones con IA. Alumnos muestra una lista clara con búsqueda y acceso al espacio de cada uno.
 - Material y Alumnos muestran hasta seis tarjetas por página. El material se puede buscar y filtrar por asignatura sin perder su relación con un alumno.
-- Verificados los recorridos de alta, clase, actividad, entrega, revisión, cobro, persistencia, generador, navegación y móvil. Inicio y Material caben sin scroll a 1440 × 900 y 1366 × 768. Cambio local, pendiente de publicar.
+- Verificados los recorridos de alta, clase, actividad, entrega, revisión, cobro, persistencia, generador, navegación y móvil. Inicio y Material caben sin scroll a 1440 × 900 y 1366 × 768. Publicado en `dca4a71`.
+
+## Creador de materiales — segundo bloque, 2026-09-29
+
+- El catálogo ofrece solo los catorce formatos que funcionan. La selección inicial está vacía: cada actividad añadida muestra su cantidad, y la vista lateral resume el total y las combinaciones elegidas.
+- Curso obligatorio y asignaturas más amplias para colegio e instituto, con una asignatura adicional escrita por el profesor. El material de una asignatura propia se puede crear y guardar sin errores en la vista de progreso.
+- La revisión permite saltar directamente a un ejercicio y lleva al ejercicio que necesita corrección cuando falla una validación de contenido. Los materiales guardados o actualizados recientemente aparecen primero.
+- Verificados creación manual, generación IA simulada, juegos, revisión, uso en clase, persistencia y móvil; nueve pruebas de contrato del servidor. No se añaden formatos visuales incompletos ni llamadas IA para resolver actividades. Preparado para publicación.

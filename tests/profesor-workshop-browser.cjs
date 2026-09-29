@@ -1,1 +1,35 @@
-const{chromium}=require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');const assert=require('node:assert/strict');const{pathToFileURL}=require('node:url');const path=require('node:path');(async()=>{const b=await chromium.launch({headless:true,channel:'msedge'});try{const p=await b.newPage({viewport:{width:1280,height:800}});await p.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href+'#alumnos/lucia/Biblioteca');assert.equal(await p.getByRole('button',{name:'Perfil',exact:true}).count(),0);assert.equal(await p.getByRole('button',{name:'Acceso',exact:true}).count(),0);await p.getByRole('button',{name:'Crear material',exact:true}).click();assert.equal(await p.locator('#contextStep').isVisible(),true);await p.getByLabel('Contenido o tema').fill('Multiplicaciones');await p.getByLabel('Ambientación (opcional)',{exact:true}).fill('Animales');await p.locator('[data-exercise="pairs"]').click();assert.equal(await p.locator('#workshopContinue').isDisabled(),true);await p.locator('[data-exercise="gaps"]').click();assert.equal(await p.locator('#workshopContinue').isDisabled(),false);assert.match(await p.locator('#workshopPreview').innerText(),/Completar/);assert.equal(await p.getByLabel('Ambientación (opcional)',{exact:true}).inputValue(),'Animales');await p.setViewportSize({width:390,height:844});assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);console.log('PASS single-screen context, cards/preview, no profile/access tabs and mobile');}finally{await b.close()}})().catch(e=>{console.error(e);process.exit(1)});
+const {chromium}=require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const assert=require('node:assert/strict');
+const {pathToFileURL}=require('node:url');
+const path=require('node:path');
+
+(async()=>{
+  const browser=await chromium.launch({headless:true,channel:'msedge'});
+  try{
+    const page=await browser.newPage({viewport:{width:1280,height:800}});
+    await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href+'#alumnos/lucia/Biblioteca');
+    await page.getByRole('button',{name:'Crear material',exact:true}).click();
+    assert.equal(await page.getByRole('button',{name:'Perfil',exact:true}).count(),0);
+    assert.equal(await page.getByRole('button',{name:'Acceso',exact:true}).count(),0);
+    assert.equal(await page.locator('[data-exercise]').count(),14);
+    assert.equal(await page.locator('[data-planned]').count(),0);
+    assert.equal(await page.locator('#workshopContinue').isDisabled(),true);
+
+    await page.getByLabel('Contenido o tema').fill('Multiplicaciones');
+    await page.getByLabel('Ambientación (opcional)',{exact:true}).fill('Animales');
+    await page.locator('[data-exercise="pairs"]').click();
+    await page.locator('[data-exercise="gaps"]').click();
+    assert.equal(await page.locator('#count-pairs').inputValue(),'3');
+    assert.equal(await page.locator('[data-exercise="gaps"]').getAttribute('data-count'),'3');
+    assert.match(await page.locator('#workshopPreview').innerText(),/6 ejercicios · 2 tipos/);
+    assert.equal(await page.locator('#workshopContinue').isDisabled(),false);
+    await page.locator('.studio-advanced summary').click();
+    await page.locator('#count-pairs').fill('1');
+    assert.match(await page.locator('#workshopPreview').innerText(),/4 ejercicios · 2 tipos/);
+    await page.screenshot({path:'tools/profesor-workshop-v2.png'});
+
+    await page.setViewportSize({width:390,height:844});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    console.log('PASS 14 usable formats, explicit selection, live counts and mobile');
+  }finally{await browser.close()}
+})().catch(error=>{console.error(error);process.exit(1)});
