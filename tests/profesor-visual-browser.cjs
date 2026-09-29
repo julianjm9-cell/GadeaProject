@@ -30,11 +30,15 @@ const path=require('node:path');
   await page.locator('#count-pairs').fill('0');
   await page.getByRole('button',{name:/Continuar/}).click();
   assert.equal(await page.locator('input[type="file"]').count(),0);
+  assert.equal(await page.locator('#editorPreview img').count(),0);
+  await page.locator('#editorPreview [data-search-preview="0"]').click();
+  assert.equal(await page.locator('#pixabay-picker-0').isVisible(),true);
   for(const n of [0,1]){
-   await page.locator('#search-image-'+n).click();
+   if(n)await page.locator('#search-image-'+n).click();
    await page.locator('#pixabay-results-'+n+' [data-pixabay-id]').first().click();
    await page.locator('#image-preview-'+n+' img').waitFor();
   }
+  assert.equal(await page.locator('#editorPreview .visual-placeholder').count(),0);
   await page.locator('#q-0').fill('¿Qué aparece?');
   await page.locator('#o-0').fill('Árbol\nCasa\nCoche');
   await page.locator('#a-0').fill('Árbol');
