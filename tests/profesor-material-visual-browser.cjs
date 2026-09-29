@@ -1,0 +1,57 @@
+const {chromium}=require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {pathToFileURL}=require('node:url');
+const path=require('node:path');
+const assert=require('node:assert/strict');
+
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:'msedge'});
+ try{
+  const page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[];
+  page.on('pageerror',error=>errors.push(error.stack));
+  await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
+  await page.evaluate(()=>{state.library.push({id:'visual-test',title:'Los colores',subject:'Matemáticas',kind:'Actividad interactiva',body:'',activity:{version:1,context:{course:'3.º Primaria',theme:''},questions:[{id:'q1',type:'gaps',prompt:'El cielo es ___.',answer:'azul',text:'',options:[]}]}});render()});
+  await page.locator('.home-primary-nav').getByRole('button',{name:'Material'}).click();
+  const cards=page.locator('.material-hub-card');
+  assert.ok(await cards.count()>0);
+  assert.ok(await cards.first().locator('.material-art').count());
+  assert.equal(await cards.first().getByRole('button',{name:'Editar'}).count(),1);
+  assert.equal(await cards.first().getByRole('button',{name:'Usar'}).count(),1);
+  await page.screenshot({path:'tools/profesor-material-visual.png',fullPage:true});
+  const activityId='visual-test';
+  const card=page.locator('.material-hub-card').filter({has:page.locator(`[data-id="${activityId}"]`)});
+  await card.getByRole('button',{name:'Usar'}).click();
+  assert.ok(await page.locator('#dialog[open] #activityScore').count());
+  await page.locator('#dialog').getByRole('button',{name:'Cancelar'}).click();
+  await card.getByRole('button',{name:'Editar'}).click();
+  assert.equal(await page.locator('#activityTitle').inputValue(),'Los colores');
+  await page.locator('#dialog').getByRole('button',{name:'Cancelar'}).click();
+  assert.equal(await page.evaluate(()=>state.activityAttempts?.length||0),0);
+  await page.locator('.material-hub-card').filter({has:page.locator('[data-id="game0"]')}).getByRole('button',{name:'Usar'}).click();
+  await page.locator('#plainAnswer').fill('3');
+  await page.getByRole('button',{name:'Comprobar',exact:true}).click();
+  assert.match(await page.locator('#plainFeedback').innerText(),/Correcto/);
+  await page.locator('#dialog').getByRole('button',{name:'Cancelar'}).click();
+  await page.locator('.material-hub-card').filter({has:page.locator('[data-id="game0"]')}).getByRole('button',{name:'Editar'}).click();
+  assert.equal(await page.locator('#plainSolution').inputValue(),'3');
+  await page.locator('#dialog').getByRole('button',{name:'Cancelar'}).click();
+  const before=await page.evaluate(()=>state.library.length);
+  await page.getByRole('button',{name:'Crear material',exact:true}).click();
+  await page.locator('#workshopCourse').selectOption({index:1});
+  await page.locator('#workshopTopic').fill('Colores');
+  await page.locator('[data-exercise="gaps"]').click();
+  await page.locator('.studio-advanced summary').click();
+  await page.locator('#count-gaps').fill('1');
+  await page.locator('#workshopContinue').click();
+  await page.locator('#q-0').fill('El cielo es ___.');
+  await page.locator('#a-0').fill('azul');
+  await page.getByRole('button',{name:'Usar ahora'}).click();
+  assert.equal(await page.evaluate(()=>state.library.length),before);
+  assert.ok(await page.locator('#dialog[open] #r-0').count());
+  await page.locator('#r-0').fill('azul');
+  await page.getByRole('button',{name:'Comprobar respuestas'}).click();
+  assert.match(await page.locator('#activityScore').innerText(),/1\/1/);
+  assert.equal(await page.evaluate(()=>state.activityAttempts?.length||0),0);
+  assert.deepEqual(errors,[]);
+  console.log('PASS visual cards, direct play and disposable unsaved activity');
+ }finally{await browser.close()}
+})().catch(error=>{console.error(error);process.exit(1)});
