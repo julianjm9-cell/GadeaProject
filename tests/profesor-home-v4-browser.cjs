@@ -1,0 +1,62 @@
+const {chromium}=require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const assert=require('node:assert/strict');
+const {pathToFileURL}=require('node:url');
+const path=require('node:path');
+
+(async()=>{
+  const browser=await chromium.launch({headless:true,channel:'msedge'});
+  try{
+    const page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[];
+    page.on('pageerror',error=>errors.push(error.message));
+    await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
+    await page.getByRole('heading',{name:'Mis alumnos',exact:true}).waitFor();
+    assert.equal(await page.locator('.home-nav').isVisible(),true);
+    assert.equal(await page.locator('.home-student-card').count(),4);
+    assert.ok(await page.locator('.home-agenda-row').count()>=1);
+    assert.ok(await page.locator('.home-task-row').count()>=1);
+    const desktopSize=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,height:innerHeight,scrollHeight:document.documentElement.scrollHeight}));
+    console.log('desktop layout',desktopSize);
+    assert.equal(desktopSize.scrollWidth>desktopSize.width+2,false);
+    assert.equal(desktopSize.scrollHeight>desktopSize.height+2,false);
+    await page.screenshot({path:'tools/profesor-home-v4-desktop.png',fullPage:true});
+    await page.setViewportSize({width:1366,height:768});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight>innerHeight+2),false,'Inicio should fit at 1366x768');
+    await page.setViewportSize({width:1440,height:900});
+
+    assert.deepEqual((await page.locator('.home-primary-nav button').allTextContents()).map(s=>s.trim()),['Inicio','Material','Alumnos']);
+    await page.locator('.home-primary-nav').getByRole('button',{name:'Material',exact:true}).click();
+    await page.getByRole('heading',{name:'Mis materiales'}).waitFor();
+    assert.equal(await page.locator('.material-hub-card').count(),6);
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight>innerHeight+2),false,'Material should fit on desktop');
+    await page.setViewportSize({width:1366,height:768});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight>innerHeight+2),false,'Material should fit at 1366x768');
+    await page.setViewportSize({width:1440,height:900});
+    await page.screenshot({path:'tools/profesor-material-v1-desktop.png',fullPage:true});
+    await page.getByRole('button',{name:'Crear material',exact:true}).click();
+    await page.getByRole('heading',{name:'Crear material',exact:true}).waitFor();
+    await page.getByRole('button',{name:'Cerrar',exact:true}).click();
+    await page.evaluate(()=>{state.library.push({...state.library[0],id:'extra1',title:'Material extra uno'},{...state.library[0],id:'extra2',title:'Material extra dos'});render()});
+    await page.locator('#libraryPager').getByRole('button',{name:'›'}).click();
+    assert.equal(await page.locator('.material-hub-card').count(),2);
+    await page.getByLabel('Buscar material').fill('extra');
+    assert.equal(await page.locator('.material-hub-card').count(),2);
+    await page.locator('.home-primary-nav').getByRole('button',{name:'Alumnos',exact:true}).click();
+    await page.getByRole('heading',{name:'Mis alumnos'}).waitFor();
+    assert.equal(await page.locator('.workspace-students .home-student-card').count(),4);
+    await page.screenshot({path:'tools/profesor-alumnos-v1-desktop.png',fullPage:true});
+    await page.getByRole('button',{name:'Abrir espacio de Lucía Martín'}).click();
+    await page.getByRole('heading',{name:'Lucía Martín',exact:true,level:1}).waitFor();
+    await page.locator('.home-primary-nav').getByRole('button',{name:'Inicio',exact:true}).click();
+    await page.getByRole('button',{name:'+ Tarea',exact:true}).click();
+    await page.getByLabel('Qué quieres hacer').fill('Preparar una actividad visual');
+    await page.getByRole('button',{name:'Guardar',exact:true}).click();
+    await page.getByText('Preparar una actividad visual',{exact:true}).waitFor();
+
+    await page.setViewportSize({width:390,height:844});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
+    assert.equal(await page.locator('.home-primary-nav').isVisible(),true);
+    await page.screenshot({path:'tools/profesor-home-v4-mobile.png',fullPage:true});
+    assert.deepEqual(errors,[]);
+    console.log('PASS renewed home: one-screen desktop, working actions and responsive mobile');
+  }finally{await browser.close()}
+})().catch(error=>{console.error(error);process.exit(1)});

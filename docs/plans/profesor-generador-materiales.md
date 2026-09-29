@@ -163,3 +163,24 @@ después. Comprobación final: nueve pruebas backend y recorridos de navegador d
 seis formatos adicionales y cinco juegos. Docker incorpora la página y el servicio nuevo.
 Despliegue mediante infra/deploy-hostinger.sh (backup, migraciones y comprobaciones).
 La ejecución en Hostinger queda a cargo del usuario con el comando facilitado.
+
+## Paquete 11 — nuevo inicio, 2026-09-29
+
+Inicio renovado con cabecera horizontal y acceso directo a Inicio, Preparar clase y
+Mis alumnos. Los alumnos ocupan el área principal en tarjetas amplias con curso,
+asignaturas y próxima clase; se muestran hasta seis por página. La columna lateral
+reúne las cinco próximas clases y cuatro tareas editables, con accesos al calendario,
+alta de clase y gestión completa de tareas.
+
+En escritorio de 1440 × 900 el contenido cabe en una pantalla sin desplazamiento ni
+desbordamiento horizontal. En anchuras menores la distribución se apila y la navegación
+pasa a la parte inferior. Se mantienen las rutas y acciones existentes del resto de la
+aplicación. El cambio queda en vista previa local; su publicación se hará junto al
+próximo despliegue autorizado.
+
+## Tres áreas principales — primer bloque, 2026-09-29
+
+- Cabecera común con Inicio, Material y Alumnos en toda la app, incluidos los espacios de alumno. Calendario, clases, cobros e IA siguen disponibles como acciones de contexto, sin ocupar navegación principal.
+- Inicio conserva alumnos, agenda y tareas. Material reúne el creador, el alta de archivos, los recursos del profesor y la preparación de guiones con IA. Alumnos muestra una lista clara con búsqueda y acceso al espacio de cada uno.
+- Material y Alumnos muestran hasta seis tarjetas por página. El material se puede buscar y filtrar por asignatura sin perder su relación con un alumno.
+- Verificados los recorridos de alta, clase, actividad, entrega, revisión, cobro, persistencia, generador, navegación y móvil. Inicio y Material caben sin scroll a 1440 × 900 y 1366 × 768. Cambio local, pendiente de publicar.
