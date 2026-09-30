@@ -29,10 +29,14 @@ from app.models import AppSetting, ClientState, Conversation, Document, License,
 from app.security.tokens import decode_token
 from app.security.passwords import verify_password
 from app.services.ai_config import (
+    DIPLOMATOR_POINT_MODELS,
     GROQ_TRANSCRIBE_DEFAULT,
     default_chat_model,
     normalize_chat_model,
     normalize_transcribe_model,
+    valid_gemini_key,
+    valid_groq_key,
+    valid_openai_key,
 )
 from app.services.audit import audit
 from app.services.licenses import check_access, check_legacy_license, usage_count_for_license
@@ -166,9 +170,9 @@ def setting_value(db: Session, key: str) -> str:
     return (row.value if row else "").strip()
 
 
-def chat_provider_config(db: Session, setting_key: str = "chat_provider", product: str = "") -> tuple[str, str, str]:
+def chat_provider_config(db: Session, setting_key: str = "chat_provider", product: str = "", provider_override: str = "") -> tuple[str, str, str]:
     settings = get_settings()
-    provider = (app_ai_override(db, product, "points" if setting_key == "points_provider" else "chat").get("provider") or setting_value(db, setting_key) or setting_value(db, "chat_provider") or setting_value(db, "ai_provider") or settings.ai_provider).lower()
+    provider = (provider_override or app_ai_override(db, product, "points" if setting_key == "points_provider" else "chat").get("provider") or setting_value(db, setting_key) or setting_value(db, "chat_provider") or setting_value(db, "ai_provider") or settings.ai_provider).lower()
     openai_api_key = setting_value(db, "openai_api_key") or settings.openai_api_key
     groq_api_key = setting_value(db, "groq_api_key") or settings.groq_api_key
     gemini_api_key = setting_value(db, "gemini_api_key") or settings.gemini_api_key
@@ -214,6 +218,28 @@ def chat_model_for_purpose(db: Session, provider: str, purpose: str, product: st
     if purpose == "points":
         return normalize_chat_model(provider, setting_value(db, "points_model") or setting_value(db, "chat_model") or default_chat_model(provider))
     return normalize_chat_model(provider, setting_value(db, "chat_model") or default_chat_model(provider))
+
+
+def diplomator_point_options(db: Session) -> list[dict]:
+    settings = get_settings()
+    keys = {
+        "groq": setting_value(db, "groq_api_key") or settings.groq_api_key,
+        "openai": setting_value(db, "openai_api_key") or settings.openai_api_key,
+        "gemini": setting_value(db, "gemini_api_key") or settings.gemini_api_key,
+    }
+    validators = {"groq": valid_groq_key, "openai": valid_openai_key, "gemini": valid_gemini_key}
+    choices = {provider: list(models) for provider, models in DIPLOMATOR_POINT_MODELS.items()}
+    override = app_ai_override(db, "DIPLOMATOR", "points")
+    default_provider = (setting_value(db, "points_provider") or setting_value(db, "chat_provider") or settings.ai_provider).lower()
+    if not override and default_provider in choices:
+        choices[default_provider].insert(0, chat_model_for_purpose(db, default_provider, "points", "DIPLOMATOR"))
+    if override and override.get("provider") in choices and override.get("model"):
+        choices[override["provider"]].insert(0, override["model"])
+    return [
+        {"id": f"{provider}:{model}", "provider": provider, "model": model}
+        for provider, models in choices.items() if validators[provider](keys[provider])
+        for model in dict.fromkeys(models)
+    ]
 
 
 def vision_provider_config(db: Session, product: str = "") -> tuple[str, str, str, str]:
@@ -381,7 +407,7 @@ def provider_error(prefix: str, response: httpx.Response) -> HTTPException:
 
 DEFAULT_TOPIC_STYLE_GUIDE = """Treat the selected topic as a strict boundary. Build a coherent oral presentation from the few angles that directly answer that exact topic; never force a standard history, impact, controversy or future section when it is not relevant. Prefer specific explanations, mechanisms, examples and dates that help explain the subject. Every paragraph must earn its place: remove generic introductions, broad international-relations filler, moral conclusions and nearby subjects that were not requested. The student profile controls language and difficulty only; it is never source material. Use natural transitions and an informed C1/C2 tone. Include only facts you can state confidently and never invent dates, statistics, institutions or quotations."""
 
-POINTS_FOCUS_SYSTEM_PROMPT = """You create study notes for Diplomator. The user's quoted topic is the complete scope of the answer. Stay tightly on that topic and ignore nearby themes unless they are essential to explain it. The requested number of points is a layout requirement, not permission to add filler. Choose only topic-specific angles, make each point distinct, and remove any sentence that could be pasted unchanged into an unrelated topic. A style guide is subordinate to relevance. Do not invent facts. Return only the requested JSON."""
+POINTS_FOCUS_SYSTEM_PROMPT = """You create accurate, useful oral-exam study notes for Diplomator. The quoted topic defines the scope. Select only distinct angles that explain it; the requested number of points is a maximum, not a reason to add filler. Follow the student's preferred writing style when it supports relevance and accuracy. Examples, dates, transitions and vocabulary are optional when they do not add value. Do not invent facts or imply verification that has not happened. Return only the requested JSON."""
 
 
 def add_points_focus_instruction(payload: dict) -> None:
@@ -763,6 +789,13 @@ def api_status(user: User = Depends(current_user), license_obj: License = Depend
         "license": {"id": str(license_obj.id), "expires_at": license_obj.expires_at.isoformat()},
         "limits": public_limits(db),
     }
+
+
+@router.get("/api/diplomator/points-models")
+def points_models(_: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)) -> dict:
+    if license_obj.product_code != "DIPLOMATOR":
+        raise HTTPException(status_code=403, detail="Función exclusiva de Diplomator.")
+    return {"ok": True, "models": diplomator_point_options(db)}
 
 
 @router.get("/api/me")
@@ -1325,14 +1358,22 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
 @router.post("/api/chat")
 async def chat(payload: dict, request: Request, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db), app_key_override: str | None = None):
     settings = get_settings()
+    points_model_choice = payload.pop("points_model_choice", "auto")
     if len(str(payload)) > settings.max_prompt_chars:
         raise HTTPException(status_code=413, detail="Peticion demasiado grande.")
     purpose = str(payload.pop("purpose", "") or "").strip().lower()
     requested_credit_cost = requested_credit_cost_from_payload(payload, purpose)
     ensure_credit_balance(db, user, license_obj, requested_credit_cost)
     provider_key = "points_provider" if purpose == "points" else "chat_provider"
-    api_key, chat_url, chat_provider = chat_provider_config(db, provider_key, license_obj.product_code)
-    payload["model"] = chat_model_for_purpose(db, chat_provider, purpose, license_obj.product_code)
+    chosen = None
+    if purpose == "points" and points_model_choice != "auto":
+        if license_obj.product_code != "DIPLOMATOR":
+            raise HTTPException(status_code=403, detail="Función exclusiva de Diplomator.")
+        chosen = next((item for item in diplomator_point_options(db) if item["id"] == points_model_choice), None)
+        if not chosen:
+            raise HTTPException(status_code=400, detail="Ese modelo no está disponible. Elige uno de los modelos configurados.")
+    api_key, chat_url, chat_provider = chat_provider_config(db, provider_key, license_obj.product_code, chosen["provider"] if chosen else "")
+    payload["model"] = chosen["model"] if chosen else chat_model_for_purpose(db, chat_provider, purpose, license_obj.product_code)
     if purpose == "points":
         add_points_focus_instruction(payload)
     async with httpx.AsyncClient(timeout=120) as client:
@@ -1340,16 +1381,27 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
     if res.status_code >= 400:
         raise provider_error("Error del proveedor IA", res)
     data = res.json()
-    content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+    choices = data.get("choices") or []
+    content = choices[0].get("message", {}).get("content", "") if choices else ""
     input_tokens, output_tokens = token_usage(data)
-    actual_credit_cost = points_credit_cost_from_content(content, requested_credit_cost) if purpose == "points" else requested_credit_cost
+    if purpose == "points":
+        try:
+            body = json.loads(content)
+        except (TypeError, ValueError):
+            body = None
+        points = body.get("points") if isinstance(body, dict) else None
+        if not isinstance(points, list) or not points:
+            raise HTTPException(status_code=502, detail="El modelo no generó puntos utilizables. No se han descontado créditos.")
+        actual_credit_cost = min(requested_credit_cost, len(points))
+    else:
+        actual_credit_cost = requested_credit_cost
     record_usage(db, user, payload["model"], input_tokens, output_tokens, product_code_for_app(app_key_override or request_app_key(request)), actual_credit_cost)
     conv = Conversation(organization_id=user.organization_id, user_id=user.id, title="AI request")
     db.add(conv)
     db.flush()
     db.add(Message(conversation_id=conv.id, organization_id=user.organization_id, user_id=user.id, role="assistant", content=content[:20000]))
     db.commit()
-    return {"ok": True, "content": content}
+    return {"ok": True, "content": content, "provider": chat_provider, "model": payload["model"]}
 
 
 @router.post("/api/ocr")

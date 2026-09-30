@@ -24,6 +24,7 @@ from app.schemas.core import LicenseCreate, LicenseOut, LicensePatch, Organizati
 from app.security.passwords import hash_password
 from app.services.ai_config import (
     app_ai_override,
+    DIPLOMATOR_POINT_MODELS,
     GROQ_CHAT_DEFAULT,
     GROQ_TRANSCRIBE_DEFAULT,
     normalize_chat_model,
@@ -205,7 +206,7 @@ def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends
     capabilities = [
         {"id": "points", "label": "Apuntes Diplomator", "apps": ["DIPLOMATOR"], "provider": points_provider, "model": points_model, "configured": configured.get(points_provider, False), "key_source": sources.get(points_provider, "sin clave")},
         {"id": "chat", "label": "Chat y generación", "apps": list(PRODUCT_CODES), "provider": chat_provider, "model": chat_model, "configured": configured.get(chat_provider, False), "key_source": sources.get(chat_provider, "sin clave")},
-        {"id": "ocr", "label": "Lectura de imágenes", "apps": list(PRODUCT_CODES), "provider": ocr_provider, "model": ocr_model, "configured": configured.get(ocr_provider, False), "key_source": sources.get(ocr_provider, "sin clave")},
+        {"id": "ocr", "label": "Lectura de imágenes", "apps": [code for code in PRODUCT_CODES if code != "DIPLOMATOR"], "provider": ocr_provider, "model": ocr_model, "configured": configured.get(ocr_provider, False), "key_source": sources.get(ocr_provider, "sin clave")},
         {"id": "transcribe", "label": "Transcripción de audio", "apps": list(PRODUCT_CODES), "provider": transcribe_provider, "model": transcribe_model, "configured": configured.get(transcribe_provider, False), "key_source": sources.get(transcribe_provider, "sin clave")},
     ]
     saved_topic_style = get_setting(db, "topic_style_guide", "")
@@ -242,7 +243,7 @@ def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends
         }) for cap in capabilities if product in cap["apps"]] for product in PRODUCT_CODES},
         "model_choices": {
             "chat": {"groq": [GROQ_CHAT_DEFAULT, "openai/gpt-oss-20b"], "openai": ["gpt-4o-mini"], "gemini": ["gemini-2.5-flash"]},
-            "points": {"groq": [GROQ_CHAT_DEFAULT, "openai/gpt-oss-20b"], "openai": ["gpt-4o-mini"], "gemini": ["gemini-2.5-flash"]},
+            "points": {provider: list(models) for provider, models in DIPLOMATOR_POINT_MODELS.items()},
             "ocr": {"openai": ["gpt-4o-mini"], "gemini": ["gemini-2.5-flash"]},
             "transcribe": {"groq": [GROQ_TRANSCRIBE_DEFAULT], "openai": ["whisper-1"]},
         },
@@ -301,7 +302,7 @@ def save_app_ai_settings(product: str, payload: dict, actor: User = Depends(requ
     clean = {}
     for capability, value in changes.items():
         providers = {"chat": {"groq", "openai", "gemini"}, "points": {"groq", "openai", "gemini"}, "ocr": {"openai", "gemini"}, "transcribe": {"groq", "openai"}}
-        if capability not in providers or (capability == "points" and product != "DIPLOMATOR"):
+        if capability not in providers or (capability == "points" and product != "DIPLOMATOR") or (capability == "ocr" and product == "DIPLOMATOR"):
             raise HTTPException(status_code=400, detail="Función no disponible para esta app.")
         if value is None:
             clean[capability] = ""
@@ -391,6 +392,50 @@ async def test_ai_settings(payload: dict, actor: User = Depends(require_superadm
     audit(db, actor=actor, organization_id=actor.organization_id, action="ai_settings_tested", entity_type="app_settings", entity_id="ai", metadata={"capability": capability_id, "provider": provider, "model": model})
     db.commit()
     return {"ok": True, "provider": provider, "model": model, "capability": capability_id, "message": f"{capability['label']}: conexion correcta."}
+
+
+@router.post("/ai-settings/test-connection")
+async def test_ai_connection(payload: dict, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    provider = str(payload.get("provider") or "").lower()
+    settings = get_settings()
+    if provider == "pixabay":
+        key = get_setting(db, "pixabay_api_key") or settings.pixabay_api_key
+        if not valid_pixabay_key(key):
+            raise HTTPException(400, "Pixabay no tiene una clave válida guardada.")
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                response = await client.get("https://pixabay.com/api/", params={"key": key, "q": "education", "per_page": 3})
+            body = response.json()
+        except (httpx.RequestError, ValueError) as exc:
+            raise HTTPException(502, "Pixabay no responde. Inténtalo de nuevo.") from exc
+        if response.status_code >= 400 or not isinstance(body, dict) or not isinstance(body.get("hits"), list):
+            raise HTTPException(502, "Pixabay no responde con una búsqueda válida.")
+    else:
+        config = {
+            "groq": ("groq_api_key", settings.groq_api_key, valid_groq_key, str(settings.groq_chat_url), GROQ_CHAT_DEFAULT),
+            "openai": ("openai_api_key", settings.openai_api_key, valid_openai_key, str(settings.openai_chat_url), "gpt-4o-mini"),
+            "gemini": ("gemini_api_key", settings.gemini_api_key, valid_gemini_key, str(settings.gemini_chat_url), "gemini-2.5-flash"),
+        }.get(provider)
+        if not config:
+            raise HTTPException(400, "Proveedor no válido.")
+        field, fallback, validator, url, model = config
+        key = get_setting(db, field) or fallback
+        if not validator(key):
+            raise HTTPException(400, f"{provider} no tiene una clave válida guardada.")
+        try:
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.post(url, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json={"model": model, "messages": [{"role": "user", "content": "Responde OK"}], "max_tokens": 512})
+            body = response.json()
+        except (httpx.RequestError, ValueError) as exc:
+            raise HTTPException(502, f"{provider} no responde. Inténtalo de nuevo.") from exc
+        if response.status_code >= 400:
+            raise HTTPException(502, f"{provider} rechazó la prueba ({response.status_code}). Revisa su clave y cuota.")
+        choices = body.get("choices") if isinstance(body, dict) else None
+        if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict) or not choices[0].get("message", {}).get("content"):
+            raise HTTPException(502, f"{provider} respondió sin contenido.")
+    audit(db, actor=actor, organization_id=actor.organization_id, action="ai_connection_tested", entity_type="app_settings", entity_id=provider)
+    db.commit()
+    return {"ok": True, "provider": provider, "message": "Conexión verificada ahora"}
 
 
 @router.post("/style-guide/analyze-docx")

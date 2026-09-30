@@ -877,12 +877,50 @@ def test_point_generation_falls_back_when_response_is_not_countable():
     assert points_credit_cost_from_content('{"message":"ok"}', fallback=5) == 5
 
 
-def test_point_generation_receives_a_strict_topic_system_instruction():
+def test_point_generation_focus_allows_fewer_relevant_points():
     payload = {"messages": [{"role": "user", "content": 'EXACT TOPIC: "The Marshall Plan"'}]}
     add_points_focus_instruction(payload)
     assert payload["messages"][0]["role"] == "system"
-    assert "complete scope" in payload["messages"][0]["content"]
+    assert "maximum, not a reason to add filler" in payload["messages"][0]["content"]
     assert payload["messages"][1]["content"] == 'EXACT TOPIC: "The Marshall Plan"'
+
+
+def test_diplomator_user_can_choose_only_configured_point_models(client, monkeypatch):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin")
+    assert login(test_client).status_code == 200
+    assert test_client.post("/admin/ai-settings/keys", json={"groq_api_key": "gsk_test-key", "gemini_api_key": "gemini-test-key"}).status_code == 200
+    settings = test_client.get("/admin/ai-settings").json()
+    assert "ocr" not in {cap["id"] for cap in settings["apps"]["DIPLOMATOR"]}
+    options = test_client.get("/api/diplomator/points-models?app=diplomator")
+    assert options.status_code == 200
+    identifiers = {item["id"] for item in options.json()["models"]}
+    assert "gemini:gemini-2.5-pro" in identifiers
+    assert "groq:openai/gpt-oss-120b" in identifiers
+    assert not any(item.startswith("openai:") for item in identifiers)
+
+    sent = []
+    class FakeResponse:
+        status_code = 200
+        def json(self):
+            return {"choices": [{"message": {"content": '{"points":[{"title":"A","text":"B"}]}'}}], "usage": {"prompt_tokens": 5, "completion_tokens": 7}}
+    class FakeClient:
+        def __init__(self, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kwargs):
+            sent.append((url, kwargs))
+            return FakeResponse()
+    monkeypatch.setattr(app_routes.httpx, "AsyncClient", FakeClient)
+    selected = test_client.post("/api/chat?app=diplomator", json={"purpose": "points", "requested_points": 3, "points_model_choice": "gemini:gemini-2.5-pro", "messages": [{"role": "user", "content": "Tema"}]})
+    assert selected.status_code == 200
+    assert selected.json()["model"] == "gemini-2.5-pro"
+    assert "generativelanguage.googleapis.com" in sent[-1][0]
+    assert sent[-1][1]["json"]["model"] == "gemini-2.5-pro"
+    before = len(sent)
+    invalid = test_client.post("/api/chat?app=diplomator", json={"purpose": "points", "points_model_choice": "openai:gpt-4.1", "messages": []})
+    assert invalid.status_code == 400
+    assert len(sent) == before
 
 
 def test_ai_settings_replaces_deprecated_groq_model(client):

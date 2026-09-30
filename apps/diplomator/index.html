@@ -487,6 +487,22 @@
   .profile-history-stat span { display:block; font-size:0.56rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
   .profile-history-stat strong { font-size:0.9rem; color:var(--ink); }
   .profile-history-list { display:grid; gap:8px; max-height:300px; overflow:auto; padding-right:4px; }
+  .points-preferences { margin:16px 0; padding:18px; border:1px solid var(--border); border-radius:12px; background:var(--paper); display:grid; gap:9px; }
+  .points-preferences p,.points-preferences small { color:var(--muted); font-size:.72rem; line-height:1.5; margin:0; }
+  .points-preferences label { color:var(--ink); font-size:.78rem; font-weight:700; margin-top:5px; }
+  .points-preferences select,.points-preferences textarea { width:100%; border:1px solid var(--border); border-radius:8px; background:white; color:var(--ink); padding:10px; font:inherit; }
+  .points-preferences-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+  .points-versions { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin:0 0 14px; padding:10px; border:1px solid var(--border); border-radius:10px; background:var(--paper); }
+  .points-versions span { font-size:.72rem; font-weight:700; color:var(--ink); margin-right:4px; }
+  .points-versions button { border:1px solid var(--border); border-radius:8px; padding:7px 9px; background:white; color:var(--ink); cursor:pointer; font-size:.7rem; }
+  .points-versions button.active { border-color:var(--blue); background:var(--blue); color:white; }
+  .points-versions small { flex-basis:100%; color:var(--muted); font-size:.66rem; line-height:1.4; }
+  #tab-perfil.active { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-content:start; }
+  #tab-perfil>.section-label:first-child { grid-column:1/-1; }
+  #tab-perfil>.profile-card { grid-column:1; grid-row:2; margin:0; }
+  #tab-perfil>.points-preferences { grid-column:2; grid-row:2; margin:0; }
+  #tab-perfil>#accessKeyHelp,#tab-perfil>#licenseConfigRow { grid-column:1/-1; }
+  @media(max-width:940px){#tab-perfil.active{grid-template-columns:1fr}#tab-perfil>.profile-card,#tab-perfil>.points-preferences{grid-column:1;grid-row:auto}}
   .profile-history-day { border:1px solid var(--border); background:white; border-radius:8px; padding:10px 12px; }
   .profile-history-date { font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:5px; }
   .profile-history-topic { font-family:'Playfair Display',serif; font-size:0.98rem; line-height:1.25; color:var(--ink); }
@@ -975,6 +991,7 @@
 
       <div class="points-section">
         <div class="section-label">Puntos clave generados</div>
+        <div id="pointsVersions" class="points-versions" hidden></div>
         <div id="aiPoints"></div>
         <div id="loadingBar" style="display:none">
           <div class="loading-bar"></div>
@@ -1174,6 +1191,18 @@
         </div>
       </div>
     </div>
+    <section class="points-preferences" aria-labelledby="pointsPreferencesTitle">
+      <div class="section-label" id="pointsPreferencesTitle">Cómo se generan tus apuntes</div>
+      <p>Prueba distintos modelos y cambia las instrucciones. Cada nueva generación conserva una versión para compararla en la sesión.</p>
+      <label for="pointsModelChoice">Modelo para apuntes</label>
+      <select id="pointsModelChoice"><option value="auto">Modelo elegido en administración</option></select>
+      <small id="pointsModelHint">Se mostrarán los modelos de los proveedores con clave configurada.</small>
+      <label for="pointsPrompt">Instrucciones de generación</label>
+      <textarea id="pointsPrompt" maxlength="900" rows="5" aria-describedby="pointsPromptHint"></textarea>
+      <small id="pointsPromptHint">Indica el estilo que prefieres. El tema, el idioma y la estructura se añaden automáticamente.</small>
+      <div class="points-preferences-actions"><button class="btn btn-small btn-blue" onclick="savePointsPreferences()">Guardar preferencias</button><button class="btn btn-small btn-outline" onclick="resetPointsPrompt()">Restablecer instrucciones</button></div>
+      <small id="pointsPreferencesStatus" role="status"></small>
+    </section>
     <div class="notice" id="accessKeyHelp">
       Tu cuenta activa la IA automaticamente al entrar. Usa la clave manual solo si trabajas sin sesion web.
     </div>
@@ -1187,11 +1216,11 @@
   <div id="tab-config" class="tab">
     <div class="section-label">Parámetros de generación</div>
     <div class="config-row">
-      <label>Nº de puntos clave a generar</label>
+      <label>Máximo de puntos clave</label>
       <input type="number" id="numPoints" min="2" max="12" value="5">
     </div>
     <div class="config-row">
-      <label>Nº de palabras de vocabulario por punto</label>
+      <label>Vocabulario orientativo para todo el tema</label>
       <input type="number" id="numVocab" min="2" max="12" value="5">
     </div>
     <div class="config-row">
@@ -1467,7 +1496,8 @@ function getTopicsForCategory(year, cat) {
 }
 
 // -- STATE ---------------------------------------------------------------
-const DEFAULT_PROFILE = `The student is preparing high-level C1/C2 oral answers in English and French, with a focus on diplomacy, international relations, current affairs, culture, history and public policy. The output should sound like a polished oral briefing: analytical, elegant, precise and easy to recite. Avoid generic textbook wording. Prioritise clear argument structure, useful transitions, concrete dates, named actors, recent examples, historical context, controversies, consequences and advanced vocabulary that can be reused in an exam. Each idea should help the student speak with authority for several minutes, not merely memorise facts.`;
+const DEFAULT_PROFILE = `The student is preparing C1/C2 oral answers in English and French. Adapt language and depth to that level, with clear explanations and phrasing that can be spoken naturally. The selected topic alone determines which facts and angles are relevant.`;
+const DEFAULT_POINTS_PROMPT = `Explica el tema con claridad y profundidad, como un buen guion para un examen oral. Prefiero ideas concretas, bien conectadas y fáciles de recordar. Incluye ejemplos o fechas solo cuando aporten algo al tema; evita introducciones genéricas y datos de los que no estés seguro.`;
 const DIPLOMATOR_EXAMPLE_STYLE = `Treat the selected topic as a strict boundary. Build a coherent oral presentation from the few angles that directly answer that exact topic; never force a standard history, impact, controversy or future section when it is not relevant. Prefer specific explanations, mechanisms, examples and dates that help explain the subject. Every paragraph must earn its place: remove generic introductions, broad international-relations filler, moral conclusions and nearby subjects that were not requested. The student profile controls language and difficulty only; it is never source material. Use natural transitions and an informed C1/C2 tone. Include only facts you can state confidently and never invent dates, statistics, institutions or quotations.`;
 
 let state = {
@@ -1478,9 +1508,10 @@ let state = {
   currentSession: null,
   recitePractice: { topic: '', notes: '', transcript: '', correction: '', selectedMode: 'prep' },
   topicChats: { session: [], recite: [], temas: [] },
-  config: { numPoints: 5, numVocab: 5, profile: DEFAULT_PROFILE, pointFontSize: 13, vocabColumnWidth: 270 }
+  config: { numPoints: 5, numVocab: 5, profile: DEFAULT_PROFILE, pointFontSize: 13, vocabColumnWidth: 270, pointsModelChoice: 'auto', pointsPrompt: DEFAULT_POINTS_PROMPT }
 };
 let accountUser = null;
+let availablePointsModels = [];
 
 let session = {
   topic: null,
@@ -1515,6 +1546,8 @@ function normalizeAppState() {
   state.config.profile       = state.config.profile       || DEFAULT_PROFILE;
   state.config.pointFontSize = state.config.pointFontSize || 13;
   state.config.vocabColumnWidth = state.config.vocabColumnWidth || 270;
+  state.config.pointsModelChoice = state.config.pointsModelChoice || 'auto';
+  if (typeof state.config.pointsPrompt !== 'string') state.config.pointsPrompt = DEFAULT_POINTS_PROMPT;
   if (!state.completedTopics) state.completedTopics = [];
   state.manualTopics = Array.isArray(state.manualTopics)
     ? state.manualTopics
@@ -1800,14 +1833,7 @@ function normalizePoint(p, fallbackTitle = '') {
 }
 
 function fallbackConnection(current, next, index, total) {
-  const currentTitle = current?.title || `point ${index + 1}`;
-  const nextTitle = next?.title || `point ${index + 2}`;
-  if (state.lang === 'fr') {
-    if (index >= total - 1) return `Ainsi, ${currentTitle} permet de conclure la présentation en reliant les faits étudiés à leur portée générale et à leur actualité.`;
-    return `Au-delà de ${currentTitle}, il convient désormais d'aborder ${nextTitle}, car ce nouvel angle permet de comprendre plus clairement les conséquences et les enjeux du sujet.`;
-  }
-  if (index >= total - 1) return `Taken together, ${currentTitle} brings the presentation to a close by linking the evidence discussed to the broader significance of the topic.`;
-  return `Beyond ${currentTitle}, it is useful to turn to ${nextTitle}, because this next angle shows more clearly how the issue develops and why it matters.`;
+  return '';
 }
 
 function ensurePointConnections(points) {
@@ -1937,11 +1963,13 @@ async function groqChat(messages, options = {}) {
     temperature: options.temperature ?? 0.35,
     ...(options.purpose ? { purpose: options.purpose } : {}),
     ...(options.requested_points ? { requested_points: options.requested_points } : {}),
+    ...(options.purpose === 'points' ? { points_model_choice: options.points_model_choice || 'auto' } : {}),
     ...(options.response_format ? { response_format: options.response_format } : {}),
     messages
   };
   if (BACKEND_SUPPORTED && await loadBackendStatus()) {
     const data = await backendRequest('/api/chat', { method: 'POST', body: JSON.stringify(payload) });
+    if (options.purpose === 'points') lastPointsModel = `${data.provider || ''}:${data.model || ''}`;
     return data.content || '';
   }
   throw new Error('No se pudo conectar con el servidor. Vuelve a iniciar sesion o recarga la pagina.');
@@ -1952,6 +1980,37 @@ let dirHandle = null;
 const FS_SUPPORTED = false;
 const BACKEND_SUPPORTED = location.protocol === 'http:' || location.protocol === 'https:';
 let backendStatus = null;
+let lastPointsModel = '';
+
+async function loadPointsModels() {
+  const select = document.getElementById('pointsModelChoice');
+  if (!select || !BACKEND_SUPPORTED) return;
+  try {
+    const data = await backendRequest('/api/diplomator/points-models');
+    availablePointsModels = data.models || [];
+    select.innerHTML = '<option value="auto">Modelo elegido en administración</option>' +
+      availablePointsModels.map(item => `<option value="${escAttr(item.id)}">${escHtml(item.provider.toUpperCase() + ' · ' + item.model)}</option>`).join('');
+    const saved = state.config.pointsModelChoice;
+    select.value = saved === 'auto' || availablePointsModels.some(item => item.id === saved) ? saved : 'auto';
+    document.getElementById('pointsModelHint').textContent = availablePointsModels.length
+      ? 'Solo aparecen proveedores con clave configurada. Cada intento consume los créditos habituales.'
+      : 'El administrador debe configurar al menos una clave de IA.';
+  } catch(e) {
+    document.getElementById('pointsModelHint').textContent = 'No se pudo consultar la lista de modelos. Se usará el modelo de administración.';
+  }
+}
+
+async function savePointsPreferences() {
+  state.config.pointsModelChoice = document.getElementById('pointsModelChoice').value;
+  state.config.pointsPrompt = document.getElementById('pointsPrompt').value.trim().slice(0, 900);
+  await persist();
+  document.getElementById('pointsPreferencesStatus').textContent = 'Preferencias guardadas para tu cuenta.';
+}
+
+function resetPointsPrompt() {
+  document.getElementById('pointsPrompt').value = DEFAULT_POINTS_PROMPT;
+  document.getElementById('pointsPreferencesStatus').textContent = 'Instrucciones restablecidas. Guarda para aplicarlas.';
+}
 
 async function backendRequest(path, options = {}) {
   const res = await fetch(path, {
@@ -2105,6 +2164,8 @@ async function init() {
   document.getElementById('numPoints').value      = state.config.numPoints;
   document.getElementById('numVocab').value       = state.config.numVocab;
   document.getElementById('profileContext').value = state.config.profile;
+  document.getElementById('pointsPrompt').value = state.config.pointsPrompt;
+  await loadPointsModels();
   document.getElementById('pointFontSize').value  = state.config.pointFontSize;
   document.getElementById('pointSizeLabel').textContent = state.config.pointFontSize + 'px';
   updatePointSize(state.config.pointFontSize);
@@ -2175,6 +2236,7 @@ document.addEventListener('click', () => document.getElementById('moreMenu')?.cl
 
 // -- SESSION ------------------------------------------------------------
 function persistCurrentSession() {
+  if (session?.versions?.[session.activeVersion]) session.versions[session.activeVersion].points = structuredClone(session.aiPoints);
   state.currentSession = session?.topic ? {
     ...session,
     lang: state.lang,
@@ -2182,6 +2244,23 @@ function persistCurrentSession() {
     updatedAt: new Date().toISOString()
   } : null;
   persist();
+}
+
+function renderPointVersions() {
+  const root = document.getElementById('pointsVersions');
+  if (!root) return;
+  const versions = session.versions || [];
+  root.hidden = versions.length < 2;
+  root.innerHTML = versions.length < 2 ? '' : `<span>Comparar versiones</span>${versions.map((v, i) => `<button type="button" class="${i === session.activeVersion ? 'active' : ''}" onclick="switchPointVersion(${i})" aria-pressed="${i === session.activeVersion}">${escHtml('Versión ' + (i + 1) + ' · ' + (v.model || 'Modelo anterior'))}</button>`).join('')}<small>Instrucciones de esta versión: ${escHtml(versions[session.activeVersion]?.prompt || 'No registradas')}</small>`;
+}
+
+function switchPointVersion(index) {
+  if (!session.versions?.[index]) return;
+  if (session.versions[session.activeVersion]) session.versions[session.activeVersion].points = structuredClone(session.aiPoints);
+  session.activeVersion = index;
+  session.aiPoints = structuredClone(session.versions[index].points);
+  renderAIPoints();
+  persistCurrentSession();
 }
 
 function renderCurrentSession() {
@@ -2217,7 +2296,9 @@ function resumeCurrentSession() {
   session = {
     topic: state.currentSession.topic,
     aiPoints: ensurePointConnections(state.currentSession.aiPoints || []),
-    savedPoints: ensurePointConnections(state.currentSession.savedPoints || [])
+    savedPoints: ensurePointConnections(state.currentSession.savedPoints || []),
+    versions: Array.isArray(state.currentSession.versions) ? state.currentSession.versions : [],
+    activeVersion: Number.isInteger(state.currentSession.activeVersion) ? state.currentSession.activeVersion : -1
   };
   if (JSON.stringify(session.aiPoints) !== JSON.stringify(state.currentSession.aiPoints || []) ||
       JSON.stringify(session.savedPoints) !== JSON.stringify(state.currentSession.savedPoints || [])) {
@@ -2348,7 +2429,7 @@ async function startSessionWithTopic(topic, autoGenerate = false) {
     const hasWork = session.aiPoints?.length || session.savedPoints?.length;
     if (hasWork && !confirm('Se eliminará la sesión actual. ¿Quieres cambiar de tema?')) return;
   }
-  session = { topic, aiPoints: [], savedPoints: [] };
+  session = { topic, aiPoints: [], savedPoints: [], versions: [], activeVersion: -1 };
   const nowIso = new Date().toISOString();
   state.currentSession = { ...session, lang: state.lang, date: nowIso, updatedAt: nowIso };
 
@@ -2407,36 +2488,30 @@ async function generateSession(topic) {
   if (BACKEND_SUPPORTED) await loadBackendStatus();
   const limits = generationLimits();
   const n = parseInt(document.getElementById('numPoints').value, 10) || 5;
-  const nv = Math.min(parseInt(document.getElementById('numVocab').value) || 5, limits.maxVocab);
+  const nv = Math.min(parseInt(document.getElementById('numVocab').value, 10) || 5, 12);
   const profile = (document.getElementById('profileContext').value || '').slice(0, limits.profileChars);
   const langName = state.lang === 'en' ? 'English' : 'French';
-  const generationMaxTokens = Math.max(limits.maxOutputTokens || 0, 2400 + (n * 1500));
+  const generationMaxTokens = Math.min(14000, Math.max(3500, 1200 + n * 950));
+  const modelChoice = document.getElementById('pointsModelChoice').value;
+  const personalGuidance = document.getElementById('pointsPrompt').value.trim().slice(0, 900) || DEFAULT_POINTS_PROMPT;
+  state.config.pointsModelChoice = modelChoice;
+  state.config.pointsPrompt = personalGuidance;
+  await persist();
 
   document.getElementById('loadingBar').style.display = 'block';
   document.getElementById('aiPoints').innerHTML = '';
 
-  const prompt = `You are a senior C1/C2 ${langName} teacher and a rigorous briefing writer.
-${profile ? `Student profile (use only to adjust language and difficulty, never as factual content): ${profile}` : ''}
+  const prompt = `You are preparing reliable C1/C2 oral-exam study notes in ${langName}.
+TOPIC: "${topic}"
+${profile ? `Student context (adjust language and depth only; do not treat it as evidence): ${profile}` : ''}
+Student's preferred writing instructions: ${personalGuidance}
 
-EXACT TOPIC: "${topic}"
+Write a coherent explanation of this exact topic, with at most ${n} distinct points in the order that best helps someone understand and present it. A narrow topic may need fewer points. Start each point with the substantive idea; use as many sentences as the idea needs. Choose the structure from the topic itself, rather than filling a fixed history/causes/impact/future template. Avoid repetition, vague commentary and claims that also fit unrelated topics.
 
-The quoted topic is a strict content boundary. First identify privately what the topic actually asks and select only the ${n} most useful, non-overlapping angles needed to explain it. Do not drift into adjacent subjects. Do not add a generic history, geopolitical context, controversy, impact or future section unless that angle directly helps answer this exact topic. If a sentence could fit almost any topic, remove it.
+For each point return a short, precise title and an explanatory text in ${langName}. Add a natural transition to the next point only if useful; leave the last transition empty. Include a concrete example, name or date in datedInfo only when relevant and reasonably certain; an empty array is fine. Across the whole answer include up to ${nv} useful C1/C2 words or expressions with brief Spanish translations, distributed where they fit. Do not invent dates, figures, quotations or sources. If a fact is uncertain, explain the idea without false precision.
 
-Reference style guide (apply only where it fits the exact topic): ${limits.topicStyleGuide}
-
-Write everything in ${langName} for oral-exam preparation. Generate exactly ${n} points, in a logical order, with no filler and no repeated ideas.
-
-Each point must include:
-- "title": a precise, topic-specific title in ${langName}, maximum 9 words.
-- "text": 4-6 complete sentences in polished C1/C2 ${langName}. Start with the substance, explain it clearly, and use named examples only when they are directly relevant. Do not invent facts, dates, statistics, institutions or quotations.
-- "connection": 1-2 natural sentences in ${langName} that link this point to the next. The final point must close the presentation briefly.
-- "datedInfo": exactly 2 concrete facts, examples or dates that clarify this point. A date is optional when chronology is irrelevant; use an empty "date" rather than forcing one.
-- "vocab": exactly ${nv} advanced ${langName} words or expressions used for this specific point, each with a Spanish translation of at most 8 words.
-
-Before answering, silently check that every point directly answers "${topic}", that the points do not overlap, and that no generic section was added merely to fill the requested count.
-
-Respond only with valid JSON, without markdown:
-{"points":[{"title":"...","text":"...","connection":"...","datedInfo":[{"date":"","text":"..."}],"vocab":[{"word":"...","def":"..."}]}]}`;
+Before answering, check that every point adds a different piece of understanding and that the full answer stays on the quoted topic. Return valid JSON only:
+{"points":[{"title":"...","text":"...","connection":"","datedInfo":[],"vocab":[{"word":"...","def":"..."}]}]}`;
 
   try {
     const raw = await groqChat([{ role: 'user', content: prompt }], {
@@ -2444,6 +2519,7 @@ Respond only with valid JSON, without markdown:
       temperature: 0.55,
       purpose: 'points',
       requested_points: n,
+      points_model_choice: modelChoice,
       response_format: { type: 'json_object' }
     });
     document.getElementById('loadingBar').style.display = 'none';
@@ -2454,15 +2530,23 @@ Respond only with valid JSON, without markdown:
     }
 
     const generatedPoints = generatedPointsFromResponse(parsed);
-    if (generatedPoints.length < n) {
+    if (!generatedPoints.length) {
       document.getElementById('aiPoints').innerHTML =
-        `<div class="notice">La IA ha devuelto ${generatedPoints.length || 0} punto${generatedPoints.length === 1 ? '' : 's'} de ${n}. Pulsa generar otra vez: la petición ya esta reforzada para pedir todos los puntos y sus conectores.</div>`;
+        '<div class="notice">El modelo no devolvió puntos utilizables. Prueba otro modelo o ajusta las instrucciones.</div>';
       return;
     }
 
+    if (session.versions?.[session.activeVersion]) session.versions[session.activeVersion].points = structuredClone(session.aiPoints);
     session.aiPoints = ensurePointConnections(generatedPoints.slice(0, n)).map((p, i) => ({
       ...normalizePoint(p, `Idea ${i + 1}`), accepted: false, aiIndex: i
     }));
+    session.versions = [...(session.versions || []), {
+      model: lastPointsModel || modelChoice,
+      prompt: personalGuidance,
+      createdAt: new Date().toISOString(),
+      points: structuredClone(session.aiPoints)
+    }].slice(-3);
+    session.activeVersion = session.versions.length - 1;
     renderAIPoints();
     persistCurrentSession();
     await refreshAccountStatus();
@@ -2477,6 +2561,7 @@ Respond only with valid JSON, without markdown:
 }
 
 function renderAIPoints() {
+  renderPointVersions();
   const container = document.getElementById('aiPoints');
   container.innerHTML = '';
   const pending = session.aiPoints.filter(p => !p.accepted);
