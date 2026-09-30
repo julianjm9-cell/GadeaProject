@@ -23,6 +23,7 @@ const path=require('node:path');
   await page.getByRole('button',{name:'Semana',exact:true}).click();
   assert.equal(await page.locator('.home-calendar-day').count(),7);
   await page.setViewportSize({width:390,height:844});
+  await page.getByRole('button',{name:'Clases',exact:true}).click();
   await page.getByRole('button',{name:'Mes',exact:true}).click();
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
   await page.setViewportSize({width:1440,height:900});
@@ -38,8 +39,9 @@ const path=require('node:path');
   assert.equal(await page.getByText('De la idea a la clase').count(),0);
   const card=page.locator('.material-hub-card').first();
   assert((await card.boundingBox()).width<350);
-  await card.hover();
-  assert.equal(await card.locator('.material-hover-preview').isVisible(),true);
+  assert.equal(await card.locator('.material-art,.material-hover-preview').count(),0);
+  assert.equal(await card.getByRole('button',{name:'Editar'}).count(),1);
+  assert.equal(await card.getByRole('button',{name:'Usar'}).count(),1);
 
   await page.locator('.home-primary-nav').getByRole('button',{name:'Alumnos'}).click();
   assert((await page.locator('.workspace-students .home-student-card').first().boundingBox()).width<350);
@@ -72,6 +74,6 @@ const path=require('node:path');
   await page.getByLabel('Alumno (opcional)').selectOption({label:'Eva Prueba'});
   assert.equal(await page.locator('#workshopCourse').inputValue(),'5.º Primaria');
   assert.deepEqual(errors,[]);
-  console.log('PASS courses, compact cards, hover preview, completed tasks, calendar periods and profile preferences');
+  console.log('PASS courses, compact cards, mobile panels, completed tasks, calendar periods and profile preferences');
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exit(1)});
