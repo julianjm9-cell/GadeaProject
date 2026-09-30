@@ -1969,7 +1969,14 @@ async function groqChat(messages, options = {}) {
   };
   if (BACKEND_SUPPORTED && await loadBackendStatus()) {
     const data = await backendRequest('/api/chat', { method: 'POST', body: JSON.stringify(payload) });
-    if (options.purpose === 'points') lastPointsModel = `${data.provider || ''}:${data.model || ''}`;
+    if (options.purpose === 'points') {
+      lastPointsModel = `${data.provider || ''}:${data.model || ''}`;
+      if (data.replaced_model && availablePointsModels.some(item => item.id === lastPointsModel)) {
+        state.config.pointsModelChoice = lastPointsModel;
+        document.getElementById('pointsModelChoice').value = lastPointsModel;
+        await persist();
+      }
+    }
     return data.content || '';
   }
   throw new Error('No se pudo conectar con el servidor. Vuelve a iniciar sesion o recarga la pagina.');

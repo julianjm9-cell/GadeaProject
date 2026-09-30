@@ -895,7 +895,7 @@ def test_diplomator_user_can_choose_only_configured_point_models(client, monkeyp
     options = test_client.get("/api/diplomator/points-models?app=diplomator")
     assert options.status_code == 200
     identifiers = {item["id"] for item in options.json()["models"]}
-    assert "gemini:gemini-2.5-pro" in identifiers
+    assert "gemini:gemini-3.8-flash" in identifiers
     assert "groq:openai/gpt-oss-120b" in identifiers
     assert not any(item.startswith("openai:") for item in identifiers)
 
@@ -912,15 +912,45 @@ def test_diplomator_user_can_choose_only_configured_point_models(client, monkeyp
             sent.append((url, kwargs))
             return FakeResponse()
     monkeypatch.setattr(app_routes.httpx, "AsyncClient", FakeClient)
-    selected = test_client.post("/api/chat?app=diplomator", json={"purpose": "points", "requested_points": 3, "points_model_choice": "gemini:gemini-2.5-pro", "messages": [{"role": "user", "content": "Tema"}]})
+    selected = test_client.post("/api/chat?app=diplomator", json={"purpose": "points", "requested_points": 3, "points_model_choice": "gemini:gemini-3.8-flash", "messages": [{"role": "user", "content": "Tema"}]})
     assert selected.status_code == 200
-    assert selected.json()["model"] == "gemini-2.5-pro"
+    assert selected.json()["model"] == "gemini-3.8-flash"
     assert "generativelanguage.googleapis.com" in sent[-1][0]
-    assert sent[-1][1]["json"]["model"] == "gemini-2.5-pro"
+    assert sent[-1][1]["json"]["model"] == "gemini-3.8-flash"
     before = len(sent)
     invalid = test_client.post("/api/chat?app=diplomator", json={"purpose": "points", "points_model_choice": "openai:gpt-4.1", "messages": []})
     assert invalid.status_code == 400
     assert len(sent) == before
+
+
+def test_legacy_gemini_points_model_retries_current_model_without_extra_credits(client, monkeypatch):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin")
+    assert login(test_client).status_code == 200
+    assert test_client.post("/admin/ai-settings/keys", json={"gemini_api_key": "gemini-test-key"}).status_code == 200
+    assert test_client.post("/admin/ai-settings/apps/DIPLOMATOR", json={"capabilities": {"points": {"provider": "gemini", "model": "gemini-2.5-pro"}}}).status_code == 200
+
+    sent_models = []
+    class FakeResponse:
+        def __init__(self, status_code): self.status_code = status_code
+        def json(self):
+            return {"choices": [{"message": {"content": '{"points":[{"title":"A","text":"B"}]}'}}], "usage": {"prompt_tokens": 5, "completion_tokens": 7}}
+    class FakeClient:
+        def __init__(self, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kwargs):
+            model = kwargs["json"]["model"]
+            sent_models.append(model)
+            return FakeResponse(404 if model == "gemini-2.5-pro" else 200)
+    monkeypatch.setattr(app_routes.httpx, "AsyncClient", FakeClient)
+    response = test_client.post("/api/chat?app=diplomator", json={"purpose": "points", "requested_points": 3, "points_model_choice": "auto", "messages": [{"role": "user", "content": "Tema"}]})
+    assert response.status_code == 200
+    assert sent_models == ["gemini-2.5-pro", "gemini-3.8-flash"]
+    assert response.json()["model"] == "gemini-3.8-flash"
+    assert response.json()["replaced_model"] == "gemini-2.5-pro"
+    with db_factory() as db:
+        assert db.query(UsageRecord).filter_by(product_code="DIPLOMATOR").count() == 1
 
 
 def test_ai_settings_replaces_deprecated_groq_model(client):

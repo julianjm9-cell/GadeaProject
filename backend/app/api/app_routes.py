@@ -30,6 +30,7 @@ from app.security.tokens import decode_token
 from app.security.passwords import verify_password
 from app.services.ai_config import (
     DIPLOMATOR_POINT_MODELS,
+    GEMINI_CHAT_DEFAULT,
     GROQ_TRANSCRIBE_DEFAULT,
     default_chat_model,
     normalize_chat_model,
@@ -256,13 +257,13 @@ def vision_provider_config(db: Session, product: str = "") -> tuple[str, str, st
     preferred = (setting_value(db, "chat_provider") or setting_value(db, "ai_provider") or settings.ai_provider).lower()
 
     if preferred == "gemini" and gemini_api_key:
-        return gemini_api_key, str(settings.gemini_chat_url), "gemini", setting_value(db, "chat_model") or "gemini-2.5-flash"
+        return gemini_api_key, str(settings.gemini_chat_url), "gemini", setting_value(db, "chat_model") or GEMINI_CHAT_DEFAULT
     if preferred == "openai" and openai_api_key:
         return openai_api_key, str(settings.openai_chat_url), "openai", setting_value(db, "chat_model") or "gpt-4o-mini"
     if openai_api_key:
         return openai_api_key, str(settings.openai_chat_url), "openai", "gpt-4o-mini"
     if gemini_api_key:
-        return gemini_api_key, str(settings.gemini_chat_url), "gemini", "gemini-2.5-flash"
+        return gemini_api_key, str(settings.gemini_chat_url), "gemini", GEMINI_CHAT_DEFAULT
     raise HTTPException(status_code=500, detail="OCR necesita OpenAI o Gemini configurado en Admin > IA.")
 
 
@@ -400,6 +401,8 @@ def record_usage(db: Session, user: User, model: str, input_tokens: int, output_
 def provider_error(prefix: str, response: httpx.Response) -> HTTPException:
     if response.status_code in {401, 403}:
         detail = f"{prefix}: clave API no valida o proveedor mal seleccionado. Revisa Admin > IA."
+    elif response.status_code == 404:
+        detail = f"{prefix}: modelo o URL no disponible (404). En Admin > IA comprueba Gemini y selecciona {GEMINI_CHAT_DEFAULT} para Diplomator."
     else:
         detail = f"{prefix} ({response.status_code}). Revisa Admin > IA."
     return HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
@@ -1376,8 +1379,13 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
     payload["model"] = chosen["model"] if chosen else chat_model_for_purpose(db, chat_provider, purpose, license_obj.product_code)
     if purpose == "points":
         add_points_focus_instruction(payload)
+    fallback_model = ""
     async with httpx.AsyncClient(timeout=120) as client:
         res = await client.post(chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
+        if purpose == "points" and chat_provider == "gemini" and res.status_code == 404 and payload["model"].startswith("gemini-2.5-"):
+            fallback_model = payload["model"]
+            payload["model"] = GEMINI_CHAT_DEFAULT
+            res = await client.post(chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
     if res.status_code >= 400:
         raise provider_error("Error del proveedor IA", res)
     data = res.json()
@@ -1401,7 +1409,7 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
     db.flush()
     db.add(Message(conversation_id=conv.id, organization_id=user.organization_id, user_id=user.id, role="assistant", content=content[:20000]))
     db.commit()
-    return {"ok": True, "content": content, "provider": chat_provider, "model": payload["model"]}
+    return {"ok": True, "content": content, "provider": chat_provider, "model": payload["model"], "replaced_model": fallback_model}
 
 
 @router.post("/api/ocr")

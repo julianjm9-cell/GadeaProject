@@ -6,13 +6,13 @@ OPENAI_TRANSCRIBE_DEFAULT = "whisper-1"
 GROQ_CHAT_DEFAULT = "openai/gpt-oss-120b"
 GROQ_FAST_CHAT_DEFAULT = "openai/gpt-oss-20b"
 GROQ_TRANSCRIBE_DEFAULT = "whisper-large-v3-turbo"
-GEMINI_CHAT_DEFAULT = "gemini-2.5-flash"
+GEMINI_CHAT_DEFAULT = "gemini-3.8-flash"
 
 # Models offered to Diplomator users for comparing study-note quality. An admin
 # may also configure another model as the app default; it is added separately.
 DIPLOMATOR_POINT_MODELS = {
     "groq": (GROQ_CHAT_DEFAULT, GROQ_FAST_CHAT_DEFAULT),
-    "gemini": ("gemini-2.5-flash", "gemini-2.5-pro"),
+    "gemini": ("gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite"),
     "openai": ("gpt-4o-mini", "gpt-4.1"),
 }
 

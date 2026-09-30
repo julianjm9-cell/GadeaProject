@@ -20,7 +20,7 @@ const assert=require('node:assert/strict');
    let data={ok:true};
    if(url.pathname==='/api/status')data={ok:true,user:{email:'prueba@local',name:'Laura',license_key:'DIPLO-TEST'},limits:{max_vocab:3,profile_chars:420}};
    if(url.pathname==='/api/state'&&route.request().method()==='GET')data={};
-   if(url.pathname==='/api/diplomator/points-models')data={ok:true,models:[{id:'gemini:gemini-2.5-pro',provider:'gemini',model:'gemini-2.5-pro'},{id:'groq:openai/gpt-oss-120b',provider:'groq',model:'openai/gpt-oss-120b'}]};
+   if(url.pathname==='/api/diplomator/points-models')data={ok:true,models:[{id:'gemini:gemini-3.8-flash',provider:'gemini',model:'gemini-3.8-flash'},{id:'groq:openai/gpt-oss-120b',provider:'groq',model:'openai/gpt-oss-120b'}]};
    if(url.pathname==='/api/chat'){
     const request=route.request().postDataJSON();
     generation++;
@@ -28,16 +28,16 @@ const assert=require('node:assert/strict');
     assert(request.messages[0].content.includes('TOPIC: "The Marshall Plan"'));
     assert(request.messages[0].content.includes('at most 5 distinct points'));
     assert(!request.messages[0].content.includes('exactly 2 concrete facts'));
-    if(generation===1){assert.equal(request.points_model_choice,'gemini:gemini-2.5-pro');assert(request.messages[0].content.includes('Con ejemplos de instituciones'));}
+    if(generation===1){assert.equal(request.points_model_choice,'gemini:gemini-3.8-flash');assert(request.messages[0].content.includes('Con ejemplos de instituciones'));}
     if(generation===2)assert.equal(request.points_model_choice,'groq:openai/gpt-oss-120b');
-    data={ok:true,provider:generation===1?'gemini':'groq',model:generation===1?'gemini-2.5-pro':'openai/gpt-oss-120b',content:JSON.stringify({points:[{title:generation===1?'Versión Gemini':'Versión Groq',text:generation===1?'Explicación concreta de Gemini.':'Explicación concreta de Groq.',connection:'',datedInfo:[],vocab:[]}]})};
+    data={ok:true,provider:generation===1?'gemini':'groq',model:generation===1?'gemini-3.8-flash':'openai/gpt-oss-120b',content:JSON.stringify({points:[{title:generation===1?'Versión Gemini':'Versión Groq',text:generation===1?'Explicación concreta de Gemini.':'Explicación concreta de Groq.',connection:'',datedInfo:[],vocab:[]}]})};
    }
    return route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
   });
   await page.goto(`http://127.0.0.1:${server.address().port}/app`);
   await page.locator('#pointsModelChoice option').nth(2).waitFor({state:'attached'});
   await page.evaluate(()=>showTab('perfil',document.getElementById('profileHeaderBtn')));
-  await page.locator('#pointsModelChoice').selectOption('gemini:gemini-2.5-pro');
+  await page.locator('#pointsModelChoice').selectOption('gemini:gemini-3.8-flash');
   await page.locator('#pointsPrompt').fill('Con ejemplos de instituciones');
   await page.evaluate(async()=>startSessionWithTopic('The Marshall Plan',false));
   await page.evaluate(async()=>generateCurrentSession());
@@ -56,8 +56,8 @@ const assert=require('node:assert/strict');
   admin.on('pageerror',error=>errors.push(error.message));
   await admin.goto(pathToFileURL(path.resolve('admin/index.html')).href);
   await admin.evaluate(()=>{
-   const caps=[{id:'chat',provider:'groq',model:'openai/gpt-oss-120b',configured:true,inherited:true},{id:'points',provider:'gemini',model:'gemini-2.5-pro',configured:true,inherited:false},{id:'transcribe',provider:'groq',model:'whisper-large-v3-turbo',configured:true,inherited:true}];
-   ai={groq_configured:true,openai_configured:false,gemini_configured:true,pixabay_configured:false,capabilities:caps,apps:{DIPLOMATOR:caps},model_choices:{chat:{groq:['openai/gpt-oss-120b'],gemini:['gemini-2.5-flash']},points:{groq:['openai/gpt-oss-120b'],gemini:['gemini-2.5-flash','gemini-2.5-pro'],openai:['gpt-4o-mini']},transcribe:{groq:['whisper-large-v3-turbo'],openai:['whisper-1']}}};
+   const caps=[{id:'chat',provider:'groq',model:'openai/gpt-oss-120b',configured:true,inherited:true},{id:'points',provider:'gemini',model:'gemini-3.8-flash',configured:true,inherited:false},{id:'transcribe',provider:'groq',model:'whisper-large-v3-turbo',configured:true,inherited:true}];
+   ai={groq_configured:true,openai_configured:false,gemini_configured:true,pixabay_configured:false,capabilities:caps,apps:{DIPLOMATOR:caps},model_choices:{chat:{groq:['openai/gpt-oss-120b'],gemini:['gemini-2.5-flash']},points:{groq:['openai/gpt-oss-120b'],gemini:['gemini-2.5-flash','gemini-3.8-flash'],openai:['gpt-4o-mini']},transcribe:{groq:['whisper-large-v3-turbo'],openai:['whisper-1']}}};
    api=async (url,options)=>{if(url.endsWith('/test-connection')){const provider=JSON.parse(options.body).provider;if(provider==='gemini')return {ok:true,message:'Conexión verificada ahora'};throw Error('Clave rechazada')}return ai};
    setLoginState(true);aiApp='DIPLOMATOR';setView('ai');
   });

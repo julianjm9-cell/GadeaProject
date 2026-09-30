@@ -25,6 +25,7 @@ from app.security.passwords import hash_password
 from app.services.ai_config import (
     app_ai_override,
     DIPLOMATOR_POINT_MODELS,
+    GEMINI_CHAT_DEFAULT,
     GROQ_CHAT_DEFAULT,
     GROQ_TRANSCRIBE_DEFAULT,
     normalize_chat_model,
@@ -194,13 +195,13 @@ def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends
     }
     # Mirror vision_provider_config: its fallback does not use the chat model.
     if chat_provider == "gemini" and gemini_key:
-        ocr_provider, ocr_model = "gemini", get_setting(db, "chat_model", "") or "gemini-2.5-flash"
+        ocr_provider, ocr_model = "gemini", get_setting(db, "chat_model", "") or GEMINI_CHAT_DEFAULT
     elif chat_provider == "openai" and openai_key:
         ocr_provider, ocr_model = "openai", get_setting(db, "chat_model", "") or "gpt-4o-mini"
     elif openai_key:
         ocr_provider, ocr_model = "openai", "gpt-4o-mini"
     elif gemini_key:
-        ocr_provider, ocr_model = "gemini", "gemini-2.5-flash"
+        ocr_provider, ocr_model = "gemini", GEMINI_CHAT_DEFAULT
     else:
         ocr_provider, ocr_model = "openai", "gpt-4o-mini"
     capabilities = [
@@ -242,9 +243,9 @@ def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends
             "key_source": sources.get(app_ai_override(db, product, cap["id"]).get("provider", cap["provider"]), "sin clave"),
         }) for cap in capabilities if product in cap["apps"]] for product in PRODUCT_CODES},
         "model_choices": {
-            "chat": {"groq": [GROQ_CHAT_DEFAULT, "openai/gpt-oss-20b"], "openai": ["gpt-4o-mini"], "gemini": ["gemini-2.5-flash"]},
+            "chat": {"groq": [GROQ_CHAT_DEFAULT, "openai/gpt-oss-20b"], "openai": ["gpt-4o-mini"], "gemini": [GEMINI_CHAT_DEFAULT, "gemini-3.5-flash"]},
             "points": {provider: list(models) for provider, models in DIPLOMATOR_POINT_MODELS.items()},
-            "ocr": {"openai": ["gpt-4o-mini"], "gemini": ["gemini-2.5-flash"]},
+            "ocr": {"openai": ["gpt-4o-mini"], "gemini": [GEMINI_CHAT_DEFAULT]},
             "transcribe": {"groq": [GROQ_TRANSCRIBE_DEFAULT], "openai": ["whisper-1"]},
         },
         "recommended_provider": "groq",
@@ -414,7 +415,7 @@ async def test_ai_connection(payload: dict, actor: User = Depends(require_supera
         config = {
             "groq": ("groq_api_key", settings.groq_api_key, valid_groq_key, str(settings.groq_chat_url), GROQ_CHAT_DEFAULT),
             "openai": ("openai_api_key", settings.openai_api_key, valid_openai_key, str(settings.openai_chat_url), "gpt-4o-mini"),
-            "gemini": ("gemini_api_key", settings.gemini_api_key, valid_gemini_key, str(settings.gemini_chat_url), "gemini-2.5-flash"),
+            "gemini": ("gemini_api_key", settings.gemini_api_key, valid_gemini_key, str(settings.gemini_chat_url), GEMINI_CHAT_DEFAULT),
         }.get(provider)
         if not config:
             raise HTTPException(400, "Proveedor no válido.")
@@ -424,12 +425,15 @@ async def test_ai_connection(payload: dict, actor: User = Depends(require_supera
             raise HTTPException(400, f"{provider} no tiene una clave válida guardada.")
         try:
             async with httpx.AsyncClient(timeout=30) as client:
-                response = await client.post(url, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json={"model": model, "messages": [{"role": "user", "content": "Responde OK"}], "max_tokens": 512})
+                response = await client.post(url, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json={"model": model, "messages": [{"role": "user", "content": "Responde OK"}], "max_tokens": 1024})
             body = response.json()
         except (httpx.RequestError, ValueError) as exc:
             raise HTTPException(502, f"{provider} no responde. Inténtalo de nuevo.") from exc
         if response.status_code >= 400:
-            raise HTTPException(502, f"{provider} rechazó la prueba ({response.status_code}). Revisa su clave y cuota.")
+            message = "Comprueba la clave, el modelo y la cuota."
+            if response.status_code == 404 and provider == "gemini":
+                message = f"Gemini no encuentra el modelo o la URL. Prueba {GEMINI_CHAT_DEFAULT} en Admin > IA."
+            raise HTTPException(502, f"{provider} rechazó la prueba ({response.status_code}). {message}")
         choices = body.get("choices") if isinstance(body, dict) else None
         if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict) or not choices[0].get("message", {}).get("content"):
             raise HTTPException(502, f"{provider} respondió sin contenido.")
