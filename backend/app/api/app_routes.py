@@ -40,6 +40,7 @@ from app.services.ai_config import (
     valid_openai_key,
 )
 from app.services.audit import audit
+from app.services.gemini_native import chat_data as gemini_chat_data, failure_message as gemini_failure_message, generate_url as gemini_generate_url, is_auth_key as is_gemini_auth_key, request_body as gemini_request_body
 from app.services.licenses import check_access, check_legacy_license, usage_count_for_license
 from app.services.gamification import award_event, equip_item, get_or_create_profile, level_for_xp, profile_payload, public_config, purchase_item
 from app.services.resources import load_resource_catalog
@@ -1380,15 +1381,24 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
     if purpose == "points":
         add_points_focus_instruction(payload)
     fallback_model = ""
+    native_gemini = chat_provider == "gemini" and is_gemini_auth_key(api_key)
     async with httpx.AsyncClient(timeout=120) as client:
-        res = await client.post(chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
+        if native_gemini:
+            res = await client.post(gemini_generate_url(payload["model"]), headers={"x-goog-api-key": api_key, "Content-Type": "application/json"}, json=gemini_request_body(payload))
+        else:
+            res = await client.post(chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
         if purpose == "points" and chat_provider == "gemini" and res.status_code == 404 and payload["model"].startswith("gemini-2.5-"):
             fallback_model = payload["model"]
             payload["model"] = GEMINI_CHAT_DEFAULT
-            res = await client.post(chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
+            if native_gemini:
+                res = await client.post(gemini_generate_url(payload["model"]), headers={"x-goog-api-key": api_key, "Content-Type": "application/json"}, json=gemini_request_body(payload))
+            else:
+                res = await client.post(chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
     if res.status_code >= 400:
+        if native_gemini:
+            raise HTTPException(status_code=502, detail=gemini_failure_message(res, api_key))
         raise provider_error("Error del proveedor IA", res)
-    data = res.json()
+    data = gemini_chat_data(res.json()) if native_gemini else res.json()
     choices = data.get("choices") or []
     content = choices[0].get("message", {}).get("content", "") if choices else ""
     input_tokens, output_tokens = token_usage(data)

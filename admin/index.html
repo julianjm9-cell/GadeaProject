@@ -163,6 +163,7 @@
 .connection-card label{display:flex;align-items:center;justify-content:space-between;gap:6px;color:#203657;font-size:12px}
 .connection-card input{width:100%;min-width:0}.connection-card button{min-height:31px;font-size:11px}
 .key-state{font-size:10px;font-weight:700;white-space:nowrap}.key-state.ok{color:#15845c}.key-state.fail{color:#c33d50}.key-state.unknown{color:#9a6a23}
+.connection-detail{font-size:11px;line-height:1.35;color:#a83b4b;overflow-wrap:anywhere}
 @media(max-width:1100px){.connection-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.connection-grid{grid-template-columns:1fr}}
 </style>
@@ -247,10 +248,10 @@
       <form onsubmit="saveAppAI(event)"><div id="aiEditor" class="ai-editor"></div><div class="ai-savebar"><p id="aiSaveMessage" aria-live="polite">Los cambios solo afectan a esta aplicación.</p><button type="button" onclick="discardAppAI()">Descartar</button><button class="primary" id="saveAppAIButton">Guardar esta aplicación</button></div></form>
       <section id="aiConnections" class="ai-connections"><h3>Claves y conexiones</h3><p class="muted">Una clave guardada no garantiza que el servicio responda. Usa Comprobar para verificarlo ahora.</p>
         <form onsubmit="saveConnections(event)"><div class="connection-grid">
-          <div class="connection-card"><label for="groqKey">Groq <span id="groqKeyStatus" class="key-state"></span></label><input id="groqKey" type="password" autocomplete="new-password" placeholder="Nueva clave Groq"><button type="button" onclick="testConnection('groq')">Comprobar Groq</button></div>
-          <div class="connection-card"><label for="openaiKey">OpenAI <span id="openaiKeyStatus" class="key-state"></span></label><input id="openaiKey" type="password" autocomplete="new-password" placeholder="Nueva clave OpenAI"><button type="button" onclick="testConnection('openai')">Comprobar OpenAI</button></div>
-          <div class="connection-card"><label for="geminiKey">Gemini <span id="geminiKeyStatus" class="key-state"></span></label><input id="geminiKey" type="password" autocomplete="new-password" placeholder="Nueva clave Gemini"><button type="button" onclick="testConnection('gemini')">Comprobar Gemini</button></div>
-          <div class="connection-card"><label for="pixabayKey">Pixabay <span id="pixabayKeyStatus" class="key-state"></span></label><input id="pixabayKey" type="password" autocomplete="new-password" placeholder="Nueva clave Pixabay"><button type="button" onclick="testConnection('pixabay')">Comprobar Pixabay</button></div>
+          <div class="connection-card"><label for="groqKey">Groq <span id="groqKeyStatus" class="key-state"></span></label><input id="groqKey" type="password" autocomplete="new-password" placeholder="Nueva clave Groq"><button type="button" onclick="testConnection('groq')">Comprobar Groq</button><small id="groqKeyDetail" class="connection-detail" hidden></small></div>
+          <div class="connection-card"><label for="openaiKey">OpenAI <span id="openaiKeyStatus" class="key-state"></span></label><input id="openaiKey" type="password" autocomplete="new-password" placeholder="Nueva clave OpenAI"><button type="button" onclick="testConnection('openai')">Comprobar OpenAI</button><small id="openaiKeyDetail" class="connection-detail" hidden></small></div>
+          <div class="connection-card"><label for="geminiKey">Gemini <span id="geminiKeyStatus" class="key-state"></span></label><input id="geminiKey" type="password" autocomplete="new-password" placeholder="Nueva clave Gemini"><button type="button" onclick="testConnection('gemini')">Comprobar Gemini</button><small id="geminiKeyDetail" class="connection-detail" hidden></small></div>
+          <div class="connection-card"><label for="pixabayKey">Pixabay <span id="pixabayKeyStatus" class="key-state"></span></label><input id="pixabayKey" type="password" autocomplete="new-password" placeholder="Nueva clave Pixabay"><button type="button" onclick="testConnection('pixabay')">Comprobar Pixabay</button><small id="pixabayKeyDetail" class="connection-detail" hidden></small></div>
         </div><div class="form-actions"><button class="primary">Guardar nuevas claves</button></div></form></section>
     </section>
     <section id="view-hazlotu" class="card screen-card" hidden>
@@ -435,6 +436,7 @@ function renderConnectionStates(){
   node.className='key-state '+(!configured||result?.ok===false?'fail':result?.ok?'ok':'unknown');
   node.textContent=!configured?'● Sin clave':result?.ok?'● Funciona':result?.ok===false?'● Falló la prueba':'● Sin comprobar';
   node.title=result?.message||'';
+  const detail=$(provider+'KeyDetail');detail.textContent=result?.ok===false?(result.message||'No se pudo completar la prueba.'):'';detail.hidden=!detail.textContent;
   node.closest('.connection-card').querySelector('button').disabled=!configured;
  }
 }

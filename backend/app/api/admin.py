@@ -35,6 +35,7 @@ from app.services.ai_config import (
     valid_openai_key,
 )
 from app.services.audit import audit
+from app.services.gemini_native import chat_data as gemini_chat_data, failure_message as gemini_failure_message, generate_url as gemini_generate_url, is_auth_key as is_gemini_auth_key, request_body as gemini_request_body
 from app.services.licenses import license_for_user, license_is_current, usage_count_for_license
 from app.services.resources import load_resource_catalog, save_resource_catalog
 
@@ -380,8 +381,13 @@ async def test_ai_settings(payload: dict, actor: User = Depends(require_superadm
         "max_tokens": 8,
     }
     async with httpx.AsyncClient(timeout=30) as client:
-        response = await client.post(url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
+        if provider == "gemini" and is_gemini_auth_key(api_key):
+            response = await client.post(gemini_generate_url(model), headers={"x-goog-api-key": api_key, "Content-Type": "application/json"}, json=gemini_request_body(payload))
+        else:
+            response = await client.post(url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
     if response.status_code >= 400:
+        if provider == "gemini" and is_gemini_auth_key(api_key):
+            raise HTTPException(status_code=502, detail=gemini_failure_message(response, api_key))
         detail = "La prueba IA fallo. Revisa la clave, el proveedor y el modelo."
         try:
             provider_detail = response.json().get("error", {}).get("message")
@@ -425,15 +431,23 @@ async def test_ai_connection(payload: dict, actor: User = Depends(require_supera
             raise HTTPException(400, f"{provider} no tiene una clave válida guardada.")
         try:
             async with httpx.AsyncClient(timeout=30) as client:
-                response = await client.post(url, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json={"model": model, "messages": [{"role": "user", "content": "Responde OK"}], "max_tokens": 1024})
+                probe = {"model": model, "messages": [{"role": "user", "content": "Responde OK"}], "max_tokens": 1024}
+                if provider == "gemini" and is_gemini_auth_key(key):
+                    response = await client.post(gemini_generate_url(model), headers={"x-goog-api-key": key, "Content-Type": "application/json"}, json=gemini_request_body(probe))
+                else:
+                    response = await client.post(url, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json=probe)
             body = response.json()
         except (httpx.RequestError, ValueError) as exc:
             raise HTTPException(502, f"{provider} no responde. Inténtalo de nuevo.") from exc
         if response.status_code >= 400:
+            if provider == "gemini" and is_gemini_auth_key(key):
+                raise HTTPException(502, gemini_failure_message(response, key))
             message = "Comprueba la clave, el modelo y la cuota."
             if response.status_code == 404 and provider == "gemini":
                 message = f"Gemini no encuentra el modelo o la URL. Prueba {GEMINI_CHAT_DEFAULT} en Admin > IA."
             raise HTTPException(502, f"{provider} rechazó la prueba ({response.status_code}). {message}")
+        if provider == "gemini" and is_gemini_auth_key(key):
+            body = gemini_chat_data(body) if isinstance(body, dict) else {}
         choices = body.get("choices") if isinstance(body, dict) else None
         if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict) or not choices[0].get("message", {}).get("content"):
             raise HTTPException(502, f"{provider} respondió sin contenido.")

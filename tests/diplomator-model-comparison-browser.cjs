@@ -69,6 +69,7 @@ const assert=require('node:assert/strict');
   assert.equal(await admin.locator('#geminiKeyStatus').innerText(),'● Funciona');
   await admin.getByRole('button',{name:'Comprobar Groq'}).click();
   assert.equal(await admin.locator('#groqKeyStatus').innerText(),'● Falló la prueba');
+  assert.equal(await admin.locator('#groqKeyDetail').innerText(),'Clave rechazada');
   await admin.screenshot({path:'tools/admin-ai-connections.png'});
   assert.deepEqual(errors,[]);
   console.log('PASS Diplomator model comparison, flexible prompt and admin connections');
