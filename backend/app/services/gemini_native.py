@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import random
 import re
 
 
@@ -53,6 +55,17 @@ def chat_data(body: dict) -> dict:
     }
 
 
+async def post_with_retry(client, url: str, *, headers: dict, json: dict, delays=(1, 2)):
+    """Retry brief Gemini overloads; the caller records usage only after success."""
+    response = None
+    for attempt in range(len(delays) + 1):
+        response = await client.post(url, headers=headers, json=json)
+        if response.status_code not in {408, 429, 500, 502, 503, 504} or attempt == len(delays):
+            return response
+        await asyncio.sleep(delays[attempt] + (random.uniform(0, 0.25) if delays[attempt] else 0))
+    return response
+
+
 def failure_message(response, key: str) -> str:
     try:
         error = response.json().get("error", {})
@@ -65,5 +78,6 @@ def failure_message(response, key: str) -> str:
         403: "La clave no tiene permiso para este servicio o modelo.",
         404: "Google no encuentra el modelo o la ruta.",
         429: "Cuota o límite de uso alcanzado.",
+        503: "El modelo está saturado temporalmente. Inténtalo más tarde o elige otro modelo.",
     }
     return f"Gemini {response.status_code}: {explanations.get(response.status_code, 'No se pudo conectar.')} {message}".strip()

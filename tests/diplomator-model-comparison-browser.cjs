@@ -30,7 +30,7 @@ const assert=require('node:assert/strict');
     assert(!request.messages[0].content.includes('exactly 2 concrete facts'));
     if(generation===1){assert.equal(request.points_model_choice,'gemini:gemini-3.8-flash');assert(request.messages[0].content.includes('Con ejemplos de instituciones'));}
     if(generation===2)assert.equal(request.points_model_choice,'groq:openai/gpt-oss-120b');
-    data={ok:true,provider:generation===1?'gemini':'groq',model:generation===1?'gemini-3.8-flash':'openai/gpt-oss-120b',content:JSON.stringify({points:[{title:generation===1?'Versión Gemini':'Versión Groq',text:generation===1?'Explicación concreta de Gemini.':'Explicación concreta de Groq.',connection:'',datedInfo:[],vocab:[]}]})};
+    data={ok:true,provider:generation===1?'gemini':'groq',model:generation===1?'gemini-3.5-flash':'openai/gpt-oss-120b',replaced_model:generation===1?'gemini-3.8-flash':'',fallback_reason:generation===1?'overloaded':'',content:JSON.stringify({points:[{title:generation===1?'Versión Gemini':'Versión Groq',text:generation===1?'Explicación concreta de Gemini.':'Explicación concreta de Groq.',connection:'',datedInfo:[],vocab:[]}]})};
    }
    return route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
   });
@@ -42,6 +42,8 @@ const assert=require('node:assert/strict');
   await page.evaluate(async()=>startSessionWithTopic('The Marshall Plan',false));
   await page.evaluate(async()=>generateCurrentSession());
   assert.equal(await page.locator('#aititle-0').inputValue(),'Versión Gemini');
+  assert.equal(await page.locator('#pointsModelChoice').inputValue(),'gemini:gemini-3.8-flash');
+  assert.match(await page.locator('#pointsFallbackNotice').innerText(),/gemini-3.5-flash/);
   await page.evaluate(()=>{document.getElementById('pointsModelChoice').value='groq:openai/gpt-oss-120b'});
   await page.evaluate(async()=>generateCurrentSession());
   assert.equal(await page.locator('#pointsVersions button').count(),2);

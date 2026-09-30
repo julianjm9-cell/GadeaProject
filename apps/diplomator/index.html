@@ -991,6 +991,7 @@
 
       <div class="points-section">
         <div class="section-label">Puntos clave generados</div>
+        <div id="pointsFallbackNotice" class="db-notice" hidden></div>
         <div id="pointsVersions" class="points-versions" hidden></div>
         <div id="aiPoints"></div>
         <div id="loadingBar" style="display:none">
@@ -1971,9 +1972,11 @@ async function groqChat(messages, options = {}) {
     const data = await backendRequest('/api/chat', { method: 'POST', body: JSON.stringify(payload) });
     if (options.purpose === 'points') {
       lastPointsModel = `${data.provider || ''}:${data.model || ''}`;
-      if (data.replaced_model && availablePointsModels.some(item => item.id === lastPointsModel)) {
-        state.config.pointsModelChoice = lastPointsModel;
-        document.getElementById('pointsModelChoice').value = lastPointsModel;
+      lastPointsFallbackReason = data.fallback_reason || '';
+      const preferredModel = data.legacy_model_replaced ? 'gemini:gemini-3.8-flash' : lastPointsModel;
+      if (data.replaced_model && (data.legacy_model_replaced || data.fallback_reason !== 'overloaded') && availablePointsModels.some(item => item.id === preferredModel)) {
+        state.config.pointsModelChoice = preferredModel;
+        document.getElementById('pointsModelChoice').value = preferredModel;
         await persist();
       }
     }
@@ -1988,6 +1991,7 @@ const FS_SUPPORTED = false;
 const BACKEND_SUPPORTED = location.protocol === 'http:' || location.protocol === 'https:';
 let backendStatus = null;
 let lastPointsModel = '';
+let lastPointsFallbackReason = '';
 
 async function loadPointsModels() {
   const select = document.getElementById('pointsModelChoice');
@@ -2257,6 +2261,12 @@ function renderPointVersions() {
   const root = document.getElementById('pointsVersions');
   if (!root) return;
   const versions = session.versions || [];
+  const active = versions[session.activeVersion];
+  const notice = document.getElementById('pointsFallbackNotice');
+  notice.hidden = !active?.fallbackReason;
+  notice.textContent = active?.fallbackReason === 'overloaded'
+    ? `El modelo elegido estaba saturado. Estos apuntes se generaron con ${active.model}. Tu preferencia no ha cambiado.`
+    : active?.fallbackReason ? `El modelo anterior no estaba disponible. Estos apuntes se generaron con ${active.model}.` : '';
   root.hidden = versions.length < 2;
   root.innerHTML = versions.length < 2 ? '' : `<span>Comparar versiones</span>${versions.map((v, i) => `<button type="button" class="${i === session.activeVersion ? 'active' : ''}" onclick="switchPointVersion(${i})" aria-pressed="${i === session.activeVersion}">${escHtml('Versión ' + (i + 1) + ' · ' + (v.model || 'Modelo anterior'))}</button>`).join('')}<small>Instrucciones de esta versión: ${escHtml(versions[session.activeVersion]?.prompt || 'No registradas')}</small>`;
 }
@@ -2549,6 +2559,7 @@ Before answering, check that every point adds a different piece of understanding
     }));
     session.versions = [...(session.versions || []), {
       model: lastPointsModel || modelChoice,
+      fallbackReason: lastPointsFallbackReason,
       prompt: personalGuidance,
       createdAt: new Date().toISOString(),
       points: structuredClone(session.aiPoints)

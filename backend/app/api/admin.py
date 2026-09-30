@@ -35,7 +35,7 @@ from app.services.ai_config import (
     valid_openai_key,
 )
 from app.services.audit import audit
-from app.services.gemini_native import chat_data as gemini_chat_data, failure_message as gemini_failure_message, generate_url as gemini_generate_url, is_auth_key as is_gemini_auth_key, request_body as gemini_request_body
+from app.services.gemini_native import chat_data as gemini_chat_data, failure_message as gemini_failure_message, generate_url as gemini_generate_url, is_auth_key as is_gemini_auth_key, post_with_retry as gemini_post_with_retry, request_body as gemini_request_body
 from app.services.licenses import license_for_user, license_is_current, usage_count_for_license
 from app.services.resources import load_resource_catalog, save_resource_catalog
 
@@ -382,7 +382,9 @@ async def test_ai_settings(payload: dict, actor: User = Depends(require_superadm
     }
     async with httpx.AsyncClient(timeout=30) as client:
         if provider == "gemini" and is_gemini_auth_key(api_key):
-            response = await client.post(gemini_generate_url(model), headers={"x-goog-api-key": api_key, "Content-Type": "application/json"}, json=gemini_request_body(payload))
+            response = await gemini_post_with_retry(client, gemini_generate_url(model), headers={"x-goog-api-key": api_key, "Content-Type": "application/json"}, json=gemini_request_body(payload))
+        elif provider == "gemini":
+            response = await gemini_post_with_retry(client, url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
         else:
             response = await client.post(url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
     if response.status_code >= 400:
@@ -431,11 +433,22 @@ async def test_ai_connection(payload: dict, actor: User = Depends(require_supera
             raise HTTPException(400, f"{provider} no tiene una clave válida guardada.")
         try:
             async with httpx.AsyncClient(timeout=30) as client:
-                probe = {"model": model, "messages": [{"role": "user", "content": "Responde OK"}], "max_tokens": 1024}
-                if provider == "gemini" and is_gemini_auth_key(key):
-                    response = await client.post(gemini_generate_url(model), headers={"x-goog-api-key": key, "Content-Type": "application/json"}, json=gemini_request_body(probe))
+                async def probe_gemini(current_model: str):
+                    probe = {"model": current_model, "messages": [{"role": "user", "content": "Responde OK"}], "max_tokens": 1024}
+                    if is_gemini_auth_key(key):
+                        return await gemini_post_with_retry(client, gemini_generate_url(current_model), headers={"x-goog-api-key": key, "Content-Type": "application/json"}, json=gemini_request_body(probe))
+                    return await gemini_post_with_retry(client, url, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json=probe)
+
+                if provider == "gemini":
+                    response = await probe_gemini(model)
+                    if response.status_code == 503:
+                        for alternate in ("gemini-3.5-flash", "gemini-3.5-flash-lite"):
+                            model = alternate
+                            response = await probe_gemini(model)
+                            if response.status_code not in {503, 404}:
+                                break
                 else:
-                    response = await client.post(url, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json=probe)
+                    response = await client.post(url, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json={"model": model, "messages": [{"role": "user", "content": "Responde OK"}], "max_tokens": 1024})
             body = response.json()
         except (httpx.RequestError, ValueError) as exc:
             raise HTTPException(502, f"{provider} no responde. Inténtalo de nuevo.") from exc
@@ -453,7 +466,7 @@ async def test_ai_connection(payload: dict, actor: User = Depends(require_supera
             raise HTTPException(502, f"{provider} respondió sin contenido.")
     audit(db, actor=actor, organization_id=actor.organization_id, action="ai_connection_tested", entity_type="app_settings", entity_id=provider)
     db.commit()
-    return {"ok": True, "provider": provider, "message": "Conexión verificada ahora"}
+    return {"ok": True, "provider": provider, "model": model, "message": f"Conexión verificada ahora con {model}" if provider == "gemini" else "Conexión verificada ahora"}
 
 
 @router.post("/style-guide/analyze-docx")

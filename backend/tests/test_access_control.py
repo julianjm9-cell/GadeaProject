@@ -949,6 +949,7 @@ def test_legacy_gemini_points_model_retries_current_model_without_extra_credits(
     assert sent_models == ["gemini-2.5-pro", "gemini-3.8-flash"]
     assert response.json()["model"] == "gemini-3.8-flash"
     assert response.json()["replaced_model"] == "gemini-2.5-pro"
+    assert response.json()["legacy_model_replaced"] is True
     with db_factory() as db:
         assert db.query(UsageRecord).filter_by(product_code="DIPLOMATOR").count() == 1
 
@@ -981,6 +982,40 @@ def test_gemini_auth_key_uses_native_api_for_probe_and_points(client, monkeypatc
     assert response.status_code == 200
     assert response.json()["model"] == "gemini-3.8-flash"
     assert sent[-1][1]["json"]["contents"][0]["parts"][0]["text"] == "Tema"
+
+
+def test_diplomator_retries_overloaded_gemini_and_uses_next_model(client, monkeypatch):
+    from app.services import gemini_native
+
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin")
+    assert login(test_client).status_code == 200
+    assert test_client.post("/admin/ai-settings/keys", json={"gemini_api_key": "AQ.test-key"}).status_code == 200
+    attempts = []
+    class FakeResponse:
+        def __init__(self, status_code): self.status_code = status_code
+        def json(self):
+            if self.status_code == 503:
+                return {"error": {"message": "High demand"}}
+            return {"candidates": [{"content": {"parts": [{"text": '{"points":[{"title":"A","text":"B"}]}' }]}}], "usageMetadata": {"promptTokenCount": 5, "candidatesTokenCount": 7}}
+    class FakeClient:
+        def __init__(self, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kwargs):
+            attempts.append(url)
+            return FakeResponse(503 if "/gemini-3.8-flash:" in url else 200)
+    async def quick_retry(client, url, *, headers, json):
+        return await gemini_native.post_with_retry(client, url, headers=headers, json=json, delays=(0, 0))
+    monkeypatch.setattr(app_routes.httpx, "AsyncClient", FakeClient)
+    monkeypatch.setattr(app_routes, "gemini_post_with_retry", quick_retry)
+    response = test_client.post("/api/chat?app=diplomator", json={"purpose": "points", "requested_points": 3, "points_model_choice": "gemini:gemini-3.8-flash", "messages": [{"role": "user", "content": "Tema"}]})
+    assert response.status_code == 200
+    assert response.json()["model"] == "gemini-3.5-flash"
+    assert response.json()["fallback_reason"] == "overloaded"
+    assert len(attempts) == 4
+    with db_factory() as db:
+        assert db.query(UsageRecord).filter_by(product_code="DIPLOMATOR").count() == 1
 
 
 def test_ai_settings_replaces_deprecated_groq_model(client):

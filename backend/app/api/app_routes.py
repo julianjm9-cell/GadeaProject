@@ -40,7 +40,7 @@ from app.services.ai_config import (
     valid_openai_key,
 )
 from app.services.audit import audit
-from app.services.gemini_native import chat_data as gemini_chat_data, failure_message as gemini_failure_message, generate_url as gemini_generate_url, is_auth_key as is_gemini_auth_key, request_body as gemini_request_body
+from app.services.gemini_native import chat_data as gemini_chat_data, failure_message as gemini_failure_message, generate_url as gemini_generate_url, is_auth_key as is_gemini_auth_key, post_with_retry as gemini_post_with_retry, request_body as gemini_request_body
 from app.services.licenses import check_access, check_legacy_license, usage_count_for_license
 from app.services.gamification import award_event, equip_item, get_or_create_profile, level_for_xp, profile_payload, public_config, purchase_item
 from app.services.resources import load_resource_catalog
@@ -1381,19 +1381,35 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
     if purpose == "points":
         add_points_focus_instruction(payload)
     fallback_model = ""
+    fallback_reason = ""
+    legacy_model_replaced = False
     native_gemini = chat_provider == "gemini" and is_gemini_auth_key(api_key)
     async with httpx.AsyncClient(timeout=120) as client:
-        if native_gemini:
-            res = await client.post(gemini_generate_url(payload["model"]), headers={"x-goog-api-key": api_key, "Content-Type": "application/json"}, json=gemini_request_body(payload))
+        async def send_gemini():
+            if native_gemini:
+                return await gemini_post_with_retry(client, gemini_generate_url(payload["model"]), headers={"x-goog-api-key": api_key, "Content-Type": "application/json"}, json=gemini_request_body(payload))
+            return await gemini_post_with_retry(client, chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
+
+        if chat_provider == "gemini":
+            res = await send_gemini()
         else:
             res = await client.post(chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
         if purpose == "points" and chat_provider == "gemini" and res.status_code == 404 and payload["model"].startswith("gemini-2.5-"):
             fallback_model = payload["model"]
+            fallback_reason = "legacy_model"
+            legacy_model_replaced = True
             payload["model"] = GEMINI_CHAT_DEFAULT
-            if native_gemini:
-                res = await client.post(gemini_generate_url(payload["model"]), headers={"x-goog-api-key": api_key, "Content-Type": "application/json"}, json=gemini_request_body(payload))
-            else:
-                res = await client.post(chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
+            res = await send_gemini()
+        if purpose == "points" and chat_provider == "gemini" and res.status_code == 503:
+            fallback_model = fallback_model or payload["model"]
+            fallback_reason = "overloaded"
+            for alternate in ("gemini-3.5-flash", "gemini-3.5-flash-lite"):
+                if alternate == payload["model"]:
+                    continue
+                payload["model"] = alternate
+                res = await send_gemini()
+                if res.status_code not in {503, 404}:
+                    break
     if res.status_code >= 400:
         if native_gemini:
             raise HTTPException(status_code=502, detail=gemini_failure_message(res, api_key))
@@ -1419,7 +1435,7 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
     db.flush()
     db.add(Message(conversation_id=conv.id, organization_id=user.organization_id, user_id=user.id, role="assistant", content=content[:20000]))
     db.commit()
-    return {"ok": True, "content": content, "provider": chat_provider, "model": payload["model"], "replaced_model": fallback_model}
+    return {"ok": True, "content": content, "provider": chat_provider, "model": payload["model"], "replaced_model": fallback_model, "fallback_reason": fallback_reason, "legacy_model_replaced": legacy_model_replaced}
 
 
 @router.post("/api/ocr")
