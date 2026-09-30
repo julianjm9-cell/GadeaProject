@@ -1384,11 +1384,16 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
     fallback_reason = ""
     legacy_model_replaced = False
     native_gemini = chat_provider == "gemini" and is_gemini_auth_key(api_key)
-    async with httpx.AsyncClient(timeout=120) as client:
+    async with httpx.AsyncClient(timeout=60 if chat_provider == "gemini" else 120) as client:
         async def send_gemini():
-            if native_gemini:
-                return await gemini_post_with_retry(client, gemini_generate_url(payload["model"]), headers={"x-goog-api-key": api_key, "Content-Type": "application/json"}, json=gemini_request_body(payload))
-            return await gemini_post_with_retry(client, chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
+            try:
+                if native_gemini:
+                    return await gemini_post_with_retry(client, gemini_generate_url(payload["model"]), headers={"x-goog-api-key": api_key, "Content-Type": "application/json"}, json=gemini_request_body(payload))
+                return await gemini_post_with_retry(client, chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
+            except httpx.ReadTimeout:
+                return httpx.Response(503, json={"error": {"message": "El modelo tardó demasiado en responder."}})
+            except httpx.RequestError as exc:
+                raise HTTPException(status_code=502, detail="El servidor no pudo conectar con Gemini. Comprueba la conexión de Hostinger.") from exc
 
         if chat_provider == "gemini":
             res = await send_gemini()

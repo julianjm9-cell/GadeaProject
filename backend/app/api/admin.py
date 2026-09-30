@@ -423,7 +423,7 @@ async def test_ai_connection(payload: dict, actor: User = Depends(require_supera
         config = {
             "groq": ("groq_api_key", settings.groq_api_key, valid_groq_key, str(settings.groq_chat_url), GROQ_CHAT_DEFAULT),
             "openai": ("openai_api_key", settings.openai_api_key, valid_openai_key, str(settings.openai_chat_url), "gpt-4o-mini"),
-            "gemini": ("gemini_api_key", settings.gemini_api_key, valid_gemini_key, str(settings.gemini_chat_url), GEMINI_CHAT_DEFAULT),
+            "gemini": ("gemini_api_key", settings.gemini_api_key, valid_gemini_key, str(settings.gemini_chat_url), "gemini-3.5-flash-lite"),
         }.get(provider)
         if not config:
             raise HTTPException(400, "Proveedor no válido.")
@@ -432,26 +432,26 @@ async def test_ai_connection(payload: dict, actor: User = Depends(require_supera
         if not validator(key):
             raise HTTPException(400, f"{provider} no tiene una clave válida guardada.")
         try:
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=15) as client:
                 async def probe_gemini(current_model: str):
-                    probe = {"model": current_model, "messages": [{"role": "user", "content": "Responde OK"}], "max_tokens": 1024}
+                    probe = {"model": current_model, "messages": [{"role": "user", "content": "Responde OK"}], "max_tokens": 128}
                     if is_gemini_auth_key(key):
-                        return await gemini_post_with_retry(client, gemini_generate_url(current_model), headers={"x-goog-api-key": key, "Content-Type": "application/json"}, json=gemini_request_body(probe))
-                    return await gemini_post_with_retry(client, url, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json=probe)
+                        native_probe = gemini_request_body(probe)
+                        native_probe["generationConfig"]["thinkingConfig"] = {"thinkingLevel": "minimal"}
+                        return await gemini_post_with_retry(client, gemini_generate_url(current_model), headers={"x-goog-api-key": key, "Content-Type": "application/json"}, json=native_probe, delays=(0.5,))
+                    return await gemini_post_with_retry(client, url, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json=probe, delays=(0.5,))
 
                 if provider == "gemini":
                     response = await probe_gemini(model)
-                    if response.status_code == 503:
-                        for alternate in ("gemini-3.5-flash", "gemini-3.5-flash-lite"):
-                            model = alternate
-                            response = await probe_gemini(model)
-                            if response.status_code not in {503, 404}:
-                                break
                 else:
                     response = await client.post(url, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json={"model": model, "messages": [{"role": "user", "content": "Responde OK"}], "max_tokens": 1024})
             body = response.json()
-        except (httpx.RequestError, ValueError) as exc:
-            raise HTTPException(502, f"{provider} no responde. Inténtalo de nuevo.") from exc
+        except httpx.TimeoutException as exc:
+            raise HTTPException(502, f"{provider}: tiempo de espera agotado al contactar con el servicio. La clave aún no se ha podido comprobar.") from exc
+        except httpx.RequestError as exc:
+            raise HTTPException(502, f"{provider}: el servidor no pudo conectarse al servicio externo. Comprueba la conexión de Hostinger y vuelve a probar.") from exc
+        except ValueError as exc:
+            raise HTTPException(502, f"{provider}: el servicio respondió, pero su respuesta no era JSON válido.") from exc
         if response.status_code >= 400:
             if provider == "gemini" and is_gemini_auth_key(key):
                 raise HTTPException(502, gemini_failure_message(response, key))

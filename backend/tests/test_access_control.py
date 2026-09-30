@@ -975,13 +975,33 @@ def test_gemini_auth_key_uses_native_api_for_probe_and_points(client, monkeypatc
     monkeypatch.setattr(app_routes.httpx, "AsyncClient", FakeClient)
     probe = test_client.post("/admin/ai-settings/test-connection", json={"provider": "gemini"})
     assert probe.status_code == 200
-    assert sent[-1][0].endswith("/models/gemini-3.8-flash:generateContent")
+    assert sent[-1][0].endswith("/models/gemini-3.5-flash-lite:generateContent")
     assert sent[-1][1]["headers"]["x-goog-api-key"] == "AQ.test-key"
+    assert sent[-1][1]["json"]["generationConfig"]["thinkingConfig"]["thinkingLevel"] == "minimal"
     assert "Authorization" not in sent[-1][1]["headers"]
     response = test_client.post("/api/chat?app=diplomator", json={"purpose": "points", "requested_points": 3, "points_model_choice": "gemini:gemini-3.8-flash", "messages": [{"role": "user", "content": "Tema"}]})
     assert response.status_code == 200
     assert response.json()["model"] == "gemini-3.8-flash"
     assert sent[-1][1]["json"]["contents"][0]["parts"][0]["text"] == "Tema"
+
+
+def test_gemini_probe_reports_timeout_instead_of_generic_failure(client, monkeypatch):
+    import httpx
+
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin")
+    assert login(test_client).status_code == 200
+    assert test_client.post("/admin/ai-settings/keys", json={"gemini_api_key": "AQ.test-key"}).status_code == 200
+    class TimeoutClient:
+        def __init__(self, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kwargs):
+            raise httpx.ReadTimeout("read timed out")
+    monkeypatch.setattr(app_routes.httpx, "AsyncClient", TimeoutClient)
+    response = test_client.post("/admin/ai-settings/test-connection", json={"provider": "gemini"})
+    assert response.status_code == 502
+    assert "tiempo de espera agotado" in response.json()["detail"]
 
 
 def test_diplomator_retries_overloaded_gemini_and_uses_next_model(client, monkeypatch):
