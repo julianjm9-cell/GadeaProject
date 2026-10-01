@@ -68,6 +68,7 @@
     .grid.two { grid-template-columns:360px minmax(0,1fr); align-items:start; }
     .grid.three { grid-template-columns:repeat(3,minmax(0,1fr)); }
     .grid.four { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .grid.five { grid-template-columns:repeat(5,minmax(0,1fr)); }
     .metric { min-height:108px; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; gap:7px; border:1px solid var(--line); border-radius:14px; padding:17px; background:linear-gradient(145deg,#fff,#f8fbff); box-shadow:none; }
     .metric::before { display:none; }
     .metric span { color:var(--muted); font-size:12px; font-weight:850; }
@@ -148,8 +149,8 @@
     .ai-function small { color:var(--muted); }
     .toast { position:fixed; right:16px; bottom:16px; z-index:10; max-width:min(420px,calc(100vw - 32px)); padding:12px 14px; border-radius:8px; background:#172026; color:#fff; box-shadow:var(--shadow); opacity:0; transform:translateY(8px); pointer-events:none; transition:.18s ease; }
     .toast.show { opacity:1; transform:translateY(0); }
-    @media (max-width:1180px) { .dashboard-grid{grid-template-columns:1fr}.dashboard-side{grid-template-columns:1fr 1fr}.shell{align-items:stretch;flex-direction:column}.login{width:100%;grid-template-columns:1fr 1fr auto auto}.grid.two,.grid.three,.grid.four,.app-strip{grid-template-columns:1fr 1fr} }
-    @media (max-width:820px) { .page{grid-template-columns:1fr}.sidebar{position:static;height:auto}.workspace{padding:12px}.tabs{grid-template-columns:1fr 1fr}.dashboard-side,.login,.grid.two,.grid.three,.grid.four,.app-strip,.row,.ai-capabilities{grid-template-columns:1fr}.head{flex-direction:column}h1{font-size:21px} }
+    @media (max-width:1180px) { .dashboard-grid{grid-template-columns:1fr}.dashboard-side{grid-template-columns:1fr 1fr}.shell{align-items:stretch;flex-direction:column}.login{width:100%;grid-template-columns:1fr 1fr auto auto}.grid.two,.grid.three,.grid.four,.grid.five,.app-strip{grid-template-columns:1fr 1fr} }
+    @media (max-width:820px) { .page{grid-template-columns:1fr}.sidebar{position:static;height:auto}.workspace{padding:12px}.tabs{grid-template-columns:1fr 1fr}.dashboard-side,.login,.grid.two,.grid.three,.grid.four,.grid.five,.app-strip,.row,.ai-capabilities{grid-template-columns:1fr}.head{flex-direction:column}h1{font-size:21px} }
     @media (max-width:520px) { .credit-summary{grid-template-columns:1fr}.app-toolbar{align-items:stretch;flex-direction:column}.app-toolbar .section-actions{flex-wrap:wrap}.app-toolbar input{max-width:none} }
 
 :root{--shadow:0 10px 30px #23457108;--line:#e2eaf5;--main:#1463e6;--ink:#152c50}body{background:radial-gradient(ellipse at 100% 0,#e8f2ff,transparent 55%),#f5f8fd}.page{max-width:none;grid-template-columns:225px minmax(0,1fr)}.sidebar{background:#ffffffc9;border-right:1px solid var(--line);padding:28px 16px}.brand{margin-bottom:25px}.brand .mark{border-radius:14px;background:linear-gradient(135deg,#258aff,#1657d3);color:white}.brand h1{font-size:18px}.tabs button{font-size:13px;font-weight:600;border-radius:11px}.tabs button.active{background:#eaf2ff;color:#1463e6;box-shadow:none;border-color:transparent}.tabs button.active .nav-icon{background:#dceaff;color:#1463e6}.nav-label{font-size:9px;letter-spacing:.12em}.workspace{padding:20px 28px;min-width:0}.shell{background:transparent;border:0;box-shadow:none;padding:0 0 20px;display:flex;align-items:center;justify-content:space-between}.shell>div{display:grid;gap:4px}.shell strong{font-size:14px}.shell .muted{font-size:11px}.screen-card{border:0;background:transparent;box-shadow:none;padding:10px 0}.head h2{font-size:29px;letter-spacing:-.9px}.head .muted{font-size:13px;font-weight:400;margin-top:7px}button{border-radius:9px;box-shadow:none;font-size:12px;min-height:36px;font-weight:600}input,select,textarea{border-radius:9px;background:#fbfdff;border-color:#dce6f4;font-size:13px}label{font-size:11px;font-weight:650;color:#536b8c}.metric{border-radius:17px;min-height:115px;padding:20px;background:#fff}.metric strong{color:#2467ba;font-size:29px}.metric span{font-weight:600}.metric .muted{font-size:11px}.overview-apps-title{margin-top:32px}.overview-products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.overview-product{background:white;border:1px solid var(--line);border-radius:18px;padding:20px}.product-identity{display:flex;align-items:center;gap:12px}.product-identity img{width:44px;height:44px;object-fit:contain}.product-identity h3{font-size:15px}.product-identity small{color:var(--muted);font-size:11px}.product-model{background:#f4f8fe;border-radius:10px;padding:13px;margin:19px 0;display:grid;gap:6px}.product-model span,.product-model small{font-size:10px;color:#7488a6}.product-model strong{font-size:12px;overflow-wrap:anywhere}.product-actions{display:flex;gap:8px}.product-actions button{flex:1}.ai-app-picker{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:23px 0}.ai-app-picker button{display:flex;align-items:center;justify-content:flex-start;gap:10px;padding:13px 11px;background:#fff;border:1px solid var(--line);min-width:0;font-size:12px;border-radius:13px}.ai-app-picker button.selected{border-color:#4c91ef;background:#edf5ff;box-shadow:0 0 0 2px #1463e612;color:#175fc5}.ai-app-picker img{width:30px;height:30px;object-fit:contain}.ai-app-picker span{white-space:normal;text-align:left}.ai-selected{display:flex;justify-content:space-between;align-items:center;margin:20px 0 15px}.ai-selected h3{font-size:20px}.ai-selected p{font-size:12px;margin-top:5px}.ai-selected .badge{font-size:10px;font-weight:500}.ai-editor{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.model-card{background:white;border:1px solid var(--line);border-radius:18px;padding:20px;min-width:0}.model-card-head{display:flex;gap:11px;align-items:center}.function-icon{width:38px;height:38px;display:grid;place-items:center;flex-shrink:0;border-radius:11px;color:#4b7ecc;background:#edf4ff;font-size:22px}.function-icon.ocr{color:#8666c7;background:#f1ecff}.function-icon.transcribe{color:#389980;background:#e8f6ef}.function-icon.points{color:#b78c3e;background:#fff6e5}.model-card-head h3{font-size:14px}.model-card-head p{font-size:11px;line-height:1.45;color:#7d8ba4;margin-top:5px}.connection-state{display:inline-block;font-size:10px;margin:15px 0 7px;padding:5px 8px;border-radius:6px}.connection-state.ready{background:#edf8f2;color:#288366}.connection-state.missing{background:#fff5e6;color:#a57829}.model-fields{display:grid;gap:1px}.model-card select{width:100%;font-size:12px;min-height:38px}.model-test{display:grid;gap:7px;border-top:1px solid #edf2f8;margin-top:17px;padding-top:14px}.model-test button{font-size:11px;justify-self:start}.model-test small,.model-test span{font-size:10px;color:#8190a7}.model-test span{color:#347e68}.ai-savebar{display:flex;align-items:center;gap:9px;background:#eaf2ff;border:1px solid #dce9fd;padding:13px 17px;border-radius:13px;margin:17px 0}.ai-savebar p{flex:1;font-size:12px;color:#6481a6;margin:0}.connections,.shared-settings{margin-top:15px}.connections>summary,.shared-settings>summary{font-size:12px;font-weight:600;padding:16px;color:#587190}.connections form,.shared-settings>form,.shared-settings>p{padding:0 20px 18px}.connections .ai-form-section{border:0;margin:0;padding:4px 0}.shared-settings h3{font-size:15px}.table-wrap{border-radius:14px}th{font-size:10px;padding:13px}td{padding:14px 12px}.app-form{border-radius:17px}.app-toolbar{margin-top:24px}.app-toolbar .muted{font-size:12px}.auth-card{border-radius:24px}.auth-card h1{letter-spacing:-1px}@media(min-width:1500px){.ai-editor{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-width:1100px){.workspace{padding:18px}.ai-app-picker{grid-template-columns:repeat(3,1fr)}.ai-editor,.overview-products{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:820px){.page{grid-template-columns:1fr}.sidebar{padding:16px;height:auto}.brand{margin-bottom:12px}.tabs{display:flex;overflow:auto}.nav-group{display:flex;flex-shrink:0}.nav-label{display:none}.tabs button{width:auto}.workspace{padding:18px 14px}.head h2{font-size:25px}.ai-editor,.overview-products{grid-template-columns:1fr}.ai-app-picker{grid-template-columns:repeat(2,minmax(0,1fr))}.ai-selected{align-items:flex-start;gap:10px}.ai-savebar{flex-wrap:wrap}.ai-savebar p{flex-basis:100%}.shell>div .muted{display:none}.grid.four{grid-template-columns:1fr 1fr}.shell{flex-direction:row}.ai-app-picker button{font-size:11px}.table-wrap{max-width:100%;overflow:auto}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
@@ -197,6 +198,7 @@
         <button data-view="eso" onclick="setView('eso')"><span class="nav-icon"><img src="assets/brand/eso-simple-v2.png" alt=""></span>ESO Adultos</button>
         <button data-view="profesor" onclick="setView('profesor')"><span class="nav-icon"><img src="assets/brand/profesor-simple-v2.png" alt=""></span>Profesor Particular</button>
         <button data-view="diplomator" onclick="setView('diplomator')"><span class="nav-icon"><img src="assets/brand/diplomator-simple-v2.png" alt=""></span>Diplomator</button>
+        <button data-view="ocr" onclick="setView('ocr')"><span class="nav-icon"><img src="/assets/brand/facturas.svg" alt=""></span>FACTURAS</button>
         <button data-view="hazlotu" onclick="setView('hazlotu')"><span class="nav-icon"><img src="assets/brand/hazlotu-logo.png" alt=""></span>HazloTú</button>
         <button data-view="universidad" onclick="setView('universidad')"><span class="nav-icon"><img src="assets/brand/u25-simple.png" alt=""></span>Universidad +25</button>
         <button data-view="cambridge" onclick="setView('cambridge')"><span class="nav-icon"><img src="assets/brand/ingles-simple.png" alt=""></span>Titulo de ingles</button>
@@ -208,7 +210,7 @@
   <div class="workspace">
     <main class="layout">
     <section id="view-overview" class="card screen-card">
-      <div class="grid four" id="globalMetrics"></div>
+      <div class="grid five" id="globalMetrics"></div>
     </section>
 
     <section id="view-app" class="card screen-card" hidden>
@@ -226,6 +228,7 @@
           <div><label for="newPassword">Contraseña inicial (solo para cuentas nuevas)</label><input id="newPassword" type="password" minlength="8" placeholder="Mínimo 8 caracteres" autocomplete="new-password"></div>
           <label id="newReactivateBox" hidden><input id="newReactivate" type="checkbox" style="width:auto;min-height:0;margin-right:7px">Reactivar esta cuenta. También recuperará el acceso a sus otras apps.</label>
           <div class="row"><div><label for="newLimit">Créditos totales (0 = sin límite)</label><input id="newLimit" type="number" min="0" step="1" value="300" required></div><div><label for="newDays">Duración del acceso, en días</label><input id="newDays" type="number" min="1" step="1" value="365" required></div></div>
+          <div id="newOcrRoleWrap" hidden><label for="newOcrRole">Permisos en FACTURAS</label><select id="newOcrRole"><option value="admin">Administrador · modelos, claves y entrenamiento</option><option value="user">Usuario · uso de facturas</option></select></div>
           <div class="form-actions"><button class="primary">Crear o dar acceso</button></div>
         </div>
         <div id="createdBox" class="notice" hidden style="margin-top:12px"></div>
@@ -236,6 +239,7 @@
           <div class="row"><div><label for="editName">Usuario</label><input id="editName"></div><div><label for="editEmail">Correo electrónico</label><input id="editEmail" type="email" required></div></div>
           <div><label for="editPassword">Nueva contraseña</label><input id="editPassword" type="password" minlength="8" placeholder="Dejar vacío para conservarla" autocomplete="new-password"></div>
           <div class="row"><div><label for="editAvailable">Créditos disponibles</label><input id="editAvailable" type="number" min="0" step="1" required></div><div><label for="editUsed">Créditos gastados</label><input id="editUsed" type="number" readonly></div></div>
+          <div id="editOcrRoleWrap" hidden><label for="editOcrRole">Permisos en FACTURAS</label><select id="editOcrRole"><option value="admin">Administrador · modelos, claves y entrenamiento</option><option value="user">Usuario · uso de facturas</option></select></div>
           <div class="form-actions"><button class="danger" type="button" onclick="deleteSelectedUser()">Eliminar usuario</button><button class="primary">Guardar cambios</button></div>
         </div>
       </form>
@@ -272,7 +276,7 @@
 <div id="toast" class="toast"></div>
 <script>
 const PRODUCTS=[
-  {key:'ocr',code:'OCR_FACTURAS',short:'OCR',label:'OCR de facturas',public:'/ocr-facturas',app:'/facturas',org:'Educa Suite - OCR',icon:'assets/brand/hazlotu-logo.png'},
+  {key:'ocr',code:'OCR_FACTURAS',short:'FAC',label:'FACTURAS',public:'/ocr-facturas',app:'/facturas',org:'Educa Suite - Facturas',icon:'/assets/brand/facturas.svg'},
   {key:'profesor',code:'PROFESOR_PARTICULAR',short:'PP',label:'Profesor Particular',public:'/profesor',app:'/profesor-particular',org:'Educa Suite - Profesor Particular',icon:'assets/brand/profesor-simple-v2.png'},
   {key:'universidad',code:'UNIVERSIDAD_ADULTOS',short:'U25',label:'Universidad +25',public:'/u25',app:'/universidad-adultos',org:'Educa Suite - Universidad +25',icon:'assets/brand/u25-simple.png'},
   {key:'eso',code:'ESO_ADULTOS',short:'E25',label:'ESO Adultos',public:'/e25',app:'/eso-adultos',org:'Educa Suite - ESO Adultos',icon:'assets/brand/eso-simple-v2.png'},
@@ -307,13 +311,15 @@ function accessCredits(access){return access.unlimited?'Sin límite':String(acce
 function renderOverview(){
   const capabilities=ai?.capabilities||[];
   const ready=capabilities.filter(capability=>capability.configured).length;
-  $('globalMetrics').innerHTML=['eso','profesor','diplomator'].map(key=>{
+  $('globalMetrics').innerHTML=['eso','profesor','diplomator','ocr'].map(key=>{
     const product=productByKey(key),count=appAccounts(key).length;
     return `<button type="button" class="metric overview-link" onclick="setView('${key}')"><span>${esc(product.label)} →</span><strong>${count} ${count===1?'usuario':'usuarios'}</strong></button>`;
   }).join('')+`<button type="button" class="metric overview-link" onclick="setView('ai')"><span>Modelos de IA →</span><strong>${ready} / ${capabilities.length||4}</strong></button>`;
 }
 function renderApp(){
   const product=productByKey();
+  $('newOcrRoleWrap').hidden=product.code!=='OCR_FACTURAS';
+  $('editOcrRoleWrap').hidden=product.code!=='OCR_FACTURAS';
   const rows=appAccounts();
   const accesses=rows.map(account=>account.accesses.find(access=>access.product_code===product.code));
   const query=$('appUserSearch').value.trim().toLowerCase();
@@ -326,11 +332,12 @@ function renderApp(){
   $('appPublicLink').href=product.public;
   $('appPrivateLink').href=product.app;
   $('appMetrics').innerHTML=metric(accountLabel,rows.length)+metric('Accesos activos',active)+metric('Créditos gastados',used);
-  $('appUsersTable').innerHTML=table(['Usuario','Acceso','Disponibles','Gastados',''],visible.map(account=>{
+  $('appUsersTable').innerHTML=table(['Usuario','Acceso',...(product.code==='OCR_FACTURAS'?['Rol']:[]),'Disponibles','Gastados',''],visible.map(account=>{
     const access=account.accesses.find(item=>item.product_code===product.code);
     return [
       `<td><strong>${esc(account.full_name||account.email)}</strong><br><span class="muted">${esc(account.email)}</span></td>`,
       `<td>${badge(access.effective_status==='active'?'active':'inactive')}</td>`,
+      ...(product.code==='OCR_FACTURAS'?[`<td>${access.access_role==='admin'?'Administrador':'Usuario'}</td>`]:[]),
       `<td><strong>${accessCredits(access)}</strong></td>`,
       `<td>${access.used_credits}</td>`,
       `<td><button type="button" onclick="openUser('${account.id}')">Editar</button></td>`
@@ -377,7 +384,7 @@ async function createAppUser(event){
     const org=existing?null:await ensureProductOrg(product);
     const user=existing||await api('/admin/users',{method:'POST',body:JSON.stringify({organization_id:org.id,email,password,full_name:$('newName').value.trim(),role:'user',is_active:true})});
     const now=new Date(),end=new Date(now.getTime()+days*86400000);
-    await api('/admin/licenses',{method:'POST',body:JSON.stringify({organization_id:user.organization_id,user_id:user.id,product_code:product.code,legacy_key:makeLicenseKey(product),starts_at:now.toISOString(),expires_at:end.toISOString(),status:'active',usage_limit:total})});
+    await api('/admin/licenses',{method:'POST',body:JSON.stringify({organization_id:user.organization_id,user_id:user.id,product_code:product.code,legacy_key:makeLicenseKey(product),starts_at:now.toISOString(),expires_at:end.toISOString(),status:'active',usage_limit:total,access_role:product.code==='OCR_FACTURAS'?$('newOcrRole').value:'user'})});
     if(existing&&!existing.is_active)await api(`/admin/users/${user.id}`,{method:'PATCH',body:JSON.stringify({is_active:true})});
     await loadAll();
     $('createdBox').hidden=false;
@@ -399,6 +406,7 @@ function openUser(id){
   $('editPassword').value='';
   $('editAvailable').value=access.unlimited?0:Number(access.available_credits||0);
   $('editUsed').value=Number(access.used_credits||0);
+  $('editOcrRole').value=access.access_role==='admin'?'admin':'user';
   $('editAvailable').title=access.unlimited?'Esta licencia no tiene límite. Escribe un número mayor que 0 para establecer un saldo.':'';
   $('editUserForm').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
@@ -414,7 +422,8 @@ async function saveSelectedUser(event){
     const body={email:$('editEmail').value.trim(),full_name:$('editName').value.trim()};
     if($('editPassword').value)body.password=$('editPassword').value;
     await api(`/admin/users/${user.id}`,{method:'PATCH',body:JSON.stringify(body)});
-    if(total!==Number(access.total_credits||0))await api(`/admin/users/${user.id}/access/${product.code}`,{method:'PATCH',body:JSON.stringify({usage_limit:total})});
+    const roleChanged=product.code==='OCR_FACTURAS'&&$('editOcrRole').value!==access.access_role;
+    if(total!==Number(access.total_credits||0)||roleChanged)await api(`/admin/users/${user.id}/access/${product.code}`,{method:'PATCH',body:JSON.stringify({usage_limit:total,...(product.code==='OCR_FACTURAS'?{access_role:$('editOcrRole').value}:{})})});
     await loadAll();
     closeUserEditor();
     toast('Usuario actualizado.');

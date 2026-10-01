@@ -63,6 +63,7 @@ class License(Base, TimestampMixin):
     user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
     product_code: Mapped[str] = mapped_column(String(80), default="DIPLOMATOR", nullable=False, index=True)
     plan: Mapped[str] = mapped_column(String(80), default="MVP", nullable=False)
+    access_role: Mapped[str] = mapped_column(String(20), default="user", server_default="user", nullable=False)
     status: Mapped[str] = mapped_column(String(32), default="active", nullable=False)
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

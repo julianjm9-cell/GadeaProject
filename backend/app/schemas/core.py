@@ -88,6 +88,7 @@ class LicenseCreate(BaseModel):
     user_id: UUID | None = None
     product_code: str = "DIPLOMATOR"
     plan: str = "MVP"
+    access_role: str = "user"
     status: str = "active"
     starts_at: datetime
     expires_at: datetime
@@ -100,6 +101,7 @@ class LicensePatch(BaseModel):
     user_id: UUID | None = None
     product_code: str | None = None
     plan: str | None = None
+    access_role: str | None = None
     status: str | None = None
     starts_at: datetime | None = None
     expires_at: datetime | None = None
@@ -115,6 +117,7 @@ class LicenseOut(BaseModel):
     user_id: UUID | None
     product_code: str
     plan: str
+    access_role: str
     status: str
     starts_at: datetime
     expires_at: datetime
@@ -126,6 +129,7 @@ class LicenseOut(BaseModel):
 
 class UserAccessPatch(BaseModel):
     usage_limit: int = Field(ge=0)
+    access_role: str | None = None
     status: str | None = None
     starts_at: datetime | None = None
     expires_at: datetime | None = None

@@ -515,7 +515,7 @@ def list_users(_: User = Depends(require_superadmin), db: Session = Depends(get_
 
 def access_payload(db: Session, user: User, product_code: str) -> dict | None:
     license_obj = license_for_user(db, user, product_code)
-    if not license_obj:
+    if not license_obj or (product_code == "OCR_FACTURAS" and license_obj.user_id != user.id):
         return None
     used = usage_count_for_license(
         db,
@@ -537,6 +537,7 @@ def access_payload(db: Session, user: User, product_code: str) -> dict | None:
         "status": license_obj.status,
         "effective_status": effective_status,
         "plan": license_obj.plan,
+        "access_role": license_obj.access_role,
         "starts_at": license_obj.starts_at.isoformat(),
         "expires_at": license_obj.expires_at.isoformat(),
         "total_credits": total,
@@ -587,6 +588,7 @@ def patch_user_access(user_id: UUID, product_code: str, payload: UserAccessPatch
             user_id=user.id,
             product_code=product_code,
             plan=current.plan,
+            access_role=current.access_role,
             status=current.status,
             starts_at=current.starts_at,
             expires_at=current.expires_at,
@@ -598,6 +600,10 @@ def patch_user_access(user_id: UUID, product_code: str, payload: UserAccessPatch
     else:
         raise HTTPException(status_code=404, detail="El usuario no tiene acceso a esta aplicacion.")
     license_obj.usage_limit = payload.usage_limit
+    if payload.access_role is not None:
+        if product_code != "OCR_FACTURAS" or payload.access_role not in {"admin", "user"}:
+            raise HTTPException(status_code=400, detail="Rol de FACTURAS no valido.")
+        license_obj.access_role = payload.access_role
     if payload.status is not None:
         if payload.status not in {"active", "suspended", "expired"}:
             raise HTTPException(status_code=400, detail="Estado de acceso no valido.")
@@ -615,7 +621,7 @@ def patch_user_access(user_id: UUID, product_code: str, payload: UserAccessPatch
         action="user_access_updated",
         entity_type="license",
         entity_id=str(license_obj.id),
-        metadata={"user_id": str(user.id), "product_code": product_code, "usage_limit": payload.usage_limit, "status": license_obj.status},
+        metadata={"user_id": str(user.id), "product_code": product_code, "usage_limit": payload.usage_limit, "status": license_obj.status, "access_role": license_obj.access_role},
     )
     db.commit()
     db.refresh(license_obj)
@@ -701,6 +707,8 @@ def list_licenses(_: User = Depends(require_superadmin), db: Session = Depends(g
 
 @router.post("/licenses", response_model=LicenseOut)
 def create_license(payload: LicenseCreate, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    if (payload.product_code == "OCR_FACTURAS" and (payload.user_id is None or payload.access_role not in {"admin", "user"})) or (payload.product_code != "OCR_FACTURAS" and payload.access_role != "user"):
+        raise HTTPException(status_code=400, detail="Rol o usuario de licencia no valido.")
     if not db.get(Organization, payload.organization_id):
         raise HTTPException(status_code=404, detail="Organizacion no encontrada.")
     if payload.user_id:
@@ -732,6 +740,10 @@ def patch_license(license_id: UUID, payload: LicensePatch, actor: User = Depends
     updates = payload.model_dump(exclude_unset=True)
     target_org_id = updates.get("organization_id", license_obj.organization_id)
     target_user_id = updates.get("user_id", license_obj.user_id)
+    target_product = updates.get("product_code", license_obj.product_code)
+    target_role = updates.get("access_role", license_obj.access_role)
+    if (target_product == "OCR_FACTURAS" and (target_user_id is None or target_role not in {"admin", "user"})) or (target_product != "OCR_FACTURAS" and target_role != "user"):
+        raise HTTPException(status_code=400, detail="Rol o usuario de licencia no valido.")
     if target_user_id:
         user = db.get(User, target_user_id)
         if not user or user.organization_id != target_org_id:

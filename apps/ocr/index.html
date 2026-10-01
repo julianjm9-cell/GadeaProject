@@ -439,10 +439,7 @@ td.amt-usd{font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:
 <div class="topbar">
   <div class="brand-block">
     <div class="logo"><div class="logo-mark"><img src="/assets/brand/facturas.svg" alt=""></div><span class="logo-name">FACTURAS</span><span class="engine-badge" id="engineBadge">Anyformat</span></div>
-    <select class="role-select" id="roleSelector" onchange="setActiveRole(this.value)" title="Rol activo">
-      <option value="admin">Admin</option>
-      <option value="usuario">Usuario</option>
-    </select>
+    <span class="role-select" id="roleLabel" title="Rol asignado desde el dashboard" style="display:inline-flex;align-items:center;cursor:default">Usuario</span>
   </div>
   <!-- Tabs de clientes en el topbar -->
   <div class="client-tabs-wrap">
@@ -1197,8 +1194,8 @@ async function loadCurrentUser(){
   try{
     const d=await(await fetch(`${API}/api/auth/me`)).json();
     currentUser=d.user||null;rolesInfo=d.roles||{};
-    const sel=document.getElementById('roleSelector');
-    if(sel&&currentUser?.role)sel.value=currentUser.role==='admin'?'admin':'usuario';
+    const roleLabel=document.getElementById('roleLabel');
+    if(roleLabel)roleLabel.textContent=currentUser?.role==='admin'?'Administrador':'Usuario';
     const box=document.getElementById('currentUserBox');
     const role=currentUser?.role||'sin_acceso';
     if(box)box.innerHTML=currentUser?.email?`<strong style="color:var(--text)">Usuario</strong><br>${esc(currentUser.email)}<br><span style="color:var(--accent);font-weight:700">${esc(rolesInfo[role]?.label||role)}</span>`:'Sin usuario autenticado';
@@ -1211,17 +1208,6 @@ async function loadCurrentUser(){
     return null;
   }
 }
-async function setActiveRole(role){
-  try{
-    const r=await fetch(`${API}/api/auth/role`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role})});
-    const d=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(d.detail||'No se pudo cambiar rol');
-    await loadCurrentUser();
-    document.getElementById('globalCfgPanel').style.display='none';
-    if(!hasPerm('manage_config')&&['config','proveedores','entrenamiento','access'].includes(currentView))showView('facturas');
-    toast(`Rol activo: ${role==='admin'?'Admin':'Usuario'}`,'ok');
-  }catch(e){toast(`Error rol: ${e.message}`,'err');}
-}
 function applyAccessUi(){
   const canProcess=hasPerm('process'),canReview=hasPerm('review'),canConfig=hasPerm('manage_config'),canWorkspaces=hasPerm('manage_workspaces');
   const collapsed=document.getElementById('appBody')?.classList.contains('sidebar-collapsed');
@@ -1229,6 +1215,7 @@ function applyAccessUi(){
   document.getElementById('btnPauseWS')?.style.setProperty('display',canWorkspaces?'inline-flex':'none');
   document.querySelectorAll('.upload-btn-side,.drop-folder-btn').forEach(el=>el.style.display=canProcess?'flex':'none');
   document.getElementById('btnGlobalCfg')?.style.setProperty('display',canConfig?'':'none');
+  ['navConfig','navProveedores','navEntrenamiento'].forEach(id=>document.getElementById(id)?.style.setProperty('display',canConfig?'':'none'));
   document.getElementById('wsEmpresaBox')?.style.setProperty('display',canWorkspaces&&!collapsed?'block':'none');
   document.querySelectorAll('#globalCfgPanel button').forEach(btn=>{
     if(btn.id==='btnAccessPanel')btn.style.display=hasPerm('manage_access')?'flex':'none';

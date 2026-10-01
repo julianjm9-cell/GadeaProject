@@ -68,6 +68,8 @@ def check_access(db: Session, user: User, product_code: str = PRODUCT_CODE, *, r
     if not org or org.status != "active":
         return LicenseDecision(False, "Organizacion inactiva.")
     license_obj = license_for_user(db, user, product_code)
+    if product_code == "OCR_FACTURAS" and (not license_obj or license_obj.user_id != user.id):
+        return LicenseDecision(False, "FACTURAS requiere un usuario con acceso asignado desde el dashboard.")
     if not license_obj:
         if user.role == "superadmin":
             return LicenseDecision(True, "Superadmin activo.")

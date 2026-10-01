@@ -1,4 +1,5 @@
 """The original FACTURAS interface and backend run with fresh, isolated data."""
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -19,13 +20,44 @@ def test_public_facturas_pages(client):
     assert c.get("/facturas", follow_redirects=False).headers["location"] == "/facturas/login"
 
 
+def test_facturas_requires_dashboard_license_and_enforces_dashboard_role(client):
+    c, factory = client
+    seed_user(factory, email="admin@example.com", role="superadmin", product_codes=("DIPLOMATOR",))
+    organization_id, user_id = seed_user(factory, email="facturas@example.com", product_codes=("DIPLOMATOR",))
+    assert login(c, email="facturas@example.com").status_code == 200
+    assert c.get("/facturas").status_code == 403
+    assert c.get("/facturas/legacy/api/auth/me").status_code == 403
+    assert login(c, email="admin@example.com").status_code == 200
+    now = datetime.now(timezone.utc)
+    created = c.post("/admin/licenses", json={
+        "organization_id": organization_id, "user_id": user_id,
+        "product_code": "OCR_FACTURAS", "access_role": "user",
+        "starts_at": (now - timedelta(minutes=1)).isoformat(),
+        "expires_at": (now + timedelta(days=365)).isoformat(),
+        "usage_limit": 300,
+    })
+    assert created.status_code == 200, created.text
+    facturas_account = next(account for account in c.get("/admin/accounts").json()["accounts"] if account["email"] == "facturas@example.com")
+    assert any(access["product_code"] == "OCR_FACTURAS" for access in facturas_account["accesses"])
+    assert login(c, email="facturas@example.com").status_code == 200
+    assert c.get("/facturas").status_code == 200
+    assert c.get("/facturas/legacy/api/auth/me").json()["user"]["role"] == "usuario"
+    assert c.post("/facturas/legacy/api/config", json={"api_tipo": "gemini"}).status_code == 403
+    assert login(c, email="admin@example.com").status_code == 200
+    changed = c.patch(f"/admin/users/{user_id}/access/OCR_FACTURAS", json={"usage_limit": 300, "access_role": "admin"})
+    assert changed.status_code == 200, changed.text
+    assert changed.json()["access"]["access_role"] == "admin"
+    assert login(c, email="facturas@example.com").status_code == 200
+    assert c.get("/facturas/legacy/api/auth/me").json()["user"]["role"] == "admin"
+
+
 def test_original_interface_and_clean_isolated_workspaces(client, monkeypatch, tmp_path):
     c, factory = client
     monkeypatch.setenv("OCR_DATA_DIR", str(tmp_path))
     monkeypatch.setenv("OCR_PROVIDER", "gemini")
     monkeypatch.setenv("OCR_MODEL", "test-vision")
     monkeypatch.setenv("OCR_API_KEY", "test-private-key")
-    seed_user(factory, product_codes=("OCR_FACTURAS",))
+    seed_user(factory, product_codes=("OCR_FACTURAS",), ocr_access_role="admin")
     seed_user(factory, email="otro@example.com", product_codes=("OCR_FACTURAS",))
     try:
         assert login(c).status_code == 200
@@ -60,6 +92,9 @@ def test_original_interface_and_clean_isolated_workspaces(client, monkeypatch, t
         assert c.get("/facturas/legacy/api/auth/access").status_code == 403
         assert c.get("/facturas/legacy/api/auth/me").json()["user"]["email"] == "cliente@example.com"
         login(c, email="otro@example.com")
+        assert c.get("/facturas/legacy/api/auth/me").json()["user"]["role"] == "usuario"
+        assert c.post("/facturas/legacy/api/config", json={"api_tipo": "openai"}).status_code == 403
+        assert c.get("/facturas/legacy/api/entrenamiento").status_code == 403
         assert c.get("/facturas/legacy/api/workspaces").json()["workspaces"] == []
         assert c.get("/facturas/legacy/api/config").json()["modelo_externo"] == "test-vision"
         assert list(tmp_path.glob("legacy/*/*/facturas/*")) != []

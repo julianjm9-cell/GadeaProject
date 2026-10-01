@@ -45,6 +45,9 @@ def page(request: Request, db: Session = Depends(get_db)):
     user = page_user_or_redirect(request, db, "/facturas")
     if isinstance(user, RedirectResponse):
         return RedirectResponse("/facturas/login")
+    decision = check_access(db, user, "OCR_FACTURAS", require_credits=False)
+    if not decision.ok:
+        raise HTTPException(403, decision.message)
     return static_html("ocr-facturas-app.html", PROJECT_ROOT / "apps" / "ocr" / "index.html")
 
 

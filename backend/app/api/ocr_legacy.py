@@ -18,6 +18,7 @@ from app.services.ocr_legacy_bridge import get_legacy_port, legacy_dir
 router = APIRouter(tags=["ocr-original"])
 MAX_BODY = 50 * 1024 * 1024
 BLOCKED = ("auth/access", "auth/role")
+ADMIN_PATHS = ("set_modelo", "prompts", "proveedores", "plantillas", "entrenamiento", "empresa_receptora", "facturas/reset-procesador", "facturas/corregir-formatos")
 PROVIDERS = {"ollama", "openai", "gemini", "groq", "anthropic", "anyformat"}
 MODEL_FIELDS = {"api_tipo", "api_key", "modelo_externo", "modelo_analisis", "modelo_ocr", "vision_enabled", "modo_vision_ollama", "anyformat_api_key", "anyformat_workflow_id"}
 
@@ -63,10 +64,15 @@ async def legacy_api(path: str, request: Request, user: User = Depends(current_u
         raise HTTPException(403, decision.message)
     if not path or path.startswith("/") or any(part in {".", ".."} for part in path.split("/")):
         raise HTTPException(404)
+    role = "admin" if decision.license.access_role == "admin" else "usuario"
+    base_permissions = ["view", "process", "review", "manage_workspaces"]
+    permissions = base_permissions + (["manage_config"] if role == "admin" else [])
     if path == "auth/me":
-        return {"authenticated": True, "user": {"email": user.email, "name": user.full_name, "role": "admin", "permissions": ["view", "process", "review", "manage_workspaces", "manage_config"]}, "roles": {"admin": {"label": "Administrador", "permissions": ["view", "process", "review", "manage_workspaces", "manage_config"]}}, "auth_disabled": False}
+        return {"authenticated": True, "user": {"email": user.email, "name": user.full_name, "role": role, "permissions": permissions}, "roles": {"admin": {"label": "Administrador", "permissions": base_permissions + ["manage_config"]}, "usuario": {"label": "Usuario", "permissions": base_permissions}}, "auth_disabled": False}
     if any(path == blocked or path.startswith(blocked) for blocked in BLOCKED):
-        raise HTTPException(403, "El acceso y los modelos se administran desde la suite")
+        raise HTTPException(403, "El rol se administra desde el dashboard")
+    if role != "admin" and ((path == "config" and request.method != "GET") or any(path == item or path.startswith(item + "/") for item in ADMIN_PATHS)):
+        raise HTTPException(403, "Solo el administrador de FACTURAS puede cambiar modelos, claves y entrenamiento")
     config_body = None
     if path == "config" and request.method == "POST":
         config_body = validate_motor_change(await request.json(), user)

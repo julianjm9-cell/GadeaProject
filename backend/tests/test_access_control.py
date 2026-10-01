@@ -42,7 +42,7 @@ def client():
     app.dependency_overrides.clear()
 
 
-def seed_user(db_factory, *, org_status="active", user_active=True, license_status="active", expires_delta_days=30, role="user", email="cliente@example.com", product_codes=("DIPLOMATOR",)):
+def seed_user(db_factory, *, org_status="active", user_active=True, license_status="active", expires_delta_days=30, role="user", email="cliente@example.com", product_codes=("DIPLOMATOR",), ocr_access_role="user"):
     with db_factory() as db:
         org = Organization(name=f"Org {email}", status=org_status)
         db.add(org)
@@ -66,6 +66,7 @@ def seed_user(db_factory, *, org_status="active", user_active=True, license_stat
                     user_id=user.id,
                     product_code=product_code,
                     plan="MVP",
+                    access_role=ocr_access_role if product_code == "OCR_FACTURAS" else "user",
                     status=license_status,
                     starts_at=now - timedelta(days=1),
                     expires_at=now + timedelta(days=expires_delta_days),
