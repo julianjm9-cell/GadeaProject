@@ -643,6 +643,16 @@ def profesor_temario_catalogue():
     return FileResponse(path, media_type="text/javascript", headers={"Cache-Control": "public, max-age=3600"})
 
 
+@router.get("/assets/profesor-final.css")
+def profesor_final_styles():
+    local_path = PROJECT_ROOT / "apps" / "profesor" / "assets" / "profesor-final.css"
+    static_path = STATIC_DIR / "assets" / "profesor-final.css"
+    path = local_path if local_path.exists() else static_path
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Estilos de Profesor Particular no encontrados.")
+    return FileResponse(path, media_type="text/css", headers={"Cache-Control": "public, max-age=3600"})
+
+
 @router.get("/assets/brand/{filename}")
 def brand_asset(filename: str):
     if filename == "facturas.svg":

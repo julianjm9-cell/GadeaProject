@@ -1,0 +1,61 @@
+const {chromium}=require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {pathToFileURL}=require('node:url');
+const path=require('node:path');
+const assert=require('node:assert/strict');
+
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:'msedge'});
+ try{
+  const page=await browser.newPage({viewport:{width:1600,height:950}}),errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href+'#inicio');
+  assert(await page.locator('.home-brand img').evaluate(img=>img.complete&&img.naturalWidth>0),'real brand logo loads');
+  assert.equal(await page.locator('.home-primary-nav button').count(),4);
+  assert.equal(await page.locator('.home-roster').getByRole('button',{name:'Añadir alumno'}).count(),1);
+  await page.screenshot({path:'tools/profesor-final-inicio.png'});
+  await page.locator('.home-primary-nav').getByRole('button',{name:'Temario'}).click();
+  assert(await page.locator('.temario-subject-tabs button').count()>=3);
+  await page.locator('.temario-subject-tabs').getByRole('button',{name:'Inglés'}).click();
+  assert.equal(await page.locator('#temarioSubject').inputValue(),'Inglés');
+  await page.screenshot({path:'tools/profesor-final-temario.png'});
+  await page.locator('.home-primary-nav').getByRole('button',{name:'Material'}).click();
+  assert(await page.locator('.material-hub-card .material-art').count()>0);
+  assert.equal(await page.locator('.material-hub-card').first().getByRole('button',{name:'Abrir'}).count(),1);
+  await page.locator('.material-hub-card').first().locator('.material-card-menu summary').click();
+  await page.locator('.material-hub-card').first().getByRole('button',{name:'Editar'}).click();
+  assert.equal(await page.locator('#dialog[open]').count(),1,'material editing remains available');
+  await page.locator('#dialog .close').click();
+  await page.locator('.material-hub-card').first().getByRole('button',{name:'Abrir'}).click();
+  assert.equal(await page.locator('#dialog[open]').count(),1,'material player remains available');
+  await page.locator('#dialog .close').click();
+  await page.screenshot({path:'tools/profesor-final-material.png'});
+  await page.getByRole('button',{name:'Crear material',exact:true}).click();
+  assert.equal(await page.locator('#workshopCourse').count(),1);
+  assert.equal(await page.locator('[data-exercise]').count(),19,'all activity formats remain available');
+  await page.locator('[data-exercise="pairs"]').click();
+  assert.equal(await page.locator('#workshopContinue').isDisabled(),false,'selected activity can proceed');
+  assert.match(await page.locator('#workshopPreview').innerText(),/Relacionar|ejercicio/i);
+  await page.screenshot({path:'tools/profesor-final-crear.png'});
+  await page.locator('#dialog .close').click();
+  await page.locator('.home-primary-nav').getByRole('button',{name:'Alumnos'}).click();
+  assert.equal(await page.locator('.students-hub-side .home-panel').count(),2);
+  await page.screenshot({path:'tools/profesor-final-alumnos.png'});
+  await page.getByRole('button',{name:'Abrir espacio de Lucía Martín'}).click();
+  assert.equal(await page.locator('.student-section-nav>button').count(),6);
+  await page.screenshot({path:'tools/profesor-final-alumno-resumen.png'});
+  await page.locator('.student-section-nav').getByRole('button',{name:'Clases'}).click();
+  await page.screenshot({path:'tools/profesor-final-alumno-clases.png'});
+  for(const name of ['Progreso','Cobros','Acceso']){
+   await page.locator('.student-section-nav').getByRole('button',{name}).click();
+   assert.equal(await page.locator('.student-section-nav>button.active').innerText(),name);
+  }
+  await page.locator('.student-section-nav').getByRole('button',{name:'Materiales'}).click();
+  assert(await page.locator('.student-material-grid .material-hub-card').count()>0);
+  await page.screenshot({path:'tools/profesor-final-alumno-materiales.png'});
+  await page.setViewportSize({width:390,height:844});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
+  await page.screenshot({path:'tools/profesor-final-mobile.png'});
+  assert.deepEqual(errors,[]);
+  console.log('PASS Profesor final UI navigation, cards, creator and mobile width');
+ }finally{await browser.close()}
+})().catch(error=>{console.error(error);process.exit(1)});
