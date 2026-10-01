@@ -109,11 +109,14 @@ const assert=require('node:assert/strict');
     assert.equal(pdfPayload.points.length,1);
     assert.equal(pdfPayload.points[0].connection,'');
     assert.equal(pdfPayload.vocab.length,1);
-    await page.evaluate(()=>showTab('historial',document.querySelector('[data-tab-btn="historial"]')));
+    await page.locator('#saveCloseSessionButton').click();
+    await page.waitForFunction(()=>state.currentSession===null);
+    assert.equal(await page.evaluate(()=>state.currentSession),null,'Guardar y cerrar termina el borrador actual');
     assert.equal(await page.locator('.history-summary').count(),1);
     assert.match(await page.locator('#historyDetail').innerText(),/restless/);
     page.once('dialog',dialog=>dialog.accept('Idea propia'));
     await page.getByRole('button',{name:'Añadir punto'}).click();
+    await page.waitForFunction(()=>state.history[0].points.length===2);
     assert.match(await page.locator('.history-summary small').innerText(),/2 puntos/);
     const legacyVocab=await page.evaluate(()=>{
       state.currentSession={topic:'Sesión anterior',aiPoints:[],savedPoints:[{title:'Idea',text:'Texto',type:'ai',vocab:[{word:'legacy',def:'antiguo'}]}]};

@@ -285,3 +285,49 @@ header { min-height: 68px; }
 .history-saved-vocab h3 { margin-bottom: 9px; color: #143c7d; font: 750 .8rem Inter,system-ui,sans-serif; }
 .history-saved-vocab p { margin: 5px 0; color: #335078; font: .76rem/1.4 Inter,system-ui,sans-serif; }
 @media (max-width: 720px) { .history-browser { grid-template-columns: 1fr; } #historyList { display: flex; overflow-x: auto; } .history-summary { min-width: 205px; } }
+
+/* Oral practice follows the same clear card language as the study workspace. */
+#tab-recitar { max-width: 980px; margin: 0 auto; }
+#tab-recitar .recite-layout { max-width: none; }
+#tab-recitar .recite-panel { padding: 0; border: 0; background: transparent; box-shadow: none; }
+#tab-recitar .section-label { display: flex; align-items: center; gap: 10px; margin: 0 0 13px; color: #123878; font: 800 .76rem Inter,system-ui,sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+#tab-recitar .section-label::before { content: ''; width: 3px; height: 18px; border-radius: 2px; background: #c98320; }
+#tab-recitar .section-label::after { content: ''; flex: 1; height: 1px; background: #dce6f0; }
+.recite-topic-card, .recite-timer-card, .recite-text-card { border: 1px solid #e1e8ef; border-radius: 11px; background: #fff; box-shadow: 0 6px 20px #1026530b; }
+.recite-topic-card { display: grid; grid-template-columns: 38px minmax(0,1fr); align-items: start; gap: 10px; padding: 13px 15px; margin: 0 !important; }
+.recite-card-symbol { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #fff3df; color: #ba7815; font-size: 1.1rem; }
+.recite-topic-card label, .recite-text-card label { margin: 1px 0 4px !important; color: #17366c !important; font: 800 .8rem Inter,system-ui,sans-serif !important; letter-spacing: 0 !important; text-transform: none !important; }
+.recite-topic-card p { margin: 0 0 9px; color: #7486a2; font: .7rem/1.4 Inter,system-ui,sans-serif; }
+.recite-topic-select { width: 100%; height: 36px; padding: 6px 10px; border: 1px solid #dce6f0; border-radius: 6px; background: #fff; color: #14346a; font: .76rem Inter,system-ui,sans-serif; }
+#tab-recitar .recite-topic { margin: 17px 0 10px; color: #102653; font: bold 1.55rem Georgia,serif; }
+#tab-recitar .recite-topic::after { content: ''; display: block; width: 28px; height: 2px; margin-top: 7px; background: #c98320; }
+.recite-timer-card { padding: 0 13px 12px; }
+.recite-stage { display: grid; grid-template-columns: 46px 145px minmax(0,1fr); align-items: center; gap: 12px; min-height: 68px; border-bottom: 1px solid #e6edf3; }
+.recite-mic { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: #fff4e5; color: #b97918; font-size: 1.6rem; }
+#tab-recitar .timer-display { font: 800 2.3rem/1 Inter,system-ui,sans-serif; letter-spacing: .04em; color: #102653; }
+#tab-recitar .recite-phase { color: #17366c; font: 750 .7rem Inter,system-ui,sans-serif; }
+#tab-recitar .audio-state { margin-top: 4px; font: .67rem Inter,system-ui,sans-serif; }
+.recite-timer-card .recite-flow { grid-template-columns: 1fr 1.4fr 1.5fr; gap: 8px; margin: 9px 0 0; }
+.recite-timer-card .recite-flow .btn { min-height: 36px; padding: 7px 10px; font-size: .67rem; }
+.recite-timer-card .recite-flow .btn-blue { background: #184675; border-color: #184675; }
+.recite-text-card { padding: 11px 13px; margin-top: 10px !important; }
+.recite-text-card .recite-input { display: block; width: 100%; min-height: 58px; margin: 8px 0 0; padding: 9px 10px; border: 1px solid #dce6ef; border-radius: 6px; background: #fff; color: #102653; font: .75rem/1.5 Inter,system-ui,sans-serif; }
+.recite-text-card .recite-transcript { min-height: 62px; }
+.recite-text-card .recite-field-head { margin: 0; }
+.recite-transcribe-box { margin: 9px 0 6px; padding: 10px 13px; border: 1px solid #f0dbaf; border-radius: 8px; background: #fffaf0; }
+.recite-transcribe-box strong { color: #a96912; font: 800 .62rem Inter,system-ui,sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+.recite-transcribe-box p { margin: 3px 0 0; color: #677a94; font: .69rem/1.4 Inter,system-ui,sans-serif; }
+.recite-bottom-actions { display: flex; align-items: center; gap: 8px; margin: 7px 0 14px; }
+.recite-bottom-actions .btn { min-height: 37px; font-size: .7rem; }
+.recite-save-menu[hidden] { display: none !important; }
+.recite-save-menu .export-menu-list { z-index: 30; }
+.history-oral-section { margin: 20px 0; }
+.history-oral-section > h3 { margin-bottom: 9px; color: #123878; font: 800 .9rem Inter,system-ui,sans-serif; }
+.history-oral-card { margin: 9px 0; padding: 14px; border: 1px solid #dce7f2; border-radius: 9px; background: #fafdff; }
+.history-oral-meta { display: flex; justify-content: space-between; gap: 8px; color: #17386f; font: .76rem Inter,system-ui,sans-serif; }
+.history-oral-meta span { color: #7a8aa2; }
+.history-oral-card details { margin: 9px 0; }
+.history-oral-card summary { color: #2454a6; font: 700 .72rem Inter,system-ui,sans-serif; cursor: pointer; }
+.history-oral-card p { margin: 6px 0; color: #29466d; font: .75rem/1.5 Inter,system-ui,sans-serif; }
+.history-oral-correction { margin-top: 11px; border-top: 1px solid #e1eaf3; }
+@media (max-width: 620px) { .recite-stage { grid-template-columns: 40px 1fr; padding: 10px 0; } .recite-stage > div:last-child { grid-column: 1 / -1; } .recite-timer-card .recite-flow { grid-template-columns: 1fr 1fr; } .recite-timer-card .recite-flow .btn:first-child { grid-column: 1 / -1; } .recite-bottom-actions { flex-wrap: wrap; } }

@@ -37,12 +37,14 @@ def _plain(value: object, limit: int = 10000) -> str:
 
 
 def render_diplomator_pdf(entry: dict) -> bytes:
-    raw_points = entry.get('points')
+    raw_points = entry.get('points') or []
     if not isinstance(raw_points, list) or len(raw_points) > 30:
-        raise ValueError('Selecciona entre 1 y 30 puntos para exportar.')
+        raise ValueError('Selecciona hasta 30 puntos para exportar.')
     points = [point for point in raw_points if isinstance(point, dict) and str(point.get('text') or '').strip()]
-    if not points:
-        raise ValueError('Selecciona entre 1 y 30 puntos para exportar.')
+    raw_oral = entry.get('oralPractices') or []
+    oral = [item for item in raw_oral if isinstance(item, dict) and str(item.get('correction') or '').strip()] if isinstance(raw_oral, list) else []
+    if not points and not oral:
+        raise ValueError('No hay apuntes ni correcciones orales para exportar.')
     regular, bold = _fonts()
     navy, gold, muted = colors.HexColor('#102653'), colors.HexColor('#bd7b18'), colors.HexColor('#667895')
     title = ParagraphStyle('title', fontName=bold, fontSize=20, leading=25, textColor=navy, spaceAfter=8)
@@ -89,5 +91,17 @@ def render_diplomator_pdf(entry: dict) -> bytes:
                 if item.get('example'):
                     line += f"<br/><font color='#667895'>{_plain(item.get('example'), 450)}</font>"
                 story.append(Paragraph(line, body))
+    if oral:
+        story.extend([Spacer(1, 10), HRFlowable(width='100%', thickness=0.7, color=colors.HexColor('#dce5ee')), Paragraph('Práctica oral y corrección', heading)])
+        for index, practice in enumerate(oral[:20], 1):
+            story.append(Paragraph(f'Práctica {index}', heading))
+            if practice.get('notes'):
+                story.append(Paragraph('Notas de preparación', heading))
+                story.append(Paragraph(_plain(practice.get('notes'), 12000), body))
+            if practice.get('transcript'):
+                story.append(Paragraph('Transcripción', heading))
+                story.append(Paragraph(_plain(practice.get('transcript'), 25000), body))
+            story.append(Paragraph('Corrección', heading))
+            story.append(Paragraph(_plain(practice.get('correction'), 25000), body))
     doc.build(story)
     return buffer.getvalue()

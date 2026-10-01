@@ -987,6 +987,7 @@
           <button class="btn btn-outline btn-small" type="button" onclick="replaceWithRandomSession()">◇&nbsp; Otro tema aleatorio</button>
           <button class="btn btn-outline btn-small" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">☷&nbsp; Elegir tema</button>
           <button class="btn btn-blue btn-small" id="generateNotesButton" type="button" onclick="generateCurrentSession()">✦&nbsp; Generar apuntes</button>
+          <button class="btn btn-small btn-accept" id="saveCloseSessionButton" type="button" onclick="saveAndCloseCurrentSession()">✓&nbsp; Guardar y cerrar</button>
           <button class="session-discard" type="button" onclick="closeCurrentSession()">Descartar sesión</button>
         </div>
       </div>
@@ -1025,15 +1026,14 @@
     <div class="recite-layout">
       <div class="recite-panel">
         <div class="section-label">Práctica oral</div>
-        <div class="recite-field">
-          <label for="reciteTopicSearch">Tema</label>
-          <input class="recite-topic-search" id="reciteTopicSearch" placeholder="Buscar tema..." autocomplete="off" oninput="filterReciteTopics(this.value)" onkeydown="handleReciteTopicSearchKey(event)">
-          <div class="recite-topic-results" id="reciteTopicResults"></div>
-          <select class="recite-topic-select" id="reciteTopicInput" onchange="updateReciteTopic(this.value)"></select>
-          <div class="recite-topic-hint">Por defecto usa el tema que estás trabajando. También puedes elegir otro de la lista.</div>
+        <div class="recite-field recite-topic-card">
+          <span class="recite-card-symbol" aria-hidden="true">▤</span>
+          <div><label for="reciteTopicInput">Tema</label><p>Elige el tema sobre el que vas a practicar. También puedes seleccionar otro de la lista.</p>
+          <select class="recite-topic-select" id="reciteTopicInput" onchange="updateReciteTopic(this.value)"></select></div>
         </div>
         <div class="recite-topic" id="reciteTopicLabel">Sin tema seleccionado</div>
-        <div class="recite-stage">
+        <div class="recite-timer-card"><div class="recite-stage">
+          <span class="recite-mic" aria-hidden="true">♩</span>
           <div class="timer-display" id="reciteTimer">01:00</div>
           <div>
             <div class="recite-phase" id="recitePhase">Preparación: 1 minuto</div>
@@ -1042,28 +1042,25 @@
           </div>
         </div>
         <div class="recite-flow">
+          <button class="btn btn-outline" onclick="resetReciteFlow()">↻&nbsp; Reiniciar práctica</button>
           <button class="btn btn-outline" id="prepModeBtn" onclick="setReciteMode('prep'); startPrepTimer()">Preparar 1 min</button>
           <button class="btn btn-blue" id="speakModeBtn" onclick="toggleSpeakRecording()">Grabar 5 min</button>
           <button class="btn btn-small btn-outline recite-pause-btn" id="pauseAudioBtn" onclick="toggleRecitePause()">Pausa</button>
-        </div>
-        <div class="recite-controls">
-          <button class="btn btn-small btn-outline" onclick="resetReciteFlow()">Reiniciar práctica</button>
-        </div>
-        <div class="recite-field">
+        </div></div>
+        <div class="recite-field recite-text-card">
           <label for="reciteNotes">Notas</label>
           <textarea class="recite-input recite-notes" id="reciteNotes" spellcheck="true" oninput="persistRecitePractice()" placeholder="Ideas, fechas, estructura y vocabulario útil."></textarea>
         </div>
-        <div class="recite-field">
-          <label for="reciteTranscript">Transcripción</label>
+        <div class="recite-field recite-text-card">
+          <div class="recite-field-head"><label for="reciteTranscript">Transcripción</label><button class="btn btn-small btn-outline" id="transcribeAudioBtn" onclick="transcribeReciteAudio()">Transcribir</button></div>
           <textarea class="recite-input recite-transcript" id="reciteTranscript" spellcheck="true" oninput="persistRecitePractice()" placeholder="La transcripción aparecerá aquí. También puedes pegar tu texto oral manualmente."></textarea>
         </div>
         <div class="recite-transcribe-box">
-          <div class="recite-transcribe-title">Cuando termines de grabar</div>
-          <button class="btn btn-accept" id="transcribeAudioBtn" onclick="transcribeReciteAudio()">Haz click aquí para transcribir</button>
-          <div class="recite-transcribe-hint">Primero graba tu exposición. Cuando pares la grabación, este botón quedará listo para pasar el audio a texto.</div>
+          <div><strong>Cuando termines de grabar</strong><p>Primero graba tu exposición. Al parar, podrás transcribir el audio y revisar el texto.</p></div>
         </div>
-        <div class="recite-controls">
-          <button class="btn btn-small btn-accept" onclick="correctRecitation()">Corregir recitación</button>
+        <div class="recite-controls recite-bottom-actions">
+          <button class="btn btn-blue" onclick="correctRecitation()">Corregir recitación →</button>
+          <div class="export-menu recite-save-menu" id="reciteSaveMenu" hidden><button class="btn btn-accept" type="button" onclick="toggleReciteSaveMenu()" aria-expanded="false" id="reciteSaveMenuButton">Guardar corrección ▾</button><div class="export-menu-list" id="reciteSaveMenuList" hidden><button type="button" onclick="saveReciteCorrection()">Guardar en app</button><button type="button" onclick="exportReciteCorrectionPdf()">Guardar en PDF</button><button type="button" onclick="exportReciteCorrectionWord()">Guardar en Word</button><button type="button" onclick="uploadReciteCorrectionToDrive()">Subir a Drive</button></div></div>
         </div>
         <div id="reciteStatus" class="db-notice" style="display:none;"></div>
         <div id="reciteCorrection" class="notice" style="display:none;"></div>
@@ -1462,7 +1459,7 @@ let state = {
   manualTopics: [],
   history: [],
   currentSession: null,
-  recitePractice: { topic: '', notes: '', transcript: '', correction: '', selectedMode: 'prep' },
+  recitePractice: { topic: '', notes: '', transcript: '', correction: '', correctionText: '', historyPracticeId: '', selectedMode: 'prep' },
   topicChats: { session: [], recite: [], temas: [] },
   config: { numPoints: 5, numVocab: 5, profile: DEFAULT_PROFILE, pointFontSize: 13, vocabColumnWidth: 330, pointsModelChoice: 'auto', pointsPrompt: DEFAULT_POINTS_PROMPT, pointsPromptModifier: '', pointsLength: 'medium' }
 };
@@ -1528,6 +1525,8 @@ function normalizeAppState() {
     notes: '',
     transcript: '',
     correction: '',
+    correctionText: '',
+    historyPracticeId: '',
     selectedMode: 'prep',
     ...(state.recitePractice || {})
   };
@@ -2922,16 +2921,19 @@ function removeSaved(i) {
 }
 
 async function saveSession() {
-  if (!session.topic) return;
-  if (acceptedSessionPoints().length === 0) { alert('Acepta o añade al menos un punto antes de guardar.'); return; }
+  if (!session.topic) return false;
+  if (acceptedSessionPoints().length === 0) { alert('Acepta o añade al menos un punto antes de guardar.'); return false; }
   toggleExportMenu(false);
-  const id = session.historyId || Date.now();
+  const relatedOral = state.history.find(item => item.topic === session.topic && item.lang === state.lang && !(item.points || []).length && (item.oralPractices || []).length);
+  const id = session.historyId || relatedOral?.id || Date.now();
+  const previous = state.history.find(item => item.id === id);
   const entry = {
     id,
     date: new Date().toISOString(),
     lang: state.lang,
     topic: session.topic,
     vocab: session.savedVocab || [],
+    oralPractices: previous?.oralPractices || [],
     points: acceptedSessionPoints().map(p => {
       const point = normalizePoint(p);
       return { title: point.title, text: point.text, html: point.html, connection: point.connection, datedInfo: point.datedInfo, vocab: point.vocab || [], type: point.type };
@@ -2950,6 +2952,13 @@ async function saveSession() {
   updateHeader();
   renderTopicsTab();   // refresh green markers
   document.getElementById('generationStatus').innerHTML = '<div class="save-success">✓ Sesión guardada en el historial. Puedes exportarla ahora.</div>';
+  return true;
+}
+
+async function saveAndCloseCurrentSession() {
+  if (!(await saveSession())) return;
+  await closeCurrentSession(true);
+  showTab('historial', document.querySelector('[data-tab-btn="historial"]'));
 }
 
 function exportSession() {
@@ -3048,7 +3057,7 @@ function renderHistory() {
     button.className = 'history-summary';
     button.type = 'button';
     button.dataset.index = i;
-    button.innerHTML = `<span>${escHtml(date)} · ${entry.lang === 'fr' ? 'FR' : 'EN'}</span><strong>${escHtml(entry.topic)}</strong><small>${entry.points?.length || 0} puntos</small>`;
+    button.innerHTML = `<span>${escHtml(date)} · ${entry.lang === 'fr' ? 'FR' : 'EN'}</span><strong>${escHtml(entry.topic)}</strong><small>${historyEntrySummary(entry)}</small>`;
     button.onclick = () => showHistoryEntry(i);
     list.appendChild(button);
   });
@@ -3063,12 +3072,19 @@ function showHistoryEntry(i) {
   renderHistoryBody(i);
 }
 
+function historyEntrySummary(entry) {
+  const parts = [];
+  if ((entry.points || []).length) parts.push(`${entry.points.length} puntos`);
+  if ((entry.oralPractices || []).length) parts.push(`${entry.oralPractices.length} ${entry.oralPractices.length === 1 ? 'corrección oral' : 'correcciones orales'}`);
+  return parts.join(' · ') || 'Tema sin contenido';
+}
+
 function renderHistoryBody(i) {
   const entry = state.history[i];
   const body = document.getElementById(`hbody-${i}`);
   const langLabel = entry.lang === 'fr' ? 'Français C1' : 'English C1';
   let html = '';
-  entry.points.forEach((p, j) => {
+  (entry.points || []).forEach((p, j) => {
     const vocabHtml = p.vocab && p.vocab.length > 0
       ? p.vocab.map(v=>`<div class="vocab-item"><div class="vocab-word">${escHtml(v.word)}</div><div class="vocab-def">${escHtml(v.def)}</div></div>`).join('')
       : '<div class="vocab-loading">Sin vocabulario</div>';
@@ -3092,6 +3108,9 @@ function renderHistoryBody(i) {
   });
   if (Array.isArray(entry.vocab) && entry.vocab.length) {
     html += `<section class="history-saved-vocab"><h3>Vocabulario guardado</h3>${entry.vocab.map(v => `<p><strong>${escHtml(v.word)}</strong> — ${escHtml(v.def)}${v.example ? ` · ${escHtml(v.example)}` : ''}</p>`).join('')}</section>`;
+  }
+  if (Array.isArray(entry.oralPractices) && entry.oralPractices.length) {
+    html += `<section class="history-oral-section"><h3>Correcciones orales</h3>${entry.oralPractices.map((practice, index) => `<article class="history-oral-card"><div class="history-oral-meta"><strong>Práctica ${entry.oralPractices.length - index}</strong><span>${escHtml(new Date(practice.date).toLocaleString('es-ES'))}</span></div>${practice.notes ? `<details><summary>Notas de preparación</summary><p>${escHtml(practice.notes).replace(/\n/g, '<br>')}</p></details>` : ''}<details><summary>Transcripción</summary><p>${escHtml(practice.transcript || '').replace(/\n/g, '<br>')}</p></details><div class="history-oral-correction">${renderCorrectionReport(practice.correction || '')}</div></article>`).join('')}</section>`;
   }
   html += `
     <div class="history-action-bar">
@@ -3136,7 +3155,7 @@ async function deleteHistoryPoint(i, j) {
   await persist();
   document.getElementById(`hbody-${i}`).innerHTML = '';
   renderHistoryBody(i);
-  document.querySelector(`.history-summary[data-index="${i}"] small`).textContent = `${state.history[i].points.length} puntos`;
+  document.querySelector(`.history-summary[data-index="${i}"] small`).textContent = historyEntrySummary(state.history[i]);
 }
 
 async function addHistoryPoint(i) {
@@ -3146,7 +3165,7 @@ async function addHistoryPoint(i) {
   await persist();
   document.getElementById(`hbody-${i}`).innerHTML = '';
   renderHistoryBody(i);
-  document.querySelector(`.history-summary[data-index="${i}"] small`).textContent = `${state.history[i].points.length} puntos`;
+  document.querySelector(`.history-summary[data-index="${i}"] small`).textContent = historyEntrySummary(state.history[i]);
 }
 
 async function deleteHistoryEntry(i) {
@@ -3176,10 +3195,15 @@ function buildEntryTxt(entry) {
   const date = new Date(entry.date).toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   const langLabel = entry.lang === 'fr' ? 'Français C1' : 'English C1';
   let txt = `DIPLOMATOR\n${'='.repeat(50)}\nFecha: ${date}\nIdioma: ${langLabel}\nTema: ${entry.topic}\n\n`;
-  entry.points.forEach((p, i) => {
+  (entry.points || []).forEach((p, i) => {
     txt += `${i+1}. ${p.text}\n`;
     if (p.vocab && p.vocab.length > 0) { txt += `   [${langLabel}]\n`; p.vocab.forEach(v => { txt += `   · ${v.word}: ${v.def}\n`; }); }
     txt += '\n';
+  });
+  (entry.oralPractices || []).forEach((practice, i) => {
+    txt += `CORRECCIÓN ORAL ${i + 1}\n`;
+    if (practice.notes) txt += `Notas: ${practice.notes}\n`;
+    txt += `Transcripción: ${practice.transcript || ''}\nCorrección: ${practice.correction || ''}\n\n`;
   });
   return txt;
 }
@@ -3474,7 +3498,8 @@ function buildEntryWordHtml(entry, fragmentOnly = false) {
   }).join('');
   const savedVocab = Array.isArray(entry.vocab) && entry.vocab.length
     ? `<h2>Vocabulario guardado</h2>${entry.vocab.map(v => `<div class="vocab-item"><span class="label">${escHtml(v.word || '')}</span>: ${escHtml(v.def || '')}${v.example ? ` · ${escHtml(v.example)}` : ''}</div>`).join('')}` : '';
-  const body = `<h1>DIPLOMATOR</h1><div class="meta">Fecha: ${escHtml(date)}<br>Idioma: ${escHtml(langLabel)}<br>Tema: ${escHtml(entry.topic || '')}</div>${points}${savedVocab}`;
+  const oral = (entry.oralPractices || []).map((practice, index) => `<div class="point"><h2>Corrección oral ${index + 1}</h2><p class="meta">${escHtml(new Date(practice.date).toLocaleString('es-ES'))}</p>${practice.notes ? `<h3>Notas</h3><p>${escHtml(practice.notes).replace(/\n/g, '<br>')}</p>` : ''}<h3>Transcripción</h3><p>${escHtml(practice.transcript || '').replace(/\n/g, '<br>')}</p><h3>Corrección</h3><p>${escHtml(practice.correction || '').replace(/\n/g, '<br>')}</p></div>`).join('');
+  const body = `<h1>DIPLOMATOR</h1><div class="meta">Fecha: ${escHtml(date)}<br>Idioma: ${escHtml(langLabel)}<br>Tema: ${escHtml(entry.topic || '')}</div>${points}${savedVocab}${oral}`;
   return fragmentOnly ? body : wrapWordHtml(`DIPLOMATOR - ${entry.topic || 'Sesion'}`, body);
 }
 
@@ -3596,7 +3621,7 @@ function filterReciteTopics(query) {
 function chooseReciteTopic(topic) {
   const search = document.getElementById('reciteTopicSearch');
   if (search) search.value = topic || '';
-  setReciteTopic(topic, false);
+  setReciteTopic(topic, true);
   clearReciteTopicResults();
 }
 
@@ -3626,6 +3651,20 @@ function moveTranscribeButtonToHeader() {
 
 function setReciteTopic(topic, reset = true) {
   const value = topic || '';
+  if (value !== (state.recitePractice.topic || '')) {
+    state.recitePractice.notes = '';
+    state.recitePractice.transcript = '';
+    state.recitePractice.correction = '';
+    state.recitePractice.correctionText = '';
+    state.recitePractice.historyPracticeId = '';
+    const notes = document.getElementById('reciteNotes');
+    const transcript = document.getElementById('reciteTranscript');
+    if (notes) notes.value = '';
+    if (transcript) transcript.value = '';
+    const correction = document.getElementById('reciteCorrection');
+    if (correction) { correction.style.display = 'none'; correction.innerHTML = ''; }
+    syncReciteSaveMenu();
+  }
   const input = document.getElementById('reciteTopicInput');
   const search = document.getElementById('reciteTopicSearch');
   const label = document.getElementById('reciteTopicLabel');
@@ -3639,7 +3678,7 @@ function setReciteTopic(topic, reset = true) {
 }
 
 function updateReciteTopic(value) {
-  setReciteTopic(value, false);
+  setReciteTopic(value, true);
   clearReciteTopicResults();
 }
 
@@ -3675,6 +3714,7 @@ function renderRecitePractice() {
     correction.className = 'notice correction-report';
     correction.innerHTML = saved.correction;
   }
+  syncReciteSaveMenu();
   setRecitePhase(reciteSelectedMode, reciteSelectedMode === 'speak' ? 300 : 60);
   setAudioState(reciteAudioBlob ? 'ready' : 'idle');
 }
@@ -3796,6 +3836,9 @@ function resetReciteFlow() {
     correction.className = 'notice';
     correction.innerHTML = '';
   }
+  state.recitePractice.correctionText = '';
+  state.recitePractice.historyPracticeId = '';
+  syncReciteSaveMenu();
   persistRecitePractice();
 }
 
@@ -4073,6 +4116,8 @@ async function correctRecitation() {
   box.style.display = 'block';
   box.className = 'notice';
   box.textContent = 'Corrigiendo recitación...';
+  state.recitePractice.correctionText = '';
+  syncReciteSaveMenu();
   const langName = state.lang === 'fr' ? 'French' : 'English';
   try {
     const correction = await groqChat([
@@ -4081,6 +4126,8 @@ async function correctRecitation() {
     ], { max_tokens: 1800, temperature: 0.25 });
     box.className = 'notice correction-report';
     box.innerHTML = renderCorrectionReport(correction);
+    state.recitePractice.correctionText = correction;
+    syncReciteSaveMenu();
     persistRecitePractice();
   } catch(e) {
     box.className = 'notice';
@@ -4112,6 +4159,82 @@ function renderCorrectionReport(text) {
       : `<ul>${section.lines.map(line => `<li>${escHtml(line)}</li>`).join('')}</ul>`;
     return `<section class="correction-section"><h4 class="correction-heading">${escHtml(titleCaseCorrection(section.title))}</h4>${body}</section>`;
   }).join('');
+}
+
+function syncReciteSaveMenu() {
+  const root = document.getElementById('reciteSaveMenu');
+  if (!root) return;
+  root.hidden = !String(state.recitePractice?.correctionText || '').trim();
+  if (root.hidden) toggleReciteSaveMenu(false);
+}
+
+function toggleReciteSaveMenu(force) {
+  const menu = document.getElementById('reciteSaveMenuList');
+  if (!menu) return;
+  const open = typeof force === 'boolean' ? force : menu.hidden;
+  menu.hidden = !open;
+  document.getElementById('reciteSaveMenuButton')?.setAttribute('aria-expanded', String(open));
+}
+
+document.addEventListener('click', event => {
+  if (!event.target.closest?.('.recite-save-menu')) toggleReciteSaveMenu(false);
+});
+
+function currentReciteCorrectionEntry() {
+  const topic = (document.getElementById('reciteTopicInput')?.value || state.recitePractice.topic || '').trim();
+  const notes = (document.getElementById('reciteNotes')?.value || '').trim();
+  const transcript = (document.getElementById('reciteTranscript')?.value || '').trim();
+  const correction = String(state.recitePractice.correctionText || '').trim();
+  if (!topic || !transcript || !correction) {
+    alert('Elige un tema, añade la transcripción y corrígela antes de guardar.');
+    return null;
+  }
+  return { topic, lang:state.lang, date:new Date().toISOString(), points:[], vocab:[], oralPractices:[{id:state.recitePractice.historyPracticeId || `oral-${Date.now()}`, date:new Date().toISOString(), notes, transcript, correction}] };
+}
+
+async function saveReciteCorrection() {
+  const draft = currentReciteCorrectionEntry();
+  if (!draft) return false;
+  toggleReciteSaveMenu(false);
+  const key = draft.topic.toLocaleLowerCase();
+  let entry = state.history.find(item => item.lang === draft.lang && String(item.topic || '').trim().toLocaleLowerCase() === key);
+  if (!entry) {
+    entry = {id:Date.now(), date:draft.date, lang:draft.lang, topic:draft.topic, points:[], vocab:[], oralPractices:[]};
+    state.history.unshift(entry);
+  }
+  if (!Array.isArray(entry.oralPractices)) entry.oralPractices = [];
+  const practice = draft.oralPractices[0];
+  const existing = entry.oralPractices.findIndex(item => item.id === practice.id);
+  if (existing >= 0) entry.oralPractices.splice(existing, 1, practice);
+  else entry.oralPractices.unshift(practice);
+  state.recitePractice.historyPracticeId = practice.id;
+  entry.updatedAt = practice.date;
+  state.history = [entry, ...state.history.filter(item => item !== entry)];
+  await persist();
+  renderHistory();
+  setReciteStatus('Corrección guardada junto al tema en Historial.');
+  return true;
+}
+
+async function exportReciteCorrectionPdf() {
+  const entry = currentReciteCorrectionEntry();
+  if (!entry) return;
+  toggleReciteSaveMenu(false);
+  await downloadEntryPdf(entry);
+}
+
+function exportReciteCorrectionWord() {
+  const entry = currentReciteCorrectionEntry();
+  if (!entry) return;
+  toggleReciteSaveMenu(false);
+  downloadWord(buildEntryWordHtml(entry), `Diplomator_Oral_${safeFilename(entry.topic)}.doc`);
+}
+
+function uploadReciteCorrectionToDrive() {
+  const entry = currentReciteCorrectionEntry();
+  if (!entry) return;
+  toggleReciteSaveMenu(false);
+  uploadWordToDrive(buildEntryWordHtml(entry), `Diplomator_Oral_${safeFilename(entry.topic)}.doc`);
 }
 
 function titleCaseCorrection(title) {
@@ -4402,7 +4525,7 @@ function buildEntryTxt(entry) {
   const date = new Date(entry.date).toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   const langLabel = entry.lang === 'fr' ? 'Français C1' : 'English C1';
   let txt = `DIPLOMATOR\n${'='.repeat(50)}\nFecha: ${date}\nIdioma: ${langLabel}\nTema: ${entry.topic}\n\n`;
-  entry.points.forEach((p, i) => {
+  (entry.points || []).forEach((p, i) => {
     const point = normalizePoint(p);
     txt += `${i+1}. ${point.title || 'Idea'}\n`;
     txt += `${point.text}\n`;
@@ -4416,6 +4539,11 @@ function buildEntryTxt(entry) {
       point.vocab.forEach(v => { txt += `   - ${v.word}: ${v.def}\n`; });
     }
     txt += '\n';
+  });
+  (entry.oralPractices || []).forEach((practice, i) => {
+    txt += `CORRECCIÓN ORAL ${i + 1}\n`;
+    if (practice.notes) txt += `Notas: ${practice.notes}\n`;
+    txt += `Transcripción: ${practice.transcript || ''}\nCorrección: ${practice.correction || ''}\n\n`;
   });
   return txt;
 }
