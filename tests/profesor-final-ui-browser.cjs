@@ -48,6 +48,7 @@ const assert=require('node:assert/strict');
   for(const name of ['Progreso','Cobros','Acceso']){
    await page.locator('.student-section-nav').getByRole('button',{name}).click();
    assert.equal(await page.locator('.student-section-nav>button.active').innerText(),name);
+   await page.screenshot({path:`tools/profesor-final-alumno-${name.toLowerCase()}.png`});
   }
   await page.locator('.student-section-nav').getByRole('button',{name:'Materiales'}).click();
   assert(await page.locator('.student-material-grid .material-hub-card').count()>0);
