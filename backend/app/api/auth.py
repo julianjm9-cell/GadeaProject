@@ -27,8 +27,8 @@ from app.services.licenses import check_access, license_for_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 LOGIN_BUCKET: dict[str, list[float]] = {}
-PRODUCT_CODES = ("DIPLOMATOR", "CAMBRIDGE", "UNIVERSIDAD_ADULTOS", "ESO_ADULTOS", "PROFESOR_PARTICULAR")
-SAFE_NEXT_PATHS = ("/apps", "/app", "/cambridge", "/universidad-adultos", "/eso-adultos", "/profesor-particular")
+PRODUCT_CODES = ("DIPLOMATOR", "CAMBRIDGE", "UNIVERSIDAD_ADULTOS", "ESO_ADULTOS", "PROFESOR_PARTICULAR", "OCR_FACTURAS")
+SAFE_NEXT_PATHS = ("/apps", "/app", "/cambridge", "/universidad-adultos", "/eso-adultos", "/profesor-particular", "/facturas")
 
 
 def rate_limit_key(identifier: str, limit: int = 8) -> None:
@@ -167,8 +167,8 @@ def ensure_google_access(db: Session, user: User, product_codes: tuple[str, ...]
     settings = get_settings()
     now = datetime.now(timezone.utc)
     for product_code in product_codes:
-        if product_code == "DIPLOMATOR":
-            continue  # Diplomator access is assigned by administration only.
+        if product_code in {"DIPLOMATOR", "OCR_FACTURAS"}:
+            continue  # Access is assigned by administration only.
         # Never renew suspended/expired access or replenish credits on login.
         if license_for_user(db, user, product_code):
             continue
@@ -332,7 +332,7 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     for product_code in PRODUCT_CODES[1:]:
         if decision.ok:
             break
-        decision = check_access(db, user, product_code, require_credits=product_code not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR"})
+        decision = check_access(db, user, product_code, require_credits=product_code not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR", "OCR_FACTURAS"})
     if not decision.ok:
         audit(db, actor=user, organization_id=user.organization_id, action="access_blocked", entity_type="user", entity_id=str(user.id), metadata={"reason": decision.message})
         db.commit()
@@ -414,17 +414,17 @@ async def google_callback(request: Request, response: Response, code: str | None
         redirect = RedirectResponse(next_path)
         redirect.delete_cookie("diplomator_google_state")
         return redirect
-    product = {"/profesor-particular": "PROFESOR_PARTICULAR", "/eso-adultos": "ESO_ADULTOS", "/universidad-adultos": "UNIVERSIDAD_ADULTOS", "/cambridge": "CAMBRIDGE"}.get(target.split("?")[0], "DIPLOMATOR")
+    product = {"/facturas": "OCR_FACTURAS", "/profesor-particular": "PROFESOR_PARTICULAR", "/eso-adultos": "ESO_ADULTOS", "/universidad-adultos": "UNIVERSIDAD_ADULTOS", "/cambridge": "CAMBRIDGE"}.get(target.split("?")[0], "DIPLOMATOR")
     try:
-        user = get_or_create_google_user(db, info, (product,))
+        user = get_or_create_google_user(db, info, () if product == "OCR_FACTURAS" else (product,))
     except HTTPException as exc:
         db.rollback()
         reason = "account" if exc.status_code == 409 else "access"
         return RedirectResponse("/login?" + urlencode({"google_error": reason, "next": target}))
-    decision = check_access(db, user, product, require_credits=product not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR"})
+    decision = check_access(db, user, product, require_credits=product not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR", "OCR_FACTURAS"})
     if target == "/apps" and not decision.ok:
         for product_code in PRODUCT_CODES[1:]:
-            decision = check_access(db, user, product_code, require_credits=product_code not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR"})
+            decision = check_access(db, user, product_code, require_credits=product_code not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR", "OCR_FACTURAS"})
             if decision.ok:
                 break
     if not decision.ok:
@@ -450,7 +450,7 @@ def me(user: User = Depends(current_user), db: Session = Depends(get_db)) -> dic
     for product_code in PRODUCT_CODES[1:]:
         if decision.ok:
             break
-        decision = check_access(db, user, product_code, require_credits=product_code not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR"})
+        decision = check_access(db, user, product_code, require_credits=product_code not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR", "OCR_FACTURAS"})
     return {"ok": decision.ok, "user": public_user(user), "license": {"ok": decision.ok, "message": decision.message}}
 
 
@@ -470,7 +470,7 @@ def refresh(request: Request, response: Response, refresh_token: str | None = No
     for product_code in PRODUCT_CODES[1:]:
         if decision.ok:
             break
-        decision = check_access(db, user, product_code, require_credits=product_code not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR"})
+        decision = check_access(db, user, product_code, require_credits=product_code not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR", "OCR_FACTURAS"})
     if not decision.ok:
         raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=decision.message)
     settings = get_settings()

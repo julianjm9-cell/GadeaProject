@@ -51,6 +51,7 @@ STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 LOCAL_DOCUMENT_DIR = Path(os.getenv("DOCUMENT_EXPORT_DIR") or ("/app/data/documents" if Path("/app").exists() else PROJECT_ROOT / "backend" / "data" / "documents"))
 PRODUCTS = {
+    "ocr_facturas": {"code": "OCR_FACTURAS", "name": "OCR de facturas", "path": "/facturas", "description": "Extrae, revisa y exporta tus facturas."},
     "profesor_particular": {
         "code": "PROFESOR_PARTICULAR",
         "name": "Profesor Particular",
@@ -712,6 +713,11 @@ def eso_public_page():
     return marketing_file("eso-adultos.html", "text/html")
 
 
+@router.get("/ocr-facturas")
+def ocr_facturas_landing():
+    return marketing_file("ocr-facturas.html", "text/html")
+
+
 @router.get("/profesor")
 @router.get("/profesor-info")
 def profesor_landing():
@@ -789,7 +795,7 @@ def profesor_particular_page(request: Request, db: Session = Depends(get_db)):
 def api_apps(user: User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     result = []
     for product in PRODUCTS.values():
-        decision = check_access(db, user, product["code"], require_credits=product["code"] not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR"})
+        decision = check_access(db, user, product["code"], require_credits=product["code"] not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR", "OCR_FACTURAS"})
         result.append({**product, "available": decision.ok, "message": decision.message})
     return {"ok": True, "apps": result}
 

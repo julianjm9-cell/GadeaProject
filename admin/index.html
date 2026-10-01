@@ -272,13 +272,14 @@
 <div id="toast" class="toast"></div>
 <script>
 const PRODUCTS=[
+  {key:'ocr',code:'OCR_FACTURAS',short:'OCR',label:'OCR de facturas',public:'/ocr-facturas',app:'/facturas',org:'Educa Suite - OCR',icon:'assets/brand/hazlotu-logo.png'},
   {key:'profesor',code:'PROFESOR_PARTICULAR',short:'PP',label:'Profesor Particular',public:'/profesor',app:'/profesor-particular',org:'Educa Suite - Profesor Particular',icon:'assets/brand/profesor-simple-v2.png'},
   {key:'universidad',code:'UNIVERSIDAD_ADULTOS',short:'U25',label:'Universidad +25',public:'/u25',app:'/universidad-adultos',org:'Educa Suite - Universidad +25',icon:'assets/brand/u25-simple.png'},
   {key:'eso',code:'ESO_ADULTOS',short:'E25',label:'ESO Adultos',public:'/e25',app:'/eso-adultos',org:'Educa Suite - ESO Adultos',icon:'assets/brand/eso-simple-v2.png'},
   {key:'cambridge',code:'CAMBRIDGE',short:'CAM',label:'Titulo de ingles',public:'/cambridge-info',app:'/cambridge',org:'Educa Suite - Cambridge',icon:'assets/brand/ingles-simple.png'},
   {key:'diplomator',code:'DIPLOMATOR',short:'DIP',label:'Diplomator',public:'/diplomator',app:'/app',org:'Educa Suite - Diplomator',icon:'assets/brand/diplomator-simple-v2.png'}
 ];
-const PRODUCT_ORDER=['eso','profesor','diplomator','universidad','cambridge'];PRODUCTS.sort((a,b)=>PRODUCT_ORDER.indexOf(a.key)-PRODUCT_ORDER.indexOf(b.key));
+const PRODUCT_ORDER=['eso','profesor','diplomator','ocr','universidad','cambridge'];PRODUCTS.sort((a,b)=>PRODUCT_ORDER.indexOf(a.key)-PRODUCT_ORDER.indexOf(b.key));
 let aiApp='ESO_ADULTOS';const aiDrafts={};
 let token=localStorage.getItem('educa_admin_token')||'',view='overview',currentApp='universidad',selectedUserId='';
 let orgs=[],users=[],accounts=[],ai=null;

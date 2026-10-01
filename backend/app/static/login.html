@@ -422,7 +422,7 @@ const LOGIN_BRANDS = {
 };
 function nextPath() {
   const requested = new URLSearchParams(location.search).get('next') || LOGIN_TARGETS[location.pathname] || '/apps';
-  return ['/app', '/cambridge', '/universidad-adultos', '/eso-adultos', '/profesor-particular', '/apps'].includes(requested) ? requested : '/apps';
+  return ['/app', '/cambridge', '/universidad-adultos', '/eso-adultos', '/profesor-particular', '/facturas', '/apps'].includes(requested) ? requested : '/apps';
 }
 function applyLoginBrand() {
   const brand = LOGIN_BRANDS[nextPath()];

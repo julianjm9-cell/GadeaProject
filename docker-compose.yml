@@ -44,6 +44,27 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  ocr-worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["python", "-m", "app.services.ocr_worker"]
+    env_file:
+      - path: ${ENV_FILE:-.env}
+        required: false
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-educa_suite}:${POSTGRES_PASSWORD:-educa_suite}@postgres:5432/${POSTGRES_DB:-educa_suite}
+    volumes:
+      - educa_suite_documents:/app/data/documents
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - suite_internal
+    mem_limit: 1g
+    cpus: 1.0
+    restart: unless-stopped
+
   admin:
     image: nginx:1.27-alpine
     volumes:

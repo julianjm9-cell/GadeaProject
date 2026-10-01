@@ -20,7 +20,7 @@ fi
 docker compose --profile proxy config --quiet
 
 printf '\n[1/5] Construyendo la nueva imagen (la app actual sigue funcionando)…\n'
-docker compose build backend
+docker compose build backend ocr-worker
 
 printf '\n[2/5] Preparando copia de seguridad de PostgreSQL…\n'
 docker compose up -d --wait --wait-timeout 120 postgres
@@ -56,5 +56,5 @@ docker compose exec -T backend python -m app.deployment_check
 docker compose exec -T reverse-proxy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 docker compose ps
 printf '\nActualización completada. Abre estas rutas en tu dominio o IP habitual:\n'
-printf '  /                     Portada con las cinco apps\n  /profesor             Landing de Profesor Particular\n  /profesor/login       Login y registro\n  /profesor/demo        Demo sin cuenta\n  /profesor-particular  App privada\n  /admin-dashboard/     Dashboard de administración\n'
+printf '  /                     Portada con las seis apps\n  /profesor             Landing de Profesor Particular\n  /profesor/login       Login y registro\n  /profesor/demo        Demo sin cuenta\n  /profesor-particular  App privada\n  /admin-dashboard/     Dashboard de administración\n'
 printf '\nCopia de seguridad: %s\n' "$BACKUP_DIR"

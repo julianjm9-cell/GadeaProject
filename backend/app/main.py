@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import admin, app_routes, auth
+from app.api import admin, app_routes, auth, ocr
 from app.config import get_settings
 from app.database.runtime_schema import ensure_runtime_schema
 
@@ -26,3 +26,4 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(app_routes.router)
+app.include_router(ocr.router)

@@ -14,6 +14,7 @@ COPY apps/diplomator/assets/diplomator-refresh.css /app/app/static/assets/diplom
 COPY apps/cambridge/index.html /app/app/static/cambridge.html
 COPY apps/u25/index.html /app/app/static/universidad-adultos.html
 COPY apps/e25/index.html /app/app/static/eso-adultos.html
+COPY apps/ocr/index.html /app/app/static/ocr-facturas-app.html
 COPY apps/profesor/index.html /app/app/static/profesor-particular.html
 COPY apps/e25/assets/desk /app/app/static/assets/desk
 COPY marketing/app_landings_demo /app/app/static/marketing

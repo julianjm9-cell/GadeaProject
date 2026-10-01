@@ -17,6 +17,7 @@ from app.models.core import (
 )
 
 __all__ = [
+    "OcrJob",
     "AuditLog",
     "AppSetting",
     "ClientState",
@@ -33,3 +34,5 @@ __all__ = [
     "UsageRecord",
     "User",
 ]
+
+from app.models.ocr import OcrJob
