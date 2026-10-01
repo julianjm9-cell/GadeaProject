@@ -307,6 +307,8 @@ let temarioCourse = '3.º ESO';
 let temarioSubject = 'Matemáticas';
 let temarioQuery = '';
 let temarioSelected = '';
+let temarioView;
+let openTemarioLesson;
 const temarioNorm = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().replace(/[^a-z0-9]/g, '');
 function temarioTopics() { return window.PROFESOR_TEMARIO?.[temarioCourse]?.[temarioSubject] || []; }
 function temarioTopic(id) { return temarioTopics().find(topic => topic.id === id); }
@@ -324,37 +326,6 @@ function temarioMaterials(topic) {
 function temarioVisibleTopics() {
   const query = temarioNorm(temarioQuery);
   return temarioTopics().filter(topic => !query || temarioNorm(topic.title + ' ' + topic.explanation).includes(query));
-}
-function temarioView() {
-  const courses = Object.keys(window.PROFESOR_TEMARIO || {});
-  if (!courses.includes(temarioCourse)) temarioCourse = courses[0] || '';
-  const available = Object.keys(window.PROFESOR_TEMARIO?.[temarioCourse] || {});
-  if (!available.includes(temarioSubject)) temarioSubject = available[0] || '';
-  const topics = temarioVisibleTopics();
-  if (!topics.some(topic => topic.id === temarioSelected)) temarioSelected = topics[0]?.id || '';
-  const selected = topics.find(topic => topic.id === temarioSelected);
-  const subjectTones = {Matemáticas:'math', Lengua:'language', Inglés:'english', 'Ciencias Naturales':'science', 'Física y Química':'science', 'Geografía e Historia':'history'};
-  const materials = temarioMaterials(selected);
-  return `<div class="temario-page" data-tone="${subjectTones[temarioSubject] || 'math'}">
-    <div class="temario-heading"><span class="temario-heading-icon">${icon('book')}</span><h1>Temario</h1><span class="temario-heading-count">${Object.values(window.PROFESOR_TEMARIO || {}).reduce((n, subjects) => n + Object.values(subjects).reduce((sum, items) => sum + items.length, 0), 0)} temas de base</span></div>
-    <div class="temario-stage">
-    <div class="temario-main-column"><div class="temario-toolbar" aria-label="Filtros del temario">
-      <label for="temarioCourse"><span>Curso</span><select id="temarioCourse">${courses.map(course => `<option value="${esc(course)}" ${course === temarioCourse ? 'selected' : ''}>${esc(course)}</option>`).join('')}</select></label>
-      <label for="temarioSubject"><span>Asignatura</span><select id="temarioSubject">${available.map(subject => `<option value="${esc(subject)}" ${subject === temarioSubject ? 'selected' : ''}>${esc(subject)}</option>`).join('')}</select></label>
-      <label for="temarioSearch" class="temario-search">${icon('search')}<input id="temarioSearch" type="search" value="${esc(temarioQuery)}" placeholder="Buscar tema…" autocomplete="off"></label>
-    </div>
-      <section class="temario-list-panel" aria-label="Temas">
-        <div class="temario-topic-list">${topics.map(topic => {const count = 3 + temarioMaterials(topic).length;return `<button type="button" class="temario-topic ${topic.id === temarioSelected ? 'active' : ''}" data-temario-topic="${esc(topic.id)}" aria-current="${topic.id === temarioSelected ? 'true' : 'false'}"><span class="temario-topic-index">${String(temarioTopics().indexOf(topic) + 1).padStart(2,'0')}</span><span class="temario-topic-copy"><strong>${esc(topic.title)}</strong><small>${esc(topic.explanation)}</small></span><span class="temario-topic-meta"><small>${count} recursos</small></span><span class="temario-topic-arrow">→</span></button>`}).join('') || `<div class="temario-empty">No hay temas con esa búsqueda.</div>`}</div>
-      </section>
-    </div>
-      <aside class="temario-detail" aria-label="Previsualización del tema"><div class="temario-preview-heading">${icon('book')} <strong>Previsualización del tema</strong></div>${selected ? `<div class="temario-detail-top"><span class="temario-detail-index">${String(temarioTopics().indexOf(selected) + 1).padStart(2,'0')}</span><div><span class="temario-kicker">${esc(temarioSubject)} · ${esc(temarioCourse)}</span><h2>${esc(selected.title)}</h2></div></div><div class="temario-preview-explanation"><strong>${icon('book')} Explicación breve</strong><p>${esc(selected.explanation)}</p></div><div class="temario-example"><span>${icon('spark')} EJEMPLO</span><strong>${esc(selected.example)}</strong></div><div class="temario-resource-head"><h3>Recursos incluidos</h3><span>${3 + materials.length}</span></div><div class="temario-resources"><button type="button" data-temario-action="open" data-id="${esc(selected.id)}"><span class="temario-resource-icon theory">${icon('book')}</span><span><strong>Explicación visual</strong><small>Idea y pasos clave</small></span></button><button type="button" data-temario-action="open" data-id="${esc(selected.id)}"><span class="temario-resource-icon example">${icon('check')}</span><span><strong>Ejemplo resuelto</strong><small>Una aplicación concreta</small></span></button><button type="button" data-temario-action="open" data-id="${esc(selected.id)}"><span class="temario-resource-icon practice">${icon('spark')}</span><span><strong>Compruébalo</strong><small>Pregunta y solución</small></span></button>${materials.slice(0,4).map(material => `<button type="button" data-action="material" data-id="${esc(material.id)}"><span class="temario-resource-icon saved">${icon('file')}</span><span><strong>${esc(material.title)}</strong><small>Tu material · ${esc(material.kind)}</small></span></button>`).join('')}</div><div class="temario-main-actions"><button type="button" class="primary" data-temario-action="open" data-id="${esc(selected.id)}">${icon('book')} Ver tema</button><button type="button" data-temario-action="create" data-id="${esc(selected.id)}">${icon('spark')} Usar en material</button></div><button type="button" class="temario-plan-link" data-temario-action="plan" data-id="${esc(selected.id)}">${icon('users')} Planificar con alumno</button>` : `<div class="temario-detail-empty">Selecciona un tema para explorar su contenido.</div>`}</aside>
-    </div>
-  </div>`;
-}
-function openTemarioLesson(topic) {
-  modal(topic.title, `<div class="temario-lesson"><div class="temario-lesson-meta">${esc(temarioSubject)} · ${esc(temarioCourse)}</div><section class="temario-lesson-intro"><span>01 · ENTENDER</span><h3>La idea clave</h3><p>${esc(topic.explanation)}</p></section><div class="temario-lesson-steps"><span>CONCEPTO</span><i>→</i><span>EJEMPLO</span><i>→</i><span>PRÁCTICA</span></div><section class="temario-lesson-example"><span>02 · VERLO EN ACCIÓN</span><h3>Ejemplo resuelto</h3><p>${esc(topic.example)}</p></section><section class="temario-lesson-practice"><span>03 · PROBAR</span><h3>Ahora te toca</h3><p>${esc(topic.question)}</p><button type="button" data-temario-action="reveal">Mostrar solución</button><div class="temario-lesson-answer" hidden><strong>Solución orientativa</strong><p>${esc(topic.answer)}</p></div></section><p class="temario-lesson-note">El profesor puede adaptar el nivel, el contexto y las preguntas antes de usar este contenido en clase.</p><div class="actions"><button type="button" class="primary" data-temario-action="create" data-id="${esc(topic.id)}">Crear actividad sobre este tema</button>${button('Cerrar','close')}</div></div>`, () => {});
-  $('dialog').classList.add('temario-dialog');
-  $('dialog').addEventListener('close', () => $('dialog').classList.remove('temario-dialog'), {once:true});
 }
 function planTemarioWithStudent(topic) {
   const pupils = state.students.filter(pupil => temarioNorm(pupil.course) === temarioNorm(temarioCourse) && pupil.subjects.includes(temarioSubject));
@@ -387,4 +358,119 @@ document.addEventListener('click', event => {
   if (action === 'open') openTemarioLesson(topic);
   if (action === 'create') {if ($('dialog').open) $('dialog').close();openWorkshop({course:temarioCourse,subject:temarioSubject,topic:topic.title});}
   if (action === 'plan') planTemarioWithStudent(topic);
+});
+
+/* Una ficha rica por tema; la navegación solo muestra lo imprescindible. */
+const temarioActivityTypes = (subject, title) => {
+  const name = temarioNorm(title);
+  if (subject === 'Matemáticas') return /ecuacion|fraccion|operacion|calculo|derivada|integral/.test(name) ? ['gaps', 'problem', 'error'] : ['problem', 'quiz', 'short'];
+  if (subject === 'Inglés') return /reading|writing|text|essay/.test(name) ? ['reading', 'short', 'error'] : /vocab|word|family|colour|number/.test(name) ? ['pairs', 'flashcard', 'memory'] : ['gaps', 'sentence', 'quiz'];
+  if (subject === 'Lengua') return /lectur|comprensi|cuento|texto|comentario/.test(name) ? ['reading', 'short', 'quiz'] : ['short', 'error', 'order'];
+  if (subject === 'Geografía e Historia') return ['timeline', 'order', 'quiz'];
+  if (subject === 'Física y Química') return /calculo|movimiento|fuerza|energia/.test(name) ? ['problem', 'quiz', 'error'] : ['classify', 'quiz', 'short'];
+  return ['classify', 'quiz', 'short'];
+};
+const temarioCommonError = (subject, title) => {
+  const name = temarioNorm(title);
+  if (/ecuacion/.test(name)) return 'Cambiar un término de lado sin aplicar la misma operación a ambos miembros o no comprobar la solución.';
+  if (/fraccion/.test(name)) return 'Operar numeradores y denominadores por separado cuando se suman fracciones.';
+  if (/porcent/.test(name)) return 'Confundir la cantidad inicial con la cantidad después del cambio porcentual.';
+  if (subject === 'Matemáticas') return 'Aplicar una fórmula antes de identificar los datos, las unidades y lo que se pide.';
+  if (subject === 'Inglés') return 'Traducir palabra por palabra sin comprobar el tiempo verbal y el contexto de la frase.';
+  if (subject === 'Lengua') return 'Nombrar una regla o recurso sin justificarlo con una parte concreta del texto.';
+  if (subject === 'Geografía e Historia') return 'Explicar un proceso por una sola causa sin situarlo en su época y lugar.';
+  if (subject === 'Física y Química' || subject === 'Ciencias Naturales') return 'Confundir una observación con su explicación sin contrastarla con los datos.';
+  return 'Memorizar el ejemplo sin entender cuándo se aplica la idea.';
+};
+for (const [course, subjects] of Object.entries(window.PROFESOR_TEMARIO)) {
+  for (const [subject, topics] of Object.entries(subjects)) {
+    for (const topic of topics) {
+      topic.didactic = {
+        objective: `Explicar ${topic.title.toLocaleLowerCase()} y aplicarlo en una situación adecuada a ${course}.`,
+        explanation: topic.explanation,
+        concepts: topic.explanation.split(/[.;]/).map(part => part.trim()).filter(part => part.length > 12).slice(0, 3),
+        examples: [topic.example],
+        commonErrors: [temarioCommonError(subject, topic.title)],
+        practice: [{prompt: topic.question, answer: topic.answer}],
+        activities: temarioActivityTypes(subject, topic.title),
+        solutions: [topic.answer]
+      };
+    }
+  }
+}
+
+temarioView = function () {
+  const courses = Object.keys(window.PROFESOR_TEMARIO || {});
+  if (!courses.includes(temarioCourse)) temarioCourse = courses[0] || '';
+  const subjects = Object.keys(window.PROFESOR_TEMARIO?.[temarioCourse] || {});
+  if (!subjects.includes(temarioSubject)) temarioSubject = subjects[0] || '';
+  const topics = temarioVisibleTopics();
+  if (!topics.some(topic => topic.id === temarioSelected)) temarioSelected = topics[0]?.id || '';
+  const current = topics.find(topic => topic.id === temarioSelected);
+  return `<div class="temario-page temario-simple">
+    <div class="temario-heading"><h1>Temario</h1></div>
+    <div class="temario-stage">
+      <aside class="temario-controls" aria-label="Buscar en el temario">
+        <label for="temarioCourse">Curso<select id="temarioCourse">${courses.map(course => `<option value="${esc(course)}" ${course === temarioCourse ? 'selected' : ''}>${esc(course)}</option>`).join('')}</select></label>
+        <label for="temarioSubject">Asignatura<select id="temarioSubject">${subjects.map(item => `<option value="${esc(item)}" ${item === temarioSubject ? 'selected' : ''}>${esc(item)}</option>`).join('')}</select></label>
+        <label for="temarioSearch">Buscar tema<input id="temarioSearch" type="search" value="${esc(temarioQuery)}" placeholder="Buscar tema…" autocomplete="off"></label>
+      </aside>
+      <section class="temario-list-panel" aria-label="Temas de ${esc(temarioSubject)}">
+        <div class="temario-topic-list">${topics.map(topic => `<button type="button" class="temario-topic ${topic.id === temarioSelected ? 'active' : ''}" data-temario-topic="${esc(topic.id)}" aria-current="${topic.id === temarioSelected ? 'true' : 'false'}"><span class="temario-topic-index">${String(temarioTopics().indexOf(topic) + 1).padStart(2, '0')}</span><span class="temario-topic-copy"><strong>${esc(topic.title)}</strong><small>${esc(topic.explanation)}</small></span><span class="temario-topic-meta"><small>3 recursos</small></span><span class="temario-topic-arrow">→</span></button>`).join('') || '<div class="temario-empty">No hay temas con esa búsqueda.</div>'}</div>
+      </section>
+      <aside class="temario-detail" aria-label="Previsualización del tema"><h2 class="temario-preview-title">Vista previa</h2>${current ? `<h3>${esc(current.title)}</h3><p class="temario-preview-meta">${esc(temarioSubject)} · ${esc(temarioCourse)}</p><p class="temario-preview-explanation">${esc(current.explanation)}</p><div class="temario-example"><strong>Ejemplo</strong><p>${esc(current.example)}</p></div><p class="temario-includes"><strong>Incluye</strong><br>Explicación · Ejemplo · Práctica</p><div class="temario-main-actions"><button type="button" class="primary" data-temario-action="open" data-id="${esc(current.id)}">Ver tema</button><button type="button" data-temario-action="use" data-id="${esc(current.id)}">Usar en material</button></div>` : '<p>Selecciona un tema para ver un resumen.</p>'}</aside>
+    </div>
+  </div>`;
+};
+
+openTemarioLesson = function (topic) {
+  const content = topic.didactic;
+  modal(topic.title, `<div class="temario-lesson"><p class="temario-lesson-meta">${esc(temarioSubject)} · ${esc(temarioCourse)}</p>
+    <section class="temario-lesson-intro"><h3>Explicación</h3><p>${esc(content.explanation)}</p></section>
+    <section class="temario-lesson-example"><h3>Ejemplo resuelto</h3><p>${esc(content.examples[0])}</p></section>
+    <section class="temario-lesson-practice"><h3>Practica</h3><p>${esc(content.practice[0].prompt)}</p><div class="actions"><button type="button" class="primary" data-temario-action="practice" data-id="${esc(topic.id)}">Practicar ahora</button></div><details><summary>Ver solución orientativa</summary><p class="temario-lesson-answer">${esc(content.solutions[0])}</p></details></section>
+    <details class="temario-extra"><summary>Más contenido</summary><div><h4>Objetivo</h4><p>${esc(content.objective)}</p><h4>Conceptos clave</h4><ul>${content.concepts.map(concept => `<li>${esc(concept)}</li>`).join('')}</ul><h4>Error frecuente</h4><p>${esc(content.commonErrors[0])}</p></div></details>
+    <div class="temario-lesson-footer"><button type="button" data-temario-action="use" data-id="${esc(topic.id)}">Usar en material</button>${button('Cerrar', 'close')}</div>
+  </div>`, () => {});
+  $('dialog').classList.add('temario-dialog');
+  $('dialog').addEventListener('close', () => $('dialog').classList.remove('temario-dialog'), {once: true});
+};
+
+function temarioUseInMaterial(topic) {
+  if ($('dialog').open) $('dialog').close();
+  const pupils = state.students.filter(pupil => pupil.subjects.includes(temarioSubject));
+  modal('Usar en material', `<p>El curso, la asignatura y el tema ya están preparados. Elige para quién será el material.</p><label for="temarioOwner">¿Para quién?</label><select id="temarioOwner" name="studentId"><option value="">Material general</option>${pupils.map(pupil => `<option value="${esc(pupil.id)}">${esc(pupil.name)}</option>`).join('')}</select>${submit('Continuar a Materiales')}`, form => {
+    const pupil = student(form.get('studentId'));
+    const course = pupil?.course || temarioCourse;
+    const subject = temarioSubject;
+    const type = topic.didactic.activities[0];
+    selected = null; view = 'Biblioteca'; render();
+    setTimeout(() => {
+      const suggested = Object.fromEntries(Object.keys(activityLabels).map(key => [key, key === type ? 3 : 0]));
+      openWorkshop({course, subject, topic: topic.title, theme: pupil?.interests || '', ...suggested});
+      if (pupil) {
+        const selector = $('workshopStudent');
+        selector.value = pupil.id;
+        selector.dispatchEvent(new Event('change', {bubbles: true}));
+        $('workshopCourse').value = course;
+        $('workshopSubject').value = subject;
+        $('workshopTopic').value = topic.title;
+        $('workshopTopic').dispatchEvent(new Event('input', {bubbles: true}));
+      }
+    }, 0);
+  });
+}
+
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-temario-action="use"],[data-temario-action="practice"]');
+  if (!button) return;
+  const topic = temarioTopic(button.dataset.id);
+  if (!topic) return;
+  if (button.dataset.temarioAction === 'use') temarioUseInMaterial(topic);
+  else {
+    if ($('dialog').open) $('dialog').close();
+    const question = topic.didactic.practice[0];
+    const material = {id: `temario-${topic.id}`, title: topic.title, subject: temarioSubject, activity: {version: 1, context: {course: temarioCourse, subject: temarioSubject, topic: topic.title}, questions: [{id: `q-${topic.id}`, type: 'short', prompt: question.prompt, answer: question.answer, text: '', options: []}]}};
+    setTimeout(() => runActivity(material, ''), 0);
+  }
 });

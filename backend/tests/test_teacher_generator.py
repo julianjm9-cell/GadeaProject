@@ -54,15 +54,17 @@ def test_invalid_counts_no_provider(client,monkeypatch):
     assert not calls
 
 
-def test_course_guidance_reaches_model_without_private_student_data(client, monkeypatch):
+def test_course_guidance_and_learning_focus_reach_model_without_student_identifier(client, monkeypatch):
     web, _, calls = setup(client, monkeypatch)
     body = request()
     body['course'] = '3.º ESO'
+    body['focus'] = 'Necesita reforzar los cambios de signo.'
     response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
     assert response.status_code == 200, response.text
     context = json.loads(calls[0]['messages'][1]['content'])
     assert context['course'] == '3.º ESO'
     assert 'ESO final' in context['levelGuidance']
+    assert context['focus'] == 'Necesita reforzar los cambios de signo.'
     assert 'studentId' not in context
 
 def test_requires_login(client):

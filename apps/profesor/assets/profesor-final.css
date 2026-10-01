@@ -54,3 +54,39 @@
 .student-progress-recent>h2{margin-bottom:17px}.progress-recent-item{display:grid;grid-template-columns:50px minmax(0,1fr);gap:10px;padding:11px 0;border-left:2px solid #deebfb;margin-left:21px}.progress-recent-item time{position:relative;left:-24px;width:54px;padding:4px 0;background:#fff;color:#5f79a2;font-size:11px}.progress-recent-item>div{margin-left:-20px}.progress-recent-item strong{font-size:12px}.progress-recent-item p{font-size:11px;color:#617ba6;margin-top:4px}
 @media(max-width:900px){.student-classes-layout,.student-progress-layout{grid-template-columns:1fr}.student-class-data{order:-1}}
 @media(max-width:600px){.student-progress-focus{grid-template-columns:1fr}.student-class-data p{grid-template-columns:70px minmax(0,1fr)}}
+
+/* Temario: curso, asignatura y búsqueda; contenido completo solo al abrir un tema. */
+.temario-simple{--temario-accent:#1269da;--temario-pale:#eaf3ff}
+.temario-simple .temario-heading{height:44px;margin:0 0 13px}
+.temario-simple .temario-heading h1{font-size:29px}
+.temario-simple .temario-stage{display:grid;grid-template-columns:minmax(205px,.65fr) minmax(390px,1.45fr) minmax(300px,1fr);gap:14px;align-items:stretch}
+.temario-simple .temario-controls,.temario-simple .temario-list-panel,.temario-simple .temario-detail{min-width:0;border:1px solid #dfebf8;border-radius:14px;background:#fff;box-shadow:0 5px 18px #234c7c08}
+.temario-simple .temario-controls{padding:19px;display:flex;flex-direction:column;gap:20px}
+.temario-simple .temario-controls label{display:block;color:#173769;font-size:13px;font-weight:700}
+.temario-simple .temario-controls select,.temario-simple .temario-controls input{display:block;width:100%;min-height:43px;margin-top:8px;padding:9px 11px;border:1px solid #dbe7f7;border-radius:9px;background:#fff;color:#102b60;font-size:13px;font-weight:500}
+.temario-simple .temario-list-panel{padding:9px;overflow:hidden;min-height:0;max-height:none}
+.temario-simple .temario-topic-list{padding:0;gap:5px;max-height:calc(100vh - 205px);overflow:auto}
+.temario-simple .temario-topic{min-height:66px;padding:9px 10px;grid-template-columns:39px minmax(0,1fr) auto 22px;border-radius:10px;box-shadow:none}
+.temario-simple .temario-topic.active{background:#f5faff;border-color:#317bf0;box-shadow:none}
+.temario-simple .temario-topic-index{width:35px;height:35px;background:#eaf3ff;color:#1269da}
+.temario-simple .temario-topic-copy strong{font-size:13px}
+.temario-simple .temario-topic-copy small{font-size:11px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;display:block}
+.temario-simple .temario-topic-meta small{font-size:10px;color:#637fa5}
+.temario-simple .temario-topic-arrow{width:auto;height:auto;background:none;font-size:17px}
+.temario-simple .temario-detail{padding:20px;display:flex;flex-direction:column;min-height:0;max-height:none}
+.temario-simple .temario-preview-title{padding-bottom:14px;margin-bottom:22px;border-bottom:1px solid #e5edf7;font-size:17px}
+.temario-simple .temario-detail h3{font-size:19px;line-height:1.25}
+.temario-simple .temario-preview-meta{margin:7px 0 19px;color:#6480a6;font-size:12px}
+.temario-simple .temario-preview-explanation{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;border:0;background:none;padding:0;margin:0 0 18px;font-size:13px;color:#42628f;line-height:1.55}
+.temario-simple .temario-example{display:block;border:1px solid #dcebf9;border-radius:10px;background:#f3faff;padding:14px;margin:0 0 18px}
+.temario-simple .temario-example strong{display:block;color:#1065ce;font-size:12px;margin-bottom:9px}
+.temario-simple .temario-example p{font-size:13px;line-height:1.45;color:#244779}
+.temario-simple .temario-includes{font-size:12px;line-height:1.8;color:#607ba6}
+.temario-simple .temario-includes strong{font-size:13px;color:#102c61}
+.temario-simple .temario-main-actions{display:grid;grid-template-columns:1fr;gap:8px;margin:auto 0 0;padding-top:22px}
+.temario-simple .temario-main-actions button{width:100%;min-height:41px;font-size:12px}
+.temario-simple .temario-main-actions button:not(.primary){border:0;background:transparent;color:#2165c5}
+.temario-lesson{display:grid;gap:11px}.temario-lesson section{margin:0;background:#fff;border:1px solid #e2ebf7;padding:16px}.temario-lesson section>h3{margin:0 0 8px;color:#102c61;font-size:16px}.temario-lesson section p{font-size:13px;line-height:1.6}.temario-lesson .temario-lesson-practice{background:#f7fbff!important;border-color:#dceafa!important}.temario-lesson-practice .actions{margin:12px 0 0}.temario-lesson-practice .actions button{margin:0;background:#1269da;border-color:#1269da;color:#fff}.temario-lesson-practice details{margin-top:13px;border-top:1px solid #e0eaf6;padding-top:11px}.temario-lesson-practice summary,.temario-extra summary{cursor:pointer;color:#1c62ba;font-size:12px;font-weight:700}.temario-lesson-practice .temario-lesson-answer{padding:10px;margin:10px 0 0;font-size:12px}.temario-extra{padding:13px 15px;border:1px solid #e1ebf7;border-radius:11px;background:#fff}.temario-extra h4{margin:13px 0 5px;font-size:12px;color:#14396d}.temario-extra p,.temario-extra li{font-size:12px;line-height:1.5;color:#526f98}.temario-extra ul{margin:5px 0;padding-left:19px}.temario-lesson-footer{display:flex;justify-content:flex-end;gap:8px}.temario-lesson-footer button{font-size:12px}
+@media(max-width:1100px){.temario-simple .temario-stage{grid-template-columns:minmax(185px,.7fr) minmax(320px,1.45fr) minmax(270px,1fr);gap:9px}.temario-simple .temario-controls,.temario-simple .temario-detail{padding:14px}}
+@media(max-width:850px){.temario-simple .temario-stage{grid-template-columns:minmax(180px,.7fr) minmax(0,1.5fr)}.temario-simple .temario-detail{grid-column:1/-1}.temario-simple .temario-topic-list{max-height:490px}}
+@media(max-width:580px){.temario-simple .temario-stage{grid-template-columns:1fr}.temario-simple .temario-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.temario-simple .temario-controls label:last-child{grid-column:1/-1}.temario-simple .temario-controls select,.temario-simple .temario-controls input{min-width:0}.temario-simple .temario-list-panel{min-height:240px;max-height:420px}.temario-simple .temario-detail{grid-column:1}.temario-simple .temario-topic{grid-template-columns:35px minmax(0,1fr) 18px}.temario-simple .temario-topic-meta{display:none}}

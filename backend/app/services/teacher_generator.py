@@ -76,7 +76,7 @@ def generator_context(payload):
     except ValueError:
         raise HTTPException(422, 'Identificador de generación no válido.')
     context = {}
-    for key, limit in [('course', 80), ('subject', 80), ('topic', 180), ('theme', 250)]:
+    for key, limit in [('course', 80), ('subject', 80), ('topic', 180), ('theme', 250), ('focus', 350)]:
         value = payload.get(key, '')
         if not isinstance(value, str) or len(value) > limit:
             raise HTTPException(422, 'Contexto no válido.')
@@ -164,7 +164,8 @@ Respeta exactamente las cantidades de cada tipo y el nivel del curso. course y
 levelGuidance determinan la dificultad, el vocabulario, los ejemplos y el alcance de
 cada ejercicio. No introduzcas contenidos de cursos posteriores. El contenido
 académico es topic; theme solo ambienta ejemplos si encaja con la materia y la edad,
-no sustituye al contenido. duration es orientativa.
+no sustituye al contenido. Si focus contiene una dificultad concreta del alumno,
+incluye práctica guiada para reforzarla sin perder el objetivo del tema. duration es orientativa.
 En pairs cada prompt tiene una respuesta única y las respuestas no se repiten.
 En gaps incluye exactamente un ___ por enunciado, respuesta breve y sin ambigüedad.
 Cada ejercicio tiene UNA sola tarea; no añadas otra pregunta después del hueco.
