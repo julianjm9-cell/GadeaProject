@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -906,7 +906,7 @@
     .recite-stage { padding: 14px; }
   }
 </style>
-<style>.brand-area h1{font-family:Arial,sans-serif;text-transform:none;letter-spacing:-.04em;font-weight:800}.brand-word{color:#062653;gap:0}.brand-word .brand-initial{font-size:1em;font-style:normal;color:inherit}.brand-word:after{display:none}.diplomator-header-icon{box-shadow:none;border-radius:0}.profile-mini,.profile-avatar{background:#062653!important}.profile-mini img,.profile-avatar img{object-fit:contain;padding:4px}</style><link rel="icon" type="image/png" sizes="any" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="shortcut icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="apple-touch-icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"></head>
+<style>.brand-area h1{font-family:Arial,sans-serif;text-transform:none;letter-spacing:-.04em;font-weight:800}.brand-word{color:#062653;gap:0}.brand-word .brand-initial{font-size:1em;font-style:normal;color:inherit}.brand-word:after{display:none}.diplomator-header-icon{box-shadow:none;border-radius:0}.profile-mini,.profile-avatar{background:#062653!important}.profile-mini img,.profile-avatar img{object-fit:contain;padding:4px}</style><link rel="icon" type="image/png" sizes="any" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="shortcut icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="apple-touch-icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="stylesheet" href="assets/diplomator-refresh.css?v=20261001"></head>
 <body>
 <div class="selection-toolbar" id="selectionToolbar" aria-label="Formato de texto">
   <button type="button" title="Negrita" onmousedown="applySelectionFormat(event,'bold')">B</button>
@@ -977,22 +977,25 @@
     </div>
     <div id="sessionActive" class="session-active" style="display:none">
       <div class="session-header">
-        <div>
+        <div class="session-header-main">
           <div class="session-date" id="sessionDateLabel"></div>
           <div class="session-topic" id="sessionTopicLabel"></div>
           <div class="session-lang-badge" id="sessionLangBadge"></div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
-          <button class="btn btn-outline btn-small" onclick="replaceWithRandomSession()">Tema aleatorio</button>
-          <button class="btn btn-outline btn-small" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">Elegir tema -></button>
-          <button class="btn btn-outline btn-small" onclick="closeCurrentSession()">Cerrar y descartar</button>
+        <div class="session-header-actions">
+          <button class="btn btn-outline btn-small" type="button" onclick="replaceWithRandomSession()">◇&nbsp; Otro tema aleatorio</button>
+          <button class="btn btn-outline btn-small" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">☷&nbsp; Elegir tema</button>
+          <button class="btn btn-blue btn-small" id="generateNotesButton" type="button" onclick="generateCurrentSession()">✦&nbsp; Generar apuntes</button>
+          <button class="session-discard" type="button" onclick="closeCurrentSession()">Descartar sesión</button>
         </div>
       </div>
 
-      <div class="points-section">
-        <div class="section-label">Puntos clave generados</div>
+      <div class="points-section generated-section">
+        <div class="points-heading"><div><span class="points-heading-icon" aria-hidden="true">✦</span><div><h2>Apuntes generados</h2><p id="pointsGenerationMeta">Genera apuntes para revisar y guardar las ideas que te resulten útiles.</p></div></div><button class="points-how" type="button" aria-controls="pointsHelp" aria-expanded="false" onclick="showPointsHelp(this)">Cómo funciona</button></div>
+        <div id="pointsHelp" class="points-help" hidden>Genera las ideas del tema con el modelo elegido en tu perfil. Puedes corregir el texto directamente y guardar solo los puntos que quieras. Los créditos se descuentan únicamente cuando la generación devuelve puntos utilizables.</div>
         <div id="pointsFallbackNotice" class="db-notice" hidden></div>
         <div id="pointsVersions" class="points-versions" hidden></div>
+        <div id="generationStatus" aria-live="polite"></div>
         <div id="aiPoints"></div>
         <div id="loadingBar" style="display:none">
           <div class="loading-bar"></div>
@@ -1000,14 +1003,13 @@
         </div>
       </div>
 
-      <div class="points-section">
-        <div class="section-label">Mis puntos aceptados / añadidos</div>
+      <div class="points-section saved-section">
+        <div class="section-label">Mis apuntes guardados</div>
         <div id="savedPoints"></div>
         <div class="empty-msg" id="savedEmpty">Acepta puntos generados o añade los tuyos</div>
       </div>
 
-      <div>
-        <div class="section-label">Añadir punto manual</div>
+        <div class="manual-note-wrap"><details class="manual-note"><summary>Añadir un punto propio</summary>
         <div class="add-point-row">
           <div class="manual-point-form">
             <input id="manualTitleInput" placeholder="Título de la idea">
@@ -1015,7 +1017,7 @@
             <textarea id="manualInfoInput" spellcheck="true" placeholder="Ejemplos o datos con fecha, uno por línea. Ej: 2024 - The EU adopted..."></textarea>
           </div>
           <button class="btn btn-small" onclick="addManualPoint()">+ Añadir</button>
-        </div>
+        </div></details>
       </div>
 
       <div style="margin-top:26px;display:flex;gap:10px;flex-wrap:wrap;">
@@ -1886,8 +1888,8 @@ function inlinePointEditorHtml(scope, i, j, p, includeTitle = true) {
     <div class="inline-point-editor" data-point-editor="${scope}-${suffix}">
       ${includeTitle ? `<input class="inline-point-title" id="${scope}title-${suffix}" value="${escAttr(point.title)}" placeholder="Titulo de la idea" onblur="saveInlinePoint('${scope}', ${i}, ${j ?? 'null'})">` : ''}
       <div class="inline-point-text rich-content" id="${scope}text-${suffix}" contenteditable="true" spellcheck="true" onblur="saveInlinePoint('${scope}', ${i}, ${j ?? 'null'})">${point.html || escHtml(point.text)}</div>
-      <div class="inline-point-hint">Ejemplos y fechas</div>
-      <textarea class="inline-point-info" rows="${infoRows}" id="${scope}info-${suffix}" placeholder="Ej: 2024 - dato util para recitar" onblur="saveInlinePoint('${scope}', ${i}, ${j ?? 'null'})">${escHtml(infoText)}</textarea>
+      <details class="point-extra" ${infoText ? 'open' : ''}><summary>${infoText ? 'Ejemplos y fechas' : '+ Añadir ejemplo o fecha'}</summary>
+      <textarea class="inline-point-info" rows="${infoRows}" id="${scope}info-${suffix}" placeholder="Ej: 2024 - dato útil para recitar" onblur="saveInlinePoint('${scope}', ${i}, ${j ?? 'null'})">${escHtml(infoText)}</textarea></details>
     </div>`;
 }
 
@@ -2259,6 +2261,14 @@ function persistCurrentSession() {
   persist();
 }
 
+function displayModelName(model) {
+  const value = String(model || '');
+  if (value.startsWith('gemini:gemini-')) return `Gemini ${value.slice('gemini:gemini-'.length).replace(/-flash/i, ' Flash').replace(/-lite/i, ' Lite')}`;
+  if (value.startsWith('groq:')) return `Groq · ${value.slice(5)}`;
+  if (value.startsWith('openai:')) return `OpenAI · ${value.slice(7)}`;
+  return value;
+}
+
 function renderPointVersions() {
   const root = document.getElementById('pointsVersions');
   if (!root) return;
@@ -2270,7 +2280,28 @@ function renderPointVersions() {
     ? `El modelo elegido estaba saturado. Estos apuntes se generaron con ${active.model}. Tu preferencia no ha cambiado.`
     : active?.fallbackReason ? `El modelo anterior no estaba disponible. Estos apuntes se generaron con ${active.model}.` : '';
   root.hidden = versions.length < 2;
-  root.innerHTML = versions.length < 2 ? '' : `<span>Comparar versiones</span>${versions.map((v, i) => `<button type="button" class="${i === session.activeVersion ? 'active' : ''}" onclick="switchPointVersion(${i})" aria-pressed="${i === session.activeVersion}">${escHtml('Versión ' + (i + 1) + ' · ' + (v.model || 'Modelo anterior'))}</button>`).join('')}<small>Instrucciones de esta versión: ${escHtml(versions[session.activeVersion]?.prompt || 'No registradas')}</small>`;
+  root.innerHTML = versions.length < 2 ? '' : `<span>Comparar versiones</span>${versions.map((v, i) => `<button type="button" class="${i === session.activeVersion ? 'active' : ''}" onclick="switchPointVersion(${i})" aria-pressed="${i === session.activeVersion}">${escHtml('Versión ' + (i + 1) + ' · ' + (displayModelName(v.model) || 'Modelo anterior'))}</button>`).join('')}<small>Instrucciones de esta versión: ${escHtml(versions[session.activeVersion]?.prompt || 'No registradas')}</small>`;
+  const meta = document.getElementById('pointsGenerationMeta');
+  if (meta) meta.textContent = active?.model
+    ? `${session.aiPoints.filter(p => !p.accepted).length} por revisar · Generados con ${displayModelName(active.model)}`
+    : 'Genera apuntes para revisar y guardar las ideas que te resulten útiles.';
+}
+
+function showPointsHelp(button) {
+  const help = document.getElementById('pointsHelp');
+  if (!help) return;
+  help.hidden = !help.hidden;
+  button?.setAttribute('aria-expanded', String(!help.hidden));
+}
+
+function generationErrorHtml(error) {
+  const message = String(error?.message || 'No se pudo completar la generación.');
+  let summary = message;
+  if (/Gemini 503|high demand|saturad/i.test(message)) summary = 'Gemini está saturado temporalmente. Espera unos minutos antes de volver a intentarlo.';
+  else if (/Gemini 429|límite de uso|cuota/i.test(message)) summary = 'Se ha alcanzado un límite de Gemini. Revisa la cuota del modelo o inténtalo más tarde.';
+  else if (/Gemini 404/i.test(message)) summary = 'El modelo elegido no está disponible. Selecciona otro en tu perfil o revisa Admin > IA.';
+  const noCharge = /Gemini (429|503|404)|high demand|saturad|límite de uso|cuota/i.test(message);
+  return `<div class="generation-error" role="alert"><div class="generation-error-icon" aria-hidden="true">!</div><div><strong>No se pudieron generar los apuntes</strong><p>${escHtml(summary)}</p>${noCharge ? '<small>No se han descontado créditos.</small>' : ''}</div><button class="btn btn-outline btn-small" type="button" onclick="generateCurrentSession()">Reintentar</button></div>`;
 }
 
 function switchPointVersion(index) {
@@ -2340,6 +2371,7 @@ function resetSessionView() {
   document.getElementById('sessionEmpty').style.display = 'block';
   document.getElementById('sessionActive').style.display = 'none';
   document.getElementById('aiPoints').innerHTML = '';
+  document.getElementById('generationStatus').innerHTML = '';
   document.getElementById('savedPoints').innerHTML = '';
   document.getElementById('savedEmpty').style.display = 'block';
   ['manualInput','manualTitleInput','manualInfoInput'].forEach(id => {
@@ -2468,39 +2500,50 @@ async function startSessionWithTopic(topic, autoGenerate = false) {
   document.getElementById('sessionTopicLabel').textContent = topic;
   document.getElementById('sessionLangBadge').textContent = getLangLabel();
   document.getElementById('aiPoints').innerHTML = '';
+  document.getElementById('generationStatus').innerHTML = '';
   document.getElementById('savedPoints').innerHTML = '';
   document.getElementById('savedEmpty').style.display = 'block';
   document.getElementById('manualInput').value = '';
   document.getElementById('manualTitleInput').value = '';
   document.getElementById('manualInfoInput').value = '';
+  renderPointVersions();
   setReciteTopic(topic);
   persistCurrentSession();
   updateGlobalTeacherContext();
 
   if (autoGenerate) {
-    await generateSession(topic);
+    await generateCurrentSession();
   } else {
     document.getElementById('aiPoints').innerHTML = `
-      <div class="db-notice" style="text-align:center;">
-        Tema seleccionado. No se ha consumido ningun credito todavia. Generar puntos consumira 1 credito por punto.
-      </div>
-      <div style="display:flex;justify-content:center;margin-top:14px;">
-        <button class="btn btn-blue" onclick="generateCurrentSession()">Generar puntos</button>
-      </div>`;
+      <div class="generation-empty"><span aria-hidden="true">✦</span><strong>El tema está listo</strong><p>Genera apuntes para empezar. Podrás revisar y guardar cada idea por separado.</p></div>`;
   }
 }
 
+let pointsGenerationBusy = false;
 async function generateCurrentSession() {
-  if (!session.topic) return;
-  await generateSession(session.topic);
+  if (!session.topic || pointsGenerationBusy) return;
+  pointsGenerationBusy = true;
+  const button = document.getElementById('generateNotesButton');
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Generando apuntes…';
+  }
+  try {
+    await generateSession(session.topic);
+  } finally {
+    pointsGenerationBusy = false;
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = '✦&nbsp; Generar apuntes';
+    }
+  }
 }
 
 async function generateSession(topic) {
   const license = await getDiplomatorLicense();
 
   if (!license) {
-    document.getElementById('aiPoints').innerHTML =
-      `<div class="notice">Introduce tu clave DIPLOMATOR en la pestaña Configuración.<br><br>Puedes añadir puntos manualmente.</div>`;
+    document.getElementById('generationStatus').innerHTML = generationErrorHtml(new Error('No se pudo verificar tu acceso. Vuelve a iniciar sesión.'));
     return;
   }
 
@@ -2518,7 +2561,8 @@ async function generateSession(topic) {
   await persist();
 
   document.getElementById('loadingBar').style.display = 'block';
-  document.getElementById('aiPoints').innerHTML = '';
+  document.getElementById('generationStatus').innerHTML = '';
+  if (!session.aiPoints.length) document.getElementById('aiPoints').innerHTML = '';
 
   const prompt = `You are preparing reliable C1/C2 oral-exam study notes in ${langName}.
 TOPIC: "${topic}"
@@ -2544,14 +2588,13 @@ Before answering, check that every point adds a different piece of understanding
     document.getElementById('loadingBar').style.display = 'none';
     let parsed;
     try { parsed = JSON.parse(raw); } catch(e) {
-      document.getElementById('aiPoints').innerHTML = `<div class="notice">Respuesta inválida. Inténtalo de nuevo.</div>`;
+      document.getElementById('generationStatus').innerHTML = generationErrorHtml(new Error('Respuesta inválida. Inténtalo de nuevo.'));
       return;
     }
 
     const generatedPoints = generatedPointsFromResponse(parsed);
     if (!generatedPoints.length) {
-      document.getElementById('aiPoints').innerHTML =
-        '<div class="notice">El modelo no devolvió puntos utilizables. Prueba otro modelo o ajusta las instrucciones.</div>';
+      document.getElementById('generationStatus').innerHTML = generationErrorHtml(new Error('El modelo no devolvió puntos utilizables. Prueba otro modelo o ajusta las instrucciones.'));
       return;
     }
 
@@ -2573,7 +2616,7 @@ Before answering, check that every point adds a different piece of understanding
 
   } catch(e) {
     document.getElementById('loadingBar').style.display = 'none';
-    document.getElementById('aiPoints').innerHTML = `<div class="notice">Error al generar: ${escHtml(e.message || 'Comprueba tu licencia y el servidor local.')}</div>`;
+    document.getElementById('generationStatus').innerHTML = generationErrorHtml(e);
   }
 }
 
@@ -2591,41 +2634,46 @@ function renderAIPoints() {
   session.aiPoints.forEach((p, i) => {
     if (p.accepted) return;
     const row = document.createElement('div');
-    row.className = 'point-row';
+    row.className = 'point-row' + (p.vocab?.length ? '' : ' no-vocab');
     row.id = `airow-${i}`;
     const vocabHtml = p.vocab && p.vocab.length > 0
       ? p.vocab.map(v => `<div class="vocab-item"><div class="vocab-word">${escHtml(v.word)}</div><div class="vocab-def">${escHtml(v.def)}</div></div>`).join('')
-      : '<div class="vocab-loading">-</div>';
+      : '';
     row.innerHTML = `
       <div class="point-card">
         <div class="point-top">
           <span class="point-num">${String(i+1).padStart(2,'0')}</span>
-          <input class="inline-point-title" id="aititle-${i}" value="${escAttr(normalizePoint(p).title)}" placeholder="Titulo de la idea" onblur="saveInlinePoint('ai', ${i}, null)">
+          <textarea class="inline-point-title" id="aititle-${i}" rows="1" placeholder="Título de la idea" onblur="saveInlinePoint('ai', ${i}, null)">${escHtml(normalizePoint(p).title)}</textarea>
           <div class="point-actions">
+            <button class="btn btn-small btn-danger" onclick="discardAIPoint(${i})">Descartar</button>
             <button class="btn btn-small btn-accept" onclick="acceptPoint(${i})">Guardar en apuntes</button>
           </div>
         </div>
         <div class="point-body" id="aibody-${i}">${inlinePointEditorHtml('ai', i, null, p, false)}</div>
       </div>
-      <div class="vocab-card">
+      ${vocabHtml ? `<div class="vocab-card">
         <div class="vocab-label">${escHtml(vocabLabel())}</div>
         ${vocabHtml}
-      </div>`;
-    row.insertBefore(createVocabResizer(), row.children[1]);
+      </div>` : ''}`;
+    if (vocabHtml) row.insertBefore(createVocabResizer(), row.children[1]);
     container.appendChild(row);
   });
+}
+
+function discardAIPoint(i) {
+  if (!session.aiPoints[i]) return;
+  session.aiPoints.splice(i, 1);
+  renderAIPoints();
+  persistCurrentSession();
 }
 
 async function acceptPoint(i) {
   await saveInlinePoint('ai', i, null);
   session.aiPoints[i].accepted = true;
-  const row = document.getElementById(`airow-${i}`);
-  if (row) row.remove();
-  if (session.aiPoints.filter(p => !p.accepted).length === 0)
-    document.getElementById('aiPoints').innerHTML = '<div class="empty-msg">OK Todos los puntos aceptados</div>';
   session.savedPoints.push({ ...normalizePoint(session.aiPoints[i]), type: 'ai', aiIndex: i });
   document.getElementById('savedEmpty').style.display = 'none';
   renderSavedPoints();
+  renderAIPoints();
   persistCurrentSession();
 }
 
@@ -2694,15 +2742,15 @@ function renderSavedPoints() {
   container.innerHTML = '';
   session.savedPoints.forEach((p, i) => {
     const row = document.createElement('div');
-    row.className = 'point-row';
+    row.className = 'point-row' + (p.vocab?.length ? '' : ' no-vocab');
     const vocabHtml = p.vocab && p.vocab.length > 0
       ? `<div class="vocab-card"><div class="vocab-label">${escHtml(vocabLabel())}</div>${p.vocab.map(v=>`<div class="vocab-item"><div class="vocab-word">${escHtml(v.word)}</div><div class="vocab-def">${escHtml(v.def)}</div></div>`).join('')}</div>`
-      : '<div></div>';
+      : '';
     row.innerHTML = `
       <div class="point-card ${p.type==='manual'?'manual':'accepted'}">
         <div class="point-top">
           <span class="point-num">${String(i+1).padStart(2,'0')}</span>
-          <input class="inline-point-title" id="savedtitle-${i}" value="${escAttr(normalizePoint(p).title)}" placeholder="Titulo de la idea" onblur="saveInlinePoint('saved', ${i}, null)">
+          <textarea class="inline-point-title" id="savedtitle-${i}" rows="1" placeholder="Título de la idea" onblur="saveInlinePoint('saved', ${i}, null)">${escHtml(normalizePoint(p).title)}</textarea>
           <div class="point-actions">
             <button class="btn btn-small btn-danger" onclick="removeSaved(${i})">Quitar</button>
           </div>
@@ -2710,7 +2758,7 @@ function renderSavedPoints() {
         <div class="point-body" id="savedbody-${i}">${inlinePointEditorHtml('saved', i, null, p, false)}</div>
       </div>
       ${vocabHtml}`;
-    row.insertBefore(createVocabResizer(), row.children[1]);
+    if (p.vocab?.length) row.insertBefore(createVocabResizer(), row.children[1]);
     container.appendChild(row);
   });
 }
@@ -3343,7 +3391,7 @@ function wrapWordHtml(title, bodyHtml) {
   .date-item, .vocab-item { margin:4px 0; }
   .label { color:#c7922f; font-weight:bold; }
 </style>
-<style>.brand-area h1{font-family:Arial,sans-serif;text-transform:none;letter-spacing:-.04em;font-weight:800}.brand-word{color:#062653;gap:0}.brand-word .brand-initial{font-size:1em;font-style:normal;color:inherit}.brand-word:after{display:none}.diplomator-header-icon{box-shadow:none;border-radius:0}.profile-mini,.profile-avatar{background:#062653!important}.profile-mini img,.profile-avatar img{object-fit:contain;padding:4px}</style><link rel="icon" type="image/png" sizes="any" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="shortcut icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="apple-touch-icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"></head>
+</head>
 <body>${bodyHtml}</body>
 </html>`;
 }

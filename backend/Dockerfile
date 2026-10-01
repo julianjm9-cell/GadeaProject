@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY backend /app
 COPY apps/diplomator/index.html /app/app/static/student.html
+COPY apps/diplomator/assets/diplomator-refresh.css /app/app/static/assets/diplomator-refresh.css
 COPY apps/cambridge/index.html /app/app/static/cambridge.html
 COPY apps/u25/index.html /app/app/static/universidad-adultos.html
 COPY apps/e25/index.html /app/app/static/eso-adultos.html

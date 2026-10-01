@@ -622,6 +622,16 @@ def eso_landing_asset(filename: str):
     return marketing_file(f"assets/landing/{filename}", "image/png")
 
 
+@router.get("/assets/diplomator-refresh.css")
+def diplomator_refresh_styles():
+    local_path = PROJECT_ROOT / "apps" / "diplomator" / "assets" / "diplomator-refresh.css"
+    static_path = STATIC_DIR / "assets" / "diplomator-refresh.css"
+    path = local_path if local_path.exists() else static_path
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Estilos no encontrados.")
+    return FileResponse(path, media_type="text/css", headers={"Cache-Control": "public, max-age=3600"})
+
+
 @router.get("/assets/brand/{filename}")
 def brand_asset(filename: str):
     allowed = {

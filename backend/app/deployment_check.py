@@ -24,6 +24,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/diplomator": b"/diplomator/login",
         "/diplomator/login": b"diplomator-access",
         "/assets/landing/diplomator-dashboard.png": b"\x89PNG\r\n\x1a\n",
+        "/assets/diplomator-refresh.css": b".session-header-actions",
         "/assets/landing/eso-dashboard.png": b"\x89PNG\r\n\x1a\n",
         "/profesor/login": b"/profesor-particular",
         "/profesor/demo": b"globalSearch",
