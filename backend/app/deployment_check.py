@@ -14,8 +14,10 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
     with engine.connect() as connection:
         assert connection.execute(text("SELECT 1")).scalar() == 1, "PostgreSQL no responde"
     checks = {
-        "/ocr-facturas": b'href="/facturas"',
+        "/ocr-facturas": b'href="/facturas/login"',
         "/facturas": b"LOGIN_TARGETS",
+        "/facturas/login": b"facturas-access",
+        "/assets/brand/facturas.svg": b"<svg",
         "/health": b'"ok"',
         "/": b'href="/profesor"',
         "/profesor": b"/profesor/register",

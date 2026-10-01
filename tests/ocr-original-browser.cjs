@@ -3,9 +3,11 @@ const http=require('node:http');
 const fs=require('node:fs');
 const assert=require('node:assert/strict');
 const html=fs.readFileSync('apps/ocr/index.html');
+const icon=fs.readFileSync('marketing/app_landings_demo/assets/brand/facturas.svg');
 const server=http.createServer((req,res)=>{
  const path=new URL(req.url,'http://localhost').pathname;
  if(path==='/facturas'){res.setHeader('Content-Type','text/html; charset=utf-8');return res.end(html)}
+ if(path==='/assets/brand/facturas.svg'){res.setHeader('Content-Type','image/svg+xml');return res.end(icon)}
  if(!path.startsWith('/facturas/legacy/api/')){res.writeHead(404);return res.end()}
  const endpoint=path.slice('/facturas/legacy/api/'.length);
  let data={};
@@ -27,11 +29,20 @@ const server=http.createServer((req,res)=>{
    const calls=[];page.on('request',r=>{if(r.url().includes('/api/'))calls.push(r.url())});
    await page.goto(`http://127.0.0.1:${server.address().port}/facturas`);
    await page.waitForTimeout(1300);
+   assert.equal(await page.locator('.logo-mark img').evaluate(img=>img.complete&&img.naturalWidth>0),true);
    assert(calls.length>0);
    assert(calls.every(url=>url.includes('/facturas/legacy/api/')));
    assert.equal(errors.length,0,errors.join('\n'));
-   await page.screenshot({path:`C:/Users/julia/Desktop/PROCESADOR/ocr-original-${width}.png`,fullPage:true});
-   console.log('PASS Aliot original, API de suite y navegador '+width);
+   if(width>900)await page.locator('#navConfig').click();
+   else{await page.locator('#btnGlobalCfg').click();await page.locator('#globalCfgPanel').getByRole('button',{name:'🤖 Modelos e IA'}).click()}
+   await page.waitForTimeout(150);
+   assert.equal(await page.locator('#viewConfig').evaluate(el=>el.classList.contains('active')),true);
+   if(width>900)await page.locator('#navEntrenamiento').click();
+   else{await page.locator('#btnGlobalCfg').click();await page.locator('#globalCfgPanel').getByRole('button',{name:'🎓 Entrenamiento'}).click()}
+   await page.waitForTimeout(150);
+   assert.equal(await page.locator('#viewEntrenamiento').evaluate(el=>el.classList.contains('active')),true);
+   assert.equal(errors.length,0,errors.join('\n'));
+   console.log('PASS FACTURAS original, modelos y entrenamiento '+width);
    await page.close();
   }
  }finally{await browser.close();server.close()}

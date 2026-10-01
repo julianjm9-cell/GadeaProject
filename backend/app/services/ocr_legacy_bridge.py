@@ -77,7 +77,7 @@ def get_legacy_port(user, config):
             "api_tipo": config["api_tipo"],
             "api_key": config["api_key"],
             "modelo_externo": config["modelo_externo"],
-            "vision_enabled": True,
+            "vision_enabled": config.get("vision_enabled", True),
             "api_min_interval": 1,
             "api_url": "",
             "carpeta_facturas": str(data / "facturas"),

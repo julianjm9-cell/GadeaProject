@@ -44,7 +44,7 @@ def page(request: Request, db: Session = Depends(get_db)):
     from app.api.app_routes import page_user_or_redirect, static_html, PROJECT_ROOT
     user = page_user_or_redirect(request, db, "/facturas")
     if isinstance(user, RedirectResponse):
-        return user
+        return RedirectResponse("/facturas/login")
     return static_html("ocr-facturas-app.html", PROJECT_ROOT / "apps" / "ocr" / "index.html")
 
 

@@ -51,7 +51,7 @@ STATIC_DIR = Path(__file__).resolve().parents[1] / "static"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 LOCAL_DOCUMENT_DIR = Path(os.getenv("DOCUMENT_EXPORT_DIR") or ("/app/data/documents" if Path("/app").exists() else PROJECT_ROOT / "backend" / "data" / "documents"))
 PRODUCTS = {
-    "ocr_facturas": {"code": "OCR_FACTURAS", "name": "OCR de facturas", "path": "/facturas", "description": "Extrae, revisa y exporta tus facturas."},
+    "ocr_facturas": {"code": "OCR_FACTURAS", "name": "FACTURAS", "path": "/facturas", "description": "Extrae, revisa y exporta tus facturas."},
     "profesor_particular": {
         "code": "PROFESOR_PARTICULAR",
         "name": "Profesor Particular",
@@ -618,7 +618,7 @@ def marketing_asset(filename: str):
 
 @router.get("/assets/landing/{filename}")
 def eso_landing_asset(filename: str):
-    if filename not in {"eso-study-desk.png", "profesor-dashboard.png", "eso-dashboard.png", "eso-mobile.png", "profesor-mobile.png", "diplomator-dashboard.png", "diplomator-mobile.png"}:
+    if filename not in {"eso-study-desk.png", "profesor-dashboard.png", "eso-dashboard.png", "eso-mobile.png", "profesor-mobile.png", "diplomator-dashboard.png", "diplomator-mobile.png", "facturas-dashboard.png", "facturas-mobile.png"}:
         raise HTTPException(status_code=404, detail="Asset no encontrado.")
     return marketing_file(f"assets/landing/{filename}", "image/png")
 
@@ -635,6 +635,8 @@ def diplomator_refresh_styles():
 
 @router.get("/assets/brand/{filename}")
 def brand_asset(filename: str):
+    if filename == "facturas.svg":
+        return marketing_file("assets/brand/facturas.svg", "image/svg+xml")
     allowed = {
         "u25-simple.png",
         "u25-full.png",
@@ -737,8 +739,9 @@ def profesor_demo():
 @router.get("/e25/login")
 @router.get("/cambridge-info/login")
 @router.get("/diplomator/login")
+@router.get("/facturas/login")
 def login_page(request: Request):
-    if request.url.path in {"/diplomator/login", "/e25/login", "/e25/register", "/profesor/login", "/profesor/register"} or request.query_params.get("next") in {"/app", "/eso-adultos", "/profesor-particular"}:
+    if request.url.path in {"/diplomator/login", "/facturas/login", "/e25/login", "/e25/register", "/profesor/login", "/profesor/register"} or request.query_params.get("next") in {"/app", "/eso-adultos", "/profesor-particular", "/facturas"}:
         return static_html("product-access.html", PROJECT_ROOT / "backend" / "app" / "static" / "product-access.html")
     return static_html("login.html", PROJECT_ROOT / "backend" / "app" / "static" / "login.html")
 
