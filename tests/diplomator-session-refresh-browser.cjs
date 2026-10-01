@@ -34,7 +34,7 @@ const assert=require('node:assert/strict');
       if(url.pathname==='/api/chat'){
         generations++;
         if(generations===1||generations===3){status=502;data={detail:'Gemini 503: This model is currently experiencing high demand.'}}
-        else data={ok:true,provider:'gemini',model:'gemini-3.8-flash',content:JSON.stringify({points:[{title:'Baroja y la Generación del 98',text:'Pío Baroja fue uno de los novelistas de la Generación del 98. Sus obras muestran personajes inquietos y una mirada crítica de la sociedad española, con una prosa directa que resulta fácil de comentar en un examen oral.',vocab:[{word:'restless',def:'inquieto'},{word:'outlook',def:'perspectiva'}]},{title:'La novela como búsqueda',text:'En sus novelas, los protagonistas avanzan entre dudas y decisiones difíciles. Esa búsqueda personal permite explicar el pesimismo de Baroja sin repetir ideas generales.',vocab:[]}]})};
+        else data={ok:true,provider:'gemini',model:'gemini-3.8-flash',content:JSON.stringify({points:[{title:'Baroja and the Generation of 1898',text:'Pío Baroja was one of the novelists of the Generation of 1898. His fiction follows restless characters and takes a critical view of Spanish society. His direct prose gives students a concrete way to discuss the period in an oral examination.',vocab:[{word:'restless',def:'inquieto'},{word:'outlook',def:'perspectiva'}]},{title:'The novel as a personal search',text:'Baroja’s protagonists move through doubt and difficult decisions. Their personal search helps explain his pessimism through the stories themselves, without relying on broad claims about the whole generation.',vocab:[]}]})};
       }
       return route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
     });
