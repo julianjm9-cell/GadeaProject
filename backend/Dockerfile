@@ -9,6 +9,7 @@ COPY backend/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY backend /app
+COPY apps/ocr/index.html /app/app/ocr_engine/aliot-suite.html
 COPY apps/diplomator/index.html /app/app/static/student.html
 COPY apps/diplomator/assets/diplomator-refresh.css /app/app/static/assets/diplomator-refresh.css
 COPY apps/cambridge/index.html /app/app/static/cambridge.html
