@@ -633,6 +633,16 @@ def diplomator_refresh_styles():
     return FileResponse(path, media_type="text/css", headers={"Cache-Control": "public, max-age=3600"})
 
 
+@router.get("/profesor-temario.js")
+def profesor_temario_catalogue():
+    local_path = PROJECT_ROOT / "apps" / "profesor" / "profesor-temario.js"
+    static_path = STATIC_DIR / "assets" / "profesor-temario.js"
+    path = local_path if local_path.exists() else static_path
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Temario no encontrado.")
+    return FileResponse(path, media_type="text/javascript", headers={"Cache-Control": "public, max-age=3600"})
+
+
 @router.get("/assets/brand/{filename}")
 def brand_asset(filename: str):
     if filename == "facturas.svg":
