@@ -423,7 +423,7 @@ async def test_ai_connection(payload: dict, actor: User = Depends(require_supera
         config = {
             "groq": ("groq_api_key", settings.groq_api_key, valid_groq_key, str(settings.groq_chat_url), GROQ_CHAT_DEFAULT),
             "openai": ("openai_api_key", settings.openai_api_key, valid_openai_key, str(settings.openai_chat_url), "gpt-4o-mini"),
-            "gemini": ("gemini_api_key", settings.gemini_api_key, valid_gemini_key, str(settings.gemini_chat_url), "gemini-3.5-flash-lite"),
+            "gemini": ("gemini_api_key", settings.gemini_api_key, valid_gemini_key, str(settings.gemini_chat_url), GEMINI_CHAT_DEFAULT),
         }.get(provider)
         if not config:
             raise HTTPException(400, "Proveedor no válido.")
@@ -437,7 +437,7 @@ async def test_ai_connection(payload: dict, actor: User = Depends(require_supera
                     probe = {"model": current_model, "messages": [{"role": "user", "content": "Responde OK"}], "max_tokens": 128}
                     if is_gemini_auth_key(key):
                         native_probe = gemini_request_body(probe)
-                        native_probe["generationConfig"]["thinkingConfig"] = {"thinkingLevel": "minimal"}
+                        native_probe["generationConfig"]["thinkingConfig"] = {"thinkingLevel": "low"}
                         return await gemini_post_with_retry(client, gemini_generate_url(current_model), headers={"x-goog-api-key": key, "Content-Type": "application/json"}, json=native_probe, delays=(0.5,))
                     return await gemini_post_with_retry(client, url, headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json=probe, delays=(0.5,))
 

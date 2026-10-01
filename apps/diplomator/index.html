@@ -1498,7 +1498,7 @@ function getTopicsForCategory(year, cat) {
 
 // -- STATE ---------------------------------------------------------------
 const DEFAULT_PROFILE = `The student is preparing C1/C2 oral answers in English and French. Adapt language and depth to that level, with clear explanations and phrasing that can be spoken naturally. The selected topic alone determines which facts and angles are relevant.`;
-const DEFAULT_POINTS_PROMPT = `Explica el tema con claridad y profundidad, como un buen guion para un examen oral. Prefiero ideas concretas, bien conectadas y fáciles de recordar. Incluye ejemplos o fechas solo cuando aporten algo al tema; evita introducciones genéricas y datos de los que no estés seguro.`;
+const DEFAULT_POINTS_PROMPT = `Quiero apuntes claros para explicar el tema en voz alta: ideas concretas, orden lógico y lenguaje natural. Evita frases pomposas, repeticiones y apartados de relleno. Usa ejemplos o fechas solo dentro de la explicación cuando ayuden de verdad.`;
 const DIPLOMATOR_EXAMPLE_STYLE = `Treat the selected topic as a strict boundary. Build a coherent oral presentation from the few angles that directly answer that exact topic; never force a standard history, impact, controversy or future section when it is not relevant. Prefer specific explanations, mechanisms, examples and dates that help explain the subject. Every paragraph must earn its place: remove generic introductions, broad international-relations filler, moral conclusions and nearby subjects that were not requested. The student profile controls language and difficulty only; it is never source material. Use natural transitions and an informed C1/C2 tone. Include only facts you can state confidently and never invent dates, statistics, institutions or quotations.`;
 
 let state = {
@@ -1810,12 +1810,12 @@ function normalizeDatedInfo(info) {
     return info.map(item => {
       if (typeof item === 'string') return { date: '', text: item.trim() };
       return { date: String(item.date || '').trim(), text: String(item.text || '').trim() };
-    }).filter(item => item.text);
+    }).filter(item => item.text && !/^\d{4}$/.test(item.text));
   }
   return String(info).split('\n').map(line => line.trim()).filter(Boolean).map(line => {
     const match = line.match(/^([^:\u2013-]{2,30})\s*[:\u2013-]\s*(.+)$/);
     return match ? { date: match[1].trim(), text: match[2].trim() } : { date: '', text: line };
-  });
+  }).filter(item => item.text && !/^\d{4}$/.test(item.text));
 }
 
 function normalizePoint(p, fallbackTitle = '') {
@@ -1846,13 +1846,15 @@ function ensurePointConnections(points) {
 }
 
 function generatedPointsFromResponse(parsed) {
-  if (Array.isArray(parsed?.points)) return parsed.points;
-  if (Array.isArray(parsed?.study_points)) return parsed.study_points;
-  if (Array.isArray(parsed?.key_points)) return parsed.key_points;
-  if (Array.isArray(parsed?.ideas)) return parsed.ideas;
-  if (Array.isArray(parsed)) return parsed;
-  if (parsed?.point || parsed?.title || parsed?.text) return [parsed.point || parsed];
-  return [];
+  const points = Array.isArray(parsed?.points) ? parsed.points
+    : Array.isArray(parsed?.study_points) ? parsed.study_points
+    : Array.isArray(parsed?.key_points) ? parsed.key_points
+    : Array.isArray(parsed?.ideas) ? parsed.ideas
+    : Array.isArray(parsed) ? parsed
+    : parsed?.point || parsed?.title || parsed?.text ? [parsed.point || parsed] : [];
+  return points.filter(point => point && typeof point === 'object' && String(point.text || '').trim()).map(point => ({
+    ...point, connection: '', connector: '', transition: '', datedInfo: [], examples: [], info: []
+  }));
 }
 
 function renderPointBody(p) {
@@ -2508,7 +2510,7 @@ async function generateSession(topic) {
   const nv = Math.min(parseInt(document.getElementById('numVocab').value, 10) || 5, 12);
   const profile = (document.getElementById('profileContext').value || '').slice(0, limits.profileChars);
   const langName = state.lang === 'en' ? 'English' : 'French';
-  const generationMaxTokens = Math.min(14000, Math.max(3500, 1200 + n * 950));
+  const generationMaxTokens = Math.min(7000, Math.max(2000, 900 + n * 420));
   const modelChoice = document.getElementById('pointsModelChoice').value;
   const personalGuidance = document.getElementById('pointsPrompt').value.trim().slice(0, 900) || DEFAULT_POINTS_PROMPT;
   state.config.pointsModelChoice = modelChoice;
@@ -2523,12 +2525,12 @@ TOPIC: "${topic}"
 ${profile ? `Student context (adjust language and depth only; do not treat it as evidence): ${profile}` : ''}
 Student's preferred writing instructions: ${personalGuidance}
 
-Write a coherent explanation of this exact topic, with at most ${n} distinct points in the order that best helps someone understand and present it. A narrow topic may need fewer points. Start each point with the substantive idea; use as many sentences as the idea needs. Choose the structure from the topic itself, rather than filling a fixed history/causes/impact/future template. Avoid repetition, vague commentary and claims that also fit unrelated topics.
+Write at most ${n} distinct points, ordered so a student can explain this topic aloud. A narrow topic may need fewer. Each point should have one precise title and one clear paragraph of roughly 70-110 words, with the idea, its explanation and one relevant concrete detail if useful. Use natural C1/C2 ${langName}, not inflated academic prose. Choose the structure from the topic itself; do not force a history/causes/impact/future template. Avoid repetition, sweeping judgements and claims that also fit unrelated topics.
 
-For each point return a short, precise title and an explanatory text in ${langName}. Add a natural transition to the next point only if useful; leave the last transition empty. Include a concrete example, name or date in datedInfo only when relevant and reasonably certain; an empty array is fine. Across the whole answer include up to ${nv} useful C1/C2 words or expressions with brief Spanish translations, distributed where they fit. Do not invent dates, figures, quotations or sources. If a fact is uncertain, explain the idea without false precision.
+Put a date, name or example directly in the paragraph only when it helps explain the point. Do not create separate date lists, connector paragraphs or duplicate the same fact in another field. Across the whole answer include at most ${nv} useful C1/C2 words or expressions with brief Spanish translations; each word must appear naturally in its point's text. Empty vocabulary arrays are fine. Do not invent dates, figures, quotations or sources. If a fact is uncertain, explain the idea without false precision.
 
 Before answering, check that every point adds a different piece of understanding and that the full answer stays on the quoted topic. Return valid JSON only:
-{"points":[{"title":"...","text":"...","connection":"","datedInfo":[],"vocab":[{"word":"...","def":"..."}]}]}`;
+{"points":[{"title":"...","text":"...","vocab":[{"word":"...","def":"..."}]}]}`;
 
   try {
     const raw = await groqChat([{ role: 'user', content: prompt }], {
@@ -2571,10 +2573,7 @@ Before answering, check that every point adds a different piece of understanding
 
   } catch(e) {
     document.getElementById('loadingBar').style.display = 'none';
-    setTimeout(() => {
-      document.getElementById('aiPoints').innerHTML = `<div class="notice">Error al generar: ${escHtml(e.message || 'Comprueba tu licencia y el servidor local.')}</div>`;
-    }, 0);
-    document.getElementById('aiPoints').innerHTML = `<div class="notice">Error de conexión. Comprueba tu licencia y el servidor local.</div>`;
+    document.getElementById('aiPoints').innerHTML = `<div class="notice">Error al generar: ${escHtml(e.message || 'Comprueba tu licencia y el servidor local.')}</div>`;
   }
 }
 
@@ -2591,7 +2590,6 @@ function renderAIPoints() {
   }
   session.aiPoints.forEach((p, i) => {
     if (p.accepted) return;
-    const pendingIndex = pending.findIndex(item => item === p);
     const row = document.createElement('div');
     row.className = 'point-row';
     row.id = `airow-${i}`;
@@ -2615,9 +2613,6 @@ function renderAIPoints() {
       </div>`;
     row.insertBefore(createVocabResizer(), row.children[1]);
     container.appendChild(row);
-    if (pendingIndex >= 0) {
-      container.insertAdjacentHTML('beforeend', connectionBetweenHtml(p, pendingIndex, pending.length, 'ai', i, null));
-    }
   });
 }
 
@@ -2717,7 +2712,6 @@ function renderSavedPoints() {
       ${vocabHtml}`;
     row.insertBefore(createVocabResizer(), row.children[1]);
     container.appendChild(row);
-    container.insertAdjacentHTML('beforeend', connectionBetweenHtml(p, i, session.savedPoints.length, 'saved', i, null));
   });
 }
 

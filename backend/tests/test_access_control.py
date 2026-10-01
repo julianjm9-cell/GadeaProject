@@ -881,7 +881,7 @@ def test_point_generation_focus_allows_fewer_relevant_points():
     payload = {"messages": [{"role": "user", "content": 'EXACT TOPIC: "The Marshall Plan"'}]}
     add_points_focus_instruction(payload)
     assert payload["messages"][0]["role"] == "system"
-    assert "maximum, not a reason to add filler" in payload["messages"][0]["content"]
+    assert "requested number of points is a maximum" in payload["messages"][0]["content"]
     assert payload["messages"][1]["content"] == 'EXACT TOPIC: "The Marshall Plan"'
 
 
@@ -975,9 +975,9 @@ def test_gemini_auth_key_uses_native_api_for_probe_and_points(client, monkeypatc
     monkeypatch.setattr(app_routes.httpx, "AsyncClient", FakeClient)
     probe = test_client.post("/admin/ai-settings/test-connection", json={"provider": "gemini"})
     assert probe.status_code == 200
-    assert sent[-1][0].endswith("/models/gemini-3.5-flash-lite:generateContent")
+    assert sent[-1][0].endswith("/models/gemini-3.8-flash:generateContent")
     assert sent[-1][1]["headers"]["x-goog-api-key"] == "AQ.test-key"
-    assert sent[-1][1]["json"]["generationConfig"]["thinkingConfig"]["thinkingLevel"] == "minimal"
+    assert sent[-1][1]["json"]["generationConfig"]["thinkingConfig"]["thinkingLevel"] == "low"
     assert "Authorization" not in sent[-1][1]["headers"]
     response = test_client.post("/api/chat?app=diplomator", json={"purpose": "points", "requested_points": 3, "points_model_choice": "gemini:gemini-3.8-flash", "messages": [{"role": "user", "content": "Tema"}]})
     assert response.status_code == 200
@@ -1004,7 +1004,7 @@ def test_gemini_probe_reports_timeout_instead_of_generic_failure(client, monkeyp
     assert "tiempo de espera agotado" in response.json()["detail"]
 
 
-def test_diplomator_retries_overloaded_gemini_and_uses_next_model(client, monkeypatch):
+def test_diplomator_limits_overload_retries_without_charging(client, monkeypatch):
     from app.services import gemini_native
 
     test_client, db_factory = client
@@ -1026,16 +1026,15 @@ def test_diplomator_retries_overloaded_gemini_and_uses_next_model(client, monkey
             attempts.append(url)
             return FakeResponse(503 if "/gemini-3.8-flash:" in url else 200)
     async def quick_retry(client, url, *, headers, json):
-        return await gemini_native.post_with_retry(client, url, headers=headers, json=json, delays=(0, 0))
+        return await gemini_native.post_with_retry(client, url, headers=headers, json=json, delays=(0,))
     monkeypatch.setattr(app_routes.httpx, "AsyncClient", FakeClient)
     monkeypatch.setattr(app_routes, "gemini_post_with_retry", quick_retry)
     response = test_client.post("/api/chat?app=diplomator", json={"purpose": "points", "requested_points": 3, "points_model_choice": "gemini:gemini-3.8-flash", "messages": [{"role": "user", "content": "Tema"}]})
-    assert response.status_code == 200
-    assert response.json()["model"] == "gemini-3.5-flash"
-    assert response.json()["fallback_reason"] == "overloaded"
-    assert len(attempts) == 4
+    assert response.status_code == 502
+    assert len(attempts) == 2
+    assert all("/gemini-3.8-flash:" in url for url in attempts)
     with db_factory() as db:
-        assert db.query(UsageRecord).filter_by(product_code="DIPLOMATOR").count() == 1
+        assert db.query(UsageRecord).filter_by(product_code="DIPLOMATOR").count() == 0
 
 
 def test_ai_settings_replaces_deprecated_groq_model(client):

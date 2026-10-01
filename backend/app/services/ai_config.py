@@ -12,7 +12,7 @@ GEMINI_CHAT_DEFAULT = "gemini-3.8-flash"
 # may also configure another model as the app default; it is added separately.
 DIPLOMATOR_POINT_MODELS = {
     "groq": (GROQ_CHAT_DEFAULT, GROQ_FAST_CHAT_DEFAULT),
-    "gemini": ("gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite"),
+    "gemini": (GEMINI_CHAT_DEFAULT,),
     "openai": ("gpt-4o-mini", "gpt-4.1"),
 }
 

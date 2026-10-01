@@ -411,7 +411,7 @@ def provider_error(prefix: str, response: httpx.Response) -> HTTPException:
 
 DEFAULT_TOPIC_STYLE_GUIDE = """Treat the selected topic as a strict boundary. Build a coherent oral presentation from the few angles that directly answer that exact topic; never force a standard history, impact, controversy or future section when it is not relevant. Prefer specific explanations, mechanisms, examples and dates that help explain the subject. Every paragraph must earn its place: remove generic introductions, broad international-relations filler, moral conclusions and nearby subjects that were not requested. The student profile controls language and difficulty only; it is never source material. Use natural transitions and an informed C1/C2 tone. Include only facts you can state confidently and never invent dates, statistics, institutions or quotations."""
 
-POINTS_FOCUS_SYSTEM_PROMPT = """You create accurate, useful oral-exam study notes for Diplomator. The quoted topic defines the scope. Select only distinct angles that explain it; the requested number of points is a maximum, not a reason to add filler. Follow the student's preferred writing style when it supports relevance and accuracy. Examples, dates, transitions and vocabulary are optional when they do not add value. Do not invent facts or imply verification that has not happened. Return only the requested JSON."""
+POINTS_FOCUS_SYSTEM_PROMPT = """You write clear, reliable oral-exam study notes for Diplomator. Stay on the quoted topic and choose only distinct, useful angles; the requested number of points is a maximum. Explain concrete ideas in direct, natural language, without grandiose claims or generic filler. Put a relevant example or date inside the explanatory paragraph only when it improves understanding. Never create separate date lists, connector paragraphs or repeated facts. Follow the student's writing preference when it supports accuracy. Do not invent or imply verification of facts. Return only the requested JSON."""
 
 
 def add_points_focus_instruction(payload: dict) -> None:
@@ -1388,7 +1388,10 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
         async def send_gemini():
             try:
                 if native_gemini:
-                    return await gemini_post_with_retry(client, gemini_generate_url(payload["model"]), headers={"x-goog-api-key": api_key, "Content-Type": "application/json"}, json=gemini_request_body(payload))
+                    native_payload = gemini_request_body(payload)
+                    if purpose == "points":
+                        native_payload.setdefault("generationConfig", {})["thinkingConfig"] = {"thinkingLevel": "low"}
+                    return await gemini_post_with_retry(client, gemini_generate_url(payload["model"]), headers={"x-goog-api-key": api_key, "Content-Type": "application/json"}, json=native_payload)
                 return await gemini_post_with_retry(client, chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
             except httpx.ReadTimeout:
                 return httpx.Response(503, json={"error": {"message": "El modelo tardó demasiado en responder."}})
@@ -1405,16 +1408,6 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
             legacy_model_replaced = True
             payload["model"] = GEMINI_CHAT_DEFAULT
             res = await send_gemini()
-        if purpose == "points" and chat_provider == "gemini" and res.status_code == 503:
-            fallback_model = fallback_model or payload["model"]
-            fallback_reason = "overloaded"
-            for alternate in ("gemini-3.5-flash", "gemini-3.5-flash-lite"):
-                if alternate == payload["model"]:
-                    continue
-                payload["model"] = alternate
-                res = await send_gemini()
-                if res.status_code not in {503, 404}:
-                    break
     if res.status_code >= 400:
         if native_gemini:
             raise HTTPException(status_code=502, detail=gemini_failure_message(res, api_key))
@@ -1429,9 +1422,10 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
         except (TypeError, ValueError):
             body = None
         points = body.get("points") if isinstance(body, dict) else None
-        if not isinstance(points, list) or not points:
+        usable_points = [point for point in points if isinstance(point, dict) and str(point.get("text") or "").strip()] if isinstance(points, list) else []
+        if not usable_points:
             raise HTTPException(status_code=502, detail="El modelo no generó puntos utilizables. No se han descontado créditos.")
-        actual_credit_cost = min(requested_credit_cost, len(points))
+        actual_credit_cost = min(requested_credit_cost, len(usable_points))
     else:
         actual_credit_cost = requested_credit_cost
     record_usage(db, user, payload["model"], input_tokens, output_tokens, product_code_for_app(app_key_override or request_app_key(request)), actual_credit_cost)

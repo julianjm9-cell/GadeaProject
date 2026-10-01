@@ -55,12 +55,12 @@ def chat_data(body: dict) -> dict:
     }
 
 
-async def post_with_retry(client, url: str, *, headers: dict, json: dict, delays=(1, 2)):
+async def post_with_retry(client, url: str, *, headers: dict, json: dict, delays=(1,)):
     """Retry brief Gemini overloads; the caller records usage only after success."""
     response = None
     for attempt in range(len(delays) + 1):
         response = await client.post(url, headers=headers, json=json)
-        if response.status_code not in {408, 429, 500, 502, 503, 504} or attempt == len(delays):
+        if response.status_code not in {408, 500, 502, 503, 504} or attempt == len(delays):
             return response
         await asyncio.sleep(delays[attempt] + (random.uniform(0, 0.25) if delays[attempt] else 0))
     return response
