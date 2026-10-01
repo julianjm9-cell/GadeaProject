@@ -305,7 +305,6 @@ Retos demográficos y económicos|Interpreta tasas, pirámides y series temporal
 
 let temarioCourse = '3.º ESO';
 let temarioSubject = 'Matemáticas';
-let temarioStatus = 'Todos';
 let temarioQuery = '';
 let temarioSelected = '';
 const temarioNorm = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().replace(/[^a-z0-9]/g, '');
@@ -322,14 +321,9 @@ function temarioMaterials(topic) {
     return name && (name.includes(title) || title.includes(name)) && Math.min(name.length, title.length) >= 6;
   });
 }
-function temarioWorked(topic) {
-  const target = temarioNorm(topic.title);
-  return state.sessions.some(item => item.status === 'Finalizada' && item.subject === temarioSubject && temarioNorm(student(item.studentId)?.course) === temarioNorm(temarioCourse) && (temarioNorm(item.topic).includes(target) || target.includes(temarioNorm(item.topic))) && temarioNorm(item.topic).length >= 6);
-}
-function temarioTopicStatus(topic) { return temarioWorked(topic) ? 'Trabajado en clase' : temarioMaterials(topic).length ? 'Con material' : 'Por preparar'; }
 function temarioVisibleTopics() {
   const query = temarioNorm(temarioQuery);
-  return temarioTopics().filter(topic => (!query || temarioNorm(topic.title + ' ' + topic.explanation).includes(query)) && (temarioStatus === 'Todos' || temarioTopicStatus(topic) === temarioStatus));
+  return temarioTopics().filter(topic => !query || temarioNorm(topic.title + ' ' + topic.explanation).includes(query));
 }
 function temarioView() {
   const courses = Object.keys(window.PROFESOR_TEMARIO || {});
@@ -339,22 +333,20 @@ function temarioView() {
   const topics = temarioVisibleTopics();
   if (!topics.some(topic => topic.id === temarioSelected)) temarioSelected = topics[0]?.id || '';
   const selected = topics.find(topic => topic.id === temarioSelected);
-  const subjectIcons = {Matemáticas:'∑', Lengua:'Aa', Inglés:'EN', 'Ciencias Naturales':'✿', 'Física y Química':'⚗', 'Geografía e Historia':'◈'};
   const subjectTones = {Matemáticas:'math', Lengua:'language', Inglés:'english', 'Ciencias Naturales':'science', 'Física y Química':'science', 'Geografía e Historia':'history'};
   const materials = temarioMaterials(selected);
   return `<div class="temario-page" data-tone="${subjectTones[temarioSubject] || 'math'}">
-    <div class="temario-heading"><span class="temario-heading-icon">${icon('book')}</span><div><h1>Temario</h1><p>Ideas claras, ejemplos y práctica para preparar cada clase.</p></div><span class="temario-heading-count">${Object.values(window.PROFESOR_TEMARIO || {}).reduce((n, subjects) => n + Object.values(subjects).reduce((sum, items) => sum + items.length, 0), 0)} temas de base</span></div>
-    <div class="temario-toolbar" aria-label="Filtros del temario">
+    <div class="temario-heading"><span class="temario-heading-icon">${icon('book')}</span><h1>Temario</h1><span class="temario-heading-count">${Object.values(window.PROFESOR_TEMARIO || {}).reduce((n, subjects) => n + Object.values(subjects).reduce((sum, items) => sum + items.length, 0), 0)} temas de base</span></div>
+    <div class="temario-stage">
+    <div class="temario-main-column"><div class="temario-toolbar" aria-label="Filtros del temario">
       <label for="temarioCourse"><span>Curso</span><select id="temarioCourse">${courses.map(course => `<option value="${esc(course)}" ${course === temarioCourse ? 'selected' : ''}>${esc(course)}</option>`).join('')}</select></label>
       <label for="temarioSubject"><span>Asignatura</span><select id="temarioSubject">${available.map(subject => `<option value="${esc(subject)}" ${subject === temarioSubject ? 'selected' : ''}>${esc(subject)}</option>`).join('')}</select></label>
-      <label for="temarioSearch" class="temario-search">${icon('search')}<input id="temarioSearch" type="search" value="${esc(temarioQuery)}" placeholder="Buscar tema o concepto…" autocomplete="off"></label>
+      <label for="temarioSearch" class="temario-search">${icon('search')}<input id="temarioSearch" type="search" value="${esc(temarioQuery)}" placeholder="Buscar tema…" autocomplete="off"></label>
     </div>
-    <div class="temario-stage">
       <section class="temario-list-panel" aria-label="Temas">
-        <div class="temario-list-head"><div><h2>${esc(temarioSubject)} <span>· ${esc(temarioCourse)}</span></h2><p>Selecciona un tema para ver su explicación.</p></div><label class="temario-status-filter"><span class="sr-only">Preparación</span><select id="temarioStatus" aria-label="Filtrar por preparación">${['Todos','Por preparar','Con material','Trabajado en clase'].map(status => `<option ${temarioStatus === status ? 'selected' : ''}>${status}</option>`).join('')}</select></label></div>
-        <div class="temario-topic-list">${topics.map((topic, index) => {const status = temarioTopicStatus(topic), count = 3 + temarioMaterials(topic).length;return `<button type="button" class="temario-topic ${topic.id === temarioSelected ? 'active' : ''}" data-temario-topic="${esc(topic.id)}" aria-current="${topic.id === temarioSelected ? 'true' : 'false'}"><span class="temario-topic-index">${String(temarioTopics().indexOf(topic) + 1).padStart(2,'0')}</span><span class="temario-topic-copy"><strong>${esc(topic.title)}</strong><small>${esc(topic.explanation)}</small></span><span class="temario-topic-meta"><small>${count} recursos</small><em class="${status === 'Trabajado en clase' ? 'done' : status === 'Con material' ? 'ready' : ''}">${esc(status)}</em></span><span class="temario-topic-arrow">›</span></button>`}).join('') || `<div class="temario-empty">No hay temas con esos filtros. Cambia el estado o la búsqueda.</div>`}</div>
-        <p class="temario-list-foot">Guía de consulta inicial. El docente puede revisar y adaptar cada explicación antes de usarla.</p>
+        <div class="temario-topic-list">${topics.map(topic => {const count = 3 + temarioMaterials(topic).length;return `<button type="button" class="temario-topic ${topic.id === temarioSelected ? 'active' : ''}" data-temario-topic="${esc(topic.id)}" aria-current="${topic.id === temarioSelected ? 'true' : 'false'}"><span class="temario-topic-index">${String(temarioTopics().indexOf(topic) + 1).padStart(2,'0')}</span><span class="temario-topic-copy"><strong>${esc(topic.title)}</strong><small>${esc(topic.explanation)}</small></span><span class="temario-topic-meta"><small>${count} recursos</small></span><span class="temario-topic-arrow">→</span></button>`}).join('') || `<div class="temario-empty">No hay temas con esa búsqueda.</div>`}</div>
       </section>
+    </div>
       <aside class="temario-detail" aria-label="Previsualización del tema"><div class="temario-preview-heading">${icon('book')} <strong>Previsualización del tema</strong></div>${selected ? `<div class="temario-detail-top"><span class="temario-detail-index">${String(temarioTopics().indexOf(selected) + 1).padStart(2,'0')}</span><div><span class="temario-kicker">${esc(temarioSubject)} · ${esc(temarioCourse)}</span><h2>${esc(selected.title)}</h2></div></div><div class="temario-preview-explanation"><strong>${icon('book')} Explicación breve</strong><p>${esc(selected.explanation)}</p></div><div class="temario-example"><span>${icon('spark')} EJEMPLO</span><strong>${esc(selected.example)}</strong></div><div class="temario-resource-head"><h3>Recursos incluidos</h3><span>${3 + materials.length}</span></div><div class="temario-resources"><button type="button" data-temario-action="open" data-id="${esc(selected.id)}"><span class="temario-resource-icon theory">${icon('book')}</span><span><strong>Explicación visual</strong><small>Idea y pasos clave</small></span></button><button type="button" data-temario-action="open" data-id="${esc(selected.id)}"><span class="temario-resource-icon example">${icon('check')}</span><span><strong>Ejemplo resuelto</strong><small>Una aplicación concreta</small></span></button><button type="button" data-temario-action="open" data-id="${esc(selected.id)}"><span class="temario-resource-icon practice">${icon('spark')}</span><span><strong>Compruébalo</strong><small>Pregunta y solución</small></span></button>${materials.slice(0,4).map(material => `<button type="button" data-action="material" data-id="${esc(material.id)}"><span class="temario-resource-icon saved">${icon('file')}</span><span><strong>${esc(material.title)}</strong><small>Tu material · ${esc(material.kind)}</small></span></button>`).join('')}</div><div class="temario-main-actions"><button type="button" class="primary" data-temario-action="open" data-id="${esc(selected.id)}">${icon('book')} Ver tema</button><button type="button" data-temario-action="create" data-id="${esc(selected.id)}">${icon('spark')} Usar en material</button></div><button type="button" class="temario-plan-link" data-temario-action="plan" data-id="${esc(selected.id)}">${icon('users')} Planificar con alumno</button>` : `<div class="temario-detail-empty">Selecciona un tema para explorar su contenido.</div>`}</aside>
     </div>
   </div>`;
@@ -372,7 +364,6 @@ function planTemarioWithStudent(topic) {
 document.addEventListener('change', event => {
   if (event.target.id === 'temarioCourse') { temarioCourse = event.target.value; temarioSubject = Object.keys(window.PROFESOR_TEMARIO?.[temarioCourse] || {})[0] || '';temarioSelected = '';render(); }
   if (event.target.id === 'temarioSubject') { temarioSubject = event.target.value;temarioSelected = '';render(); }
-  if (event.target.id === 'temarioStatus') { temarioStatus = event.target.value;temarioSelected = '';render(); }
 });
 document.addEventListener('input', event => {
   if (event.target.id !== 'temarioSearch') return;
