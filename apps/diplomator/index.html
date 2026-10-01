@@ -925,14 +925,15 @@
       <button class="lang-btn active" id="btnEN" onclick="setLang('en')" title="English C1">EN</button>
       <button class="lang-btn" id="btnFR" onclick="setLang('fr')" title="Français C1">FR</button>
     </div>
-    <button class="topic-header-btn" data-tab-btn="temas" onclick="showTab('temas',this)">Temas</button>
   </div>
   <div class="main-actions">
     <button class="nav-pill active" data-tab-btn="sesion" onclick="showTab('sesion',this)">Sesión de hoy</button>
     <button class="nav-pill" data-tab-btn="recitar" onclick="showTab('recitar',this)">Práctica oral</button>
+    <button class="nav-pill" data-tab-btn="temas" onclick="showTab('temas',this)">Temas</button>
   </div>
   <div class="header-right">
-    <div class="header-meta" id="headerMeta">Sesiones: 0<br>Temas: 0<br>Créditos: -</div>
+    <div class="header-meta" id="headerMeta">Temas: 0 · Créditos: -</div>
+    <button class="header-history" data-tab-btn="historial" onclick="showTab('historial',this)">◷&nbsp; Historial</button>
     <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil',this)" title="Perfil">Perfil</button>
   </div>
 </header>
@@ -990,23 +991,19 @@
         </div>
       </div>
 
-      <div class="points-section generated-section">
-        <div class="points-heading"><div><span class="points-heading-icon" aria-hidden="true">✦</span><div><h2>Apuntes generados</h2><p id="pointsGenerationMeta">Genera apuntes para revisar y guardar las ideas que te resulten útiles.</p></div></div><button class="points-how" type="button" aria-controls="pointsHelp" aria-expanded="false" onclick="showPointsHelp(this)">Cómo funciona</button></div>
-        <div id="pointsHelp" class="points-help" hidden>Genera las ideas del tema con el modelo elegido en tu perfil. Puedes corregir el texto directamente y guardar solo los puntos que quieras. Los créditos se descuentan únicamente cuando la generación devuelve puntos utilizables.</div>
-        <div id="pointsFallbackNotice" class="db-notice" hidden></div>
-        <div id="pointsVersions" class="points-versions" hidden></div>
-        <div id="generationStatus" aria-live="polite"></div>
-        <div id="aiPoints"></div>
-        <div id="loadingBar" style="display:none">
-          <div class="loading-bar"></div>
-          <div class="loading-text">Generando puntos clave y vocabulario...</div>
-        </div>
-      </div>
-
-      <div class="points-section saved-section">
-        <div class="section-label">Mis apuntes guardados</div>
-        <div id="savedPoints"></div>
-        <div class="empty-msg" id="savedEmpty">Acepta puntos generados o añade los tuyos</div>
+      <div class="session-banner" id="pointsFallbackNotice" hidden></div>
+      <div id="generationStatus" aria-live="polite"></div>
+      <div id="pointsVersions" class="points-versions" hidden></div>
+      <div class="notes-workspace" id="notesWorkspace">
+        <section class="points-section generated-section notes-column">
+          <div class="notes-panel-heading"><div><h2>Apuntes</h2><span id="pointsGenerationMeta">Genera apuntes para revisar las ideas.</span></div><div class="export-menu"><button class="btn btn-small btn-blue" type="button" onclick="toggleExportMenu()" aria-expanded="false" id="exportMenuButton">Guardar ▾</button><div id="exportMenu" class="export-menu-list" hidden><button type="button" onclick="saveSession()">Guardar en app</button><button type="button" onclick="exportSessionPdf()">Guardar en PDF</button><button type="button" onclick="exportSession()">Guardar en Word</button><button type="button" onclick="uploadSessionToDrive()">Subir a Drive</button></div></div></div>
+          <div id="aiPoints"></div>
+          <div id="savedPoints"></div>
+          <div class="empty-msg" id="savedEmpty">Acepta puntos generados o añade los tuyos</div>
+          <div id="loadingBar" style="display:none"><div class="loading-bar"></div><div class="loading-text">Generando puntos clave y vocabulario...</div></div>
+        </section>
+        <div class="vocab-resizer workspace-resizer" id="workspaceResizer" role="separator" aria-label="Ajustar anchura del vocabulario" aria-orientation="vertical" tabindex="0"></div>
+        <aside class="vocabulary-column"><div class="notes-panel-heading"><div><h2>Vocabulario</h2><span id="vocabCount">0 términos</span></div><button class="btn btn-small btn-outline" type="button" onclick="addVocabTerm()">+ Añadir término</button></div><div id="sessionVocabulary" class="session-vocabulary"></div></aside>
       </div>
 
         <div class="manual-note-wrap"><details class="manual-note"><summary>Añadir un punto propio</summary>
@@ -1020,11 +1017,6 @@
         </div></details>
       </div>
 
-      <div style="margin-top:26px;display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn btn-small btn-accept" onclick="saveSession()">Guardar</button>
-        <button class="btn btn-small btn-outline" onclick="exportSession()">Generar Word</button>
-        <button class="btn btn-small btn-blue" onclick="uploadSessionToDrive()">Subir a Drive</button>
-      </div>
     </div>
   </div>
 
@@ -1082,13 +1074,9 @@
   <!-- TAB: TEMAS -->
   <div id="tab-temas" class="tab">
     <div class="topics-layout">
-      <div class="topics-main">
-        <div class="topics-search-bar">
-          <input type="text" id="topicSearchInput" placeholder="Buscar en todos los temas..." oninput="onTopicSearch(this.value)">
-          <span class="topic-count" id="topicCount"></span>
-        </div>
+      <aside class="topics-sidebar">
         <div class="manual-topic-box">
-          <div class="section-label" style="margin-bottom:10px;">Añadir tema manual</div>
+          <div class="manual-topic-heading"><span aria-hidden="true">＋</span><div><h2>Añadir tema manual</h2><p>Crea un tema personalizado para tu estudio.</p></div></div>
           <div class="manual-topic-grid">
             <div>
               <label for="manualTopicInput">Tema</label>
@@ -1099,44 +1087,29 @@
               <select id="manualTopicCategorySelect"></select>
             </div>
             <div>
-              <label for="manualTopicCategoryInput">Nueva categoría</label>
+              <label for="manualTopicCategoryInput">Nueva categoría <small>(opcional)</small></label>
               <input id="manualTopicCategoryInput" placeholder="Opcional">
             </div>
-            <button class="btn btn-small btn-blue" onclick="addManualTopic()">Añadir</button>
+            <button class="btn btn-small" onclick="addManualTopic()">＋&nbsp; Añadir tema</button>
           </div>
           <div class="manual-topic-status" id="manualTopicStatus"></div>
         </div>
 
-        <!-- Search results (shown when searching) -->
-        <div id="searchResults" style="display:none;">
-          <div class="topics-grid" id="searchGrid"></div>
-        </div>
-
-        <!-- Year tabs (shown when not searching) -->
         <div id="yearTabsContainer">
           <div class="year-tabs">
             <button class="year-tab-btn active" id="ytab-2026" onclick="setYearTab(2026,this)">2026</button>
             <button class="year-tab-btn" id="ytab-2025" onclick="setYearTab(2025,this)">2025</button>
           </div>
-          <div class="topic-filter-row">
-            <label for="topicCategorySelect">Categoría</label>
-            <select id="topicCategorySelect" class="topic-category-select" onchange="setCategoryFromSelect(this.value)"></select>
-          </div>
-
-          <!-- 2026 panel -->
-          <div id="ypanel-2026">
-            <div class="cat-tabs" id="cattabs-2026"></div>
-            <div class="topics-grid" id="topicsgrid-2026"></div>
-          </div>
-
-          <!-- 2025 panel -->
-          <div id="ypanel-2025" style="display:none;">
-            <div class="cat-tabs" id="cattabs-2025"></div>
-            <div class="topics-grid" id="topicsgrid-2025"></div>
-          </div>
+          <div class="category-heading">Categorías</div>
+          <div class="topic-filter-row"><label for="topicCategorySelect">Categoría</label><select id="topicCategorySelect" class="topic-category-select" onchange="setCategoryFromSelect(this.value)"></select></div>
+          <div class="cat-tabs" id="cattabs-2026"></div>
+          <div class="cat-tabs" id="cattabs-2025" style="display:none"></div>
         </div>
+      </aside>
+      <div class="topics-main">
+        <div class="topics-search-bar"><div class="topics-search-field"><span aria-hidden="true">⌕</span><input type="search" id="topicSearchInput" placeholder="Buscar en todos los temas..." oninput="onTopicSearch(this.value)"></div><div class="topic-progress"><strong id="topicCount"></strong><span id="topicProgressBar"><i></i></span></div></div>
+        <div class="topics-results-shell"><div class="topics-toolbar"><span id="topicResultsLabel">Temas de la categoría</span><label for="topicSort">Ordenar por</label><select id="topicSort" onchange="renderTopicsTab()"><option value="number">Número (ascendente)</option><option value="name">Nombre (A–Z)</option><option value="pending">Pendientes primero</option></select><div class="topic-view-buttons"><button type="button" id="topicGridButton" class="active" onclick="setTopicView('grid')" aria-label="Cuadrícula">▦</button><button type="button" id="topicListButton" onclick="setTopicView('list')" aria-label="Lista">☷</button></div></div><div id="searchResults" style="display:none"><div class="topics-grid" id="searchGrid"></div></div><div id="ypanel-2026"><div class="topics-grid" id="topicsgrid-2026"></div></div><div id="ypanel-2025" style="display:none"><div class="topics-grid" id="topicsgrid-2025"></div></div></div>
       </div>
-
     </div>
   </div>
 
@@ -1153,7 +1126,7 @@
     </div>
     <div class="db-notice">Usa <strong>Exportar BD</strong> para guardar una copia en tu carpeta local e <strong>Importar BD</strong> para restaurarla.</div>
     <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="handleImport(this)">
-    <div id="historyList"></div>
+    <div class="history-browser"><div id="historyList"></div><div id="historyDetail" class="history-detail"><div class="empty-msg">Elige una sesión para consultar sus apuntes.</div></div></div>
   </div>
 
   <!-- TAB: PERFIL -->
@@ -1181,31 +1154,11 @@
         <div id="licenseStatus"></div>
         <div class="profile-actions">
           <button class="btn btn-small btn-blue" id="driveConnectBtn" onclick="handleGoogleDrive()">Conectar Drive</button>
-          <button class="btn btn-small btn-outline" onclick="toggleProfileHistory()">Historial</button>
           <button class="btn btn-small btn-outline" onclick="showUtilityTab('config')">Configuración</button>
           <button class="btn btn-small btn-outline btn-danger" onclick="logoutWeb()">Cerrar sesión</button>
-        <div class="profile-history-panel" id="profileHistoryPanel">
-          <div class="section-label" style="margin-bottom:10px;">Registro de estudio</div>
-          <div id="profileHistoryContent"></div>
-        </div>
-        </div>
-        <div class="utility-links">
-          <button class="btn btn-small btn-outline" onclick="showUtilityTab('config')">Configuración</button>
         </div>
       </div>
     </div>
-    <section class="points-preferences" aria-labelledby="pointsPreferencesTitle">
-      <div class="section-label" id="pointsPreferencesTitle">Cómo se generan tus apuntes</div>
-      <p>Prueba distintos modelos y cambia las instrucciones. Cada nueva generación conserva una versión para compararla en la sesión.</p>
-      <label for="pointsModelChoice">Modelo para apuntes</label>
-      <select id="pointsModelChoice"><option value="auto">Modelo elegido en administración</option></select>
-      <small id="pointsModelHint">Se mostrarán los modelos de los proveedores con clave configurada.</small>
-      <label for="pointsPrompt">Instrucciones de generación</label>
-      <textarea id="pointsPrompt" maxlength="900" rows="5" aria-describedby="pointsPromptHint"></textarea>
-      <small id="pointsPromptHint">Indica el estilo que prefieres. El tema, el idioma y la estructura se añaden automáticamente.</small>
-      <div class="points-preferences-actions"><button class="btn btn-small btn-blue" onclick="savePointsPreferences()">Guardar preferencias</button><button class="btn btn-small btn-outline" onclick="resetPointsPrompt()">Restablecer instrucciones</button></div>
-      <small id="pointsPreferencesStatus" role="status"></small>
-    </section>
     <div class="notice" id="accessKeyHelp">
       Tu cuenta activa la IA automaticamente al entrar. Usa la clave manual solo si trabajas sin sesion web.
     </div>
@@ -1217,30 +1170,30 @@
 
   <!-- TAB: CONFIG -->
   <div id="tab-config" class="tab">
-    <div class="section-label">Parámetros de generación</div>
+    <button class="config-back" type="button" onclick="showTab('perfil',document.getElementById('profileHeaderBtn'))">← Perfil</button>
+    <div class="section-label">Configuración de generación</div>
+    <div class="config-row"><label for="pointsModelChoice">Modelo de IA</label><select id="pointsModelChoice"><option value="auto">Modelo elegido en administración</option></select></div>
+    <small id="pointsModelHint">Se mostrarán los modelos disponibles.</small>
+    <div class="config-row"><label for="pointsPrompt">Prompt base</label><textarea id="pointsPrompt" maxlength="1500" rows="4"></textarea></div>
+    <div class="config-row"><label for="pointsPromptModifier">Instrucción adicional</label><textarea id="pointsPromptModifier" maxlength="900" rows="3" placeholder="Ej: prioriza ejemplos de actualidad, evita tecnicismos..."></textarea></div>
+    <div class="config-row"><label for="pointsLength">Extensión de los apuntes</label><select id="pointsLength"><option value="short">Breve</option><option value="medium">Equilibrada</option><option value="long">Detallada</option></select></div>
     <div class="config-row">
-      <label>Máximo de puntos clave</label>
+      <label for="numPoints">Número de puntos</label>
       <input type="number" id="numPoints" min="2" max="12" value="5">
     </div>
     <div class="config-row">
-      <label>Vocabulario orientativo para todo el tema</label>
-      <input type="number" id="numVocab" min="2" max="12" value="5">
+      <label for="numVocab">Términos de vocabulario</label>
+      <input type="number" id="numVocab" min="0" max="12" value="5">
     </div>
     <div class="config-row">
-      <label>Tamaño texto de los puntos</label>
-      <input type="range" id="pointFontSize" min="11" max="20" value="13" oninput="updatePointSize(this.value)">
-      <span id="pointSizeLabel" style="font-size:0.72rem;color:#888;min-width:40px;">13px</span>
+      <label for="pointFontSize">Tamaño del texto</label>
+      <div class="config-range"><input type="range" id="pointFontSize" min="11" max="20" value="13" oninput="updatePointSize(this.value)"><span id="pointSizeLabel">13px</span></div>
     </div>
-    <div class="config-row" style="margin-top:6px;">
-      <label>Contexto / perfil del estudiante</label>
+    <div class="config-row">
+      <label for="profileContext">Contexto del estudiante</label>
+      <textarea id="profileContext" rows="3" placeholder="Ej: Nivel C1, preparando el examen oral de Diplomacia..."></textarea>
     </div>
-    <div style="margin-bottom:16px;">
-      <textarea id="profileContext"
-        placeholder="Ej: Nivel C1, preparando el MIR diplomático..."
-        style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;padding:10px 14px;border:1.5px solid var(--border);background:white;color:var(--ink);resize:vertical;min-height:70px;outline:none;"
-        onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-    </div>
-    <button class="btn btn-small" onclick="saveConfig()">Guardar configuración</button>
+    <div class="config-actions"><button class="btn btn-small btn-blue" onclick="saveConfig()">Guardar configuración</button><button class="btn btn-small btn-outline" onclick="resetPointsPrompt()">Restablecer prompt base</button></div>
     <div id="configStatus" style="margin-top:10px;font-size:0.7rem;color:var(--sage);"></div>
 
     <div class="section-label" style="margin-top:28px;">Datos</div>
@@ -1511,7 +1464,7 @@ let state = {
   currentSession: null,
   recitePractice: { topic: '', notes: '', transcript: '', correction: '', selectedMode: 'prep' },
   topicChats: { session: [], recite: [], temas: [] },
-  config: { numPoints: 5, numVocab: 5, profile: DEFAULT_PROFILE, pointFontSize: 13, vocabColumnWidth: 270, pointsModelChoice: 'auto', pointsPrompt: DEFAULT_POINTS_PROMPT }
+  config: { numPoints: 5, numVocab: 5, profile: DEFAULT_PROFILE, pointFontSize: 13, vocabColumnWidth: 330, pointsModelChoice: 'auto', pointsPrompt: DEFAULT_POINTS_PROMPT, pointsPromptModifier: '', pointsLength: 'medium' }
 };
 let accountUser = null;
 let availablePointsModels = [];
@@ -1519,7 +1472,7 @@ let availablePointsModels = [];
 let session = {
   topic: null,
   aiPoints: [],
-  savedPoints: []
+  savedPoints: [], savedVocab: []
 };
 let reciteTimerId = null;
 let reciteSeconds = 0;
@@ -1541,16 +1494,19 @@ const GROQ_TRANSCRIBE_MODEL = 'whisper-large-v3-turbo';
 let currentYear = 2026;
 let currentCat = {};  // {year: catName}
 let topicSearchVal = '';
+let topicView = 'grid';
 
 function normalizeAppState() {
   if (!state.config) state.config = {};
-  state.config.numPoints     = state.config.numPoints     || 5;
-  state.config.numVocab      = state.config.numVocab      || 5;
+  state.config.numPoints     = Math.min(12, Math.max(2, Number(state.config.numPoints) || 5));
+  state.config.numVocab      = Math.min(12, Math.max(0, Number(state.config.numVocab ?? 5) || 0));
   state.config.profile       = state.config.profile       || DEFAULT_PROFILE;
   state.config.pointFontSize = state.config.pointFontSize || 13;
-  state.config.vocabColumnWidth = state.config.vocabColumnWidth || 270;
+  state.config.vocabColumnWidth = state.config.vocabColumnWidth || 330;
   state.config.pointsModelChoice = state.config.pointsModelChoice || 'auto';
   if (typeof state.config.pointsPrompt !== 'string') state.config.pointsPrompt = DEFAULT_POINTS_PROMPT;
+  if (typeof state.config.pointsPromptModifier !== 'string') state.config.pointsPromptModifier = '';
+  if (!['short', 'medium', 'long'].includes(state.config.pointsLength)) state.config.pointsLength = 'medium';
   if (!state.completedTopics) state.completedTopics = [];
   state.manualTopics = Array.isArray(state.manualTopics)
     ? state.manualTopics
@@ -1563,6 +1519,9 @@ function normalizeAppState() {
     : [];
   if (!state.history) state.history = [];
   if (!('currentSession' in state)) state.currentSession = null;
+  if (state.currentSession?.topic && !Array.isArray(state.currentSession.savedVocab)) {
+    state.currentSession.savedVocab = extractGeneratedVocabulary({}, state.currentSession.savedPoints || [], 12);
+  }
   if (!state.lang) state.lang = 'en';
   state.recitePractice = {
     topic: '',
@@ -1587,6 +1546,11 @@ function renderTopicsTab() {
   renderCategorySelect();
   renderManualTopicCategorySelect();
   updateTopicCount();
+  document.getElementById('cattabs-2026').style.display = currentYear === 2026 ? '' : 'none';
+  document.getElementById('cattabs-2025').style.display = currentYear === 2025 ? '' : 'none';
+  document.getElementById('ypanel-2026').style.display = currentYear === 2026 && !topicSearchVal ? '' : 'none';
+  document.getElementById('ypanel-2025').style.display = currentYear === 2025 && !topicSearchVal ? '' : 'none';
+  if (topicSearchVal) onTopicSearch(document.getElementById('topicSearchInput').value);
 }
 
 function renderYearPanel(year) {
@@ -1603,7 +1567,7 @@ function renderYearPanel(year) {
     // Count done in this cat
     const topics = getTopicsForCategory(year, cat);
     const doneCount = topics.filter(t => state.completedTopics.includes(t)).length;
-    b.textContent = `${cat} (${doneCount}/${topics.length})`;
+    b.innerHTML = `<span>${escHtml(cat)}</span><small>${doneCount}/${topics.length}</small>`;
     b.onclick = () => setCatTab(year, cat);
     ctEl.appendChild(b);
   });
@@ -1613,10 +1577,7 @@ function renderYearPanel(year) {
 
 function setCatTab(year, cat) {
   currentCat[year] = cat;
-  document.querySelectorAll(`#cattabs-${year} .cat-tab-btn`).forEach(b => b.classList.remove('active'));
-  document.querySelectorAll(`#cattabs-${year} .cat-tab-btn`).forEach(b => {
-    if (b.textContent.startsWith(`${cat} (`)) b.classList.add('active');
-  });
+  document.querySelectorAll(`#cattabs-${year} .cat-tab-btn`).forEach((b, i) => b.classList.toggle('active', getTopicCategories(year)[i] === cat));
   renderCategorySelect();
   renderTopicGrid(year);
 }
@@ -1625,8 +1586,11 @@ function setYearTab(year, btn) {
   currentYear = year;
   document.querySelectorAll('.year-tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('ypanel-2026').style.display = year === 2026 ? '' : 'none';
-  document.getElementById('ypanel-2025').style.display = year === 2025 ? '' : 'none';
+  document.getElementById('ypanel-2026').style.display = year === 2026 && !topicSearchVal ? '' : 'none';
+  document.getElementById('ypanel-2025').style.display = year === 2025 && !topicSearchVal ? '' : 'none';
+  document.getElementById('cattabs-2026').style.display = year === 2026 ? '' : 'none';
+  document.getElementById('cattabs-2025').style.display = year === 2025 ? '' : 'none';
+  if (!topicSearchVal) document.getElementById('topicResultsLabel').textContent = currentCat[year] || 'Temas';
   renderCategorySelect();
   renderManualTopicCategorySelect();
   updateTopicCount();
@@ -1689,56 +1653,75 @@ async function addManualTopic() {
 
 function renderTopicGrid(year) {
   const cat = currentCat[year];
-  const topics = getTopicsForCategory(year, cat);
+  const topics = sortTopics(getTopicsForCategory(year, cat));
   const grid = document.getElementById(`topicsgrid-${year}`);
   grid.innerHTML = '';
+  grid.classList.toggle('list-view', topicView === 'list');
+  if (year === currentYear && !topicSearchVal) document.getElementById('topicResultsLabel').textContent = cat || 'Temas';
   topics.forEach((t, i) => {
     const done = state.completedTopics.includes(t);
     const div = document.createElement('div');
     div.className = 'topic-item' + (done ? ' done' : '');
     div.title = done ? 'Completado - clic para estudiar de nuevo' : 'Clic para estudiar este tema';
-    div.innerHTML = `<span class="topic-num">${String(i+1).padStart(3,'0')}</span><span>${escHtml(t)}</span>`;
+    div.innerHTML = `<span class="topic-num">${String(getTopicsForCategory(year, cat).indexOf(t)+1).padStart(3,'0')}</span><span class="topic-name">${escHtml(t)}</span><span class="topic-status" aria-label="${done ? 'Completado' : 'Pendiente'}">${done ? '✓' : ''}</span>`;
     div.onclick = () => startSessionWithTopic(t);
     grid.appendChild(div);
   });
 }
 
+function sortTopics(topics) {
+  const mode = document.getElementById('topicSort')?.value || 'number';
+  if (mode === 'name') return [...topics].sort((a,b) => a.localeCompare(b, 'es'));
+  if (mode === 'pending') return [...topics].sort((a,b) => Number(state.completedTopics.includes(a)) - Number(state.completedTopics.includes(b)));
+  return topics;
+}
+
+function setTopicView(view) {
+  topicView = view;
+  document.getElementById('topicGridButton').classList.toggle('active', view === 'grid');
+  document.getElementById('topicListButton').classList.toggle('active', view === 'list');
+  document.querySelectorAll('.topics-grid').forEach(grid => grid.classList.toggle('list-view', view === 'list'));
+}
+
 function onTopicSearch(val) {
   topicSearchVal = val.trim().toLowerCase();
   const searchEl = document.getElementById('searchResults');
-  const yearEl = document.getElementById('yearTabsContainer');
   if (!topicSearchVal) {
     searchEl.style.display = 'none';
-    yearEl.style.display = '';
+    document.getElementById('ypanel-2026').style.display = currentYear === 2026 ? '' : 'none';
+    document.getElementById('ypanel-2025').style.display = currentYear === 2025 ? '' : 'none';
+    document.getElementById('topicResultsLabel').textContent = currentCat[currentYear] || 'Temas';
     updateTopicCount();
     return;
   }
   searchEl.style.display = '';
-  yearEl.style.display = 'none';
+  document.getElementById('ypanel-2026').style.display = 'none';
+  document.getElementById('ypanel-2025').style.display = 'none';
 
   const all = getAllTopics();
   const results = all.filter(({ topic }) => topic.toLowerCase().includes(topicSearchVal));
   const grid = document.getElementById('searchGrid');
   grid.innerHTML = '';
-  results.forEach(({ topic, year, cat }) => {
+  sortTopics(results.map(item => item.topic)).forEach(topic => {
+    const {year, cat} = results.find(item => item.topic === topic);
     const done = state.completedTopics.includes(topic);
     const div = document.createElement('div');
     div.className = 'topic-item' + (done ? ' done' : '');
     div.innerHTML = `
-      <span class="topic-num">${year}</span>
-      <span style="flex:1">${escHtml(topic)}</span>
-      <span style="font-size:0.55rem;color:#aaa;flex-shrink:0;">${escHtml(cat)}</span>`;
+      <span class="topic-num">${year}</span><span class="topic-name">${escHtml(topic)}<small>${escHtml(cat)}</small></span><span class="topic-status">${done ? '✓' : ''}</span>`;
     div.onclick = () => startSessionWithTopic(topic);
     grid.appendChild(div);
   });
 
   document.getElementById('topicCount').textContent = `${results.length} resultados`;
+  document.getElementById('topicResultsLabel').textContent = `Resultados para «${val.trim()}»`;
 }
 
 function updateTopicCount() {
   const all = getAllTopics();
   const done = state.completedTopics.length;
   document.getElementById('topicCount').textContent = `${done} completados / ${all.length} temas`;
+  document.querySelector('#topicProgressBar i').style.width = `${all.length ? Math.round(done / all.length * 100) : 0}%`;
 }
 
 // -- LANGUAGE ------------------------------------------------------------
@@ -1764,7 +1747,9 @@ function updatePointSize(val) {
 }
 
 function updateVocabColumnWidth(val, save = true) {
-  const width = Math.max(180, Math.min(560, parseInt(val, 10) || 270));
+  const workspace = document.getElementById('notesWorkspace');
+  const max = workspace?.clientWidth ? Math.max(245, workspace.clientWidth - 390) : 560;
+  const width = Math.max(245, Math.min(560, max, parseInt(val, 10) || 330));
   document.documentElement.style.setProperty('--vocab-col-width', width + 'px');
   if (save) {
     state.config.vocabColumnWidth = width;
@@ -1783,8 +1768,7 @@ function createVocabResizer() {
 function startVocabResize(event) {
   event.preventDefault();
   const handle = event.currentTarget;
-  const row = handle.closest('.point-row');
-  if (!row) return;
+  if (!handle.closest('.notes-workspace')) return;
   handle.classList.add('dragging');
   const startX = event.clientX;
   const startWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--vocab-col-width'), 10) || state.config.vocabColumnWidth || 270;
@@ -1804,6 +1788,18 @@ function startVocabResize(event) {
   window.addEventListener('pointermove', onMove);
   window.addEventListener('pointerup', onUp);
   window.addEventListener('pointercancel', onUp);
+}
+
+function initWorkspaceResizer() {
+  const handle = document.getElementById('workspaceResizer');
+  if (!handle || handle.dataset.ready) return;
+  handle.dataset.ready = '1';
+  handle.addEventListener('pointerdown', startVocabResize);
+  handle.addEventListener('keydown', event => {
+    if (!['ArrowLeft','ArrowRight'].includes(event.key)) return;
+    event.preventDefault();
+    updateVocabColumnWidth((state.config.vocabColumnWidth || 330) + (event.key === 'ArrowLeft' ? 20 : -20));
+  });
 }
 
 function normalizeDatedInfo(info) {
@@ -1831,7 +1827,8 @@ function normalizePoint(p, fallbackTitle = '') {
     vocab: Array.isArray(p?.vocab) ? p.vocab : [],
     type: p?.type || 'ai',
     aiIndex: p?.aiIndex ?? null,
-    accepted: !!p?.accepted
+    accepted: !!p?.accepted,
+    rejected: !!p?.rejected
   };
 }
 
@@ -1854,9 +1851,7 @@ function generatedPointsFromResponse(parsed) {
     : Array.isArray(parsed?.ideas) ? parsed.ideas
     : Array.isArray(parsed) ? parsed
     : parsed?.point || parsed?.title || parsed?.text ? [parsed.point || parsed] : [];
-  return points.filter(point => point && typeof point === 'object' && String(point.text || '').trim()).map(point => ({
-    ...point, connection: '', connector: '', transition: '', datedInfo: [], examples: [], info: []
-  }));
+  return points.filter(point => point && typeof point === 'object' && String(point.text || '').trim());
 }
 
 function renderPointBody(p) {
@@ -1901,7 +1896,7 @@ function getInlinePoint(scope, i, j) {
 }
 
 function setInlinePoint(scope, i, j, point) {
-  if (scope === 'ai') session.aiPoints[i] = { ...point, accepted: false, aiIndex: i };
+  if (scope === 'ai') session.aiPoints[i] = { ...point, accepted: !!session.aiPoints[i]?.accepted, rejected: !!session.aiPoints[i]?.rejected, aiIndex: i };
   if (scope === 'saved') session.savedPoints[i] = point;
   if (scope === 'history' && state.history[i]?.points?.[j]) state.history[i].points[j] = point;
 }
@@ -1921,6 +1916,10 @@ async function saveInlinePoint(scope, i, j = null) {
   const currentPoint = normalizePoint(current);
   const next = { ...currentPoint, title, text, html, connection: connection ? connection.value.trim() : currentPoint.connection, datedInfo: normalizeDatedInfo(info.value) };
   setInlinePoint(scope, i, j, next);
+  if (scope === 'ai' && session.aiPoints[i]?.accepted) {
+    const savedIndex = session.savedPoints.findIndex(p => p.type === 'ai' && p.aiIndex === i);
+    if (savedIndex >= 0) session.savedPoints[savedIndex] = {...normalizePoint(session.aiPoints[i]), type: 'ai', aiIndex: i};
+  }
   if (scope === 'history') {
     await persist();
     return;
@@ -2015,16 +2014,9 @@ async function loadPointsModels() {
   }
 }
 
-async function savePointsPreferences() {
-  state.config.pointsModelChoice = document.getElementById('pointsModelChoice').value;
-  state.config.pointsPrompt = document.getElementById('pointsPrompt').value.trim().slice(0, 900);
-  await persist();
-  document.getElementById('pointsPreferencesStatus').textContent = 'Preferencias guardadas para tu cuenta.';
-}
-
 function resetPointsPrompt() {
   document.getElementById('pointsPrompt').value = DEFAULT_POINTS_PROMPT;
-  document.getElementById('pointsPreferencesStatus').textContent = 'Instrucciones restablecidas. Guarda para aplicarlas.';
+  document.getElementById('configStatus').textContent = 'Prompt base restablecido. Guarda para aplicarlo.';
 }
 
 async function backendRequest(path, options = {}) {
@@ -2180,11 +2172,14 @@ async function init() {
   document.getElementById('numVocab').value       = state.config.numVocab;
   document.getElementById('profileContext').value = state.config.profile;
   document.getElementById('pointsPrompt').value = state.config.pointsPrompt;
+  document.getElementById('pointsPromptModifier').value = state.config.pointsPromptModifier;
+  document.getElementById('pointsLength').value = state.config.pointsLength;
   await loadPointsModels();
   document.getElementById('pointFontSize').value  = state.config.pointFontSize;
   document.getElementById('pointSizeLabel').textContent = state.config.pointFontSize + 'px';
   updatePointSize(state.config.pointFontSize);
   updateVocabColumnWidth(state.config.vocabColumnWidth, false);
+  initWorkspaceResizer();
 
   document.getElementById('btnEN').classList.toggle('active', state.lang === 'en');
   document.getElementById('btnFR').classList.toggle('active', state.lang === 'fr');
@@ -2217,7 +2212,7 @@ function updateHeader() {
   const all = getAllTopics();
   const credits = remainingCredits(accountUser) ?? '-';
   document.getElementById('headerMeta').innerHTML =
-    `Sesiones: ${state.history.length}<br>${state.completedTopics.length}/${all.length} completados<br>Créditos: ${credits}`;
+    `<span>${state.completedTopics.length}/${all.length} completados</span><strong>Créditos ${credits}</strong>`;
 }
 
 // -- TABS ----------------------------------------------------------------
@@ -2251,7 +2246,10 @@ document.addEventListener('click', () => document.getElementById('moreMenu')?.cl
 
 // -- SESSION ------------------------------------------------------------
 function persistCurrentSession() {
-  if (session?.versions?.[session.activeVersion]) session.versions[session.activeVersion].points = structuredClone(session.aiPoints);
+  if (session?.versions?.[session.activeVersion]) {
+    session.versions[session.activeVersion].points = structuredClone(session.aiPoints);
+    session.versions[session.activeVersion].vocabulary = structuredClone(session.vocabulary || []);
+  }
   state.currentSession = session?.topic ? {
     ...session,
     lang: state.lang,
@@ -2275,23 +2273,21 @@ function renderPointVersions() {
   const versions = session.versions || [];
   const active = versions[session.activeVersion];
   const notice = document.getElementById('pointsFallbackNotice');
-  notice.hidden = !active?.fallbackReason;
-  notice.textContent = active?.fallbackReason === 'overloaded'
-    ? `El modelo elegido estaba saturado. Estos apuntes se generaron con ${active.model}. Tu preferencia no ha cambiado.`
-    : active?.fallbackReason ? `El modelo anterior no estaba disponible. Estos apuntes se generaron con ${active.model}.` : '';
+  notice.hidden = !active?.fallbackReason || !!session.noticeDismissed;
+  notice.innerHTML = active?.fallbackReason
+    ? `<span>${active.fallbackReason === 'overloaded' ? 'El modelo elegido estaba saturado.' : 'El modelo anterior no estaba disponible.'} Apuntes generados con ${escHtml(displayModelName(active.model))}. Tu preferencia sigue igual.</span><button type="button" onclick="dismissSessionNotice()" aria-label="Cerrar aviso">×</button>` : '';
   root.hidden = versions.length < 2;
   root.innerHTML = versions.length < 2 ? '' : `<span>Comparar versiones</span>${versions.map((v, i) => `<button type="button" class="${i === session.activeVersion ? 'active' : ''}" onclick="switchPointVersion(${i})" aria-pressed="${i === session.activeVersion}">${escHtml('Versión ' + (i + 1) + ' · ' + (displayModelName(v.model) || 'Modelo anterior'))}</button>`).join('')}<small>Instrucciones de esta versión: ${escHtml(versions[session.activeVersion]?.prompt || 'No registradas')}</small>`;
   const meta = document.getElementById('pointsGenerationMeta');
   if (meta) meta.textContent = active?.model
-    ? `${session.aiPoints.filter(p => !p.accepted).length} por revisar · Generados con ${displayModelName(active.model)}`
+    ? `${session.aiPoints.filter(p => p.accepted).length} de ${session.aiPoints.length} puntos guardados · ${displayModelName(active.model)}`
     : 'Genera apuntes para revisar y guardar las ideas que te resulten útiles.';
 }
 
-function showPointsHelp(button) {
-  const help = document.getElementById('pointsHelp');
-  if (!help) return;
-  help.hidden = !help.hidden;
-  button?.setAttribute('aria-expanded', String(!help.hidden));
+function dismissSessionNotice() {
+  session.noticeDismissed = true;
+  document.getElementById('pointsFallbackNotice').hidden = true;
+  persistCurrentSession();
 }
 
 function generationErrorHtml(error) {
@@ -2299,17 +2295,24 @@ function generationErrorHtml(error) {
   let summary = message;
   if (/Gemini 503|high demand|saturad/i.test(message)) summary = 'Gemini está saturado temporalmente. Espera unos minutos antes de volver a intentarlo.';
   else if (/Gemini 429|límite de uso|cuota/i.test(message)) summary = 'Se ha alcanzado un límite de Gemini. Revisa la cuota del modelo o inténtalo más tarde.';
-  else if (/Gemini 404/i.test(message)) summary = 'El modelo elegido no está disponible. Selecciona otro en tu perfil o revisa Admin > IA.';
+  else if (/Gemini 404/i.test(message)) summary = 'El modelo elegido no está disponible. Selecciona otro en Configuración o revisa Admin > IA.';
   const noCharge = /Gemini (429|503|404)|high demand|saturad|límite de uso|cuota/i.test(message);
-  return `<div class="generation-error" role="alert"><div class="generation-error-icon" aria-hidden="true">!</div><div><strong>No se pudieron generar los apuntes</strong><p>${escHtml(summary)}</p>${noCharge ? '<small>No se han descontado créditos.</small>' : ''}</div><button class="btn btn-outline btn-small" type="button" onclick="generateCurrentSession()">Reintentar</button></div>`;
+  return `<div class="generation-error" role="alert"><div class="generation-error-icon" aria-hidden="true">!</div><div><strong>No se pudieron generar los apuntes</strong><p>${escHtml(summary)}</p>${noCharge ? '<small>No se han descontado créditos.</small>' : ''}</div><button class="btn btn-outline btn-small" type="button" onclick="generateCurrentSession()">Reintentar</button><button class="banner-close" type="button" onclick="this.closest('.generation-error').remove()" aria-label="Cerrar aviso">×</button></div>`;
 }
 
 function switchPointVersion(index) {
   if (!session.versions?.[index]) return;
-  if (session.versions[session.activeVersion]) session.versions[session.activeVersion].points = structuredClone(session.aiPoints);
+  if (session.versions[session.activeVersion]) {
+    session.versions[session.activeVersion].points = structuredClone(session.aiPoints);
+    session.versions[session.activeVersion].vocabulary = structuredClone(session.vocabulary || []);
+  }
   session.activeVersion = index;
   session.aiPoints = structuredClone(session.versions[index].points);
+  session.vocabulary = structuredClone(session.versions[index].vocabulary || extractGeneratedVocabulary({}, session.aiPoints, state.config.numVocab));
+  session.savedVocab = (session.savedVocab || []).filter(item => session.vocabulary.some(term => term.word === item.word));
   renderAIPoints();
+  renderSavedPoints();
+  renderSessionVocabulary();
   persistCurrentSession();
 }
 
@@ -2347,8 +2350,13 @@ function resumeCurrentSession() {
     topic: state.currentSession.topic,
     aiPoints: ensurePointConnections(state.currentSession.aiPoints || []),
     savedPoints: ensurePointConnections(state.currentSession.savedPoints || []),
+    savedVocab: Array.isArray(state.currentSession.savedVocab) ? state.currentSession.savedVocab
+      : extractGeneratedVocabulary({}, state.currentSession.savedPoints || [], 12),
+    vocabulary: Array.isArray(state.currentSession.vocabulary) ? state.currentSession.vocabulary : [],
     versions: Array.isArray(state.currentSession.versions) ? state.currentSession.versions : [],
-    activeVersion: Number.isInteger(state.currentSession.activeVersion) ? state.currentSession.activeVersion : -1
+    activeVersion: Number.isInteger(state.currentSession.activeVersion) ? state.currentSession.activeVersion : -1,
+    noticeDismissed: !!state.currentSession.noticeDismissed,
+    historyId: state.currentSession.historyId || null
   };
   if (JSON.stringify(session.aiPoints) !== JSON.stringify(state.currentSession.aiPoints || []) ||
       JSON.stringify(session.savedPoints) !== JSON.stringify(state.currentSession.savedPoints || [])) {
@@ -2364,6 +2372,7 @@ function resumeCurrentSession() {
   ensureSessionChatToggle();
   renderAIPoints();
   renderSavedPoints();
+  renderSessionVocabulary();
   updateGlobalTeacherContext();
 }
 
@@ -2374,6 +2383,7 @@ function resetSessionView() {
   document.getElementById('generationStatus').innerHTML = '';
   document.getElementById('savedPoints').innerHTML = '';
   document.getElementById('savedEmpty').style.display = 'block';
+  document.getElementById('sessionVocabulary').innerHTML = '';
   ['manualInput','manualTitleInput','manualInfoInput'].forEach(id => {
     const field = document.getElementById(id);
     if (field) field.value = '';
@@ -2383,7 +2393,7 @@ function resetSessionView() {
 async function closeCurrentSession(skipConfirm = false) {
   const hasDraft = session.aiPoints?.length || session.savedPoints?.length;
   if (!skipConfirm && hasDraft && !confirm('Se eliminará esta sesión pendiente. ¿Quieres descartarla?')) return;
-  session = { topic:null, aiPoints:[], savedPoints:[] };
+  session = { topic:null, aiPoints:[], savedPoints:[], savedVocab:[] };
   state.currentSession = null;
   resetSessionView();
   renderSessionDraftPrompt();
@@ -2396,7 +2406,7 @@ async function discardDraftAndStart() {
   const hasWork = draft?.aiPoints?.length || draft?.savedPoints?.length;
   if (hasWork && !confirm('Se eliminará la sesión pendiente. ¿Quieres empezar una nueva?')) return;
   state.currentSession = null;
-  session = { topic:null, aiPoints:[], savedPoints:[] };
+  session = { topic:null, aiPoints:[], savedPoints:[], savedVocab:[] };
   await persist();
   await startSession();
 }
@@ -2480,7 +2490,7 @@ async function startSessionWithTopic(topic, autoGenerate = false) {
     const hasWork = session.aiPoints?.length || session.savedPoints?.length;
     if (hasWork && !confirm('Se eliminará la sesión actual. ¿Quieres cambiar de tema?')) return;
   }
-  session = { topic, aiPoints: [], savedPoints: [], versions: [], activeVersion: -1 };
+  session = { topic, aiPoints: [], savedPoints: [], savedVocab: [], versions: [], activeVersion: -1 };
   const nowIso = new Date().toISOString();
   state.currentSession = { ...session, lang: state.lang, date: nowIso, updatedAt: nowIso };
 
@@ -2507,6 +2517,7 @@ async function startSessionWithTopic(topic, autoGenerate = false) {
   document.getElementById('manualTitleInput').value = '';
   document.getElementById('manualInfoInput').value = '';
   renderPointVersions();
+  renderSessionVocabulary();
   setReciteTopic(topic);
   persistCurrentSession();
   updateGlobalTeacherContext();
@@ -2549,16 +2560,15 @@ async function generateSession(topic) {
 
   if (BACKEND_SUPPORTED) await loadBackendStatus();
   const limits = generationLimits();
-  const n = parseInt(document.getElementById('numPoints').value, 10) || 5;
-  const nv = Math.min(parseInt(document.getElementById('numVocab').value, 10) || 5, 12);
-  const profile = (document.getElementById('profileContext').value || '').slice(0, limits.profileChars);
+  const n = state.config.numPoints;
+  const nv = Math.min(state.config.numVocab, 12);
+  const profile = (state.config.profile || '').slice(0, limits.profileChars);
   const langName = state.lang === 'en' ? 'English' : 'French';
-  const generationMaxTokens = Math.min(7000, Math.max(2000, 900 + n * 420));
-  const modelChoice = document.getElementById('pointsModelChoice').value;
-  const personalGuidance = document.getElementById('pointsPrompt').value.trim().slice(0, 900) || DEFAULT_POINTS_PROMPT;
-  state.config.pointsModelChoice = modelChoice;
-  state.config.pointsPrompt = personalGuidance;
-  await persist();
+  const lengthWords = {short: '45–70', medium: '70–110', long: '110–150'}[state.config.pointsLength] || '70–110';
+  const generationMaxTokens = Math.min(9000, Math.max(2200, 1000 + n * (state.config.pointsLength === 'long' ? 650 : 480) + nv * 45));
+  const modelChoice = state.config.pointsModelChoice;
+  const personalGuidance = state.config.pointsPrompt || DEFAULT_POINTS_PROMPT;
+  const modifier = state.config.pointsPromptModifier || '';
 
   document.getElementById('loadingBar').style.display = 'block';
   document.getElementById('generationStatus').innerHTML = '';
@@ -2567,14 +2577,15 @@ async function generateSession(topic) {
   const prompt = `You are preparing reliable C1/C2 oral-exam study notes in ${langName}.
 TOPIC: "${topic}"
 ${profile ? `Student context (adjust language and depth only; do not treat it as evidence): ${profile}` : ''}
-Student's preferred writing instructions: ${personalGuidance}
+ Base writing instructions: ${personalGuidance}
+ ${modifier ? `Additional instruction: ${modifier}` : ''}
 
-Write at most ${n} distinct points, ordered so a student can explain this topic aloud. A narrow topic may need fewer. Each point should have one precise title and one clear paragraph of roughly 70-110 words, with the idea, its explanation and one relevant concrete detail if useful. Use natural C1/C2 ${langName}, not inflated academic prose. Choose the structure from the topic itself; do not force a history/causes/impact/future template. Avoid repetition, sweeping judgements and claims that also fit unrelated topics.
+ Write ${n} distinct points where the topic supports that depth, in a deliberate order: begin with the necessary context, develop mechanisms and actors, then reach a reasoned synthesis. A narrow topic may need fewer. Each point should have one precise title and one paragraph of roughly ${lengthWords} words. Read all points as one continuous study text before returning it: every point must build on the previous one, avoid repeated facts, and lead naturally to the next. Provide a short connection sentence after each point except the last. The connections must add meaning, not generic filler. Use natural C1/C2 ${langName}, not inflated academic prose. Choose the structure from the topic itself; do not force a history/causes/impact/future template.
 
-Put a date, name or example directly in the paragraph only when it helps explain the point. Do not create separate date lists, connector paragraphs or duplicate the same fact in another field. Across the whole answer include at most ${nv} useful C1/C2 words or expressions with brief Spanish translations; each word must appear naturally in its point's text. Empty vocabulary arrays are fine. Do not invent dates, figures, quotations or sources. If a fact is uncertain, explain the idea without false precision.
+ Include relevant examples or dates only where they help explain the point. Return exactly ${nv} distinct, useful C1/C2 vocabulary terms in the top-level vocabulary array${nv ? ', with brief Spanish translations and one contextual example each' : ''}. Each term should appear naturally in the notes when possible. Do not invent dates, figures, quotations or sources. If a fact is uncertain, explain the idea without false precision.
 
-Before answering, check that every point adds a different piece of understanding and that the full answer stays on the quoted topic. Return valid JSON only:
-{"points":[{"title":"...","text":"...","vocab":[{"word":"...","def":"..."}]}]}`;
+ Before answering, check continuity, factual reliability, non-repetition and that the vocabulary array contains ${nv} valid unique terms. Return valid JSON only:
+ {"points":[{"title":"...","text":"...","connection":"short meaningful transition to the next point","datedInfo":[{"date":"optional","text":"relevant example"}]}],"vocabulary":[{"word":"...","def":"Spanish translation","example":"short contextual sentence"}]}`;
 
   try {
     const raw = await groqChat([{ role: 'user', content: prompt }], {
@@ -2598,19 +2609,27 @@ Before answering, check that every point adds a different piece of understanding
       return;
     }
 
-    if (session.versions?.[session.activeVersion]) session.versions[session.activeVersion].points = structuredClone(session.aiPoints);
-    session.aiPoints = ensurePointConnections(generatedPoints.slice(0, n)).map((p, i) => ({
-      ...normalizePoint(p, `Idea ${i + 1}`), accepted: false, aiIndex: i
-    }));
+    if (session.versions?.[session.activeVersion]) {
+      session.versions[session.activeVersion].points = structuredClone(session.aiPoints);
+      session.versions[session.activeVersion].vocabulary = structuredClone(session.vocabulary || []);
+    }
+     session.savedPoints = session.savedPoints.filter(p => p.type === 'manual');
+     session.aiPoints = ensurePointConnections(generatedPoints.slice(0, n)).map((p, i) => ({...normalizePoint(p, `Idea ${i + 1}`), accepted: false, rejected: false, aiIndex: i}));
+     session.vocabulary = extractGeneratedVocabulary(parsed, session.aiPoints, nv);
+     session.savedVocab = [];
+     session.noticeDismissed = false;
     session.versions = [...(session.versions || []), {
       model: lastPointsModel || modelChoice,
       fallbackReason: lastPointsFallbackReason,
       prompt: personalGuidance,
       createdAt: new Date().toISOString(),
-      points: structuredClone(session.aiPoints)
+      points: structuredClone(session.aiPoints),
+      vocabulary: structuredClone(session.vocabulary)
     }].slice(-3);
     session.activeVersion = session.versions.length - 1;
     renderAIPoints();
+     renderSavedPoints();
+     renderSessionVocabulary();
     persistCurrentSession();
     await refreshAccountStatus();
 
@@ -2624,57 +2643,107 @@ function renderAIPoints() {
   renderPointVersions();
   const container = document.getElementById('aiPoints');
   container.innerHTML = '';
-  const pending = session.aiPoints.filter(p => !p.accepted);
-  if (pending.length === 0 && session.aiPoints.length > 0) {
-    container.innerHTML = '<div class="empty-msg">OK Todos los puntos aceptados</div>'; return;
-  }
   if (session.aiPoints.length === 0) {
-    container.innerHTML = '<div class="empty-msg">No se generaron puntos</div>'; return;
+    container.innerHTML = '<div class="generation-empty"><span>✦</span><strong>Aún no hay apuntes</strong><p>Elige Generar apuntes para preparar este tema.</p></div>'; return;
   }
   session.aiPoints.forEach((p, i) => {
-    if (p.accepted) return;
     const row = document.createElement('div');
-    row.className = 'point-row' + (p.vocab?.length ? '' : ' no-vocab');
+    row.className = 'point-row document-point' + (p.accepted ? ' accepted' : '') + (p.rejected ? ' rejected' : '');
     row.id = `airow-${i}`;
-    const vocabHtml = p.vocab && p.vocab.length > 0
-      ? p.vocab.map(v => `<div class="vocab-item"><div class="vocab-word">${escHtml(v.word)}</div><div class="vocab-def">${escHtml(v.def)}</div></div>`).join('')
-      : '';
     row.innerHTML = `
       <div class="point-card">
         <div class="point-top">
           <span class="point-num">${String(i+1).padStart(2,'0')}</span>
           <textarea class="inline-point-title" id="aititle-${i}" rows="1" placeholder="Título de la idea" onblur="saveInlinePoint('ai', ${i}, null)">${escHtml(normalizePoint(p).title)}</textarea>
           <div class="point-actions">
-            <button class="btn btn-small btn-danger" onclick="discardAIPoint(${i})">Descartar</button>
-            <button class="btn btn-small btn-accept" onclick="acceptPoint(${i})">Guardar en apuntes</button>
+            ${p.rejected ? '<span class="point-rejected-label">Descartado</span>' : `<button class="btn btn-small ${p.accepted ? 'btn-accept' : 'btn-outline'}" onclick="togglePointAccepted(${i})">${p.accepted ? '✓ Guardado' : '＋ Guardar'}</button>`}
+            <button class="btn btn-small ${p.rejected ? 'btn-outline' : 'btn-danger'}" onclick="discardAIPoint(${i})">${p.rejected ? 'Restaurar' : 'Descartar'}</button>
           </div>
         </div>
         <div class="point-body" id="aibody-${i}">${inlinePointEditorHtml('ai', i, null, p, false)}</div>
       </div>
-      ${vocabHtml ? `<div class="vocab-card">
-        <div class="vocab-label">${escHtml(vocabLabel())}</div>
-        ${vocabHtml}
-      </div>` : ''}`;
-    if (vocabHtml) row.insertBefore(createVocabResizer(), row.children[1]);
+      ${connectionBetweenHtml(p, i, session.aiPoints.length, 'ai', i)}`;
     container.appendChild(row);
   });
+  document.getElementById('savedEmpty').style.display = session.savedPoints.length || session.aiPoints.some(p => p.accepted) ? 'none' : 'block';
 }
 
 function discardAIPoint(i) {
   if (!session.aiPoints[i]) return;
-  session.aiPoints.splice(i, 1);
+  session.aiPoints[i].rejected = !session.aiPoints[i].rejected;
+  if (session.aiPoints[i].rejected) {
+    session.aiPoints[i].accepted = false;
+    session.savedPoints = session.savedPoints.filter(p => !(p.type === 'ai' && p.aiIndex === i));
+  }
   renderAIPoints();
   persistCurrentSession();
 }
 
 async function acceptPoint(i) {
+  if (!session.aiPoints[i] || session.aiPoints[i].rejected) return;
   await saveInlinePoint('ai', i, null);
   session.aiPoints[i].accepted = true;
-  session.savedPoints.push({ ...normalizePoint(session.aiPoints[i]), type: 'ai', aiIndex: i });
-  document.getElementById('savedEmpty').style.display = 'none';
+  const point = { ...normalizePoint(session.aiPoints[i]), type: 'ai', aiIndex: i };
+  const existing = session.savedPoints.findIndex(p => p.type === 'ai' && p.aiIndex === i);
+  if (existing >= 0) session.savedPoints[existing] = point;
+  else session.savedPoints.push(point);
   renderSavedPoints();
   renderAIPoints();
   persistCurrentSession();
+}
+
+function togglePointAccepted(i) {
+  if (session.aiPoints[i]?.accepted) {
+    session.aiPoints[i].accepted = false;
+    session.savedPoints = session.savedPoints.filter(p => !(p.type === 'ai' && p.aiIndex === i));
+    renderSavedPoints(); renderAIPoints(); persistCurrentSession();
+  } else acceptPoint(i);
+}
+
+function extractGeneratedVocabulary(parsed, points, limit) {
+  if (!limit) return [];
+  const candidates = [
+    ...(Array.isArray(parsed?.vocabulary) ? parsed.vocabulary : Array.isArray(parsed?.vocab) ? parsed.vocab : []),
+    ...points.flatMap(point => Array.isArray(point.vocab) ? point.vocab : [])
+  ];
+  const seen = new Set();
+  return candidates.map(item => ({word: String(item?.word || item?.term || '').trim(), def: String(item?.def || item?.translation || '').trim(), example: String(item?.example || '').trim()}))
+    .filter(item => { const key = item.word.toLocaleLowerCase(); if (!key || !item.def || seen.has(key)) return false; seen.add(key); return true; }).slice(0, limit);
+}
+
+function sessionVocabList() {
+  if (Array.isArray(session.vocabulary) && session.vocabulary.length) return session.vocabulary;
+  return extractGeneratedVocabulary({}, session.aiPoints || [], state.config.numVocab);
+}
+
+function renderSessionVocabulary() {
+  const root = document.getElementById('sessionVocabulary');
+  if (!root) return;
+  const terms = sessionVocabList();
+  document.getElementById('vocabCount').textContent = `${terms.length} de ${state.config.numVocab} términos`;
+  root.innerHTML = terms.length ? terms.map((item, i) => {
+    const saved = (session.savedVocab || []).some(term => term.word === item.word);
+    return `<article class="session-vocab-card"><div><strong>${escHtml(item.word)}</strong><span>${escHtml(item.def)}</span></div><button type="button" class="${saved ? 'is-saved' : ''}" onclick="toggleVocabSaved(${i})">${saved ? '✓ Guardado' : '＋ Añadir'}</button>${item.example ? `<p>${escHtml(item.example)}</p>` : ''}</article>`;
+  }).join('') : '<p class="vocab-empty">El vocabulario aparecerá al generar apuntes. También puedes añadir términos propios.</p>';
+}
+
+function toggleVocabSaved(i) {
+  const term = sessionVocabList()[i];
+  if (!term) return;
+  session.savedVocab ||= [];
+  const index = session.savedVocab.findIndex(item => item.word === term.word);
+  if (index >= 0) session.savedVocab.splice(index, 1);
+  else session.savedVocab.push({...term});
+  renderSessionVocabulary(); persistCurrentSession();
+}
+
+function addVocabTerm() {
+  const word = prompt('Término o expresión:')?.trim();
+  if (!word) return;
+  const def = prompt('Traducción al español:')?.trim();
+  if (!def) return;
+  session.vocabulary = [...sessionVocabList(), {word, def, example: ''}];
+  renderSessionVocabulary(); persistCurrentSession();
 }
 
 function buildPointEditorHtml(prefix, i, p, saveFn, cancelFn, includePolish = false) {
@@ -2718,7 +2787,7 @@ function editAIPoint(i) {
 function saveAIPoint(i) {
   const point = readPointEditor('ai', i, session.aiPoints[i]);
   if (!point) return;
-  session.aiPoints[i] = { ...point, accepted: false, aiIndex: i };
+  session.aiPoints[i] = { ...point, accepted: !!session.aiPoints[i]?.accepted, rejected: !!session.aiPoints[i]?.rejected, aiIndex: i };
   renderAIPoints();
   persistCurrentSession();
 }
@@ -2741,11 +2810,9 @@ function renderSavedPoints() {
   const container = document.getElementById('savedPoints');
   container.innerHTML = '';
   session.savedPoints.forEach((p, i) => {
+    if (p.type === 'ai' && session.aiPoints[p.aiIndex]) return;
     const row = document.createElement('div');
-    row.className = 'point-row' + (p.vocab?.length ? '' : ' no-vocab');
-    const vocabHtml = p.vocab && p.vocab.length > 0
-      ? `<div class="vocab-card"><div class="vocab-label">${escHtml(vocabLabel())}</div>${p.vocab.map(v=>`<div class="vocab-item"><div class="vocab-word">${escHtml(v.word)}</div><div class="vocab-def">${escHtml(v.def)}</div></div>`).join('')}</div>`
-      : '';
+    row.className = 'point-row document-point accepted manual-point';
     row.innerHTML = `
       <div class="point-card ${p.type==='manual'?'manual':'accepted'}">
         <div class="point-top">
@@ -2756,9 +2823,7 @@ function renderSavedPoints() {
           </div>
         </div>
         <div class="point-body" id="savedbody-${i}">${inlinePointEditorHtml('saved', i, null, p, false)}</div>
-      </div>
-      ${vocabHtml}`;
-    if (p.vocab?.length) row.insertBefore(createVocabResizer(), row.children[1]);
+      </div>`;
     container.appendChild(row);
   });
 }
@@ -2847,7 +2912,7 @@ async function polishSavedPoint(i) {
 function removeSaved(i) {
   const removed = session.savedPoints[i];
   session.savedPoints.splice(i, 1);
-  if (removed.type === 'ai' && removed.aiIndex !== null) {
+  if (removed.type === 'ai' && removed.aiIndex !== null && session.aiPoints[removed.aiIndex]) {
     session.aiPoints[removed.aiIndex].accepted = false;
     renderAIPoints();
   }
@@ -2858,42 +2923,92 @@ function removeSaved(i) {
 
 async function saveSession() {
   if (!session.topic) return;
-  if (session.savedPoints.length === 0) { alert('Acepta o añade al menos un punto antes de guardar.'); return; }
+  if (acceptedSessionPoints().length === 0) { alert('Acepta o añade al menos un punto antes de guardar.'); return; }
+  toggleExportMenu(false);
+  const id = session.historyId || Date.now();
   const entry = {
-    id: Date.now(),
+    id,
     date: new Date().toISOString(),
     lang: state.lang,
     topic: session.topic,
-    points: session.savedPoints.map(p => {
+    vocab: session.savedVocab || [],
+    points: acceptedSessionPoints().map(p => {
       const point = normalizePoint(p);
       return { title: point.title, text: point.text, html: point.html, connection: point.connection, datedInfo: point.datedInfo, vocab: point.vocab || [], type: point.type };
     })
   };
-  state.history.unshift(entry);
+  const previousIndex = state.history.findIndex(item => item.id === id);
+  if (previousIndex >= 0) state.history.splice(previousIndex, 1, entry);
+  else state.history.unshift(entry);
+  session.historyId = id;
   // Mark topic as completed
   if (!state.completedTopics.includes(session.topic)) {
     state.completedTopics.push(session.topic);
   }
-  state.currentSession = null;
+  state.currentSession = { ...session, lang: state.lang, date: state.currentSession?.date || entry.date, updatedAt: entry.date };
   await persist();
   updateHeader();
-  renderProfileHistory();
   renderTopicsTab();   // refresh green markers
-  session = { topic:null, aiPoints:[], savedPoints:[] };
-  resetSessionView();
-  renderSessionDraftPrompt();
-  updateGlobalTeacherContext();
-  alert('OK Sesión guardada.');
+  document.getElementById('generationStatus').innerHTML = '<div class="save-success">✓ Sesión guardada en el historial. Puedes exportarla ahora.</div>';
 }
 
 function exportSession() {
-  if (!session.topic || session.savedPoints.length === 0) { alert('No hay puntos guardados.'); return; }
+  if (!session.topic || acceptedSessionPoints().length === 0) { alert('No hay puntos guardados.'); return; }
   const entry = sessionEntryForWord();
   downloadWord(buildEntryWordHtml(entry), `Diplomator_${safeFilename(entry.topic)}.doc`);
 }
 
+function acceptedSessionPoints() {
+  const indices = (session.aiPoints || []).map((point, index) => point.accepted && !point.rejected ? index : -1).filter(index => index >= 0);
+  const ai = indices.map((index, position) => ({
+    ...normalizePoint(session.aiPoints[index]), type:'ai', vocab:[],
+    connection: indices[position + 1] === index + 1 ? session.aiPoints[index].connection || '' : ''
+  }));
+  const manual = (session.savedPoints || []).filter(p => p.type === 'manual' || !session.aiPoints?.[p.aiIndex]).map(p => ({...normalizePoint(p), vocab:[]}));
+  return [...ai, ...manual];
+}
+
 function sessionEntryForWord() {
-  return { topic:session.topic, lang:state.lang, date:new Date().toISOString(), points:session.savedPoints };
+  return { topic:session.topic, lang:state.lang, date:new Date().toISOString(), points:acceptedSessionPoints(), vocab:session.savedVocab || [] };
+}
+
+function toggleExportMenu(force) {
+  const menu = document.getElementById('exportMenu');
+  const open = typeof force === 'boolean' ? force : menu.hidden;
+  menu.hidden = !open;
+  document.getElementById('exportMenuButton').setAttribute('aria-expanded', String(open));
+}
+
+document.addEventListener('click', event => {
+  if (!event.target.closest?.('.export-menu')) toggleExportMenu(false);
+});
+
+async function exportSessionPdf() {
+  if (!session.topic || !acceptedSessionPoints().length) { alert('Acepta o añade al menos un punto antes de exportar.'); return; }
+  toggleExportMenu(false);
+  await downloadEntryPdf(sessionEntryForWord());
+}
+
+async function downloadEntryPdf(entry) {
+  try {
+    const response = await fetch('/api/diplomator/export-pdf', {
+      method: 'POST', credentials: 'same-origin', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(entry)
+    });
+    if (!response.ok) {
+      const detail = await response.json().catch(() => ({}));
+      throw new Error(detail.detail || 'No se pudo generar el PDF.');
+    }
+    const url = URL.createObjectURL(await response.blob());
+    const link = document.createElement('a');
+    link.href = url; link.download = `Diplomator_${safeFilename(entry.topic)}.pdf`; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) { alert(error.message || 'No se pudo generar el PDF.'); }
+}
+
+function exportHistoryEntryPdf(index) {
+  const entry = state.history[index];
+  if (entry) downloadEntryPdf(entry);
 }
 
 async function uploadWordToDrive(html, filename) {
@@ -2917,7 +3032,7 @@ async function uploadWordToDrive(html, filename) {
 }
 
 function uploadSessionToDrive() {
-  if (!session.topic || session.savedPoints.length === 0) { alert('No hay puntos guardados.'); return; }
+  if (!session.topic || acceptedSessionPoints().length === 0) { alert('No hay puntos guardados.'); return; }
   const entry = sessionEntryForWord();
   uploadWordToDrive(buildEntryWordHtml(entry), `Diplomator_${safeFilename(entry.topic)}.doc`);
 }
@@ -2925,33 +3040,27 @@ function uploadSessionToDrive() {
 // -- HISTORY ------------------------------------------------------------
 function renderHistory() {
   const list = document.getElementById('historyList');
-  if (state.history.length === 0) { list.innerHTML = '<div class="empty-msg">Aún no hay sesiones guardadas</div>'; return; }
+  if (state.history.length === 0) { list.innerHTML = '<div class="empty-msg">Aún no hay sesiones guardadas</div>'; document.getElementById('historyDetail').innerHTML = ''; return; }
   list.innerHTML = '';
   state.history.forEach((entry, i) => {
     const date = new Date(entry.date).toLocaleDateString('es-ES', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
-    const langBadge = entry.lang ? `<span style="font-size:0.58rem;color:var(--blue);border:1px solid var(--blue);padding:1px 6px;margin-left:6px;">${entry.lang.toUpperCase()}</span>` : '';
-    const div = document.createElement('div');
-    div.className = 'history-entry';
-    div.id = `hentry-${i}`;
-    div.innerHTML = `
-      <div class="history-entry-header" onclick="toggleHistory(${i})">
-        <span class="history-date">${date}</span>
-        <span class="history-topic">${escHtml(entry.topic)}${langBadge}</span>
-        <span class="history-count" id="hcount-${i}">${entry.points.length} puntos</span>
-        <span class="history-toggle" id="htoggle-${i}">v</span>
-      </div>
-      <div class="history-body" id="hbody-${i}"></div>`;
-    list.appendChild(div);
+    const button = document.createElement('button');
+    button.className = 'history-summary';
+    button.type = 'button';
+    button.dataset.index = i;
+    button.innerHTML = `<span>${escHtml(date)} · ${entry.lang === 'fr' ? 'FR' : 'EN'}</span><strong>${escHtml(entry.topic)}</strong><small>${entry.points?.length || 0} puntos</small>`;
+    button.onclick = () => showHistoryEntry(i);
+    list.appendChild(button);
   });
+  showHistoryEntry(0);
 }
 
-function toggleHistory(i) {
-  const el = document.getElementById(`hentry-${i}`);
-  const body = document.getElementById(`hbody-${i}`);
-  const toggle = document.getElementById(`htoggle-${i}`);
-  const isOpen = el.classList.toggle('open');
-  toggle.textContent = isOpen ? '^' : 'v';
-  if (isOpen && body.innerHTML === '') renderHistoryBody(i);
+function showHistoryEntry(i) {
+  const entry = state.history[i];
+  if (!entry) return;
+  document.querySelectorAll('.history-summary').forEach(button => button.classList.toggle('active', Number(button.dataset.index) === i));
+  document.getElementById('historyDetail').innerHTML = `<div class="history-detail-heading"><h2>${escHtml(entry.topic)}</h2><span>${new Date(entry.date).toLocaleDateString('es-ES')} · ${entry.lang === 'fr' ? 'Français C1' : 'English C1'}</span></div><div id="hbody-${i}"></div>`;
+  renderHistoryBody(i);
 }
 
 function renderHistoryBody(i) {
@@ -2981,9 +3090,13 @@ function renderHistoryBody(i) {
         </div>
       </div>`;
   });
+  if (Array.isArray(entry.vocab) && entry.vocab.length) {
+    html += `<section class="history-saved-vocab"><h3>Vocabulario guardado</h3>${entry.vocab.map(v => `<p><strong>${escHtml(v.word)}</strong> — ${escHtml(v.def)}${v.example ? ` · ${escHtml(v.example)}` : ''}</p>`).join('')}</section>`;
+  }
   html += `
     <div class="history-action-bar">
       <button class="btn btn-small btn-accept" onclick="addHistoryPoint(${i})">+ Añadir punto</button>
+      <button class="btn btn-small btn-outline" onclick="exportHistoryEntryPdf(${i})">Guardar en PDF</button>
       <button class="btn btn-small btn-outline" onclick="exportEntryWord(${i})">Generar Word</button>
       <button class="btn btn-small btn-blue" onclick="uploadEntryWordToDrive(${i})">Subir a Drive</button>
       <button class="btn btn-small btn-danger btn-outline" onclick="deleteHistoryEntry(${i})">Eliminar sesión</button>
@@ -3023,7 +3136,7 @@ async function deleteHistoryPoint(i, j) {
   await persist();
   document.getElementById(`hbody-${i}`).innerHTML = '';
   renderHistoryBody(i);
-  document.getElementById(`hcount-${i}`).textContent = `${state.history[i].points.length} puntos`;
+  document.querySelector(`.history-summary[data-index="${i}"] small`).textContent = `${state.history[i].points.length} puntos`;
 }
 
 async function addHistoryPoint(i) {
@@ -3033,7 +3146,7 @@ async function addHistoryPoint(i) {
   await persist();
   document.getElementById(`hbody-${i}`).innerHTML = '';
   renderHistoryBody(i);
-  document.getElementById(`hcount-${i}`).textContent = `${state.history[i].points.length} puntos`;
+  document.querySelector(`.history-summary[data-index="${i}"] small`).textContent = `${state.history[i].points.length} puntos`;
 }
 
 async function deleteHistoryEntry(i) {
@@ -3041,7 +3154,6 @@ async function deleteHistoryEntry(i) {
   state.history.splice(i, 1);
   await persist();
   updateHeader();
-  renderProfileHistory();
   renderHistory();
 }
 
@@ -3163,7 +3275,6 @@ function renderProfile(user = null) {
   updateAccessKeyUi(Boolean(user?.license_key));
   updateDriveButton(Boolean(user?.drive_connected));
   updateHeader();
-  renderProfileHistory();
 }
 
 function updateAccessKeyUi(hasSessionAccess = false) {
@@ -3185,59 +3296,6 @@ function refreshProfile() {
     return;
   }
   validateLicense(false);
-}
-
-function profileHistoryStats() {
-  const byDay = new Map();
-  state.history.forEach(entry => {
-    const date = new Date(entry.date || Date.now());
-    const key = date.toISOString().slice(0, 10);
-    if (!byDay.has(key)) byDay.set(key, { date, sessions: 0, points: 0, topics: [] });
-    const day = byDay.get(key);
-    day.sessions += 1;
-    day.points += Array.isArray(entry.points) ? entry.points.length : 0;
-    day.topics.push(entry.topic || 'Tema sin titulo');
-  });
-  const days = [...byDay.values()].sort((a, b) => b.date - a.date);
-  return {
-    days,
-    activeDays: days.length,
-    sessions: state.history.length,
-    points: state.history.reduce((sum, entry) => sum + (Array.isArray(entry.points) ? entry.points.length : 0), 0)
-  };
-}
-
-function renderProfileHistory() {
-  const container = document.getElementById('profileHistoryContent');
-  if (!container) return;
-  const stats = profileHistoryStats();
-  if (!stats.sessions) {
-    container.innerHTML = '<div class="empty-msg">Aun no hay temas guardados. Guarda tu primera sesion y aparecera aqui.</div>';
-    return;
-  }
-  const recent = stats.days.slice(0, 10).map(day => {
-    const dateLabel = day.date.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
-    const topics = [...new Set(day.topics)].map(escHtml).join(' · ');
-    return `<div class="profile-history-day">
-      <div class="profile-history-date">${escHtml(dateLabel)}</div>
-      <div class="profile-history-topic">${topics}</div>
-      <div class="profile-history-meta">${day.sessions} sesion${day.sessions === 1 ? '' : 'es'} · ${day.points} puntos trabajados</div>
-    </div>`;
-  }).join('');
-  container.innerHTML = `
-    <div class="profile-history-summary">
-      <div class="profile-history-stat"><span>Dias activos</span><strong>${stats.activeDays}</strong></div>
-      <div class="profile-history-stat"><span>Sesiones</span><strong>${stats.sessions}</strong></div>
-      <div class="profile-history-stat"><span>Puntos</span><strong>${stats.points}</strong></div>
-    </div>
-    <div class="profile-history-list">${recent}</div>`;
-}
-
-function toggleProfileHistory() {
-  const panel = document.getElementById('profileHistoryPanel');
-  if (!panel) return;
-  renderProfileHistory();
-  panel.classList.toggle('open');
 }
 
 async function saveLicense() {
@@ -3331,13 +3389,16 @@ async function logoutWeb() {
 }
 
 async function saveConfig() {
-  state.config.numPoints     = parseInt(document.getElementById('numPoints').value) || 5;
-  state.config.numVocab      = parseInt(document.getElementById('numVocab').value) || 5;
+  state.config.numPoints     = Math.min(12, Math.max(2, parseInt(document.getElementById('numPoints').value, 10) || 5));
+  state.config.numVocab      = Math.min(12, Math.max(0, parseInt(document.getElementById('numVocab').value, 10) || 0));
   state.config.profile       = document.getElementById('profileContext').value;
   state.config.pointFontSize = parseInt(document.getElementById('pointFontSize').value) || 13;
-  state.config.vocabColumnWidth = state.config.vocabColumnWidth || 270;
+  state.config.pointsModelChoice = document.getElementById('pointsModelChoice').value;
+  state.config.pointsPrompt = document.getElementById('pointsPrompt').value.trim().slice(0, 1500) || DEFAULT_POINTS_PROMPT;
+  state.config.pointsPromptModifier = document.getElementById('pointsPromptModifier').value.trim().slice(0, 900);
+  state.config.pointsLength = document.getElementById('pointsLength').value;
   await persist();
-  document.getElementById('configStatus').textContent = 'OK Configuración guardada.';
+  document.getElementById('configStatus').textContent = 'Configuración guardada.';
   setTimeout(() => document.getElementById('configStatus').textContent = '', 2500);
 }
 
@@ -3411,7 +3472,9 @@ function buildEntryWordHtml(entry, fragmentOnly = false) {
     const connection = point.connection ? `<h3>Conector</h3><p>${escHtml(point.connection)}</p>` : '';
     return `<div class="point"><h2>${index + 1}. ${escHtml(point.title || 'Idea')}</h2><p>${text}</p>${connection}${dated}${vocab}</div>`;
   }).join('');
-  const body = `<h1>DIPLOMATOR</h1><div class="meta">Fecha: ${escHtml(date)}<br>Idioma: ${escHtml(langLabel)}<br>Tema: ${escHtml(entry.topic || '')}</div>${points}`;
+  const savedVocab = Array.isArray(entry.vocab) && entry.vocab.length
+    ? `<h2>Vocabulario guardado</h2>${entry.vocab.map(v => `<div class="vocab-item"><span class="label">${escHtml(v.word || '')}</span>: ${escHtml(v.def || '')}${v.example ? ` · ${escHtml(v.example)}` : ''}</div>`).join('')}` : '';
+  const body = `<h1>DIPLOMATOR</h1><div class="meta">Fecha: ${escHtml(date)}<br>Idioma: ${escHtml(langLabel)}<br>Tema: ${escHtml(entry.topic || '')}</div>${points}${savedVocab}`;
   return fragmentOnly ? body : wrapWordHtml(`DIPLOMATOR - ${entry.topic || 'Sesion'}`, body);
 }
 

@@ -412,7 +412,7 @@ def provider_error(prefix: str, response: httpx.Response) -> HTTPException:
 
 DEFAULT_TOPIC_STYLE_GUIDE = """Treat the selected topic as a strict boundary. Build a coherent oral presentation from the few angles that directly answer that exact topic; never force a standard history, impact, controversy or future section when it is not relevant. Prefer specific explanations, mechanisms, examples and dates that help explain the subject. Every paragraph must earn its place: remove generic introductions, broad international-relations filler, moral conclusions and nearby subjects that were not requested. The student profile controls language and difficulty only; it is never source material. Use natural transitions and an informed C1/C2 tone. Include only facts you can state confidently and never invent dates, statistics, institutions or quotations."""
 
-POINTS_FOCUS_SYSTEM_PROMPT = """You write clear, reliable oral-exam study notes for Diplomator. Stay on the quoted topic and choose only distinct, useful angles; the requested number of points is a maximum. Explain concrete ideas in direct, natural language, without grandiose claims or generic filler. Put a relevant example or date inside the explanatory paragraph only when it improves understanding. Never create separate date lists, connector paragraphs or repeated facts. Follow the student's writing preference when it supports accuracy. Do not invent or imply verification of facts. Return only the requested JSON."""
+POINTS_FOCUS_SYSTEM_PROMPT = """You write reliable oral-exam study notes for Diplomator. Follow the user's requested structure, length, point count and vocabulary count where the subject permits. Keep the points in a coherent order, preserve meaningful transitions between them, avoid repetition and stay within the quoted topic. Use concrete facts only when confident; never invent or imply verification. Follow the student's saved writing instructions when they support accuracy. Return only valid JSON."""
 
 
 def add_points_focus_instruction(payload: dict) -> None:
@@ -1188,6 +1188,20 @@ def export_profesor_pdf(payload: dict, user: User = Depends(current_user), licen
         raise HTTPException(422, str(exc)) from exc
     filename = "profesor-soluciones.pdf" if payload["version"] == "solutions" else "profesor-ficha.pdf"
     return Response(pdf, media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="{filename}"', "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})
+
+
+@router.post("/api/diplomator/export-pdf")
+def export_diplomator_pdf(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license)):
+    if license_obj.product_code != "DIPLOMATOR":
+        raise HTTPException(403, "Requiere acceso a Diplomator.")
+    if len(json.dumps(payload, ensure_ascii=False, default=str)) > 180_000:
+        raise HTTPException(413, "Los apuntes son demasiado grandes.")
+    from app.services.diplomator_pdf import render_diplomator_pdf
+    try:
+        pdf = render_diplomator_pdf(payload)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return Response(pdf, media_type="application/pdf", headers={"Content-Disposition": 'attachment; filename="diplomator-apuntes.pdf"', "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})
 
 
 @router.post("/api/drive/upload-document")
