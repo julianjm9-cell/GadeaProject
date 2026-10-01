@@ -42,6 +42,12 @@ const path=require('node:path');
   assert.equal(await card.locator('.material-art,.material-hover-preview').count(),0);
   assert.equal(await card.getByRole('button',{name:'Editar'}).count(),1);
   assert.equal(await card.getByRole('button',{name:'Usar'}).count(),1);
+  assert.equal(await page.locator('.material-section-tabs,.material-subject-chips').count(),0);
+  assert.equal(await page.getByText('Tus fichas y actividades, listas para abrir o asignar.').count(),0);
+  await page.locator('#librarySubject').selectOption('Inglés');
+  assert((await page.locator('.material-hub-card').count())>0);
+  assert((await page.locator('.material-hub-card p').allTextContents()).every(text=>text.includes('Inglés')));
+  await page.locator('#librarySubject').selectOption('');
 
   await page.locator('.home-primary-nav').getByRole('button',{name:'Alumnos'}).click();
   assert((await page.locator('.workspace-students .home-student-card').first().boundingBox()).width<350);
