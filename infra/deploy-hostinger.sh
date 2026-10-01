@@ -30,7 +30,13 @@ cp -- .env "$BACKUP_DIR/environment.env"
 if [[ -n "${ENV_FILE:-}" && "$ENV_FILE" != .env ]]; then
   cp -- "$ENV_FILE" "$BACKUP_DIR/backend-environment.env"
 fi
-git rev-parse HEAD > "$BACKUP_DIR/target-revision.txt"
+if [[ -f RELEASE_REVISION ]]; then
+  cp -- RELEASE_REVISION "$BACKUP_DIR/target-revision.txt"
+elif git rev-parse --verify HEAD >/dev/null 2>&1; then
+  git rev-parse HEAD > "$BACKUP_DIR/target-revision.txt"
+else
+  printf 'archivo-sin-revision\n' > "$BACKUP_DIR/target-revision.txt"
+fi
 docker compose exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom' > "$BACKUP_DIR/database.dump.partial"
 test -s "$BACKUP_DIR/database.dump.partial"
 docker compose exec -T postgres pg_restore --list < "$BACKUP_DIR/database.dump.partial" > /dev/null
@@ -55,6 +61,9 @@ printf '\n[5/5] Comprobando base de datos, app, landing, login y dashboard…\n'
 docker compose exec -T backend python -m app.deployment_check
 docker compose exec -T reverse-proxy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 docker compose ps
+if [[ -f RELEASE_REVISION ]]; then
+  rm -- RELEASE_REVISION
+fi
 printf '\nActualización completada. Abre estas rutas en tu dominio o IP habitual:\n'
 printf '  /                     Portada con las seis apps\n  /profesor             Landing de Profesor Particular\n  /profesor/login       Login y registro\n  /profesor/demo        Demo sin cuenta\n  /profesor-particular  App privada\n  /admin-dashboard/     Dashboard de administración\n'
 printf '\nCopia de seguridad: %s\n' "$BACKUP_DIR"

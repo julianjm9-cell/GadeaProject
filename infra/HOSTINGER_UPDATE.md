@@ -6,6 +6,8 @@ Desde la carpeta donde está instalado este repositorio en el VPS, con Docker Co
 git pull --ff-only origin main && bash infra/deploy-hostinger.sh
 ```
 
+Si prefieres subir el ZIP de entrega, descomprímelo **dentro de la carpeta de la instalación existente** (por ejemplo, `/opt/educa-suite`), conservando el `.env` y los volúmenes Docker, y ejecuta `bash infra/deploy-hostinger.sh`. El ZIP no contiene `.env`, contraseñas ni datos de usuarios. No descomprimas el paquete en una subcarpeta anidada dentro de `educa-suite`.
+
 El script construye primero la imagen, espera a PostgreSQL, guarda una copia verificada de la base de datos y del `.env` en `backups/`, ejecuta las migraciones, actualiza los contenedores y comprueba las rutas públicas, el acceso privado, el dashboard y la configuración de Caddy. Un error detiene el proceso: no continúa con los pasos siguientes ni anuncia éxito.
 
 No ejecuta `bootstrap`, no cambia contraseñas, no elimina volúmenes y no sobrescribe `.env`. Los usuarios, licencias y contenidos existentes se conservan. Las claves de IA y OAuth siguen siendo las configuradas en el servidor. Este es un procedimiento de actualización, no de instalación inicial.
