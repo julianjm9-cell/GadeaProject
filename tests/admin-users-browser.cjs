@@ -41,7 +41,7 @@ const assert = require('node:assert/strict');
     const facturas = {id:'ocr-1',email:'fac@example.com',full_name:'Facturas',is_active:true,accesses:[{product_code:'OCR_FACTURAS',effective_status:'active',status:'active',total_credits:300,used_credits:0,available_credits:300,unlimited:false,access_role:'user'}]};
     users=[facturas];accounts=[facturas];setView('ocr');
   });
-  assert.equal(await page.locator('#appTitle').innerText(), 'FACTURAS');
+  assert.equal(await page.locator('#appTitle').innerText(), 'Lector Facturas');
   assert.equal(await page.locator('#appUsersTable tbody tr').count(), 1);
   await page.locator('#appUsersTable button').click();
   assert.equal(await page.locator('#editOcrRole').inputValue(), 'user');

@@ -35,12 +35,11 @@ const server=http.createServer((req,res)=>{
    assert(calls.length>0);
    assert(calls.every(url=>url.includes('/facturas/legacy/api/')));
    assert.equal(errors.length,0,errors.join('\n'));
-   if(width>900)await page.locator('#navConfig').click();
-   else{await page.locator('#btnGlobalCfg').click();await page.locator('#globalCfgPanel').getByRole('button',{name:'🤖 Modelos e IA'}).click()}
+   if(process.env.FACTURAS_APP_SCREENSHOT&&width>900)await page.screenshot({path:process.env.FACTURAS_APP_SCREENSHOT});
+   await page.locator('#navConfig').click();
    await page.waitForTimeout(150);
    assert.equal(await page.locator('#viewConfig').evaluate(el=>el.classList.contains('active')),true);
-   if(width>900)await page.locator('#navEntrenamiento').click();
-   else{await page.locator('#btnGlobalCfg').click();await page.locator('#globalCfgPanel').getByRole('button',{name:'🎓 Entrenamiento'}).click()}
+   await page.locator('#navEntrenamiento').click();
    await page.waitForTimeout(150);
    assert.equal(await page.locator('#viewEntrenamiento').evaluate(el=>el.classList.contains('active')),true);
    assert.equal(errors.length,0,errors.join('\n'));
