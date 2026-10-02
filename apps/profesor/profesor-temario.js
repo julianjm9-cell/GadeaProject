@@ -419,14 +419,15 @@ temarioView = function () {
     </div>
     <div class="temario-stage">
       <section class="temario-list-panel" aria-label="Temas de ${esc(temarioSubject)}">
-        <div class="temario-topic-list">${topics.map(topic => `<button type="button" class="temario-topic ${topic.id === temarioSelected ? 'active' : ''}" data-temario-topic="${esc(topic.id)}" aria-current="${topic.id === temarioSelected ? 'true' : 'false'}"><span class="temario-topic-index">${String(temarioTopics().indexOf(topic) + 1).padStart(2, '0')}</span><span class="temario-topic-copy"><strong>${esc(topic.title)}</strong><small>${esc(topic.explanation)}</small></span><span class="temario-topic-meta"><small>3 recursos</small></span><span class="temario-topic-arrow">→</span></button>`).join('') || '<div class="temario-empty">No hay temas con esa búsqueda.</div>'}</div>
+        <div class="temario-topic-list">${topics.map(topic => `<button type="button" class="temario-topic ${topic.id === temarioSelected ? 'active' : ''}" data-temario-topic="${esc(topic.id)}" aria-current="${topic.id === temarioSelected ? 'true' : 'false'}"><span class="temario-topic-index">${String(temarioTopics().indexOf(topic) + 1).padStart(2, '0')}</span><span class="temario-topic-copy"><strong>${esc(topic.title)}</strong><small>${isPremium() ? esc(topic.explanation) : 'Esquema · explicación, ejemplo y práctica'}</small></span><span class="temario-topic-meta"><small>3 recursos</small></span><span class="temario-topic-arrow">→</span></button>`).join('') || '<div class="temario-empty">No hay temas con esa búsqueda.</div>'}</div>
       </section>
-      <aside class="temario-detail" aria-label="Previsualización del tema"><h2 class="temario-preview-title">Vista previa</h2>${current ? `<h3>${esc(current.title)}</h3><p class="temario-preview-meta">${esc(temarioSubject)} · ${esc(temarioCourse)}</p><p class="temario-preview-explanation">${esc(current.explanation)}</p><div class="temario-example"><strong>Ejemplo</strong><p>${esc(current.example)}</p></div><p class="temario-includes"><strong>Incluye</strong><br>Explicación · Ejemplo · Práctica</p><div class="temario-main-actions"><button type="button" class="primary" data-temario-action="open" data-id="${esc(current.id)}">Ver tema</button><button type="button" data-temario-action="use" data-id="${esc(current.id)}">Usar en material</button></div>` : '<p>Selecciona un tema para ver un resumen.</p>'}</aside>
+      <aside class="temario-detail" aria-label="${isPremium()?'Previsualización':'Esquema'} del tema"><h2 class="temario-preview-title">${isPremium()?'Vista previa':'Esquema del tema'}</h2>${current ? `<h3>${esc(current.title)}</h3><p class="temario-preview-meta">${esc(temarioSubject)} · ${esc(temarioCourse)}</p>${isPremium()?`<p class="temario-preview-explanation">${esc(current.explanation)}</p><div class="temario-example"><strong>Ejemplo</strong><p>${esc(current.example)}</p></div><p class="temario-includes"><strong>Incluye</strong><br>Explicación · Ejemplo · Práctica</p>`:`<div class="temario-locked-preview"><p>Este tema contiene tres partes:</p><ol><li>Explicación del concepto</li><li>Ejemplo resuelto</li><li>Práctica y solución</li></ol><p class="temario-premium-hint">🔒 La vista previa y el contenido completo están disponibles en Premium.</p></div>`}<div class="temario-main-actions"><button type="button" class="${isPremium()?'primary':'temario-locked-button'}" data-temario-action="open" data-id="${esc(current.id)}">${isPremium()?'Ver tema':'🔒 Ver tema completo'}</button><button type="button" data-temario-action="use" data-id="${esc(current.id)}">Usar en material</button></div>` : '<p>Selecciona un tema para ver el esquema.</p>'}</aside>
     </div>
   </div>`;
 };
 
 openTemarioLesson = function (topic) {
+  if (!isPremium()) {notify('El contenido completo de los temas está disponible en Premium. Cambia el tipo de cuenta desde el escritorio.');return;}
   const content = topic.didactic;
   modal(topic.title, `<div class="temario-lesson"><p class="temario-lesson-meta">${esc(temarioSubject)} · ${esc(temarioCourse)}</p>
     <section class="temario-lesson-intro"><h3>Explicación</h3><p>${esc(content.explanation)}</p></section>
@@ -471,6 +472,7 @@ document.addEventListener('click', event => {
   if (!topic) return;
   if (button.dataset.temarioAction === 'use') temarioUseInMaterial(topic);
   else {
+    if (!isPremium()) {notify('La práctica detallada del tema está disponible en Premium.');return;}
     if ($('dialog').open) $('dialog').close();
     const question = topic.didactic.practice[0];
     const material = {id: `temario-${topic.id}`, title: topic.title, subject: temarioSubject, activity: {version: 1, context: {course: temarioCourse, subject: temarioSubject, topic: topic.title}, questions: [{id: `q-${topic.id}`, type: 'short', prompt: question.prompt, answer: question.answer, text: '', options: []}]}};
