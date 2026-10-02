@@ -234,3 +234,31 @@
 .catalog-studio .studio-advanced[hidden]{display:none!important}
 @media(max-width:1050px){.catalog-studio .catalog-board{grid-template-columns:minmax(0,1.7fr) minmax(275px,.9fr)}.catalog-studio .exercise-tiles,.catalog-studio .playful-family .exercise-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.catalog-studio{height:96svh;max-height:96svh;overflow:hidden;padding:13px}.catalog-studio #dialogTitle{font-size:24px}.catalog-studio .studio-subtitle{font-size:11px;margin-bottom:9px}.catalog-studio #form{overflow:auto}.catalog-studio .context-step{padding:11px;margin-bottom:10px}.catalog-studio .studio-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.catalog-studio .studio-fields label{font-size:10px;margin-bottom:3px}.catalog-studio .studio-fields input,.catalog-studio .studio-fields select{height:35px;min-height:35px;padding:5px 7px 5px 29px;font-size:11px}.catalog-studio .workshop-field-icon{left:6px;bottom:9px;width:18px;height:18px}.catalog-studio .workshop-field-icon .icon{width:16px;height:16px}.catalog-studio .studio-fields>div:nth-child(4){grid-column:1/-1}.catalog-studio .catalog-board{display:block;flex:initial;overflow:visible}.catalog-studio .catalog-main{overflow:visible}.catalog-studio .catalog-families{display:block}.catalog-studio .exercise-family{padding:10px;margin-bottom:9px}.catalog-studio .family-heading h3{font-size:14px}.catalog-studio .family-heading>.studio-symbol{width:30px;height:30px;font-size:16px}.catalog-studio .exercise-tiles,.catalog-studio .playful-family .exercise-tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.catalog-studio .exercise-tile{min-height:58px;grid-template-columns:28px minmax(0,1fr) 17px;padding:6px;gap:5px}.catalog-studio .exercise-tile .studio-symbol{width:27px;height:27px}.catalog-studio .exercise-tile .icon{width:16px;height:16px}.catalog-studio .exercise-tile strong{font-size:10px}.catalog-studio .tile-check,.catalog-studio .exercise-tile[aria-pressed=true] .tile-check{width:17px;height:17px;font-size:10px}.catalog-studio .photo-manual{padding:0 10px;margin:9px 0}.catalog-studio .catalog-main[data-mobile-category="basic"] .photo-manual,.catalog-studio .catalog-main[data-mobile-category="game"] .photo-manual{display:none}.catalog-studio .catalog-main[data-mobile-category="photo"] .photo-manual{display:block}.catalog-studio .photo-manual summary{min-height:47px;padding-left:40px;font-size:12px}.catalog-studio .photo-manual summary:before{width:28px;height:28px;top:9px;font-size:15px}.catalog-studio .photo-manual .exercise-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.catalog-studio .studio-preview{display:block;padding:11px;margin-top:9px}.catalog-studio .studio-preview h3{font-size:14px}.catalog-studio .preview-section-title{font-size:13px}.catalog-studio .studio-actions{position:sticky;bottom:0;z-index:3;flex-shrink:0;gap:5px;padding:7px 0 0;margin:5px 0 0;background:#edf7ff}.catalog-studio .studio-actions button{min-width:0;flex:1;padding:6px 5px;min-height:36px;font-size:10px}.catalog-studio .studio-actions #workshopContinue{min-width:0}.workshop-category-tabs{display:flex}}
+
+/* Inicio: dos alumnos legibles antes de la agenda y calendario mensual sin recortes. */
+.home-view .home-students{grid-template-columns:repeat(2,minmax(0,440px));grid-auto-rows:auto;gap:16px;align-content:start;align-items:start;flex:0 0 auto}
+.home-view .home-student-card{grid-template-columns:56px minmax(0,1fr) 21px;grid-template-rows:auto;gap:10px 11px;min-height:210px;padding:19px 21px;border-color:#cde4f5;background:linear-gradient(145deg,#f5fbff,#eaf5ff);box-shadow:0 10px 24px #1e6ca512}
+.home-view .home-student-info,.workspace-students .home-student-info{grid-column:2;grid-row:1}
+.home-view .home-next-label,.workspace-students .home-next-label{grid-column:1/-1;grid-row:2}
+.home-view .home-student-note,.workspace-students .home-student-note{grid-column:1/-1;grid-row:3}
+.home-view .home-student-card:nth-child(2n){background:linear-gradient(145deg,#f3fbfa,#e8f6f3);border-color:#cdebe5}
+.home-view .home-student-card .avatar{width:51px;height:51px;margin-left:6px;background:#dcecff;color:#1269ce;font-size:17px}
+.home-view .home-student-card:nth-child(2n) .avatar{background:#d8f2ec;color:#138775}
+.home-view .home-student-info h2{font-size:17px;line-height:1.2}
+.home-view .home-student-info>p{font-size:12px;margin:3px 0 0}
+.home-view .home-student-info .subject-tags{margin:9px 0 0;gap:6px;min-height:0}
+.home-view .home-student-info .badge{font-size:10px;padding:4px 9px}
+.home-view .home-next-label{margin:14px 0 0!important;padding:11px 12px;background:#dfefff;color:#4e70a0;font-size:11px}
+.home-view .home-student-card:nth-child(2n) .home-next-label{background:#def3ee}
+.home-view .home-next-label strong{font-size:12px;margin-top:3px}
+.home-view .home-student-note{display:flex;align-items:center;gap:9px;margin-top:10px;min-height:29px}
+.home-view .home-student-note span{font-size:11px}
+.home-view .home-student-note button{min-height:28px;padding:4px 8px}
+.home-view .home-student-open{width:21px;min-width:21px}
+.home-content:has(.home-calendar-grid.month){height:auto;min-height:calc(100svh - 80px);overflow:visible;align-items:start}
+.home-side:has(.home-calendar-grid.month){height:auto;min-height:0;grid-template-rows:max-content max-content;align-content:start}
+.home-side:has(.home-calendar-grid.month) .home-panel:first-child{height:auto;overflow:visible}
+.home-calendar-grid.month{grid-auto-rows:minmax(58px,auto);align-content:start}
+.home-calendar-grid.month .home-calendar-day{min-height:58px}
+@media(max-width:1200px){.home-view .home-students{grid-template-columns:repeat(2,minmax(0,1fr))}.home-content:has(.home-calendar-grid.month){grid-template-columns:minmax(0,1.6fr) minmax(350px,1fr)}}
+@media(max-width:760px){.home-view .home-students{grid-template-columns:1fr;gap:9px}.home-view .home-student-card{min-height:0;padding:13px 15px}.home-view .home-next-label{margin-top:10px!important}.home-content:has(.home-calendar-grid.month){height:calc(100svh - 110px);min-height:0;overflow:hidden;grid-template-columns:1fr}.home-side:has(.home-calendar-grid.month){height:100%}.home-side:has(.home-calendar-grid.month) .home-panel:first-child{height:100%;overflow:auto}}
