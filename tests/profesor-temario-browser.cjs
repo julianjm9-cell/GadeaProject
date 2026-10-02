@@ -12,7 +12,7 @@ const path=require('node:path');
   await page.locator('.temario-controls').waitFor();
   const coverage=await page.evaluate(()=>{
    const topics=Object.values(PROFESOR_TEMARIO).flatMap(subjects=>Object.values(subjects).flat());
-   return {courses:Object.keys(PROFESOR_TEMARIO).length,topics:topics.length,incomplete:topics.filter(topic=>!topic.didactic?.objective||!topic.didactic?.explanation||!topic.didactic?.concepts?.length||!topic.didactic?.examples?.length||!topic.didactic?.commonErrors?.length||!topic.didactic?.practice?.length||!topic.didactic?.activities?.length||!topic.didactic?.solutions?.length||topic.didactic?.deepDive?.length<70||topic.didactic?.steps?.length!==3||!topic.didactic?.recognition||!topic.didactic?.transfer).length};
+   return {courses:Object.keys(PROFESOR_TEMARIO).length,topics:topics.length,incomplete:topics.filter(topic=>!topic.didactic?.objective||!topic.didactic?.explanation||!topic.didactic?.concepts?.length||!topic.didactic?.examples?.length||!topic.didactic?.commonErrors?.length||!topic.didactic?.practice?.length||!topic.didactic?.activities?.length||!topic.didactic?.solutions?.length||topic.didactic?.deepDive?.length<70||topic.didactic?.steps?.length!==3||!topic.didactic?.recognition||!topic.didactic?.transfer||topic.didactic?.preparedMaterial?.questions?.length!==6).length};
   });
   assert.deepEqual(coverage,{courses:12,topics:279,incomplete:0});
   const lessonAudit=await page.evaluate(()=>{

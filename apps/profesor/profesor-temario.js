@@ -394,17 +394,10 @@ const temarioTeachingProfile = subject => ({
 }[subject]||{prior:'Ideas y vocabulario fundamentales del tema.',evidence:'Explica la idea, la aplica y comprueba su respuesta.'});
 
 function preparedTopicMaterial(topic){
- const c=topic.didactic,profile=temarioTeachingProfile(temarioSubject),base=`preparado-${topic.id}`;
- const applied=['Matemáticas','Física y Química'].includes(temarioSubject)?'problem':'reading';
- const questions=[
-  {id:base+'-1',type:applied,prompt:c.practice[0].prompt,answer:c.practice[0].answer,text:applied==='reading'?`${c.explanation}\n\n${c.deepDive}`:'',options:[]},
-  {id:base+'-2',type:'quiz',prompt:'¿Qué explicación recoge mejor la idea central de este tema?',answer:c.explanation,text:'',options:[c.explanation,c.commonErrors[0],c.transfer]},
-  {id:base+'-3',type:'error',prompt:`Un alumno trabaja así: «${c.commonErrors[0]}». Localiza el error y explica cómo corregirlo.`,answer:`La corrección debe aplicar esta idea: ${c.deepDive}`,text:'',options:[]},
-  {id:base+'-4',type:'flashcard',prompt:`Explica con tus palabras: ${topic.title}`,answer:`${c.explanation} ${c.deepDive}`,text:'',options:[]},
-  {id:base+'-5',type:'short',prompt:c.transfer,answer:`Respuesta abierta. Debe aplicar ${topic.title.toLowerCase()} y justificar la decisión. ${profile.evidence}`,text:'',options:[]},
-  {id:base+'-6',type:'order',prompt:'Ordena el procedimiento para resolver o explicar correctamente el tema.',answer:c.steps.join(' → '),text:'',options:[...c.steps]}
- ];
- return {id:base,title:`${topic.title} · práctica guiada`,subject:temarioSubject,studentId:'',kind:'Material preparado',body:`Seis actividades graduadas sobre ${topic.title}: comprensión, aplicación, detección de errores y transferencia.`,activity:{version:1,context:{course:temarioCourse,subject:temarioSubject,topic:topic.title,duration:20,prepared:true},questions}};
+ const source=topic.didactic.preparedMaterial,base=`preparado-${topic.id}`;
+ if(!source?.questions?.length)throw Error('Este tema todavía no tiene material preparado.');
+ const questions=source.questions.map(question=>({...question,options:[...(question.options||[])]}));
+ return {id:base,title:source.title,subject:temarioSubject,studentId:'',kind:'Material preparado',body:source.summary,activity:{version:1,context:{course:temarioCourse,subject:temarioSubject,topic:topic.title,duration:source.duration,prepared:true},questions}};
 }
 function savePreparedTopicMaterial(topic){
  const prepared=preparedTopicMaterial(topic),copy=JSON.parse(JSON.stringify(prepared));

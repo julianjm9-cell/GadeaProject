@@ -347,11 +347,26 @@ Compara indicadores demográficos y económicos entre territorios; distingue cor
           {prompt: topic.didactic.transfer, answer: `Respuesta abierta. Debe aplicar la idea del tema y justificarla con claridad: ${topic.didactic.deepDive}`}
         ];
         topic.didactic.solutions = topic.didactic.practice.map(item => item.answer);
+        const base = `preparado-${topic.id}`;
+        const applied = ['Matemáticas', 'Física y Química'].includes(subject) ? 'problem' : 'reading';
+        topic.didactic.preparedMaterial = {
+          title: `${topic.title} · práctica guiada`,
+          duration: 20,
+          summary: `Seis actividades graduadas sobre ${topic.title}: comprensión, aplicación, detección de errores y transferencia.`,
+          questions: [
+            {id:`${base}-1`,type:applied,prompt:topic.question,answer:topic.answer,text:applied==='reading'?`${topic.explanation}\n\n${topic.didactic.deepDive}`:'',options:[]},
+            {id:`${base}-2`,type:'quiz',prompt:'¿Qué explicación recoge mejor la idea central de este tema?',answer:topic.explanation,text:'',options:[topic.explanation,topic.didactic.commonErrors[0],topic.didactic.transfer]},
+            {id:`${base}-3`,type:'error',prompt:`Un alumno trabaja así: «${topic.didactic.commonErrors[0]}». Localiza el error y explica cómo corregirlo.`,answer:`La corrección debe aplicar esta idea: ${topic.didactic.deepDive}`,text:'',options:[]},
+            {id:`${base}-4`,type:'flashcard',prompt:`Explica con tus palabras: ${topic.title}`,answer:`${topic.explanation} ${topic.didactic.deepDive}`,text:'',options:[]},
+            {id:`${base}-5`,type:'short',prompt:topic.didactic.transfer,answer:`Respuesta abierta. Debe aplicar ${topic.title.toLowerCase()} y cumplir el objetivo: ${topic.didactic.objective}`,text:'',options:[]},
+            {id:`${base}-6`,type:'order',prompt:'Ordena el procedimiento para resolver o explicar correctamente el tema.',answer:topic.didactic.steps.join(' → '),text:'',options:[...topic.didactic.steps]}
+          ]
+        };
       });
     }
   }
   const all = Object.values(catalogue).flatMap(subjects => Object.values(subjects).flat());
-  if (all.some(topic => !topic.didactic.deepDive || topic.didactic.deepDive.length < 70)) {
+  if (all.some(topic => !topic.didactic.deepDive || topic.didactic.deepDive.length < 70 || topic.didactic.preparedMaterial?.questions?.length !== 6)) {
     throw Error('Hay temas sin una ampliación didáctica completa.');
   }
 })();

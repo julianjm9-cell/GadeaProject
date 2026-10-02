@@ -13,6 +13,11 @@ def test_all_topics_have_printable_resources():
     catalog = topic_catalog()
     assert len(catalog) == 279
     for topic in catalog.values():
+        material = topic["didactic"]["preparedMaterial"]
+        assert material["duration"] == 20
+        assert len(material["questions"]) == 6
+        assert len({question["type"] for question in material["questions"]}) >= 5
+        assert all(question["prompt"].strip() and question["answer"].strip() for question in material["questions"])
         for resource in RESOURCES:
             pdf = render_topic_pdf(topic, resource)
             pages = PdfReader(BytesIO(pdf)).pages
