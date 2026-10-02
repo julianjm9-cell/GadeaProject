@@ -460,7 +460,7 @@ document.addEventListener('click',async event=>{
 });
 
 openTemarioLesson = function (topic) {
-  if (!isPremium()) {notify('El contenido completo de los temas está disponible en Premium. Cambia el tipo de cuenta desde el escritorio.');return;}
+  if (!isPremium()) {notify('El contenido completo de los temas está disponible para cuentas Premium.');return;}
   const content = topic.didactic;
   const exampleParts = content.examples[0].split(/\s*→\s*/);
   const exampleMarkup = exampleParts.length > 1

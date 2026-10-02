@@ -47,6 +47,28 @@ const path = require('node:path');
     assert.match(await page.locator('.photo-manual summary').innerText(), /Premium/);
     assert.equal(await page.locator('#count-visualquiz').inputValue(), '0');
     assert.equal(await page.locator('[data-exercise="visualquiz"]').isDisabled(), true);
+    await page.locator('#dialog .close').click();
+    await page.evaluate(() => {
+      demo = false;
+      window.generationAttempts = 0;
+      api = async route => {
+        if (route !== '/api/profesor/generate') return {};
+        if (++window.generationAttempts === 1) throw Error('Error temporal de generación');
+        return { questions: [{ type: 'flashcard', prompt: '¿Cuánto es 2 + 2?', answer: '4', options: [] }] };
+      };
+      openWorkshop({ course: '3.º ESO', subject: 'Matemáticas', topic: 'Ecuaciones', flashcard: 1, visualquiz: 0 });
+    });
+    await page.locator('#workshopContinue').click();
+    await page.locator('#workshopStatus').filter({ hasText: 'Error temporal de generación' }).waitFor();
+    assert.equal(await page.locator('[data-exercise="visualquiz"]').isDisabled(), true, 'failed generation preserves Premium locks');
+    assert.equal(await page.locator('[data-exercise="imagepoint"]').isDisabled(), true);
+    assert.equal(await page.locator('#count-flashcard').inputValue(), '1', 'failed generation keeps the selection');
+    assert.equal(await page.locator('#workshopManual').isDisabled(), false);
+    assert.equal(await page.locator('#workshopContinue').isDisabled(), false, 'generation can be retried');
+    await page.locator('#workshopContinue').click();
+    await page.locator('#q-0').waitFor();
+    assert.equal(await page.locator('#q-0').inputValue(), '¿Cuánto es 2 + 2?');
+    assert.equal(await page.evaluate(() => window.generationAttempts), 2);
     assert.deepEqual(errors, []);
     console.log('PASS account plan is read-only in Profesor; normal and premium gates follow server state');
   } finally { await browser.close(); }
