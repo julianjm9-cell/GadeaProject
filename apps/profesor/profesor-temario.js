@@ -384,6 +384,34 @@ const temarioCommonError = (subject, title) => {
   if (subject === 'Física y Química' || subject === 'Ciencias Naturales') return 'Confundir una observación con su explicación sin contrastarla con los datos.';
   return 'Memorizar el ejemplo sin entender cuándo se aplica la idea.';
 };
+const temarioTeachingProfile = subject => ({
+  'Matemáticas': {prior:'Operaciones, representaciones y unidades relacionadas con el tema.',evidence:'Plantea el procedimiento, justifica cada paso y comprueba el resultado.'},
+  'Lengua': {prior:'Comprensión del enunciado y reconocimiento de elementos básicos de la oración o del texto.',evidence:'Identifica el rasgo, aporta una prueba concreta y explica su efecto.'},
+  'Inglés': {prior:'Vocabulario esencial, sujeto, auxiliares y marcadores de tiempo del nivel.',evidence:'Elige la estructura por el contexto, la usa en una frase propia y revisa el significado.'},
+  'Ciencias Naturales': {prior:'Observación, vocabulario científico básico y relación entre estructura y función.',evidence:'Describe los elementos, relaciona causa y consecuencia y apoya la explicación en una observación.'},
+  'Física y Química': {prior:'Magnitudes, unidades, lectura de datos y diferencia entre observación y modelo.',evidence:'Selecciona el modelo adecuado, opera con unidades coherentes e interpreta el resultado.'},
+  'Geografía e Historia': {prior:'Localización temporal y espacial, lectura de fuentes y distinción entre causa y consecuencia.',evidence:'Sitúa el proceso, conecta varias causas y usa una fuente o indicador como prueba.'}
+}[subject]||{prior:'Ideas y vocabulario fundamentales del tema.',evidence:'Explica la idea, la aplica y comprueba su respuesta.'});
+
+function preparedTopicMaterial(topic){
+ const c=topic.didactic,profile=temarioTeachingProfile(temarioSubject),base=`preparado-${topic.id}`;
+ const applied=['Matemáticas','Física y Química'].includes(temarioSubject)?'problem':'reading';
+ const questions=[
+  {id:base+'-1',type:applied,prompt:c.practice[0].prompt,answer:c.practice[0].answer,text:applied==='reading'?`${c.explanation}\n\n${c.deepDive}`:'',options:[]},
+  {id:base+'-2',type:'quiz',prompt:'¿Qué explicación recoge mejor la idea central de este tema?',answer:c.explanation,text:'',options:[c.explanation,c.commonErrors[0],c.transfer]},
+  {id:base+'-3',type:'error',prompt:`Un alumno trabaja así: «${c.commonErrors[0]}». Localiza el error y explica cómo corregirlo.`,answer:`La corrección debe aplicar esta idea: ${c.deepDive}`,text:'',options:[]},
+  {id:base+'-4',type:'flashcard',prompt:`Explica con tus palabras: ${topic.title}`,answer:`${c.explanation} ${c.deepDive}`,text:'',options:[]},
+  {id:base+'-5',type:'short',prompt:c.transfer,answer:`Respuesta abierta. Debe aplicar ${topic.title.toLowerCase()} y justificar la decisión. ${profile.evidence}`,text:'',options:[]},
+  {id:base+'-6',type:'order',prompt:'Ordena el procedimiento para resolver o explicar correctamente el tema.',answer:c.steps.join(' → '),text:'',options:[...c.steps]}
+ ];
+ return {id:base,title:`${topic.title} · práctica guiada`,subject:temarioSubject,studentId:'',kind:'Material preparado',body:`Seis actividades graduadas sobre ${topic.title}: comprensión, aplicación, detección de errores y transferencia.`,activity:{version:1,context:{course:temarioCourse,subject:temarioSubject,topic:topic.title,duration:20,prepared:true},questions}};
+}
+function savePreparedTopicMaterial(topic){
+ const prepared=preparedTopicMaterial(topic),copy=JSON.parse(JSON.stringify(prepared));
+ copy.id=uid();copy.updatedAt=new Date().toISOString();
+ copy.activity.questions.forEach(question=>question.id=uid());
+ state.library.push(copy);save();notify('Material preparado guardado en Materiales.');
+}
 for (const [course, subjects] of Object.entries(window.PROFESOR_TEMARIO)) {
   for (const [subject, topics] of Object.entries(subjects)) {
     for (const topic of topics) {
@@ -425,7 +453,7 @@ temarioView=function(){
  '</div></section><aside class="temario-detail" aria-label="Resumen y recursos del tema">'+(current?'<div class="temario-detail-heading"><span class="temario-topic-index">'+String(temarioTopics().indexOf(current)+1).padStart(2,'0')+'</span><h2>'+esc(current.title)+'</h2></div><section class="temario-orientation"><h3>Resumen del tema</h3><p class="temario-preview-explanation">'+esc(current.explanation)+'</p></section><section class="temario-resource-section"><h3>'+icon('file')+' Recursos del tema</h3><div class="temario-resources">'+temarioResources.map(resource=>{
  const locked=resource.premium&&!isPremium();
  return '<div class="temario-resource '+(locked?'locked':'')+'"><button type="button" data-topic-resource="'+resource.kind+'" data-id="'+esc(current.id)+'" aria-label="'+(locked?'Premium: ':'Abrir ')+esc(resource.title)+'">'+icon('file')+'<span><strong>'+resource.title+'</strong><small>'+resource.description+'</small></span>'+(locked?'<span class="resource-lock" title="Disponible en Premium">🔒</span>':'')+'</button><button type="button" class="resource-pdf" data-topic-pdf="'+resource.kind+'" data-id="'+esc(current.id)+'" aria-label="Descargar PDF de '+esc(resource.title)+(locked?' · Premium':'')+'" title="'+(locked?'Disponible en Premium':'Descargar PDF')+'">PDF</button></div>';
- }).join('')+'</div></section><div class="temario-main-actions"><button type="button" class="quiet '+(!isPremium()?'temario-locked-button':'')+'" data-temario-action="open" data-id="'+esc(current.id)+'">'+(isPremium()?'Ver tema completo':'🔒 Tema completo · Premium')+'</button><button type="button" class="primary" data-temario-action="use" data-id="'+esc(current.id)+'">+ Crear material de este tema</button></div>':'<p>Selecciona un tema para ver el resumen y sus recursos.</p>')+'</aside></div></div>';
+ }).join('')+'</div></section><section class="temario-prepared"><div><span class="temario-prepared-icon">✓</span><span><strong>Material preparado</strong><small>6 actividades · 20 min · listo para usar</small></span></div><p>Comprensión, aplicación, corrección de errores y un reto final.</p><div><button type="button" data-topic-material="try" data-id="'+esc(current.id)+'">Probar ahora</button><button type="button" class="primary" data-topic-material="save" data-id="'+esc(current.id)+'">Guardar copia</button></div></section><div class="temario-main-actions"><button type="button" class="quiet '+(!isPremium()?'temario-locked-button':'')+'" data-temario-action="open" data-id="'+esc(current.id)+'">'+(isPremium()?'Ver tema completo':'🔒 Tema completo · Premium')+'</button><button type="button" class="primary" data-temario-action="use" data-id="'+esc(current.id)+'">+ Crear otro material</button></div>':'<p>Selecciona un tema para ver el resumen y sus recursos.</p>')+'</aside></div></div>';
 };
 function openTopicResource(topic,kind){
  const resource=temarioResources.find(item=>item.kind===kind);
@@ -462,22 +490,27 @@ document.addEventListener('click',async event=>{
 openTemarioLesson = function (topic) {
   if (!isPremium()) {notify('El contenido completo de los temas está disponible para cuentas Premium.');return;}
   const content = topic.didactic;
+  const profile = temarioTeachingProfile(temarioSubject);
   const exampleParts = content.examples[0].split(/\s*→\s*/);
   const exampleMarkup = exampleParts.length > 1
     ? `<div class="lesson-example-flow">${exampleParts.map((part, index) => `<div><span>${index + 1}</span><strong>${esc(part)}</strong></div>`).join('')}</div>`
     : `<div class="lesson-example-quote">${esc(content.examples[0])}</div>`;
+  const extraExampleMarkup = content.examples.slice(1).map(example => `<div class="lesson-check-example"><small>Ejemplo de comprobación</small><p>${esc(example)}</p></div>`).join('');
+  const extraPracticeMarkup = content.practice.slice(1).map((item,index) => `<div class="lesson-extra-question"><strong>${index+2}. ${esc(item.prompt)}</strong><details><summary>Ver orientación</summary><p>${esc(item.answer)}</p></details></div>`).join('');
   modal(topic.title, `<div class="temario-lesson">
     <div class="lesson-hero"><p class="temario-lesson-meta">${esc(temarioSubject)} <span>·</span> ${esc(temarioCourse)}</p><p class="lesson-eyebrow">Objetivo de aprendizaje</p><p class="lesson-objective">${esc(content.objective)}</p><div class="lesson-route" aria-label="Recorrido del tema"><span>01 Entiende</span><span>02 Aplica</span><span>03 Practica</span><span>04 Transfiere</span></div></div>
+    <section class="lesson-class-guide"><div><small>Antes de empezar</small><strong>${esc(profile.prior)}</strong></div><div><small>Al terminar debe poder…</small><strong>${esc(profile.evidence)}</strong></div><div><small>Pregunta de arranque</small><strong>${esc(content.practice[0].prompt)}</strong></div></section>
     <div class="lesson-grid">
       <section class="lesson-card lesson-understand"><div class="lesson-card-heading"><span class="lesson-card-icon">01</span><div><small>Fundamento</small><h3>Entiende la idea</h3></div></div><p class="lesson-lead">${esc(content.explanation)}</p><div class="lesson-recognition"><strong>Cómo reconocerlo</strong><span>${esc(content.recognition)}</span></div></section>
       <section class="lesson-card lesson-method"><div class="lesson-card-heading"><span class="lesson-card-icon">02</span><div><small>Procedimiento</small><h3>Cómo trabajarlo</h3></div></div><ol class="lesson-steps">${content.steps.map((step, index) => `<li><span>${index + 1}</span><p>${esc(step)}</p></li>`).join('')}</ol></section>
-      <section class="lesson-card lesson-example"><div class="lesson-card-heading"><span class="lesson-card-icon">03</span><div><small>Aplicación</small><h3>Ejemplo explicado</h3></div></div>${exampleMarkup}<div class="lesson-example-note"><strong>Fíjate en esto</strong><p>${esc(content.deepDive)}</p></div></section>
-      <section class="lesson-card temario-lesson-practice"><div class="lesson-card-heading"><span class="lesson-card-icon">04</span><div><small>Comprobación</small><h3>Ahora inténtalo</h3></div></div><p class="lesson-question">${esc(content.practice[0].prompt)}</p><details><summary>Ver respuesta orientativa</summary><p class="temario-lesson-answer">${esc(content.solutions[0])}</p></details><div class="actions"><button type="button" class="primary" data-temario-action="practice" data-id="${esc(topic.id)}">Practicar ahora</button></div></section>
+      <section class="lesson-card lesson-example"><div class="lesson-card-heading"><span class="lesson-card-icon">03</span><div><small>Aplicación</small><h3>Ejemplos explicados</h3></div></div>${exampleMarkup}<div class="lesson-example-note"><strong>Fíjate en esto</strong><p>${esc(content.deepDive)}</p></div>${extraExampleMarkup}</section>
+      <section class="lesson-card temario-lesson-practice"><div class="lesson-card-heading"><span class="lesson-card-icon">04</span><div><small>Comprobación</small><h3>Ahora inténtalo</h3></div></div><p class="lesson-question">${esc(content.practice[0].prompt)}</p><details><summary>Ver respuesta orientativa</summary><p class="temario-lesson-answer">${esc(content.solutions[0])}</p></details><details class="lesson-more-practice"><summary>2 ejercicios más</summary>${extraPracticeMarkup}</details><div class="actions"><button type="button" class="primary" data-temario-action="practice" data-id="${esc(topic.id)}">Practicar ahora</button></div></section>
       <section class="lesson-card lesson-error"><div class="lesson-card-heading"><span class="lesson-card-icon">!</span><div><small>Atención</small><h3>Error frecuente</h3></div></div><p>${esc(content.commonErrors[0])}</p></section>
       <section class="lesson-card lesson-transfer"><div class="lesson-card-heading"><span class="lesson-card-icon">↗</span><div><small>Un paso más</small><h3>Llévalo a otro caso</h3></div></div><p>${esc(content.transfer)}</p></section>
     </div>
     <details class="temario-extra"><summary>Guía para explicar este tema</summary><div><h4>Objetivo</h4><p>${esc(content.objective)}</p><h4>Conceptos para comprobar</h4><ul>${content.concepts.map(concept => `<li>${esc(concept)}</li>`).join('')}</ul><h4>Error frecuente</h4><p>${esc(content.commonErrors[0])}</p></div></details>
-    <div class="temario-lesson-footer"><button type="button" data-temario-action="use" data-id="${esc(topic.id)}">Usar en material</button>${button('Cerrar', 'close')}</div>
+    <section class="lesson-prepared-callout"><div><small>Actividad incluida</small><h3>${esc(topic.title)} · práctica guiada</h3><p>Seis ejercicios listos para usar, con aplicación, comprensión, error frecuente y transferencia.</p></div><button type="button" class="primary" data-topic-material="try" data-id="${esc(topic.id)}">Abrir material preparado</button></section>
+    <div class="temario-lesson-footer"><button type="button" data-topic-material="save" data-id="${esc(topic.id)}">Guardar material preparado</button><button type="button" data-temario-action="use" data-id="${esc(topic.id)}">Crear otro material</button>${button('Cerrar', 'close')}</div>
   </div>`, () => {});
   $('dialog').classList.add('temario-dialog');
   $('dialog').addEventListener('close', () => $('dialog').classList.remove('temario-dialog'), {once: true});
@@ -507,6 +540,17 @@ function temarioUseInMaterial(topic) {
     }, 0);
   });
 }
+
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-topic-material]');
+  if (!button) return;
+  const topic = temarioTopic(button.dataset.id);
+  if (!topic) return;
+  if (button.dataset.topicMaterial === 'save') {savePreparedTopicMaterial(topic);return;}
+  const material = preparedTopicMaterial(topic);
+  if ($('dialog').open) $('dialog').close();
+  setTimeout(() => runActivity(material, ''), 0);
+});
 
 document.addEventListener('click', event => {
   const button = event.target.closest('[data-temario-action="use"],[data-temario-action="practice"]');

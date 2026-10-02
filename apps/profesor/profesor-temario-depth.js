@@ -340,6 +340,13 @@ Compara indicadores demográficos y económicos entre territorios; distingue cor
           .flatMap(text => text.split(/[.;]/).map(part => part.trim()).filter(part => part.length > 18))
           .slice(0, 3);
         Object.assign(topic.didactic, guide(subject, topic.title));
+        topic.didactic.examples = [topic.example, `${topic.question} → ${topic.answer}`];
+        topic.didactic.practice = [
+          {prompt: topic.question, answer: topic.answer},
+          {prompt: `¿Cómo reconocerías una situación en la que debes usar ${topic.title.toLowerCase()}?`, answer: topic.didactic.recognition},
+          {prompt: topic.didactic.transfer, answer: `Respuesta abierta. Debe aplicar la idea del tema y justificarla con claridad: ${topic.didactic.deepDive}`}
+        ];
+        topic.didactic.solutions = topic.didactic.practice.map(item => item.answer);
       });
     }
   }

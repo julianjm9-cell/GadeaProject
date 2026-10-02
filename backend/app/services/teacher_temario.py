@@ -58,21 +58,23 @@ def render_topic_pdf(topic: dict, resource: str) -> bytes:
             story.append(paragraph(str(index) + ". " + concept))
         section("Recorrido de aprendizaje", "1. Comprender la idea y reconocerla.\n2. Aplicarla en un ejemplo del curso.\n3. Comprobar y explicar el resultado.")
     elif resource == "examples":
-        section("Ejemplo explicado", content["examples"][0])
+        for index, example in enumerate(content["examples"], 1):
+            section("Ejemplo explicado " + str(index), example)
         section("Cómo interpretarlo", content["deepDive"])
         story.append(paragraph("Pasos para resolverlo", "TopicHeading"))
         for index, step in enumerate(content["steps"], 1):
             story.append(paragraph(str(index) + ". " + step))
         section("Error frecuente", content["commonErrors"][0])
     else:
-        section("Comprueba lo aprendido", content["practice"][0]["prompt"])
-        story.append(Spacer(1, 5*mm))
-        for _ in range(5):
-            story.extend([paragraph("_" * 95, "TopicMeta"), Spacer(1, 3*mm)])
+        for index, exercise in enumerate(content["practice"], 1):
+            section("Actividad " + str(index), exercise["prompt"])
+            for _ in range(3):
+                story.extend([paragraph("_" * 95, "TopicMeta"), Spacer(1, 2*mm)])
         section("Amplía la actividad", content["transfer"])
         story.extend([PageBreak(), paragraph("Guía de corrección", "TopicTitle"),
                       paragraph(topic["title"], "TopicMeta")])
-        section("Solución orientativa", content["solutions"][0])
+        for index, solution in enumerate(content["solutions"], 1):
+            section("Solución orientativa " + str(index), solution)
         section("Qué comprobar", content["recognition"])
         section("Error frecuente", content["commonErrors"][0])
 
