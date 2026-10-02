@@ -27,9 +27,11 @@ const assert=require('node:assert/strict');
     assert.equal(request.purpose,'points');
     assert(request.messages[0].content.includes('TOPIC: "The Marshall Plan"'));
     assert.equal(request.requested_points,4);
-    assert(request.messages[0].content.includes('Write 4 distinct points'));
+    assert(request.messages[0].content.includes('up to 4 substantial points'));
     assert(request.messages[0].content.includes('exactly 2 distinct'));
-    assert(request.messages[0].content.includes('110–150 words'));
+    assert(request.messages[0].content.includes('130–185 words'));
+    assert(request.messages[0].content.includes('The opening point must introduce the subject'));
+    assert(request.messages[0].content.includes('The final point must synthesize the evidence'));
     assert(request.messages[0].content.includes('Prioriza actualidad'));
     assert(!request.messages[0].content.includes('exactly 2 concrete facts'));
     if(generation===1){assert.equal(request.points_model_choice,'gemini:gemini-3.8-flash');assert(request.messages[0].content.includes('Con ejemplos de instituciones'));}

@@ -906,7 +906,7 @@
     .recite-stage { padding: 14px; }
   }
 </style>
-<style>.brand-area h1{font-family:Arial,sans-serif;text-transform:none;letter-spacing:-.04em;font-weight:800}.brand-word{color:#062653;gap:0}.brand-word .brand-initial{font-size:1em;font-style:normal;color:inherit}.brand-word:after{display:none}.diplomator-header-icon{box-shadow:none;border-radius:0}.profile-mini,.profile-avatar{background:#062653!important}.profile-mini img,.profile-avatar img{object-fit:contain;padding:4px}</style><link rel="icon" type="image/png" sizes="any" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="shortcut icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="apple-touch-icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="stylesheet" href="assets/diplomator-refresh.css?v=20261001"></head>
+<style>.brand-area h1{font-family:Arial,sans-serif;text-transform:none;letter-spacing:-.04em;font-weight:800}.brand-word{color:#062653;gap:0}.brand-word .brand-initial{font-size:1em;font-style:normal;color:inherit}.brand-word:after{display:none}.diplomator-header-icon{box-shadow:none;border-radius:0}.profile-mini,.profile-avatar{background:#062653!important}.profile-mini img,.profile-avatar img{object-fit:contain;padding:4px}</style><link rel="icon" type="image/png" sizes="any" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="shortcut icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="apple-touch-icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="stylesheet" href="assets/diplomator-refresh.css?v=20261002"></head>
 <body>
 <div class="selection-toolbar" id="selectionToolbar" aria-label="Formato de texto">
   <button type="button" title="Negrita" onmousedown="applySelectionFormat(event,'bold')">B</button>
@@ -1450,7 +1450,7 @@ function getTopicsForCategory(year, cat) {
 
 // -- STATE ---------------------------------------------------------------
 const DEFAULT_PROFILE = `The student is preparing C1/C2 oral answers in English and French. Adapt language and depth to that level, with clear explanations and phrasing that can be spoken naturally. The selected topic alone determines which facts and angles are relevant.`;
-const DEFAULT_POINTS_PROMPT = `Quiero apuntes claros para explicar el tema en voz alta: ideas concretas, orden lógico y lenguaje natural. Evita frases pomposas, repeticiones y apartados de relleno. Usa ejemplos o fechas solo dentro de la explicación cuando ayuden de verdad.`;
+const DEFAULT_POINTS_PROMPT = `Prepara un guion de exposición oral C1/C2 que se pueda estudiar y contar con naturalidad. Abre con una idea que sitúe el tema y anuncie el recorrido; desarrolla los aspectos más importantes en un orden propio de ese tema, con hechos concretos, ejemplos pertinentes y relaciones de causa o consecuencia; termina con una síntesis que vaya más allá de repetir los puntos anteriores. Cada apartado debe aportar algo nuevo. Evita generalidades, datos inventados, frases pomposas y transiciones de relleno.`;
 const DIPLOMATOR_EXAMPLE_STYLE = `Treat the selected topic as a strict boundary. Build a coherent oral presentation from the few angles that directly answer that exact topic; never force a standard history, impact, controversy or future section when it is not relevant. Prefer specific explanations, mechanisms, examples and dates that help explain the subject. Every paragraph must earn its place: remove generic introductions, broad international-relations filler, moral conclusions and nearby subjects that were not requested. The student profile controls language and difficulty only; it is never source material. Use natural transitions and an informed C1/C2 tone. Include only facts you can state confidently and never invent dates, statistics, institutions or quotations.`;
 
 let state = {
@@ -1566,7 +1566,7 @@ function renderYearPanel(year) {
     // Count done in this cat
     const topics = getTopicsForCategory(year, cat);
     const doneCount = topics.filter(t => state.completedTopics.includes(t)).length;
-    b.innerHTML = `<span>${escHtml(cat)}</span><small>${doneCount}/${topics.length}</small>`;
+    b.innerHTML = `<span>${escHtml(localizeCategory(cat))}</span><small>${doneCount}/${topics.length}</small>`;
     b.onclick = () => setCatTab(year, cat);
     ctEl.appendChild(b);
   });
@@ -1589,7 +1589,7 @@ function setYearTab(year, btn) {
   document.getElementById('ypanel-2025').style.display = year === 2025 && !topicSearchVal ? '' : 'none';
   document.getElementById('cattabs-2026').style.display = year === 2026 ? '' : 'none';
   document.getElementById('cattabs-2025').style.display = year === 2025 ? '' : 'none';
-  if (!topicSearchVal) document.getElementById('topicResultsLabel').textContent = currentCat[year] || 'Temas';
+  if (!topicSearchVal) document.getElementById('topicResultsLabel').textContent = localizeCategory(currentCat[year] || localeText('topics'));
   renderCategorySelect();
   renderManualTopicCategorySelect();
   updateTopicCount();
@@ -1604,7 +1604,7 @@ function renderCategorySelect() {
   select.innerHTML = cats.map(cat => {
     const topics = getTopicsForCategory(currentYear, cat);
     const doneCount = topics.filter(t => state.completedTopics.includes(t)).length;
-    return `<option value="${escAttr(cat)}">${escHtml(cat)} (${doneCount}/${topics.length})</option>`;
+    return `<option value="${escAttr(cat)}">${escHtml(localizeCategory(cat))} (${doneCount}/${topics.length})</option>`;
   }).join('');
   select.value = currentCat[currentYear];
 }
@@ -1617,7 +1617,7 @@ function renderManualTopicCategorySelect() {
   const select = document.getElementById('manualTopicCategorySelect');
   if (!select) return;
   const cats = getTopicCategories(currentYear);
-  select.innerHTML = cats.map(cat => `<option value="${escAttr(cat)}">${escHtml(cat)}</option>`).join('');
+  select.innerHTML = cats.map(cat => `<option value="${escAttr(cat)}">${escHtml(localizeCategory(cat))}</option>`).join('');
   if (currentCat[currentYear] && cats.includes(currentCat[currentYear])) select.value = currentCat[currentYear];
 }
 
@@ -1656,13 +1656,13 @@ function renderTopicGrid(year) {
   const grid = document.getElementById(`topicsgrid-${year}`);
   grid.innerHTML = '';
   grid.classList.toggle('list-view', topicView === 'list');
-  if (year === currentYear && !topicSearchVal) document.getElementById('topicResultsLabel').textContent = cat || 'Temas';
+  if (year === currentYear && !topicSearchVal) document.getElementById('topicResultsLabel').textContent = localizeCategory(cat || localeText('topics'));
   topics.forEach((t, i) => {
     const done = state.completedTopics.includes(t);
     const div = document.createElement('div');
     div.className = 'topic-item' + (done ? ' done' : '');
-    div.title = done ? 'Completado - clic para estudiar de nuevo' : 'Clic para estudiar este tema';
-    div.innerHTML = `<span class="topic-num">${String(getTopicsForCategory(year, cat).indexOf(t)+1).padStart(3,'0')}</span><span class="topic-name">${escHtml(t)}</span><span class="topic-status" aria-label="${done ? 'Completado' : 'Pendiente'}">${done ? '✓' : ''}</span>`;
+    div.title = done ? localeText('topicDoneTitle') : localeText('topicOpenTitle');
+    div.innerHTML = `<span class="topic-num">${String(getTopicsForCategory(year, cat).indexOf(t)+1).padStart(3,'0')}</span><span class="topic-name">${escHtml(localizeTopic(t))}</span><span class="topic-status" aria-label="${done ? localeText('completed') : localeText('pending')}">${done ? '✓' : ''}</span>`;
     div.onclick = () => startSessionWithTopic(t);
     grid.appendChild(div);
   });
@@ -1689,7 +1689,7 @@ function onTopicSearch(val) {
     searchEl.style.display = 'none';
     document.getElementById('ypanel-2026').style.display = currentYear === 2026 ? '' : 'none';
     document.getElementById('ypanel-2025').style.display = currentYear === 2025 ? '' : 'none';
-    document.getElementById('topicResultsLabel').textContent = currentCat[currentYear] || 'Temas';
+    document.getElementById('topicResultsLabel').textContent = localizeCategory(currentCat[currentYear] || localeText('topics'));
     updateTopicCount();
     return;
   }
@@ -1698,7 +1698,7 @@ function onTopicSearch(val) {
   document.getElementById('ypanel-2025').style.display = 'none';
 
   const all = getAllTopics();
-  const results = all.filter(({ topic }) => topic.toLowerCase().includes(topicSearchVal));
+  const results = all.filter(({ topic }) => topic.toLowerCase().includes(topicSearchVal) || localizeTopic(topic).toLowerCase().includes(topicSearchVal));
   const grid = document.getElementById('searchGrid');
   grid.innerHTML = '';
   sortTopics(results.map(item => item.topic)).forEach(topic => {
@@ -1707,19 +1707,19 @@ function onTopicSearch(val) {
     const div = document.createElement('div');
     div.className = 'topic-item' + (done ? ' done' : '');
     div.innerHTML = `
-      <span class="topic-num">${year}</span><span class="topic-name">${escHtml(topic)}<small>${escHtml(cat)}</small></span><span class="topic-status">${done ? '✓' : ''}</span>`;
+      <span class="topic-num">${year}</span><span class="topic-name">${escHtml(localizeTopic(topic))}<small>${escHtml(localizeCategory(cat))}</small></span><span class="topic-status">${done ? '✓' : ''}</span>`;
     div.onclick = () => startSessionWithTopic(topic);
     grid.appendChild(div);
   });
 
-  document.getElementById('topicCount').textContent = `${results.length} resultados`;
-  document.getElementById('topicResultsLabel').textContent = `Resultados para «${val.trim()}»`;
+  document.getElementById('topicCount').textContent = `${results.length} ${localeText('results')}`;
+  document.getElementById('topicResultsLabel').textContent = `${localeText('resultsFor')} «${val.trim()}»`;
 }
 
 function updateTopicCount() {
   const all = getAllTopics();
   const done = state.completedTopics.length;
-  document.getElementById('topicCount').textContent = `${done} completados / ${all.length} temas`;
+  document.getElementById('topicCount').textContent = `${done} ${localeText('completedPlural')} / ${all.length} ${localeText('topicsPlural')}`;
   document.querySelector('#topicProgressBar i').style.width = `${all.length ? Math.round(done / all.length * 100) : 0}%`;
 }
 
@@ -1729,6 +1729,11 @@ function setLang(lang) {
   persist();
   document.getElementById('btnEN').classList.toggle('active', lang === 'en');
   document.getElementById('btnFR').classList.toggle('active', lang === 'fr');
+  renderTopicsTab();
+  renderRecitePractice();
+  renderSessionDraftPrompt();
+  updateHeader();
+  applyDiplomatorLocale();
 }
 
 function getLangLabel() {
@@ -2211,7 +2216,7 @@ function updateHeader() {
   const all = getAllTopics();
   const credits = remainingCredits(accountUser) ?? '-';
   document.getElementById('headerMeta').innerHTML =
-    `<span>${state.completedTopics.length}/${all.length} completados</span><strong>Créditos ${credits}</strong>`;
+    `<span>${state.completedTopics.length}/${all.length} ${localeText('completedPlural')}</span><strong>${localeText('credits')} ${credits}</strong>`;
 }
 
 // -- TABS ----------------------------------------------------------------
@@ -2229,6 +2234,7 @@ function showTab(name, btn) {
   if (name === 'perfil') refreshProfile();
   if (name === 'recitar') renderRecitePractice();
   updateGlobalTeacherContext();
+  applyDiplomatorLocale();
 }
 
 function toggleMoreMenu(event) {
@@ -2329,18 +2335,18 @@ function renderSessionDraftPrompt() {
   draftBox?.classList.toggle('visible', hasDraft);
   if (startButton) startButton.style.display = hasDraft ? 'none' : 'inline-flex';
   if (intro) intro.textContent = hasDraft
-    ? 'Tienes una sesión pendiente. Continúa donde la dejaste o empieza una nueva.'
-    : 'Elige un tema o comienza con uno aleatorio; nada se genera hasta que tú lo pidas.';
+    ? localeText('draftIntro')
+    : localeText('sessionIntro');
   if (!hasDraft) return;
-  document.getElementById('sessionDraftTopic').textContent = draft.topic;
+  document.getElementById('sessionDraftTopic').textContent = localizeTopic(draft.topic);
   const savedCount = Array.isArray(draft.savedPoints) ? draft.savedPoints.length : 0;
   const generatedCount = Array.isArray(draft.aiPoints) ? draft.aiPoints.length : 0;
   const date = draft.updatedAt || draft.date ? new Date(draft.updatedAt || draft.date) : null;
   const dateText = date && !Number.isNaN(date.getTime())
-    ? `Última actividad: ${date.toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' })}`
-    : 'Borrador guardado';
+    ? `${localeText('lastActivity')}: ${date.toLocaleDateString(state.lang === 'fr' ? 'fr-FR' : 'en-GB', { day:'numeric', month:'short', year:'numeric' })}`
+    : localeText('draftSaved');
   document.getElementById('sessionDraftMeta').textContent =
-    `${dateText} · ${savedCount} puntos guardados · ${generatedCount} generados`;
+    `${dateText} · ${savedCount} ${localeText('savedPoints')} · ${generatedCount} ${localeText('generated')}`;
 }
 
 function resumeCurrentSession() {
@@ -2365,8 +2371,8 @@ function resumeCurrentSession() {
   document.getElementById('sessionActive').style.display = 'block';
   const date = state.currentSession.date ? new Date(state.currentSession.date) : new Date();
   document.getElementById('sessionDateLabel').textContent =
-    date.toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-  document.getElementById('sessionTopicLabel').textContent = session.topic;
+    date.toLocaleDateString(state.lang === 'fr' ? 'fr-FR' : 'en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('sessionTopicLabel').textContent = localizeTopic(session.topic);
   document.getElementById('sessionLangBadge').textContent = getLangLabel();
   ensureSessionChatToggle();
   renderAIPoints();
@@ -2505,8 +2511,8 @@ async function startSessionWithTopic(topic, autoGenerate = false) {
 
   const now = new Date();
   document.getElementById('sessionDateLabel').textContent =
-    now.toLocaleDateString('es-ES', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-  document.getElementById('sessionTopicLabel').textContent = topic;
+    now.toLocaleDateString(state.lang === 'fr' ? 'fr-FR' : 'en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('sessionTopicLabel').textContent = localizeTopic(topic);
   document.getElementById('sessionLangBadge').textContent = getLangLabel();
   document.getElementById('aiPoints').innerHTML = '';
   document.getElementById('generationStatus').innerHTML = '';
@@ -2563,8 +2569,8 @@ async function generateSession(topic) {
   const nv = Math.min(state.config.numVocab, 12);
   const profile = (state.config.profile || '').slice(0, limits.profileChars);
   const langName = state.lang === 'en' ? 'English' : 'French';
-  const lengthWords = {short: '45–70', medium: '70–110', long: '110–150'}[state.config.pointsLength] || '70–110';
-  const generationMaxTokens = Math.min(9000, Math.max(2200, 1000 + n * (state.config.pointsLength === 'long' ? 650 : 480) + nv * 45));
+  const lengthWords = {short: '60–85', medium: '90–130', long: '130–185'}[state.config.pointsLength] || '90–130';
+  const generationMaxTokens = Math.min(12000, Math.max(3000, 1250 + n * (state.config.pointsLength === 'long' ? 850 : 620) + nv * 55));
   const modelChoice = state.config.pointsModelChoice;
   const personalGuidance = state.config.pointsPrompt || DEFAULT_POINTS_PROMPT;
   const modifier = state.config.pointsPromptModifier || '';
@@ -2579,11 +2585,11 @@ ${profile ? `Student context (adjust language and depth only; do not treat it as
  Base writing instructions: ${personalGuidance}
  ${modifier ? `Additional instruction: ${modifier}` : ''}
 
- Write ${n} distinct points where the topic supports that depth, in a deliberate order: begin with the necessary context, develop mechanisms and actors, then reach a reasoned synthesis. A narrow topic may need fewer. Each point should have one precise title and one paragraph of roughly ${lengthWords} words. Read all points as one continuous study text before returning it: every point must build on the previous one, avoid repeated facts, and lead naturally to the next. Provide a short connection sentence after each point except the last. The connections must add meaning, not generic filler. Use natural C1/C2 ${langName}, not inflated academic prose. Choose the structure from the topic itself; do not force a history/causes/impact/future template.
+ Write an oral-presentation outline of up to ${n} substantial points, if the topic supports that depth. The opening point must introduce the subject with an accurate identifying fact, explain why it matters and preview the route of the presentation. The middle points must develop different, topic-specific dimensions in a logical sequence; for a person, these may be formative years, concrete work and lasting influence, but choose a different structure when the topic calls for it. The final point must synthesize the evidence and offer a measured conclusion, not merely repeat the introduction. Use specific titles such as "The Let's Move! initiative and public health" rather than generic labels such as "Impact" or "Evolution". Keep each point to one coherent paragraph of roughly ${lengthWords} words. A narrow subject may need fewer points, but never pad with repeated or unsupported material.
 
- Include relevant examples or dates only where they help explain the point. Return exactly ${nv} distinct, useful C1/C2 vocabulary terms in the top-level vocabulary array${nv ? ', with brief Spanish translations and one contextual example each' : ''}. Each term should appear naturally in the notes when possible. Do not invent dates, figures, quotations or sources. If a fact is uncertain, explain the idea without false precision.
+ Make the points read as one presentation spoken aloud. Link each point to the next with a short, meaningful transition grounded in the argument; do not say merely "this leads us to the next point". Use natural, precise C1/C2 ${langName}. Define unfamiliar institutions or initiatives at first mention. Integrate verified dates, names and examples into the explanation, explaining their relevance; use datedInfo only for genuinely useful extra examples, never as a bare list of years. Distinguish established fact from interpretation, avoid superlatives you cannot substantiate, and do not invent figures, quotations, programmes or sources. If a detail is uncertain, omit it or qualify it honestly.
 
- Before answering, check continuity, factual reliability, non-repetition and that the vocabulary array contains ${nv} valid unique terms. Return valid JSON only:
+ Return exactly ${nv} distinct, useful C1/C2 vocabulary terms in the top-level vocabulary array${nv ? ', with brief Spanish translations and one contextual example each' : ''}. Prefer terms that appear naturally in the notes. Before answering, check that the outline has a real introduction and conclusion, every middle point adds new evidence, the paragraphs can be read in sequence, all concrete claims are reliable, and vocabulary entries are unique. Return valid JSON only:
  {"points":[{"title":"...","text":"...","connection":"short meaningful transition to the next point","datedInfo":[{"date":"optional","text":"relevant example"}]}],"vocabulary":[{"word":"...","def":"Spanish translation","example":"short contextual sentence"}]}`;
 
   try {
@@ -2643,7 +2649,7 @@ function renderAIPoints() {
   const container = document.getElementById('aiPoints');
   container.innerHTML = '';
   if (session.aiPoints.length === 0) {
-    container.innerHTML = '<div class="generation-empty"><span>✦</span><strong>Aún no hay apuntes</strong><p>Elige Generar apuntes para preparar este tema.</p></div>'; return;
+    container.innerHTML = `<div class="generation-empty"><span>✦</span><strong>${localeText('noNotes')}</strong><p>${localeText('noNotesHelp')}</p></div>`; return;
   }
   session.aiPoints.forEach((p, i) => {
     const row = document.createElement('div');
@@ -2655,8 +2661,8 @@ function renderAIPoints() {
           <span class="point-num">${String(i+1).padStart(2,'0')}</span>
           <textarea class="inline-point-title" id="aititle-${i}" rows="1" placeholder="Título de la idea" onblur="saveInlinePoint('ai', ${i}, null)">${escHtml(normalizePoint(p).title)}</textarea>
           <div class="point-actions">
-            ${p.rejected ? '<span class="point-rejected-label">Descartado</span>' : `<button class="btn btn-small ${p.accepted ? 'btn-accept' : 'btn-outline'}" onclick="togglePointAccepted(${i})">${p.accepted ? '✓ Guardado' : '＋ Guardar'}</button>`}
-            <button class="btn btn-small ${p.rejected ? 'btn-outline' : 'btn-danger'}" onclick="discardAIPoint(${i})">${p.rejected ? 'Restaurar' : 'Descartar'}</button>
+            ${p.rejected ? `<span class="point-rejected-label">${localeText('discarded')}</span>` : `<button class="btn btn-small ${p.accepted ? 'btn-accept' : 'btn-outline'}" onclick="togglePointAccepted(${i})">${p.accepted ? localeText('saved') : localeText('savePoint')}</button>`}
+            <button class="btn btn-small ${p.rejected ? 'btn-outline' : 'btn-danger'}" onclick="discardAIPoint(${i})">${p.rejected ? localeText('restore') : localeText('discardPoint')}</button>
           </div>
         </div>
         <div class="point-body" id="aibody-${i}">${inlinePointEditorHtml('ai', i, null, p, false)}</div>
@@ -2719,11 +2725,11 @@ function renderSessionVocabulary() {
   const root = document.getElementById('sessionVocabulary');
   if (!root) return;
   const terms = sessionVocabList();
-  document.getElementById('vocabCount').textContent = `${terms.length} de ${state.config.numVocab} términos`;
+  document.getElementById('vocabCount').textContent = `${terms.length}/${state.config.numVocab} ${localeText('terms')}`;
   root.innerHTML = terms.length ? terms.map((item, i) => {
     const saved = (session.savedVocab || []).some(term => term.word === item.word);
-    return `<article class="session-vocab-card"><div><strong>${escHtml(item.word)}</strong><span>${escHtml(item.def)}</span></div><button type="button" class="${saved ? 'is-saved' : ''}" onclick="toggleVocabSaved(${i})">${saved ? '✓ Guardado' : '＋ Añadir'}</button>${item.example ? `<p>${escHtml(item.example)}</p>` : ''}</article>`;
-  }).join('') : '<p class="vocab-empty">El vocabulario aparecerá al generar apuntes. También puedes añadir términos propios.</p>';
+    return `<article class="session-vocab-card"><div><strong>${escHtml(item.word)}</strong><span>${escHtml(item.def)}</span></div><button type="button" class="${saved ? 'is-saved' : ''}" onclick="toggleVocabSaved(${i})">${saved ? localeText('saved') : localeText('add')}</button>${item.example ? `<p>${escHtml(item.example)}</p>` : ''}</article>`;
+  }).join('') : `<p class="vocab-empty">${localeText('noVocabulary')}</p>`;
 }
 
 function toggleVocabSaved(i) {
@@ -3162,10 +3168,10 @@ async function addHistoryPoint(i) {
   const text = prompt('Escribe el nuevo punto clave:');
   if (!text || !text.trim()) return;
   state.history[i].points.push({ title: '', text: text.trim(), datedInfo: [], vocab: [], type: 'manual' });
-  await persist();
   document.getElementById(`hbody-${i}`).innerHTML = '';
   renderHistoryBody(i);
   document.querySelector(`.history-summary[data-index="${i}"] small`).textContent = historyEntrySummary(state.history[i]);
+  await persist();
 }
 
 async function deleteHistoryEntry(i) {
@@ -3545,7 +3551,7 @@ function fillReciteTopicSelect(selectedTopic = '') {
   if (!select) return;
   const current = selectedTopic || state.recitePractice?.topic || session.topic || '';
   const currentValue = select.value;
-  select.innerHTML = '<option value="">Selecciona un tema...</option>';
+  select.innerHTML = `<option value="">${localeText('selectTopic')}</option>`;
   const byYear = {};
   for (const item of getAllTopics()) {
     const year = Number(item.year || 2026);
@@ -3557,11 +3563,11 @@ function fillReciteTopicSelect(selectedTopic = '') {
   for (const year of Object.keys(byYear).sort((a, b) => Number(b) - Number(a))) {
     for (const cat of Object.keys(byYear[year])) {
       const group = document.createElement('optgroup');
-      group.label = `${year} - ${cat}`;
+      group.label = `${year} - ${localizeCategory(cat)}`;
       for (const topic of byYear[year][cat]) {
         const option = document.createElement('option');
         option.value = topic;
-        option.textContent = topic;
+        option.textContent = localizeTopic(topic);
         group.appendChild(option);
       }
       select.appendChild(group);
@@ -3671,7 +3677,7 @@ function setReciteTopic(topic, reset = true) {
   fillReciteTopicSelect(value);
   if (input) input.value = value;
   if (search) search.value = value;
-  if (label) label.textContent = value || 'Sin tema seleccionado';
+  if (label) label.textContent = value ? localizeTopic(value) : localeText('noTopic');
   state.recitePractice.topic = value;
   persist();
   if (reset) resetReciteFlow();
@@ -3701,7 +3707,7 @@ function renderRecitePractice() {
   fillReciteTopicSelect(topic);
   if (topicInput) topicInput.value = topic;
   if (topicSearch) topicSearch.value = topic;
-  if (topicLabel) topicLabel.textContent = topic || 'Sin tema seleccionado';
+  if (topicLabel) topicLabel.textContent = topic ? localizeTopic(topic) : localeText('noTopic');
   clearReciteTopicResults();
   state.recitePractice.topic = topic;
   const notes = document.getElementById('reciteNotes');
@@ -3847,10 +3853,7 @@ function setRecitePhase(phase, seconds) {
   reciteSeconds = seconds;
   const label = document.getElementById('recitePhase');
   if (label) {
-    label.textContent =
-      phase === 'prep' ? 'Preparación: 1 minuto' :
-      phase === 'speak' ? 'Recitación: 5 minutos' :
-      'Práctica terminada';
+    label.textContent = localeText(phase === 'prep' ? 'prep' : phase === 'speak' ? 'speaking' : 'practiceDone');
   }
   document.getElementById('prepModeBtn')?.classList.toggle('active', reciteSelectedMode === 'prep');
   document.getElementById('speakModeBtn')?.classList.toggle('active', reciteSelectedMode === 'speak');
@@ -4021,41 +4024,41 @@ function setAudioState(stateName) {
   dot.classList.remove('recording', 'ready');
   if (stateName === 'recording') {
     dot.classList.add('recording');
-    text.textContent = 'Grabando audio';
-    if (meta) meta.textContent = 'Micrófono activo';
+    text.textContent = localeText('recordingAudio');
+    if (meta) meta.textContent = localeText('micActive');
   } else if (stateName === 'paused') {
     dot.classList.add('recording');
-    text.textContent = 'Grabación en pausa';
-    if (meta) meta.textContent = 'Micrófono pausado';
+    text.textContent = localeText('recordingPaused');
+    if (meta) meta.textContent = localeText('micPaused');
   } else if (stateName === 'ready') {
     dot.classList.add('ready');
-    text.textContent = 'Audio listo para transcribir';
+    text.textContent = localeText('audioReady');
     if (meta) meta.textContent = reciteAudioBlob
       ? `${formatBytes(reciteAudioBlob.size)} capturados en ${reciteAudioDuration || '?'} s`
       : '';
   } else if (stateName === 'starting') {
-    text.textContent = 'Activando micrófono...';
+    text.textContent = localeText('activatingMic');
     if (meta) meta.textContent = '';
   } else if (stateName === 'stopping') {
-    text.textContent = 'Guardando audio...';
+    text.textContent = localeText('savingAudio');
     if (meta) meta.textContent = '';
   } else if (stateName === 'error') {
-    text.textContent = 'Audio no disponible';
+    text.textContent = localeText('audioUnavailable');
     if (meta) meta.textContent = '';
   } else {
-    text.textContent = 'Audio sin iniciar';
+    text.textContent = localeText('idle');
     if (meta) meta.textContent = '';
   }
   const isBusy = stateName === 'starting' || stateName === 'stopping';
   const isActiveRecording = stateName === 'recording' || stateName === 'paused';
   if (recordBtn) {
     recordBtn.disabled = isBusy;
-    recordBtn.textContent = isActiveRecording || stateName === 'stopping' ? 'Parar grabación' : 'Grabar 5 min';
+    recordBtn.textContent = localeText(isActiveRecording || stateName === 'stopping' ? 'stopRecording' : 'record');
     recordBtn.classList.toggle('recording', isActiveRecording || stateName === 'stopping');
   }
   if (pauseBtn) {
     pauseBtn.style.display = isActiveRecording ? 'inline-flex' : 'none';
-    pauseBtn.textContent = stateName === 'paused' ? 'Reanudar' : 'Pausa';
+    pauseBtn.textContent = localeText(stateName === 'paused' ? 'resume' : 'pause');
   }
   if (transcribeBtn) transcribeBtn.disabled = !reciteAudioBlob || isActiveRecording || isBusy;
 }
@@ -4565,8 +4568,67 @@ function installFrontendErrorReporter() {
   window.addEventListener('error', event => send({message:event.message, source:event.filename, line:event.lineno, column:event.colno}));
   window.addEventListener('unhandledrejection', event => send({message:String(event.reason?.message || event.reason || 'Unhandled rejection'), source:'promise'}));
 }
+const DIPLOMATOR_COPY = {
+  en: {
+    session:'Today’s session', oral:'Oral practice', topics:'Topics', history:'History', credits:'CREDITS', completed:'Completed', completedPlural:'completed', pending:'Pending', topicsPlural:'topics', results:'results', resultsFor:'Results for', topicDoneTitle:'Completed — open to study again', topicOpenTitle:'Open this topic',
+    dailyTitle:'Daily session', sessionIntro:'Choose a topic or start with a random one; nothing is generated until you ask.', draftIntro:'You have an unfinished session. Pick up where you left off or start a new one.', draftSaved:'Draft saved', lastActivity:'Last activity', savedPoints:'saved points', generated:'generated', start:'START DAILY SESSION →', continue:'Continue session', newSession:'Start a new one',
+    addTopic:'Add manual topic', addTopicHelp:'Create a custom topic for your study.', topic:'TOPIC', category:'CATEGORY', newCategory:'NEW CATEGORY', optional:'(optional)', addTopicButton:'＋ Add topic', categories:'Categories', search:'Search all topics…', sort:'Sort by', sortNumber:'Number (ascending)', sortName:'Name (A–Z)', sortPending:'Pending first',
+    selectTopic:'Select a topic…', noTopic:'No topic selected', oralTopicHelp:'Choose the topic you want to practise.', prep:'PREPARATION: 1 MINUTE', speaking:'SPEAKING: 5 MINUTES', practiceDone:'Practice finished', idle:'Audio not started', recordingAudio:'Recording audio', micActive:'Microphone active', recordingPaused:'Recording paused', micPaused:'Microphone paused', audioReady:'Audio ready to transcribe', activatingMic:'Activating microphone…', savingAudio:'Saving audio…', audioUnavailable:'Audio unavailable', stopRecording:'Stop recording', pause:'Pause', resume:'Resume', reset:'↻ RESET PRACTICE', prepare:'▷ PREPARE 1 MIN', record:'● RECORD 5 MIN', notes:'NOTES', transcript:'TRANSCRIPT', transcribe:'TRANSCRIBE', notesPlaceholder:'Ideas, dates, structure and useful vocabulary.', transcriptPlaceholder:'Your speech will appear here after transcription. You can also paste it manually.', afterRecording:'AFTER YOU FINISH RECORDING', afterRecordingHelp:'First, record your speech. When it is ready, you can transcribe the audio and review the text.', correct:'✓ CORRECT SPEECH', saveCorrection:'Save correction ▾',
+    chooseRandom:'◇ Another random topic', chooseTopic:'☷ Choose topic', generate:'✦ Generate notes', saveClose:'✓ Save and close', discard:'Discard session', notesTitle:'Notes', vocabTitle:'Vocabulary', save:'Save ▾', saveApp:'Save in app', savePdf:'Save as PDF', saveWord:'Save as Word', drive:'Upload to Drive', noNotes:'No notes yet', noNotesHelp:'Choose Generate notes to prepare this topic.', discarded:'Discarded', saved:'✓ Saved', savePoint:'＋ Save', restore:'Restore', discardPoint:'Discard', terms:'terms', add:'＋ Add', noVocabulary:'Vocabulary will appear after you generate notes. You can also add your own terms.', addTerm:'+ Add term', addOwnPoint:'Add your own point', savedEmpty:'Save generated points or add your own', pointTitlePlaceholder:'Point title'
+  },
+  fr: {
+    session:'Session du jour', oral:'Pratique orale', topics:'Thèmes', history:'Historique', credits:'CRÉDITS', completed:'Terminé', completedPlural:'terminés', pending:'À faire', topicsPlural:'thèmes', results:'résultats', resultsFor:'Résultats pour', topicDoneTitle:'Terminé — ouvrir pour réviser', topicOpenTitle:'Ouvrir ce thème',
+    dailyTitle:'Session quotidienne', sessionIntro:'Choisis un thème ou commence par un thème aléatoire ; rien ne se génère tant que tu ne le demandes pas.', draftIntro:'Tu as une session en cours. Reprends-la ou commence une nouvelle session.', draftSaved:'Brouillon enregistré', lastActivity:'Dernière activité', savedPoints:'points enregistrés', generated:'générés', start:'COMMENCER LA SESSION →', continue:'Reprendre la session', newSession:'Nouvelle session',
+    addTopic:'Ajouter un thème manuellement', addTopicHelp:'Crée un thème personnalisé pour tes études.', topic:'THÈME', category:'CATÉGORIE', newCategory:'NOUVELLE CATÉGORIE', optional:'(facultatif)', addTopicButton:'＋ Ajouter le thème', categories:'Catégories', search:'Rechercher dans tous les thèmes…', sort:'Trier par', sortNumber:'Numéro (croissant)', sortName:'Nom (A–Z)', sortPending:'À faire en premier',
+    selectTopic:'Choisir un thème…', noTopic:'Aucun thème sélectionné', oralTopicHelp:'Choisis le thème sur lequel tu veux t’entraîner.', prep:'PRÉPARATION : 1 MINUTE', speaking:'EXPOSÉ : 5 MINUTES', practiceDone:'Pratique terminée', idle:'Audio non démarré', recordingAudio:'Enregistrement en cours', micActive:'Microphone actif', recordingPaused:'Enregistrement en pause', micPaused:'Microphone en pause', audioReady:'Audio prêt à transcrire', activatingMic:'Activation du microphone…', savingAudio:'Enregistrement de l’audio…', audioUnavailable:'Audio indisponible', stopRecording:'Arrêter l’enregistrement', pause:'Pause', resume:'Reprendre', reset:'↻ RÉINITIALISER', prepare:'▷ PRÉPARER 1 MIN', record:'● ENREGISTRER 5 MIN', notes:'NOTES', transcript:'TRANSCRIPTION', transcribe:'TRANSCRIRE', notesPlaceholder:'Idées, dates, structure et vocabulaire utile.', transcriptPlaceholder:'La transcription apparaîtra ici après l’enregistrement. Tu peux aussi coller ton texte.', afterRecording:'APRÈS L’ENREGISTREMENT', afterRecordingHelp:'Enregistre d’abord ton exposé. Tu pourras ensuite transcrire l’audio et relire le texte.', correct:'✓ CORRIGER L’EXPRESSION', saveCorrection:'Enregistrer la correction ▾',
+    chooseRandom:'◇ Autre thème aléatoire', chooseTopic:'☷ Choisir un thème', generate:'✦ Générer des notes', saveClose:'✓ Enregistrer et fermer', discard:'Abandonner la session', notesTitle:'Notes', vocabTitle:'Vocabulaire', save:'Enregistrer ▾', saveApp:'Enregistrer dans l’app', savePdf:'Enregistrer en PDF', saveWord:'Enregistrer en Word', drive:'Envoyer sur Drive', noNotes:'Pas encore de notes', noNotesHelp:'Choisis Générer des notes pour préparer ce thème.', discarded:'Écarté', saved:'✓ Enregistré', savePoint:'＋ Enregistrer', restore:'Restaurer', discardPoint:'Écarter', terms:'termes', add:'＋ Ajouter', noVocabulary:'Le vocabulaire apparaîtra après la génération des notes. Tu peux aussi ajouter tes propres termes.', addTerm:'+ Ajouter un terme', addOwnPoint:'Ajouter un point personnel', savedEmpty:'Enregistre des points générés ou ajoute les tiens', pointTitlePlaceholder:'Titre du point'
+  }
+};
+const DIPLOMATOR_CATEGORY_NAMES = {
+  'Relaciones internacionales y geopolítica':['International relations and geopolitics','Relations internationales et géopolitique'],
+  'Política, derecho y gobernanza':['Politics, law and governance','Politique, droit et gouvernance'],
+  'Economía, tecnología y trabajo':['Economy, technology and work','Économie, technologie et travail'],
+  'Cultura, arte y literatura':['Culture, art and literature','Culture, art et littérature'],
+  'Historia y patrimonio':['History and heritage','Histoire et patrimoine'],
+  'Sociedad y pensamiento':['Society and thought','Société et pensée'],
+  'Ciencia, medioambiente y salud':['Science, environment and health','Sciences, environnement et santé'],
+  'Deporte, ocio y entretenimiento':['Sport, leisure and entertainment','Sport, loisirs et divertissement'],
+  'Gastronomía, turismo y modos de vida':['Food, tourism and ways of life','Gastronomie, tourisme et modes de vie'],
+  'Temas manuales':['Manual topics','Thèmes manuels'],
+  'Society & Politics':['Society and politics','Société et politique'], 'Economy':['Economy','Économie'], 'Culture & Lifestyle':['Culture and lifestyle','Culture et modes de vie'], 'Health & Well-being':['Health and well-being','Santé et bien-être'], 'Technology & Science':['Technology and science','Technologie et sciences'], 'History':['History','Histoire'], 'International Relations':['International relations','Relations internationales'], 'Environment':['Environment','Environnement'], 'Law & Governance':['Law and governance','Droit et gouvernance'], 'Jury Questions':['Jury questions','Questions du jury']
+};
+const DIPLOMATOR_TOPIC_NAMES = {
+  'Alianza de civilizaciones':['Alliance of Civilizations','Alliance des civilisations'], 'El Sahel':['The Sahel','Le Sahel'], 'Deuda y desarrollo':['Debt and development','Dette et développement'], 'África':['Africa','Afrique'], 'La ampliación de la UE':['The enlargement of the EU','L’élargissement de l’UE'], 'La política exterior de Xi':['China’s foreign policy','La politique étrangère de la Chine'], 'Conflictos internacionales':['International conflicts','Conflits internationaux'], 'Negociaciones internacionales':['International negotiations','Négociations internationales'], 'El acueducto de Segovia':['The Segovia Aqueduct','L’aqueduc de Ségovie'], 'Conflicto Tailandía-Camboya':['The Thailand–Cambodia conflict','Conflit entre la Thaïlande et le Cambodge'], 'Pueblos indígenas':['Indigenous peoples','Peuples autochtones'], '40 años de la adhesión española a la UE':["40 years of Spain’s accession to the EU",'40 ans de l’adhésion de l’Espagne à l’UE'], 'Diálogo interreligioso':['Interreligious dialogue','Dialogue interreligieux'], 'Universalidad de los DDHH':['The universality of human rights','L’universalité des droits de l’homme'], 'Futuro de la OTAN':['The future of NATO','L’avenir de l’OTAN'], 'Enrique VIII':['Henry VIII','Henri VIII'], 'Futuro de Ucrania':['The future of Ukraine','L’avenir de l’Ukraine'], 'Mar de China meridional':['The South China Sea','La mer de Chine méridionale'], 'Nueva gastronomía española':['New Spanish cuisine','La nouvelle gastronomie espagnole'], 'Cocina mexicana':['Mexican cuisine','Cuisine mexicaine'], 'Los DDHH':['Human rights','Les droits de l’homme'], 'Las guerras mundíales':['World wars','Les guerres mondiales'], 'Ucrania y la OTAN':['Ukraine and NATO','L’Ukraine et l’OTAN'], 'La Zarzuela':['La Zarzuela Palace','La Zarzuela'], 'Similitudes UE-BRICS':['Similarities and differences: EU–BRICS','Similarités UE-BRICS'], 'La relación de Trump con el arte':['Trump’s relationship with the arts','La relation de Trump avec l’art'], 'Acuerdos de pesca':['Fishing agreements','Accords de pêche'], 'Estrecho de Ormuz':['The Strait of Hormuz','Le détroit d’Ormuz'], 'Propósitos de año nuevo':["New year’s resolutions",'Résolutions du nouvel an'], 'Funcionario internacional':['International civil servant','Fonctionnaire international'], 'Las nuevas tecnologías':['New technologies','Les nouvelles technologies'], 'China en África':['China in Africa','La Chine en Afrique'], 'La política exterior de Trump':["Trump’s foreign policy",'La politique étrangère de Trump'], 'Imperialismo ruso':['Russian imperialism','Impérialisme russe'], 'El multilateralismo':['Multilateralism','Le multilatéralisme'], 'Subregiones africanas':['African subregions','Sous-régions africaines'], 'Cooperación al desarrollo':['Development cooperation','Coopération au développement'], 'Neootomanismo':['Neo-Ottomanism','Néo-ottomanisme'], 'Las organizaciones internacionales':['International organisations','Les organisations internationales'], 'Países del golfo pérsico':['Persian Gulf countries','Pays du golfe Persique'], 'Aguas transfronterizas':['Transboundary waters','Eaux transfrontalières'], 'Futuro de Europa':['The future of Europe','L’avenir de l’Europe'], 'Cine español actual':['Contemporary Spanish cinema','Le cinéma espagnol contemporain'], 'Pío Baroja':['Pío Baroja','Pío Baroja']
+};
+function localeText(key) { return (DIPLOMATOR_COPY[state?.lang === 'fr' ? 'fr' : 'en'] || DIPLOMATOR_COPY.en)[key] || key; }
+function localizeCategory(value) { return DIPLOMATOR_CATEGORY_NAMES[value]?.[state?.lang === 'fr' ? 1 : 0] || value; }
+function localizeTopic(value) { return DIPLOMATOR_TOPIC_NAMES[value]?.[state?.lang === 'fr' ? 1 : 0] || value; }
+function applyDiplomatorLocale() {
+  const lang = state?.lang === 'fr' ? 'fr' : 'en';
+  document.documentElement.lang = lang;
+  document.body.dataset.lang = lang;
+  const text = (selector, key) => { const element = document.querySelector(selector); if (element) element.textContent = localeText(key); };
+  const placeholder = (selector, key) => { const element = document.querySelector(selector); if (element) element.placeholder = localeText(key); };
+  [['[data-tab-btn="sesion"]','session'],['[data-tab-btn="recitar"]','oral'],['[data-tab-btn="temas"]','topics'],['.header-history','history'],['#sessionEmpty h2','dailyTitle'],['#startDailySessionButton','start'],['#sessionDraft .session-draft-actions button:first-child','continue'],['#sessionDraft .session-draft-actions button:last-child','newSession'],['.manual-topic-heading h2','addTopic'],['.manual-topic-heading p','addTopicHelp'],['label[for="manualTopicInput"]','topic'],['label[for="manualTopicCategorySelect"]','category'],['.category-heading','categories'],['.manual-topic-grid button','addTopicButton'],['.topics-toolbar label','sort'],['#tab-recitar .section-label','oral'],['.recite-topic-card label','topic'],['.recite-topic-card p','oralTopicHelp'],['#tab-recitar label[for="reciteNotes"]','notes'],['#tab-recitar label[for="reciteTranscript"]','transcript'],['#transcribeAudioBtn','transcribe'],['.recite-transcribe-box strong','afterRecording'],['.recite-transcribe-box p','afterRecordingHelp'],['.recite-bottom-actions > .btn-blue','correct'],['#reciteSaveMenuButton','saveCorrection'],['#saveCloseSessionButton','saveClose'],['.session-discard','discard'],['#generateNotesButton','generate'],['.session-header-actions button:first-child','chooseRandom'],['.session-header-actions button:nth-child(2)','chooseTopic'],['.notes-column .notes-panel-heading h2','notesTitle'],['.vocabulary-column .notes-panel-heading h2','vocabTitle'],['.vocabulary-column .notes-panel-heading button','addTerm'],['.manual-note summary','addOwnPoint'],['#savedEmpty','savedEmpty'],['#exportMenuButton','save']].forEach(([selector,key])=>text(selector,key));
+  const newCategory = document.querySelector('label[for="manualTopicCategoryInput"]');
+  if (newCategory) newCategory.innerHTML = `${localeText('newCategory')} <small>${localeText('optional')}</small>`;
+  placeholder('#manualTopicInput', lang === 'fr' ? 'exampleFr' : 'exampleEn');
+  placeholder('#manualTopicCategoryInput','optional');
+  placeholder('#topicSearchInput','search');
+  placeholder('#reciteNotes','notesPlaceholder');
+  placeholder('#reciteTranscript','transcriptPlaceholder');
+  placeholder('#manualTitleInput','pointTitlePlaceholder');
+  const example = document.querySelector('#manualTopicInput'); if (example) example.placeholder = lang === 'fr' ? 'Ex. : la diplomatie climatique en Méditerranée' : 'e.g. Climate diplomacy in the Mediterranean';
+  [['#topicSort option[value="number"]','sortNumber'],['#topicSort option[value="name"]','sortName'],['#topicSort option[value="pending"]','sortPending'],['#exportMenu button:nth-child(1)','saveApp'],['#exportMenu button:nth-child(2)','savePdf'],['#exportMenu button:nth-child(3)','saveWord'],['#exportMenu button:nth-child(4)','drive'],['#reciteSaveMenuList button:nth-child(1)','saveApp'],['#reciteSaveMenuList button:nth-child(2)','savePdf'],['#reciteSaveMenuList button:nth-child(3)','saveWord'],['#reciteSaveMenuList button:nth-child(4)','drive']].forEach(([selector,key])=>text(selector,key));
+  text('#recitePhase', typeof recitePhase !== 'undefined' && recitePhase === 'speak' ? 'speaking' : typeof recitePhase !== 'undefined' && recitePhase === 'done' ? 'practiceDone' : 'prep');
+  if (!reciteRecorder || reciteRecorder.state === 'inactive') text('#audioStateText',reciteAudioBlob ? 'audioReady' : 'idle');
+  [['.recite-flow button:first-child','reset'],['#prepModeBtn','prepare']].forEach(([selector,key])=>text(selector,key));
+  text('#speakModeBtn', reciteRecorder && reciteRecorder.state !== 'inactive' ? 'stopRecording' : 'record');
+  if (session?.topic) document.getElementById('sessionTopicLabel').textContent = localizeTopic(session.topic);
+  const intro = document.getElementById('sessionIntro'); if (intro && !state?.currentSession?.topic) intro.textContent = localeText('sessionIntro');
+}
 installFrontendErrorReporter();
-init();
+init().then(() => applyDiplomatorLocale());
 </script>
 </body>
 </html>

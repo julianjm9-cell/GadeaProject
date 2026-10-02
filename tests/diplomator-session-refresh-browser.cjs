@@ -84,7 +84,7 @@ const assert=require('node:assert/strict');
     await page.mouse.up();
     assert.equal(await page.evaluate(()=>state.config.vocabColumnWidth)>initialWidth,true);
     await page.locator('.session-vocab-card button').first().click();
-    assert.match(await page.locator('.session-vocab-card button').first().innerText(),/Guardado/);
+    assert.match(await page.locator('.session-vocab-card button').first().innerText(),/Saved/);
     await page.screenshot({path:'tools/diplomator-session-refresh-desktop.png',fullPage:true});
     await page.setViewportSize({width:390,height:844});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
