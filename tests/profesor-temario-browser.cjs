@@ -9,13 +9,15 @@ const path=require('node:path');
   const page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href+'#temario');
-  await page.getByRole('heading',{name:'Temario',exact:true}).waitFor();
+  await page.locator('.temario-controls').waitFor();
   const coverage=await page.evaluate(()=>{
    const topics=Object.values(PROFESOR_TEMARIO).flatMap(subjects=>Object.values(subjects).flat());
    return {courses:Object.keys(PROFESOR_TEMARIO).length,topics:topics.length,incomplete:topics.filter(topic=>!topic.didactic?.objective||!topic.didactic?.explanation||!topic.didactic?.concepts?.length||!topic.didactic?.examples?.length||!topic.didactic?.commonErrors?.length||!topic.didactic?.practice?.length||!topic.didactic?.activities?.length||!topic.didactic?.solutions?.length).length};
   });
   assert.deepEqual(coverage,{courses:12,topics:279,incomplete:0});
-  assert.equal(await page.locator('.temario-controls select').count(),2);
+  assert.equal(await page.locator('.temario-controls select').count(),3);
+  assert.equal(await page.locator('.temario-heading').count(),0);
+  assert.match(await page.locator('.temario-base-count').innerText(),/279 temas/);
   assert.equal(await page.locator('.temario-controls input').count(),1);
   assert.equal(await page.locator('.temario-detail button').count(),2);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);

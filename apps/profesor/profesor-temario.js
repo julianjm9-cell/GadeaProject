@@ -306,6 +306,7 @@ Retos demográficos y económicos|Interpreta tasas, pirámides y series temporal
 let temarioCourse = '3.º ESO';
 let temarioSubject = 'Matemáticas';
 let temarioQuery = '';
+let temarioPreparation = 'all';
 let temarioSelected = '';
 let temarioView;
 let openTemarioLesson;
@@ -325,7 +326,7 @@ function temarioMaterials(topic) {
 }
 function temarioVisibleTopics() {
   const query = temarioNorm(temarioQuery);
-  return temarioTopics().filter(topic => !query || temarioNorm(topic.title + ' ' + topic.explanation).includes(query));
+  return temarioTopics().filter(topic => (!query || temarioNorm(topic.title + ' ' + topic.explanation).includes(query)) && (temarioPreparation === 'all' || (temarioMaterials(topic).length > 0) === (temarioPreparation === 'ready')));
 }
 function planTemarioWithStudent(topic) {
   const pupils = state.students.filter(pupil => temarioNorm(pupil.course) === temarioNorm(temarioCourse) && pupil.subjects.includes(temarioSubject));
@@ -335,6 +336,7 @@ function planTemarioWithStudent(topic) {
 document.addEventListener('change', event => {
   if (event.target.id === 'temarioCourse') { temarioCourse = event.target.value; temarioSubject = Object.keys(window.PROFESOR_TEMARIO?.[temarioCourse] || {})[0] || '';temarioSelected = '';render(); }
   if (event.target.id === 'temarioSubject') { temarioSubject = event.target.value;temarioSelected = '';render(); }
+  if (event.target.id === 'temarioPreparation') { temarioPreparation = event.target.value;temarioSelected = '';render(); }
 });
 document.addEventListener('input', event => {
   if (event.target.id !== 'temarioSearch') return;
@@ -408,11 +410,12 @@ temarioView = function () {
   if (!topics.some(topic => topic.id === temarioSelected)) temarioSelected = topics[0]?.id || '';
   const current = topics.find(topic => topic.id === temarioSelected);
   return `<div class="temario-page temario-simple">
-    <div class="temario-heading"><h1>Temario</h1></div>
     <div class="temario-controls" aria-label="Buscar en el temario">
         <label for="temarioCourse">Curso<select id="temarioCourse">${courses.map(course => `<option value="${esc(course)}" ${course === temarioCourse ? 'selected' : ''}>${esc(course)}</option>`).join('')}</select></label>
         <label for="temarioSubject">Asignatura<select id="temarioSubject">${subjects.map(item => `<option value="${esc(item)}" ${item === temarioSubject ? 'selected' : ''}>${esc(item)}</option>`).join('')}</select></label>
         <label for="temarioSearch">Buscar tema<input id="temarioSearch" type="search" value="${esc(temarioQuery)}" placeholder="Buscar tema…" autocomplete="off"></label>
+        <label for="temarioPreparation">Preparación<select id="temarioPreparation"><option value="all" ${temarioPreparation === 'all' ? 'selected' : ''}>Todos</option><option value="ready" ${temarioPreparation === 'ready' ? 'selected' : ''}>Con material</option><option value="pending" ${temarioPreparation === 'pending' ? 'selected' : ''}>Por preparar</option></select></label>
+        <span class="temario-base-count">${Object.values(window.PROFESOR_TEMARIO || {}).reduce((total, bySubject) => total + Object.values(bySubject).reduce((sum, list) => sum + list.length, 0), 0)} temas de base</span>
     </div>
     <div class="temario-stage">
       <section class="temario-list-panel" aria-label="Temas de ${esc(temarioSubject)}">

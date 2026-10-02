@@ -32,5 +32,14 @@ const assert = require('node:assert/strict');
     const mobile = await page.evaluate(() => { const panel = document.querySelector('.home-side .home-panel'); const day = document.querySelector('.home-calendar-grid.month .home-calendar-day:last-child'); panel.scrollTop = panel.scrollHeight; return { canScroll: panel.scrollHeight > panel.clientHeight, dayBottom: day.getBoundingClientRect().bottom, panelBottom: panel.getBoundingClientRect().bottom, pageWidth: document.documentElement.scrollWidth }; });
     assert.ok(mobile.dayBottom <= mobile.panelBottom, 'last calendar week can be reached on mobile');
     assert.ok(mobile.pageWidth <= 392, 'mobile has no horizontal page overflow');
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.locator('.home-student-card').first().getByRole('button', { name: /Cambiar color/ }).click();
+    await page.locator('input[name="cardColor"][value="peach"]').check();
+    await page.getByRole('button', { name: 'Guardar color' }).click();
+    assert.equal(await page.locator('.home-student-card').first().getAttribute('data-card-color'), 'peach');
+    await page.locator('.home-primary-nav').getByRole('button', { name: 'Alumnos' }).click();
+    assert.equal(await page.locator('.workspace-students .home-student-card').first().getAttribute('data-card-color'), 'peach', 'Alumnos shares the chosen color');
+    await page.locator('.workspace-students .home-student-card').first().locator('.home-student-open').click();
+    assert.equal(await page.locator('.student-overview').getAttribute('data-card-color'), 'peach', 'Resumen shares the chosen color');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exit(1); });
