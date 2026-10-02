@@ -31,7 +31,7 @@ const path=require('node:path');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight>innerHeight+2),false,'Inicio should fit at 1366x768');
     await page.setViewportSize({width:1440,height:900});
 
-    assert.deepEqual((await page.locator('.home-primary-nav button').allTextContents()).map(s=>s.trim()),['Inicio','Material','Alumnos']);
+    assert.deepEqual((await page.locator('.home-primary-nav button').allTextContents()).map(s=>s.trim()),['Inicio','Temario','Material','Alumnos']);
     await page.locator('.home-primary-nav').getByRole('button',{name:'Material',exact:true}).click();
     await page.getByRole('heading',{name:/^Materiales/}).waitFor();
     assert.equal(await page.locator('.material-hub-card').count(),6);
@@ -49,7 +49,7 @@ const path=require('node:path');
     await page.getByLabel('Buscar material').fill('extra');
     assert.equal(await page.locator('.material-hub-card').count(),7);
     await page.locator('.home-primary-nav').getByRole('button',{name:'Alumnos',exact:true}).click();
-    await page.getByRole('heading',{name:'Mis alumnos'}).waitFor();
+    await page.getByRole('heading',{name:'Alumnos'}).waitFor();
     assert.equal(await page.locator('.workspace-students .home-student-card').count(),4);
     await page.screenshot({path:'tools/profesor-alumnos-v1-desktop.png',fullPage:true});
     await page.getByRole('button',{name:'Abrir espacio de Lucía Martín'}).click();

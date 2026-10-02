@@ -409,12 +409,12 @@ temarioView = function () {
   const current = topics.find(topic => topic.id === temarioSelected);
   return `<div class="temario-page temario-simple">
     <div class="temario-heading"><h1>Temario</h1></div>
-    <div class="temario-stage">
-      <aside class="temario-controls" aria-label="Buscar en el temario">
+    <div class="temario-controls" aria-label="Buscar en el temario">
         <label for="temarioCourse">Curso<select id="temarioCourse">${courses.map(course => `<option value="${esc(course)}" ${course === temarioCourse ? 'selected' : ''}>${esc(course)}</option>`).join('')}</select></label>
         <label for="temarioSubject">Asignatura<select id="temarioSubject">${subjects.map(item => `<option value="${esc(item)}" ${item === temarioSubject ? 'selected' : ''}>${esc(item)}</option>`).join('')}</select></label>
         <label for="temarioSearch">Buscar tema<input id="temarioSearch" type="search" value="${esc(temarioQuery)}" placeholder="Buscar tema…" autocomplete="off"></label>
-      </aside>
+    </div>
+    <div class="temario-stage">
       <section class="temario-list-panel" aria-label="Temas de ${esc(temarioSubject)}">
         <div class="temario-topic-list">${topics.map(topic => `<button type="button" class="temario-topic ${topic.id === temarioSelected ? 'active' : ''}" data-temario-topic="${esc(topic.id)}" aria-current="${topic.id === temarioSelected ? 'true' : 'false'}"><span class="temario-topic-index">${String(temarioTopics().indexOf(topic) + 1).padStart(2, '0')}</span><span class="temario-topic-copy"><strong>${esc(topic.title)}</strong><small>${esc(topic.explanation)}</small></span><span class="temario-topic-meta"><small>3 recursos</small></span><span class="temario-topic-arrow">→</span></button>`).join('') || '<div class="temario-empty">No hay temas con esa búsqueda.</div>'}</div>
       </section>
