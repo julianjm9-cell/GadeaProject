@@ -110,3 +110,47 @@
 @media(max-width:850px){.temario-simple .temario-stage{grid-template-columns:1fr}.temario-simple .temario-detail{grid-column:1}.temario-simple .temario-topic-list{max-height:490px}}
 @media(max-height:720px) and (min-width:851px){.temario-simple .temario-heading{margin-bottom:8px}.temario-simple .temario-controls{padding:8px 13px;margin-bottom:8px}.temario-simple .temario-controls select,.temario-simple .temario-controls input{min-height:36px}.temario-simple .temario-detail{padding:11px 14px}.temario-simple .temario-preview-title{padding-bottom:7px;margin-bottom:8px}.temario-simple .temario-detail h3{font-size:16px}.temario-simple .temario-preview-meta{margin:3px 0 7px}.temario-simple .temario-preview-explanation{margin-bottom:7px;-webkit-line-clamp:2}.temario-simple .temario-example{padding:8px 10px;margin-bottom:7px}.temario-simple .temario-example strong{margin-bottom:3px}.temario-simple .temario-includes{line-height:1.35}.temario-simple .temario-main-actions{gap:3px;padding-top:7px}.temario-simple .temario-main-actions button{min-height:33px}}
 @media(max-width:580px){.temario-simple .temario-controls{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:12px}.temario-simple .temario-controls label:last-child{grid-column:1/-1}.material-hub-card{min-height:165px!important;aspect-ratio:auto}}
+
+/* Paneles compactos y navegación constante. */
+.home-view .home-students{grid-template-columns:repeat(auto-fill,minmax(250px,290px));grid-auto-rows:auto;gap:12px;align-content:start;flex:0 0 auto}
+.home-view .home-student-card{min-height:0;height:auto;padding:13px;grid-template-columns:46px minmax(0,1fr) 18px;grid-template-rows:auto auto auto;gap:7px 9px}
+.home-view .home-student-card .avatar{width:44px;height:44px;font-size:16px}
+.home-view .home-student-info h2{font-size:14px}
+.home-view .home-student-info>p{font-size:11px;margin:2px 0 5px}
+.home-view .home-student-info .badge{font-size:9px;padding:3px 6px}
+.home-view .home-next-label{padding:8px 9px;font-size:10px}
+.home-view .home-next-label strong{font-size:10px}
+.home-view .home-student-note{min-height:0}
+.home-view .home-student-note span{font-size:10px}
+.home-agenda-row{grid-template-columns:46px minmax(0,1fr) 55px 25px;min-height:56px}
+.home-agenda-day{min-height:48px;padding:3px}
+.home-agenda-weekday,.home-agenda-month{font-size:10px}
+.home-agenda-date{font-size:14px;font-weight:750}
+.material-page-head{align-items:center}
+.material-page-tools{align-items:center}
+.material-page-tools .material-hub-toolbar{align-items:center}
+.material-page-tools>.actions{display:grid;grid-template-columns:repeat(2,minmax(142px,1fr));align-items:center;gap:9px}
+.material-page-tools>.actions button{width:100%;height:45px;min-height:45px;padding:8px 13px;justify-content:center;font-size:12px}
+.material-hub-card{min-height:145px!important;aspect-ratio:auto;grid-template-rows:auto auto;align-content:space-between;gap:13px;padding:13px!important}
+.material-card-description{-webkit-line-clamp:2}
+.material-card-foot{align-self:end}
+.workspace-student-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:4px 0 18px}
+.student-hub-search{display:flex;align-items:center;gap:8px;width:min(380px,100%);min-height:44px;padding:0 12px;border:1px solid #d7e6fa;border-radius:11px;background:#fff;color:#6384b4}
+.student-hub-search .icon{width:19px;height:19px;flex:0 0 19px}
+.student-hub-search input{width:100%;min-height:40px;margin:0;padding:0;border:0;outline:0;background:transparent;color:#112e62}
+.workspace-student-head>.primary{min-height:44px;padding:8px 17px;white-space:nowrap}
+.workspace-students{grid-template-columns:repeat(auto-fill,minmax(230px,275px));gap:13px;align-items:start}
+.workspace-students .home-student-card{min-height:0;height:auto;padding:12px;grid-template-columns:43px minmax(0,1fr) 18px;grid-template-rows:auto auto auto;gap:7px 9px}
+.workspace-students .home-student-card .avatar{width:42px;height:42px}
+.workspace-students .home-next-label{padding:8px;font-size:10px}
+.workspace-students .home-student-note{min-height:0}
+.workspace-page:has(.student-overview){height:auto;min-height:100svh;overflow:visible}
+.workspace-page:has(.student-overview) .workspace-content{height:auto;min-height:calc(100svh - 80px);overflow:visible;padding:28px clamp(25px,2.6vw,50px) 45px}
+.student-overview{height:auto!important;grid-template-rows:auto auto auto;gap:14px}
+.student-overview-hero{grid-template-columns:repeat(4,minmax(0,1fr));min-height:120px}
+.student-overview-identity{display:none}
+.workspace-content>.student-section-nav{display:flex;width:100%;gap:5px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;margin:0 0 17px;padding-bottom:7px}
+.workspace-content>.student-section-nav>button{flex:1 0 auto;min-width:94px;min-height:40px}
+@media(max-width:1050px){.workspace-students{grid-template-columns:repeat(auto-fill,minmax(230px,275px))}.material-page-tools>.actions{grid-template-columns:repeat(2,minmax(135px,1fr))}}
+@media(max-width:760px){.home-view .home-students,.workspace-students{grid-template-columns:repeat(auto-fill,minmax(245px,1fr))}.material-page-tools>.actions{width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}.student-overview{grid-template-rows:auto auto auto auto}.student-overview-hero{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto;min-height:0}.workspace-page:has(.student-overview) .workspace-content{height:auto;padding:14px 12px 84px}.workspace-content>.student-section-nav>button{flex:0 0 auto}.workspace-student-head{flex-direction:row}.student-hub-search{min-width:0;flex:1}.workspace-student-head>.primary{flex:0 0 auto}}
+@media(max-width:760px){.workspace-content>.student-section-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;overflow:visible}.workspace-content>.student-section-nav>button{min-width:0;width:100%;min-height:34px;padding:5px 3px;font-size:10px}.workspace-content>.student-section-nav>button .icon{display:none}}
