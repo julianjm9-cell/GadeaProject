@@ -429,11 +429,21 @@ temarioView = function () {
 openTemarioLesson = function (topic) {
   if (!isPremium()) {notify('El contenido completo de los temas está disponible en Premium. Cambia el tipo de cuenta desde el escritorio.');return;}
   const content = topic.didactic;
-  modal(topic.title, `<div class="temario-lesson"><p class="temario-lesson-meta">${esc(temarioSubject)} · ${esc(temarioCourse)}</p>
-    <section class="temario-lesson-intro"><h3>Explicación</h3><p>${esc(content.explanation)}</p></section>
-    <section class="temario-lesson-example"><h3>Ejemplo resuelto</h3><p>${esc(content.examples[0])}</p></section>
-    <section class="temario-lesson-practice"><h3>Practica</h3><p>${esc(content.practice[0].prompt)}</p><div class="actions"><button type="button" class="primary" data-temario-action="practice" data-id="${esc(topic.id)}">Practicar ahora</button></div><details><summary>Ver solución orientativa</summary><p class="temario-lesson-answer">${esc(content.solutions[0])}</p></details></section>
-    <details class="temario-extra"><summary>Más contenido</summary><div><h4>Objetivo</h4><p>${esc(content.objective)}</p><h4>Conceptos clave</h4><ul>${content.concepts.map(concept => `<li>${esc(concept)}</li>`).join('')}</ul><h4>Error frecuente</h4><p>${esc(content.commonErrors[0])}</p></div></details>
+  const exampleParts = content.examples[0].split(/\s*→\s*/);
+  const exampleMarkup = exampleParts.length > 1
+    ? `<div class="lesson-example-flow">${exampleParts.map((part, index) => `<div><span>${index + 1}</span><strong>${esc(part)}</strong></div>`).join('')}</div>`
+    : `<div class="lesson-example-quote">${esc(content.examples[0])}</div>`;
+  modal(topic.title, `<div class="temario-lesson">
+    <div class="lesson-hero"><p class="temario-lesson-meta">${esc(temarioSubject)} <span>·</span> ${esc(temarioCourse)}</p><p class="lesson-eyebrow">Objetivo de aprendizaje</p><p class="lesson-objective">${esc(content.objective)}</p><div class="lesson-route" aria-label="Recorrido del tema"><span>01 Entiende</span><span>02 Aplica</span><span>03 Practica</span><span>04 Transfiere</span></div></div>
+    <div class="lesson-grid">
+      <section class="lesson-card lesson-understand"><div class="lesson-card-heading"><span class="lesson-card-icon">01</span><div><small>Fundamento</small><h3>Entiende la idea</h3></div></div><p class="lesson-lead">${esc(content.explanation)}</p><div class="lesson-recognition"><strong>Cómo reconocerlo</strong><span>${esc(content.recognition)}</span></div></section>
+      <section class="lesson-card lesson-method"><div class="lesson-card-heading"><span class="lesson-card-icon">02</span><div><small>Procedimiento</small><h3>Cómo trabajarlo</h3></div></div><ol class="lesson-steps">${content.steps.map((step, index) => `<li><span>${index + 1}</span><p>${esc(step)}</p></li>`).join('')}</ol></section>
+      <section class="lesson-card lesson-example"><div class="lesson-card-heading"><span class="lesson-card-icon">03</span><div><small>Aplicación</small><h3>Ejemplo explicado</h3></div></div>${exampleMarkup}<div class="lesson-example-note"><strong>Fíjate en esto</strong><p>${esc(content.deepDive)}</p></div></section>
+      <section class="lesson-card temario-lesson-practice"><div class="lesson-card-heading"><span class="lesson-card-icon">04</span><div><small>Comprobación</small><h3>Ahora inténtalo</h3></div></div><p class="lesson-question">${esc(content.practice[0].prompt)}</p><details><summary>Ver respuesta orientativa</summary><p class="temario-lesson-answer">${esc(content.solutions[0])}</p></details><div class="actions"><button type="button" class="primary" data-temario-action="practice" data-id="${esc(topic.id)}">Practicar ahora</button></div></section>
+      <section class="lesson-card lesson-error"><div class="lesson-card-heading"><span class="lesson-card-icon">!</span><div><small>Atención</small><h3>Error frecuente</h3></div></div><p>${esc(content.commonErrors[0])}</p></section>
+      <section class="lesson-card lesson-transfer"><div class="lesson-card-heading"><span class="lesson-card-icon">↗</span><div><small>Un paso más</small><h3>Llévalo a otro caso</h3></div></div><p>${esc(content.transfer)}</p></section>
+    </div>
+    <details class="temario-extra"><summary>Guía para explicar este tema</summary><div><h4>Objetivo</h4><p>${esc(content.objective)}</p><h4>Conceptos para comprobar</h4><ul>${content.concepts.map(concept => `<li>${esc(concept)}</li>`).join('')}</ul><h4>Error frecuente</h4><p>${esc(content.commonErrors[0])}</p></div></details>
     <div class="temario-lesson-footer"><button type="button" data-temario-action="use" data-id="${esc(topic.id)}">Usar en material</button>${button('Cerrar', 'close')}</div>
   </div>`, () => {});
   $('dialog').classList.add('temario-dialog');

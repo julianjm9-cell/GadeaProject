@@ -158,7 +158,8 @@ body{background:radial-gradient(ellipse at 78% 0,#e4f0ff90,transparent 50%),line
 <main id="main"><div class="empty">Cargando tu escritorio…</div></main>
 <dialog id="dialog"><div class="row"><h2 id="dialogTitle"></h2><button class="close" data-action="close" aria-label="Cerrar">×</button></div><form id="form"></form></dialog>
 <div id="notice" role="status" aria-live="polite"></div>
-<script src="./profesor-temario.js?v=20261002-6"></script>
+<script src="./profesor-temario.js?v=20261002-7"></script>
+<script src="./profesor-temario-depth.js?v=20261002-1"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -871,6 +872,6 @@ init();
 @media(max-width:820px){.temario-stage{grid-template-columns:1fr}.temario-main-column{min-height:0}.temario-list-panel{min-height:320px;max-height:480px}.temario-detail{min-height:0}.temario-topic-meta{display:flex}.temario-topic{grid-template-columns:39px minmax(0,1fr) auto 32px}}
 @media(max-width:620px){.temario-heading{height:46px}.temario-heading h1{font-size:24px}.temario-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.temario-toolbar .temario-search{grid-column:1/-1}.temario-topic{grid-template-columns:37px minmax(0,1fr) 27px;min-height:70px}.temario-topic-meta{display:none}.temario-topic-index{width:36px;height:36px}.temario-topic-arrow{width:26px;height:26px}.temario-resources{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style>
-<link rel="stylesheet" href="./assets/profesor-final.css?v=20261002-9">
+<link rel="stylesheet" href="./assets/profesor-final.css?v=20261002-10">
 </body>
 </html>

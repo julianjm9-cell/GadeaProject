@@ -12,9 +12,19 @@ const path=require('node:path');
   await page.locator('.temario-controls').waitFor();
   const coverage=await page.evaluate(()=>{
    const topics=Object.values(PROFESOR_TEMARIO).flatMap(subjects=>Object.values(subjects).flat());
-   return {courses:Object.keys(PROFESOR_TEMARIO).length,topics:topics.length,incomplete:topics.filter(topic=>!topic.didactic?.objective||!topic.didactic?.explanation||!topic.didactic?.concepts?.length||!topic.didactic?.examples?.length||!topic.didactic?.commonErrors?.length||!topic.didactic?.practice?.length||!topic.didactic?.activities?.length||!topic.didactic?.solutions?.length).length};
+   return {courses:Object.keys(PROFESOR_TEMARIO).length,topics:topics.length,incomplete:topics.filter(topic=>!topic.didactic?.objective||!topic.didactic?.explanation||!topic.didactic?.concepts?.length||!topic.didactic?.examples?.length||!topic.didactic?.commonErrors?.length||!topic.didactic?.practice?.length||!topic.didactic?.activities?.length||!topic.didactic?.solutions?.length||topic.didactic?.deepDive?.length<70||topic.didactic?.steps?.length!==3||!topic.didactic?.recognition||!topic.didactic?.transfer).length};
   });
   assert.deepEqual(coverage,{courses:12,topics:279,incomplete:0});
+  const lessonAudit=await page.evaluate(()=>{
+    const failed=[];let rendered=0;
+    for(const [course,subjects] of Object.entries(PROFESOR_TEMARIO))for(const [subject,topics] of Object.entries(subjects))for(const topic of topics){
+      try{temarioCourse=course;temarioSubject=subject;openTemarioLesson(topic);rendered++;const detail=document.querySelector('.temario-lesson');if(!detail?.textContent.includes(topic.didactic.deepDive)||detail.querySelectorAll('.lesson-steps li').length!==3)failed.push(topic.id);$('dialog').close()}
+      catch(error){failed.push(topic.id+': '+error.message);if($('dialog').open)$('dialog').close()}
+    }
+    temarioCourse='3.º ESO';temarioSubject='Matemáticas';render();return {rendered,failed};
+  });
+  assert.equal(lessonAudit.rendered,279);
+  assert.deepEqual(lessonAudit.failed,[]);
   assert.equal(await page.locator('.temario-controls select').count(),3);
   assert.equal(await page.locator('.temario-heading').count(),0);
   assert.match(await page.locator('.temario-base-count').innerText(),/279 temas/);
@@ -36,7 +46,10 @@ const path=require('node:path');
   assert.match(await page.locator('.temario-preview-explanation').innerText(),/ecuaci/i);
   await page.getByRole('button',{name:'Ver tema'}).click();
   await page.screenshot({path:'tools/profesor-temario-leccion.png'});
-  assert.equal(await page.locator('.temario-lesson section').count(),3);
+  assert.equal(await page.locator('.temario-lesson section').count(),6);
+  assert.equal(await page.locator('.lesson-steps li').count(),3);
+  assert.match(await page.locator('.lesson-understand').innerText(),/ecuaci/i);
+  assert.match(await page.locator('.lesson-error').innerText(),/comprobar|igualdad|miembros/i);
   assert.equal(await page.locator('.temario-extra').evaluate(el=>el.open),false);
   await page.locator('.temario-extra summary').click();
   assert.match(await page.locator('.temario-extra').innerText(),/Error frecuente/);
@@ -61,6 +74,12 @@ const path=require('node:path');
 
   await page.setViewportSize({width:390,height:844});
   await page.locator('.home-primary-nav').getByRole('button',{name:'Temario'}).click();
+  await page.locator('#temarioSubject').selectOption('Inglés');
+  await page.getByRole('button',{name:'Ver tema'}).click();
+  assert.equal(await page.evaluate(()=>document.querySelector('#dialog').scrollWidth>document.querySelector('#dialog').clientWidth+2),false);
+  assert.equal(await page.locator('.lesson-grid .lesson-card').count(),6);
+  await page.screenshot({path:'tools/profesor-temario-leccion-mobile.png'});
+  await page.locator('#dialog .close').click();
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
   assert.deepEqual(errors,[]);
   console.log('PASS Temario: 279 fichas, flujo sencillo, práctica y uso en Materiales');
