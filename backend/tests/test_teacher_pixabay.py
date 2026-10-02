@@ -1,14 +1,20 @@
 from io import BytesIO
+from uuid import UUID
 
 import httpx
 from PIL import Image
+from sqlalchemy import select
 
 from test_access_control import client, login, seed_user
 from app.api import app_routes
+from app.models import License
 
 
-def enable_premium(web):
-    assert web.post('/api/state?app=profesor_particular', json={'version': 2, 'teacherProfile': {'plan': 'premium'}}).status_code == 200
+def enable_premium(factory, user_id):
+    with factory() as db:
+        license_obj = db.scalar(select(License).where(License.user_id == UUID(user_id), License.product_code == 'PROFESOR_PARTICULAR'))
+        license_obj.plan = 'PROFESOR_PREMIUM'
+        db.commit()
 
 
 def test_image_search_requires_premium_account(client):
@@ -22,9 +28,9 @@ def test_image_search_requires_premium_account(client):
 
 def test_pixabay_search_import_and_private_pdf(client, monkeypatch, tmp_path):
     web, factory = client
-    seed_user(factory, role="superadmin", product_codes=("PROFESOR_PARTICULAR",))
+    _, user_id = seed_user(factory, role="superadmin", product_codes=("PROFESOR_PARTICULAR",))
     assert login(web).status_code == 200
-    enable_premium(web)
+    enable_premium(factory, user_id)
     monkeypatch.setattr(app_routes, "LOCAL_DOCUMENT_DIR", tmp_path)
     missing = web.get("/api/profesor/images/search?q=gato&app=profesor_particular")
     assert missing.status_code == 503
@@ -81,19 +87,19 @@ def test_pixabay_search_import_and_private_pdf(client, monkeypatch, tmp_path):
 
 def test_pixabay_key_requires_admin_and_image_requires_login(client):
     web, factory = client
-    seed_user(factory, product_codes=("PROFESOR_PARTICULAR",))
+    _, user_id = seed_user(factory, product_codes=("PROFESOR_PARTICULAR",))
     assert web.get("/api/profesor/images/search?q=gato&app=profesor_particular").status_code == 401
     assert login(web).status_code == 200
-    enable_premium(web)
+    enable_premium(factory, user_id)
     assert web.post("/admin/ai-settings/keys", json={"pixabay_api_key": "12345678-" + "a" * 32}).status_code == 403
     assert web.post("/api/profesor/images/import?app=profesor_particular", json={"id": -2}).status_code == 422
 
 
 def test_pixabay_import_rejects_untrusted_image_host(client, monkeypatch):
     web, factory = client
-    seed_user(factory, role="superadmin", product_codes=("PROFESOR_PARTICULAR",))
+    _, user_id = seed_user(factory, role="superadmin", product_codes=("PROFESOR_PARTICULAR",))
     assert login(web).status_code == 200
-    enable_premium(web)
+    enable_premium(factory, user_id)
     assert web.post("/admin/ai-settings/keys", json={"pixabay_api_key": "12345678-" + "a" * 32}).status_code == 200
 
     async def unsafe_result(params, key):

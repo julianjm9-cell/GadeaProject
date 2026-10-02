@@ -48,6 +48,17 @@ const assert = require('node:assert/strict');
   await page.locator('#editOcrRole').selectOption('admin');
   await page.getByRole('button', {name:'Guardar cambios'}).click();
   assert.equal((await page.evaluate(() => window.requests)).find(request => request.url.endsWith('/access/OCR_FACTURAS')).body.access_role, 'admin');
+  await page.evaluate(() => {
+    const teacher = {id:'teacher-1',email:'teacher@example.com',full_name:'Laura',is_active:true,accesses:[{product_code:'PROFESOR_PARTICULAR',effective_status:'active',status:'active',plan:'PROFESOR_FREE',total_credits:300,used_credits:0,available_credits:300,unlimited:false,access_role:'user'}]};
+    users=[teacher];accounts=[teacher];setView('profesor');
+  });
+  assert.match(await page.locator('#appUsersTable').innerText(), /Normal/);
+  await page.locator('#appUsersTable button').click();
+  assert.equal(await page.locator('#editProfesorPlanWrap').isVisible(), true);
+  assert.equal(await page.locator('#editProfesorPlan').inputValue(), 'PROFESOR_FREE');
+  await page.locator('#editProfesorPlan').selectOption('PROFESOR_PREMIUM');
+  await page.getByRole('button', {name:'Guardar cambios'}).click();
+  assert.equal((await page.evaluate(() => window.requests)).find(request => request.url.endsWith('/access/PROFESOR_PARTICULAR')).body.plan, 'PROFESOR_PREMIUM');
   assert.deepEqual(errors, []);
   await browser.close();
   console.log('OK: inicio, navegación, barra de usuarios y saldo editable.');

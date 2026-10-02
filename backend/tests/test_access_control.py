@@ -94,11 +94,11 @@ def test_profesor_product_login_and_state_isolation(client):
     teacher_data = {"version": 1, "students": [{"id": "student-a", "name": "Alumno A"}]}
     assert test_client.post("/api/state?app=profesor_particular", json=teacher_data).status_code == 200
     assert test_client.post("/api/state?app=eso_adultos", json={"done": {"topic": True}}).status_code == 200
-    assert test_client.get("/api/state?app=profesor-particular").json() == teacher_data
+    assert test_client.get("/api/state?app=profesor-particular").json() == {**teacher_data, "teacherProfile": {"plan": "normal"}}
     assert test_client.get("/api/state?app=eso_adultos").json() == {"done": {"topic": True}}
     seed_user(db_factory, email="profesor2@example.com", product_codes=("PROFESOR_PARTICULAR",))
     assert login(test_client, email="profesor2@example.com").status_code == 200
-    assert test_client.get("/api/state?app=profesor_particular").json() == {}
+    assert test_client.get("/api/state?app=profesor_particular").json() == {"teacherProfile": {"plan": "normal"}}
 
 
 def test_profesor_requires_its_own_license(client):
@@ -107,6 +107,34 @@ def test_profesor_requires_its_own_license(client):
     assert login(test_client).status_code == 200
     assert test_client.get("/api/state?app=profesor_particular").status_code == 402
     assert test_client.post("/api/state?app=profesor_particular", json={"students": []}).status_code == 402
+
+
+def test_profesor_plan_is_controlled_only_by_admin_license(client):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin", email="admin@example.com")
+    _, teacher_id = seed_user(db_factory, email="teacher@example.com", product_codes=("PROFESOR_PARTICULAR",))
+    admin_token = login(test_client, email="admin@example.com").json()["access_token"]
+    teacher_token = login(test_client, email="teacher@example.com").json()["access_token"]
+    teacher_headers = {"Authorization": f"Bearer {teacher_token}"}
+    admin_headers = {"Authorization": f"Bearer {admin_token}"}
+    state_url = "/api/state?app=profesor_particular"
+    access_url = f"/admin/users/{teacher_id}/access/PROFESOR_PARTICULAR"
+
+    assert test_client.post(state_url, headers=teacher_headers, json={"version": 2, "teacherProfile": {"plan": "premium", "headline": "Docente"}}).status_code == 200
+    assert test_client.get(state_url, headers=teacher_headers).json()["teacherProfile"] == {"plan": "normal", "headline": "Docente"}
+    assert test_client.get("/api/profesor/images/search?q=gato&app=profesor_particular", headers=teacher_headers).status_code == 403
+    assert test_client.patch(access_url, headers=teacher_headers, json={"usage_limit": 300, "plan": "PROFESOR_PREMIUM"}).status_code == 403
+
+    upgraded = test_client.patch(access_url, headers=admin_headers, json={"usage_limit": 300, "plan": "PROFESOR_PREMIUM"})
+    assert upgraded.status_code == 200
+    assert upgraded.json()["access"]["plan"] == "PROFESOR_PREMIUM"
+    assert test_client.get(state_url, headers=teacher_headers).json()["teacherProfile"]["plan"] == "premium"
+    assert test_client.post(state_url, headers=teacher_headers, json={"version": 2, "teacherProfile": {"plan": "normal"}}).status_code == 200
+    assert test_client.get(state_url, headers=teacher_headers).json()["teacherProfile"]["plan"] == "premium"
+
+    downgraded = test_client.patch(access_url, headers=admin_headers, json={"usage_limit": 300, "plan": "PROFESOR_FREE"})
+    assert downgraded.status_code == 200
+    assert test_client.get(state_url, headers=teacher_headers).json()["teacherProfile"]["plan"] == "normal"
 
 
 def test_profesor_login_redirect_is_preserved(client):

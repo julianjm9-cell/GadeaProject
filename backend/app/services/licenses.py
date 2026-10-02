@@ -11,6 +11,13 @@ from app.models import License, Organization, UsageRecord, User
 
 
 PRODUCT_CODE = "DIPLOMATOR"
+PROFESOR_NORMAL_PLAN = "PROFESOR_FREE"
+PROFESOR_PREMIUM_PLAN = "PROFESOR_PREMIUM"
+
+
+def profesor_account_plan(license_obj: License) -> str:
+    """Only an administrator-controlled license can grant Profesor Premium."""
+    return "premium" if license_obj.plan == PROFESOR_PREMIUM_PLAN else "normal"
 
 
 @dataclass

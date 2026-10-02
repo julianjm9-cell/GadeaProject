@@ -129,6 +129,7 @@ class LicenseOut(BaseModel):
 
 class UserAccessPatch(BaseModel):
     usage_limit: int = Field(ge=0)
+    plan: str | None = None
     access_role: str | None = None
     status: str | None = None
     starts_at: datetime | None = None

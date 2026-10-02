@@ -36,7 +36,7 @@ from app.services.ai_config import (
 )
 from app.services.audit import audit
 from app.services.gemini_native import chat_data as gemini_chat_data, failure_message as gemini_failure_message, generate_url as gemini_generate_url, is_auth_key as is_gemini_auth_key, post_with_retry as gemini_post_with_retry, request_body as gemini_request_body
-from app.services.licenses import license_for_user, license_is_current, usage_count_for_license
+from app.services.licenses import PROFESOR_NORMAL_PLAN, PROFESOR_PREMIUM_PLAN, license_for_user, license_is_current, usage_count_for_license
 from app.services.resources import load_resource_catalog, save_resource_catalog
 
 
@@ -600,6 +600,10 @@ def patch_user_access(user_id: UUID, product_code: str, payload: UserAccessPatch
     else:
         raise HTTPException(status_code=404, detail="El usuario no tiene acceso a esta aplicacion.")
     license_obj.usage_limit = payload.usage_limit
+    if payload.plan is not None:
+        if product_code != "PROFESOR_PARTICULAR" or payload.plan not in {PROFESOR_NORMAL_PLAN, PROFESOR_PREMIUM_PLAN}:
+            raise HTTPException(status_code=400, detail="Tipo de cuenta de Profesor Particular no válido.")
+        license_obj.plan = payload.plan
     if payload.access_role is not None:
         if product_code != "OCR_FACTURAS" or payload.access_role not in {"admin", "user"}:
             raise HTTPException(status_code=400, detail="Rol de FACTURAS no valido.")
@@ -621,7 +625,7 @@ def patch_user_access(user_id: UUID, product_code: str, payload: UserAccessPatch
         action="user_access_updated",
         entity_type="license",
         entity_id=str(license_obj.id),
-        metadata={"user_id": str(user.id), "product_code": product_code, "usage_limit": payload.usage_limit, "status": license_obj.status, "access_role": license_obj.access_role},
+        metadata={"user_id": str(user.id), "product_code": product_code, "usage_limit": payload.usage_limit, "plan": license_obj.plan, "status": license_obj.status, "access_role": license_obj.access_role},
     )
     db.commit()
     db.refresh(license_obj)

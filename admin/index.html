@@ -239,6 +239,7 @@
           <div class="row"><div><label for="editName">Usuario</label><input id="editName"></div><div><label for="editEmail">Correo electrónico</label><input id="editEmail" type="email" required></div></div>
           <div><label for="editPassword">Nueva contraseña</label><input id="editPassword" type="password" minlength="8" placeholder="Dejar vacío para conservarla" autocomplete="new-password"></div>
           <div class="row"><div><label for="editAvailable">Créditos disponibles</label><input id="editAvailable" type="number" min="0" step="1" required></div><div><label for="editUsed">Créditos gastados</label><input id="editUsed" type="number" readonly></div></div>
+          <div id="editProfesorPlanWrap" hidden><label for="editProfesorPlan">Tipo de cuenta en Profesor Particular</label><select id="editProfesorPlan"><option value="PROFESOR_FREE">Normal</option><option value="PROFESOR_PREMIUM">Premium</option></select><small class="muted">Solo un administrador puede cambiar este acceso.</small></div>
           <div id="editOcrRoleWrap" hidden><label for="editOcrRole">Permisos en FACTURAS</label><select id="editOcrRole"><option value="admin">Administrador · modelos, claves y entrenamiento</option><option value="user">Usuario · uso de facturas</option></select></div>
           <div class="form-actions"><button class="danger" type="button" onclick="deleteSelectedUser()">Eliminar usuario</button><button class="primary">Guardar cambios</button></div>
         </div>
@@ -320,6 +321,7 @@ function renderApp(){
   const product=productByKey();
   $('newOcrRoleWrap').hidden=product.code!=='OCR_FACTURAS';
   $('editOcrRoleWrap').hidden=product.code!=='OCR_FACTURAS';
+  $('editProfesorPlanWrap').hidden=product.code!=='PROFESOR_PARTICULAR';
   const rows=appAccounts();
   const accesses=rows.map(account=>account.accesses.find(access=>access.product_code===product.code));
   const query=$('appUserSearch').value.trim().toLowerCase();
@@ -332,11 +334,12 @@ function renderApp(){
   $('appPublicLink').href=product.public;
   $('appPrivateLink').href=product.app;
   $('appMetrics').innerHTML=metric(accountLabel,rows.length)+metric('Accesos activos',active)+metric('Créditos gastados',used);
-  $('appUsersTable').innerHTML=table(['Usuario','Acceso',...(product.code==='OCR_FACTURAS'?['Rol']:[]),'Disponibles','Gastados',''],visible.map(account=>{
+  $('appUsersTable').innerHTML=table(['Usuario','Acceso',...(product.code==='PROFESOR_PARTICULAR'?['Tipo de cuenta']:[]),...(product.code==='OCR_FACTURAS'?['Rol']:[]),'Disponibles','Gastados',''],visible.map(account=>{
     const access=account.accesses.find(item=>item.product_code===product.code);
     return [
       `<td><strong>${esc(account.full_name||account.email)}</strong><br><span class="muted">${esc(account.email)}</span></td>`,
       `<td>${badge(access.effective_status==='active'?'active':'inactive')}</td>`,
+      ...(product.code==='PROFESOR_PARTICULAR'?[`<td>${access.plan==='PROFESOR_PREMIUM'?'Premium':'Normal'}</td>`]:[]),
       ...(product.code==='OCR_FACTURAS'?[`<td>${access.access_role==='admin'?'Administrador':'Usuario'}</td>`]:[]),
       `<td><strong>${accessCredits(access)}</strong></td>`,
       `<td>${access.used_credits}</td>`,
@@ -384,7 +387,7 @@ async function createAppUser(event){
     const org=existing?null:await ensureProductOrg(product);
     const user=existing||await api('/admin/users',{method:'POST',body:JSON.stringify({organization_id:org.id,email,password,full_name:$('newName').value.trim(),role:'user',is_active:true})});
     const now=new Date(),end=new Date(now.getTime()+days*86400000);
-    await api('/admin/licenses',{method:'POST',body:JSON.stringify({organization_id:user.organization_id,user_id:user.id,product_code:product.code,legacy_key:makeLicenseKey(product),starts_at:now.toISOString(),expires_at:end.toISOString(),status:'active',usage_limit:total,access_role:product.code==='OCR_FACTURAS'?$('newOcrRole').value:'user'})});
+    await api('/admin/licenses',{method:'POST',body:JSON.stringify({organization_id:user.organization_id,user_id:user.id,product_code:product.code,plan:product.code==='PROFESOR_PARTICULAR'?'PROFESOR_FREE':'MVP',legacy_key:makeLicenseKey(product),starts_at:now.toISOString(),expires_at:end.toISOString(),status:'active',usage_limit:total,access_role:product.code==='OCR_FACTURAS'?$('newOcrRole').value:'user'})});
     if(existing&&!existing.is_active)await api(`/admin/users/${user.id}`,{method:'PATCH',body:JSON.stringify({is_active:true})});
     await loadAll();
     $('createdBox').hidden=false;
@@ -406,6 +409,7 @@ function openUser(id){
   $('editPassword').value='';
   $('editAvailable').value=access.unlimited?0:Number(access.available_credits||0);
   $('editUsed').value=Number(access.used_credits||0);
+  $('editProfesorPlan').value=access.plan==='PROFESOR_PREMIUM'?'PROFESOR_PREMIUM':'PROFESOR_FREE';
   $('editOcrRole').value=access.access_role==='admin'?'admin':'user';
   $('editAvailable').title=access.unlimited?'Esta licencia no tiene límite. Escribe un número mayor que 0 para establecer un saldo.':'';
   $('editUserForm').scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -423,7 +427,8 @@ async function saveSelectedUser(event){
     if($('editPassword').value)body.password=$('editPassword').value;
     await api(`/admin/users/${user.id}`,{method:'PATCH',body:JSON.stringify(body)});
     const roleChanged=product.code==='OCR_FACTURAS'&&$('editOcrRole').value!==access.access_role;
-    if(total!==Number(access.total_credits||0)||roleChanged)await api(`/admin/users/${user.id}/access/${product.code}`,{method:'PATCH',body:JSON.stringify({usage_limit:total,...(product.code==='OCR_FACTURAS'?{access_role:$('editOcrRole').value}:{})})});
+    const planChanged=product.code==='PROFESOR_PARTICULAR'&&$('editProfesorPlan').value!==access.plan;
+    if(total!==Number(access.total_credits||0)||roleChanged||planChanged)await api(`/admin/users/${user.id}/access/${product.code}`,{method:'PATCH',body:JSON.stringify({usage_limit:total,...(product.code==='OCR_FACTURAS'?{access_role:$('editOcrRole').value}:{}),...(product.code==='PROFESOR_PARTICULAR'?{plan:$('editProfesorPlan').value}:{})})});
     await loadAll();
     closeUserEditor();
     toast('Usuario actualizado.');

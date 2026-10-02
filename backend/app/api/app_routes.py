@@ -41,7 +41,7 @@ from app.services.ai_config import (
 )
 from app.services.audit import audit
 from app.services.gemini_native import chat_data as gemini_chat_data, failure_message as gemini_failure_message, generate_url as gemini_generate_url, is_auth_key as is_gemini_auth_key, post_with_retry as gemini_post_with_retry, request_body as gemini_request_body
-from app.services.licenses import check_access, check_legacy_license, usage_count_for_license
+from app.services.licenses import check_access, check_legacy_license, profesor_account_plan, usage_count_for_license
 from app.services.gamification import award_event, equip_item, get_or_create_profile, level_for_xp, profile_payload, public_config, purchase_item
 from app.services.resources import load_resource_catalog
 
@@ -1030,15 +1030,10 @@ def _pixabay_key(db: Session) -> str:
     return key
 
 
-def _profesor_image_access(license_obj: License, db: Session, user: User) -> None:
+def _profesor_image_access(license_obj: License) -> None:
     if license_obj.product_code != "PROFESOR_PARTICULAR":
         raise HTTPException(403, "Requiere acceso a Profesor Particular.")
-    saved = app_state_data(state_row(db, user), "profesor_particular")
-    if not isinstance(saved, dict):
-        saved = {}
-    profile = saved.get("teacherProfile")
-    plan = profile.get("plan", "premium") if isinstance(profile, dict) else ("premium" if saved.get("version") else "normal")
-    if plan != "premium":
+    if profesor_account_plan(license_obj) != "premium":
         raise HTTPException(403, "Las actividades con imágenes requieren una cuenta Premium.")
 
 
@@ -1075,7 +1070,7 @@ async def _pixabay_data(params: dict, key: str) -> dict:
 
 @router.get("/api/profesor/images/search")
 async def search_profesor_images(q: str = Query(min_length=2, max_length=100), kind: str = "photo", user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
-    _profesor_image_access(license_obj, db, user)
+    _profesor_image_access(license_obj)
     rate_limit_key(f"pixabay-search:{user.id}", limit=60)
     query = q.strip()
     if len(query) < 2:
@@ -1088,7 +1083,7 @@ async def search_profesor_images(q: str = Query(min_length=2, max_length=100), k
 
 @router.post("/api/profesor/images/import")
 async def import_profesor_image(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
-    _profesor_image_access(license_obj, db, user)
+    _profesor_image_access(license_obj)
     rate_limit_key(f"pixabay-import:{user.id}", limit=60)
     image_id = payload.get("id")
     if not isinstance(image_id, int) or isinstance(image_id, bool) or image_id < 1:
@@ -1285,8 +1280,15 @@ async def upload_drive_document(
 
 
 @router.get("/api/state")
-def get_state(request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db)):
-    return app_state_data(state_row(db, user), request_app_key(request))
+def get_state(request: Request, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    app_key = request_app_key(request)
+    saved = app_state_data(state_row(db, user), app_key)
+    if app_key != "profesor_particular":
+        return saved
+    result = dict(saved) if isinstance(saved, dict) else {}
+    profile = result.get("teacherProfile")
+    result["teacherProfile"] = {**(profile if isinstance(profile, dict) else {}), "plan": profesor_account_plan(license_obj)}
+    return result
 
 
 @router.get("/api/gamification")
@@ -1365,9 +1367,14 @@ def set_gamification_equipment(payload: dict, request: Request, user: User = Dep
 
 
 @router.post("/api/state")
-def save_state(payload: dict, request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db)):
+def save_state(payload: dict, request: Request, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    app_key = request_app_key(request)
+    if app_key == "profesor_particular":
+        payload = dict(payload)
+        profile = payload.get("teacherProfile")
+        payload["teacherProfile"] = {**(profile if isinstance(profile, dict) else {}), "plan": profesor_account_plan(license_obj)}
     row = state_row(db, user)
-    set_app_state_data(row, request_app_key(request), payload)
+    set_app_state_data(row, app_key, payload)
     db.commit()
     return {"ok": True}
 
