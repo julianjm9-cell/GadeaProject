@@ -10,14 +10,12 @@ const assert=require('node:assert/strict');
   const page=await browser.newPage({viewport:{width:1366,height:768}});
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
-  const brand=await page.locator('.home-brand').boundingBox(),nav=await page.locator('.home-primary-nav').boundingBox();
-  assert(nav.x-brand.x-brand.width<45,'navigation stays beside the logo');
+  const brand=await page.locator('.home-brand').boundingBox(),home=await page.locator('.home-start').boundingBox();
+  assert(home.x-brand.x-brand.width<45,'home button stays beside the logo');
   assert.equal(await page.locator('.home-roster #homeStudentSearch').count(),0,'home shows a clean student summary');
-  assert.equal(await page.locator('.home-roster').getByRole('button',{name:'+ Alumno'}).count(),0,'student creation stays in Alumnos');
-  await page.locator('.home-primary-nav').getByRole('button',{name:'Alumnos'}).click();
-  assert.equal(await page.locator('#homeStudentSearch').count(),1,'search remains available in Alumnos');
-  assert.equal(await page.getByRole('button',{name:'+ Alumno',exact:true}).count(),1,'student creation remains available in Alumnos');
-  await page.getByRole('button',{name:'Abrir espacio de Lucía Martín'}).click();
+  assert.equal(await page.locator('.home-roster').getByRole('button',{name:'Añadir alumno'}).count(),1,'student creation is available in Inicio');
+  assert.equal(await page.locator('.home-primary-nav').getByRole('button',{name:'Alumnos'}).count(),0);
+  await page.getByRole('link',{name:'Abrir espacio de Lucía Martín'}).click();
   const studentNav=page.locator('.student-section-nav');
   assert.equal(await studentNav.locator('button').filter({hasText:'Resumen'}).count(),1);
   assert.equal(await studentNav.locator('button').filter({hasText:'Materiales'}).count(),1);
@@ -54,6 +52,7 @@ const assert=require('node:assert/strict');
   await page.setViewportSize({width:375,height:667});
   for(const section of ['notes','tasks','history']){
    await page.locator(`[data-action="studentOverviewPanel"][data-id="${section}"]`).click();
+   await page.screenshot({path:'tools/profesor-student-overview-compact-'+section+'.png'});
    assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1),true,`${section} on a compact phone`);
   }
   assert.deepEqual(errors,[]);
