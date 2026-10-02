@@ -12,8 +12,8 @@ const assert = require('node:assert/strict');
     await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
     await page.locator('.home-primary-nav').getByRole('button', { name: 'Material' }).click();
     await page.getByRole('button', { name: 'Crear material', exact: true }).click();
-    assert.equal(await page.locator('.studio-fields > div:visible').count(), 5);
-    assert.equal(await page.locator('.studio-preview').isVisible(), true);
+    assert.equal(await page.locator('.studio-fields > div:visible').count(), 3);
+    assert.equal(await page.locator('.studio-preview').count(), 0);
     await page.locator('#workshopCourse').selectOption('4.º Primaria');
     await page.locator('#workshopTopic').fill('Fracciones');
     const pairs = page.locator('[data-exercise="pairs"]');
@@ -23,7 +23,7 @@ const assert = require('node:assert/strict');
     assert.equal(await pairs.getAttribute('aria-pressed'), 'true');
     await pairs.locator('[data-step="1"]').click();
     assert.equal(await page.locator('#count-pairs').inputValue(), '4');
-    assert.match(await page.locator('.preview-section-title').innerText(), /\(4\)/);
+    assert.match(await page.locator('#workshopSelection').innerText(), /4 ejercicios/);
     const contained = await pairs.evaluate(tile => {
       const tileRect = tile.getBoundingClientRect();
       const quantityRect = tile.querySelector('.tile-quantity').getBoundingClientRect();
@@ -32,7 +32,13 @@ const assert = require('node:assert/strict');
     assert.equal(contained, true, 'quantity control remains inside its tile');
     await pairs.locator('[data-step="-1"]').click();
     assert.equal(await page.locator('#count-pairs').inputValue(), '3');
-    await page.locator('#workshopContinue').click();
+    await page.locator('.playful-family summary').click();
+    await page.locator('[data-exercise="memory"]').click();
+    assert.equal(await page.locator('.basic-family').evaluate(el=>el.open),false);
+    assert.equal(await page.locator('#count-pairs').inputValue(),'3','collapsing a group preserves its selection');
+    assert.match(await page.locator('#workshopSelection').innerText(),/4 ejercicios/);
+    await page.locator('[data-exercise="memory"]').click();
+    await page.locator('#workshopManual').click();
     await page.locator('#q-0').waitFor();
     assert.equal(await page.locator('#q-0').count(), 1, 'manual editor opens');
 
@@ -80,13 +86,16 @@ const assert = require('node:assert/strict');
     await mobile.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
     await mobile.locator('.home-primary-nav').getByRole('button', { name: 'Material' }).click();
     await mobile.getByRole('button', { name: 'Crear material', exact: true }).click();
-    for (const category of ['basic', 'game', 'photo']) {
-      await mobile.locator(`[data-workshop-category="${category}"]`).click();
-      assert.equal(await mobile.locator('.catalog-main').getAttribute('data-mobile-category'), category);
+    for (const category of ['basic-family', 'playful-family', 'photo-manual']) {
+      const family = mobile.locator('.' + category);
+      await family.locator('summary').click();
+      assert.equal(await family.evaluate(el => el.open), true);
+      await family.locator('summary').click();
     }
+    assert.equal(await mobile.evaluate(() => document.querySelector('#dialog').scrollWidth > document.querySelector('#dialog').clientWidth + 2), false);
     await mobile.screenshot({ path: 'tools/profesor-crear-material-mobile.png' });
     assert.deepEqual(errors, []);
-    console.log('PASS creator layout, quantity, preview, manual/photo paths and mobile categories');
+    console.log('PASS creator layout, quantity, selection persistence, manual/AI/photo paths and mobile accordions');
   } finally {
     await browser.close();
   }

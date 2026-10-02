@@ -102,15 +102,22 @@ APP_ALIASES = {
 }
 
 
-def static_html(filename: str, fallback: Path) -> FileResponse:
+def static_html(filename: str, fallback: Path) -> Response:
     path = STATIC_DIR / filename
+    response_path = fallback if fallback.exists() else path
+    headers = {
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "Pragma": "no-cache", "Expires": "0",
+    }
+    if filename == "profesor-particular.html":
+        # Both /profesor/demo and /profesor-particular use the same root asset routes.
+        html = response_path.read_text(encoding="utf-8")
+        html = html.replace('src="./assets/', 'src="/assets/').replace('href="./assets/', 'href="/assets/')
+        html = html.replace('src="./profesor-', 'src="/profesor-')
+        return HTMLResponse(html, headers=headers)
     return FileResponse(
-        fallback if fallback.exists() else path,
-        headers={
-            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-            "Pragma": "no-cache",
-            "Expires": "0",
-        },
+        response_path,
+        headers=headers,
     )
 
 
@@ -643,10 +650,27 @@ def profesor_temario_catalogue():
     return FileResponse(path, media_type="text/javascript", headers={"Cache-Control": "public, max-age=3600"})
 
 
+@router.get("/profesor-temario-depth.js")
+@router.get("/profesor-activity-play.js")
+def profesor_support_script(request: Request):
+    filename = request.url.path.rsplit("/", 1)[-1]
+    local_path = PROJECT_ROOT / "apps" / "profesor" / filename
+    static_path = STATIC_DIR / "assets" / filename
+    path = local_path if local_path.exists() else static_path
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Recurso de Profesor Particular no encontrado.")
+    return FileResponse(path, media_type="text/javascript", headers={"Cache-Control": "public, max-age=3600"})
+
+
 @router.get("/assets/profesor-final.css")
-def profesor_final_styles():
-    local_path = PROJECT_ROOT / "apps" / "profesor" / "assets" / "profesor-final.css"
-    static_path = STATIC_DIR / "assets" / "profesor-final.css"
+@router.get("/assets/profesor-home.css")
+@router.get("/assets/profesor-studio.css")
+@router.get("/assets/profesor-temario.css")
+@router.get("/assets/profesor-activity-play.css")
+def profesor_final_styles(request: Request):
+    filename = request.url.path.rsplit("/", 1)[-1]
+    local_path = PROJECT_ROOT / "apps" / "profesor" / "assets" / filename
+    static_path = STATIC_DIR / "assets" / filename
     path = local_path if local_path.exists() else static_path
     if not path.exists():
         raise HTTPException(status_code=404, detail="Estilos de Profesor Particular no encontrados.")
@@ -1210,6 +1234,28 @@ def export_profesor_pdf(payload: dict, user: User = Depends(current_user), licen
         raise HTTPException(422, str(exc)) from exc
     filename = "profesor-soluciones.pdf" if payload["version"] == "solutions" else "profesor-ficha.pdf"
     return Response(pdf, media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="{filename}"', "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})
+
+
+@router.post("/api/profesor/temario/export-pdf")
+def export_profesor_topic_pdf(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license)):
+    if license_obj.product_code != "PROFESOR_PARTICULAR":
+        raise HTTPException(403, "Requiere acceso a Profesor Particular.")
+    from app.services.teacher_temario import RESOURCES, render_topic_pdf, topic_catalog
+    resource = payload.get("resource")
+    if not isinstance(resource, str) or resource not in RESOURCES:
+        raise HTTPException(422, "Elige un recurso del tema.")
+    if resource != "scheme" and profesor_account_plan(license_obj) != "premium":
+        raise HTTPException(403, "Este recurso está disponible para cuentas Premium.")
+    topic_id = payload.get("topic_id")
+    if not isinstance(topic_id, str):
+        raise HTTPException(422, "Indica el tema.")
+    topic = topic_catalog().get(topic_id)
+    if topic is None:
+        raise HTTPException(404, "Tema no encontrado.")
+    pdf = render_topic_pdf(topic, resource)
+    return Response(pdf, media_type="application/pdf", headers={
+        "Content-Disposition": 'attachment; filename="profesor-tema-' + resource + '.pdf"',
+        "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})
 
 
 @router.post("/api/diplomator/export-pdf")

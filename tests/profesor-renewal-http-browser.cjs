@@ -1,0 +1,45 @@
+const {chromium}=require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const assert=require('node:assert/strict');
+const base=process.env.PROFESOR_TEST_BASE||'http://127.0.0.1:8897';
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:'msedge'});
+ try{
+  const page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[],failed=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  page.on('response',r=>{if(r.status()>=400&&/\.(js|css)(\?|$)/.test(r.url()))failed.push(r.url())});
+  await page.goto(base+'/profesor/demo');
+  await page.locator('.home-roster').waitFor();
+  assert.deepEqual(failed,[],'all deployed CSS and scripts load');
+  await page.evaluate(()=>{state.students[0].notes='Nota de prueba guardada';save()});
+  await page.evaluate(()=>saveQueue);
+  assert.equal(await page.locator('#saveState').isVisible(),false);
+  await page.reload();
+  assert.match(await page.locator('.home-student-card').first().innerText(),/Nota de prueba guardada/);
+  await page.locator('.home-primary-nav').getByRole('button',{name:'Temario'}).click();
+  await page.locator('#temarioSubject').selectOption('Inglés');
+  assert.equal(await page.locator('.temario-resources .temario-resource').count(),3);
+  await page.getByRole('button',{name:'Abrir Esquema resumen',exact:true}).click();
+  assert.equal(await page.locator('.topic-resource-view').count(),1);
+  await page.locator('#dialog .close').click();
+  await page.evaluate(()=>{demo=false;api=async()=>{throw Error('Fallo de red de prueba')};save()});
+  await page.evaluate(()=>saveQueue);
+  assert.equal(await page.locator('#saveState').isVisible(),true,'failed saving offers retry');
+  await page.evaluate(()=>{demo=true});
+  await page.locator('#saveState').click();
+  await page.evaluate(()=>saveQueue);
+  assert.equal(await page.locator('#saveState').isVisible(),false,'successful retry is silent');
+  await page.locator('.home-primary-nav').getByRole('button',{name:'Material'}).click();
+  await page.getByRole('button',{name:'Crear material',exact:true}).click();
+  assert.equal(await page.locator('.studio-preview').count(),0);
+  await page.setViewportSize({width:390,height:844});
+  await page.locator('.playful-family summary').click();
+  const lastTile=page.locator('[data-exercise="dragdrop"]');
+  await lastTile.scrollIntoViewIfNeeded();
+  await lastTile.click();
+  assert.equal(await page.locator('#count-dragdrop').inputValue(),'1','last mobile tile is accessible');
+  assert.equal(await page.evaluate(()=>document.querySelector('.playful-family').scrollHeight<=document.querySelector('.playful-family').clientHeight+2),true,'expanded group does not clip any tiles');
+  assert.equal(await page.locator('#dialog').evaluate(el=>el.scrollWidth>el.clientWidth+2),false);
+  assert.deepEqual(errors,[]);
+  console.log('PASS HTTP assets, silent persistence/retry, resources and mobile accordion reachability');
+ }finally{await browser.close()}
+})().catch(error=>{console.error(error);process.exit(1)});

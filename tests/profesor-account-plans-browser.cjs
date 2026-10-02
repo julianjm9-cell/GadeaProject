@@ -26,8 +26,12 @@ const path = require('node:path');
     assert.equal(await page.locator('button.account-plan').count(), 0);
     await page.locator('.account-plan').click();
     assert.equal(await page.locator('#dialog[open]').count(), 0);
-    assert.equal(await page.locator('.temario-preview-explanation').count(), 0);
-    await page.getByRole('button', { name: /Ver tema completo/ }).click();
+    assert.equal(await page.locator('.temario-preview-explanation').count(), 1);
+    assert.equal(await page.locator('.temario-resource.locked').count(), 2);
+    await page.getByRole('button', { name: 'Abrir Esquema resumen', exact: true }).click();
+    assert.equal(await page.locator('.topic-resource-view').count(), 1);
+    await page.locator('#dialog .close').click();
+    await page.getByRole('button', { name: /Tema completo/ }).click();
     assert.equal(await page.locator('#dialog[open]').count(), 0);
 
     // Simulate a plan supplied by the server, without a user-facing switch.
@@ -35,7 +39,7 @@ const path = require('node:path');
     assert.match(await page.locator('.account-plan').innerText(), /Premium/);
     assert.equal(await page.locator('button.account-plan').count(), 0);
     assert.equal(await page.locator('.temario-preview-explanation').count(), 1);
-    await page.getByRole('button', { name: 'Ver tema' }).click();
+    await page.getByRole('button', { name: 'Ver tema completo' }).click();
     assert.equal(await page.locator('.temario-lesson').count(), 1);
     await page.locator('#dialog .close').click();
 

@@ -1,0 +1,70 @@
+/* Crear material: formulario directo y cantidades dentro de cada tarjeta. */
+dialog.studio-renewed{width:min(1540px,calc(100vw - 32px));max-width:none;max-height:94svh;height:auto;padding:24px;background:linear-gradient(120deg,#edf9ff,#e8f6fd);overflow:auto;border-radius:22px}
+dialog.studio-renewed>.row{position:absolute;top:24px;right:24px;left:auto;margin:0;padding:0;background:transparent;border:0;z-index:2}
+dialog.studio-renewed>.row #dialogTitle{position:absolute;clip:rect(0,0,0,0);width:1px;height:1px;overflow:hidden}
+dialog.studio-renewed>.row .close{width:44px;height:44px;min-height:44px;margin:0;padding:0;border:1px solid #d7eafc;background:#fff;border-radius:12px;font-size:26px;color:#0b255c}
+dialog.studio-renewed #form{display:grid;gap:16px;max-height:none;overflow:visible;margin:0}
+dialog.studio-renewed{display:block}
+dialog.studio-renewed #form{flex:none;height:auto;min-height:min-content;grid-auto-rows:max-content}
+dialog.studio-renewed .catalog-board,dialog.studio-renewed .catalog-main,dialog.studio-renewed .catalog-families{grid-auto-rows:max-content;grid-template-rows:none}
+dialog.studio-renewed .studio-topline{display:grid;grid-template-columns:auto minmax(0,1fr);gap:30px;align-items:center;padding-right:60px}
+dialog.studio-renewed .studio-topline h2{margin:0;font-size:clamp(26px,2.6vw,39px);white-space:nowrap;letter-spacing:-1px;color:#071f52}
+dialog.studio-renewed .studio-fields{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1fr) minmax(0,1.25fr);gap:18px;margin:0;padding:0;border:0;background:transparent}
+dialog.studio-renewed label{display:block;margin:0 0 6px;font-size:13px;font-weight:700;color:#496390}
+dialog.studio-renewed input,dialog.studio-renewed select{width:100%;height:46px;min-height:46px;padding:9px 12px;border:1px solid #bbd7fa;border-radius:10px;background:#fff;color:#092755;font-size:14px;margin:0}
+dialog.studio-renewed .workshop-settings{display:block;padding:0 12px;border:0;background:transparent;margin:0;min-height:0}
+dialog.studio-renewed .workshop-settings>summary{padding:0;min-height:22px;color:#526f95;font-size:12px;cursor:pointer;list-style:revert}
+dialog.studio-renewed .workshop-settings>summary span{margin-left:8px;font-weight:700}
+dialog.studio-renewed .workshop-extra-fields{display:grid;grid-template-columns:1fr 1.5fr .7fr;gap:16px;padding:12px 0 0}
+dialog.studio-renewed .catalog-board,dialog.studio-renewed .catalog-main,dialog.studio-renewed .catalog-families{display:grid;grid-template-columns:minmax(0,1fr);height:auto;min-height:0;gap:14px;margin:0;overflow:visible}
+dialog.studio-renewed details.exercise-family{display:block;border:1px solid #e0edfa;border-radius:16px;margin:0;padding:0;background:#ffffffed;overflow:hidden;height:auto;min-height:0}
+dialog.studio-renewed details.playful-family[open]{background:#fffdf3;border-color:#f6ebc3}
+dialog.studio-renewed details.exercise-family>.family-heading{display:flex;align-items:center;gap:14px;min-height:70px;padding:12px 18px;margin:0;cursor:pointer;list-style:none;color:#0d2556}
+dialog.studio-renewed details.exercise-family>.family-heading::-webkit-details-marker{display:none}
+dialog.studio-renewed details.exercise-family>.family-heading::before,dialog.studio-renewed details.exercise-family>.family-heading::after{content:none}
+dialog.studio-renewed .family-number{display:grid;place-items:center;width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:#e4f3ff;color:#0067ed;font-size:23px;font-weight:800}
+dialog.studio-renewed .playful-family .family-number{background:#fff0cb;color:#e78908}
+dialog.studio-renewed .photo-manual .family-number{background:#f0e5ff;color:#8c30ed}
+dialog.studio-renewed .family-symbol .icon{width:27px;height:27px;color:#0473f3}
+dialog.studio-renewed .family-heading>strong{font-size:21px;line-height:1.25;flex:1}
+dialog.studio-renewed .family-selected{font-size:12px;color:#5477a7}
+dialog.studio-renewed .family-chevron{font-size:24px;color:#46689c;transition:transform .15s}
+dialog.studio-renewed details[open] .family-chevron{transform:rotate(180deg)}
+dialog.studio-renewed details.exercise-family>.exercise-tiles{display:none}
+dialog.studio-renewed details.exercise-family[open]>.exercise-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:0 18px 18px;overflow:visible}
+dialog.studio-renewed .exercise-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;min-width:0;width:100%;height:134px;min-height:134px;margin:0;padding:12px 20px;border:1px solid #cde5fb;border-radius:12px;background:#fff;color:#102453;box-shadow:none;overflow:visible;text-align:center}
+dialog.studio-renewed .exercise-tile>.studio-symbol{display:grid;place-items:center;width:48px;height:48px;min-width:48px;flex:0 0 48px;border-radius:50%;background:#ebefff;color:#7251dc;margin:0}
+dialog.studio-renewed .exercise-tile .studio-symbol .icon{width:26px;height:26px}
+dialog.studio-renewed .exercise-tile[data-tone="classic"]>.studio-symbol{background:#e8f4ff;color:#0871ed}
+dialog.studio-renewed .exercise-tile[data-tone="practice"]>.studio-symbol{background:#e2faef;color:#079b69}
+dialog.studio-renewed .exercise-tile>strong{width:100%;font-size:15px;line-height:1.25;white-space:normal;overflow-wrap:anywhere;padding:0}
+dialog.studio-renewed .exercise-tile>strong{text-align:center;align-self:center}
+dialog.studio-renewed .exercise-tile[data-exercise="flashcard"]>.studio-symbol{background:#ffe7f0;color:#f32787}
+dialog.studio-renewed .exercise-tile[data-exercise="sentence"]>.studio-symbol{background:#e2faee;color:#08a873}
+dialog.studio-renewed .exercise-tile[data-exercise="wordsearch"]>.studio-symbol{background:#e2f2ff;color:#0879ed}
+dialog.studio-renewed .exercise-tile[data-exercise="crossword"]>.studio-symbol{background:#fff3d9;color:#e59b17}
+dialog.studio-renewed .exercise-tile[data-exercise="dragdrop"]>.studio-symbol{background:#e5faff;color:#06a4c5}
+dialog.studio-renewed .exercise-tile[data-exercise="error"]>.studio-symbol{background:#ffe9e9;color:#e44248}
+dialog.studio-renewed .exercise-tile .tile-check{display:grid;place-items:center;position:absolute;top:12px;right:12px;width:19px;height:19px;border:1.5px solid #a7bdd8;border-radius:50%;background:#fff;font-size:0;color:#fff;opacity:1}
+dialog.studio-renewed .exercise-tile[aria-pressed="true"]{background:#eef7ff;border:1.5px solid #0874ff;box-shadow:0 0 0 1px #0874ff0d}
+dialog.studio-renewed .exercise-tile[aria-pressed="true"] .tile-check{background:#0874ff;border-color:#0874ff;font-size:12px}
+dialog.studio-renewed .exercise-tile .tile-check{left:auto;bottom:auto;transform:none}
+dialog.studio-renewed .exercise-tile[aria-pressed="true"] .tile-check{position:absolute;left:auto;right:12px;top:12px;bottom:auto;transform:none}
+dialog.studio-renewed .exercise-tile .tile-quantity{position:static;display:none;align-items:center;gap:12px;margin:0;height:24px;min-height:24px;padding:0;border:0;background:transparent;transform:none}
+dialog.studio-renewed .exercise-tile[aria-pressed="true"] .tile-quantity{display:flex}
+dialog.studio-renewed .exercise-tile[aria-pressed="true"]{gap:5px;padding-top:8px;padding-bottom:8px}
+dialog.studio-renewed .tile-quantity>[data-step]{display:grid;place-items:center;width:26px;height:24px;border:1px solid #c4ddfa;border-radius:6px;background:#fff;color:#066bed;font-size:17px;line-height:1;cursor:pointer}
+dialog.studio-renewed .tile-quantity>output{min-width:16px;color:#164878;font-size:13px;font-weight:700}
+dialog.studio-renewed .tile-quantity>[aria-disabled="true"]{opacity:.45}
+dialog.studio-renewed #workshopStatus:empty{display:none}
+dialog.studio-renewed #workshopStatus{margin:0;color:#64779a;font-size:12px}
+dialog.studio-renewed .studio-actions{display:flex;position:static;align-items:center;justify-content:flex-end;gap:12px;padding:0;margin:0;border:0;background:transparent;box-shadow:none}
+dialog.studio-renewed .studio-actions>button{height:46px;min-height:46px;min-width:170px;padding:10px 20px;margin:0;border:1px solid #0874ff;border-radius:10px;background:#fff;color:#0868ee;font-size:14px;font-weight:700}
+dialog.studio-renewed .studio-actions>button.primary{background:#076cf0;color:#fff}
+dialog.studio-renewed .workshop-selection-status{margin-right:auto;color:#526f95;font-size:12px}
+dialog.studio-renewed .workshop-selection-status.error{color:#b12a3d}
+dialog.studio-renewed [hidden]{display:none!important}
+.save-feedback[hidden]{display:none!important}
+.save-feedback:not([hidden]),.home-view main>footer.save-feedback:not([hidden]){display:block;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:8px 12px;z-index:10;background:#fff4f1;border:1px solid #e1b1a8;border-radius:10px;box-shadow:0 5px 20px #29161615}
+@media(max-width:1000px){dialog.studio-renewed .studio-topline{grid-template-columns:1fr;gap:12px}dialog.studio-renewed .studio-topline h2{font-size:29px}dialog.studio-renewed .studio-fields{margin-right:-60px}dialog.studio-renewed .family-heading>strong{font-size:18px}}
+@media(max-width:650px){dialog.studio-renewed{width:calc(100vw - 14px);padding:14px;max-height:96svh;border-radius:16px}dialog.studio-renewed>.row{top:14px;right:14px}dialog.studio-renewed .studio-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}dialog.studio-renewed .studio-fields>div:last-child{grid-column:1/-1}dialog.studio-renewed .workshop-extra-fields{grid-template-columns:1fr}dialog.studio-renewed details.exercise-family>.family-heading{gap:8px;padding:10px;min-height:58px}dialog.studio-renewed .family-number{width:32px;height:32px;flex-basis:32px;font-size:19px}dialog.studio-renewed .family-symbol{display:none}dialog.studio-renewed .family-heading>strong{font-size:16px}dialog.studio-renewed .family-selected{font-size:10px;max-width:65px}dialog.studio-renewed details.exercise-family[open]>.exercise-tiles{grid-template-columns:repeat(2,minmax(0,1fr));padding:0 10px 10px;gap:8px}dialog.studio-renewed .exercise-tile{height:128px;min-height:128px;padding-left:10px;padding-right:10px}dialog.studio-renewed .exercise-tile>strong{font-size:12px}dialog.studio-renewed .studio-actions{flex-wrap:wrap;gap:8px}dialog.studio-renewed .workshop-selection-status{width:100%;margin:0}dialog.studio-renewed .studio-actions>button{flex:1;min-width:0;padding:8px;font-size:12px}.save-feedback:not([hidden]){bottom:70px;width:max-content;max-width:95vw}}

@@ -18,7 +18,9 @@ COPY apps/e25/index.html /app/app/static/eso-adultos.html
 COPY apps/ocr/index.html /app/app/static/ocr-facturas-app.html
 COPY apps/profesor/index.html /app/app/static/profesor-particular.html
 COPY apps/profesor/profesor-temario.js /app/app/static/assets/profesor-temario.js
-COPY apps/profesor/assets/profesor-final.css /app/app/static/assets/profesor-final.css
+COPY apps/profesor/profesor-temario-depth.js /app/app/static/assets/profesor-temario-depth.js
+COPY apps/profesor/profesor-activity-play.js /app/app/static/assets/profesor-activity-play.js
+COPY apps/profesor/assets /app/app/static/assets
 COPY apps/e25/assets/desk /app/app/static/assets/desk
 COPY marketing/app_landings_demo /app/app/static/marketing
 

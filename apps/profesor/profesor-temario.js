@@ -401,30 +401,63 @@ for (const [course, subjects] of Object.entries(window.PROFESOR_TEMARIO)) {
   }
 }
 
-temarioView = function () {
-  const courses = Object.keys(window.PROFESOR_TEMARIO || {});
-  if (!courses.includes(temarioCourse)) temarioCourse = courses[0] || '';
-  const subjects = Object.keys(window.PROFESOR_TEMARIO?.[temarioCourse] || {});
-  if (!subjects.includes(temarioSubject)) temarioSubject = subjects[0] || '';
-  const topics = temarioVisibleTopics();
-  if (!topics.some(topic => topic.id === temarioSelected)) temarioSelected = topics[0]?.id || '';
-  const current = topics.find(topic => topic.id === temarioSelected);
-  return `<div class="temario-page temario-simple">
-    <div class="temario-controls" aria-label="Buscar en el temario">
-        <label for="temarioCourse">Curso<select id="temarioCourse">${courses.map(course => `<option value="${esc(course)}" ${course === temarioCourse ? 'selected' : ''}>${esc(course)}</option>`).join('')}</select></label>
-        <label for="temarioSubject">Asignatura<select id="temarioSubject">${subjects.map(item => `<option value="${esc(item)}" ${item === temarioSubject ? 'selected' : ''}>${esc(item)}</option>`).join('')}</select></label>
-        <label for="temarioSearch">Buscar tema<input id="temarioSearch" type="search" value="${esc(temarioQuery)}" placeholder="Buscar tema…" autocomplete="off"></label>
-        <label for="temarioPreparation">Preparación<select id="temarioPreparation"><option value="all" ${temarioPreparation === 'all' ? 'selected' : ''}>Todos</option><option value="ready" ${temarioPreparation === 'ready' ? 'selected' : ''}>Con material</option><option value="pending" ${temarioPreparation === 'pending' ? 'selected' : ''}>Por preparar</option></select></label>
-        <span class="temario-base-count">${Object.values(window.PROFESOR_TEMARIO || {}).reduce((total, bySubject) => total + Object.values(bySubject).reduce((sum, list) => sum + list.length, 0), 0)} temas de base</span>
-    </div>
-    <div class="temario-stage">
-      <section class="temario-list-panel" aria-label="Temas de ${esc(temarioSubject)}">
-        <div class="temario-topic-list">${topics.map(topic => `<button type="button" class="temario-topic ${topic.id === temarioSelected ? 'active' : ''}" data-temario-topic="${esc(topic.id)}" aria-current="${topic.id === temarioSelected ? 'true' : 'false'}"><span class="temario-topic-index">${String(temarioTopics().indexOf(topic) + 1).padStart(2, '0')}</span><span class="temario-topic-copy"><strong>${esc(topic.title)}</strong><small>${isPremium() ? esc(topic.explanation) : 'Esquema · explicación, ejemplo y práctica'}</small></span><span class="temario-topic-meta"><small>3 recursos</small></span><span class="temario-topic-arrow">→</span></button>`).join('') || '<div class="temario-empty">No hay temas con esa búsqueda.</div>'}</div>
-      </section>
-      <aside class="temario-detail" aria-label="${isPremium()?'Previsualización':'Esquema'} del tema"><h2 class="temario-preview-title">${isPremium()?'Vista previa':'Esquema del tema'}</h2>${current ? `<h3>${esc(current.title)}</h3><p class="temario-preview-meta">${esc(temarioSubject)} · ${esc(temarioCourse)}</p>${isPremium()?`<p class="temario-preview-explanation">${esc(current.explanation)}</p><div class="temario-example"><strong>Ejemplo</strong><p>${esc(current.example)}</p></div><p class="temario-includes"><strong>Incluye</strong><br>Explicación · Ejemplo · Práctica</p>`:`<div class="temario-locked-preview"><p>Este tema contiene tres partes:</p><ol><li>Explicación del concepto</li><li>Ejemplo resuelto</li><li>Práctica y solución</li></ol><p class="temario-premium-hint">🔒 La vista previa y el contenido completo están disponibles en Premium.</p></div>`}<div class="temario-main-actions"><button type="button" class="${isPremium()?'primary':'temario-locked-button'}" data-temario-action="open" data-id="${esc(current.id)}">${isPremium()?'Ver tema':'🔒 Ver tema completo'}</button><button type="button" data-temario-action="use" data-id="${esc(current.id)}">Usar en material</button></div>` : '<p>Selecciona un tema para ver el esquema.</p>'}</aside>
-    </div>
-  </div>`;
+const temarioResources=[
+ {kind:'scheme',title:'Esquema resumen',description:'Ideas clave y recorrido del tema.',premium:false},
+ {kind:'practice',title:'Ejercicios básicos',description:'Práctica con solución orientativa.',premium:true},
+ {kind:'examples',title:'Ejemplos resueltos',description:'Aplicación explicada y errores frecuentes.',premium:true}
+];
+temarioView=function(){
+ const courses=Object.keys(window.PROFESOR_TEMARIO||{});
+ if(!courses.includes(temarioCourse))temarioCourse=courses[0]||'';
+ const subjects=Object.keys(window.PROFESOR_TEMARIO?.[temarioCourse]||{});
+ if(!subjects.includes(temarioSubject))temarioSubject=subjects[0]||'';
+ const topics=temarioVisibleTopics();
+ if(!topics.some(t=>t.id===temarioSelected))temarioSelected=topics[0]?.id||'';
+ const current=topics.find(t=>t.id===temarioSelected);
+ const options=(list,value)=>list.map(x=>'<option value="'+esc(x)+'"'+(x===value?' selected':'')+'>'+esc(x)+'</option>').join('');
+ return '<div class="temario-page temario-simple temario-renewed"><div class="temario-controls" aria-label="Buscar en el temario">'+
+ '<label for="temarioCourse">Curso<select id="temarioCourse">'+options(courses,temarioCourse)+'</select></label>'+
+ '<label for="temarioSubject">Asignatura<select id="temarioSubject">'+options(subjects,temarioSubject)+'</select></label>'+
+ '<label for="temarioSearch">Buscar tema<input id="temarioSearch" type="search" value="'+esc(temarioQuery)+'" placeholder="Nombre o concepto…" autocomplete="off"></label>'+
+ '<label for="temarioPreparation">Preparación<select id="temarioPreparation">'+[['all','Todos'],['ready','Con material'],['pending','Por preparar']].map(([value,label])=>'<option value="'+value+'"'+(value===temarioPreparation?' selected':'')+'>'+label+'</option>').join('')+'</select></label><span class="temario-base-count">'+topics.length+' temas</span></div>'+
+ '<div class="temario-stage"><section class="temario-list-panel" aria-label="Temas de '+esc(temarioSubject)+'"><div class="temario-topic-list">'+
+ (topics.map(topic=>'<button type="button" class="temario-topic '+(topic.id===temarioSelected?'active':'')+'" data-temario-topic="'+esc(topic.id)+'" aria-current="'+(topic.id===temarioSelected)+'"><span class="temario-topic-index">'+String(temarioTopics().indexOf(topic)+1).padStart(2,'0')+'</span><span class="temario-topic-copy"><strong>'+esc(topic.title)+'</strong><small>'+esc(topic.explanation)+'</small></span><span class="temario-topic-meta"><small>3 recursos</small></span><span class="temario-topic-arrow">→</span></button>').join('')||'<div class="temario-empty">No hay temas con esa búsqueda.</div>')+
+ '</div></section><aside class="temario-detail" aria-label="Resumen y recursos del tema">'+(current?'<div class="temario-detail-heading"><span class="temario-topic-index">'+String(temarioTopics().indexOf(current)+1).padStart(2,'0')+'</span><h2>'+esc(current.title)+'</h2></div><section class="temario-orientation"><h3>Resumen del tema</h3><p class="temario-preview-explanation">'+esc(current.explanation)+'</p></section><section class="temario-resource-section"><h3>'+icon('file')+' Recursos del tema</h3><div class="temario-resources">'+temarioResources.map(resource=>{
+ const locked=resource.premium&&!isPremium();
+ return '<div class="temario-resource '+(locked?'locked':'')+'"><button type="button" data-topic-resource="'+resource.kind+'" data-id="'+esc(current.id)+'" aria-label="'+(locked?'Premium: ':'Abrir ')+esc(resource.title)+'">'+icon('file')+'<span><strong>'+resource.title+'</strong><small>'+resource.description+'</small></span>'+(locked?'<span class="resource-lock" title="Disponible en Premium">🔒</span>':'')+'</button><button type="button" class="resource-pdf" data-topic-pdf="'+resource.kind+'" data-id="'+esc(current.id)+'" aria-label="Descargar PDF de '+esc(resource.title)+(locked?' · Premium':'')+'" title="'+(locked?'Disponible en Premium':'Descargar PDF')+'">PDF</button></div>';
+ }).join('')+'</div></section><div class="temario-main-actions"><button type="button" class="quiet '+(!isPremium()?'temario-locked-button':'')+'" data-temario-action="open" data-id="'+esc(current.id)+'">'+(isPremium()?'Ver tema completo':'🔒 Tema completo · Premium')+'</button><button type="button" class="primary" data-temario-action="use" data-id="'+esc(current.id)+'">+ Crear material de este tema</button></div>':'<p>Selecciona un tema para ver el resumen y sus recursos.</p>')+'</aside></div></div>';
 };
+function openTopicResource(topic,kind){
+ const resource=temarioResources.find(item=>item.kind===kind);
+ if(!resource)return;
+ if(resource.premium&&!isPremium()){notify('Este recurso está disponible para cuentas Premium. El esquema resumen es accesible para todas las cuentas.');return}
+ const c=topic.didactic;
+ let html='<p class="temario-lesson-meta">'+esc(temarioSubject)+' · '+esc(temarioCourse)+'</p><h3>'+esc(topic.title)+'</h3>';
+ if(kind==='scheme')html+='<section class="lesson-card"><h3>Idea central</h3><p>'+esc(topic.explanation)+'</p></section><section class="lesson-card"><h3>Conceptos clave</h3><ul>'+c.concepts.map(text=>'<li>'+esc(text)+'</li>').join('')+'</ul></section><div class="lesson-route"><span>01 Comprender</span><span>02 Aplicar</span><span>03 Comprobar</span></div>';
+ if(kind==='examples')html+='<section class="lesson-card lesson-example"><h3>Ejemplo explicado</h3><div class="lesson-example-quote">'+esc(c.examples[0])+'</div><div class="lesson-example-note"><strong>Cómo interpretarlo</strong><p>'+esc(c.deepDive)+'</p></div></section><section class="lesson-card lesson-method"><h3>Pasos para resolverlo</h3><ol class="lesson-steps">'+c.steps.map((text,i)=>'<li><span>'+(i+1)+'</span><p>'+esc(text)+'</p></li>').join('')+'</ol></section><section class="lesson-card lesson-error"><h3>Error frecuente</h3><p>'+esc(c.commonErrors[0])+'</p></section>';
+ if(kind==='practice')html+='<section class="lesson-card temario-lesson-practice"><h3>Comprueba lo aprendido</h3><p class="lesson-question">'+esc(c.practice[0].prompt)+'</p><details><summary>Ver solución orientativa</summary><p>'+esc(c.solutions[0])+'</p></details><button type="button" class="primary" data-temario-action="practice" data-id="'+esc(topic.id)+'">Practicar ahora</button></section><section class="lesson-card lesson-transfer"><h3>Amplía la actividad</h3><p>'+esc(c.transfer)+'</p></section>';
+ html+='<div class="temario-lesson-footer"><button type="button" data-topic-pdf="'+kind+'" data-id="'+esc(topic.id)+'">Descargar PDF</button>'+button('Cerrar','close')+'</div>';
+ modal(resource.title,'<div class="temario-lesson topic-resource-view">'+html+'</div>',()=>false);
+ $('dialog').classList.add('temario-dialog');$('dialog').addEventListener('close',()=>$('dialog').classList.remove('temario-dialog'),{once:true});
+}
+async function downloadTopicPdf(topic,kind){
+ const resource=temarioResources.find(item=>item.kind===kind);
+ if(!resource)return;
+ if(resource.premium&&!isPremium()){notify('La descarga de este recurso está disponible para cuentas Premium.');return}
+ if(demo){notify('Entra con una cuenta de profesor para descargar los recursos en PDF.');return}
+ const response=await authenticatedFetch('/api/profesor/temario/export-pdf?app=profesor_particular',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic_id:topic.id,resource:kind})});
+ if(!response.ok){let info={};try{info=await response.json()}catch{}throw Error(info.detail||'No se pudo crear el PDF.')}
+ const url=URL.createObjectURL(await response.blob()),link=document.createElement('a');
+ link.href=url;link.download=(topic.title+'-'+resource.title).replace(/[\\/:*?"<>|]/g,'-').slice(0,100)+'.pdf';link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+document.addEventListener('click',async event=>{
+ const target=event.target.closest('[data-topic-resource],[data-topic-pdf]');
+ if(!target)return;
+ const topic=temarioTopic(target.dataset.id);if(!topic)return;
+ if(target.dataset.topicResource){openTopicResource(topic,target.dataset.topicResource);return}
+ target.disabled=true;
+ try{await downloadTopicPdf(topic,target.dataset.topicPdf)}catch(error){notify(error.message)}finally{target.disabled=false}
+});
 
 openTemarioLesson = function (topic) {
   if (!isPremium()) {notify('El contenido completo de los temas está disponible en Premium. Cambia el tipo de cuenta desde el escritorio.');return;}
