@@ -38,9 +38,19 @@ const assert = require('node:assert/strict');
     assert.equal(await page.locator('#count-pairs').inputValue(),'3','collapsing a group preserves its selection');
     assert.match(await page.locator('#workshopSelection').innerText(),/4 ejercicios/);
     await page.locator('[data-exercise="memory"]').click();
+    if (!await page.locator('.basic-family').evaluate(el => el.open)) await page.locator('.basic-family summary').click();
+    for (let i = 0; i < 7; i++) await pairs.locator('[data-step="1"]').click();
+    assert.equal(await page.locator('#count-pairs').inputValue(), '10');
     await page.locator('#workshopManual').click();
     await page.locator('#q-0').waitFor();
     assert.equal(await page.locator('#q-0').count(), 1, 'manual editor opens');
+    const preview = page.locator('.material-live-preview');
+    const previewBox = await preview.evaluate(el => ({ clientHeight: el.clientHeight, scrollHeight: el.scrollHeight }));
+    assert.ok(previewBox.scrollHeight > previewBox.clientHeight, 'long material preview has an internal scroll area');
+    await preview.hover();
+    await page.mouse.wheel(0, 650);
+    await page.waitForTimeout(80);
+    assert.ok(await preview.evaluate(el => el.scrollTop) > 0, 'desktop preview responds to wheel scrolling');
 
     await page.locator('#dialog').getByRole('button', { name: 'Cerrar' }).click();
     await page.evaluate(() => { demo = false; });
@@ -93,9 +103,23 @@ const assert = require('node:assert/strict');
       await family.locator('summary').click();
     }
     assert.equal(await mobile.evaluate(() => document.querySelector('#dialog').scrollWidth > document.querySelector('#dialog').clientWidth + 2), false);
+    await mobile.locator('#workshopCourse').selectOption('4.º Primaria');
+    await mobile.locator('#workshopTopic').fill('Fracciones');
+    await mobile.locator('.basic-family summary').click();
+    const mobilePairs = mobile.locator('[data-exercise="pairs"]');
+    await mobilePairs.click();
+    for (let i = 0; i < 7; i++) await mobilePairs.locator('[data-step="1"]').click();
+    assert.deepEqual(await mobile.locator('#form').evaluate(form => [...form.elements].filter(element => !element.checkValidity()).map(element => ({ id: element.id, message: element.validationMessage }))), [], 'mobile workshop form is valid');
+    await mobile.locator('#workshopManual').click();
+    await mobile.locator('#q-0').waitFor();
+    const mobilePreview = mobile.locator('.material-live-preview');
+    const mobilePreviewBox = await mobilePreview.evaluate(el => ({ clientHeight: el.clientHeight, scrollHeight: el.scrollHeight }));
+    assert.ok(mobilePreviewBox.scrollHeight > mobilePreviewBox.clientHeight, 'mobile preview has its own bounded scroll area');
+    await mobilePreview.evaluate(el => { el.scrollTop = 500; });
+    assert.ok(await mobilePreview.evaluate(el => el.scrollTop) > 0, 'mobile preview can be scrolled');
     await mobile.screenshot({ path: 'tools/profesor-crear-material-mobile.png' });
     assert.deepEqual(errors, []);
-    console.log('PASS creator layout, quantity, selection persistence, manual/AI/photo paths and mobile accordions');
+    console.log('PASS creator layout, quantity, selection persistence, preview scrolling, manual/AI/photo paths and mobile accordions');
   } finally {
     await browser.close();
   }
