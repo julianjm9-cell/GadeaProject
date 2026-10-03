@@ -4,7 +4,7 @@ import re
 from uuid import UUID
 from fastapi import HTTPException
 
-TYPES = ('pairs', 'gaps', 'quiz', 'short', 'order', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'memory', 'sentence', 'timeline', 'error', 'wordsearch', 'crossword', 'dragdrop')
+TYPES = ('pairs', 'gaps', 'quiz', 'short', 'order', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'memory', 'sentence', 'timeline', 'error', 'wordsearch', 'crossword', 'dragdrop', 'multigaps', 'numeric', 'pasapalabra', 'hangman')
 
 
 def course_guidance(course):
@@ -38,6 +38,17 @@ def puzzle_rows(kind, options):
         if not 3 <= len(words) <= 8 or any(not word for word in words) or len(set(words)) != len(words):
             raise ValueError()
         return words
+    if kind == 'pasapalabra':
+        entries = [[part.strip() for part in item.split('|')] for item in options]
+        if not 3 <= len(entries) <= 10 or any(len(entry) != 3 or not re.fullmatch(r'[A-Za-zÑñ]', entry[0]) or not entry[1] or not entry[2] or len(entry[1]) > 180 or len(entry[2]) > 60 for entry in entries):
+            raise ValueError()
+        if len({entry[0].casefold() for entry in entries}) != len(entries):
+            raise ValueError()
+        return entries
+    if kind == 'multigaps':
+        if not 2 <= len(options) <= 6 or any(not option.strip() or len(option.strip()) > 100 for option in options):
+            raise ValueError()
+        return [option.strip() for option in options]
     pairs = [[part.strip() for part in item.split('|')] for item in options]
     limit = 7 if kind == 'crossword' else 8
     if not 3 <= len(pairs) <= limit or any(len(pair) != 2 or not pair[0] or not pair[1] for pair in pairs):
@@ -118,15 +129,24 @@ def parse_material(content, context):
                 raise ValueError()
             if kind == 'gaps' and prompt.count('___') != 1:
                 raise ValueError()
+            if kind == 'multigaps' and not 2 <= prompt.count('___') <= 6:
+                raise ValueError()
+            if kind == 'numeric':
+                try:
+                    float(answer.replace(',', '.'))
+                except ValueError:
+                    raise ValueError()
+            if kind == 'hangman' and not re.fullmatch(r'[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s-]{1,39}', answer):
+                raise ValueError()
             options = []
-            if kind in ('quiz', 'classify', 'boolean', 'order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop'):
+            if kind in ('quiz', 'classify', 'boolean', 'order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop', 'pasapalabra', 'multigaps'):
                 options = q['options']
-                if not isinstance(options, list) or not 2 <= len(options) <= (8 if kind in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'dragdrop') else 7 if kind == 'crossword' else 5) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in options):
+                if not isinstance(options, list) or not 2 <= len(options) <= (10 if kind == 'pasapalabra' else 8 if kind in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'dragdrop') else 7 if kind == 'crossword' else 6 if kind == 'multigaps' else 5) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in options):
                     raise ValueError()
                 options = [v.strip() for v in options]
                 if len('\n'.join(options)) > 1500:
                     raise ValueError()
-                if len(set(v.casefold() for v in options)) != len(options) or (kind not in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop') and answer not in options):
+                if len(set(v.casefold() for v in options)) != len(options) or (kind not in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop', 'pasapalabra', 'multigaps') and answer not in options):
                     raise ValueError()
             if kind == 'boolean' and set(options) != {'Verdadero', 'Falso'}:
                 raise ValueError()
@@ -139,9 +159,11 @@ def parse_material(content, context):
                 if any(len({pair[side].casefold() for pair in pairs}) != len(pairs) for side in (0, 1)):
                     raise ValueError()
                 answer = 'Completado'
-            if kind in ('wordsearch', 'crossword', 'dragdrop'):
+            if kind in ('wordsearch', 'crossword', 'dragdrop', 'pasapalabra', 'multigaps'):
                 puzzle_rows(kind, options)
-                answer = 'Completado'
+                answer = ' | '.join(options) if kind == 'multigaps' else 'Completado'
+            if kind == 'multigaps' and len(options) != prompt.count('___'):
+                raise ValueError()
             if len(answer) > 1500:
                 raise ValueError()
             text = q.get('text', '')
@@ -168,6 +190,10 @@ no sustituye al contenido. Si focus contiene una dificultad concreta del alumno,
 incluye práctica guiada para reforzarla sin perder el objetivo del tema. duration es orientativa.
 En pairs cada prompt tiene una respuesta única y las respuestas no se repiten.
 En gaps incluye exactamente un ___ por enunciado, respuesta breve y sin ambigüedad.
+En multigaps incluye entre 2 y 6 ___ en un texto coherente. options contiene exactamente
+una solución por hueco y en el mismo orden; answer une las soluciones con " | ".
+En numeric plantea un cálculo o resultado cuantitativo inequívoco y devuelve en answer
+solo el número, sin unidades ni explicación. Comprueba el cálculo antes de responder.
 Cada ejercicio tiene UNA sola tarea; no añadas otra pregunta después del hueco.
 En matemáticas, el hueco debe practicar la operación solicitada: por ejemplo,
 "Hay 3 cajas con 4 figuras de gatos en cada una: 3 × 4 = ___ figuras".
@@ -204,5 +230,9 @@ tiene de 3 a 12 letras, sin espacios. Elige palabras con letras compartidas para
 puedan cruzarse en una cuadrícula; pistas distintas y concretas. answer es "Completado".
 En dragdrop, options contiene de 3 a 8 parejas "elemento | destino"; ambos lados
 son únicos y cortos. El alumno coloca cada elemento en su destino. answer es "Completado".
+En pasapalabra, options contiene de 3 a 10 entradas "LETRA | pista | respuesta".
+No repitas letras; cada pista debe ser precisa y su respuesta correcta. answer es "Completado".
+En hangman, prompt es una pista clara y answer una palabra o expresión breve de 2 a 40
+caracteres formada por letras, espacios o guiones. Evita respuestas ambiguas.
 La app construye las cuadrículas y el tablero: NO generes cuadrículas en el JSON.
 """

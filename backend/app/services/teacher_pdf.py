@@ -149,11 +149,11 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
              Paragraph(_text(" · ".join(v for v in [subject, str(context.get("course") or "")[:80]] if v)), styles["TeacherSmall"])]
     if not solutions:
         story.extend([Paragraph("Nombre: _____________________________________    Fecha: __________________", styles["TeacherBody"]), Spacer(1, 5*mm)])
-    labels = {"pairs":"Relacionar", "gaps":"Completar", "quiz":"Elegir respuesta", "short":"Respuesta breve",
+    labels = {"pairs":"Relacionar", "gaps":"Completar", "multigaps":"Texto con huecos", "numeric":"Respuesta numérica", "quiz":"Elegir respuesta", "short":"Respuesta breve",
               "order":"Ordenar", "classify":"Clasificar", "boolean":"Verdadero o falso", "reading":"Comprensión",
               "problem":"Problemas", "flashcard":"Tarjeta", "memory":"Memory", "sentence":"Construye la frase",
               "timeline":"Línea temporal", "error":"Encuentra el error", "wordsearch":"Sopa de letras",
-              "crossword":"Crucigrama", "dragdrop":"Asociar", "visualquiz":"Quiz visual", "imagepoint":"Señalar imagen"}
+              "crossword":"Crucigrama", "dragdrop":"Asociar", "pasapalabra":"Pasapalabra", "hangman":"Ahorcado", "visualquiz":"Quiz visual", "imagepoint":"Señalar imagen"}
     for index, q in enumerate(questions, 1):
         if not isinstance(q, dict) or q.get("type") not in labels:
             raise ValueError(f"El ejercicio {index} no es válido.")
@@ -208,6 +208,13 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
         elif kind in ("dragdrop", "memory"):
             for option in options:
                 section.append(Paragraph("- " + _text(option, 300), styles["TeacherBody"]))
+        elif kind == "pasapalabra":
+            for option in options:
+                parts = [part.strip() for part in option.split("|", 2)]
+                if len(parts) == 3:
+                    section.append(Paragraph(f"<b>{_text(parts[0], 2)}</b> · {_text(parts[1], 180)}" + (f" — {_text(parts[2], 60)}" if solutions else ""), styles["TeacherBody"]))
+        elif kind == "hangman" and not solutions:
+            section.append(Paragraph("_ " * max(2, len(str(q.get("answer") or ""))), styles["TeacherCenter"]))
         elif kind in ("order", "sentence", "timeline"):
             section.append(Paragraph("  /  ".join(_text(o, 300) for o in options), styles["TeacherBody"]))
         if solutions:
@@ -215,10 +222,10 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
             if kind == "imagepoint":
                 target = q.get("target") or {}
                 answer = f"Zona marcada por el profesor ({target.get('x', '?')} %, {target.get('y', '?')} %)"
-            elif kind in ("wordsearch", "crossword", "dragdrop", "memory"):
+            elif kind in ("wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps"):
                 answer = "; ".join(options)
             section.append(Paragraph("Solución: " + _text(answer, 1500), styles["TeacherAnswer"]))
-        elif kind not in ("quiz", "visualquiz", "boolean", "classify", "wordsearch", "crossword", "dragdrop", "memory"):
+        elif kind not in ("quiz", "visualquiz", "boolean", "classify", "wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps", "hangman"):
             section.append(Paragraph("________________________________________________________________________", styles["TeacherSmall"]))
         section.append(Spacer(1, 3*mm))
 

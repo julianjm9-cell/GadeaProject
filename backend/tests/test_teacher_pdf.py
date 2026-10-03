@@ -57,6 +57,24 @@ class TeacherPdfTests(unittest.TestCase):
         self.assertIn("Ciencias", text)
         self.assertIn("<script>", text)
 
+    def test_extended_formats_are_printable(self):
+        material = {"title": "Repaso dinámico", "subject": "Ciencias", "activity": {
+            "context": {"course": "3.º ESO"},
+            "questions": [
+                {"type": "multigaps", "prompt": "El agua pasa de ___ a ___.", "answer": "líquido | sólido", "options": ["líquido", "sólido"]},
+                {"type": "numeric", "prompt": "¿Cuánto es 25 ÷ 2?", "answer": "12,5", "options": []},
+                {"type": "pasapalabra", "prompt": "Completa la rueda", "answer": "Completado", "options": ["A | Líquido esencial | agua", "B | Lugar con libros | biblioteca", "C | Pigmento verde | clorofila"]},
+                {"type": "hangman", "prompt": "Estrella del sistema solar", "answer": "Sol", "options": []},
+            ]}}
+        worksheet = self.text(render_teacher_pdf(material, False, lambda _: self.image))
+        solutions = self.text(render_teacher_pdf(material, True, lambda _: self.image))
+        self.assertIn("Pasapalabra", worksheet)
+        self.assertIn("Lugar con libros", worksheet)
+        self.assertNotIn("biblioteca", worksheet)
+        self.assertIn("biblioteca", solutions)
+        self.assertIn("12,5", solutions)
+        self.assertIn("Sol", solutions)
+
 
 if __name__ == "__main__":
     unittest.main()

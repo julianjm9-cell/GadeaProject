@@ -6,6 +6,55 @@
 
   const originalPuzzleGame = mountPuzzleGame;
   mountPuzzleGame = function (question, index, isChecked, report) {
+    if (question.type === 'multigaps') {
+      const root = $('puzzle-' + index), answer = $('r-' + index), solutions = puzzleRows('multigaps', question.options);
+      const parts = question.prompt.split('___');
+      root.innerHTML = `<div class="multi-gap-play" aria-label="Texto con ${solutions.length} huecos">${parts.map((part, position) => `${escape(part)}${position < solutions.length ? `<input data-multi-gap="${position}" autocomplete="off" spellcheck="false" maxlength="100" placeholder="${position + 1}" aria-label="Respuesta del hueco ${position + 1}">` : ''}`).join('')}</div><p class="play-progress" id="multi-status-${index}" role="status">0 de ${solutions.length} huecos completados</p>`;
+      const inputs = [...root.querySelectorAll('[data-multi-gap]')];
+      const update = () => {
+        const values = inputs.map(input => input.value.trim());
+        const complete = values.every(Boolean);
+        const correct = complete && values.every((value, position) => normalize(value) === normalize(solutions[position]));
+        answer.value = values.join(' | ');
+        report(index, { complete, correct, answer: answer.value });
+        $('multi-status-' + index).textContent = `${values.filter(Boolean).length} de ${solutions.length} huecos completados`;
+      };
+      inputs.forEach((input, position) => {
+        input.oninput = update;
+        input.onkeydown = event => { if (event.key === 'Enter' && inputs[position + 1]) { event.preventDefault(); inputs[position + 1].focus(); } };
+      });
+      update();
+      return;
+    }
+    if (question.type === 'pasapalabra') {
+      const root = $('puzzle-' + index), answer = $('r-' + index), rows = puzzleRows('pasapalabra', question.options);
+      const values = Array(rows.length).fill('');
+      let active = 0;
+      const draw = () => {
+        const completed = values.filter(Boolean).length;
+        root.innerHTML = `<div class="pasapalabra-wheel" aria-label="Rueda de Pasapalabra">${rows.map(([letter], position) => `<button type="button" class="${position === active ? 'active' : ''} ${values[position] ? normalize(values[position]) === normalize(rows[position][2]) ? 'correct' : 'answered' : ''}" data-letter="${position}" aria-label="Letra ${escape(letter)}">${escape(letter)}</button>`).join('')}</div><div class="pasapalabra-card"><span>Letra ${escape(rows[active][0])}</span><p>${escape(rows[active][1])}</p><label>Tu respuesta<input id="pasapalabra-input-${index}" value="${escape(values[active])}" autocomplete="off" maxlength="60"></label><div><button type="button" data-pass>Pasar</button><button type="button" class="primary" data-answer>Guardar respuesta</button></div></div><p class="play-progress" role="status">${completed} de ${rows.length} letras respondidas</p>`;
+        root.querySelectorAll('[data-letter]').forEach(button => button.onclick = () => { if (!isChecked()) { active = Number(button.dataset.letter); draw(); } });
+        const input = root.querySelector(`#pasapalabra-input-${index}`);
+        input.onkeydown = event => { if (event.key === 'Enter') { event.preventDefault(); saveAnswer(); } };
+        root.querySelector('[data-answer]').onclick = saveAnswer;
+        root.querySelector('[data-pass]').onclick = () => { active = (active + 1) % rows.length; draw(); };
+        input.focus();
+      };
+      const saveAnswer = () => {
+        if (isChecked()) return;
+        const input = root.querySelector(`#pasapalabra-input-${index}`), value = input.value.trim();
+        if (!value) return input.focus();
+        values[active] = value;
+        const next = values.findIndex((value, position) => !value && position > active);
+        active = next >= 0 ? next : Math.max(0, values.findIndex(value => !value));
+        const complete = values.every(Boolean), correct = complete && values.every((value, position) => normalize(value) === normalize(rows[position][2]));
+        answer.value = values.join(' | ');
+        report(index, { complete, correct, answer: answer.value });
+        draw();
+      };
+      draw();
+      return;
+    }
     if (question.type === 'wordsearch') {
       originalPuzzleGame(question, index, isChecked, report);
       const root = $('puzzle-' + index);
@@ -102,6 +151,12 @@
       const [before, after] = prompt.split('___');
       return `<div class="play-gap-preview">${escape(before)}<span>hueco para escribir</span>${escape(after || '')}</div><small>Solución: ${escape($('a-' + index)?.value || 'sin completar')}</small>`;
     }
+    if (question.type === 'multigaps') {
+      const prompt = $('q-' + index)?.value || '', answers = ($('o-' + index)?.value || '').split('\n').map(value => value.trim()).filter(Boolean);
+      let position = 0;
+      return `<div class="play-gap-preview">${prompt.split('___').map((part, partIndex) => `${escape(part)}${partIndex < prompt.split('___').length - 1 ? `<span>${escape(answers[position++] || `hueco ${position}`)}</span>` : ''}`).join('')}</div>`;
+    }
+    if (question.type === 'numeric') return `<div class="numeric-preview"><span>=</span><strong>${escape($('a-' + index)?.value || 'resultado')}</strong></div>`;
     return originalEditorPreview(question, index);
   };
   const originalEditActivity = editActivity;
@@ -110,6 +165,8 @@
     const hints = {
       pairs: 'Cada tarjeta relaciona este enunciado con su respuesta. Crea al menos dos tarjetas para que haya opciones entre las que elegir.',
       gaps: 'Escribe ___ dentro de la frase donde quieres que el alumno complete la palabra. Solo un hueco por ejercicio.',
+      multigaps: 'Escribe de 2 a 6 marcas ___ en el texto y, debajo, una solución por línea en el mismo orden.',
+      numeric: 'Plantea un cálculo inequívoco. La solución debe contener solo el valor numérico; se aceptan coma y punto decimal.',
       order: 'Una línea por paso, en el orden correcto. El alumno podrá arrastrarlos o moverlos con las flechas.',
       sentence: 'Escribe los fragmentos de la frase en su orden correcto, uno por línea.',
       timeline: 'Pon cada fecha o acontecimiento en orden cronológico, uno por línea.',
@@ -117,6 +174,8 @@
       dragdrop: 'Escribe una pareja por línea: pieza | destino. Cada pieza solo podrá ocupar un destino.',
       crossword: 'Escribe PALABRA | pista en cada línea. Usa palabras que compartan letras.',
       wordsearch: 'Escribe una palabra por línea; el tablero se generará automáticamente.',
+      pasapalabra: 'Escribe una línea por letra con el formato LETRA | pista | respuesta. Usa entre 3 y 10 letras distintas.',
+      hangman: 'Escribe una pista clara en el enunciado y la palabra o expresión que debe descubrir en la solución.',
       flashcard: 'El enunciado es el anverso y la solución es el reverso. El alumno indicará si la sabía.',
       imagepoint: 'Marca en la imagen el punto que el alumno deberá localizar.',
     };
@@ -135,12 +194,18 @@
   }
   function questionMarkup(question, index, pairChoices) {
     const type = question.type;
-    const heading = type === 'gaps' ? '' : `<h3 id="question-${index}">${index + 1}. ${escape(question.prompt)}</h3>`;
+    const heading = type === 'gaps' || type === 'multigaps' ? '' : `<h3 id="question-${index}">${index + 1}. ${escape(question.prompt)}</h3>`;
     const image = visualTypes.includes(type) ? `<div class="visual-image-box ${type === 'imagepoint' ? 'visual-answer-box' : ''}" id="visual-${index}" ${type === 'imagepoint' ? 'tabindex="0" role="button" aria-label="Marca el punto en la imagen; usa las flechas para ajustarlo"' : ''}><img data-activity-image="${index}" alt="${escape(question.image?.filename || 'Imagen del ejercicio')}"></div>` : '';
     let control = '';
     if (type === 'gaps') {
       const [before, after] = question.prompt.split('___');
       control = `<div class="play-gap-line"><span>${escape(before)}</span><input id="r-${index}" name="r-${index}" aria-label="Respuesta del hueco ${index + 1}" autocomplete="off" spellcheck="false" maxlength="300" required placeholder="Escribe aquí"><span>${escape(after)}</span></div>`;
+    } else if (type === 'multigaps') {
+      control = `<div id="puzzle-${index}"></div><input id="r-${index}" name="r-${index}" type="hidden">`;
+    } else if (type === 'numeric') {
+      control = `<div class="numeric-answer"><span aria-hidden="true">=</span><input id="r-${index}" name="r-${index}" inputmode="decimal" autocomplete="off" required placeholder="Resultado" aria-label="Resultado numérico del ejercicio ${index + 1}"></div><p class="play-hint">Puedes usar coma o punto para los decimales.</p>`;
+    } else if (type === 'hangman') {
+      control = `<div id="hangman-${index}" class="hangman-game"></div><input id="r-${index}" name="r-${index}" type="hidden">`;
     } else if (type === 'imagepoint') {
       control = `<input id="r-${index}" name="r-${index}" type="hidden"><p class="play-hint" id="point-status-${index}" role="status">Toca la imagen donde está la respuesta. También puedes usar las flechas del teclado.</p>`;
     } else if (puzzleTypes.includes(type)) {
@@ -163,6 +228,30 @@
     return `<section class="block play-question" data-tone="${materialTone(type)}" data-question="${index}"><div class="play-question-top"><span class="play-number">${String(index + 1).padStart(2, '0')}</span><span class="play-kind">${escape(activityLabels[type])}</span></div>${heading}${type === 'reading' ? `<div class="reading-passage prewrap">${escape(question.text)}</div>` : ''}${image}${control}<p id="feedback-${index}" class="play-feedback prewrap" role="status"></p>${review}</section>`;
   }
 
+  function mountHangman(question, index, isChecked) {
+    const root = $('hangman-' + index), answer = $('r-' + index);
+    const clean = value => String(value || '').toLocaleUpperCase('es').replaceAll('Ñ', '\u0001').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replaceAll('\u0001', 'Ñ');
+    const solution = clean(question.answer), letters = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('');
+    const chosen = new Set();
+    const misses = () => [...chosen].filter(letter => !solution.includes(letter)).length;
+    const won = () => [...solution].filter(letter => /[A-ZÑ]/.test(letter)).every(letter => chosen.has(letter));
+    const draw = () => {
+      const failed = misses() >= 7, finished = won() || failed;
+      const masked = [...solution].map(letter => /[A-ZÑ]/.test(letter) ? chosen.has(letter) || finished ? letter : '＿' : letter).join(' ');
+      const errors = misses(), figure = `${errors >= 1 ? '◯' : '·'}\n${errors >= 3 ? '╱' : ' '}${errors >= 2 ? '│' : ' '}${errors >= 4 ? '╲' : ' '}\n${errors >= 5 ? '╱' : ' '}${errors >= 6 ? ' ╲' : ''}`;
+      root.innerHTML = `<div class="hangman-stage"><div class="hangman-figure" data-errors="${errors}" aria-label="${errors} de 7 fallos"><span>${escape(figure).replaceAll('\n','<br>')}</span></div><div><div class="hangman-word" aria-live="polite">${escape(masked)}</div><p>${finished ? won() ? '¡Palabra descubierta!' : `La respuesta era ${escape(question.answer)}.` : `Te quedan ${7 - errors} intentos.`}</p></div></div><div class="hangman-keyboard">${letters.map(letter => `<button type="button" data-hangman-letter="${letter}" ${chosen.has(letter) || finished ? 'disabled' : ''}>${letter}</button>`).join('')}</div>`;
+      root.querySelectorAll('[data-hangman-letter]').forEach(button => button.onclick = () => {
+        if (isChecked()) return;
+        chosen.add(button.dataset.hangmanLetter);
+        if (won()) answer.value = question.answer;
+        else if (misses() >= 7) answer.value = 'No resuelto';
+        if (answer.value) answer.dispatchEvent(new Event('input', { bubbles: true }));
+        draw();
+      });
+    };
+    draw();
+  }
+
   runActivity = function (material, studentId) {
     const m = JSON.parse(JSON.stringify(material));
     const questions = m.activity.questions;
@@ -178,7 +267,7 @@
       if (sequences[index].join(' → ') === q.answer && sequences[index].length > 1) sequences[index].reverse();
     });
     const studentName = studentId ? student(studentId)?.name || 'Alumno' : '';
-    modal(studentId ? 'En clase · ' + studentName : 'Prueba · sin guardar', `<div class="play-intro"><span class="badge">${escape(m.subject)}</span><h2>${escape(m.title)}</h2><p>${questions.length} ${questions.length === 1 ? 'ejercicio' : 'ejercicios'} · Resuelve y comprueba al final</p></div>${questions.map((q, i) => questionMarkup(q, i, pairChoices)).join('')}<p id="activityScore" class="play-score" role="status"></p>${submit('Comprobar respuestas')}`, form => {
+    modal(studentId ? 'En clase · ' + studentName : 'Prueba · sin guardar', `<div class="play-intro"><span class="badge">${escape(m.subject)}</span><h2>${escape(m.title)}</h2><p>${questions.length} ${questions.length === 1 ? 'ejercicio' : 'ejercicios'} · Resuelve y comprueba al final</p><div class="play-overview"><span id="playCompleted">0 de ${questions.length} completados</span><div><i id="playProgress"></i></div></div></div>${questions.map((q, i) => questionMarkup(q, i, pairChoices)).join('')}<p id="activityScore" class="play-score" role="status"></p>${submit('Comprobar respuestas')}`, form => {
       if (checked) return false;
       const answers = questions.map((q, index) => String(form.get('r-' + index) || ''));
       const missing = questions.findIndex((q, index) => puzzleTypes.includes(q.type) ? !games[index]?.complete : !answers[index].trim());
@@ -190,6 +279,7 @@
         if (q.type === 'flashcard') return flashGrades[index];
         if (openAnswerTypes.includes(q.type)) return 'pending';
         if (puzzleTypes.includes(q.type)) return games[index].correct ? 'correct' : 'incorrect';
+        if (q.type === 'numeric') return Number(answers[index].replace(',', '.')) === Number(q.answer.replace(',', '.')) ? 'correct' : 'incorrect';
         if (q.type === 'imagepoint') {
           const [x, y] = answers[index].split(',').map(Number);
           return Math.hypot(x - q.target.x, y - q.target.y) <= 10 ? 'correct' : 'incorrect';
@@ -216,6 +306,19 @@
     });
     $('dialog').classList.add('activity-play');
     $('dialog').addEventListener('close', () => $('dialog').classList.remove('activity-play'), { once: true });
+
+    function updateProgress() {
+      const complete = questions.map((question, index) => {
+        if (puzzleTypes.includes(question.type)) return !!games[index]?.complete;
+        if (question.type === 'flashcard') return !!flashGrades[index];
+        const controls = [...$('form').querySelectorAll(`[name="r-${index}"]`)];
+        return controls.some(control => control.type === 'radio' ? control.checked : String(control.value || '').trim());
+      });
+      complete.forEach((done, index) => document.querySelector(`[data-question="${index}"]`)?.classList.toggle('is-complete', done));
+      const amount = complete.filter(Boolean).length;
+      if ($('playCompleted')) $('playCompleted').textContent = `${amount} de ${questions.length} completados`;
+      if ($('playProgress')) $('playProgress').style.width = `${Math.round(100 * amount / questions.length)}%`;
+    }
 
     function updateScore() {
       attempt.score = attempt.grades.filter(grade => grade === 'correct').length;
@@ -254,8 +357,9 @@
     Object.keys(sequences).forEach(index => renderSequence(Number(index)));
     paintActivityImages(questions, $('form'));
     questions.forEach((q, index) => {
-      if (puzzleTypes.includes(q.type)) mountPuzzleGame(q, index, () => checked, (key, result) => { games[key] = result; });
+      if (puzzleTypes.includes(q.type)) mountPuzzleGame(q, index, () => checked, (key, result) => { games[key] = result; updateProgress(); });
       if (q.type === 'memory') mountMemory(q, index, () => checked);
+      if (q.type === 'hangman') mountHangman(q, index, () => checked);
       if (q.type === 'flashcard') {
         $('flip-' + index).onclick = () => {
           if (checked) return;
@@ -283,6 +387,7 @@
       flashGrades[index] = button.dataset.flash;
       $('r-' + index).value = button.dataset.flash === 'correct' ? 'La sabía' : 'Necesito repasarla';
       $('flash-assess-' + index).querySelectorAll('button').forEach(option => option.classList.toggle('selected', option === button));
+      updateProgress();
     });
     $('form').querySelectorAll('input[type="radio"]').forEach(input => input.onchange = () => {
       if (!input.checked) return;
@@ -293,5 +398,9 @@
     questions.forEach((q, index) => {
       if (openAnswerTypes.includes(q.type) && q.type !== 'flashcard') $('grade-' + index).onchange = () => { if (!attempt) return; attempt.grades[index] = $('grade-' + index).value; updateScore(); };
     });
+    $('form').addEventListener('input', updateProgress);
+    $('form').addEventListener('change', updateProgress);
+    $('form').addEventListener('click', () => setTimeout(updateProgress, 0));
+    updateProgress();
   };
 })();

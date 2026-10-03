@@ -167,6 +167,27 @@ def test_puzzle_generation_charges_only_for_valid_board(client, monkeypatch):
     with factory() as db:assert db.scalar(select(func.count()).select_from(UsageRecord))==1
 
 
+def test_extended_activity_formats_are_validated():
+    from app.services.teacher_generator import generator_context, parse_material, TYPES
+    from fastapi import HTTPException
+    data = request(); data.update({key: 0 for key in TYPES})
+    data.update(multigaps=1, numeric=1, pasapalabra=1, hangman=1)
+    _, context = generator_context(data)
+    questions = [
+        dict(type='multigaps', prompt='El agua pasa de ___ a ___.', answer='líquido | sólido', options=['líquido', 'sólido']),
+        dict(type='numeric', prompt='¿Cuánto es 25 ÷ 2?', answer='12,5'),
+        dict(type='pasapalabra', prompt='Completa la rueda', answer='Completado', options=['A | Líquido esencial | agua', 'B | Lugar con libros | biblioteca', 'C | Pigmento verde | clorofila']),
+        dict(type='hangman', prompt='Estrella del sistema solar', answer='Sol'),
+    ]
+    result = parse_material(json.dumps({'questions': questions}), context)
+    assert result[0]['answer'] == 'líquido | sólido'
+    assert result[1]['answer'] == '12,5'
+    assert result[2]['answer'] == 'Completado'
+    questions[0]['prompt'] = 'Solo hay un ___.'
+    with pytest.raises(HTTPException):
+        parse_material(json.dumps({'questions': questions}), context)
+
+
 
 def test_visual_types_are_manual_and_not_sent_to_ai(client, monkeypatch):
     web, factory, calls = setup(client, monkeypatch)
