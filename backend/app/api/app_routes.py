@@ -1541,23 +1541,41 @@ async def teacher_support(payload: dict, user: User = Depends(current_user), lic
     ensure_credit_balance(db, user, license_obj, 1)
     api_key, url, provider = chat_provider_config(db, product="PROFESOR_PARTICULAR")
     model = chat_model_for_purpose(db, provider, "chat", "PROFESOR_PARTICULAR")
-    body = {"model": model, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps(context, ensure_ascii=False)}], "max_tokens": 7000, "temperature": 0.25}
+    body = {"model": model, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps(context, ensure_ascii=False)}], "max_tokens": 10000, "temperature": 0.25, "response_format": {"type": "json_object"}}
+    input_tokens = output_tokens = 0
+    native_gemini = provider == "gemini" and is_gemini_auth_key(api_key)
     try:
         async with httpx.AsyncClient(timeout=120) as client:
-            if provider == "gemini" and is_gemini_auth_key(api_key):
-                response = await gemini_post_with_retry(client, gemini_generate_url(model), headers={"x-goog-api-key": api_key}, json=gemini_request_body(body))
-            else:
-                response = await client.post(url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=body)
+            for attempt in range(2):
+                if native_gemini:
+                    native_body = gemini_request_body(body)
+                    if model.startswith("gemini-3"):
+                        native_body.setdefault("generationConfig", {})["thinkingConfig"] = {"thinkingLevel": "low"}
+                    response = await gemini_post_with_retry(client, gemini_generate_url(model), headers={"x-goog-api-key": api_key}, json=native_body)
+                else:
+                    response = await client.post(url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=body)
+                    if response.status_code == 400 and "response_format" in body and any(term in response.text.lower() for term in ("response_format", "json_object", "json mode")):
+                        # Some configured models don't support JSON mode; keep the same schema prompt.
+                        body.pop("response_format")
+                        response = await client.post(url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=body)
+                if response.status_code >= 400:
+                    raise provider_error("No se pudo generar el tema. No se han descontado créditos", response)
+                content = ""
+                try:
+                    data = gemini_chat_data(response.json()) if native_gemini else response.json()
+                    usage_in, usage_out = token_usage(data)
+                    input_tokens += usage_in
+                    output_tokens += usage_out
+                    content = data["choices"][0]["message"]["content"]
+                    topic = parse_topic(content)
+                    break
+                except (HTTPException, ValueError, KeyError, IndexError, TypeError) as exc:
+                    if attempt:
+                        raise HTTPException(502, "No se pudo completar el tema tras revisar la respuesta de la IA. No se han descontado créditos. Puedes reintentar sin perder tu petición.") from exc
+                    reason = str(exc.__cause__ or exc)[:500]
+                    body["messages"] += [{"role": "assistant", "content": str(content)[:60000]}, {"role": "user", "content": "Repara el JSON anterior y devuelve el tema COMPLETO conforme al esquema del sistema. Error: " + reason + ". Incluye todos los campos didactic, mínimo 3 conceptos, 3 pasos, 2 ejemplos y 3 ejercicios con answer. No resumas ni omitas apartados. Escapa correctamente los saltos de línea en JSON y usa notación matemática sin barras invertidas. Devuelve solo el objeto JSON."}]
     except httpx.RequestError as exc:
         raise HTTPException(502, "No se pudo completar la petición. No se han descontado créditos.") from exc
-    if response.status_code >= 400:
-        raise provider_error("No se pudo generar el tema. No se han descontado créditos", response)
-    try:
-        data = gemini_chat_data(response.json()) if provider == "gemini" and is_gemini_auth_key(api_key) else response.json()
-        topic = parse_topic(data["choices"][0]["message"]["content"])
-    except (ValueError, KeyError, IndexError, TypeError) as exc:
-        raise HTTPException(502, "Respuesta no válida. No se han descontado créditos.") from exc
-    input_tokens, output_tokens = token_usage(data)
     record_usage(db, user, model, input_tokens, output_tokens, "PROFESOR_PARTICULAR", 1)
     conv = Conversation(organization_id=user.organization_id, user_id=user.id, title=title)
     db.add(conv)

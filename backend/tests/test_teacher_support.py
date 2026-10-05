@@ -79,3 +79,44 @@ def test_personal_topic_format_pdf():
     assert '<u>énfasis</u>' in markup
     assert 'color="#7951be"' in markup
     assert render_topic_pdf(topic,'scheme').startswith(b'%PDF')
+
+def test_support_repairs_invalid_response_without_second_charge(client,monkeypatch):
+    import httpx
+    from app.api import app_routes
+    web,factory,calls=setup(client,monkeypatch)
+    premium(factory)
+    async def recover(self,url,**kw):
+        calls.append(kw['json'].copy())
+        content='{"title":"tema truncado",' if len(calls)==1 else json.dumps(generated())
+        return httpx.Response(200,json={'choices':[{'message':{'content':content}}],'usage':{'prompt_tokens':20,'completion_tokens':30}})
+    monkeypatch.setattr(app_routes.httpx.AsyncClient,'post',recover)
+    body=request()
+    response=web.post(URL,json=body)
+    assert response.status_code==200,response.text
+    assert len(calls)==2
+    assert calls[0]['response_format']=={'type':'json_object'}
+    assert 'Repara el JSON' in calls[1]['messages'][-1]['content']
+    assert web.post(URL,json=body).status_code==200
+    assert len(calls)==2
+    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord))==1
+
+def test_support_accepts_json_with_surrounding_text():
+    from app.services.teacher_support import parse_topic
+    content=json.dumps({'topic':generated()})
+    assert parse_topic('Aquí está el tema:\n```json\n'+content+'\n```')['title']==generated()['title']
+
+def test_support_model_without_json_mode(client,monkeypatch):
+    import httpx
+    from app.api import app_routes
+    web,factory,calls=setup(client,monkeypatch)
+    premium(factory)
+    async def compatible(self,url,**kw):
+        body=kw['json'];calls.append(body.copy())
+        if 'response_format' in body:
+            return httpx.Response(400,json={'error':{'message':'response_format not supported'}})
+        return httpx.Response(200,json={'choices':[{'message':{'content':json.dumps(generated())}}]})
+    monkeypatch.setattr(app_routes.httpx.AsyncClient,'post',compatible)
+    assert web.post(URL,json=request()).status_code==200
+    assert len(calls)==2
+    assert 'response_format' not in calls[1]
+    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord))==1

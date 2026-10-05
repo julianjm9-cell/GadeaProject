@@ -33,7 +33,15 @@ def validate_topic(value):
 
 def parse_topic(raw):
     try:
-        topic = validate_topic(json.loads(raw.strip().removeprefix('```json').removeprefix('```').removesuffix('```').strip()))
+        if not isinstance(raw, str) or len(raw) > 200000:
+            raise ValueError('Respuesta vacía o demasiado extensa.')
+        start = raw.find('{')
+        if start < 0:
+            raise ValueError('La respuesta no contiene JSON.')
+        value, _ = json.JSONDecoder().raw_decode(raw[start:])
+        if isinstance(value, dict) and isinstance(value.get('topic'), dict):
+            value = value['topic']
+        topic = validate_topic(value)
         d = topic['didactic']
         if any(len(d[key]) < minimum for key, minimum in [('concepts', 3), ('steps', 3), ('examples', 2), ('practice', 3)]):
             raise ValueError('Contenido incompleto.')
