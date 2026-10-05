@@ -650,6 +650,7 @@ def profesor_temario_catalogue():
     return FileResponse(path, media_type="text/javascript", headers={"Cache-Control": "public, max-age=3600"})
 
 
+@router.get("/temario-presentation.js")
 @router.get("/profesor-temario-depth.js")
 @router.get("/profesor-activity-play.js")
 def profesor_support_script(request: Request):

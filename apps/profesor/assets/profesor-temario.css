@@ -72,3 +72,25 @@
 .temario-renewed .temario-main-actions>button{height:auto;min-height:36px;padding:6px;font-size:11px;line-height:1.25}
 @media(max-height:940px){.temario-renewed .temario-detail{position:static}}
 @media(max-width:760px){.temario-renewed .temario-main-actions{grid-template-columns:1fr}.workspace-page:has(.temario-renewed) .workspace-content{padding-bottom:90px}}
+/* Curricular notation and diagrams, shared by all resource views. */
+.topic-math{font-size:1.12em;margin:0 .12em;vertical-align:middle;color:inherit}
+.topic-equation-stack{display:inline-grid;gap:8px;width:100%;padding:12px 14px;border-left:3px solid #79baff;background:#f1f7ff;border-radius:8px;font-variant-numeric:tabular-nums;line-height:1.9}
+.topic-equation-stack>span{display:block;overflow-wrap:anywhere}
+.topic-concept-flow{display:inline-flex;flex-wrap:wrap;gap:8px;align-items:center}
+.topic-concept-flow>span{padding:5px 8px;background:#edf5ff;border-radius:6px}
+.topic-flow-arrow{color:#0868dc;font-weight:700}
+.topic-system{display:inline-grid;gap:4px;border-left:2px solid #0868dc;border-radius:10px;padding-left:12px}
+.topic-table{display:table;width:100%;border-collapse:collapse;margin:10px 0}
+.topic-table>[role=row]{display:table-row}
+.topic-table>[role=row]>span{display:table-cell;padding:8px;border:1px solid #dbe8f7}
+.topic-table [role=columnheader]{font-weight:700;background:#edf5ff}
+.topic-text-heading{display:block;margin:8px 0 4px;color:#102753}
+.topic-text-bullet{display:inline-block;padding-left:16px;position:relative}
+.topic-text-bullet:before{content:'•';position:absolute;left:0;color:#0868dc}
+.topic-diagram{margin:16px 0;padding:12px;border:1px solid #dbe8f7;border-radius:12px;background:#f7fbff;text-align:center}
+.topic-diagram svg{display:block;width:100%;max-width:320px;height:auto;margin:auto;fill:none;stroke:#0868dc;stroke-width:2}
+.topic-diagram text{stroke:none;fill:#102753;font:14px system-ui}
+.topic-diagram figcaption{font-size:12px;color:#577095;margin-top:6px}
+.temario-lesson code{background:#edf3fa;padding:2px 5px;border-radius:4px}
+.temario-lesson strong{font-weight:700}
+.temario-lesson .lesson-lead,.temario-lesson .lesson-example-quote{font-weight:400}
