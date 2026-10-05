@@ -1,0 +1,67 @@
+const {chromium}=require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const assert=require('node:assert/strict');
+const {pathToFileURL}=require('node:url');
+const path=require('node:path');
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:'msedge'});
+ try{
+  const page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href+'#temario');
+  await page.locator('#temarioSubject').waitFor();
+  await page.locator('#temarioSubject').selectOption('Español');
+  assert.equal(await page.locator('#temarioCourse').inputValue(),'A1');
+  assert.equal(await page.locator('#temarioCourse option').count(),6);
+  assert.match(await page.locator('label[for="temarioCourse"]').innerText(),/^Nivel/);
+  for(const level of ['A1','A2','B1','B2','C1','C2']){
+   await page.locator('#temarioCourse').selectOption(level);
+   assert.equal(await page.locator('[data-temario-topic]').count(),12);
+   await page.getByRole('button',{name:'Ver tema completo'}).click();
+   assert.ok(await page.locator('.spanish-contrast table').count()>=1);
+   await page.locator('#dialog .close').click();
+  }
+  await page.locator('#temarioCourse').selectOption('A1');
+  await page.getByRole('button',{name:/Presente y rutinas/}).first().click();
+  await page.getByRole('button',{name:'Ver tema completo'}).click();
+  assert.equal(await page.locator('.spanish-contrast table').count(),2);
+  assert.match(await page.locator('.spanish-contrast').innerText(),/habláis/);
+  await page.locator('.spanish-contrast').scrollIntoViewIfNeeded();
+  await page.screenshot({path:'tools/profesor-spanish-conjugation.png'});
+  await page.locator('#dialog .close').click();
+  await page.locator('#temarioSubject').selectOption('Matemáticas');
+  assert.equal(await page.locator('#temarioCourse').inputValue(),'3.º ESO');
+  await page.evaluate(()=>newStudent());
+  await page.locator('#name').fill('Alumno ELE');
+  await page.locator('#course').selectOption('3.º ESO');
+  await page.locator('input[name="subjects"][value="Español"]').check();
+  assert.equal(await page.locator('.spanish-level-field').isVisible(),true);
+  await page.locator('#spanishLevel').selectOption('B1');
+  await page.getByRole('button',{name:'Crear alumno',exact:true}).click();
+  assert.deepEqual(await page.evaluate(()=>{const s=state.students.at(-1);return [s.course,s.spanishLevel,s.subjects]}),['3.º ESO','B1',['Matemáticas','Español']]);
+  await page.evaluate(()=>editStudentProfile(state.students.at(-1).id));
+  await page.locator('#spanishLevel').selectOption('B2');
+  await page.getByRole('button',{name:'Guardar perfil',exact:true}).click();
+  assert.equal(await page.evaluate(()=>state.students.at(-1).spanishLevel),'B2');
+  await page.evaluate(()=>openWorkshop({studentId:state.students.at(-1).id,subject:'Español'}));
+  assert.equal(await page.locator('#workshopCourse').inputValue(),'B2');
+  assert.equal(await page.locator('#workshopTopics option').count(),12);
+  await page.locator('#workshopSubject').selectOption('Matemáticas');
+  assert.equal(await page.locator('#workshopCourse').inputValue(),'3.º ESO');
+  await page.locator('#workshopSubject').selectOption('Español');
+  assert.equal(await page.locator('#workshopCourse').inputValue(),'B2');
+  await page.locator('#dialog .close').click();
+  await page.evaluate(()=>{selected=null;view='Temario';temarioSubject='Español';temarioCourse='A1';render()});
+  await page.getByRole('button',{name:'Probar ahora',exact:true}).click();
+  await page.locator('#dialog.activity-play .block').first().waitFor();
+  assert.equal(await page.locator('#dialog.activity-play .block').count(),6);
+  await page.locator('#dialog .close').click();
+  await page.setViewportSize({width:390,height:844});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
+  await page.getByRole('button',{name:'Ver tema completo'}).click();
+  assert.equal(await page.evaluate(()=>document.querySelector('#dialog').scrollWidth>document.querySelector('#dialog').clientWidth+2),false);
+  await page.screenshot({path:'tools/profesor-spanish-mobile.png'});
+  await page.locator('#dialog .close').click();
+  assert.deepEqual(errors,[]);
+  console.log('PASS Español: niveles, alumno mixto, edición, generador, materiales y móvil');
+ }finally{await browser.close()}
+})().catch(e=>{console.error(e);process.exit(1)});

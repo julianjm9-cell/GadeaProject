@@ -161,6 +161,28 @@ def render_topic_pdf(topic: dict, resource: str) -> bytes:
         section("Qué comprobar", content["recognition"])
         section("Error frecuente", content["commonErrors"][0])
 
+    if resource != "practice" and topic.get("subject") == "Español" and topic.get("languageTable"):
+        table = topic["languageTable"]
+        story.append(paragraph("Formas de referencia", "TopicHeading"))
+        rows = [[paragraph(cell) for cell in table["head"]]] + [[paragraph(cell) for cell in row] for row in table["rows"]]
+        paradigm = Table(rows, colWidths=[174*mm/len(table["head"])]*len(table["head"]), repeatRows=1)
+        paradigm.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#eef6ff")),
+                                      ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#dbe8f7")),
+                                      ("VALIGN", (0, 0), (-1, -1), "TOP")]))
+        story.append(paradigm)
+
+    if resource != "practice" and topic.get("subject") == "Español" and topic.get("languageContrast"):
+        wrong, correct = topic["languageContrast"]
+        story.append(paragraph("Forma y significado", "TopicHeading"))
+        contrast = Table([[paragraph("Para revisar"), paragraph("Modelo adecuado")],
+                          [paragraph(wrong), paragraph(correct)]], colWidths=[84*mm, 84*mm])
+        contrast.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#eef6ff")),
+                                      ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#dbe8f7")),
+                                      ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                                      ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                                      ("RIGHTPADDING", (0, 0), (-1, -1), 8)]))
+        story.append(contrast)
+
     if resource != "practice":
         diagram = topic_diagram(topic)
         if diagram:

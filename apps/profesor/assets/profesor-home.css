@@ -98,3 +98,5 @@
 .account-dropdown-menu button,.account-dropdown-menu a{display:block;width:100%;text-align:left;border:0;background:transparent;padding:12px;color:#173b6c;text-decoration:none;font-size:13px}
 .account-dropdown-menu button:hover,.account-dropdown-menu a:hover{background:#edf5ff;border-radius:8px}
 .home-account button.account-plan{cursor:pointer;min-height:36px}
+
+.subject-spanish{background:#fff0df!important;color:#975015!important}

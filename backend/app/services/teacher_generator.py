@@ -8,6 +8,26 @@ from fastapi import HTTPException
 TYPES = ('pairs', 'gaps', 'quiz', 'short', 'order', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'memory', 'sentence', 'timeline', 'error', 'wordsearch', 'crossword', 'dragdrop', 'multigaps', 'numeric', 'pasapalabra', 'hangman')
 
 
+SPANISH_LEVELS = {
+    'A1': 'Principiante: intercambios sencillos, frases breves, vocabulario cotidiano y modelos guiados.',
+    'A2': 'Básico: rutinas, descripciones, planes y narraciones breves con conectores sencillos.',
+    'B1': 'Intermedio: experiencias, razones, resolución de situaciones y textos coherentes de dificultad moderada.',
+    'B2': 'Intermedio alto: argumentación, hipótesis, matices y adecuación al registro.',
+    'C1': 'Avanzado: inferencias, cohesión, precisión, expresiones idiomáticas y uso flexible.',
+    'C2': 'Dominio: implicaturas, reformulación precisa, registros y matices sutiles de significado.',
+}
+
+
+def spanish_guidance(level):
+    if level not in SPANISH_LEVELS:
+        raise HTTPException(422, 'Selecciona un nivel de español entre A1 y C2.')
+    return ('Español como lengua extranjera, nivel ' + level + '. ' + SPANISH_LEVELS[level]
+            + ' No confundir con Lengua escolar ni deducir edad del nivel. Usa situaciones comunicativas'
+              ' y ejemplos en español, sin presuponer lengua materna. Conserva tildes, ñ y concordancia.'
+              ' Reconoce variantes regionales válidas y alternativas correctas. En respuestas abiertas'
+              ' proporciona un modelo y criterios para revisión del profesor; no finjas autocorrección exacta.')
+
+
 def course_guidance(course):
     match = re.search(r'([1-6])\s*(?:[.º°ªo]*\s*)?(primaria|eso|bachillerato)', course, re.IGNORECASE)
     if not match:
@@ -100,7 +120,7 @@ def generator_context(payload):
         context[key] = value.strip()
     if not context['topic'] or not context['subject']:
         raise HTTPException(422, 'Indica asignatura y contenido.')
-    context['levelGuidance'] = course_guidance(context['course'])
+    context['levelGuidance'] = spanish_guidance(context['course']) if context['subject'] == 'Español' else course_guidance(context['course'])
     for key in TYPES:
         value = payload.get(key, 0)
         if type(value) is not int or not 0 <= value <= 10:
@@ -207,7 +227,7 @@ def parse_material(content, context):
     except (ValueError, TypeError, KeyError):
         raise HTTPException(502, 'La IA no devolvió actividades válidas. No se han descontado créditos. Puedes reintentar o escribir el contenido manualmente.')
 
-SYSTEM = '''Crea material educativo correcto para colegio e instituto. Devuelve SOLO JSON:
+SYSTEM = '''Crea material educativo correcto para estudiantes escolares y adultos. Para Español sigue el nivel MCER A1-C2 de levelGuidance, no un curso escolar. Devuelve SOLO JSON:
 {"questions":[{"type":"uno de los tipos solicitados","prompt":"enunciado","answer":"solución","options":[]}]}
 Respeta exactamente las cantidades de cada tipo y el nivel del curso. course y
 levelGuidance determinan la dificultad, el vocabulario, los ejemplos y el alcance de

@@ -308,6 +308,7 @@ let temarioSubject = 'Matemáticas';
 let temarioQuery = '';
 let temarioPreparation = 'all';
 let temarioSelected = '';
+let temarioSchoolCourse = '3.º ESO';
 let temarioView;
 let openTemarioLesson;
 const temarioNorm = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().replace(/[^a-z0-9]/g, '');
@@ -329,13 +330,13 @@ function temarioVisibleTopics() {
   return temarioTopics().filter(topic => (!query || temarioNorm(topic.title + ' ' + topic.explanation).includes(query)) && (temarioPreparation === 'all' || (temarioMaterials(topic).length > 0) === (temarioPreparation === 'ready')));
 }
 function planTemarioWithStudent(topic) {
-  const pupils = state.students.filter(pupil => temarioNorm(pupil.course) === temarioNorm(temarioCourse) && pupil.subjects.includes(temarioSubject));
+  const pupils = state.students.filter(pupil => temarioNorm(studentSubjectCourse(pupil,temarioSubject)) === temarioNorm(temarioCourse) && pupil.subjects.includes(temarioSubject));
   if (!pupils.length) { notify('No hay alumnos de este curso y asignatura. Puedes crear una actividad general.'); return; }
   modal('Planificar · ' + topic.title, `<p>Se añadirá a tus tareas como recordatorio para trabajar este tema con un alumno. No se enviará a ninguna cuenta del alumno.</p><label for="temarioStudent">Alumno</label><select id="temarioStudent" name="studentId">${pupils.map(pupil => `<option value="${esc(pupil.id)}">${esc(pupil.name)}</option>`).join('')}</select><label for="temarioDue">Fecha (opcional)</label><input id="temarioDue" name="due" type="date">${submit('Añadir a mi plan')}`, form => {const pupil = student(form.get('studentId'));state.tasks.push({id:uid(),title:'Trabajar ' + topic.title,studentId:pupil.id,priority:'Normal',due:form.get('due') || '',done:false});save();render();notify('Tema añadido a tus tareas para ' + pupil.name);});
 }
 document.addEventListener('change', event => {
-  if (event.target.id === 'temarioCourse') { temarioCourse = event.target.value; temarioSubject = Object.keys(window.PROFESOR_TEMARIO?.[temarioCourse] || {})[0] || '';temarioSelected = '';render(); }
-  if (event.target.id === 'temarioSubject') { temarioSubject = event.target.value;temarioSelected = '';render(); }
+  if (event.target.id === 'temarioCourse') { temarioCourse = event.target.value; if(!spanishLevels.includes(temarioCourse))temarioSchoolCourse=temarioCourse; if(!window.PROFESOR_TEMARIO?.[temarioCourse]?.[temarioSubject])temarioSubject = Object.keys(window.PROFESOR_TEMARIO?.[temarioCourse] || {})[0] || '';temarioSelected = '';render(); }
+  if (event.target.id === 'temarioSubject') { temarioSubject = event.target.value;if(temarioSubject==='Español'){if(!spanishLevels.includes(temarioCourse))temarioSchoolCourse=temarioCourse;temarioCourse=spanishLevels.includes(temarioCourse)?temarioCourse:'A1';}else if(spanishLevels.includes(temarioCourse))temarioCourse=temarioSchoolCourse;temarioSelected = '';render(); }
   if (event.target.id === 'temarioPreparation') { temarioPreparation = event.target.value;temarioSelected = '';render(); }
 });
 document.addEventListener('input', event => {
@@ -387,6 +388,7 @@ const temarioCommonError = (subject, title) => {
 const temarioTeachingProfile = subject => ({
   'Matemáticas': {prior:'Operaciones, representaciones y unidades relacionadas con el tema.',evidence:'Plantea el procedimiento, justifica cada paso y comprueba el resultado.'},
   'Lengua': {prior:'Comprensión del enunciado y reconocimiento de elementos básicos de la oración o del texto.',evidence:'Identifica el rasgo, aporta una prueba concreta y explica su efecto.'},
+  'Español': {prior:'Nivel A1–C2 y comprensión del contexto comunicativo; no presupone lengua materna ni curso escolar.',evidence:'Comunica el sentido con una estructura adecuada y explica una elección lingüística.'},
   'Inglés': {prior:'Vocabulario esencial, sujeto, auxiliares y marcadores de tiempo del nivel.',evidence:'Elige la estructura por el contexto, la usa en una frase propia y revisa el significado.'},
   'Ciencias Naturales': {prior:'Observación, vocabulario científico básico y relación entre estructura y función.',evidence:'Describe los elementos, relaciona causa y consecuencia y apoya la explicación en una observación.'},
   'Física y Química': {prior:'Magnitudes, unidades, lectura de datos y diferencia entre observación y modelo.',evidence:'Selecciona el modelo adecuado, opera con unidades coherentes e interpreta el resultado.'},
@@ -428,16 +430,16 @@ const temarioResources=[
  {kind:'examples',title:'Ejemplos resueltos',description:'Aplicación explicada y errores frecuentes.',premium:true}
 ];
 temarioView=function(){
- const courses=Object.keys(window.PROFESOR_TEMARIO||{});
+ const courses=Object.keys(window.PROFESOR_TEMARIO||{}).filter(course=>temarioSubject==='Español'?spanishLevels.includes(course):!spanishLevels.includes(course));
  if(!courses.includes(temarioCourse))temarioCourse=courses[0]||'';
- const subjects=Object.keys(window.PROFESOR_TEMARIO?.[temarioCourse]||{});
+ const subjects=[...new Set([...Object.keys(window.PROFESOR_TEMARIO?.[spanishLevels.includes(temarioCourse)?temarioSchoolCourse:temarioCourse]||{}),'Español'])];
  if(!subjects.includes(temarioSubject))temarioSubject=subjects[0]||'';
  const topics=temarioVisibleTopics();
  if(!topics.some(t=>t.id===temarioSelected))temarioSelected=topics[0]?.id||'';
  const current=topics.find(t=>t.id===temarioSelected);
  const options=(list,value)=>list.map(x=>'<option value="'+esc(x)+'"'+(x===value?' selected':'')+'>'+esc(x)+'</option>').join('');
  return '<div class="temario-page temario-simple temario-renewed"><div class="temario-controls" aria-label="Buscar en el temario">'+
- '<label for="temarioCourse">Curso<select id="temarioCourse">'+options(courses,temarioCourse)+'</select></label>'+
+ '<label for="temarioCourse">'+(temarioSubject==='Español'?'Nivel':'Curso')+'<select id="temarioCourse">'+options(courses,temarioCourse)+'</select></label>'+
  '<label for="temarioSubject">Asignatura<select id="temarioSubject">'+options(subjects,temarioSubject)+'</select></label>'+
  '<label for="temarioSearch">Buscar tema<input id="temarioSearch" type="search" value="'+esc(temarioQuery)+'" placeholder="Nombre o concepto…" autocomplete="off"></label>'+
  '<label for="temarioPreparation">Preparación<select id="temarioPreparation">'+[['all','Todos'],['ready','Con material'],['pending','Por preparar']].map(([value,label])=>'<option value="'+value+'"'+(value===temarioPreparation?' selected':'')+'>'+label+'</option>').join('')+'</select></label><span class="temario-base-count">'+topics.length+' temas</span></div>'+
@@ -484,7 +486,8 @@ document.addEventListener('click',async event=>{
 openTemarioLesson = function (topic) {
   if (!isPremium()) {notify('El contenido completo de los temas está disponible para cuentas Premium.');return;}
   const content = topic.didactic;
-  const profile = temarioTeachingProfile(temarioSubject);
+  const profile = {...temarioTeachingProfile(temarioSubject)};
+  if(temarioSubject==='Español')profile.prior=spanishLearningGuidance[temarioCourse]+' Comprueba las palabras del modelo antes de practicar.';
   const exampleParts = content.examples[0].includes('=') ? [content.examples[0]] : content.examples[0].split(/\s*→\s*/);
   const exampleMarkup = exampleParts.length > 1
     ? `<div class="lesson-example-flow">${exampleParts.map((part, index) => `<div><span>${index + 1}</span><strong>${temarioRichText(part)}</strong></div>`).join('')}</div>`
@@ -497,7 +500,7 @@ openTemarioLesson = function (topic) {
     <div class="lesson-grid">
       <section class="lesson-card lesson-understand"><div class="lesson-card-heading"><span class="lesson-card-icon">01</span><div><small>Fundamento</small><h3>Entiende la idea</h3></div></div><p class="lesson-lead">${temarioRichText(content.explanation)}</p><div class="lesson-recognition"><strong>Cómo reconocerlo</strong><span>${temarioRichText(content.recognition)}</span></div></section>
       <section class="lesson-card lesson-method"><div class="lesson-card-heading"><span class="lesson-card-icon">02</span><div><small>Procedimiento</small><h3>Cómo trabajarlo</h3></div></div><ol class="lesson-steps">${content.steps.map((step, index) => `<li><span>${index + 1}</span><p>${temarioRichText(step)}</p></li>`).join('')}</ol></section>
-      <section class="lesson-card lesson-example"><div class="lesson-card-heading"><span class="lesson-card-icon">03</span><div><small>Aplicación</small><h3>Ejemplos explicados</h3></div></div>${exampleMarkup}${temarioDiagram(topic)}<div class="lesson-example-note"><strong>Fíjate en esto</strong><p>${temarioRichText(content.deepDive)}</p></div>${extraExampleMarkup}</section>
+      <section class="lesson-card lesson-example"><div class="lesson-card-heading"><span class="lesson-card-icon">03</span><div><small>Aplicación</small><h3>Ejemplos explicados</h3></div></div>${exampleMarkup}${temarioDiagram(topic)}<div class="lesson-example-note"><strong>Fíjate en esto</strong><p>${temarioRichText(content.deepDive)}</p></div>${extraExampleMarkup}${temarioSubject==='Español'?`<div class="spanish-contrast">${temarioLanguageTable(topic)}<h4>Forma y significado</h4><table><thead><tr><th>Para revisar</th><th>Modelo adecuado</th></tr></thead><tbody><tr><td>${temarioRichText(topic.languageContrast?.[0]||'Revisa el contexto')}</td><td>${temarioRichText(topic.languageContrast?.[1]||topic.example)}</td></tr></tbody></table></div>`:''}</section>
       <section class="lesson-card temario-lesson-practice"><div class="lesson-card-heading"><span class="lesson-card-icon">04</span><div><small>Comprobación</small><h3>Ahora inténtalo</h3></div></div><p class="lesson-question">${temarioRichText(content.practice[0].prompt)}</p><details><summary>Ver respuesta orientativa</summary><p class="temario-lesson-answer">${temarioRichText(content.solutions[0])}</p></details><details class="lesson-more-practice"><summary>2 ejercicios más</summary>${extraPracticeMarkup}</details><div class="actions"><button type="button" class="primary" data-temario-action="practice" data-id="${esc(topic.id)}">Practicar ahora</button></div></section>
       <section class="lesson-card lesson-error"><div class="lesson-card-heading"><span class="lesson-card-icon">!</span><div><small>Atención</small><h3>Error frecuente</h3></div></div><p>${temarioRichText(content.commonErrors[0])}</p></section>
       <section class="lesson-card lesson-transfer"><div class="lesson-card-heading"><span class="lesson-card-icon">↗</span><div><small>Un paso más</small><h3>Llévalo a otro caso</h3></div></div><p>${temarioRichText(content.transfer)}</p></section>
@@ -512,11 +515,11 @@ openTemarioLesson = function (topic) {
 
 function temarioUseInMaterial(topic) {
   if ($('dialog').open) $('dialog').close();
-  const pupils = state.students.filter(pupil => pupil.subjects.includes(temarioSubject));
+  const pupils = state.students.filter(pupil => pupil.subjects.includes(temarioSubject) && (temarioSubject!=='Español'||spanishLevel(pupil)===temarioCourse));
   modal('Usar en material', `<p>El curso, la asignatura y el tema ya están preparados. Elige para quién será el material.</p><label for="temarioOwner">¿Para quién?</label><select id="temarioOwner" name="studentId"><option value="">Material general</option>${pupils.map(pupil => `<option value="${esc(pupil.id)}">${esc(pupil.name)}</option>`).join('')}</select>${submit('Continuar a Materiales')}`, form => {
     const pupil = student(form.get('studentId'));
-    const course = pupil?.course || temarioCourse;
     const subject = temarioSubject;
+    const course = pupil ? studentSubjectCourse(pupil,subject) : temarioCourse;
     selected = null; view = 'Biblioteca'; render();
     setTimeout(() => {
       openWorkshop({course, subject, topic: topic.title, theme: pupil?.interests || ''});

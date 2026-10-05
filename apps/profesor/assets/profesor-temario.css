@@ -100,3 +100,5 @@
 .temario-renewed .temario-topic-copy>strong{white-space:normal;overflow:visible;line-height:1.4}
 .temario-renewed .temario-orientation p{text-align:justify;text-align-last:left;hyphens:auto;line-height:1.65;overflow-wrap:break-word}
 .temario-renewed .temario-orientation p strong{display:inline;font-size:inherit;line-height:inherit;color:inherit;font-weight:700}
+
+.spanish-contrast{margin-top:16px;overflow-x:auto}.spanish-contrast table{width:100%;border-collapse:collapse;margin-top:8px}.spanish-contrast th,.spanish-contrast td{padding:12px;border:1px solid #dce8fa;text-align:left;vertical-align:top}.spanish-contrast th{background:#eef6ff;color:#0b4fa6}.spanish-level-field small{display:block;color:#607a99;margin:6px 0 12px}

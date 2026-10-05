@@ -19,7 +19,7 @@ def test_math_notation_is_preserved_in_pdf():
 
 def test_all_topics_have_printable_resources():
     catalog = topic_catalog()
-    assert len(catalog) == 279
+    assert len(catalog) == 351
     for topic in catalog.values():
         material = topic["didactic"]["preparedMaterial"]
         assert material["duration"] == 20
@@ -31,7 +31,7 @@ def test_all_topics_have_printable_resources():
             pages = PdfReader(BytesIO(pdf)).pages
             assert 1 <= len(pages) <= 3, (topic["id"], resource)
             text = " ".join(page.extract_text() for page in pages)
-            assert topic["title"] in pages[0].extract_text()
+            assert topic["title"] in " ".join(pages[0].extract_text().split())
             assert "\u25a0" not in text, (topic["id"], resource)
             if resource == "scheme":
                 assert all(heading in text for heading in ("Para entenderlo", "Cuándo usarlo", "Recorrido de aprendizaje", "Un ejemplo")), topic["id"]
@@ -71,7 +71,7 @@ def test_topic_pdf_plan_is_checked_from_license(client):
 
 def test_deployed_profesor_assets_are_routed(client, monkeypatch, tmp_path):
     web, _ = client
-    filenames = ["temario-presentation.js", "profesor-temario.js", "profesor-temario-depth.js", "profesor-activity-play.js",
+    filenames = ["temario-presentation.js", "profesor-temario.js", "profesor-temario-depth.js", "profesor-spanish.js", "profesor-activity-play.js",
                  "profesor-final.css", "profesor-home.css", "profesor-studio.css", "profesor-temario.css",
                  "profesor-activity-play.css"]
     # Simulate Docker: only static copies exist, not the repository's apps directory.

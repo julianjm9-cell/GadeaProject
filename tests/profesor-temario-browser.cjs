@@ -14,17 +14,17 @@ const path=require('node:path');
    const topics=Object.values(PROFESOR_TEMARIO).flatMap(subjects=>Object.values(subjects).flat());
    return {courses:Object.keys(PROFESOR_TEMARIO).length,topics:topics.length,incomplete:topics.filter(topic=>!topic.didactic?.objective||!topic.didactic?.explanation||!topic.didactic?.concepts?.length||!topic.didactic?.examples?.length||!topic.didactic?.commonErrors?.length||!topic.didactic?.practice?.length||!topic.didactic?.activities?.length||!topic.didactic?.solutions?.length||topic.didactic?.deepDive?.length<70||topic.didactic?.steps?.length!==3||!topic.didactic?.recognition||!topic.didactic?.transfer||topic.didactic?.preparedMaterial?.questions?.length!==6).length};
   });
-  assert.deepEqual(coverage,{courses:12,topics:279,incomplete:0});
+  assert.deepEqual(coverage,{courses:18,topics:351,incomplete:0});
   const lessonAudit=await page.evaluate(()=>{
-    const failed=[];let rendered=0,materials=0;const normal=text=>text.replace(/[²³]/g,c=>c==='²'?'2':'3').replace(/[\s/]/g,'');
+    const failed=[];let rendered=0,materials=0;const normal=text=>text.replace(/\*\*/g,'').replace(/[²³]/g,c=>c==='²'?'2':'3').replace(/[\s/]/g,'');
     for(const [course,subjects] of Object.entries(PROFESOR_TEMARIO))for(const [subject,topics] of Object.entries(subjects))for(const topic of topics){
       try{temarioCourse=course;temarioSubject=subject;const prepared=preparedTopicMaterial(topic),clean=validateActivityQuestions(prepared.activity.questions);if(clean.length!==6||new Set(clean.map(question=>question.type)).size<5)throw Error('material preparado demasiado breve o repetitivo');materials++;openTemarioLesson(topic);rendered++;const detail=document.querySelector('.temario-lesson');if(!normal(detail?.textContent||'').includes(normal(topic.didactic.deepDive))||detail.querySelectorAll('.lesson-steps li').length!==3||detail.querySelectorAll('.lesson-class-guide>div').length!==3)failed.push(topic.id);$('dialog').close()}
       catch(error){failed.push(topic.id+': '+error.message);if($('dialog').open)$('dialog').close()}
     }
     temarioCourse='3.º ESO';temarioSubject='Matemáticas';render();return {rendered,materials,failed};
   });
-  assert.equal(lessonAudit.rendered,279);
-  assert.equal(lessonAudit.materials,279);
+  assert.equal(lessonAudit.rendered,351);
+  assert.equal(lessonAudit.materials,351);
   assert.deepEqual(lessonAudit.failed,[]);
   assert.equal(await page.locator('.temario-controls select').count(),3);
   assert.equal(await page.locator('.temario-heading').count(),0);
@@ -103,6 +103,6 @@ const path=require('node:path');
   await page.locator('#dialog .close').click();
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
   assert.deepEqual(errors,[]);
-  console.log('PASS Temario: 279 fichas, flujo sencillo, práctica y uso en Materiales');
+  console.log('PASS Temario: 351 fichas, flujo sencillo, práctica y uso en Materiales');
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exit(1)});

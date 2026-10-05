@@ -650,6 +650,7 @@ def profesor_temario_catalogue():
     return FileResponse(path, media_type="text/javascript", headers={"Cache-Control": "public, max-age=3600"})
 
 
+@router.get("/profesor-spanish.js")
 @router.get("/profesor-support.js")
 @router.get("/temario-presentation.js")
 @router.get("/profesor-temario-depth.js")
@@ -1520,6 +1521,9 @@ async def teacher_support(payload: dict, user: User = Depends(current_user), lic
     except (ValueError, TypeError, AttributeError):
         raise HTTPException(422, "Identificador de petición no válido.")
     context = {"course": course, "subject": subject, "question": question, "mode": payload.get("mode", "new")}
+    if subject == "Español":
+        from app.services.teacher_generator import spanish_guidance
+        context["levelGuidance"] = spanish_guidance(course)
     if context["mode"] not in ("new", "improve", "exercises"):
         raise HTTPException(422, "Acción no válida.")
     if payload.get("topic"):
