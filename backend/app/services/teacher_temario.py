@@ -53,10 +53,15 @@ def render_topic_pdf(topic: dict, resource: str) -> bytes:
         story.extend([paragraph(title, "TopicHeading"), paragraph(body)])
 
     if resource == "scheme":
+        section("Para entenderlo", content["deepDive"])
         story.append(paragraph("Conceptos clave", "TopicHeading"))
         for index, concept in enumerate(content["concepts"], 1):
             story.append(paragraph(str(index) + ". " + concept))
-        section("Recorrido de aprendizaje", "1. Comprender la idea y reconocerla.\n2. Aplicarla en un ejemplo del curso.\n3. Comprobar y explicar el resultado.")
+        section("Cuándo usarlo", content["recognition"])
+        story.append(paragraph("Recorrido de aprendizaje", "TopicHeading"))
+        for index, step in enumerate(content["steps"], 1):
+            story.append(paragraph(str(index) + ". " + step))
+        section("Un ejemplo", content["examples"][0])
     elif resource == "examples":
         for index, example in enumerate(content["examples"], 1):
             section("Ejemplo explicado " + str(index), example)

@@ -158,7 +158,7 @@ body{background:radial-gradient(ellipse at 78% 0,#e4f0ff90,transparent 50%),line
 <main id="main"><div class="empty">Cargando tu escritorio…</div></main>
 <dialog id="dialog"><div class="row"><h2 id="dialogTitle"></h2><button class="close" data-action="close" aria-label="Cerrar">×</button></div><form id="form"></form></dialog>
 <div id="notice" role="status" aria-live="polite"></div>
-<script src="./profesor-temario.js?v=20261003-2"></script>
+<script src="./profesor-temario.js?v=20261005-3"></script>
 <script src="./profesor-temario-depth.js?v=20261003-3"></script>
 <script>
 'use strict';
@@ -190,7 +190,7 @@ function setSave(text,error=false){const el=$('saveState');if(el){el.textContent
 function saveFeedback(){return '<footer class="save-feedback" '+(saveFailed?'role="alert"':'hidden')+'><button class="quiet save-state" data-action="retry" id="saveState">'+(saveFailed?'Sin guardar · pulsa Reintentar':'')+'</button></footer>'}
 window.addEventListener('beforeunload',e=>{if(saveFailed||pendingSaves){e.preventDefault();e.returnValue=''}});
 function avatar(s){return `<span class="avatar">${esc(s.name.split(' ').slice(0,2).map(n=>n[0]).join(''))}</span>`}
-function subjectColor(sub){return {Matemáticas:'',Lengua:'green',Inglés:'pink',Física:'purple',Química:'gold'}[sub]||''}
+function subjectColor(sub){const known={'Matemáticas':'subject-blue','Lengua':'subject-green','Inglés':'subject-rose','Física':'subject-violet','Química':'subject-amber','Ciencias Naturales':'subject-teal','Física y Química':'subject-indigo','Geografía e Historia':'subject-orange','Tecnología':'subject-cyan','Biología':'subject-lime','Francés':'subject-coral','Música':'subject-plum'};if(known[sub])return known[sub];let hash=0;for(const char of String(sub))hash=(hash*31+char.codePointAt(0))|0;return 'subject-palette-'+(Math.abs(hash)%8)}
 function sessionCard(c){const s=student(c.studentId),end=new Date(new Date(c.date).getTime()+c.duration*60000);return `<div class="session"><div class="time">${esc(c.date.slice(11,16))}<small>${end.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</small></div>${avatar(s||{name:'Alumno'})}<div class="detail"><h3>${esc(s?.name||'Alumno')}</h3><p>${esc(c.subject)} · ${esc(s?.course||'')}</p><span class="badge ${c.status==='Finalizada'?'green':''}">${esc(c.status)} · ${esc(c.date.slice(0,10))}</span></div><div class="actions">${c.status==='Cancelada'?button('Reprogramar','prepare',c.id):c.status==='Finalizada'?button('Resumen','summary',c.id):c.blocks.length?button('Preparar','prepare',c.id)+button(icon('video')+'Entrar','launchClass',c.id,'primary'):button(icon('file')+'Preparar','prepare',c.id)}</div></div>`}
 function upcoming(id){return state.sessions.filter(c=>(!id||c.studentId===id)&&c.status!=='Finalizada'&&c.status!=='Cancelada').sort((a,b)=>a.date.localeCompare(b.date))}
 function mainArea(){return selected||view==='Alumnos'?'Alumnos':view==='Temario'?'Temario':view==='Biblioteca'||view==='IA'?'Material':'Inicio'}
@@ -929,8 +929,8 @@ init();
 @media(max-width:620px){.temario-heading{height:46px}.temario-heading h1{font-size:24px}.temario-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.temario-toolbar .temario-search{grid-column:1/-1}.temario-topic{grid-template-columns:37px minmax(0,1fr) 27px;min-height:70px}.temario-topic-meta{display:none}.temario-topic-index{width:36px;height:36px}.temario-topic-arrow{width:26px;height:26px}.temario-resources{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style>
 <link rel="stylesheet" href="./assets/profesor-final.css?v=20261002-11">
-<link rel="stylesheet" href="./assets/profesor-home.css?v=20261002-1">
+<link rel="stylesheet" href="./assets/profesor-home.css?v=20261005-2">
 <link rel="stylesheet" href="./assets/profesor-studio.css?v=20261005-1">
-<link rel="stylesheet" href="./assets/profesor-temario.css?v=20261003-2">
+<link rel="stylesheet" href="./assets/profesor-temario.css?v=20261005-3">
 </body>
 </html>

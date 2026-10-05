@@ -22,8 +22,11 @@ def test_all_topics_have_printable_resources():
             pdf = render_topic_pdf(topic, resource)
             pages = PdfReader(BytesIO(pdf)).pages
             assert 1 <= len(pages) <= 3, (topic["id"], resource)
+            text = " ".join(page.extract_text() for page in pages)
             assert topic["title"] in pages[0].extract_text()
-            assert "\u25a0" not in " ".join(page.extract_text() for page in pages), (topic["id"], resource)
+            assert "\u25a0" not in text, (topic["id"], resource)
+            if resource == "scheme":
+                assert all(heading in text for heading in ("Para entenderlo", "Cuándo usarlo", "Recorrido de aprendizaje", "Un ejemplo")), topic["id"]
 
 
 def test_topic_pdf_plan_is_checked_from_license(client):
