@@ -18,7 +18,7 @@ from app.auth.dependencies import current_user
 from app.config import get_settings
 from app.database.session import get_db
 from app.models import License, Organization, User
-from app.schemas.core import ApiOk, EsoRegisterRequest, LoginRequest, TokenResponse
+from app.schemas.core import ApiOk, EsoRegisterRequest, LoginRequest, TokenResponse, PasswordChangeRequest
 from app.security.passwords import hash_password, verify_password
 from app.security.tokens import create_token, decode_token
 from app.services.audit import audit
@@ -26,6 +26,18 @@ from app.services.licenses import check_access, license_for_user
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+@router.post("/change-password")
+def change_password(payload: PasswordChangeRequest, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    rate_limit_key("password-change:" + str(user.id))
+    if len(payload.current_password.encode("utf-8")) > 72 or not verify_password(payload.current_password, user.password_hash):
+        raise HTTPException(400, "La contraseña actual no es correcta.")
+    if len(payload.new_password.encode("utf-8")) > 72:
+        raise HTTPException(400, "La contraseña no puede superar los 72 bytes.")
+    user.password_hash = hash_password(payload.new_password)
+    db.commit()
+    return {"ok": True}
 LOGIN_BUCKET: dict[str, list[float]] = {}
 PRODUCT_CODES = ("DIPLOMATOR", "CAMBRIDGE", "UNIVERSIDAD_ADULTOS", "ESO_ADULTOS", "PROFESOR_PARTICULAR", "OCR_FACTURAS")
 SAFE_NEXT_PATHS = ("/apps", "/app", "/cambridge", "/universidad-adultos", "/eso-adultos", "/profesor-particular", "/facturas")
