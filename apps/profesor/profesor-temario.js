@@ -430,7 +430,7 @@ const temarioResources=[
  {kind:'examples',title:'Ejemplos resueltos',description:'Aplicación explicada y errores frecuentes.',premium:true}
 ];
 temarioView=function(){
- const courses=Object.keys(window.PROFESOR_TEMARIO||{}).filter(course=>temarioSubject==='Español'?spanishLevels.includes(course):!spanishLevels.includes(course));
+ const courses=Object.keys(window.PROFESOR_TEMARIO||{});
  if(!courses.includes(temarioCourse))temarioCourse=courses[0]||'';
  const subjects=[...new Set([...Object.keys(window.PROFESOR_TEMARIO?.[spanishLevels.includes(temarioCourse)?temarioSchoolCourse:temarioCourse]||{}),'Español'])];
  if(!subjects.includes(temarioSubject))temarioSubject=subjects[0]||'';
@@ -438,8 +438,9 @@ temarioView=function(){
  if(!topics.some(t=>t.id===temarioSelected))temarioSelected=topics[0]?.id||'';
  const current=topics.find(t=>t.id===temarioSelected);
  const options=(list,value)=>list.map(x=>'<option value="'+esc(x)+'"'+(x===value?' selected':'')+'>'+esc(x)+'</option>').join('');
+ const courseOptions='<optgroup label="Cursos escolares">'+options(courses.filter(course=>!spanishLevels.includes(course)),temarioCourse)+'</optgroup><optgroup label="Español · niveles A1–C2">'+spanishLevels.filter(level=>courses.includes(level)).map(level=>'<option value="'+level+'"'+(level===temarioCourse?' selected':'')+'>'+level+' · Español</option>').join('')+'</optgroup>';
  return '<div class="temario-page temario-simple temario-renewed"><div class="temario-controls" aria-label="Buscar en el temario">'+
- '<label for="temarioCourse">'+(temarioSubject==='Español'?'Nivel':'Curso')+'<select id="temarioCourse">'+options(courses,temarioCourse)+'</select></label>'+
+ '<label for="temarioCourse">Curso / nivel<select id="temarioCourse">'+courseOptions+'</select></label>'+
  '<label for="temarioSubject">Asignatura<select id="temarioSubject">'+options(subjects,temarioSubject)+'</select></label>'+
  '<label for="temarioSearch">Buscar tema<input id="temarioSearch" type="search" value="'+esc(temarioQuery)+'" placeholder="Nombre o concepto…" autocomplete="off"></label>'+
  '<label for="temarioPreparation">Preparación<select id="temarioPreparation">'+[['all','Todos'],['ready','Con material'],['pending','Por preparar']].map(([value,label])=>'<option value="'+value+'"'+(value===temarioPreparation?' selected':'')+'>'+label+'</option>').join('')+'</select></label><span class="temario-base-count">'+topics.length+' temas</span></div>'+
