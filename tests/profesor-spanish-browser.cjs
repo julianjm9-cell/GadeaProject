@@ -58,7 +58,7 @@ const path=require('node:path');
   assert.equal(await page.locator('#workshopCourse').inputValue(),'B2');
   await page.locator('#dialog .close').click();
   await page.evaluate(()=>{selected=null;view='Temario';temarioSubject='Español';temarioCourse='A1';render()});
-  await page.getByRole('button',{name:'Probar ahora',exact:true}).click();
+  await page.locator('.temario-prepared-resource button').click();
   await page.locator('#dialog.activity-play .block').first().waitFor();
   assert.equal(await page.locator('#dialog.activity-play .block').count(),6);
   await page.locator('#dialog .close').click();
