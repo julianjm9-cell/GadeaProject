@@ -190,7 +190,7 @@ Debate, síntesis y posición matizada|Una intervención sólida distingue tesis
   'B1-6':paradigm(['venga','vengas','venga','vengamos','vengáis','vengan'])
  };
  const gapAlternatives={
-  'A1-11':['vale'], 'A2-12':['pues','ya que'], 
+  'A1-11':['vale'], 'A2-12':['pues','ya que'],
   'B2-2':['tuviese'], 'B2-9':['enviase'], 'B2-10':['poner'],
   'C1-2':['viniese'], 'C1-6':['Este','Ese'], 'C2-4':['previa']
  };

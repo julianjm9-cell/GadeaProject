@@ -494,7 +494,7 @@ openTemarioLesson = function (topic) {
     : `<div class="lesson-example-quote">${temarioRichText(content.examples[0])}</div>`;
   const extraExampleMarkup = content.examples.slice(1).map(example => `<div class="lesson-check-example"><small>Ejemplo de comprobación</small><p>${temarioRichText(example)}</p></div>`).join('');
   const extraPracticeMarkup = content.practice.slice(1).map((item,index) => `<div class="lesson-extra-question"><strong>${index+2}. ${temarioRichText(item.prompt)}</strong><details><summary>Ver orientación</summary><p>${temarioRichText(item.answer)}</p></details></div>`).join('');
-  modal(topic.title, `<div class="temario-lesson">
+  modal(topic.title, `<div class="temario-lesson${temarioSubject==='Español'?' spanish-lesson'+(topic.languageTable?' spanish-has-table':''):''}">
     <div class="lesson-hero"><p class="temario-lesson-meta">${esc(temarioSubject)} <span>·</span> ${esc(temarioCourse)}</p><p class="lesson-eyebrow">Objetivo de aprendizaje</p><p class="lesson-objective">${temarioRichText(content.objective)}</p><div class="lesson-route" aria-label="Recorrido del tema"><span>01 Entiende</span><span>02 Aplica</span><span>03 Practica</span><span>04 Transfiere</span></div></div>
     <section class="lesson-class-guide"><div><small>Antes de empezar</small><strong>${esc(profile.prior)}</strong></div><div><small>Al terminar debe poder…</small><strong>${esc(profile.evidence)}</strong></div><div><small>Pregunta de arranque</small><strong>${temarioRichText(content.practice[0].prompt)}</strong></div></section>
     <div class="lesson-grid">
