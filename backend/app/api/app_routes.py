@@ -1189,9 +1189,24 @@ def _private_profesor_document(document_id: UUID, user: User, license_obj: Licen
 @router.get("/api/profesor/materials/{document_id}/preview")
 def preview_profesor_image(document_id: UUID, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
     row, target = _private_profesor_document(document_id, user, license_obj, db)
+    headers = {"X-Content-Type-Options": "nosniff", "Cache-Control": "private, no-store"}
+    suffix = target.suffix.lower()
+    if suffix == ".docx":
+        from app.services.teacher_file_preview import docx_preview
+        from fastapi.responses import JSONResponse
+        try:
+            return JSONResponse(docx_preview(target), headers=headers)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+    if suffix == ".txt":
+        return Response(target.read_bytes().decode("utf-8-sig", errors="replace"), media_type="text/plain", headers=headers)
+    if suffix == ".pdf":
+        if not target.read_bytes().startswith(b"%PDF-"):
+            raise HTTPException(422, "El PDF no es válido.")
+        return FileResponse(target, media_type="application/pdf", headers={**headers, "Content-Disposition": "inline"})
     mime = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}.get(target.suffix.lower())
     if not mime:
-        raise HTTPException(415, "Este archivo no es una imagen.")
+        raise HTTPException(415, "Este formato no dispone de vista previa.")
     from PIL import Image as PILImage, UnidentifiedImageError
     expected = {".png": "PNG", ".jpg": "JPEG", ".jpeg": "JPEG", ".webp": "WEBP"}[target.suffix.lower()]
     try:

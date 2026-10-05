@@ -304,6 +304,48 @@ def test_profesor_visual_material_preview_and_pdf_are_private(client, monkeypatc
     assert test_client.post("/api/profesor/export-pdf?app=profesor_particular", json={"material": material, "version": "worksheet"}).status_code == 404
 
 
+def test_profesor_uploaded_document_previews(client, monkeypatch, tmp_path):
+    import base64
+    from io import BytesIO
+    from zipfile import ZipFile
+    from reportlab.pdfgen.canvas import Canvas
+
+    web, db_factory = client
+    monkeypatch.setattr(app_routes, "LOCAL_DOCUMENT_DIR", tmp_path)
+    seed_user(db_factory, product_codes=("PROFESOR_PARTICULAR",))
+    login(web)
+    pdf = BytesIO()
+    canvas = Canvas(pdf)
+    canvas.drawString(30, 700, "Mi material")
+    canvas.save()
+    word = BytesIO()
+    with ZipFile(word, "w") as archive:
+        archive.writestr("word/document.xml", '''<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:rPr><w:b/></w:rPr><w:t>Título &amp; contenido</w:t></w:r></w:p><w:tbl><w:tr><w:tc><w:p><w:r><w:t>&lt;script&gt;alert(1)&lt;/script&gt;</w:t></w:r></w:p></w:tc></w:tr></w:tbl></w:body></w:document>''')
+    ids = []
+    for name, raw, mime in [("clase.pdf", pdf.getvalue(), "application/pdf"), ("notas.txt", "Español: explicación <script>".encode(), "text/plain"), ("tema.docx", word.getvalue(), "application/json")]:
+        uploaded = web.post("/api/profesor/materials?app=profesor_particular", json={"filename": name, "base64": base64.b64encode(raw).decode()})
+        assert uploaded.status_code == 200
+        document_id = uploaded.json()["id"]
+        ids.append(document_id)
+        preview = web.get(f"/api/profesor/materials/{document_id}/preview?app=profesor_particular")
+        assert preview.status_code == 200, preview.text
+        assert preview.headers["content-type"].startswith(mime)
+        assert "attachment" not in preview.headers.get("content-disposition", "")
+        assert preview.headers["cache-control"] == "private, no-store"
+        if name.endswith(".docx"):
+            blocks = preview.json()["blocks"]
+            assert blocks[0]["heading"] == 1 and blocks[0]["runs"][0]["bold"]
+            assert blocks[1]["type"] == "table"
+            assert blocks[1]["rows"][0][0][0]["runs"][0]["text"] == "<script>alert(1)</script>"
+        assert web.get(f"/api/profesor/materials/{document_id}?app=profesor_particular").content == raw
+    broken = web.post("/api/profesor/materials?app=profesor_particular", json={"filename": "roto.docx", "base64": base64.b64encode(b"not a zip").decode()}).json()["id"]
+    assert web.get(f"/api/profesor/materials/{broken}/preview?app=profesor_particular").status_code == 422
+    seed_user(db_factory, email="documentos-otro@example.com", product_codes=("PROFESOR_PARTICULAR",))
+    login(web, email="documentos-otro@example.com")
+    for document_id in ids:
+        assert web.get(f"/api/profesor/materials/{document_id}/preview?app=profesor_particular").status_code == 404
+
+
 def test_eso_gamification_reward_is_idempotent(client):
     test_client, db_factory = client
     seed_user(db_factory, product_codes=("ESO_ADULTOS",))
