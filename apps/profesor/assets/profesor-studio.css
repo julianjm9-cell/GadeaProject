@@ -87,3 +87,28 @@ dialog.material-studio:not(.studio-renewed) .material-live-preview{
 }
 @media(max-width:1000px){dialog.studio-renewed .studio-topline{grid-template-columns:1fr;gap:12px}dialog.studio-renewed .studio-topline h2{font-size:29px}dialog.studio-renewed .studio-fields{margin-right:-60px}dialog.studio-renewed .family-heading>strong{font-size:18px}}
 @media(max-width:650px){dialog.studio-renewed{width:calc(100vw - 14px);padding:14px;max-height:96svh;border-radius:16px}dialog.studio-renewed>.row{top:14px;right:14px}dialog.studio-renewed .studio-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}dialog.studio-renewed .studio-fields>div:last-child{grid-column:1/-1}dialog.studio-renewed .workshop-extra-fields{grid-template-columns:1fr}dialog.studio-renewed details.exercise-family>.family-heading{gap:8px;padding:10px;min-height:58px}dialog.studio-renewed .family-number{width:32px;height:32px;flex-basis:32px;font-size:19px}dialog.studio-renewed .family-symbol{display:none}dialog.studio-renewed .family-heading>strong{font-size:16px}dialog.studio-renewed .family-selected{font-size:10px;max-width:65px}dialog.studio-renewed details.exercise-family[open]>.exercise-tiles{grid-template-columns:repeat(2,minmax(0,1fr));padding:0 10px 10px;gap:8px}dialog.studio-renewed .exercise-tile{height:142px;min-height:142px;padding-left:10px;padding-right:10px}dialog.studio-renewed .exercise-tile>strong{font-size:12px}dialog.studio-renewed .exercise-tile>small{font-size:9px;min-height:24px}dialog.studio-renewed .studio-actions{flex-wrap:wrap;gap:8px}dialog.studio-renewed .workshop-selection-status{width:100%;margin:0}dialog.studio-renewed .studio-actions>button{flex:1;min-width:0;padding:8px;font-size:12px}.save-feedback:not([hidden]){bottom:70px;width:max-content;max-width:95vw}dialog.material-studio:not(.studio-renewed) .material-live-preview{position:relative;top:auto;max-height:55svh;overflow-y:auto}}
+
+/* El generador enseña los cinco datos y mantiene compacto el catálogo. */
+dialog.studio-renewed .studio-topline{display:block;padding-right:56px}
+dialog.studio-renewed .workshop-all-fields{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:end}
+dialog.studio-renewed details.exercise-family[open]>.exercise-tiles{gap:9px;padding:0 16px 16px}
+dialog.studio-renewed .exercise-tile,dialog.studio-renewed .exercise-tile[aria-pressed="true"]{height:96px;min-height:96px;padding:8px 9px;gap:3px}
+dialog.studio-renewed .exercise-tile>.studio-symbol{width:29px;height:29px;min-width:29px;flex-basis:29px}
+dialog.studio-renewed .exercise-tile .studio-symbol .icon{width:18px;height:18px}
+dialog.studio-renewed .exercise-tile>strong{font-size:12px;line-height:1.15}
+dialog.studio-renewed .exercise-tile>small{display:none}
+dialog.studio-renewed .exercise-tile .tile-check,dialog.studio-renewed .exercise-tile[aria-pressed="true"] .tile-check{top:7px;right:7px}
+dialog.studio-renewed .exercise-tile .tile-quantity{gap:5px;height:20px;min-height:20px}
+dialog.studio-renewed .tile-quantity>[data-step]{width:24px;height:20px}
+
+/* Un ejercicio editable y su vista previa por paso. */
+dialog.material-studio:not(.studio-renewed) .activity-edit-block[hidden]{display:none!important}
+dialog.material-studio:not(.studio-renewed) .exercise-jump{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:15px 0 8px;padding:10px 12px;background:#edf6ff;border:1px solid #d5e7fb;border-radius:12px;color:#153d79;font-size:13px}
+dialog.material-studio:not(.studio-renewed) .editor-step-dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+dialog.material-studio:not(.studio-renewed) .editor-step-dots button{width:27px;height:27px;min-height:27px;padding:0;border-radius:50%;font-size:11px}
+dialog.material-studio:not(.studio-renewed) .editor-step-dots button[aria-current="true"]{background:#0874ff;color:white;border-color:#0874ff}
+dialog.material-studio:not(.studio-renewed) .material-editor-layout{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}
+dialog.material-studio:not(.studio-renewed) .material-live-preview{max-height:calc(90svh - 160px)}
+dialog.material-studio:not(.studio-renewed) #editorPrevious[hidden],dialog.material-studio:not(.studio-renewed) #editorNext[hidden],dialog.material-studio:not(.studio-renewed) .actions>[hidden]{display:none!important}
+@media(max-width:1050px){dialog.studio-renewed .workshop-all-fields{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){dialog.studio-renewed .workshop-all-fields{grid-template-columns:repeat(2,minmax(0,1fr));margin-right:0}dialog.studio-renewed .workshop-all-fields>div:nth-child(4){grid-column:1/-1}dialog.studio-renewed details.exercise-family[open]>.exercise-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}dialog.studio-renewed .exercise-tile,dialog.studio-renewed .exercise-tile[aria-pressed="true"]{height:92px;min-height:92px}dialog.material-studio:not(.studio-renewed) .material-editor-layout{grid-template-columns:1fr}dialog.material-studio:not(.studio-renewed) .material-live-preview{position:static;max-height:none;overflow:visible}}

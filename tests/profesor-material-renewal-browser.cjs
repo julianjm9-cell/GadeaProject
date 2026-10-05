@@ -82,6 +82,7 @@ const path = require('node:path');
     await page.evaluate(value => editActivity(value), edit);
     assert.equal(await page.locator('#o-0').isVisible(), false);
     assert.equal(await page.locator('.structured-row').count(), 2);
+    await page.locator('#editorNext').click();
     await page.locator('#useDraft').click();
     await page.locator('[data-multi-gap="0"]').fill('2'); await page.locator('[data-multi-gap="1"]').fill('dos');
     await page.locator('#r-1').fill('0,5');

@@ -1,0 +1,71 @@
+const { chromium } = require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const { pathToFileURL } = require('node:url');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+
+(async () => {
+  const browser = await chromium.launch({ headless: true, channel: 'msedge' });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1366, height: 850 } });
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
+    await page.locator('.home-primary-nav').getByRole('button', { name: 'Material' }).click();
+    await page.getByRole('button', { name: 'Crear material', exact: true }).click();
+    assert.equal(await page.locator('.workshop-all-fields > div').count(), 5);
+    assert.equal(await page.locator('#workshopDuration').count(), 0);
+    assert.equal(await page.locator('.exercise-tile[aria-pressed="true"]').count(), 0);
+    await page.locator('.basic-family summary').click();
+    const basic = page.locator('[data-exercise="pairs"]');
+    await basic.click();
+    assert.equal(await page.locator('#count-pairs').inputValue(), '1');
+    await basic.locator('[data-step="1"]').click();
+    assert.equal(await page.locator('#count-pairs').inputValue(), '2');
+    assert.ok(await basic.evaluate(el => el.getBoundingClientRect().height <= 105));
+    await page.locator('#dialog .close').click();
+
+    await page.getByRole('button', { name: 'Crear material', exact: true }).click();
+    assert.equal(await page.locator('#count-pairs').inputValue(), '0', 'new visit starts unselected');
+    await page.locator('#workshopCourse').selectOption('4.º Primaria');
+    await page.locator('#workshopTopic').fill('Fracciones');
+    await page.locator('.basic-family summary').click();
+    await page.locator('[data-exercise="gaps"]').click();
+    await page.locator('.playful-family summary').click();
+    await page.locator('[data-exercise="flashcard"]').click();
+    await page.locator('#workshopManual').click();
+    assert.equal(await page.locator('.activity-edit-block:visible').count(), 1);
+    assert.equal(await page.locator('#editorPreview .preview-exercise').count(), 1);
+    assert.match(await page.locator('.exercise-jump').innerText(), /Ejercicio 1 de 2/);
+    await page.locator('#q-0').fill('La mitad se escribe ___.');
+    await page.locator('#a-0').fill('1/2');
+    await page.locator('#editorNext').click();
+    assert.equal(await page.locator('.activity-edit-block:visible').count(), 1);
+    assert.equal(await page.locator('#q-0').isVisible(), false);
+    assert.equal(await page.locator('#q-1').isVisible(), true);
+    assert.equal(await page.locator('#editorPreview .preview-exercise').count(), 1);
+    await page.locator('#q-1').fill('¿Cuánto es 1/4 + 1/4?');
+    await page.locator('#a-1').fill('1/2');
+    await page.getByRole('button', { name: 'Guardar y cerrar' }).click();
+    await page.locator('#dialog').waitFor({ state: 'hidden' });
+    const saved = await page.evaluate(() => state.library.find(item => item.title === 'Fracciones'));
+    assert.equal(saved.activity.questions.length, 2);
+    assert.equal(saved.activity.questions[0].prompt, 'La mitad se escribe ___.');
+    await page.evaluate(() => editActivity(state.library.find(item => item.title === 'Fracciones')));
+    await page.locator('#editorNext').click();
+    await page.locator('#useDraft').click();
+    await page.locator('.activity-play').waitFor();
+    assert.equal(await page.evaluate(() => state.library.filter(item => item.title === 'Fracciones').length), 1);
+    await page.locator('#dialog .close').click();
+
+    const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    mobile.on('pageerror', error => errors.push(error.message));
+    await mobile.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
+    await mobile.locator('.home-primary-nav').getByRole('button', { name: 'Material' }).click();
+    await mobile.getByRole('button', { name: 'Crear material', exact: true }).click();
+    assert.equal(await mobile.locator('.workshop-all-fields > div').count(), 5);
+    assert.equal(await mobile.locator('#dialog').evaluate(el => el.scrollWidth > el.clientWidth + 2), false);
+    await mobile.close();
+    assert.deepEqual(errors, []);
+    console.log('PASS generator reset, one-by-one selection, compact cards, five fields, single-exercise editor and save');
+  } finally { await browser.close(); }
+})().catch(error => { console.error(error); process.exit(1); });
