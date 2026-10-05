@@ -1508,7 +1508,7 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
 
 @router.post("/api/profesor/support")
 async def teacher_support(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
-    from app.services.teacher_support import SYSTEM, parse_topic, validate_topic
+    from app.services.teacher_support import SYSTEM, generation_context, parse_topic, support_post, validate_topic
     if license_obj.product_code != "PROFESOR_PARTICULAR" or profesor_account_plan(license_obj) != "premium":
         raise HTTPException(403, "El Profesor de apoyo está disponible para cuentas Premium.")
     question = payload.get("question")
@@ -1541,7 +1541,11 @@ async def teacher_support(payload: dict, user: User = Depends(current_user), lic
     ensure_credit_balance(db, user, license_obj, 1)
     api_key, url, provider = chat_provider_config(db, product="PROFESOR_PARTICULAR")
     model = chat_model_for_purpose(db, provider, "chat", "PROFESOR_PARTICULAR")
-    body = {"model": model, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps(context, ensure_ascii=False)}], "max_tokens": 10000, "temperature": 0.25, "response_format": {"type": "json_object"}}
+    body = {"model": model, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": generation_context(context)}], "max_tokens": 3000, "temperature": 0.25, "response_format": {"type": "json_object"}}
+    if provider == "groq" and model in ("openai/gpt-oss-120b", "openai/gpt-oss-20b"):
+        body["reasoning_effort"] = "low"
+        body["include_reasoning"] = False
+    retry_state = {"used": False}
     input_tokens = output_tokens = 0
     native_gemini = provider == "gemini" and is_gemini_auth_key(api_key)
     try:
@@ -1553,11 +1557,11 @@ async def teacher_support(payload: dict, user: User = Depends(current_user), lic
                         native_body.setdefault("generationConfig", {})["thinkingConfig"] = {"thinkingLevel": "low"}
                     response = await gemini_post_with_retry(client, gemini_generate_url(model), headers={"x-goog-api-key": api_key}, json=native_body)
                 else:
-                    response = await client.post(url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=body)
+                    response = await support_post(client, url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=body, retry_state=retry_state)
                     if response.status_code == 400 and "response_format" in body and any(term in response.text.lower() for term in ("response_format", "json_object", "json mode")):
                         # Some configured models don't support JSON mode; keep the same schema prompt.
                         body.pop("response_format")
-                        response = await client.post(url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=body)
+                        response = await support_post(client, url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=body, retry_state=retry_state)
                 if response.status_code >= 400:
                     raise provider_error("No se pudo generar el tema. No se han descontado créditos", response)
                 content = ""
@@ -1573,7 +1577,7 @@ async def teacher_support(payload: dict, user: User = Depends(current_user), lic
                     if attempt:
                         raise HTTPException(502, "No se pudo completar el tema tras revisar la respuesta de la IA. No se han descontado créditos. Puedes reintentar sin perder tu petición.") from exc
                     reason = str(exc.__cause__ or exc)[:500]
-                    body["messages"] += [{"role": "assistant", "content": str(content)[:60000]}, {"role": "user", "content": "Repara el JSON anterior y devuelve el tema COMPLETO conforme al esquema del sistema. Error: " + reason + ". Incluye todos los campos didactic, mínimo 3 conceptos, 3 pasos, 2 ejemplos y 3 ejercicios con answer. No resumas ni omitas apartados. Escapa correctamente los saltos de línea en JSON y usa notación matemática sin barras invertidas. Devuelve solo el objeto JSON."}]
+                    body["messages"] = body["messages"][:2] + [{"role": "user", "content": "Repara el JSON: la respuesta anterior no fue válida. Genera de nuevo y devuelve el tema COMPLETO conforme al esquema del sistema. Error: " + reason + ". Incluye todos los campos didactic, mínimo 3 conceptos, 3 pasos, 2 ejemplos y 3 ejercicios con answer. Sé conciso y no omitas apartados; respeta el presupuesto de 700-900 palabras. Escapa correctamente los saltos de línea en JSON y usa notación matemática sin barras invertidas. Devuelve solo el objeto JSON."}]
     except httpx.RequestError as exc:
         raise HTTPException(502, "No se pudo completar la petición. No se han descontado créditos.") from exc
     record_usage(db, user, model, input_tokens, output_tokens, "PROFESOR_PARTICULAR", 1)

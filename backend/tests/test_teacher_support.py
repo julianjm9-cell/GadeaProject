@@ -96,6 +96,8 @@ def test_support_repairs_invalid_response_without_second_charge(client,monkeypat
     assert len(calls)==2
     assert calls[0]['response_format']=={'type':'json_object'}
     assert 'Repara el JSON' in calls[1]['messages'][-1]['content']
+    assert len(calls[1]['messages']) == 3
+    assert not any(item['role'] == 'assistant' for item in calls[1]['messages'])
     assert web.post(URL,json=body).status_code==200
     assert len(calls)==2
     with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord))==1
@@ -120,3 +122,68 @@ def test_support_model_without_json_mode(client,monkeypatch):
     assert len(calls)==2
     assert 'response_format' not in calls[1]
     with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord))==1
+
+
+def test_compact_context_and_budget(client, monkeypatch):
+    from app.api import app_routes
+    web, factory, calls = setup(client, monkeypatch, json.dumps(generated()))
+    premium(factory)
+    monkeypatch.setattr(app_routes, 'chat_provider_config', lambda *a, **kw: ('key', 'https://example.test', 'groq'))
+    monkeypatch.setattr(app_routes, 'chat_model_for_purpose', lambda *a: 'openai/gpt-oss-120b')
+    body = request(); body.update(mode='improve', topic=generated())
+    assert web.post(URL, json=body).status_code == 200
+    sent = calls[0]
+    assert sent['max_tokens'] == 3000 and sent['reasoning_effort'] == 'low'
+    topic = json.loads(sent['messages'][1]['content'])['topic']
+    assert 'solutions' not in topic['didactic'] and 'example' not in topic
+    assert topic['didactic']['practice'] == generated()['didactic']['practice']
+    body['request_id'] = str(uuid4())
+    body['topic'] = json.loads(json.dumps(generated()))
+    body['topic']['didactic']['deepDive'] = 'x' * 15000
+    assert web.post(URL, json=body).status_code == 422
+    assert len(calls) == 1
+
+
+def test_rate_limit_wait_and_no_charge(client, monkeypatch):
+    import httpx
+    from app.api import app_routes
+    from app.services import teacher_support
+    web, factory, calls = setup(client, monkeypatch)
+    premium(factory)
+    waits = []
+    async def sleep(seconds): waits.append(seconds)
+    monkeypatch.setattr(teacher_support.asyncio, 'sleep', sleep)
+    async def limited(self, url, **kw):
+        calls.append(kw['json'].copy())
+        return httpx.Response(429, headers={'Retry-After': '2.5'})
+    monkeypatch.setattr(app_routes.httpx.AsyncClient, 'post', limited)
+    response = web.post(URL, json=request())
+    assert response.status_code == 429 and response.headers['Retry-After'] == '3'
+    assert waits == [3] and len(calls) == 2
+    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 0
+    calls.clear(); waits.clear()
+    async def long_wait(self, url, **kw):
+        calls.append(kw['json'])
+        return httpx.Response(429, headers={'Retry-After': '65'})
+    monkeypatch.setattr(app_routes.httpx.AsyncClient, 'post', long_wait)
+    response = web.post(URL, json=request())
+    assert response.status_code == 429 and response.headers['Retry-After'] == '65'
+    assert len(calls) == 1 and not waits
+
+
+def test_rate_limit_recovery_single_charge(client, monkeypatch):
+    import httpx
+    from app.api import app_routes
+    from app.services import teacher_support
+    web, factory, calls = setup(client, monkeypatch)
+    premium(factory)
+    async def sleep(seconds): pass
+    monkeypatch.setattr(teacher_support.asyncio, 'sleep', sleep)
+    async def recover(self, url, **kw):
+        calls.append(kw['json'].copy())
+        if len(calls) == 1: return httpx.Response(429, headers={'Retry-After': '1'})
+        return httpx.Response(200, json={'choices':[{'message':{'content':json.dumps(generated())}}]})
+    monkeypatch.setattr(app_routes.httpx.AsyncClient, 'post', recover)
+    assert web.post(URL, json=request()).status_code == 200
+    assert len(calls) == 2
+    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1

@@ -21,3 +21,9 @@ El servidor también impide modificar `personalTopics` mediante `/api/state` en 
 `tests/profesor-support-browser.cjs`: creación y actualización, recuperación del borrador, comparación, editor, fórmulas, recursos, número de tema, tamaño móvil y botones de guardado visibles.
 
 El contenedor incluye el nuevo script; no requiere migraciones ni nuevas variables de entorno.
+
+## Presupuesto de generación
+
+Se solicita un tema completo y conciso (700-900 palabras), con un máximo de 3.000 tokens. Groq GPT-OSS usa razonamiento bajo. Se excluyen campos derivados duplicados; no se recortan las ediciones. Si el contexto supera 12.000 caracteres, se pide reducir el borrador. La reparación regenera desde el contexto original sin reenviar la respuesta defectuosa.
+
+Ante un 429 se respeta Retry-After con un solo reintento de hasta 30 segundos. Esperas mayores o errores persistentes devuelven un mensaje específico sin cargo. Estos ajustes no aumentan la cuota compartida del proveedor.
