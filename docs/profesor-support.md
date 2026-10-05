@@ -2,7 +2,7 @@
 
 Desde Temario, una cuenta Premium puede abrir el panel lateral y crear un tema nuevo, mejorar el seleccionado o añadir ejercicios. Curso, asignatura y tema quedan fijados para esa propuesta; cambiar los filtros no altera un borrador en curso.
 
-La petición genera contenido estructurado, no HTML del modelo. El editor permite revisar el original y la propuesta, editar los apartados, aplicar negrita, cursiva, subrayado, encabezados, listas y cuatro colores, probar fórmulas y modificar ejercicios y soluciones. Los elementos de una lista se separan con una línea en blanco. La vista previa utiliza la presentación matemática del temario.
+La petición genera contenido estructurado, no HTML del modelo. El editor muestra el original de solo lectura a la izquierda y la propuesta editable a la derecha. El formato se aplica mediante una barra flotante al seleccionar texto (negrita, cursiva, subrayado, cuatro colores y quitar formato). Cada concepto, paso o ejemplo se edita directamente y dispone de controles para añadir o eliminar elementos. También permite insertar fórmulas y modificar ejercicios y soluciones. En móvil las columnas se apilan.
 
 Actualizar mi versión conserva el catálogo común. Guardar como tema nuevo crea otra entrada personal. Los temas propios aparecen en los filtros habituales, permiten usar los ejercicios preparados, crear otro material y exportar esquema, ejemplos o ejercicios a PDF. Restaurar original elimina la personalización de un tema base.
 
