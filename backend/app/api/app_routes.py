@@ -650,6 +650,7 @@ def profesor_temario_catalogue():
     return FileResponse(path, media_type="text/javascript", headers={"Cache-Control": "public, max-age=3600"})
 
 
+@router.get("/profesor-support.js")
 @router.get("/temario-presentation.js")
 @router.get("/profesor-temario-depth.js")
 @router.get("/profesor-activity-play.js")
@@ -1238,7 +1239,7 @@ def export_profesor_pdf(payload: dict, user: User = Depends(current_user), licen
 
 
 @router.post("/api/profesor/temario/export-pdf")
-def export_profesor_topic_pdf(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license)):
+def export_profesor_topic_pdf(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
     if license_obj.product_code != "PROFESOR_PARTICULAR":
         raise HTTPException(403, "Requiere acceso a Profesor Particular.")
     from app.services.teacher_temario import RESOURCES, render_topic_pdf, topic_catalog
@@ -1250,7 +1251,16 @@ def export_profesor_topic_pdf(payload: dict, user: User = Depends(current_user),
     topic_id = payload.get("topic_id")
     if not isinstance(topic_id, str):
         raise HTTPException(422, "Indica el tema.")
-    topic = topic_catalog().get(topic_id)
+    personal = app_state_data(state_row(db, user), "profesor_particular").get("personalTopics", [])
+    topic = next((item for item in personal if isinstance(item, dict) and item.get("id") == topic_id), None) if isinstance(personal, list) else None
+    if topic is not None:
+        from app.services.teacher_support import validate_topic
+        try:
+            topic = {**topic, **validate_topic(topic)}
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+    else:
+        topic = topic_catalog().get(topic_id)
     if topic is None:
         raise HTTPException(404, "Tema no encontrado.")
     pdf = render_topic_pdf(topic, resource)
@@ -1421,6 +1431,29 @@ def save_state(payload: dict, request: Request, user: User = Depends(current_use
         profile = payload.get("teacherProfile")
         payload["teacherProfile"] = {**(profile if isinstance(profile, dict) else {}), "plan": profesor_account_plan(license_obj)}
     row = state_row(db, user)
+    if app_key == "profesor_particular":
+        previous_topics = app_state_data(row, app_key).get("personalTopics", [])
+        personal = payload.get("personalTopics", previous_topics)
+        if profesor_account_plan(license_obj) != "premium" and personal != previous_topics:
+            raise HTTPException(403, "Modificar temas personales requiere Premium.")
+        if not isinstance(personal, list) or len(personal) > 300:
+            raise HTTPException(422, "Lista de temas personales no válida.")
+        from app.services.teacher_support import validate_topic
+        clean = []
+        seen = set()
+        for item in personal:
+            try:
+                topic = validate_topic(item)
+                if not all(isinstance(item.get(key), str) and 0 < len(item[key]) <= limit for key, limit in (("id", 180), ("course", 100), ("subject", 100))):
+                    raise ValueError("Datos del tema no válidos.")
+                if item["id"] in seen:
+                    raise ValueError("Hay temas duplicados.")
+                seen.add(item["id"])
+                clean.append({**topic, "id": item["id"], "course": item["course"], "subject": item["subject"], "sourceId": item.get("sourceId"), "personal": True, "updatedAt": str(item.get("updatedAt", ""))[:100]})
+            except ValueError as exc:
+                raise HTTPException(422, str(exc)) from exc
+        if personal or "personalTopics" in payload:
+            payload["personalTopics"] = clean
     set_app_state_data(row, app_key, payload)
     db.commit()
     return {"ok": True}
@@ -1471,6 +1504,67 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
     db.add(Message(conversation_id=conv.id, organization_id=user.organization_id, user_id=user.id, role="assistant", content=json.dumps({"context": context, "questions": questions}, ensure_ascii=False)))
     db.commit()
     return {"ok": True, "questions": questions, "credits": 1, "reused": False}
+
+
+@router.post("/api/profesor/support")
+async def teacher_support(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    from app.services.teacher_support import SYSTEM, parse_topic, validate_topic
+    if license_obj.product_code != "PROFESOR_PARTICULAR" or profesor_account_plan(license_obj) != "premium":
+        raise HTTPException(403, "El Profesor de apoyo está disponible para cuentas Premium.")
+    question = payload.get("question")
+    course, subject = payload.get("course"), payload.get("subject")
+    if not all(isinstance(v, str) and 0 < len(v.strip()) <= limit for v, limit in [(question, 3000), (course, 100), (subject, 100)]):
+        raise HTTPException(422, "Indica el curso, la asignatura y tu petición.")
+    try:
+        request_id = str(UUID(payload.get("request_id", "")))
+    except (ValueError, TypeError, AttributeError):
+        raise HTTPException(422, "Identificador de petición no válido.")
+    context = {"course": course, "subject": subject, "question": question, "mode": payload.get("mode", "new")}
+    if context["mode"] not in ("new", "improve", "exercises"):
+        raise HTTPException(422, "Acción no válida.")
+    if payload.get("topic"):
+        try:
+            context["topic"] = validate_topic(payload["topic"])
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+    if context["mode"] != "new" and "topic" not in context:
+        raise HTTPException(422, "Selecciona un tema para mejorarlo.")
+    db.scalar(select(User).where(User.id == user.id).with_for_update())
+    title = "teacher-support:" + request_id
+    previous = db.scalar(select(Conversation).where(Conversation.user_id == user.id, Conversation.organization_id == user.organization_id, Conversation.title == title))
+    if previous:
+        message = db.scalar(select(Message).where(Message.conversation_id == previous.id, Message.role == "assistant"))
+        stored = json.loads(message.content)
+        if stored["context"] != context:
+            raise HTTPException(409, "La petición ya se utilizó con otro contenido.")
+        return {"topic": stored["topic"], "credits": 1, "reused": True}
+    ensure_credit_balance(db, user, license_obj, 1)
+    api_key, url, provider = chat_provider_config(db, product="PROFESOR_PARTICULAR")
+    model = chat_model_for_purpose(db, provider, "chat", "PROFESOR_PARTICULAR")
+    body = {"model": model, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps(context, ensure_ascii=False)}], "max_tokens": 7000, "temperature": 0.25}
+    try:
+        async with httpx.AsyncClient(timeout=120) as client:
+            if provider == "gemini" and is_gemini_auth_key(api_key):
+                response = await gemini_post_with_retry(client, gemini_generate_url(model), headers={"x-goog-api-key": api_key}, json=gemini_request_body(body))
+            else:
+                response = await client.post(url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=body)
+    except httpx.RequestError as exc:
+        raise HTTPException(502, "No se pudo completar la petición. No se han descontado créditos.") from exc
+    if response.status_code >= 400:
+        raise provider_error("No se pudo generar el tema. No se han descontado créditos", response)
+    try:
+        data = gemini_chat_data(response.json()) if provider == "gemini" and is_gemini_auth_key(api_key) else response.json()
+        topic = parse_topic(data["choices"][0]["message"]["content"])
+    except (ValueError, KeyError, IndexError, TypeError) as exc:
+        raise HTTPException(502, "Respuesta no válida. No se han descontado créditos.") from exc
+    input_tokens, output_tokens = token_usage(data)
+    record_usage(db, user, model, input_tokens, output_tokens, "PROFESOR_PARTICULAR", 1)
+    conv = Conversation(organization_id=user.organization_id, user_id=user.id, title=title)
+    db.add(conv)
+    db.flush()
+    db.add(Message(conversation_id=conv.id, organization_id=user.organization_id, user_id=user.id, role="assistant", content=json.dumps({"context": context, "topic": topic}, ensure_ascii=False)))
+    db.commit()
+    return {"topic": topic, "credits": 1, "reused": False}
 
 
 @router.post("/api/chat")

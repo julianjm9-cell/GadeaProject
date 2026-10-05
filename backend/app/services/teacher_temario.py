@@ -33,6 +33,12 @@ def formatted_topic_text(text):
     value = re.sub(r"\b(teorema de Pitágoras|numerador|denominador|hipotenusa|incógnita|idea principal|presente simple|sujeto|predicado|hipótesis)\b", r"<b>\1</b>", value, flags=re.IGNORECASE)
     value = re.sub(r"\*\*([^*]+)\*\*|__([^_]+)__", lambda m: "<b>" + (m[1] or m[2]) + "</b>", value)
     value = re.sub(r"«([^»]+)»", r"«<b>\1</b>»", value)
+    value = re.sub(r"\*([^*<>\n]+)\*", r"<i>\1</i>", value)
+    value = re.sub(r"~~([^~<>]+)~~", r"<u>\1</u>", value)
+    palette = {"blue": "#0868dc", "green": "#008e6c", "purple": "#7951be", "orange": "#a6660d"}
+    value = re.sub(r"\[([^\]<>]+)\]\{(blue|green|purple|orange)\}", lambda m: '<font color="' + palette[m[2]] + '">' + m[1] + '</font>', value)
+    value = re.sub(r"^#{1,4}\s+(.+)$", r"<b>\1</b>", value, flags=re.MULTILINE)
+
     value = re.sub(r"([a-zA-Z0-9])\^(-?\d+)", r"\1<super>\2</super>", value)
     value = re.sub(r"(?<![\w/])(-?\d+)\s*/\s*(\d+)(?![\w/])", r"<super>\1</super>/<sub>\2</sub>", value)
     for character, digit in zip("₀₁₂₃", "0123"):
