@@ -149,7 +149,7 @@ def test_puzzle_formats_are_validated_before_charging(client, monkeypatch):
     questions[1]['options']=['GATO | Felino','PERRO | Canino','BUHO | Ave']
     with pytest.raises(HTTPException):parse_material(json.dumps({'questions':questions}),context)
     questions[1]['options']=['GATO | Felino','PATO | Ave acuática','RATA | Roedor']
-    questions[2]['options']=['Gato | Mamífero','Pato | Ave','Rana | Ave']
+    questions[2]['options']=['Gato | Mamífero','Pato | Ave','Gato | Ave']
     with pytest.raises(HTTPException):parse_material(json.dumps({'questions':questions}),context)
 
 
@@ -200,3 +200,38 @@ def test_visual_types_are_manual_and_not_sent_to_ai(client, monkeypatch):
     assert not calls
     with factory() as db:
         assert db.scalar(select(func.count()).select_from(UsageRecord)) == 0
+
+
+def test_teaching_metadata_repeated_answers_and_shared_destinations():
+    from app.services.teacher_generator import generator_context, parse_material, TYPES
+    data = request(); data.update({key: 0 for key in TYPES})
+    data.update(multigaps=1, numeric=1, dragdrop=1)
+    _, context = generator_context(data)
+    questions = [
+        dict(type='multigaps', prompt='Uno más uno es ___ y cuatro entre dos es ___.', answer='2 | 2', options=['2~dos', '2~dos'], explanation='Ambas operaciones dan dos.', hints=['Piensa en dos objetos.']),
+        dict(type='numeric', prompt='Una mitad en decimal', answer='0.5', unit='L', tolerance=0.001),
+        dict(type='dragdrop', prompt='Agrupa', answer='Completado', options=['Gato | Mamífero','Perro | Mamífero','Pato | Ave']),
+    ]
+    result = parse_material(json.dumps({'questions': questions}), context)
+    assert result[0]['hints'] == ['Piensa en dos objetos.']
+    assert result[1]['unit'] == 'L'
+    assert result[1]['tolerance'] == 0.001
+    assert len(result[2]['options']) == 3
+    for bad in ['NaN', 'Infinity', '-Infinity']:
+        questions[1]['answer'] = bad
+        with pytest.raises(Exception): parse_material(json.dumps({'questions': questions}), context)
+    questions[1]['answer'] = '0.5'
+    questions[0]['hints'] = ['x' * 301]
+    with pytest.raises(Exception): parse_material(json.dumps({'questions': questions}), context)
+
+
+def test_pasapalabra_full_alphabet_and_letter_validation():
+    from app.services.teacher_generator import generator_context, parse_material, TYPES
+    data = request(); data.update({key: 0 for key in TYPES}); data['pasapalabra'] = 1
+    _, context = generator_context(data)
+    # Contract boundary, not educational content: all 27 letters must round-trip.
+    rows = [f'{letter} | Escribe esta letra | {letter}' for letter in 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ']
+    question = dict(type='pasapalabra', prompt='Identifica las letras', answer='Completado', options=rows)
+    assert len(parse_material(json.dumps({'questions': [question]}), context)[0]['options']) == 27
+    rows[0] = 'A | Estrella del sistema solar | sol'
+    with pytest.raises(Exception): parse_material(json.dumps({'questions': [question]}), context)

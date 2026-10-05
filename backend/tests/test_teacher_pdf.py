@@ -75,6 +75,23 @@ class TeacherPdfTests(unittest.TestCase):
         self.assertIn("12,5", solutions)
         self.assertIn("Sol", solutions)
 
+    def test_worksheet_reorders_sequences_and_matching_without_explanations(self):
+        material = {'title': 'Razonamiento', 'activity': {'questions': [
+            {'type': 'order', 'prompt': 'Ordena el crecimiento', 'answer': 'Semilla → Brote → Planta', 'options': ['Semilla', 'Brote', 'Planta'], 'explanation': 'La semilla germina y produce un brote.'},
+            {'type': 'dragdrop', 'prompt': 'Relaciona', 'answer': 'Completado', 'options': ['Gato | Mamífero', 'Pato | Ave', 'Rana | Anfibio']},
+            {'type': 'problem', 'prompt': 'Dos cajas con tres libros cada una', 'answer': '6 libros', 'rubric': 'Multiplica y expresa la unidad.'},
+        ]}}
+        worksheet = self.text(render_teacher_pdf(material, False, lambda _: self.image))
+        solutions = self.text(render_teacher_pdf(material, True, lambda _: self.image))
+        self.assertLess(worksheet.index('Planta'), worksheet.index('Semilla'))
+        self.assertIn('A. Ave', worksheet)
+        self.assertNotIn('Gato | Mamífero', worksheet)
+        self.assertNotIn('La semilla germina', worksheet)
+        self.assertIn('La semilla germina', solutions)
+        self.assertIn('Criterios de revisión', solutions)
+        for field in ['Datos', 'Planteamiento', 'Cálculos', 'Respuesta y comprobación']:
+            self.assertIn(field, worksheet)
+
 
 if __name__ == "__main__":
     unittest.main()

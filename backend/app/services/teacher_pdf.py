@@ -22,32 +22,37 @@ PALE = colors.HexColor("#eaf3ff")
 
 
 class _MarkedImage(Flowable):
-    def __init__(self, raw: bytes, width: float, height: float, x: float, y: float):
+    def __init__(self, raw: bytes, width: float, height: float, x: float, y: float, zone_width=0, zone_height=0):
         super().__init__()
         self.raw, self.width, self.height, self.x, self.y = raw, width, height, x, y
         self.hAlign = "CENTER"
+        self.zone_width, self.zone_height = zone_width, zone_height
 
     def draw(self):
         self.canv.drawImage(ImageReader(BytesIO(self.raw)), 0, 0, self.width, self.height)
         self.canv.setStrokeColor(colors.white)
         self.canv.setFillColor(BLUE)
         self.canv.setLineWidth(2)
-        self.canv.circle(self.width*self.x/100, self.height*(1-self.y/100), 7, stroke=1, fill=1)
+        if self.zone_width and self.zone_height:
+            self.canv.setStrokeColor(BLUE)
+            self.canv.rect(self.width*(self.x-self.zone_width/2)/100, self.height*(1-(self.y+self.zone_height/2)/100), self.width*self.zone_width/100, self.height*self.zone_height/100, stroke=1, fill=0)
+        else:
+            self.canv.circle(self.width*self.x/100, self.height*(1-self.y/100), 7, stroke=1, fill=1)
 
 
 def _text(value: object, limit: int = 3000) -> str:
-    return escape(str(value or "")[:limit]).replace("\n", "<br/>")
+    return escape(str(value or "")[:limit].replace('→', ' -> ')).replace("\n", "<br/>")
 
 
-def _lines(value: object, limit: int = 8) -> list[str]:
+def _lines(value: object, limit: int = 27) -> list[str]:
     if not isinstance(value, list):
         return []
     return [str(item).strip()[:300] for item in value if str(item).strip()][:limit]
 
 
 def _grid_flowable(grid: list[list[str]], reveal: bool) -> Table:
-    size = min(15*mm, 154*mm/max(len(grid[0]), 1))
-    cells = [[letter if reveal else ("" if letter != "#" else " ") for letter in row] for row in grid]
+    size = min(11*mm, 154*mm/max(len(grid[0]), 1))
+    cells = [[letter if reveal and letter != '#' else "" for letter in row] for row in grid]
     table = Table(cells, colWidths=[size]*len(grid[0]), rowHeights=[size]*len(grid), hAlign="CENTER")
     commands = [("GRID", (0, 0), (-1, -1), .5, colors.HexColor("#a9c4e6")),
                 ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
@@ -83,7 +88,7 @@ def _wordsearch(words: list[str]) -> list[list[str]]:
     return grid
 
 
-def _crossword(words: list[str]) -> list[list[str]]:
+def _crossword(words: list[str], with_entries=False):
     clean = ["".join(c for c in word.upper() if c.isalpha()) for word in words]
     clean = [word for word in clean if word]
     for anchor in sorted(clean, key=len, reverse=True):
@@ -117,6 +122,10 @@ def _crossword(words: list[str]) -> list[list[str]]:
         for word, row, col in placed:
             for offset, letter in enumerate(word):
                 grid[row][left-col+offset] = letter
+        if with_entries:
+            entries = {anchor: (0, left, 'vertical')}
+            entries.update({word: (row, left-col, 'horizontal') for word, row, col in placed})
+            return grid, entries
         return grid
     raise ValueError("No se pudo construir el crucigrama para PDF.")
 
@@ -135,7 +144,7 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
         context = {}
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name="TeacherTitle", fontName="Helvetica-Bold", fontSize=19, leading=23, textColor=INK, spaceAfter=7))
-    styles.add(ParagraphStyle(name="TeacherHeading", fontName="Helvetica-Bold", fontSize=11, leading=15, textColor=INK, spaceBefore=15, spaceAfter=5))
+    styles.add(ParagraphStyle(name="TeacherHeading", fontName="Helvetica-Bold", fontSize=11, leading=15, textColor=INK, spaceBefore=12, spaceAfter=5, keepWithNext=True))
     styles.add(ParagraphStyle(name="TeacherBody", fontName="Helvetica", fontSize=9.5, leading=14, textColor=INK, spaceAfter=6))
     styles.add(ParagraphStyle(name="TeacherSmall", fontName="Helvetica", fontSize=8.5, leading=12, textColor=MUTED, spaceAfter=8))
     styles.add(ParagraphStyle(name="TeacherAnswer", fontName="Helvetica", fontSize=9, leading=13, textColor=BLUE, leftIndent=10, spaceBefore=5))
@@ -167,7 +176,7 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
         elif kind in ("visualquiz", "imagepoint"):
             section.append(CondPageBreak(85*mm))
         section.append(Paragraph(f"{index}. {labels[kind]}", styles["TeacherHeading"]))
-        section.append(Paragraph(_text(prompt), styles["TeacherBody"]))
+        section.append(Paragraph(_text(prompt.replace('___', '____________')), styles["TeacherBody"]))
         if kind == "reading" and q.get("text"):
             section.append(Paragraph(_text(q["text"]), styles["TeacherBody"]))
         if kind in ("visualquiz", "imagepoint"):
@@ -186,7 +195,7 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
                     x, y = float(target.get("x")), float(target.get("y"))
                     if not (0 <= x <= 100 and 0 <= y <= 100):
                         raise ValueError()
-                    section.append(_MarkedImage(raw, width*scale, height*scale, x, y))
+                    section.append(_MarkedImage(raw, width*scale, height*scale, x, y, min(100, max(0, float(target.get('width', 0)))), min(100, max(0, float(target.get('height', 0))))))
                 else:
                     section.append(Image(BytesIO(raw), width=width*scale, height=height*scale, hAlign="CENTER"))
                 if image.get("credit"):
@@ -194,6 +203,10 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
             except Exception as exc:
                 raise ValueError(f"La imagen del ejercicio {index} no se puede incluir en el PDF.") from exc
         options = _lines(q.get("options"))
+        if kind == 'numeric' and q.get('unit'):
+            section.append(Paragraph('Unidad: ' + _text(q['unit'], 30), styles['TeacherSmall']))
+        if not solutions and kind in ('gaps', 'multigaps') and q.get('wordBank'):
+            section.append(Paragraph('Banco de palabras: ' + ' / '.join(_text(word, 100) for word in sorted(_lines(q['wordBank'], 12))), styles['TeacherSmall']))
         if kind in ("quiz", "visualquiz", "boolean", "classify"):
             for letter, option in zip("ABCDEFGH", options):
                 section.append(Paragraph(f"{letter}. {_text(option, 300)}", styles["TeacherBody"]))
@@ -201,22 +214,43 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
             section.append(_grid_flowable(_wordsearch(options), True))
             section.append(Paragraph("Palabras: " + ", ".join(_text(o, 100) for o in options), styles["TeacherSmall"]))
         elif kind == "crossword":
-            crossword_parts = [_grid_flowable(_crossword([o.split("|", 1)[0].strip() for o in options]), solutions)]
+            grid, entries = _crossword([o.split("|", 1)[0].strip() for o in options], True)
+            crossword_parts = [_grid_flowable(grid, solutions)]
             for clue, option in enumerate(options, 1):
-                crossword_parts.append(Paragraph(f"{clue}. " + _text(option.split("|", 1)[-1].strip(), 300), styles["TeacherBody"]))
+                word = ''.join(c for c in option.split('|', 1)[0].upper() if c.isalpha())
+                row, col, direction = entries[word]
+                crossword_parts.append(Paragraph(f"{clue}. ({direction}, fila {row+1}, columna {col+1}) " + _text(option.split("|", 1)[-1].strip(), 300), styles["TeacherBody"]))
             section.append(KeepTogether(crossword_parts))
         elif kind in ("dragdrop", "memory"):
-            for option in options:
-                section.append(Paragraph("- " + _text(option, 300), styles["TeacherBody"]))
+            pairs = [option.split('|', 1) for option in options if '|' in option]
+            right = [pair[1].strip() for pair in pairs]
+            if not solutions:
+                right = right[1:] + right[:1]
+                section.append(Paragraph('Relaciona las dos columnas. Escribe la letra junto al número.', styles['TeacherSmall']))
+            table = Table([[Paragraph(f'{n+1}. {_text(pair[0])}', styles['TeacherBody']), Paragraph(f'{chr(65+n)}. {_text(right[n])}', styles['TeacherBody'])] for n, pair in enumerate(pairs)], colWidths=[77*mm, 77*mm])
+            table.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('BOX',(0,0),(-1,-1),.5,PALE),('INNERGRID',(0,0),(-1,-1),.5,PALE),('LEFTPADDING',(0,0),(-1,-1),8),('TOPPADDING',(0,0),(-1,-1),7)]))
+            if pairs:
+                section.append(table)
+        elif kind == 'pairs' and not solutions:
+            bank = [str(item.get('answer', '')) for item in reversed(questions) if item.get('type') == 'pairs']
+            if len(bank) > 1:
+                section.append(Paragraph('Banco de respuestas: ' + ' / '.join(_text(item, 300) for item in bank), styles['TeacherSmall']))
         elif kind == "pasapalabra":
             for option in options:
                 parts = [part.strip() for part in option.split("|", 2)]
                 if len(parts) == 3:
                     section.append(Paragraph(f"<b>{_text(parts[0], 2)}</b> · {_text(parts[1], 180)}" + (f" — {_text(parts[2], 60)}" if solutions else ""), styles["TeacherBody"]))
         elif kind == "hangman" and not solutions:
-            section.append(Paragraph("_ " * max(2, len(str(q.get("answer") or ""))), styles["TeacherCenter"]))
+            section.append(Paragraph(' '.join('_' if char.isalpha() else ' / ' for char in str(q.get('answer') or '')), styles["TeacherCenter"]))
         elif kind in ("order", "sentence", "timeline"):
-            section.append(Paragraph("  /  ".join(_text(o, 300) for o in options), styles["TeacherBody"]))
+            if kind == 'sentence':
+                section.append(Paragraph(' / '.join(_text(o, 300) for o in (options if solutions else list(reversed(options)))), styles['TeacherBody']))
+            else:
+                for option in (options if solutions else list(reversed(options))):
+                    section.append(Paragraph(('Paso: ____   ' if not solutions else '') + _text(option, 300), styles['TeacherBody']))
+        elif kind == 'problem' and not solutions:
+            for label in ['Datos', 'Planteamiento', 'Cálculos', 'Respuesta y comprobación']:
+                    section.extend([Paragraph(label, styles['TeacherBody']), Spacer(1, 8*mm)])
         if solutions:
             answer = q.get("answer") or ""
             if kind == "imagepoint":
@@ -225,9 +259,13 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
             elif kind in ("wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps"):
                 answer = "; ".join(options)
             section.append(Paragraph("Solución: " + _text(answer, 1500), styles["TeacherAnswer"]))
+            if q.get('explanation'):
+                section.append(Paragraph(_text(q['explanation'], 1500), styles['TeacherBody']))
+            if q.get('rubric'):
+                section.append(Paragraph('Criterios de revisión: ' + _text(q['rubric'], 1000), styles['TeacherSmall']))
         elif kind not in ("quiz", "visualquiz", "boolean", "classify", "wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps", "hangman"):
             section.append(Paragraph("________________________________________________________________________", styles["TeacherSmall"]))
-        section.append(Spacer(1, 3*mm))
+        section.append(Spacer(1, 2*mm))
 
         if kind == "crossword":
             story.append(KeepTogether(section))
