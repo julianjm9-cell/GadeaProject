@@ -7,7 +7,7 @@ doce huecos. Se mantienen los 21 tipos y las actividades con fotografía de Prem
 ## Configuración y edición
 
 - Cinco parámetros iniciales visibles y una caja amplia para instrucciones concretas.
-- Extensión orientativa breve, media o amplia y práctica guiada, autónoma o de reto.
+- Generación directa con extensión y dificultad estándar, sin selectores adicionales.
 - Control de preguntas, parejas, palabras, letras o pasos por actividad seleccionada.
 - Cada visita empieza sin tipos marcados. Al seleccionar un tipo se añade una actividad.
 - Máximo tres actividades por creación, incluidas las repeticiones del mismo tipo y las
