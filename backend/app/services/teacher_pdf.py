@@ -266,6 +266,18 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
             section.extend(text_blocks("Solución: " + str(answer), styles["TeacherAnswer"], 162*mm, 2500))
             if q.get('explanation'):
                 section.extend(text_blocks(q['explanation'], styles['TeacherBody'], 172*mm, 1500))
+            # Only the solutions copy includes per-option and per-gap reasoning.
+            feedback = q.get('optionFeedback', [])
+            if isinstance(feedback, list):
+                for row in feedback[:5]:
+                    if isinstance(row, dict) and row.get('option') in options and isinstance(row.get('explanation'), str):
+                        section.extend(text_blocks(str(row['option']) + ': ' + row['explanation'][:400], styles['TeacherSmall'], 172*mm, 700))
+            reasons = q.get('itemExplanations', [])
+            if isinstance(reasons, list) and len(reasons) == len(options):
+                for position, reason in enumerate(reasons[:27]):
+                    if isinstance(reason, str):
+                        label = f'Hueco {position+1}' if kind == 'multigaps' else options[position].split('|', 1)[0].strip()
+                        section.extend(text_blocks(label + ': ' + reason[:300], styles['TeacherSmall'], 172*mm, 600))
             if q.get('rubric'):
                 section.append(Paragraph('Criterios de revisión: ' + _text(q['rubric'], 1000), styles['TeacherSmall']))
         elif kind not in ("quiz", "visualquiz", "boolean", "classify", "wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps", "hangman"):

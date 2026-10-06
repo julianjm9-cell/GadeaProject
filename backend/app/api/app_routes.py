@@ -1522,7 +1522,7 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
                 if group in classification_categories:
                     batch['classificationCategories'] = classification_categories[group]
                 # Only include short previous tasks to avoid repetition across batches.
-                if group is not None:
+                if group is not None and not context.get('regeneration'):
                     batch['previousPrompts'] = [q['prompt'][:200] for q in questions if q['type'] in [k for k in batch if k in context and type(batch[k]) is int and batch[k] > 0]][-12:]
                 repair_source = ''
                 attempts = 3 if group is not None else 1

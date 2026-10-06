@@ -13,6 +13,10 @@
   };
   let playerAbort = null;
   const rich = value => window.profesorText ? profesorText.rich(value) : escape(value);
+  const itemReasons = q => {
+    const rows=q.optionFeedback?.map(row=>[row.option,row.explanation])||q.itemExplanations?.map((value,n)=>[q.type==='multigaps'?'Hueco '+(n+1):q.options[n]?.split('|')[0]||String(n+1),value])||[];
+    return rows.length?'<details class="play-item-reasons"><summary>Explicación de cada respuesta</summary><ol>'+rows.map(([label,value])=>'<li><b>'+escape(label)+':</b> '+rich(value)+'</li>').join('')+'</ol></details>':'';
+  };
   function recordAnswer(index, part, correct, value, assisted = false) {
     $('form').dispatchEvent(new CustomEvent('play:answer', {detail:{index,part,correct,value,assisted}}));
   }
@@ -366,6 +370,7 @@
           editor.querySelectorAll('[data-remove-row]').forEach(button => button.onclick = () => { rows.splice(Number(button.dataset.removeRow), 1); draw(); sync(); });
         }
         draw();
+        options.addEventListener('editor:options',()=>{rows=options.value.split('\n').map(line=>columns===1?[line.trim()]:line.split('|').map(value=>value.trim()));draw()});
       }
     });
   };
@@ -471,7 +476,9 @@
     }
     function feedback(index,grade) {
       const box=$('feedback-'+index),q=questions[index];box.className='play-feedback '+(grade==='correct'?'is-correct':grade==='pending'?'is-pending':'is-incorrect');
-      box.innerHTML=grade==='correct'?'✓ ¡Correcto!'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':''):grade==='pending'?'◷ Respuesta guardada. La revisa el profesor.'+(q.rubric?'<div>'+rich(q.rubric)+'</div>':''):'× Revisa tu respuesta. Puedes volver a intentarlo o consultar la solución.';
+      const selected=String(new FormData($('form')).get('r-'+index)||''),reason=q.optionFeedback?.find(row=>row.option===selected)?.explanation;
+      box.innerHTML=grade==='correct'?'✓ ¡Correcto!'+(reason||q.explanation?'<div>'+rich(reason||q.explanation)+'</div>':''):grade==='pending'?'◷ Respuesta guardada. La revisa el profesor.'+(q.rubric?'<div>'+rich(q.rubric)+'</div>':''):'× Revisa tu respuesta. Puedes volver a intentarlo o consultar la solución.'+(reason?'<div>'+rich(reason)+'</div>':'');
+      if(grade==='correct'&&sequenceTypes.includes(q.type)&&q.itemExplanations?.length)box.innerHTML+=itemReasons(q);
       document.querySelector(`[data-question="${index}"]`).dataset.result=grade;
     }
     function confirmQuestion(index) {
@@ -502,7 +509,7 @@
       questions.forEach((q, index) => {
         const feedback = $('feedback-' + index);
         const solution = puzzleTypes.includes(q.type) ? puzzleSolution(q) : q.type === 'imagepoint' ? 'Punto marcado por el profesor' : q.answer;
-        feedback.innerHTML = rich((grades[index]==='unanswered'?'Sin responder. ':openAnswerTypes.includes(q.type) && q.type !== 'flashcard' ? '◷ Solución orientativa: ' + q.answer : grades[index] === 'correct' ? '✓ ¡Correcto!' : '↻ Solución: ' + solution) + (q.errorSegment ? '\nFragmento que había que corregir: ' + q.errorSegment : '') + (q.explanation ? '\n\n' + q.explanation : '') + (q.rubric ? '\n\nCriterios de revisión: ' + q.rubric : ''));
+        feedback.innerHTML = rich((grades[index]==='unanswered'?'Sin responder. ':openAnswerTypes.includes(q.type) && q.type !== 'flashcard' ? '◷ Solución orientativa: ' + q.answer : grades[index] === 'correct' ? '✓ ¡Correcto!' : '↻ Solución: ' + solution) + (q.errorSegment ? '\nFragmento que había que corregir: ' + q.errorSegment : '') + (q.explanation ? '\n\n' + q.explanation : '') + (q.rubric ? '\n\nCriterios de revisión: ' + q.rubric : '')) + itemReasons(q);
         feedback.classList.add(grades[index] === 'correct' ? 'is-correct' : grades[index] === 'pending' ? 'is-pending' : 'is-incorrect');
         document.querySelector(`[data-question="${index}"]`).dataset.result = grades[index];
         games[index]?.review?.();
@@ -526,7 +533,7 @@
       return false;
     });
     $('form').noValidate = true;
-    $('form').addEventListener('play:answer',event=>{logAnswer(event.detail);const {index,correct}=event.detail;if(correct!==null){const log=practice[index],parts=Object.values(log.parts).filter(p=>p.correct!==null);$('feedback-'+index).className='play-feedback '+(correct?'is-correct':'is-incorrect');$('feedback-'+index).textContent=`${correct?'✓ Correcto.':'× Prueba de nuevo.'} ${parts.filter(p=>p.correct).length} aciertos · ${parts.filter(p=>!p.correct).length} por revisar.`;if(!correct)document.querySelector(`[data-question="${index}"] [data-show-solution]`)?.removeAttribute('hidden');}},{signal});
+    $('form').addEventListener('play:answer',event=>{logAnswer(event.detail);const {index,part,correct}=event.detail;if(correct!==null){const log=practice[index],parts=Object.values(log.parts).filter(p=>p.correct!==null),q=questions[index],reason=Number.isInteger(part)?q.itemExplanations?.[part]:'';$('feedback-'+index).className='play-feedback '+(correct?'is-correct':'is-incorrect');$('feedback-'+index).innerHTML=`${correct?'✓ Correcto.':'× Prueba de nuevo.'} ${parts.filter(p=>p.correct).length} aciertos · ${parts.filter(p=>!p.correct).length} por revisar.`+(reason?'<div>'+rich(reason)+'</div>':'');if(!correct)document.querySelector(`[data-question="${index}"] [data-show-solution]`)?.removeAttribute('hidden');}},{signal});
     $('dialog').classList.add('activity-play');
     $('dialog').addEventListener('close', () => { if (!$('dialog').open) { $('dialog').classList.remove('activity-play'); $('form').noValidate = false; playerAbort?.abort(); } }, { signal });
     const toolbar = document.createElement('div'); toolbar.className = 'step-navigation';
@@ -636,7 +643,7 @@
         const check=document.createElement('button');check.type='button';check.dataset.checkQuestion=index;check.textContent=openAnswerTypes.includes(q.type)?'Guardar respuesta':'Comprobar';
         check.onclick=()=>{if(q.type==='multigaps'){section.querySelectorAll('[data-multi-gap]').forEach((input,n)=>{if(input.value.trim()){const right=q.options[n].split('~').some(s=>accepts(input.value,s));markControl(input,right);recordAnswer(index,n,right,input.value.trim());}});}else confirmQuestion(index);};section.querySelector('.question-controls').append(check);
       }
-      const solution=document.createElement('button');solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';solution.onclick=()=>{practice[index].assisted=true;const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):q.answer;$('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'');};section.append(solution);
+      const solution=document.createElement('button');solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';solution.onclick=()=>{practice[index].assisted=true;const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):q.answer;$('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'')+itemReasons(q);};section.append(solution);
       if(!puzzleTypes.includes(q.type))section.addEventListener('click',()=>queueMicrotask(()=>{if(section.dataset.result==='incorrect'||section.dataset.result==='pending')solution.hidden=false;}),{signal});
       section.querySelectorAll('input:not([type="radio"]):not([type="hidden"])').forEach(input=>{
         if(q.type==='multigaps'||q.type==='pasapalabra'||q.type==='crossword')return;
@@ -729,5 +736,5 @@
     updateProgress();
   };
   const originalReviewAttempt=reviewAttempt;
-  reviewAttempt=function(id){originalReviewAttempt(id);profesorText.paint($('form'));};
+  reviewAttempt=function(id){originalReviewAttempt(id);const attempt=state.activityAttempts.find(item=>item.id===id);if(attempt){$('form').querySelectorAll('section.block').forEach((section,n)=>{const q=attempt.materialSnapshot.questions[n];if(q){if(q.explanation)section.insertAdjacentHTML('beforeend','<div>'+rich(q.explanation)+'</div>');section.insertAdjacentHTML('beforeend',itemReasons(q));}});}profesorText.paint($('form'));};
 })();

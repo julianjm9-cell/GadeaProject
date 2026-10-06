@@ -92,6 +92,21 @@ class TeacherPdfTests(unittest.TestCase):
         for field in ['Datos', 'Planteamiento', 'Cálculos', 'Respuesta y comprobación']:
             self.assertIn(field, worksheet)
 
+    def test_specific_feedback_only_in_solutions(self):
+        material = {'title': 'Práctica con explicaciones', 'activity': {'questions': [
+            {'type': 'quiz', 'prompt': '¿Cuánto es 3 × 4?', 'answer': '12', 'options': ['7', '12'],
+             'optionFeedback': [{'option': '7', 'explanation': 'Has sumado los factores.'}, {'option': '12', 'explanation': 'Tres grupos de cuatro suman doce.'}]},
+            {'type': 'multigaps', 'prompt': 'Ayer ___. Siempre ___.', 'answer': 'fui | jugaba', 'options': ['fui', 'jugaba'],
+             'itemExplanations': ['Ayer sitúa un hecho terminado.', 'Siempre presenta una costumbre.']},
+        ]}}
+        worksheet = self.text(render_teacher_pdf(material, False, lambda _: self.image))
+        solutions = self.text(render_teacher_pdf(material, True, lambda _: self.image))
+        self.assertNotIn('Has sumado los factores.', worksheet)
+        self.assertNotIn('Ayer sitúa un hecho terminado.', worksheet)
+        self.assertIn('Has sumado los factores.', solutions)
+        self.assertIn('Ayer sitúa un hecho terminado.', solutions)
+        self.assertIn('Hueco 2', solutions)
+
     def test_long_materials_keep_reading_once_and_matching_banks_separate(self):
         material={'title':'Lectura y vocabulario','activity':{'questions':[
             {'type':'reading','activityGroup':1,'prompt':'¿Quién llega?','answer':'Ana','text':'Una historia única sobre el barrio.'},

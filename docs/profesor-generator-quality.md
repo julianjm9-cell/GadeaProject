@@ -90,16 +90,41 @@ Se cobra **un crédito al completar todo el material**, no por pregunta, lote ni
 Los fallos y materiales incompletos no consumen créditos. Repetir el mismo `request_id` y
 contexto recupera la respuesta guardada sin un nuevo cargo.
 
+## Calidad por pregunta y regeneración individual
+
+El generador nuevo envía `qualityVersion: 1`. Quiz, verdadero/falso y clasificación incluyen
+una explicación específica por opción, también para los distractores. Huecos y tableros
+guardan una explicación por elemento; cada hueco conserva su razonamiento en el orden real
+del texto. Las respuestas numéricas pueden incluir un cálculo elemental verificable.
+Los materiales antiguos siguen siendo compatibles sin estos campos.
+
+La práctica muestra el motivo de la opción elegida o del hueco comprobado. La revisión de
+sesiones y «Ver solución» conservan las explicaciones. El editor permite modificarlas en
+un apartado plegable; el PDF de soluciones las incluye y la ficha del alumno las omite.
+
+El servidor comprueba operaciones aritméticas explícitas, igualdades y simplificaciones
+numéricas en las explicaciones, opciones equivalentes y unidades solicitadas reconocidas.
+Detecta algunos datos imposibles, como conteos fraccionarios de personas. No ejecuta código
+ni intenta verificar automáticamente álgebra simbólica o afirmaciones lingüísticas.
+Una comprobación fallida solicita corregir el borrador antes de entregarlo. Las instrucciones
+exigen distractores plausibles, pistas inequívocas y razonamientos acordes al objetivo.
+
+«Regenerar esta pregunta» sustituye únicamente la pregunta o tablero actual. Conserva las
+demás ediciones, identificadores, grupo, pasaje de lectura y categorías. Admite instrucciones
+concretas y deshacer antes de guardar. La regeneración es una petición nueva: consume
+**un crédito solo si termina correctamente**; un fallo deja el ejercicio intacto. Reintentar
+la misma petición no duplica el cargo. Editar o deshacer localmente no consume créditos.
+
 Referencia de integración: [Structured Outputs de Groq](https://console.groq.com/docs/structured-outputs).
 Las restricciones del proveedor se complementan con la validación propia del servidor.
 
 ## Verificación
 
-Pruebas del backend: `test_teacher_generator_quality.py`, `test_teacher_generator.py`,
+Pruebas del backend: `test_teacher_question_quality.py`, `test_teacher_generator_quality.py`, `test_teacher_generator.py`,
 `test_teacher_pdf.py`, `test_teacher_spanish.py`, `test_teacher_temario.py`,
 `test_teacher_support.py`, `test_teacher_rich_text.py` y `test_teacher_math_assets.py`.
 Pruebas en navegador: `profesor-generator-quality-browser.cjs`,
-`profesor-generator-wizard-browser.cjs` y `profesor-material-renewal-browser.cjs`.
+`profesor-question-quality-browser.cjs`, `profesor-generator-wizard-browser.cjs` y `profesor-material-renewal-browser.cjs`.
 También: `profesor-immediate-practice-browser.cjs`, `profesor-game-feedback-browser.cjs`,
 `profesor-activity-play-browser.cjs`, `profesor-new-material-types-browser.cjs`,
 `profesor-visual-browser.cjs` y `profesor-temario-presentation-browser.cjs`.
