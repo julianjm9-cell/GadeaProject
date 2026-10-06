@@ -651,6 +651,7 @@ def profesor_temario_catalogue():
 
 
 @router.get("/profesor-spanish.js")
+@router.get("/profesor-temario-revision.js")
 @router.get("/profesor-support.js")
 @router.get("/temario-presentation.js")
 @router.get("/profesor-temario-depth.js")

@@ -4,7 +4,7 @@ const vm = require('node:vm');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const context = vm.createContext({ window: {}, document: { addEventListener() {} } });
-for (const name of ['profesor-temario.js', 'profesor-temario-depth.js', 'profesor-spanish.js']) {
+for (const name of ['profesor-temario.js', 'profesor-temario-depth.js', 'profesor-spanish.js', 'profesor-temario-revision.js']) {
   vm.runInContext(fs.readFileSync(path.join(root, 'apps/profesor', name), 'utf8'), context);
 }
 const topics = Object.entries(context.window.PROFESOR_TEMARIO).flatMap(([course, subjects]) =>

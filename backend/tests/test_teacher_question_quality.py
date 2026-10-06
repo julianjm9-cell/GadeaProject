@@ -91,6 +91,17 @@ def test_exact_population_percentages_cannot_round_people():
     assert parse(q)['answer'] == '12'
 
 
+def test_grouped_numbers_and_unicode_minus_in_reasoning():
+    q = quiz()
+    for text in ('2 405 + 1 320 = 3 725.', '2\u202f405 + 1\u00a0320 = 3\u202f725.', '−6 − 3 = −9.'):
+        q['explanation'] = text
+        assert parse(q)['answer'] == '12'
+    for text in ('2 405 + 1 320 = 3 700.', '−6 − 3 = −3.'):
+        q['explanation'] = text
+        with pytest.raises(HTTPException):
+            parse(q)
+
+
 def test_cloze_explanation_follows_locator_order():
     batch = context('multigaps')
     q = dict(type='multigaps', prompt='Completa.', answer='Completado', explanation='Contrasta acciones terminadas y habituales.',

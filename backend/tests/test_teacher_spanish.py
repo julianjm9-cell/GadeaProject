@@ -21,7 +21,7 @@ def test_spanish_catalogue_and_material_contracts():
     assert len({t['id'] for t in topics}) == 72
     for topic in topics:
         parsed = parse_topic(json.dumps(topic))
-        assert len(parsed['didactic']['practice']) == 3
+        assert len(parsed['didactic']['practice']) == 4
         questions = topic['didactic']['preparedMaterial']['questions']
         counts = Counter(q['type'] for q in questions)
         context = {kind: counts[kind] for kind in TYPES}

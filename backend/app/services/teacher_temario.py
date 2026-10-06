@@ -78,8 +78,8 @@ def render_topic_pdf(topic: dict, resource: str) -> bytes:
     blue, ink, muted = [colors.HexColor(v) for v in ("#0868dc", "#102753", "#577095")]
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle("TopicTitle", fontName="Helvetica-Bold", fontSize=23, leading=28, textColor=ink, spaceAfter=10))
-    styles.add(ParagraphStyle("TopicHeading", fontName="Helvetica-Bold", fontSize=12, leading=17, textColor=blue, spaceBefore=15, spaceAfter=7))
-    styles.add(ParagraphStyle("TopicBody", fontName="TopicVera", fontSize=10, leading=16, autoLeading="max", textColor=ink, spaceAfter=6))
+    styles.add(ParagraphStyle("TopicHeading", fontName="Helvetica-Bold", fontSize=12, leading=17, textColor=blue, spaceBefore=15, spaceAfter=7, keepWithNext=True))
+    styles.add(ParagraphStyle("TopicBody", fontName="TopicVera", fontSize=10, leading=16, autoLeading="max", textColor=ink, spaceAfter=6, allowOrphans=0, allowWidows=0))
     styles.add(ParagraphStyle("TopicMeta", fontSize=9, leading=14, textColor=muted, spaceAfter=7))
     def paragraph(text, style="TopicBody"):
         return Paragraph(formatted_topic_text(text), styles[style])
@@ -100,6 +100,7 @@ def render_topic_pdf(topic: dict, resource: str) -> bytes:
         story.extend(text_blocks(body, styles["TopicBody"], 174*mm))
 
     if resource == "scheme":
+        section("Objetivo del tema", content["objective"])
         section("Para entenderlo", content["deepDive"])
         story.append(paragraph("Conceptos clave", "TopicHeading"))
         for index, concept in enumerate(content["concepts"], 1):
@@ -112,8 +113,9 @@ def render_topic_pdf(topic: dict, resource: str) -> bytes:
     elif resource == "examples":
         for index, example in enumerate(content["examples"], 1):
             section("Ejemplo explicado " + str(index), example)
-        section("Cómo interpretarlo", content["deepDive"])
-        story.append(paragraph("Pasos para resolverlo", "TopicHeading"))
+        if not content.get("editorialRevision"):
+            section("Cómo interpretarlo", content["deepDive"])
+        story.append(paragraph("Cómo trabajarlo", "TopicHeading"))
         for index, step in enumerate(content["steps"], 1):
             story.extend(text_blocks(str(index) + ". " + step, styles["TopicBody"], 174*mm))
         section("Error frecuente", content["commonErrors"][0])

@@ -97,6 +97,10 @@ def check_question_quality(question):
     reasoning = [question.get('explanation', '')] + [row['explanation'] for row in question.get('optionFeedback', [])]
     reasoning += question.get('itemExplanations', [])
     for text in reasoning:
+        # Spanish digit grouping uses spaces. Never validate only the tail of 2 405.
+        text = re.sub(r'(?<![\w\d])([+-]?\d{1,3}(?:[ \u00a0\u202f]\d{3})+(?:[.,]\d+)?)(?!\d)',
+                      lambda match: re.sub(r'[ \u00a0\u202f]', '', match[0]), text)
+        text = text.replace('−', '-')
         for match in equality.finditer(text):
             before = text[:match.start()].rstrip()
             if before and (before[-1] in '+-*/^×÷·=\\√∛∜' or re.search(r'(?:^|\s)[a-zA-Z]$', before)):

@@ -8,9 +8,9 @@ Cada alumno conserva su curso escolar y un `spanishLevel` independiente. Los adu
 
 `apps/profesor/profesor-spanish.js` contiene 72 unidades originales, 12 por nivel. Se toma como referencia la organización y los inventarios del [Plan Curricular del Instituto Cervantes](https://cvc.cervantes.es/ensenanza/biblioteca_ele/plan_curricular/indice.htm). Es una selección didáctica propia para clases particulares, no un programa oficial acreditado ni una preparación exhaustiva para DELE.
 
-Cada unidad incluye explicación, modelo contextual, contraste comentado, objetivo, conceptos, pasos, tres prácticas con soluciones y transferencia. La vista detallada y los PDF muestran tablas de contraste entre formas o interpretaciones. Hay 72 materiales preparados de seis actividades cada uno (432 actividades): huecos, elección o memory, corrección, comprensión con pregunta específica, flashcard y producción breve. Las respuestas abiertas se revisan con el profesor; los juegos de parejas usan asociaciones explícitas. Se conservan tildes y ñ; las variantes legítimas se explican según el contexto.
+Cada unidad incluye explicación, modelos en dos contextos, contraste comentado, objetivo, conocimientos previos, conceptos, pasos, cuatro prácticas con soluciones y transferencia. La revisión complementaria se guarda en `apps/profesor/profesor-temario-revision.js`. La vista detallada y los PDF muestran tablas de contraste entre formas o interpretaciones. Hay 72 materiales preparados de seis actividades cada uno (432 actividades): huecos, elección o memory, corrección, comprensión con pregunta específica, flashcard y producción breve. Las respuestas abiertas se revisan con el profesor; los juegos de parejas usan asociaciones explícitas. Se conservan tildes y ñ; las variantes legítimas se explican según el contexto.
 
-El catálogo del servidor se exporta con `node scripts/export-profesor-temario.cjs`; `--check` verifica que coincide con el catálogo de pantalla. El total es 351 temas. Los 279 anteriores se conservan sin cambios de contenido.
+El catálogo del servidor se exporta con `node scripts/export-profesor-temario.cjs`; `--check` verifica que coincide con el catálogo de pantalla. El total es 351 temas. La revisión editorial amplía también los 279 temas escolares, conservando sus identificadores y títulos.
 
 ## Generación y acceso
 

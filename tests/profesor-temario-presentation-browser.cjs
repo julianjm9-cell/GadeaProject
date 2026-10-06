@@ -31,6 +31,8 @@ const path = require('node:path');
           openTopicResource(topic, kind);
           const view = document.querySelector('.topic-resource-view');
           if (!view || view.textContent.includes('undefined') || !view.querySelector('.lesson-card')) failures.push(topic.id + ':' + kind);
+          if (kind === 'examples' && view.querySelectorAll('.lesson-example').length !== topic.didactic.examples.length) failures.push(topic.id + ':missing-example');
+          if (kind === 'practice' && view.querySelectorAll('.temario-lesson-practice').length !== topic.didactic.practice.length) failures.push(topic.id + ':missing-practice');
           resources++; document.querySelector('dialog').close();
         }
       }
@@ -39,6 +41,18 @@ const path = require('node:path');
     assert.deepEqual(audit.notation, { fractions: 1, roots: 1, powers: 3, subs: 1, bold: 1 });
     assert.equal(audit.safe, true); assert.equal(audit.system, 2); assert.equal(audit.stages, 3); assert.equal(audit.limit, true);
     assert.equal(audit.resources, 1053); assert.deepEqual(audit.failures, []); assert.equal(audit.unchanged, true);
+    const copies = await page.evaluate(() => {
+      temarioCourse='3.º ESO';temarioSubject='Matemáticas';
+      const topic=PROFESOR_TEMARIO[temarioCourse][temarioSubject][0], before=JSON.stringify(topic);
+      const prepared=preparedTopicMaterial(topic);
+      prepared.activity.questions[1].optionFeedback[0].explanation='Edición local';
+      const detached=JSON.stringify(topic)===before;
+      savePreparedTopicMaterial(topic);
+      const saved=state.library.at(-1);
+      saved.activity.questions[0].prompt='Mi ejercicio';
+      return {detached,unchanged:JSON.stringify(topic)===before,version:saved.activity.context.preparedRevision,distinct:saved.id!==prepared.id&&saved.activity.questions[0].id!==topic.didactic.preparedMaterial.questions[0].id};
+    });
+    assert.deepEqual(copies,{detached:true,unchanged:true,version:'2026-10-06',distinct:true});
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 900 });
       await page.evaluate(() => { temarioCourse = '3.º ESO'; temarioSubject = 'Matemáticas'; openTemarioLesson(PROFESOR_TEMARIO[temarioCourse][temarioSubject].find(t => t.title === 'Geometría básica')); });

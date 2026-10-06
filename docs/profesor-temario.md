@@ -1,11 +1,30 @@
 # Temario de Profesor Particular
 
-La sección `#temario` es una biblioteca curricular de consulta para el profesor. Está separada de **Material**, que guarda las fichas y actividades creadas por cada cuenta. La navegación sigue curso → asignatura → tema, como la biblioteca de ESO Adultos, pero el contenido está redactado para Primaria, ESO y Bachillerato.
+El catálogo contiene **351 temas**: 279 de Primaria, ESO y Bachillerato y 72 de Español A1–C2. La navegación conserva curso o nivel, asignatura y búsqueda. La lista muestra solo títulos; el panel presenta el resumen y cuatro recursos: esquema, ejercicios, ejemplos y material preparado. Los permisos normal/Premium siguen aplicándose en pantalla y servidor.
 
-La base inicial contiene **279 temas** distribuidos entre los doce cursos. Cada ficha tiene cinco partes obligatorias: título, explicación de la idea, ejemplo resuelto, pregunta de práctica y solución orientativa. El catálogo vive en `apps/profesor/profesor-temario.js`; sus identificadores son estables y no se guardan en el estado de la cuenta.
+## Revisión editorial de octubre de 2026
 
-Los estados se calculan a partir de datos reales: **Con material** cuando hay una ficha de la asignatura y curso con un título coincidente, y **Trabajado en clase** cuando existe una clase finalizada del alumno del mismo curso y asignatura. El resto figura como **Por preparar**. Las tres primeras entradas de recursos son el contenido incorporado; después aparecen los materiales propios que coincidan con el tema.
+`apps/profesor/profesor-temario-revision.js` amplía el catálogo después de cargar las bases escolar y de español. Cada tema incorpora un objetivo, conocimientos previos, ejemplos comentados, una confusión concreta con su corrección y práctica con soluciones. Los contenidos se redactan por tema y curso; no se generan al abrir la pantalla. Los identificadores, títulos y organización se conservan.
 
-**Crear actividad** abre el editor existente con curso, asignatura y tema rellenados. **Planificar con alumno** crea una tarea del profesor vinculada a un alumno de ese curso y asignatura; no simula un envío a una cuenta de alumno. La explicación se puede leer sin IA ni créditos.
+Los recursos de ejemplos y ejercicios muestran **todos** los casos y actividades, tanto en pantalla como en PDF. La explicación usa títulos, énfasis y notación matemática mediante el sistema de presentación compartido.
 
-Esta es una base editorial, no una transcripción exhaustiva ni una garantía de alineación con el currículo oficial de una comunidad autónoma. En una futura revisión conviene contrastar la secuencia de cada curso con el currículo elegido, ampliar los temas que hoy agrupan varios conceptos y añadir más ejemplos y prácticas graduadas. El diseño y la estructura permiten hacerlo sin rehacer la navegación.
+Los 351 materiales preparados contienen seis actividades cada uno: **2.106** en total. Se eligen tipos adecuados al objetivo, sin imponer un juego para llegar a una cuota de variedad: problemas y razonamiento en matemáticas, contraste y uso lingüístico en idiomas, observaciones y relaciones en ciencias, e interpretación de fuentes o procesos en historia. Hay 18 casos numéricos con cálculo verificable, 10 actividades de completar en inglés, seis cronologías históricas y una secuencia de ciclo vital. Español conserva sus huecos, variantes válidas, lecturas y juegos de vocabulario, con nuevos ejemplos de aplicación y producción contextualizada.
+
+La revisión es una selección editorial propia para clases particulares; no equivale a una certificación curricular ni a una revisión experta exhaustiva de cada materia. Referencias didácticas consultadas: [Plan Curricular del Instituto Cervantes](https://cvc.cervantes.es/ensenanza/biblioteca_ele/plan_curricular/indice.htm) y [recursos de ecuaciones equivalentes de INTEF](https://descargas.intef.es/recursos_educativos/geogebra/ESO/E21017/index.html).
+
+## Persistencia y mantenimiento
+
+El catálogo y sus actividades están incluidos en la aplicación. Leer, practicar o guardar una copia del material preparado no llama a IA ni consume créditos. Las copias reciben identificadores propios y conservan `preparedRevision`; editar una copia no modifica el catálogo ni las copias previamente guardadas. Las versiones personales del profesor continúan prevaleciendo sobre el tema base correspondiente.
+
+Para actualizar el catálogo que utiliza el servidor al exportar PDF:
+
+```sh
+node scripts/export-profesor-temario.cjs
+node scripts/export-profesor-temario.cjs --check
+```
+
+La revisión incluye su archivo en Docker y en las rutas estáticas. No requiere migraciones ni claves nuevas. La comprobación del despliegue verifica que ese archivo esté disponible.
+
+## Verificación
+
+`test_teacher_temario.py` valida los 351 materiales con el contrato real del generador y exporta los 1.053 recursos PDF. Comprueba símbolos, integridad y permisos. `test_teacher_question_quality.py` cubre cálculos, también con separadores de millar y signos negativos Unicode. `profesor-temario-browser.cjs` abre las 351 fichas y valida sus materiales; `profesor-temario-presentation-browser.cjs` verifica los 1.053 recursos, ejemplos y prácticas completos, copias independientes y visualización en escritorio y móvil. `profesor-spanish-browser.cjs` cubre niveles y alumnos mixtos.

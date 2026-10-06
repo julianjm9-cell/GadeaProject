@@ -1,4 +1,6 @@
 from io import BytesIO
+import json
+from collections import Counter
 from pathlib import Path
 import pytest
 from pypdf import PdfReader
@@ -7,6 +9,8 @@ from test_access_control import client, seed_user, login
 from app.models import License
 from app.api import app_routes
 from app.services.teacher_temario import RESOURCES, topic_catalog, render_topic_pdf
+from app.services.teacher_generator import TYPES, parse_material
+from app.services.teacher_question_quality import arithmetic
 
 
 def test_math_notation_is_preserved_in_pdf():
@@ -20,6 +24,40 @@ def test_math_notation_is_preserved_in_pdf():
             assert symbol in text, (topic["id"], symbol)
 
 
+def test_revised_prepared_materials_are_usable_and_topic_specific():
+    catalog = topic_catalog()
+    numeric, timelines, gaps = [], [], []
+    for topic in catalog.values():
+        content = topic['didactic']
+        assert content['editorialRevision'] == '2026-10-06', topic['id']
+        assert content['prior'] and content['evidence'], topic['id']
+        assert len(content['examples']) >= 2 and len(set(content['examples'])) == len(content['examples'])
+        assert '**' in content['examples'][1] and 'Solución explicada:' in content['examples'][1]
+        material = content['preparedMaterial']
+        assert material['revision'] == content['editorialRevision']
+        counts = Counter(q['type'] for q in material['questions'])
+        clean = parse_material(json.dumps({'questions': material['questions']}), {kind: counts[kind] for kind in TYPES})
+        assert len(clean) == 6, topic['id']
+        assert all(q.get('explanation') or q.get('rubric') for q in clean), topic['id']
+        assert len(set(q['prompt'] for q in clean)) == 6, topic['id']
+        assert set(content['activities']) == set(counts), topic['id']
+        for question in clean:
+            if question['type'] == 'numeric':
+                assert arithmetic(question['calculation']) == pytest.approx(float(question['answer']))
+                assert question['tolerance'] == 0
+                numeric.append(topic['id'])
+            if question['type'] == 'timeline':
+                assert topic['subject'] == 'Geografía e Historia'
+                assert all(any(char.isdigit() for char in event) for event in question['options'])
+                timelines.append(topic['id'])
+            if question['type'] == 'gaps' and topic['subject'] == 'Inglés':
+                assert question['prompt'].count('___') == 1
+                gaps.append(topic['id'])
+    assert len(numeric) == 18
+    assert len(timelines) == 6
+    assert len(gaps) == 10
+
+
 def test_all_topics_have_printable_resources():
     catalog = topic_catalog()
     assert len(catalog) == 351
@@ -27,7 +65,8 @@ def test_all_topics_have_printable_resources():
         material = topic["didactic"]["preparedMaterial"]
         assert material["duration"] == 20
         assert len(material["questions"]) == 6
-        assert len({question["type"] for question in material["questions"]}) >= 5
+        # Choose types for their teaching purpose; don't add a generic puzzle just for variety.
+        assert len({question["type"] for question in material["questions"]}) >= 4
         assert all(question["prompt"].strip() and question["answer"].strip() for question in material["questions"])
         for resource in RESOURCES:
             pdf = render_topic_pdf(topic, resource)
@@ -74,7 +113,7 @@ def test_topic_pdf_plan_is_checked_from_license(client):
 
 def test_deployed_profesor_assets_are_routed(client, monkeypatch, tmp_path):
     web, _ = client
-    filenames = ["temario-presentation.js", "profesor-rich-text.js", "profesor-temario.js", "profesor-temario-depth.js", "profesor-spanish.js", "profesor-activity-play.js",
+    filenames = ["temario-presentation.js", "profesor-rich-text.js", "profesor-temario.js", "profesor-temario-depth.js", "profesor-temario-revision.js", "profesor-spanish.js", "profesor-activity-play.js",
                  "profesor-final.css", "profesor-home.css", "profesor-studio.css", "profesor-temario.css",
                  "profesor-activity-play.css"]
     # Simulate Docker: only static copies exist, not the repository's apps directory.

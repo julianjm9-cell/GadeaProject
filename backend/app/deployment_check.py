@@ -34,6 +34,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/profesor/demo": b"globalSearch",
         "/profesor-temario.js": b"PROFESOR_TEMARIO",
         "/profesor-temario-depth.js": b"deepDive",
+        "/profesor-temario-revision.js": b"editorialRevision",
         "/profesor-activity-play.js": b"runActivity",
         "/assets/profesor-home.css": b".home-roster",
         "/assets/profesor-studio.css": b"studio-renewed",

@@ -120,6 +120,8 @@ Las restricciones del proveedor se complementan con la validación propia del se
 
 ## Verificación
 
+Los materiales incluidos con el catálogo tienen una revisión editorial persistente, sin llamadas de IA al abrirlos. Hay seis actividades por tema, con ejemplos y contrastes específicos y tipos elegidos por su utilidad didáctica. Las copias guardadas se editan independientemente y conservan la revisión de origen. El alcance y las comprobaciones se describen en `profesor-temario.md`.
+
 Pruebas del backend: `test_teacher_question_quality.py`, `test_teacher_generator_quality.py`, `test_teacher_generator.py`,
 `test_teacher_pdf.py`, `test_teacher_spanish.py`, `test_teacher_temario.py`,
 `test_teacher_support.py`, `test_teacher_rich_text.py` y `test_teacher_math_assets.py`.
