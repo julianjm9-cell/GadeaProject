@@ -23,7 +23,6 @@ const path = require('node:path');
     ] } };
     await page.evaluate(value => { validateActivityQuestions(value.activity.questions); runActivity(value, state.students[0].id); }, material);
     assert.equal(await page.locator('[data-group-member]').count(), 2);
-    await page.selectOption('#playMode', 'step');
     assert.equal(await page.locator('.play-question:visible').count(), 1);
     for (const [piece,target] of [[0,0],[1,0],[2,1]]) {
       if (piece === 0) await page.locator(`[data-question="0"] [data-piece="${piece}"]`).dragTo(page.locator(`[data-question="0"] [data-bucket="${target}"]`));
@@ -55,12 +54,11 @@ const path = require('node:path');
     }
     await page.getByRole('button', { name: 'Actividad siguiente' }).click();
     await page.locator('[data-question="8"] .word-bank').getByRole('button',{name:'London',exact:true}).click();
-    await page.getByRole('button', { name: 'Comprobar respuestas' }).click();
+    await page.getByRole('button', { name: 'Terminar', exact:true }).click();
     assert.match(await page.locator('#activityScore').innerText(), /8\/9 correctas.*1 pendientes/);
-    await page.selectOption('#playMode', 'worksheet');
     assert.equal(await page.locator('.gap-result').count(), 2);
     assert.match(await page.locator('#feedback-4').innerText(), /Dividimos/);
-    await page.selectOption('#grade-6', 'correct');
+    await page.locator('[data-review-question="6"]').click();await page.selectOption('#grade-6', 'correct');
     assert.equal(await page.evaluate(() => state.activityAttempts.at(-1).score), 9);
 
     // Retry only incorrect exercises; opening a second player must not keep old listeners.
@@ -68,12 +66,12 @@ const path = require('node:path');
       { type: 'numeric', prompt: '2 + 2', answer: '4', options: [] },
       { type: 'gaps', prompt: '3 + 3 = ___', answer: '6', options: [] },
     ] } }, ''));
-    await page.locator('#r-0').fill('5'); await page.locator('#r-1').fill('6');
-    await page.getByRole('button', { name: 'Comprobar respuestas' }).click();
+    await page.locator('#r-0').fill('5');await page.getByRole('button',{name:'Actividad siguiente'}).click(); await page.locator('#r-1').fill('6');
+    await page.getByRole('button', { name: 'Terminar', exact:true }).click();
     await page.getByRole('button', { name: 'Repasar errores' }).click();
     assert.equal(await page.locator('.play-question').count(), 1);
     await page.locator('#r-0').fill('4');
-    await page.getByRole('button', { name: 'Comprobar respuestas' }).click();
+    await page.getByRole('button', { name: 'Terminar', exact:true }).click();
     assert.match(await page.locator('#activityScore').innerText(), /1\/1 correctas/);
     await page.locator('#dialog [data-action="close"]').last().click();
 
@@ -85,8 +83,8 @@ const path = require('node:path');
     await page.locator('#editorNext').click();
     await page.locator('#useDraft').click();
     await page.locator('[data-multi-gap="0"]').fill('2'); await page.locator('[data-multi-gap="1"]').fill('dos');
-    await page.locator('#r-1').fill('0,5');
-    await page.getByRole('button', { name: 'Comprobar respuestas' }).click();
+    await page.getByRole('button',{name:'Actividad siguiente'}).click();await page.locator('#r-1').fill('0,5');
+    await page.getByRole('button', { name: 'Terminar', exact:true }).click();
     assert.match(await page.locator('#feedback-0').innerText(), /Ambas operaciones/);
     assert.match(await page.locator('#feedback-1').innerText(), /Dividimos/);
 
@@ -94,7 +92,7 @@ const path = require('node:path');
     const rosco = { id:'rosco', title:'El rosco del conocimiento', subject:'Lengua', activity:{version:1,questions:[{type:'pasapalabra',prompt:'Responde o pasa a la siguiente letra',answer:'Completado',options:['A | Insecto que produce miel | abeja','B | Lugar donde se prestan libros | biblioteca','C | Pigmento verde que capta la luz | clorofila','D | Parte dura de la boca que sirve para masticar | diente','E | Animal de gran tamaño con trompa | elefante','F | Parte de una planta con pétalos | flor','G | Felino doméstico | gato','H | Agua en estado sólido | hielo','I | Porción de tierra rodeada de agua | isla','J | Animal de cuello largo | jirafa','L | Satélite natural de la Tierra | luna','M | Elevación natural del terreno | montaña']}]}};
     await page.evaluate(value => { validateActivityQuestions(value.activity.questions); runActivity(value, ''); }, rosco);
     await page.locator('[data-pass]').click();
-    assert.equal(await page.locator('[data-letter="0"]').getAttribute('class'), ' passed');
+    assert.match(await page.locator('[data-letter="0"]').getAttribute('class'), /passed/);
     await page.screenshot({ path: 'tools/profesor-renewal-rosco.png' });
     await page.setViewportSize({width:390,height:844});
     assert.equal(await page.locator('#dialog').evaluate(d=>d.scrollWidth > d.clientWidth+2), false);
@@ -112,8 +110,9 @@ const path = require('node:path');
       await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:8}); await page.mouse.up();
     }
     assert.equal(await page.locator('#puzzle-0 .puzzle-word-list .found').count(),3);
+    await page.getByRole('button',{name:'Actividad siguiente'}).click();
     for (const [n,word] of ['GATO','PATO','RATA'].entries()) { await page.locator(`#puzzle-1 [data-clue="${n}"]`).click(); await page.keyboard.type(word); }
-    await page.getByRole('button',{name:'Comprobar respuestas'}).click();
+    await page.getByRole('button',{name:'Terminar',exact:true}).click();
     assert.match(await page.locator('#activityScore').innerText(),/2\/2 correctas/);
     await page.screenshot({path:'tools/profesor-renewal-crossword.png'});
     await page.locator('#dialog [data-action="close"]').last().click();
@@ -130,7 +129,7 @@ const path = require('node:path');
     assert.equal(await page.locator('#zone-width-0').inputValue(),'50');
     await page.locator('#useDraft').click();
     await page.locator('#visual-0 img').click();
-    await page.getByRole('button',{name:'Comprobar respuestas'}).click();
+    await page.getByRole('button',{name:'Terminar',exact:true}).click();
     assert.match(await page.locator('#activityScore').innerText(),/1\/1 correctas/);
     assert.equal(await page.locator('.visual-solution-zone').evaluate(el=>el.style.width),'50%');
     assert.deepEqual(errors, []);

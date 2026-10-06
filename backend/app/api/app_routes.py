@@ -656,6 +656,7 @@ def profesor_temario_catalogue():
 @router.get("/profesor-temario-depth.js")
 @router.get("/profesor-activity-play.js")
 @router.get("/profesor-generator.js")
+@router.get("/profesor-rich-text.js")
 def profesor_support_script(request: Request):
     filename = request.url.path.rsplit("/", 1)[-1]
     local_path = PROJECT_ROOT / "apps" / "profesor" / filename
@@ -680,6 +681,17 @@ def profesor_final_styles(request: Request):
     if not path.exists():
         raise HTTPException(status_code=404, detail="Estilos de Profesor Particular no encontrados.")
     return FileResponse(path, media_type="text/css", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@router.get("/assets/vendor/katex/{filename:path}")
+def profesor_math_asset(filename: str):
+    root = PROJECT_ROOT / "apps" / "profesor" / "assets" / "vendor" / "katex"
+    if not root.exists():
+        root = STATIC_DIR / "assets" / "vendor" / "katex"
+    path = (root / filename).resolve()
+    if not path.is_relative_to(root.resolve()) or not path.is_file() or path.suffix not in ('.js', '.css', '.woff2'):
+        raise HTTPException(404, "Recurso no encontrado.")
+    return FileResponse(path, headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/assets/brand/{filename}")

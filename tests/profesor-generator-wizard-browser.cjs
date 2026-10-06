@@ -35,6 +35,8 @@ const assert = require('node:assert/strict');
     await page.locator('#size-gaps').fill('2');
     await page.locator('#size-flashcard').fill('2');
     await page.locator('#workshopManual').click();
+    await page.locator('.activity-edit-block:visible').first().waitFor();
+    await page.locator('#editorPreview .preview-exercise').waitFor();
     assert.equal(await page.locator('.activity-edit-block:visible').count(), 1);
     assert.equal(await page.locator('#editorPreview .preview-exercise').count(), 1);
     assert.match(await page.locator('.exercise-jump').innerText(), /Pregunta 1 de 4/);

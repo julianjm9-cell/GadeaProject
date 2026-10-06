@@ -9,7 +9,7 @@ const path=require('node:path');
   const page=await browser.newPage({viewport:{width:1366,height:850}}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   async function assertActionsVisible(){
-   const button=page.getByRole('button',{name:'Comprobar respuestas',exact:true});
+   const button=page.locator('#nextQuestion:visible,button[type="submit"]:visible').first();
    const bounds=await button.boundingBox(),dialog=await page.locator('#dialog').boundingBox();
    assert.ok(bounds.y>=dialog.y&&bounds.y+bounds.height<=dialog.y+dialog.height&&bounds.y+bounds.height<=page.viewportSize().height,'Check action stays inside the visible dialog');
    assert.ok(await button.evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))}),'Check action is not covered');
@@ -63,12 +63,12 @@ const path=require('node:path');
   assert.equal(saved.activity.questions[8].activityGroup,2);
   await page.evaluate(m=>runActivity(m,''),saved);
   await assertActionsVisible();
-  for(let i=0;i<8;i++)await page.locator(`input[name="r-${i}"][value="${i+2}"]`).check();
+  for(let i=0;i<8;i++){await page.locator(`input[name="r-${i}"][value="${i+2}"]`).check();await page.getByRole('button',{name:'Actividad siguiente'}).click();}
   await page.locator('#puzzle-8 [data-pass]').click();
   assert.match(await page.locator('#puzzle-8 [data-letter="0"]').getAttribute('class'),/passed/);
   for(let i=1;i<18;i++){await page.locator('#pasapalabra-input-8').fill(rows[i].split('|')[2].trim());await page.locator('#pasapalabra-input-8').press('Enter')}
   await page.locator('#pasapalabra-input-8').fill('abeja');await page.locator('#pasapalabra-input-8').press('Enter');
-  await page.getByRole('button',{name:'Comprobar respuestas',exact:true}).click();
+  await page.getByRole('button',{name:'Terminar',exact:true}).click();
   assert.match(await page.locator('#activityScore').innerText(),/9\/9 correctas/);
   await page.locator('#dialog [data-action="close"]').last().click();
   await page.setViewportSize({width:390,height:844});
@@ -84,14 +84,14 @@ const path=require('node:path');
   await page.locator('.play-content').evaluate(el=>el.scrollTop=el.scrollHeight);
   await assertActionsVisible();
   for(let i=0;i<12;i++)await page.locator(`[data-multi-gap="${i}"]`).fill('caminaba');
-  await page.getByRole('button',{name:'Comprobar respuestas',exact:true}).click();
+  await page.getByRole('button',{name:'Terminar',exact:true}).click();
   assert.match(await page.locator('#activityScore').innerText(),/1\/1 correctas/);
   assert.equal(await page.locator('#dialog').evaluate(el=>el.scrollWidth>el.clientWidth+2),false);
   // Shared reading stays available in step mode without repeating the whole passage in the worksheet.
   await page.evaluate(()=>runActivity({id:'reading',title:'Un relato, varias preguntas',subject:'Español',activity:{questions:[{type:'reading',activityGroup:1,prompt:'¿Dónde ocurre?',answer:'En casa',text:'Historia compartida.'},{type:'reading',activityGroup:1,prompt:'¿Quién llega?',answer:'Ana',text:'Historia compartida.'}]}},''));
   assert.equal(await page.locator('.reading-passage:visible').count(),1);
   await assertActionsVisible();
-  await page.selectOption('#playMode','step');await page.getByRole('button',{name:'Actividad siguiente'}).click();
+  await page.getByRole('button',{name:'Actividad siguiente'}).click();
   assert.equal(await page.locator('.reading-passage:visible').count(),1);
   assert.equal(await page.locator('.reading-repeat').getAttribute('open'),'');
   // Reading edits update all questions in this activity, leaving other readings intact.

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from io import BytesIO
-from html import escape
 from typing import Callable
 
 from reportlab.lib import colors
@@ -13,6 +12,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, KeepTogether, Flowable, CondPageBreak
 from reportlab.lib.utils import ImageReader
+from .teacher_rich_text import formatted_text, text_blocks, presentation_fonts
 
 
 BLUE = colors.HexColor("#0868dc")
@@ -41,7 +41,7 @@ class _MarkedImage(Flowable):
 
 
 def _text(value: object, limit: int = 3000) -> str:
-    return escape(str(value or "")[:limit].replace('→', ' -> ')).replace("\n", "<br/>")
+    return formatted_text(value, limit)
 
 
 def _lines(value: object, limit: int = 27) -> list[str]:
@@ -142,12 +142,13 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
     context = material["activity"].get("context") or {}
     if not isinstance(context, dict):
         context = {}
+    presentation_fonts()
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name="TeacherTitle", fontName="Helvetica-Bold", fontSize=19, leading=23, textColor=INK, spaceAfter=7))
     styles.add(ParagraphStyle(name="TeacherHeading", fontName="Helvetica-Bold", fontSize=11, leading=15, textColor=INK, spaceBefore=12, spaceAfter=5, keepWithNext=True))
-    styles.add(ParagraphStyle(name="TeacherBody", fontName="Helvetica", fontSize=9.5, leading=14, textColor=INK, spaceAfter=6))
-    styles.add(ParagraphStyle(name="TeacherSmall", fontName="Helvetica", fontSize=8.5, leading=12, textColor=MUTED, spaceAfter=8))
-    styles.add(ParagraphStyle(name="TeacherAnswer", fontName="Helvetica", fontSize=9, leading=13, textColor=BLUE, leftIndent=10, spaceBefore=5))
+    styles.add(ParagraphStyle(name="TeacherBody", fontName="TopicVera", fontSize=9.5, leading=14, autoLeading="max", textColor=INK, spaceAfter=6))
+    styles.add(ParagraphStyle(name="TeacherSmall", fontName="TopicVera", fontSize=8.5, leading=12, autoLeading="max", textColor=MUTED, spaceAfter=8))
+    styles.add(ParagraphStyle(name="TeacherAnswer", fontName="TopicVera", fontSize=9, leading=13, autoLeading="max", textColor=BLUE, leftIndent=10, spaceBefore=5))
     styles.add(ParagraphStyle(name="TeacherCenter", parent=styles["TeacherBody"], alignment=TA_CENTER))
     out = BytesIO()
     doc = SimpleDocTemplate(out, pagesize=A4, leftMargin=19*mm, rightMargin=19*mm,
@@ -180,9 +181,9 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
         if kind == "reading" and q.get("text"):
             reading_key = (q.get('activityGroup'), q['text'])
             if reading_key not in seen_readings:
-                section.append(Paragraph(_text(q["text"], 12000), styles["TeacherBody"]))
+                section.extend(text_blocks(q["text"], styles["TeacherBody"], 172*mm, 12000))
                 seen_readings.add(reading_key)
-        section.append(Paragraph(_text(prompt.replace('___', '____________'), 16000), styles["TeacherBody"]))
+        section.extend(text_blocks(prompt.replace('___', '____________'), styles["TeacherBody"], 172*mm))
         if kind in ("visualquiz", "imagepoint"):
             image = q.get("image")
             if not isinstance(image, dict) or not image.get("id"):
@@ -262,9 +263,9 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
                 answer = f"Zona marcada por el profesor ({target.get('x', '?')} %, {target.get('y', '?')} %)"
             elif kind in ("wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps"):
                 answer = "; ".join(options)
-            section.append(Paragraph("Solución: " + _text(answer, 2500), styles["TeacherAnswer"]))
+            section.extend(text_blocks("Solución: " + str(answer), styles["TeacherAnswer"], 162*mm, 2500))
             if q.get('explanation'):
-                section.append(Paragraph(_text(q['explanation'], 1500), styles['TeacherBody']))
+                section.extend(text_blocks(q['explanation'], styles['TeacherBody'], 172*mm, 1500))
             if q.get('rubric'):
                 section.append(Paragraph('Criterios de revisión: ' + _text(q['rubric'], 1000), styles['TeacherSmall']))
         elif kind not in ("quiz", "visualquiz", "boolean", "classify", "wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps", "hangman"):

@@ -16,11 +16,47 @@ doce huecos. Se mantienen los 21 tipos y las actividades con fotografía de Prem
 - El alumno ve cada juego con sus controles propios: rosco circular, pasar y volver, textos
   con huecos en línea, piezas que se arrastran o colocan por clic y secuencias reordenables.
 
-La vista de ficha evita repetir pasajes largos. En la vista de una actividad por pantalla,
-el pasaje se mantiene accesible. Los PDF incluyen cada lectura una sola vez y separan los
+La práctica muestra un ejercicio o tablero por pantalla, con flechas y cierre discretos,
+sin encabezado de material ni selector de vista. El pasaje de lectura se mantiene accesible
+al cambiar de pregunta. Los PDF incluyen cada lectura una sola vez y separan los
 bancos de relacionar por actividad. La exportación admite hasta 80 preguntas.
-El reproductor mantiene la navegación y los botones de comprobar/cerrar a la vista;
+El reproductor mantiene la navegación y el botón de terminar/cerrar a la vista;
 solo el contenido de las actividades largas necesita desplazamiento, también en móvil.
+
+## Corrección y resultados
+
+- Quiz y verdadero/falso: corrección al elegir, con color y símbolo.
+- Huecos y números: confirmar con Enter o Comprobar; cada hueco de un texto también se
+  comprueba al salir del campo. Escribir no dispara una corrección prematura.
+- Pasapalabra: confirmar cada letra, aciertos verdes, fallos rojos y pasadas diferenciadas;
+  se puede volver a cualquier letra antes de terminar y repasar los fallos.
+- Relacionar, clasificar y arrastrar: cada colocación se comprueba y puede deshacerse.
+- Orden y frase: corrección al confirmar la secuencia. El crucigrama comprueba palabras
+  completas; Memory, Ahorcado y sopa de letras mantienen la respuesta inmediata del juego.
+- Respuestas abiertas: guardadas y pendientes del profesor, sin nota automática inventada.
+
+Las pistas y soluciones se consultan expresamente. La sesión distingue el primer intento
+de los aciertos con ayuda o reintentos mediante `firstGrades` y `practice`; estos datos
+acompañan a los campos existentes, sin cambiar el formato de materiales guardados.
+Terminar admite ejercicios incompletos y muestra un resumen navegable de resultados,
+pendientes y ejercicios para repasar. Repetir el envío no duplica la sesión. La valoración
+posterior del profesor actualiza la misma sesión; las pruebas sin alumno no guardan notas.
+La corrección, las pistas y el repaso se realizan localmente, sin nuevas peticiones de IA.
+
+## Presentación compartida
+
+`profesor-rich-text.js` presenta texto seguro, énfasis, fórmulas, sistemas y tablas en el
+reproductor, la vista previa del editor, el temario y la revisión de sesiones. Los datos
+originales y las respuestas usadas para corregir se conservan. KaTeX 0.19.0 se distribuye
+localmente con su licencia MIT y fuentes WOFF2; no se depende de un CDN.
+[API oficial de KaTeX](https://katex.org/docs/api): renderizado sin comandos de confianza.
+
+Los PDF comparten `teacher_rich_text.py`: tablas reales, pasos separados, fuentes Unicode
+incrustadas y fórmulas de Mathtext. Fracciones, raíces, potencias, sistemas y matrices se
+presentan visualmente. Mathtext admite un subconjunto de LaTeX; una notación no admitida
+conserva un texto legible. No se ejecuta TeX ni se envían fórmulas a servicios externos.
+[Mathtext de Matplotlib](https://matplotlib.org/stable/users/explain/text/mathtext.html).
+Este cambio requiere reconstruir la imagen de Docker para instalar Matplotlib.
 
 ## Generación y controles de calidad
 
@@ -60,9 +96,13 @@ Las restricciones del proveedor se complementan con la validación propia del se
 ## Verificación
 
 Pruebas del backend: `test_teacher_generator_quality.py`, `test_teacher_generator.py`,
-`test_teacher_pdf.py` y `test_teacher_spanish.py`.
+`test_teacher_pdf.py`, `test_teacher_spanish.py`, `test_teacher_temario.py`,
+`test_teacher_support.py`, `test_teacher_rich_text.py` y `test_teacher_math_assets.py`.
 Pruebas en navegador: `profesor-generator-quality-browser.cjs`,
 `profesor-generator-wizard-browser.cjs` y `profesor-material-renewal-browser.cjs`.
+También: `profesor-immediate-practice-browser.cjs`, `profesor-game-feedback-browser.cjs`,
+`profesor-activity-play-browser.cjs`, `profesor-new-material-types-browser.cjs`,
+`profesor-visual-browser.cjs` y `profesor-temario-presentation-browser.cjs`.
 La prueba de calidad cubre selección, cantidades, petición de IA, guardado, rosco de 18
 letras, texto de 12 huecos, lectura compartida y móvil de 390 px.
 

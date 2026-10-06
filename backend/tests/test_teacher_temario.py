@@ -14,7 +14,10 @@ def test_math_notation_is_preserved_in_pdf():
         topic = next(topic for topic in topic_catalog().values() if symbol in " ".join(topic["didactic"]["examples"]))
         pages = PdfReader(BytesIO(render_topic_pdf(topic, "examples"))).pages
         text = " ".join(page.extract_text() for page in pages)
-        assert symbol in text, (topic["id"], symbol)
+        if symbol in "√²³":
+            assert any(len(page.images) for page in pages), (topic["id"], symbol)
+        else:
+            assert symbol in text, (topic["id"], symbol)
 
 
 def test_all_topics_have_printable_resources():
@@ -71,7 +74,7 @@ def test_topic_pdf_plan_is_checked_from_license(client):
 
 def test_deployed_profesor_assets_are_routed(client, monkeypatch, tmp_path):
     web, _ = client
-    filenames = ["temario-presentation.js", "profesor-temario.js", "profesor-temario-depth.js", "profesor-spanish.js", "profesor-activity-play.js",
+    filenames = ["temario-presentation.js", "profesor-rich-text.js", "profesor-temario.js", "profesor-temario-depth.js", "profesor-spanish.js", "profesor-activity-play.js",
                  "profesor-final.css", "profesor-home.css", "profesor-studio.css", "profesor-temario.css",
                  "profesor-activity-play.css"]
     # Simulate Docker: only static copies exist, not the repository's apps directory.

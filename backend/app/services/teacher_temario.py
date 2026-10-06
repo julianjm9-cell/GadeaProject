@@ -2,14 +2,9 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from html import escape
 from io import BytesIO
 import json
-import re
-import reportlab
 from pathlib import Path
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.graphics.shapes import Drawing, Line, Rect, Polygon, String
 
 from reportlab.lib import colors
@@ -17,40 +12,13 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+from .teacher_rich_text import formatted_text, text_blocks, presentation_fonts
 
 RESOURCES = {"scheme": "Esquema resumen", "practice": "Ejercicios básicos", "examples": "Ejemplos resueltos"}
 
-@lru_cache(maxsize=1)
-def presentation_fonts():
-    fonts = Path(reportlab.__file__).parent / "fonts"
-    pdfmetrics.registerFont(TTFont("TopicVera", str(fonts / "Vera.ttf")))
-    pdfmetrics.registerFont(TTFont("TopicVeraBold", str(fonts / "VeraBd.ttf")))
-    pdfmetrics.registerFontFamily("TopicVera", normal="TopicVera", bold="TopicVeraBold")
-
 def formatted_topic_text(text):
     """Safe ReportLab markup preserving notation instead of ASCII substitutions."""
-    value = escape(str(text))
-    value = re.sub(r"\b(teorema de Pitágoras|numerador|denominador|hipotenusa|incógnita|idea principal|presente simple|sujeto|predicado|hipótesis)\b", r"<b>\1</b>", value, flags=re.IGNORECASE)
-    value = re.sub(r"\*\*([^*]+)\*\*|__([^_]+)__", lambda m: "<b>" + (m[1] or m[2]) + "</b>", value)
-    value = re.sub(r"«([^»]+)»", r"«<b>\1</b>»", value)
-    value = re.sub(r"\*([^*<>\n]+)\*", r"<i>\1</i>", value)
-    value = re.sub(r"~~([^~<>]+)~~", r"<u>\1</u>", value)
-    palette = {"blue": "#0868dc", "green": "#008e6c", "purple": "#7951be", "orange": "#a6660d"}
-    value = re.sub(r"\[([^\]<>]+)\]\{(blue|green|purple|orange)\}", lambda m: '<font color="' + palette[m[2]] + '">' + m[1] + '</font>', value)
-    value = re.sub(r"^#{1,4}\s+(.+)$", r"<b>\1</b>", value, flags=re.MULTILINE)
-
-    value = re.sub(r"([a-zA-Z0-9])\^(-?\d+)", r"\1<super>\2</super>", value)
-    value = re.sub(r"(?<![\w/])(-?\d+)\s*/\s*(\d+)(?![\w/])", r"<super>\1</super>/<sub>\2</sub>", value)
-    for character, digit in zip("₀₁₂₃", "0123"):
-        value = value.replace(character, "<sub>" + digit + "</sub>")
-    for character in "→ΣθΔ":
-        value = value.replace(character, '<font name="Symbol">' + character + '</font>')
-    parts = value.split("→")
-    # Keep the arrow in limits; vertically align actual chains of equalities.
-    if len(parts) > 1 and all("=" in part for part in parts):
-        value = value.replace('<font name="Symbol">→</font>', '<br/>')
-        value = re.sub(r";\s*|\s+y\s+(?=[xy](?:\s*[+−-]\s*[xy])?\s*=)", '<br/>', value)
-    return value.replace("\n", "<br/>")
+    return formatted_text(text)
 
 def topic_diagram(topic):
     title = topic["title"].lower()
@@ -111,14 +79,14 @@ def render_topic_pdf(topic: dict, resource: str) -> bytes:
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle("TopicTitle", fontName="Helvetica-Bold", fontSize=23, leading=28, textColor=ink, spaceAfter=10))
     styles.add(ParagraphStyle("TopicHeading", fontName="Helvetica-Bold", fontSize=12, leading=17, textColor=blue, spaceBefore=15, spaceAfter=7))
-    styles.add(ParagraphStyle("TopicBody", fontName="TopicVera", fontSize=10, leading=16, textColor=ink, spaceAfter=6))
+    styles.add(ParagraphStyle("TopicBody", fontName="TopicVera", fontSize=10, leading=16, autoLeading="max", textColor=ink, spaceAfter=6))
     styles.add(ParagraphStyle("TopicMeta", fontSize=9, leading=14, textColor=muted, spaceAfter=7))
     def paragraph(text, style="TopicBody"):
         return Paragraph(formatted_topic_text(text), styles[style])
 
     story = [paragraph("PROFESOR PARTICULAR", "TopicMeta"), paragraph(topic["title"], "TopicTitle"),
              paragraph(topic["course"] + "  |  " + topic["subject"] + "  |  " + RESOURCES[resource], "TopicMeta")]
-    intro = Table([[paragraph(topic["explanation"])]], colWidths=[174*mm])
+    intro = Table([[text_blocks(topic["explanation"], styles["TopicBody"], 164*mm)]], colWidths=[174*mm])
     intro.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#eaf3ff")),
                               ("BOX", (0, 0), (-1, -1), .5, colors.HexColor("#c9ddf5")),
                               ("LEFTPADDING", (0, 0), (-1, -1), 12),
@@ -128,17 +96,18 @@ def render_topic_pdf(topic: dict, resource: str) -> bytes:
     story.extend([Spacer(1, 5*mm), intro])
 
     def section(title, body):
-        story.extend([paragraph(title, "TopicHeading"), paragraph(body)])
+        story.append(paragraph(title, "TopicHeading"))
+        story.extend(text_blocks(body, styles["TopicBody"], 174*mm))
 
     if resource == "scheme":
         section("Para entenderlo", content["deepDive"])
         story.append(paragraph("Conceptos clave", "TopicHeading"))
         for index, concept in enumerate(content["concepts"], 1):
-            story.append(paragraph(str(index) + ". " + concept))
+            story.extend(text_blocks(str(index) + ". " + concept, styles["TopicBody"], 174*mm))
         section("Cuándo usarlo", content["recognition"])
         story.append(paragraph("Recorrido de aprendizaje", "TopicHeading"))
         for index, step in enumerate(content["steps"], 1):
-            story.append(paragraph(str(index) + ". " + step))
+            story.extend(text_blocks(str(index) + ". " + step, styles["TopicBody"], 174*mm))
         section("Un ejemplo", content["examples"][0])
     elif resource == "examples":
         for index, example in enumerate(content["examples"], 1):
@@ -146,7 +115,7 @@ def render_topic_pdf(topic: dict, resource: str) -> bytes:
         section("Cómo interpretarlo", content["deepDive"])
         story.append(paragraph("Pasos para resolverlo", "TopicHeading"))
         for index, step in enumerate(content["steps"], 1):
-            story.append(paragraph(str(index) + ". " + step))
+            story.extend(text_blocks(str(index) + ". " + step, styles["TopicBody"], 174*mm))
         section("Error frecuente", content["commonErrors"][0])
     else:
         for index, exercise in enumerate(content["practice"], 1):

@@ -12,6 +12,14 @@
     return b === undefined ? a : b === 0 ? NaN : a / b;
   };
   let playerAbort = null;
+  const rich = value => window.profesorText ? profesorText.rich(value) : escape(value);
+  function recordAnswer(index, part, correct, value, assisted = false) {
+    $('form').dispatchEvent(new CustomEvent('play:answer', {detail:{index,part,correct,value,assisted}}));
+  }
+  function markControl(control, correct) {
+    control.classList.toggle('answer-right',correct); control.classList.toggle('answer-wrong',!correct);
+    control.setAttribute('aria-invalid',String(!correct));
+  }
   // Shared accessible placement board: drag, tap, or keyboard, with explicit undo.
   function placementBoard(root, items, targets, isChecked, changed, single = false) {
     const order = shuffle(items.map((_, n) => n)), assignments = items.map(() => null);
@@ -34,7 +42,7 @@
       root.querySelectorAll('[data-return]').forEach(button => button.onclick = () => { if (isChecked()) return; assignments[Number(button.dataset.return)] = null; draw(); changed(assignments.slice()); });
     }
     draw();
-    return { review(expected) { root.querySelectorAll('[data-return]').forEach(button => { const n = Number(button.dataset.return), right = targets[assignments[n]] === expected[n]; button.classList.add(right ? 'answer-right' : 'answer-wrong'); button.querySelector('b').textContent = right ? '✓' : '×'; }); } };
+    return { review(expected) { root.querySelectorAll('[data-return]').forEach(button => { const n = Number(button.dataset.return), right = targets[assignments[n]] === expected[n]; markControl(button,right); button.querySelector('b').textContent = right ? '✓' : '×'; }); } };
   }
 
   function mountCrossword(question, index, isChecked, report) {
@@ -52,8 +60,10 @@
     const cells = [...root.querySelectorAll('[data-puzzle-cell]')];
     const cell = key => root.querySelector(`[data-puzzle-cell="${key}"]`);
     let hinted = 0;
+    const helped=new Set();
     function activate(n, focus = true) { active = n; cells.forEach(input => input.parentElement.classList.toggle('active', entries[n].cells.includes(input.dataset.puzzleCell))); root.querySelectorAll('[data-clue]').forEach(button => button.classList.toggle('selected', Number(button.dataset.clue) === n)); if (focus) cell(entries[n].cells[0]).focus({ preventScroll: true }); }
     function update() {
+      entries.forEach((entry,n)=>{const value=entry.cells.map(key=>cell(key).value).join(''),clue=root.querySelector(`[data-clue="${n}"]`);clue.querySelector('[data-clue-result]')?.remove();if(value.length===entry.key.length){const right=value===entry.key;markControl(clue,right);clue.insertAdjacentHTML('beforeend',`<b data-clue-result aria-label="${right?'Correcta':'Incorrecta'}"> ${right?'✓':'×'}</b>`);recordAnswer(index,n,right,value,helped.has(n));}else{clue.classList.remove('answer-right','answer-wrong');clue.removeAttribute('aria-invalid');}});
       const correct = cells.every(input => { const [r, c] = input.dataset.puzzleCell.split('-').map(Number); return input.value === board.grid[r][c]; });
       $('r-' + index).value = cells.map(input => input.value || '_').join('');
       root.querySelector('[role="status"]').textContent = `${cells.filter(input => input.value).length}/${cells.length} casillas · ${hinted} letras de ayuda`;
@@ -72,7 +82,7 @@
       input.onpaste = event => { if (isChecked()) return; event.preventDefault(); const sequence = entries[active].cells, start = sequence.indexOf(input.dataset.puzzleCell); [...letterKey(event.clipboardData.getData('text')).replace(/[^A-ZÑ]/g, '')].forEach((letter, offset) => { if (sequence[start + offset]) cell(sequence[start + offset]).value = letter; }); update(); };
     });
     root.querySelectorAll('[data-clue]').forEach(button => button.onclick = () => activate(Number(button.dataset.clue)));
-    root.querySelector('[data-letter-hint]').onclick = () => { if (isChecked()) return; const entry = entries[active], position = entry.cells.findIndex((key, n) => cell(key).value !== entry.key[n]); if (position >= 0) { cell(entry.cells[position]).value = entry.key[position]; hinted++; update(); } };
+    root.querySelector('[data-letter-hint]').onclick = () => { if (isChecked()) return; const entry = entries[active], position = entry.cells.findIndex((key, n) => cell(key).value !== entry.key[n]); if (position >= 0) {helped.add(active);recordAnswer(index,'hint-'+active,null,'revealed',true);cell(entry.cells[position]).value = entry.key[position]; hinted++; update(); } };
     activate(0, false); update();
   }
   const baseValidate = validateActivityQuestions;
@@ -122,10 +132,11 @@
         opened.push(n);
         if (opened.length === 2) {
           moves++;
-          if (cards[opened[0]].id === cards[opened[1]].id) { matched.add(cards[n].id); opened = []; if (matched.size === pairs.length) { answer.value = 'Completado'; answer.dispatchEvent(new Event('input', { bubbles: true })); } }
-          else { busy = true; setTimeout(() => { if (!root.isConnected) return; opened = []; busy = false; draw(); }, 950); }
+          if (cards[opened[0]].id === cards[opened[1]].id) { recordAnswer(index,cards[n].id,true,'matched');matched.add(cards[n].id); opened = []; if (matched.size === pairs.length) { answer.value = 'Completado'; answer.dispatchEvent(new Event('input', { bubbles: true })); } }
+          else { opened.forEach(pos=>recordAnswer(index,cards[pos].id,false,'miss-'+moves));busy = true; setTimeout(() => { if (!root.isConnected) return; opened = []; busy = false; draw(); }, 950); }
         }
         draw();
+        if(busy)root.querySelectorAll('.memory-card.revealed').forEach(card=>{card.classList.add('answer-wrong');card.insertAdjacentHTML('beforeend','<small>× Otra pareja</small>')});
       });
     }
     draw();
@@ -137,6 +148,8 @@
       const board = placementBoard(root, rows.map(row => row[0]), targets, isChecked, assignments => {
         const values = assignments.map(n => n === null ? '' : targets[n]);
         $('r-' + index).value = values.join(' | ');
+        board.review(rows.map(row=>row[1]));
+        values.forEach((value,n)=>{if(value)recordAnswer(index,n,value===rows[n][1],value)});
         report(index, { complete: values.every(Boolean), correct: values.every((value, n) => value === rows[n][1]), answer: $('r-' + index).value, review: () => board.review(rows.map(row => row[1])) });
       });
       return;
@@ -151,13 +164,16 @@
         const complete = values.every(Boolean);
         const correct = complete && values.every((value, position) => solutions[position].split('~').some(solution => accepts(value, solution)));
         answer.value = values.join(' | ');
-        report(index, { complete, correct, answer: answer.value, review: () => inputs.forEach((input, n) => { const right = solutions[n].split('~').some(solution => accepts(input.value, solution)); input.classList.add(right ? 'answer-right' : 'answer-wrong'); input.insertAdjacentHTML('afterend', `<small class="gap-result">${right ? '✓' : `→ ${escape(solutions[n].split('~')[0])}`}</small>`); }) });
+        report(index, { complete, correct, answer: answer.value, review: () => inputs.forEach((input, n) => { const right = solutions[n].split('~').some(solution => accepts(input.value, solution)); markControl(input,right);input.parentElement.querySelector(`[data-gap-result="${n}"]`)?.remove();input.insertAdjacentHTML('afterend', `<small class="gap-result">${right ? '✓' : `→ ${escape(solutions[n].split('~')[0])}`}</small>`); }) });
         $('multi-status-' + index).textContent = `${values.filter(Boolean).length} de ${solutions.length} huecos completados`;
       };
       inputs.forEach((input, position) => {
         input.style.width = `${Math.min(220, Math.max(75, solutions[position].split('~')[0].length * 10 + 30))}px`;
         input.oninput = update;
-        input.onkeydown = event => { if (event.key === 'Enter' && inputs[position + 1]) { event.preventDefault(); inputs[position + 1].focus(); } };
+        const confirm=()=>{const value=input.value.trim();if(!value||isChecked())return;const right=solutions[position].split('~').some(s=>accepts(value,s));markControl(input,right);input.parentElement.querySelector(`[data-gap-result="${position}"]`)?.remove();input.insertAdjacentHTML('afterend',`<small class="gap-result" data-gap-result="${position}" role="status">${right?'✓':'×'}</small>`);recordAnswer(index,position,right,value);};
+        input.addEventListener('blur',confirm);
+        input.addEventListener('input',()=>{input.classList.remove('answer-right','answer-wrong');input.removeAttribute('aria-invalid');input.parentElement.querySelector(`[data-gap-result="${position}"]`)?.remove();});
+        input.onkeydown = event => { if(event.key==='Enter'){event.preventDefault();confirm();inputs[position+1]?.focus();} };
       });
       update();
       return;
@@ -165,15 +181,17 @@
     if (question.type === 'pasapalabra') {
       const root = $('puzzle-' + index), answer = $('r-' + index), rows = puzzleRows('pasapalabra', question.options);
       const values = Array(rows.length).fill('');
+      const outcomes=Array(rows.length).fill(null);
       let active = 0, focusInput = false;
       const passed = new Set();
       const draw = () => {
         const completed = values.filter(Boolean).length;
-        root.innerHTML = `<div class="rosco-layout"><div class="pasapalabra-wheel" aria-label="Rosco de Pasapalabra">${rows.map(([letter], position) => { const angle = position / rows.length * Math.PI * 2 - Math.PI / 2; return `<button type="button" style="--x:${50 + 43 * Math.cos(angle)}%;--y:${50 + 43 * Math.sin(angle)}%" class="${position === active ? 'active' : ''} ${values[position] ? 'answered' : passed.has(position) ? 'passed' : ''}" data-letter="${position}" aria-label="Letra ${escape(letter)}: ${values[position] ? 'respondida' : passed.has(position) ? 'pasada' : 'pendiente'}">${escape(letter)}</button>`; }).join('')}<div class="rosco-center"><strong>${completed}/${rows.length}</strong><span>respondidas</span></div></div><div class="pasapalabra-card"><span>${letterKey(rows[active][2]).startsWith(letterKey(rows[active][0])) ? 'Empieza por' : 'Contiene'} ${escape(rows[active][0])}</span><p>${escape(rows[active][1])}</p><label>Tu respuesta<input id="pasapalabra-input-${index}" value="${escape(values[active])}" autocomplete="off" maxlength="60"></label><div><button type="button" data-pass>Pasapalabra</button><button type="button" class="primary" data-answer>Guardar respuesta</button></div></div></div><p class="play-progress" role="status">${completed} de ${rows.length} letras respondidas · ${passed.size} para otra vuelta</p>`;
+        root.innerHTML = `<div class="rosco-layout"><div class="pasapalabra-wheel" aria-label="Rosco de Pasapalabra">${rows.map(([letter],position)=>{const angle=position/rows.length*Math.PI*2-Math.PI/2;const status=outcomes[position]===true?'correct':outcomes[position]===false?'incorrect':passed.has(position)?'passed':'';return `<button type="button" style="--x:${50+43*Math.cos(angle)}%;--y:${50+43*Math.sin(angle)}%" class="${position===active?'active':''} ${status}" data-letter="${position}" aria-label="Letra ${escape(letter)}: ${outcomes[position]===true?'correcta':outcomes[position]===false?'incorrecta':passed.has(position)?'pasada':'pendiente'}">${escape(letter)}${outcomes[position]!==null?`<small>${outcomes[position]?'✓':'×'}</small>`:''}</button>`}).join('')}<div class="rosco-center"><strong>${outcomes.filter(v=>v===true).length}/${rows.length}</strong><span>aciertos</span></div></div><div class="pasapalabra-card"><span>${letterKey(rows[active][2]).startsWith(letterKey(rows[active][0]))?'Empieza por':'Contiene'} ${escape(rows[active][0])}</span><p>${rich(rows[active][1])}</p><label>Tu respuesta<input id="pasapalabra-input-${index}" value="${escape(values[active])}" autocomplete="off" maxlength="60"></label><div><button type="button" data-pass>Pasapalabra</button><button type="button" class="primary" data-answer>Confirmar</button></div>${completed===rows.length&&outcomes.some(v=>v===false)?'<button type="button" data-review-rosco>Volver a los fallos</button>':''}</div></div><p class="play-progress" role="status">${outcomes.filter(v=>v===true).length} correctas · ${outcomes.filter(v=>v===false).length} incorrectas · ${rows.length-completed} pendientes</p>`;
         root.querySelectorAll('[data-letter]').forEach(button => button.onclick = () => { if (!isChecked()) { active = Number(button.dataset.letter); draw(); } });
         const input = root.querySelector(`#pasapalabra-input-${index}`);
         input.onkeydown = event => { if (event.key === 'Enter') { event.preventDefault(); saveAnswer(); } };
         root.querySelector('[data-answer]').onclick = saveAnswer;
+        root.querySelector('[data-review-rosco]')?.addEventListener('click',()=>{active=Math.max(0,outcomes.findIndex(v=>v===false));focusInput=true;draw();});
         root.querySelector('[data-pass]').onclick = () => { if (isChecked()) return; if (!values[active]) passed.add(active); const next = Array.from({length:rows.length}, (_, n) => (active + n + 1) % rows.length).find(n => !values[n]); active = next ?? (active + 1) % rows.length; focusInput = true; draw(); };
         if (focusInput) input.focus({ preventScroll: true });
       };
@@ -182,13 +200,14 @@
         const input = root.querySelector(`#pasapalabra-input-${index}`), value = input.value.trim();
         if (!value) return input.focus();
         values[active] = value;
+        outcomes[active]=accepts(value,rows[active][2]);recordAnswer(index,active,outcomes[active],value);
         passed.delete(active);
         focusInput = true;
         const next = values.findIndex((value, position) => !value && position > active);
         active = next >= 0 ? next : Math.max(0, values.findIndex(value => !value));
-        const complete = values.every(Boolean), correct = complete && values.every((value, position) => normalize(value) === normalize(rows[position][2]));
+        const complete = values.every(Boolean), correct = complete && outcomes.every(Boolean);
         answer.value = values.join(' | ');
-        report(index, { complete, correct, answer: answer.value, review: () => root.querySelectorAll('[data-letter]').forEach((button, n) => { const right = accepts(values[n], rows[n][2]); button.classList.add(right ? 'correct' : 'incorrect'); button.setAttribute('aria-label', `${rows[n][0]}: ${right ? 'correcta' : 'incorrecta'}`); button.innerHTML += `<small>${right ? '✓' : '×'}</small>`; }) });
+        report(index, { complete, correct, answer: answer.value, review: () => root.querySelectorAll('[data-letter]').forEach((button, n) => { const right = accepts(values[n], rows[n][2]); button.classList.remove('correct','incorrect');button.classList.add(right ? 'correct' : 'incorrect'); button.setAttribute('aria-label', `${rows[n][0]}: ${right ? 'correcta' : 'incorrecta'}`);button.querySelector('small')?.remove();button.innerHTML += `<small>${right ? '✓' : '×'}</small>`; }) });
         draw();
       };
       draw();
@@ -202,6 +221,7 @@
       status.setAttribute('role', 'status');
       root.after(status);
       let before = 0;
+      let misses=0;const foundWords=new Set();
       let start = null, end = null, suppressClick = false;
       root.addEventListener('pointerdown', event => { const button = event.target.closest('[data-cell]'); if (!button || isChecked()) return; start = Number(button.dataset.cell); end = start; });
       root.addEventListener('pointermove', event => {
@@ -225,6 +245,8 @@
       root.addEventListener('click', event => {
         if (!event.target.closest('[data-cell]') || isChecked()) return;
         const found = root.querySelectorAll('.puzzle-word-list .found').length;
+        if(found>before)root.querySelectorAll('.puzzle-word-list span').forEach((word,n)=>{if(word.classList.contains('found')&&!foundWords.has(n)){foundWords.add(n);recordAnswer(index,n,true,question.options[n]);}});
+        else if(!root.querySelector('.puzzle-grid .picked'))recordAnswer(index,'selection',null,'miss-'+(++misses),true);
         status.textContent = found > before ? `¡Encontrada! ${found} de ${question.options.length} palabras.` : root.querySelector('.puzzle-grid .picked') ? 'Primera letra seleccionada: pulsa la última.' : 'Esa línea no forma una palabra pendiente. Prueba otra.';
         before = found;
       });
@@ -243,6 +265,7 @@
       answer.value = assignments.map((source, target) => `${rows[target][1]}: ${source === null ? '—' : rows[source][0]}`).join(' · ');
       report(index, { complete, correct: complete && assignments.every((source, target) => source === target), answer: answer.value, review: () => root.querySelectorAll('[data-target]').forEach((button, target) => { const right = assignments[target] === target; button.classList.add(right ? 'answer-right' : 'answer-wrong'); button.textContent = `${right ? '✓' : '↻'} ${button.textContent}`; }) });
       $('drag-status-' + index).textContent = `${assignments.filter(value => value !== null).length} de ${rows.length} colocados`;
+      root.querySelectorAll('[data-target]').forEach((button,target)=>{if(assignments[target]!==null){const right=assignments[target]===target;markControl(button,right);button.textContent=(right?'✓ ':'× ')+rows[assignments[target]][0];recordAnswer(index,target,right,String(assignments[target]));}});
     }
     function place(source, target) {
       if (isChecked() || source === null || !Number.isInteger(source) || source < 0 || source >= rows.length) return;
@@ -406,6 +429,7 @@
         chosen.add(button.dataset.hangmanLetter);
         if (won()) answer.value = question.answer;
         else if (misses() >= 7) answer.value = '__hangman_failed__';
+        if(won()||misses()>=7)recordAnswer(index,0,won(),answer.value,misses()>0);
         if (answer.value) answer.dispatchEvent(new Event('input', { bubbles: true }));
         draw();
       });
@@ -426,6 +450,38 @@
     const sequences = {};
     const games = {};
     const flashGrades = {};
+    const practice = questions.map(() => ({parts:{},assisted:false}));
+    function logAnswer({index,part=0,correct,value,assisted=false}) {
+      if(checked)return;
+      const log=practice[index], previous=log.parts[part];log.assisted ||= assisted;
+      if(previous?.value===value && previous.correct===correct)return;
+      log.parts[part]={attempts:(previous?.attempts||0)+1,firstCorrect:previous?.firstCorrect??correct,correct,value};
+    }
+    function gradeQuestion(index) {
+      const q=questions[index],value=new FormData($('form')).get('r-'+index)||'';
+      if(q.type==='flashcard')return flashGrades[index]||'unanswered';
+      if(puzzleTypes.includes(q.type))return !games[index]?.complete?'unanswered':games[index].correct?'correct':'incorrect';
+      if(q.type==='memory')return value?'correct':'unanswered';
+      if(!String(value).trim())return 'unanswered';
+      if(openAnswerTypes.includes(q.type))return 'pending';
+      if(sequenceTypes.includes(q.type))return touchedSequences.has(index)?accepts(value,q.answer)?'correct':'incorrect':'unanswered';
+      if(q.type==='numeric'){const n=numberValue(value),s=numberValue(q.answer);return Number.isFinite(n)&&Math.abs(n-s)<=(q.tolerance||0)+Number.EPSILON*Math.max(1,Math.abs(s))*4?'correct':'incorrect';}
+      if(q.type==='imagepoint'){const [x,y]=value.split(',').map(Number);return (q.target.width&&q.target.height?Math.abs(x-q.target.x)<=q.target.width/2&&Math.abs(y-q.target.y)<=q.target.height/2:Math.hypot(x-q.target.x,y-q.target.y)<=10)?'correct':'incorrect';}
+      return accepts(value,q.answer,q.alternatives)?'correct':'incorrect';
+    }
+    function feedback(index,grade) {
+      const box=$('feedback-'+index),q=questions[index];box.className='play-feedback '+(grade==='correct'?'is-correct':grade==='pending'?'is-pending':'is-incorrect');
+      box.innerHTML=grade==='correct'?'✓ ¡Correcto!'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':''):grade==='pending'?'◷ Respuesta guardada. La revisa el profesor.'+(q.rubric?'<div>'+rich(q.rubric)+'</div>':''):'× Revisa tu respuesta. Puedes volver a intentarlo o consultar la solución.';
+      document.querySelector(`[data-question="${index}"]`).dataset.result=grade;
+    }
+    function confirmQuestion(index) {
+      if(checked)return;const grade=gradeQuestion(index),q=questions[index];if(grade==='unanswered')return;
+      if(!puzzleTypes.includes(q.type)&&!['memory','hangman'].includes(q.type))logAnswer({index,correct:grade==='pending'?null:grade==='correct',value:String(new FormData($('form')).get('r-'+index)||''),assisted:q.type==='flashcard'&&flashGrades[index]!=='correct'});
+      if(!puzzleTypes.includes(q.type))feedback(index,grade);
+      const field=$('r-'+index);if(field&&field.type!=='hidden'&&grade!=='pending')markControl(field,grade==='correct');
+      document.querySelector(`[data-question="${index}"]`)?.querySelectorAll('.play-choice').forEach(label=>{const input=label.querySelector('input');label.classList.remove('answer-right','answer-wrong');label.querySelector('.choice-result')?.remove();if(input.checked){const right=grade==='correct';markControl(label,right);label.insertAdjacentHTML('beforeend',`<b class="choice-result" aria-label="${right?'Correcta':'Incorrecta'}">${right?'✓':'×'}</b>`);}});
+      if(sequenceTypes.includes(q.type))document.querySelectorAll(`#order-${index} [data-sequence-row]`).forEach((row,n)=>markControl(row,sequences[index][n]===q.options[n]));
+    }
     const touchedSequences = new Set(), groupReviews = [];
     let checked = false;
     let attempt = null;
@@ -435,36 +491,22 @@
       if (sequences[index].join(' → ') === q.answer && sequences[index].length > 1) sequences[index].reverse();
     });
     const studentName = studentId ? student(studentId)?.name || 'Alumno' : '';
-    modal(studentId ? 'En clase · ' + studentName : 'Prueba · sin guardar', `<div class="play-intro"><span class="badge">${escape(m.subject)}</span><h2>${escape(m.title)}</h2><p>${questions.length} ${questions.length === 1 ? 'ejercicio' : 'ejercicios'} · Resuelve y comprueba al final</p><div class="play-overview"><span id="playCompleted">0 de ${questions.length} completados</span><div><i id="playProgress"></i></div></div></div>${questions.map((q, i) => questionMarkup(q, i, pairChoices)).join('')}<p id="activityScore" class="play-score" role="status"></p>${submit('Comprobar respuestas')}`, form => {
+    modal('Ejercicios', `${questions.map((q, i) => questionMarkup(q, i, pairChoices)).join('')}<p id="activityScore" class="play-score" role="status"></p>${submit('Terminar')}`, form => {
       if (checked) return false;
+      questions.forEach((q,index)=>confirmQuestion(index));
       const answers = questions.map((q, index) => String(form.get('r-' + index) || ''));
-      const missing = questions.findIndex((q, index) => puzzleTypes.includes(q.type) ? !games[index]?.complete : sequenceTypes.includes(q.type) ? !touchedSequences.has(index) : !answers[index].trim());
-      if (missing !== -1) {
-        showQuestion(missing);
-        document.querySelector(`[data-question="${missing}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        throw Error(`Completa el ejercicio ${missing + 1} antes de comprobar.`);
-      }
-      const grades = questions.map((q, index) => {
-        if (q.type === 'flashcard') return flashGrades[index];
-        if (openAnswerTypes.includes(q.type)) return 'pending';
-        if (puzzleTypes.includes(q.type)) return games[index].correct ? 'correct' : 'incorrect';
-        if (q.type === 'numeric') { const value = numberValue(answers[index]), solution = numberValue(q.answer); return Number.isFinite(value) && Math.abs(value - solution) <= (q.tolerance || 0) + Number.EPSILON * Math.max(1, Math.abs(solution)) * 4 ? 'correct' : 'incorrect'; }
-        if (q.type === 'imagepoint') {
-          const [x, y] = answers[index].split(',').map(Number);
-          return (q.target.width && q.target.height ? Math.abs(x - q.target.x) <= q.target.width / 2 && Math.abs(y - q.target.y) <= q.target.height / 2 : Math.hypot(x - q.target.x, y - q.target.y) <= 10) ? 'correct' : 'incorrect';
-        }
-        return accepts(answers[index], q.answer, q.alternatives) ? 'correct' : 'incorrect';
-      });
-      attempt = { id: uid(), materialId: m.id, studentId, date: new Date().toISOString(), mode: 'with_teacher', answers, grades, score: 0, total: questions.length, pending: 0, materialSnapshot: m.activity };
+      const grades = questions.map((q,index)=>gradeQuestion(index));
+      const firstGrades=grades.map((grade,i)=>grade==='pending'||grade==='unanswered'?grade:Object.values(practice[i].parts).some(p=>p.firstCorrect===false)?'incorrect':practice[i].assisted?'assisted':grade);
+      attempt = { id: uid(), materialId: m.id, studentId, date: new Date().toISOString(), mode: 'with_teacher', answers, grades, firstGrades, practice, score: 0, total: questions.length, pending: 0, materialSnapshot: m.activity };
       checked = true;
       questions.forEach((q, index) => {
         const feedback = $('feedback-' + index);
         const solution = puzzleTypes.includes(q.type) ? puzzleSolution(q) : q.type === 'imagepoint' ? 'Punto marcado por el profesor' : q.answer;
-        feedback.textContent = (openAnswerTypes.includes(q.type) && q.type !== 'flashcard' ? '◷ Solución orientativa: ' + q.answer : grades[index] === 'correct' ? '✓ ¡Correcto!' : '↻ Solución: ' + solution) + (q.errorSegment ? '\nFragmento que había que corregir: ' + q.errorSegment : '') + (q.explanation ? '\n\n' + q.explanation : '') + (q.rubric ? '\n\nCriterios de revisión: ' + q.rubric : '');
+        feedback.innerHTML = rich((grades[index]==='unanswered'?'Sin responder. ':openAnswerTypes.includes(q.type) && q.type !== 'flashcard' ? '◷ Solución orientativa: ' + q.answer : grades[index] === 'correct' ? '✓ ¡Correcto!' : '↻ Solución: ' + solution) + (q.errorSegment ? '\nFragmento que había que corregir: ' + q.errorSegment : '') + (q.explanation ? '\n\n' + q.explanation : '') + (q.rubric ? '\n\nCriterios de revisión: ' + q.rubric : ''));
         feedback.classList.add(grades[index] === 'correct' ? 'is-correct' : grades[index] === 'pending' ? 'is-pending' : 'is-incorrect');
         document.querySelector(`[data-question="${index}"]`).dataset.result = grades[index];
         games[index]?.review?.();
-        document.querySelector(`[data-question="${index}"]`).querySelectorAll('.play-choice').forEach(label => { const input = label.querySelector('input'); if (input.value === q.answer || input.checked) { const right = input.value === q.answer; label.classList.add(right ? 'answer-right' : 'answer-wrong'); label.insertAdjacentHTML('beforeend', `<b aria-label="${right ? 'Opción correcta' : 'Opción incorrecta'}">${right ? '✓' : '×'}</b>`); } });
+        document.querySelector(`[data-question="${index}"]`).querySelectorAll('.play-choice').forEach(label => { const input = label.querySelector('input');label.classList.remove('answer-right','answer-wrong');label.querySelector('.choice-result')?.remove(); if (input.value === q.answer || input.checked) { const right = input.value === q.answer; label.classList.add(right ? 'answer-right' : 'answer-wrong'); label.insertAdjacentHTML('beforeend', `<b class="choice-result" aria-label="${right ? 'Opción correcta' : 'Opción incorrecta'}">${right ? '✓' : '×'}</b>`); } });
         if (q.type === 'imagepoint') $('visual-' + index).insertAdjacentHTML('beforeend', `<span class="visual-solution-zone" style="left:${q.target.x}%;top:${q.target.y}%;width:${q.target.width || 20}%;height:${q.target.height || 20}%" aria-label="Zona correcta">✓</span>`);
         document.querySelector(`[data-question="${index}"]`).querySelectorAll('input,textarea,button').forEach(control => control.disabled = true);
         if (openAnswerTypes.includes(q.type) && q.type !== 'flashcard') $('review-' + index).hidden = false;
@@ -475,24 +517,31 @@
       updateScore();
       $('form').querySelector('[type="submit"]').hidden = true;
       const close = $('form').querySelector('[data-action="close"]');
-      if (close) close.textContent = 'Cerrar';
+      if (close) {close.textContent = 'Cerrar';close.hidden=false;}
       $('form').querySelector('.play-footer .actions').insertAdjacentHTML('afterbegin', '<button type="button" id="retryActivity">Repasar errores</button>');
-      $('retryActivity').onclick = () => { const retry = questions.filter((q, i) => attempt.grades[i] === 'incorrect' || attempt.grades[i] === 'partial'); if (!retry.length) return notify(attempt.pending ? 'Primero revisa las respuestas pendientes.' : 'No quedan errores que repasar.'); runActivity({ ...m, title: m.title + ' · Repaso', activity: { ...m.activity, questions: retry } }, studentId); };
+      $('retryActivity').onclick = () => { const retry = questions.filter((q, i) => ['incorrect','partial','unanswered'].includes(attempt.grades[i])); if (!retry.length) return notify(attempt.pending ? 'Primero revisa las respuestas pendientes.' : 'No quedan errores que repasar.'); runActivity({ ...m, title: m.title + ' · Repaso', activity: { ...m.activity, questions: retry } }, studentId); };
+      actions.insertAdjacentHTML('afterbegin','<button type="button" id="showPracticeResult">Resultado</button>');
+      $('showPracticeResult').onclick=showResult;
+      showResult();
       return false;
     });
     $('form').noValidate = true;
+    $('form').addEventListener('play:answer',event=>{logAnswer(event.detail);const {index,correct}=event.detail;if(correct!==null){const log=practice[index],parts=Object.values(log.parts).filter(p=>p.correct!==null);$('feedback-'+index).className='play-feedback '+(correct?'is-correct':'is-incorrect');$('feedback-'+index).textContent=`${correct?'✓ Correcto.':'× Prueba de nuevo.'} ${parts.filter(p=>p.correct).length} aciertos · ${parts.filter(p=>!p.correct).length} por revisar.`;if(!correct)document.querySelector(`[data-question="${index}"] [data-show-solution]`)?.removeAttribute('hidden');}},{signal});
     $('dialog').classList.add('activity-play');
     $('dialog').addEventListener('close', () => { if (!$('dialog').open) { $('dialog').classList.remove('activity-play'); $('form').noValidate = false; playerAbort?.abort(); } }, { signal });
-    const toolbar = document.createElement('div'); toolbar.className = 'play-toolbar';
-    toolbar.innerHTML = '<label>Vista<select id="playMode"><option value="worksheet">Ficha completa</option><option value="step">Una actividad cada vez</option></select></label><div class="step-navigation"><button type="button" id="previousQuestion" aria-label="Actividad anterior">←</button><span id="stepPosition"></span><button type="button" id="nextQuestion" aria-label="Actividad siguiente">→</button></div>';
-    $('form').querySelector('.play-intro').after(toolbar);
+    const toolbar = document.createElement('div'); toolbar.className = 'step-navigation';
+    toolbar.innerHTML = '<button type="button" id="previousQuestion" aria-label="Actividad anterior">←</button><span id="stepPosition" aria-live="polite"></span><button type="button" id="nextQuestion" aria-label="Actividad siguiente">→</button>';
     const content = document.createElement('div'); content.className = 'play-content';
     const sections = [...$('form').querySelectorAll('[data-question]')];
     sections[0].before(content); sections.forEach(section => content.append(section));
     const footer = document.createElement('div'); footer.className = 'play-footer';
     const score = $('activityScore'), actions = score.nextElementSibling;
     score.before(footer); footer.append(score, actions);
+    actions.prepend(toolbar);actions.querySelector('[data-action="close"]').hidden=true;
     let currentStep = 0;
+    const summary=document.createElement('section');summary.className='practice-result';summary.hidden=true;content.append(summary);
+    function showResult(){renderSummary();summary.hidden=false;visibleQuestions().forEach(section=>section.hidden=true);toolbar.hidden=true;$('showPracticeResult').hidden=true;content.scrollTop=0;}
+    function renderSummary(){if(!attempt)return;const labels={correct:'✓ Correcta',incorrect:'× Para repasar',partial:'◷ Parcialmente correcta',pending:'◷ Revisión del profesor',unanswered:'— Sin completar'};summary.innerHTML='<h2>Resultado de la práctica</h2><p>'+escape($('activityScore').textContent)+'</p><div class="practice-result-list">'+questions.map((q,i)=>`<button type="button" data-review-question="${i}" class="${attempt.grades[i]}"><span>${i+1}. ${escape(activityLabels[q.type])}</span><small>${labels[attempt.grades[i]]||labels.unanswered}${attempt.grades[i]==='correct'&&wasAssisted(i)?' · con ayuda o reintentos':''}</small><b aria-hidden="true">→</b></button>`).join('')+'</div>';summary.querySelectorAll('[data-review-question]').forEach(button=>button.onclick=()=>showQuestion(Number(button.dataset.reviewQuestion)));}
     const visibleQuestions = () => [...$('form').querySelectorAll('[data-question]')].filter(section => !section.dataset.groupMember);
     const readingTexts = new Set();
     questions.forEach((q, index) => {
@@ -506,11 +555,10 @@
       }
       readingTexts.add(key);
     });
-    function renderView() { const sections = visibleQuestions(), step = $('playMode').value === 'step'; currentStep = Math.max(0, Math.min(currentStep, sections.length - 1)); sections.forEach((section, n) => section.hidden = step && n !== currentStep); $('form').querySelectorAll('.reading-repeat').forEach(details => details.open = step); $('stepPosition').textContent = `${currentStep + 1} / ${sections.length}`; toolbar.querySelector('.step-navigation').hidden = !step; $('previousQuestion').disabled = currentStep === 0; $('nextQuestion').disabled = currentStep === sections.length - 1; }
+    function renderView() {summary.hidden=true;toolbar.hidden=false;if($('showPracticeResult'))$('showPracticeResult').hidden=false; const sections=visibleQuestions();currentStep=Math.max(0,Math.min(currentStep,sections.length-1));sections.forEach((section,n)=>section.hidden=n!==currentStep);$('form').querySelectorAll('.reading-repeat').forEach(details=>details.open=true);$('stepPosition').textContent=`${currentStep+1} / ${sections.length}`;$('previousQuestion').disabled=currentStep===0;$('nextQuestion').hidden=currentStep===sections.length-1;$('form').querySelector('[type="submit"]').hidden=checked||currentStep!==sections.length-1;content.scrollTop=0; }
     function showQuestion(index) { const section = document.querySelector(`[data-question="${index}"]`); currentStep = visibleQuestions().findIndex(item => item === section || item.dataset.question === section?.dataset.groupMember); renderView(); }
-    $('playMode').onchange = () => { renderView(); content.scrollTop = 0; };
     $('previousQuestion').onclick = () => { currentStep--; renderView(); content.scrollTop = 0; };
-    $('nextQuestion').onclick = () => { currentStep++; renderView(); content.scrollTop = 0; };
+    $('nextQuestion').onclick = () => {const section=visibleQuestions()[currentStep];questions.forEach((q,i)=>{const node=document.querySelector(`[data-question="${i}"]`);if(node===section||node.dataset.groupMember===section.dataset.question)confirmQuestion(i)});currentStep++;renderView();};
 
     function updateProgress() {
       const complete = questions.map((question, index) => {
@@ -526,11 +574,14 @@
       if ($('playProgress')) $('playProgress').style.width = `${Math.round(100 * amount / questions.length)}%`;
     }
 
+    function wasAssisted(index){return practice[index].assisted||Object.values(practice[index].parts).some(part=>part.firstCorrect===false)||['incorrect','assisted'].includes(attempt.firstGrades[index]);}
     function updateScore() {
       attempt.score = attempt.grades.filter(grade => grade === 'correct').length;
       attempt.pending = attempt.grades.filter(grade => grade === 'pending').length;
       const partial = attempt.grades.filter(grade => grade === 'partial').length;
-      $('activityScore').textContent = `${attempt.score}/${attempt.total} correctas.${attempt.pending ? ' ' + attempt.pending + ' pendientes de revisión del profesor.' : ''}${partial ? ' ' + partial + ' parcialmente correctas.' : ''}${studentId ? ' Sesión registrada con el profesor.' : ' No se guardan resultados.'}`;
+      const assisted=attempt.grades.filter((g,i)=>g==='correct'&&wasAssisted(i)).length,unanswered=attempt.grades.filter(g=>g==='unanswered').length,incorrect=attempt.grades.filter(g=>g==='incorrect').length;
+      $('activityScore').textContent = `${attempt.score}/${attempt.total} correctas.${assisted?' '+assisted+' con ayuda o reintentos.':''}${incorrect?' '+incorrect+' para repasar.':''}${unanswered?' '+unanswered+' sin completar.':''}${attempt.pending ? ' ' + attempt.pending + ' pendientes de revisión del profesor.' : ''}${partial ? ' ' + partial + ' parcialmente correctas.' : ''}`;
+      renderSummary();
       if (studentId) save();
     }
     function renderSequence(index, focusPosition = null) {
@@ -550,7 +601,7 @@
       root.innerHTML = list.map((value, position) => `<div class="order-row ${checked ? value === questions[index].options[position] ? 'answer-right' : 'answer-wrong' : ''}" data-sequence-row="${position}" draggable="${!checked}" tabindex="${checked ? '-1' : '0'}" aria-label="${position + 1} de ${list.length}: ${escape(value)}"><span class="order-grip" aria-hidden="true">${checked ? value === questions[index].options[position] ? '✓' : '↻' : '⠿'}</span><span class="order-value"><b>${position + 1}.</b> ${escape(value)}</span><div class="order-actions"><button type="button" data-move="-1" data-pos="${position}" aria-label="Subir ${escape(value)}" ${checked || position === 0 ? 'disabled' : ''}>↑</button><button type="button" data-move="1" data-pos="${position}" aria-label="Bajar ${escape(value)}" ${checked || position === list.length - 1 ? 'disabled' : ''}>↓</button></div></div>`).join('') + (checked ? '' : '<button type="button" data-confirm-order>Confirmar este orden</button>');
       $('r-' + index).value = list.join(' → ');
       if (checked) return;
-      root.querySelector('[data-confirm-order]').onclick = () => { touchedSequences.add(index); updateProgress(); };
+      root.querySelector('[data-confirm-order]').onclick = () => { touchedSequences.add(index); updateProgress();confirmQuestion(index); };
       let picked = null;
       root.querySelectorAll('[data-sequence-row]').forEach(row => {
         const position = Number(row.dataset.sequenceRow);
@@ -581,13 +632,24 @@
       if (q.type === 'memory') mountMemory(q, index, () => checked);
       if (q.type === 'hangman') mountHangman(q, index, () => checked);
       const section = document.querySelector(`[data-question="${index}"]`);
+      if(!['quiz','boolean','visualquiz','pairs','classify','pasapalabra','memory','wordsearch','crossword','dragdrop','hangman','order','timeline'].includes(q.type)){
+        const check=document.createElement('button');check.type='button';check.dataset.checkQuestion=index;check.textContent=openAnswerTypes.includes(q.type)?'Guardar respuesta':'Comprobar';
+        check.onclick=()=>{if(q.type==='multigaps'){section.querySelectorAll('[data-multi-gap]').forEach((input,n)=>{if(input.value.trim()){const right=q.options[n].split('~').some(s=>accepts(input.value,s));markControl(input,right);recordAnswer(index,n,right,input.value.trim());}});}else confirmQuestion(index);};section.querySelector('.question-controls').append(check);
+      }
+      const solution=document.createElement('button');solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';solution.onclick=()=>{practice[index].assisted=true;const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):q.answer;$('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'');};section.append(solution);
+      if(!puzzleTypes.includes(q.type))section.addEventListener('click',()=>queueMicrotask(()=>{if(section.dataset.result==='incorrect'||section.dataset.result==='pending')solution.hidden=false;}),{signal});
+      section.querySelectorAll('input:not([type="radio"]):not([type="hidden"])').forEach(input=>{
+        if(q.type==='multigaps'||q.type==='pasapalabra'||q.type==='crossword')return;
+        input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();confirmQuestion(index);if(section.dataset.result==='incorrect')solution.hidden=false;}},{signal});
+        input.addEventListener('input',()=>{input.classList.remove('answer-right','answer-wrong');input.removeAttribute('aria-invalid');},{signal});
+      });
       if (['gaps','multigaps'].includes(q.type) && q.wordBank?.length) {
         const inputs = [...section.querySelectorAll(q.type === 'gaps' ? '.play-gap-line input' : '[data-multi-gap]')];
         let focused = inputs[0]; inputs.forEach(input => input.addEventListener('focus', () => focused = input));
         const bank = document.createElement('div'); bank.className = 'word-bank'; bank.setAttribute('aria-label','Banco de palabras');
-        bank.innerHTML = `<span>Palabras de apoyo</span>${shuffle(q.wordBank).map(word => `<button type="button">${escape(word)}</button>`).join('')}`;
+        bank.innerHTML = `<span>Palabras de apoyo</span>${shuffle(q.wordBank).map(word => `<button type="button" data-bank-word="${escape(word)}">${escape(word)}</button>`).join('')}`;
         section.querySelector('.question-controls').append(bank);
-        bank.querySelectorAll('button').forEach(button => button.onclick = () => { if (checked || !focused) return; focused.value = button.textContent; focused.dispatchEvent(new Event('input',{bubbles:true})); const next = inputs.find(input => !input.value); (next || focused).focus({preventScroll:true}); });
+        bank.querySelectorAll('button').forEach(button => button.onclick = () => { if (checked || !focused) return; focused.value = button.dataset.bankWord; focused.dispatchEvent(new Event('input',{bubbles:true})); const next = inputs.find(input => !input.value); (next || focused).focus({preventScroll:true}); });
       }
       const timer = section.querySelector('[data-timer]');
       if (timer) {
@@ -600,7 +662,7 @@
       if (q.type === 'problem') section.querySelectorAll('[data-problem-step]').forEach(input => input.oninput = () => { const inputs = [...section.querySelectorAll('[data-problem-step]')]; $('r-' + index).value = inputs[3].value.trim() ? inputs.map((control, n) => `${['Datos','Planteamiento','Cálculos','Respuesta'][n]}: ${control.value}`).join('\n') : ''; });
       if (q.type === 'error') section.querySelectorAll('[data-error-word]').forEach(button => button.onclick = () => { if (checked) return; button.setAttribute('aria-pressed', String(button.getAttribute('aria-pressed') !== 'true')); });
       let hintsUsed = 0;
-      section.querySelector('[data-hint]')?.addEventListener('click', event => { if (checked || hintsUsed >= q.hints.length) return; $('hints-' + index).insertAdjacentHTML('beforeend', `<li>${escape(q.hints[hintsUsed++])}</li>`); event.currentTarget.disabled = hintsUsed === q.hints.length; });
+      section.querySelector('[data-hint]')?.addEventListener('click', event => { if (checked || hintsUsed >= q.hints.length) return;practice[index].assisted=true;$('hints-' + index).insertAdjacentHTML('beforeend', `<li>${rich(q.hints[hintsUsed++])}</li>`); event.currentTarget.disabled = hintsUsed === q.hints.length; });
       section.querySelector('[data-zoom]')?.addEventListener('click', event => { const image = $('visual-' + index); image.classList.toggle('zoomed'); event.currentTarget.textContent = image.classList.contains('zoomed') ? 'Reducir imagen' : 'Ampliar imagen'; });
       section.querySelector('[data-highlight]')?.addEventListener('click', () => { const selection = window.getSelection(); if (!selection.rangeCount || selection.isCollapsed) return; const range = selection.getRangeAt(0), passage = section.querySelector('.reading-passage'); if (!passage.contains(range.commonAncestorContainer) || range.cloneContents().querySelector?.('button')) return; const mark = document.createElement('mark'); try { range.surroundContents(mark); selection.removeAllRanges(); } catch (_) { /* A selection spanning existing highlights can be selected again in smaller portions. */ } });
       if (q.type === 'flashcard') {
@@ -631,6 +693,7 @@
       $('r-' + index).value = {correct:'La sabía',partial:'Con ayuda',incorrect:'Necesito repasarla'}[button.dataset.flash];
       $('flash-assess-' + index).querySelectorAll('button').forEach(option => option.classList.toggle('selected', option === button));
       updateProgress();
+      confirmQuestion(index);
     });
     $('form').querySelectorAll('input[type="radio"]').forEach(input => input.onchange = () => {
       if (!input.checked) return;
@@ -651,14 +714,20 @@
         group.slice(1).forEach(index => { const member = document.querySelector(`[data-question="${index}"]`); member.dataset.groupMember = String(first); member.hidden = true; });
         const boardRoot = document.createElement('div'); root.replaceChildren(boardRoot);
         group.forEach(index => { const old = document.querySelector(`[name="r-${index}"]`); if (old) document.querySelector(`[data-question="${index}"] .question-controls`).innerHTML = ''; root.insertAdjacentHTML('beforeend', `<input type="hidden" name="r-${index}" id="r-${index}">`); });
-        const board = placementBoard(boardRoot, group.map(index => questions[index].prompt), targets, () => checked, values => { values.forEach((value, n) => $('r-' + group[n]).value = value === null ? '' : targets[value]); updateProgress(); }, kind === 'pairs');
+        const board = placementBoard(boardRoot, group.map(index => questions[index].prompt), targets, () => checked, values => { values.forEach((value,n)=>{$('r-'+group[n]).value=value===null?'':targets[value];if(value!==null){confirmQuestion(group[n]);}});board.review(group.map(index=>questions[index].answer));updateProgress(); }, kind === 'pairs');
         groupReviews.push(() => { board.review(group.map(index => questions[index].answer)); group.slice(1).forEach(index => { const feedback = $('feedback-' + index); const copy = document.createElement('p'); copy.className = feedback.className; copy.textContent = questions[index].prompt + ': ' + feedback.textContent; root.append(copy); }); });
       });
     }
     $('form').addEventListener('input', updateProgress, { signal });
     $('form').addEventListener('change', updateProgress, { signal });
+    $('form').addEventListener('change',event=>{if(event.target.matches('input[type="radio"]'))confirmQuestion(Number(event.target.name.slice(2)))},{signal});
+    $('form').addEventListener('input',event=>{const match=event.target.name?.match(/^r-(\d+)$/);if(match&&['memory','hangman'].includes(questions[+match[1]].type))confirmQuestion(+match[1]);},{signal});
+    const paint=()=>content.querySelectorAll('.play-question').forEach(section=>profesorText.paint(section));
+    const observer=new MutationObserver(paint);observer.observe($('form'),{childList:true,subtree:true});signal.addEventListener('abort',()=>observer.disconnect(),{once:true});paint();
     $('form').addEventListener('click', () => queueMicrotask(() => { if (!signal.aborted) updateProgress(); }), { signal });
     renderView();
     updateProgress();
   };
+  const originalReviewAttempt=reviewAttempt;
+  reviewAttempt=function(id){originalReviewAttempt(id);profesorText.paint($('form'));};
 })();

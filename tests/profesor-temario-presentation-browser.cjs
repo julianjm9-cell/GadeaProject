@@ -38,18 +38,18 @@ const path = require('node:path');
     });
     assert.deepEqual(audit.notation, { fractions: 1, roots: 1, powers: 3, subs: 1, bold: 1 });
     assert.equal(audit.safe, true); assert.equal(audit.system, 2); assert.equal(audit.stages, 3); assert.equal(audit.limit, true);
-    assert.equal(audit.resources, 837); assert.deepEqual(audit.failures, []); assert.equal(audit.unchanged, true);
+    assert.equal(audit.resources, 1053); assert.deepEqual(audit.failures, []); assert.equal(audit.unchanged, true);
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 900 });
       await page.evaluate(() => { temarioCourse = '3.º ESO'; temarioSubject = 'Matemáticas'; openTemarioLesson(PROFESOR_TEMARIO[temarioCourse][temarioSubject].find(t => t.title === 'Geometría básica')); });
       assert.equal(await page.locator('.topic-diagram svg').count(), 1);
       assert.equal(await page.locator('msqrt').count() > 0, true);
-      assert.equal(await page.locator('dialog').evaluate(el => el.scrollWidth <= el.clientWidth + 2), true);
+      assert.equal(await page.locator('#dialog').evaluate(el => el.scrollWidth <= el.clientWidth + 2), true);
       await page.locator('.topic-diagram').scrollIntoViewIfNeeded();
       await page.screenshot({ path: path.join('tools', `temario-notation-${width}.png`) });
       await page.locator('#dialog .close').click();
     }
     assert.deepEqual(errors, []);
-    console.log('PASS: 837 resource views, safe math notation, systems, diagrams, responsive layout; catalogue unchanged');
+    console.log('PASS: 1053 resource views, safe math notation, systems, diagrams, responsive layout; catalogue unchanged');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exit(1); });

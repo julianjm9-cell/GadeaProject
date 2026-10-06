@@ -3,6 +3,7 @@
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const scripts = {'²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9','⁰':'0','¹':'1','₀':'0','₁':'1','₂':'2','₃':'3'};
   function math(value) {
+    if(window.profesorText)return window.profesorText.formula(value);
     let source = String(value), out = '', i = 0;
     const atom = token => math(token).replace(/^<math[^>]*>|<\/math>$/g,'');
     function tokens(text) {
@@ -21,6 +22,7 @@
     return '<math class="topic-math" xmlns="http://www.w3.org/1998/Math/MathML" aria-label="'+escape(value)+'"><mrow>'+out+'</mrow></math>';
   }
   function inline(value) {
+    if(window.profesorText)return window.profesorText.inline(value);
     const saved = [];
     let text = String(value ?? '');
     // Explicit math delimiters and the notation used by the current catalogue.

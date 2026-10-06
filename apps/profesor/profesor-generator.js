@@ -120,6 +120,9 @@
   source.activity.questions.forEach((q,i)=>{if(q.type==='reading'&&q.activityGroup){const hint=document.createElement('p');hint.className='generator-help';hint.textContent='Este texto se comparte con todas las preguntas de esta actividad. Al editarlo, se actualiza en todas.';$('text-'+i).after(hint);}});
   $('form').addEventListener('input',syncReading);
   $('dialog').addEventListener('close',()=>$('form').removeEventListener('input',syncReading),{once:true});
+  const paintPreview=()=>profesorText.paint($('editorPreview'));
+  const previewObserver=new MutationObserver(paintPreview);previewObserver.observe($('editorPreview'),{childList:true,subtree:true});paintPreview();
+  $('dialog').addEventListener('close',()=>previewObserver.disconnect(),{once:true});
   $('form').addEventListener('input',update);
   $('form').addEventListener('editor:step',update);$('dialog').addEventListener('close',()=>{$('form').removeEventListener('editor:step',update);$('form').removeEventListener('input',update)},{once:true});update();
  };

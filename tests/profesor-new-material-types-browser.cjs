@@ -36,22 +36,25 @@ const path = require('node:path');
     await page.locator('#editorNext').click();
     assert.equal(await page.locator('.numeric-preview').count(), 1);
     await page.locator('#editorNext').click();
-    assert.equal(await page.locator('.pasapalabra-preview').count(), 1);
+    assert.equal(await page.locator('.rosco-preview').count(), 1);
     await page.locator('#dialog').getByRole('button', { name: 'Cerrar' }).click();
     await page.evaluate(value => runActivity(value, ''), material);
     const gaps = page.locator('#puzzle-0 [data-multi-gap]');
     await gaps.nth(0).fill('líquido');
     await gaps.nth(1).fill('sólido');
+    await page.getByRole('button',{name:'Actividad siguiente'}).click();
     await page.locator('#r-1').fill('12.5');
+    await page.getByRole('button',{name:'Actividad siguiente'}).click();
     for (const answer of ['agua', 'biblioteca', 'clorofila']) {
       await page.locator('#pasapalabra-input-2').fill(answer);
       await page.locator('#puzzle-2 [data-answer]').click();
     }
+    await page.getByRole('button',{name:'Actividad siguiente'}).click();
     for (const letter of ['S', 'O', 'L']) await page.locator(`#hangman-3 [data-hangman-letter="${letter}"]`).click();
     const completion = await page.locator('.play-question').evaluateAll(cards => cards.map(card => ({ type: card.querySelector('.play-kind')?.textContent, complete: card.classList.contains('is-complete') })));
-    assert.match(await page.locator('#playCompleted').innerText(), /4 de 4/, JSON.stringify(completion));
+    assert.equal(completion.filter(card=>card.complete).length,4,JSON.stringify(completion));
     await page.screenshot({ path: 'tools/profesor-new-material-types.png', fullPage: true });
-    await page.getByRole('button', { name: 'Comprobar respuestas' }).click();
+    await page.getByRole('button', { name: 'Terminar',exact:true }).click();
     assert.match(await page.locator('#activityScore').innerText(), /4\/4 correctas/);
     const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
     mobile.on('pageerror', error => errors.push(error.message));
