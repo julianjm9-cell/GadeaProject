@@ -229,3 +229,14 @@
 .activity-play .play-choice>b{margin-left:auto}
 .word-bank{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:12px;padding:12px;border:1px dashed #abcaf0;border-radius:12px;background:#f4f9ff}.word-bank>span{font-size:12px;color:#55789e;margin-right:5px}.word-bank button{min-height:36px;padding:7px 12px;background:#fff;color:#23568e;font-size:13px}
 .activity-play .play-question[data-result=correct]{border-color:#69bf9a}.activity-play .play-question[data-result=incorrect]{border-color:#e1a18d}.activity-play .play-question[data-result=pending]{border-color:#e7c786}
+
+/* Keep navigation and checking available while long activities scroll inside the player. */
+.activity-play[open]{display:flex;flex-direction:column;height:min(880px,94dvh);overflow:hidden;padding:20px;scrollbar-gutter:auto}
+.activity-play>.row{flex:none;gap:12px;margin-bottom:8px}.activity-play #dialogTitle{margin:0;font-size:19px}
+.activity-play #form{display:flex;flex-direction:column;flex:1;min-height:0;gap:10px;overflow:hidden}
+.activity-play .play-intro{flex:none;padding:0}.activity-play .play-intro h2{font-size:21px;margin:4px 0}.activity-play .play-overview{margin-top:8px}
+.activity-play .play-toolbar{position:static;flex:none;padding:6px 10px}
+.activity-play .play-content{display:flex;flex-direction:column;gap:14px;flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:2px 4px 8px;scroll-padding:12px}
+.activity-play .play-footer{flex:none;display:grid;gap:8px;border-top:1px solid #d8e7fa;padding-top:10px}.activity-play .play-footer .actions{margin:0;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.activity-play .play-footer .play-score{margin:0;font-size:12px;line-height:1.4;padding:8px 10px}
+@media(max-width:650px){.activity-play[open]{padding:12px}.activity-play #dialogTitle{font-size:16px}.activity-play .play-intro h2{font-size:18px}.activity-play .play-overview{grid-template-columns:auto minmax(60px,1fr);font-size:10px}.activity-play .play-intro p{font-size:11px}.activity-play .play-footer button{font-size:12px;padding:8px 10px}.activity-play .play-content{padding-right:2px}}

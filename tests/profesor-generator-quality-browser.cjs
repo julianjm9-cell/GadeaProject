@@ -1,0 +1,125 @@
+const {chromium}=require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const assert=require('node:assert/strict');
+const {pathToFileURL}=require('node:url');
+const path=require('node:path');
+
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:'msedge'});
+ try{
+  const page=await browser.newPage({viewport:{width:1366,height:850}}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  async function assertActionsVisible(){
+   const button=page.getByRole('button',{name:'Comprobar respuestas',exact:true});
+   const bounds=await button.boundingBox(),dialog=await page.locator('#dialog').boundingBox();
+   assert.ok(bounds.y>=dialog.y&&bounds.y+bounds.height<=dialog.y+dialog.height&&bounds.y+bounds.height<=page.viewportSize().height,'Check action stays inside the visible dialog');
+   assert.ok(await button.evaluate(el=>{const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))}),'Check action is not covered');
+  }
+  await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
+  const rows=['A | Insecto que produce miel | abeja','B | Lugar donde se prestan libros | biblioteca','C | Pigmento verde que capta la luz | clorofila','D | Parte dura de la boca para masticar | diente','E | Animal con trompa | elefante','F | Parte de una planta con pétalos | flor','G | Felino doméstico | gato','H | Agua en estado sólido | hielo','I | Tierra rodeada de agua | isla','J | Animal de cuello largo | jirafa','L | Satélite natural de la Tierra | luna','M | Elevación natural del terreno | montaña','N | Masa de vapor en el cielo | nube','O | Instrumento que ayuda a ver lejos | telescopio','P | Ave acuática con pico ancho | pato','R | Anfibio que salta | rana','S | Estrella del sistema solar | sol','T | Reptil con caparazón | tortuga'];
+  const questions=Array.from({length:8},(_,i)=>({type:'quiz',activityGroup:1,prompt:`¿Cuánto es ${i+1} + 1?`,answer:String(i+2),options:[String(i+2),String(i+3),String(i+4)],explanation:'Se añade una unidad.'}));
+  questions.push({type:'pasapalabra',activityGroup:2,prompt:'Responde a las pistas o pasa a la siguiente letra.',answer:'Completado',options:rows,explanation:'Cada definición identifica un concepto distinto.'});
+  await page.evaluate(qs=>{demo=false;window.qualityRequests=[];const oldApi=api;api=async(url,body)=>{if(url==='/api/profesor/generate'){window.qualityRequests.push(body);return{questions:qs}}if(url==='/api/state')return{};return oldApi(url,body)}},questions);
+  await page.locator('.home-primary-nav').getByRole('button',{name:'Material'}).click();
+  await page.getByRole('button',{name:'Crear material',exact:true}).click();
+  await page.locator('#workshopCourse').selectOption('3.º ESO');
+  await page.locator('#workshopTopic').fill('Repaso del conocimiento');
+  await page.locator('#workshopInstructions').fill('Ocho preguntas variadas y un rosco auténtico con dieciocho letras. Pistas completas, sin huecos.');
+  await page.locator('#workshopExtent').selectOption('long');
+  await page.locator('#workshopDifficulty').selectOption('guided');
+  await page.locator('.basic-family summary').click();
+  await page.locator('[data-exercise="quiz"]').click();
+  await page.locator('#size-quiz').fill('8');
+  await page.locator('.playful-family summary').click();
+  await page.locator('[data-exercise="pasapalabra"]').click();
+  assert.equal(await page.locator('#size-pasapalabra').inputValue(),'18');
+  assert.match(await page.locator('#workshopSelection').innerText(),/2 actividades.*9 preguntas/);
+  // Reducing an oversized request restores the generation controls immediately.
+  await page.locator('.basic-family summary').click();
+  for(let i=0;i<9;i++)await page.locator('[data-exercise="quiz"] [data-step="1"]').click();
+  await page.locator('#size-quiz').fill('12');
+  assert.equal(await page.locator('#workshopContinue').isDisabled(),true);
+  await page.locator('#size-quiz').fill('2');
+  assert.equal(await page.locator('#workshopContinue').isDisabled(),false);
+  for(let i=0;i<9;i++)await page.locator('[data-exercise="quiz"] [data-step="-1"]').click();
+  await page.locator('#size-quiz').fill('8');
+  await page.locator('#workshopContinue').click();
+  await page.locator('#q-0').waitFor();
+  const sent=await page.evaluate(()=>qualityRequests[0]);
+  assert.equal(sent.quiz,1);assert.equal(sent.pasapalabra,1);
+  assert.deepEqual(sent.activitySizes,{quiz:8,pasapalabra:18});
+  assert.equal(sent.extent,'long');assert.equal(sent.difficulty,'guided');
+  assert.match(sent.instructions,/dieciocho/);
+  assert.equal('notes' in sent,false);assert.equal('progress' in sent,false);
+  for(let i=0;i<8;i++)await page.locator('#editorNext').click();
+  assert.equal(await page.locator('.activity-edit-block:visible').count(),1);
+  assert.equal(await page.locator('#editorPreview .pasapalabra-wheel > span').count(),18);
+  assert.equal(await page.locator('.activity-edit-block:visible textarea[aria-label^="Pista"]').count(),18);
+  await page.getByRole('textbox',{name:'Pista 1',exact:true}).fill('Insecto que vive en colmenas y produce miel a partir del néctar de las flores.');
+  await page.getByRole('button',{name:'Guardar y cerrar',exact:true}).click();
+  await page.locator('#dialog').waitFor({state:'hidden'});
+  const saved=await page.evaluate(()=>state.library.find(m=>m.title==='Repaso del conocimiento'));
+  assert.equal(saved.activity.questions.length,9);
+  assert.match(saved.activity.questions[8].options[0],/colmenas/);
+  assert.equal(saved.activity.questions[8].activityGroup,2);
+  await page.evaluate(m=>runActivity(m,''),saved);
+  await assertActionsVisible();
+  for(let i=0;i<8;i++)await page.locator(`input[name="r-${i}"][value="${i+2}"]`).check();
+  await page.locator('#puzzle-8 [data-pass]').click();
+  assert.match(await page.locator('#puzzle-8 [data-letter="0"]').getAttribute('class'),/passed/);
+  for(let i=1;i<18;i++){await page.locator('#pasapalabra-input-8').fill(rows[i].split('|')[2].trim());await page.locator('#pasapalabra-input-8').press('Enter')}
+  await page.locator('#pasapalabra-input-8').fill('abeja');await page.locator('#pasapalabra-input-8').press('Enter');
+  await page.getByRole('button',{name:'Comprobar respuestas',exact:true}).click();
+  assert.match(await page.locator('#activityScore').innerText(),/9\/9 correctas/);
+  await page.locator('#dialog [data-action="close"]').last().click();
+  await page.setViewportSize({width:390,height:844});
+  await page.evaluate(m=>editActivity(m),{...saved,activity:{...saved.activity,questions:[saved.activity.questions[8]]}});
+  assert.equal(await page.locator('#dialog').evaluate(el=>el.scrollWidth>el.clientWidth+2),false);
+  await page.screenshot({path:'tools/profesor-generator-quality-mobile.png'});
+  await page.locator('#dialog .close').click();
+  const text=Array.from({length:12},(_,i)=>`En el momento ${i}, Ana ___ (caminar) por el parque.`).join(' ');
+  await page.evaluate(prompt=>runActivity({id:'cloze',title:'Relato con doce huecos',subject:'Español',activity:{version:1,questions:[{type:'multigaps',prompt,answer:'caminaba',options:Array(12).fill('caminaba')}] }},''),text);
+  assert.equal(await page.locator('[data-multi-gap]').count(),12);
+  await assertActionsVisible();
+  assert.equal(await page.locator('.play-content').evaluate(el=>el.scrollHeight>el.clientHeight),true);
+  await page.locator('.play-content').evaluate(el=>el.scrollTop=el.scrollHeight);
+  await assertActionsVisible();
+  for(let i=0;i<12;i++)await page.locator(`[data-multi-gap="${i}"]`).fill('caminaba');
+  await page.getByRole('button',{name:'Comprobar respuestas',exact:true}).click();
+  assert.match(await page.locator('#activityScore').innerText(),/1\/1 correctas/);
+  assert.equal(await page.locator('#dialog').evaluate(el=>el.scrollWidth>el.clientWidth+2),false);
+  // Shared reading stays available in step mode without repeating the whole passage in the worksheet.
+  await page.evaluate(()=>runActivity({id:'reading',title:'Un relato, varias preguntas',subject:'Español',activity:{questions:[{type:'reading',activityGroup:1,prompt:'¿Dónde ocurre?',answer:'En casa',text:'Historia compartida.'},{type:'reading',activityGroup:1,prompt:'¿Quién llega?',answer:'Ana',text:'Historia compartida.'}]}},''));
+  assert.equal(await page.locator('.reading-passage:visible').count(),1);
+  await assertActionsVisible();
+  await page.selectOption('#playMode','step');await page.getByRole('button',{name:'Actividad siguiente'}).click();
+  assert.equal(await page.locator('.reading-passage:visible').count(),1);
+  assert.equal(await page.locator('.reading-repeat').getAttribute('open'),'');
+  // Reading edits update all questions in this activity, leaving other readings intact.
+  await page.locator('#dialog .close').click();
+  await page.evaluate(()=>editActivity({id:'reading-edit',title:'Lectura editable',subject:'Español',activity:{questions:[{type:'reading',activityGroup:1,prompt:'¿Dónde ocurre?',answer:'En casa',text:'Historia compartida.'},{type:'reading',activityGroup:1,prompt:'¿Quién llega?',answer:'Ana',text:'Historia compartida.'},{type:'reading',activityGroup:2,prompt:'¿Quién sale?',answer:'Luis',text:'Otra historia.'}]}}));
+  await page.locator('#text-0').fill('Ana llega a casa al atardecer.');
+  assert.equal(await page.locator('#text-1').inputValue(),'Ana llega a casa al atardecer.');
+  assert.equal(await page.locator('#text-2').inputValue(),'Otra historia.');
+  await page.locator('#editorNext').click();await page.locator('#editorNext').click();
+  await page.getByRole('button',{name:'Guardar y cerrar',exact:true}).click();
+  await page.locator('#dialog').waitFor({state:'hidden'});
+  const edited=await page.evaluate(()=>state.library.find(m=>m.id==='reading-edit'));
+  assert.equal(edited.activity.questions[1].text,'Ana llega a casa al atardecer.');
+  assert.equal(edited.activity.questions[2].text,'Otra historia.');
+  // Manual quiz question counts do not become the number of answer options.
+  await page.evaluate(()=>openWorkshop({course:'A2',subject:'Español',topic:'Repaso manual'}));
+  await page.locator('.basic-family summary').click();
+  await page.locator('[data-exercise="quiz"]').click();await page.locator('#size-quiz').fill('8');
+  await page.locator('#workshopManual').click();await page.locator('#q-0').waitFor();
+  assert.equal(await page.locator('.activity-edit-block').count(),8);
+  assert.equal(await page.locator('.activity-edit-block:visible .structured-row').count(),3);
+  await page.locator('#dialog .close').click();
+  await page.evaluate(()=>openWorkshop({course:'A2',subject:'Español',topic:'Rosco manual'}));
+  await page.locator('.playful-family summary').click();
+  await page.locator('[data-exercise="pasapalabra"]').click();
+  await page.locator('#workshopManual').click();await page.locator('#q-0').waitFor();
+  assert.equal(await page.locator('.activity-edit-block:visible .structured-row').count(),18);
+  assert.deepEqual(errors,[]);
+  console.log('PASS detailed brief, independent sizes, AI payload, nine-question save/play, 18-letter rosco, twelve gaps and shared reading on mobile');
+ }finally{await browser.close()}
+})().catch(e=>{console.error(e);process.exit(1)});

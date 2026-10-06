@@ -135,8 +135,8 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
     if not isinstance(material, dict) or not isinstance(material.get("activity"), dict):
         raise ValueError("Material no válido.")
     questions = material["activity"].get("questions")
-    if not isinstance(questions, list) or not 1 <= len(questions) <= 20:
-        raise ValueError("El material debe contener entre 1 y 20 ejercicios.")
+    if not isinstance(questions, list) or not 1 <= len(questions) <= 80:
+        raise ValueError("El material debe contener entre 1 y 80 preguntas.")
     title = str(material.get("title") or "Material de clase")[:180]
     subject = str(material.get("subject") or "")[:80]
     context = material["activity"].get("context") or {}
@@ -163,12 +163,13 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
               "problem":"Problemas", "flashcard":"Tarjeta", "memory":"Memory", "sentence":"Construye la frase",
               "timeline":"Línea temporal", "error":"Encuentra el error", "wordsearch":"Sopa de letras",
               "crossword":"Crucigrama", "dragdrop":"Asociar", "pasapalabra":"Pasapalabra", "hangman":"Ahorcado", "visualquiz":"Quiz visual", "imagepoint":"Señalar imagen"}
+    seen_readings = set()
     for index, q in enumerate(questions, 1):
         if not isinstance(q, dict) or q.get("type") not in labels:
             raise ValueError(f"El ejercicio {index} no es válido.")
         kind = q["type"]
         section = []
-        prompt = str(q.get("prompt") or "")[:1500].strip()
+        prompt = str(q.get("prompt") or "")[:12000 if kind == 'multigaps' else 1500].strip()
         if not prompt:
             raise ValueError(f"El ejercicio {index} necesita un enunciado.")
         if kind == "crossword":
@@ -176,9 +177,12 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
         elif kind in ("visualquiz", "imagepoint"):
             section.append(CondPageBreak(85*mm))
         section.append(Paragraph(f"{index}. {labels[kind]}", styles["TeacherHeading"]))
-        section.append(Paragraph(_text(prompt.replace('___', '____________')), styles["TeacherBody"]))
         if kind == "reading" and q.get("text"):
-            section.append(Paragraph(_text(q["text"]), styles["TeacherBody"]))
+            reading_key = (q.get('activityGroup'), q['text'])
+            if reading_key not in seen_readings:
+                section.append(Paragraph(_text(q["text"], 12000), styles["TeacherBody"]))
+                seen_readings.add(reading_key)
+        section.append(Paragraph(_text(prompt.replace('___', '____________'), 16000), styles["TeacherBody"]))
         if kind in ("visualquiz", "imagepoint"):
             image = q.get("image")
             if not isinstance(image, dict) or not image.get("id"):
@@ -232,7 +236,7 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
             if pairs:
                 section.append(table)
         elif kind == 'pairs' and not solutions:
-            bank = [str(item.get('answer', '')) for item in reversed(questions) if item.get('type') == 'pairs']
+            bank = [str(item.get('answer', '')) for item in reversed(questions) if item.get('type') == 'pairs' and item.get('activityGroup') == q.get('activityGroup')]
             if len(bank) > 1:
                 section.append(Paragraph('Banco de respuestas: ' + ' / '.join(_text(item, 300) for item in bank), styles['TeacherSmall']))
         elif kind == "pasapalabra":
@@ -258,7 +262,7 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
                 answer = f"Zona marcada por el profesor ({target.get('x', '?')} %, {target.get('y', '?')} %)"
             elif kind in ("wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps"):
                 answer = "; ".join(options)
-            section.append(Paragraph("Solución: " + _text(answer, 1500), styles["TeacherAnswer"]))
+            section.append(Paragraph("Solución: " + _text(answer, 2500), styles["TeacherAnswer"]))
             if q.get('explanation'):
                 section.append(Paragraph(_text(q['explanation'], 1500), styles['TeacherBody']))
             if q.get('rubric'):

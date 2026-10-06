@@ -331,12 +331,14 @@
         const columns = ['memory','crossword','dragdrop'].includes(question.type) ? 2 : question.type === 'pasapalabra' ? 3 : 1;
         const labels = question.type === 'pasapalabra' ? ['Letra','Pista','Respuesta'] : question.type === 'crossword' ? ['Palabra','Pista'] : question.type === 'memory' ? ['Concepto','Pareja'] : question.type === 'dragdrop' ? ['Elemento','Destino'] : [sequenceTypes.includes(question.type) ? 'Paso en orden correcto' : question.type === 'multigaps' ? 'Solución (variantes con ~)' : 'Opción'];
         let rows = options.value.split('\n').map(line => columns === 1 ? [line.trim()] : line.split('|').map(value => value.trim()));
+        // HTML textareas remove a leading newline; preserve empty manual board rows.
+        if (question.options?.length && question.options.every(value => !value.trim())) rows = Array.from({ length: question.options.length }, () => Array(columns).fill(''));
         options.hidden = true; options.previousElementSibling.hidden = true;
         const editor = document.createElement('div'); editor.className = 'structured-options'; options.after(editor);
         function sync() { options.value = rows.map(row => row.join(' | ')).join('\n'); options.dispatchEvent(new Event('input', { bubbles: true })); }
         function draw() {
-          editor.innerHTML = `<p class="play-editor-hint">${labels.map(escape).join(' · ')}${sequenceTypes.includes(question.type) ? ' · El alumno recibirá los pasos mezclados.' : ''}</p>${rows.map((row, n) => `<div class="structured-row" style="--columns:${columns}"><span>${n + 1}</span>${Array.from({ length: columns }, (_, c) => `<input data-row="${n}" data-col="${c}" aria-label="${labels[c]} ${n + 1}" value="${escape(row[c] || '')}" maxlength="${columns === 1 ? 300 : 180}">`).join('')}<button type="button" data-remove-row="${n}" aria-label="Eliminar fila ${n + 1}">×</button></div>`).join('')}<button type="button" data-add-row>+ Añadir fila</button>`;
-          editor.querySelectorAll('input').forEach(input => input.oninput = () => { rows[Number(input.dataset.row)][Number(input.dataset.col)] = input.value; sync(); });
+          editor.innerHTML = `<p class="play-editor-hint">${labels.map(escape).join(' · ')}${sequenceTypes.includes(question.type) ? ' · El alumno recibirá los pasos mezclados.' : ''}</p>${rows.map((row, n) => `<div class="structured-row" style="--columns:${columns}"><span>${n + 1}</span>${Array.from({ length: columns }, (_, c) => c===1&&columns>1?`<textarea data-row="${n}" data-col="${c}" aria-label="${labels[c]} ${n + 1}" maxlength="${question.type==='pasapalabra'?180:question.type==='crossword'?120:140}" rows="2">${escape(row[c]||'')}</textarea>`:`<input data-row="${n}" data-col="${c}" aria-label="${labels[c]} ${n + 1}" value="${escape(row[c] || '')}" maxlength="${question.type==='pasapalabra'?(c===0?1:60):columns === 1 ? 300 : 140}">`).join('')}<button type="button" data-remove-row="${n}" aria-label="Eliminar fila ${n + 1}">×</button></div>`).join('')}<button type="button" data-add-row>+ Añadir fila</button>`;
+          editor.querySelectorAll('input,textarea').forEach(input => input.oninput = () => { rows[Number(input.dataset.row)][Number(input.dataset.col)] = input.value.replace(/[\r\n|]+/g,' '); sync(); });
           editor.querySelector('[data-add-row]').onclick = () => { rows.push(Array(columns).fill('')); draw(); sync(); };
           editor.querySelectorAll('[data-remove-row]').forEach(button => button.onclick = () => { rows.splice(Number(button.dataset.removeRow), 1); draw(); sync(); });
         }
@@ -474,7 +476,7 @@
       $('form').querySelector('[type="submit"]').hidden = true;
       const close = $('form').querySelector('[data-action="close"]');
       if (close) close.textContent = 'Cerrar';
-      $('activityScore').insertAdjacentHTML('afterend', '<button type="button" id="retryActivity">Repasar errores</button>');
+      $('form').querySelector('.play-footer .actions').insertAdjacentHTML('afterbegin', '<button type="button" id="retryActivity">Repasar errores</button>');
       $('retryActivity').onclick = () => { const retry = questions.filter((q, i) => attempt.grades[i] === 'incorrect' || attempt.grades[i] === 'partial'); if (!retry.length) return notify(attempt.pending ? 'Primero revisa las respuestas pendientes.' : 'No quedan errores que repasar.'); runActivity({ ...m, title: m.title + ' · Repaso', activity: { ...m.activity, questions: retry } }, studentId); };
       return false;
     });
@@ -484,13 +486,31 @@
     const toolbar = document.createElement('div'); toolbar.className = 'play-toolbar';
     toolbar.innerHTML = '<label>Vista<select id="playMode"><option value="worksheet">Ficha completa</option><option value="step">Una actividad cada vez</option></select></label><div class="step-navigation"><button type="button" id="previousQuestion" aria-label="Actividad anterior">←</button><span id="stepPosition"></span><button type="button" id="nextQuestion" aria-label="Actividad siguiente">→</button></div>';
     $('form').querySelector('.play-intro').after(toolbar);
+    const content = document.createElement('div'); content.className = 'play-content';
+    const sections = [...$('form').querySelectorAll('[data-question]')];
+    sections[0].before(content); sections.forEach(section => content.append(section));
+    const footer = document.createElement('div'); footer.className = 'play-footer';
+    const score = $('activityScore'), actions = score.nextElementSibling;
+    score.before(footer); footer.append(score, actions);
     let currentStep = 0;
     const visibleQuestions = () => [...$('form').querySelectorAll('[data-question]')].filter(section => !section.dataset.groupMember);
-    function renderView() { const sections = visibleQuestions(), step = $('playMode').value === 'step'; currentStep = Math.max(0, Math.min(currentStep, sections.length - 1)); sections.forEach((section, n) => section.hidden = step && n !== currentStep); $('stepPosition').textContent = `${currentStep + 1} / ${sections.length}`; toolbar.querySelector('.step-navigation').hidden = !step; $('previousQuestion').disabled = currentStep === 0; $('nextQuestion').disabled = currentStep === sections.length - 1; }
+    const readingTexts = new Set();
+    questions.forEach((q, index) => {
+      if (q.type !== 'reading') return;
+      const key = JSON.stringify([q.activityGroup || 0, q.text]);
+      const passage = document.querySelector(`[data-question="${index}"] .reading-passage`);
+      if (readingTexts.has(key)) {
+        const details = document.createElement('details'); details.className = 'reading-repeat';
+        const summary = document.createElement('summary'); summary.textContent = 'Consultar el texto de esta actividad';
+        passage.before(details); details.append(summary, passage);
+      }
+      readingTexts.add(key);
+    });
+    function renderView() { const sections = visibleQuestions(), step = $('playMode').value === 'step'; currentStep = Math.max(0, Math.min(currentStep, sections.length - 1)); sections.forEach((section, n) => section.hidden = step && n !== currentStep); $('form').querySelectorAll('.reading-repeat').forEach(details => details.open = step); $('stepPosition').textContent = `${currentStep + 1} / ${sections.length}`; toolbar.querySelector('.step-navigation').hidden = !step; $('previousQuestion').disabled = currentStep === 0; $('nextQuestion').disabled = currentStep === sections.length - 1; }
     function showQuestion(index) { const section = document.querySelector(`[data-question="${index}"]`); currentStep = visibleQuestions().findIndex(item => item === section || item.dataset.question === section?.dataset.groupMember); renderView(); }
-    $('playMode').onchange = renderView;
-    $('previousQuestion').onclick = () => { currentStep--; renderView(); };
-    $('nextQuestion').onclick = () => { currentStep++; renderView(); };
+    $('playMode').onchange = () => { renderView(); content.scrollTop = 0; };
+    $('previousQuestion').onclick = () => { currentStep--; renderView(); content.scrollTop = 0; };
+    $('nextQuestion').onclick = () => { currentStep++; renderView(); content.scrollTop = 0; };
 
     function updateProgress() {
       const complete = questions.map((question, index) => {
@@ -616,14 +636,14 @@
       if (!input.checked) return;
       const index = Number(input.name.slice(2));
       if (questions[index].type !== 'pairs') return;
-      questions.forEach((q, other) => { if (other !== index && q.type === 'pairs') { const previous = [...document.querySelectorAll(`input[name="r-${other}"]`)].find(option => option.value === input.value && option.checked); if (previous) previous.checked = false; } });
+      questions.forEach((q, other) => { if (other !== index && q.type === 'pairs' && (q.activityGroup || 0) === (questions[index].activityGroup || 0)) { const previous = [...document.querySelectorAll(`input[name="r-${other}"]`)].find(option => option.value === input.value && option.checked); if (previous) previous.checked = false; } });
     });
     questions.forEach((q, index) => {
       if (openAnswerTypes.includes(q.type) && q.type !== 'flashcard') $('grade-' + index).onchange = () => { if (!attempt) return; attempt.grades[index] = $('grade-' + index).value; const grade = attempt.grades[index]; const section = document.querySelector(`[data-question="${index}"]`); section.dataset.result = grade; $('feedback-' + index).className = 'play-feedback prewrap ' + (grade === 'correct' ? 'is-correct' : grade === 'pending' ? 'is-pending' : 'is-incorrect'); updateScore(); };
     });
     for (const kind of ['pairs','classify']) {
       const indices = questions.flatMap((q, index) => q.type === kind ? [index] : []);
-      const groups = kind === 'pairs' ? [indices] : Object.values(indices.reduce((groups, index) => { const key = JSON.stringify([...questions[index].options].sort()); (groups[key] ??= []).push(index); return groups; }, {}));
+      const groups = Object.values(indices.reduce((groups,index)=>{const key=String(questions[index].activityGroup||0)+(kind==='classify'?'|'+JSON.stringify([...questions[index].options].sort()):'');(groups[key]??=[]).push(index);return groups;},{}));
       groups.filter(group => group.length >= (kind === 'pairs' ? 2 : 1)).forEach(group => {
         const first = group[0], section = document.querySelector(`[data-question="${first}"]`), root = section.querySelector('.question-controls');
         const targets = kind === 'pairs' ? shuffle(group.map(index => questions[index].answer)) : questions[first].options;

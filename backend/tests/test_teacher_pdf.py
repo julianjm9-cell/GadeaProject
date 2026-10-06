@@ -92,6 +92,24 @@ class TeacherPdfTests(unittest.TestCase):
         for field in ['Datos', 'Planteamiento', 'Cálculos', 'Respuesta y comprobación']:
             self.assertIn(field, worksheet)
 
+    def test_long_materials_keep_reading_once_and_matching_banks_separate(self):
+        material={'title':'Lectura y vocabulario','activity':{'questions':[
+            {'type':'reading','activityGroup':1,'prompt':'¿Quién llega?','answer':'Ana','text':'Una historia única sobre el barrio.'},
+            {'type':'reading','activityGroup':1,'prompt':'¿Dónde ocurre?','answer':'En el barrio','text':'Una historia única sobre el barrio.'},
+            {'type':'pairs','activityGroup':2,'prompt':'Primer concepto','answer':'Respuesta del primer bloque'},
+            {'type':'pairs','activityGroup':2,'prompt':'Segundo concepto','answer':'Otra respuesta del primer bloque'},
+            {'type':'pairs','activityGroup':3,'prompt':'Tercer concepto','answer':'Respuesta del segundo bloque'},
+            {'type':'pairs','activityGroup':3,'prompt':'Cuarto concepto','answer':'Otra respuesta del segundo bloque'},
+        ]}}
+        text=self.text(render_teacher_pdf(material,False,lambda _:self.image))
+        self.assertEqual(text.count('Una historia única sobre el barrio.'),1)
+        first=text[text.index('Primer concepto'):text.index('Segundo concepto')]
+        self.assertNotIn('segundo bloque',first)
+        self.assertIn('primer bloque',first)
+        material['activity']['questions']=[{'type':'gaps','prompt':f'Pregunta {i}: ___','answer':str(i)} for i in range(30)]
+        text=self.text(render_teacher_pdf(material,False,lambda _:self.image))
+        self.assertIn('Pregunta 29',text)
+
 
 if __name__ == "__main__":
     unittest.main()
