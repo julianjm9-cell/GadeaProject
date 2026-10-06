@@ -103,23 +103,28 @@ def test_wrong_product(client):
     seed_user(factory,product_codes=('DIPLOMATOR',));login(web)
     assert web.post('/api/profesor/generate?app=diplomator',json=request()).status_code==403
 
-def test_all_basic_formats_validation():
+def parse_format_groups(questions):
+    """Cover every format in separate requests respecting the three-activity limit."""
     from app.services.teacher_generator import generator_context, parse_material, TYPES
-    data=request();data.update({k:1 for k in TYPES[:9]})
-    _,context=generator_context(data)
+    result = []
+    for offset in range(0, len(questions), 3):
+        group = questions[offset:offset + 3]
+        data = request(); data.update({kind: sum(q['type'] == kind for q in group) for kind in TYPES})
+        _, context = generator_context(data)
+        result.extend(parse_material(json.dumps({'questions': group}), context))
+    return result
+
+
+def test_all_basic_formats_validation():
     questions=[dict(type='pairs',prompt='Plumas',answer='Pájaro'),dict(type='gaps',prompt='2 + 2 = ___',answer='4'),dict(type='quiz',prompt='Mamífero',answer='Delfín',options=['Delfín','Pájaro']),dict(type='short',prompt='Explica',answer='Respuesta orientativa'),dict(type='order',prompt='Ordena',answer='Secuencia',options=['Primero','Después','Finalmente']),dict(type='classify',prompt='Gato',answer='Mamífero',options=['Mamífero','Ave']),dict(type='boolean',prompt='2 + 2 = 4',answer='Verdadero',options=['Verdadero','Falso']),dict(type='reading',text='Ana tiene un gato.',prompt='¿Qué tiene Ana?',answer='Un gato'),dict(type='problem',prompt='Tres cajas con dos libros cada una.',answer='3 × 2 = 6 libros')]
-    result=parse_material(json.dumps({'questions':questions}),context)
+    result=parse_format_groups(questions)
     assert len(result)==9
     assert result[4]['answer']=='Primero → Después → Finalmente'
     questions[7]['text']=''
-    with pytest.raises(Exception):parse_material(json.dumps({'questions':questions}),context)
+    with pytest.raises(Exception):parse_format_groups(questions)
 
 def test_game_formats_and_invalid_memory():
-    from app.services.teacher_generator import generator_context, parse_material, TYPES
     from fastapi import HTTPException
-    data=request();data.update({k:0 for k in TYPES})
-    data.update(flashcard=1,memory=1,sentence=1,timeline=1,error=1)
-    _,context=generator_context(data)
     questions=[
         dict(type='flashcard',prompt='Gato en inglés',answer='Cat'),
         dict(type='memory',prompt='Relaciona',answer='Completado',options=['Gato | Cat','Perro | Dog']),
@@ -127,11 +132,11 @@ def test_game_formats_and_invalid_memory():
         dict(type='timeline',prompt='Ordena',answer='Crecimiento',options=['Semilla','Brote','Planta']),
         dict(type='error',prompt='Corrige: 2 + 2 = 5',answer='2 + 2 = 4'),
     ]
-    result=parse_material(json.dumps({'questions':questions}),context)
+    result=parse_format_groups(questions)
     assert result[2]['answer']=='El gato → duerme'
     assert result[1]['answer']=='Completado'
     questions[1]['options']=['Gato | Cat','Perro | Cat']
-    with pytest.raises(HTTPException):parse_material(json.dumps({'questions':questions}),context)
+    with pytest.raises(HTTPException):parse_format_groups(questions)
 
 
 def test_puzzle_formats_are_validated_before_charging(client, monkeypatch):
@@ -168,24 +173,20 @@ def test_puzzle_generation_charges_only_for_valid_board(client, monkeypatch):
 
 
 def test_extended_activity_formats_are_validated():
-    from app.services.teacher_generator import generator_context, parse_material, TYPES
     from fastapi import HTTPException
-    data = request(); data.update({key: 0 for key in TYPES})
-    data.update(multigaps=1, numeric=1, pasapalabra=1, hangman=1)
-    _, context = generator_context(data)
     questions = [
         dict(type='multigaps', prompt='El agua pasa de ___ a ___.', answer='líquido | sólido', options=['líquido', 'sólido']),
         dict(type='numeric', prompt='¿Cuánto es 25 ÷ 2?', answer='12,5'),
         dict(type='pasapalabra', prompt='Completa la rueda', answer='Completado', options=['A | Líquido esencial | agua', 'B | Lugar con libros | biblioteca', 'C | Pigmento verde | clorofila']),
         dict(type='hangman', prompt='Estrella del sistema solar', answer='Sol'),
     ]
-    result = parse_material(json.dumps({'questions': questions}), context)
+    result = parse_format_groups(questions)
     assert result[0]['answer'] == 'líquido | sólido'
     assert result[1]['answer'] == '12,5'
     assert result[2]['answer'] == 'Completado'
     questions[0]['prompt'] = 'Solo hay un ___.'
     with pytest.raises(HTTPException):
-        parse_material(json.dumps({'questions': questions}), context)
+        parse_format_groups(questions)
 
 
 

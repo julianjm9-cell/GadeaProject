@@ -28,6 +28,30 @@ def test_sizes_have_independent_groups_and_bounded_batches():
     assert exc.value.status_code == 422
 
 
+@pytest.mark.parametrize('counts', [dict(gaps=0), dict(gaps=4), dict(gaps=2, quiz=2), dict(gaps=1, quiz=1, short=1, problem=1)])
+def test_selection_limit_rejects_excess_activities_before_provider_and_charging(client, monkeypatch, counts):
+    web, factory = client
+    seed_user(factory, product_codes=('PROFESOR_PARTICULAR',)); login(web)
+    def no_provider(*args, **kwargs):
+        pytest.fail('An invalid selection must not reach the AI provider')
+    monkeypatch.setattr(app_routes, 'chat_provider_config', no_provider)
+    body = payload(); body.update(counts)
+    response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
+    assert response.status_code == 422, response.text
+    assert '3' in response.json()['detail']
+    with factory() as db:
+        assert db.scalar(select(func.count()).select_from(UsageRecord)) == 0
+        assert db.scalar(select(func.count()).select_from(Conversation)) == 0
+
+
+def test_three_activities_keep_their_full_question_sizes():
+    body = payload(); body.update(gaps=3, activitySizes={'gaps':12})
+    _, context = generator_context(body)
+    batches = generation_batches(context)
+    assert sum(batch['gaps'] for batch, _ in batches) == 36
+    assert {group for _, group in batches} == {1, 2, 3}
+
+
 def test_long_cloze_and_real_rosco_contract():
     body=payload()
     body.update(gaps=0, multigaps=1, activitySizes={'multigaps':12}, extent='long')

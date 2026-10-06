@@ -430,7 +430,7 @@ function workshopMarkup(owner,draft,st){
  const family=(name,title,keys,index)=>'<details name="workshop-families" class="exercise-family '+name+'"'+(keys.some(k=>Number(draft[k])>0)?' open':'')+'><summary class="family-heading"><span class="family-number">'+index+'</span><span class="family-symbol">'+icon(index===1?'file':index===2?'spark':'image')+'</span><strong>'+title+'</strong><span class="family-selected"></span><span class="family-chevron" aria-hidden="true">⌄</span></summary><div class="exercise-tiles">'+keys.map(tile).join('')+'</div></details>';
  return '<div class="studio-topline"><h2>Crear material</h2></div><div class="studio-fields workshop-all-fields"><div><label for="workshopStudent">Alumno (opcional)</label><select id="workshopStudent" name="studentId"><option value="">Material general</option>'+studentOptions(owner)+'</select></div><div><label for="workshopCourse">Curso</label><select id="workshopCourse" name="course" required>'+courseChoices(draft.course||st?.course||'')+'</select></div><div><label for="workshopSubject">Asignatura</label><select id="workshopSubject" name="subject">'+(st?.subjects||subjects).map(x=>'<option>'+esc(x)+'</option>').join('')+'</select></div><div><label for="workshopTopic">Contenido o tema</label><input id="workshopTopic" name="topic" list="workshopTopics" maxlength="180" required value="'+esc(draft.topic||'')+'" placeholder="Elige o escribe un tema…"><datalist id="workshopTopics"></datalist></div><div><label for="workshopTheme">Ambientación (opcional)</label><input id="workshopTheme" name="theme" maxlength="250" value="'+esc(draft.theme??st?.interests??'')+'" placeholder="Animales, espacio, deportes…"></div></div>'+
  '<div class="catalog-board"><div class="catalog-main"><div class="catalog-families">'+family('basic-family','Ejercicios básicos',Object.keys(activityLabels).filter(k=>!gameTypes.includes(k)),1)+family('playful-family','Para aprender jugando',gameTypes.filter(k=>!visualTypes.includes(k)),2)+family('photo-manual'+(!isPremium()?' premium-locked':''),(!isPremium()?'🔒 ':'')+'Actividades con fotografía · Premium',visualTypes,3)+'</div></div></div>'+
- '<div class="studio-counts" hidden>'+Object.keys(activityLabels).map(k=>'<input id="count-'+k+'" name="'+k+'" type="number" min="0" max="10" step="1" value="'+(Number(draft[k])||0)+'">').join('')+'</div><select id="workshopMode" name="mode" hidden><option value="manual">Manual</option>'+(demo?'':'<option value="ai">IA</option>')+'</select><p id="workshopStatus" role="status" aria-live="polite"></p><div class="studio-actions"><div class="workshop-selection-status" id="workshopSelection" role="status"></div><button type="button" id="workshopManual">Generar manual</button><button type="submit" id="workshopContinue" class="primary"'+(demo?' hidden':'')+'>✦ Generar con IA</button></div>';
+ '<div class="studio-counts" hidden>'+Object.keys(activityLabels).map(k=>'<input id="count-'+k+'" name="'+k+'" type="number" min="0" max="'+MAX_GENERATOR_ACTIVITIES+'" step="1" value="'+(Number(draft[k])||0)+'">').join('')+'</div><select id="workshopMode" name="mode" hidden><option value="manual">Manual</option>'+(demo?'':'<option value="ai">IA</option>')+'</select><p id="workshopStatus" role="status" aria-live="polite"></p><div class="studio-actions"><div class="workshop-selection-status" id="workshopSelection" role="status"></div><button type="button" id="workshopManual">Generar manual</button><button type="submit" id="workshopContinue" class="primary"'+(demo?' hidden':'')+'>✦ Generar con IA</button></div>';
 }
 function setupWorkshop(owner,draft,st){
  const form=$('form'),dialog=$('dialog');
@@ -446,26 +446,31 @@ function setupWorkshop(owner,draft,st){
   form.querySelectorAll('[data-exercise]').forEach(tile=>{
    const type=tile.dataset.exercise,field=$('count-'+type);
    if(visualTypes.includes(type)&&!isPremium())field.value=0;
-   const n=Math.max(0,Math.min(10,Number(field.value)||0));
+   const n=Math.max(0,Math.min(MAX_GENERATOR_ACTIVITIES,Number(field.value)||0));
    field.value=n;tile.dataset.count=n;tile.setAttribute('aria-pressed',String(n>0));tile.querySelector('output').textContent=n;
-   tile.querySelectorAll('[data-step]').forEach(b=>b.setAttribute('aria-disabled',String(b.dataset.step==='-1'?n===0:n===10)));
    total+=n;if(visualTypes.includes(type))photos+=n;
   });
   form.querySelectorAll('.exercise-family').forEach(family=>{const amount=[...family.querySelectorAll('[data-exercise]')].reduce((sum,t)=>sum+Number(t.dataset.count),0);family.querySelector('.family-selected').textContent=amount?amount+(amount===1?' seleccionado':' seleccionados'):''});
-  const invalid=total<1||total>20;
+  form.querySelectorAll('[data-exercise]').forEach(tile=>tile.querySelectorAll('[data-step]').forEach(b=>b.setAttribute('aria-disabled',String(b.dataset.step==='-1'?Number(tile.dataset.count)===0:total>=MAX_GENERATOR_ACTIVITIES))));
+  const invalid=workshopBusy||total<1||total>MAX_GENERATOR_ACTIVITIES;
   $('workshopManual').disabled=invalid;
   $('workshopContinue').disabled=invalid||photos===total&&total>0;
-  $('workshopSelection').textContent=total+' '+(total===1?'ejercicio seleccionado':'ejercicios seleccionados')+(total>20?' · Máximo 20':'');
-  $('workshopSelection').classList.toggle('error',total>20);
+  $('workshopSelection').textContent=total+' de '+MAX_GENERATOR_ACTIVITIES+' actividades seleccionadas';
+  $('workshopSelection').classList.toggle('error',total>MAX_GENERATOR_ACTIVITIES);
   if(updateStatus)$('workshopStatus').textContent=photos===total&&total>0?'Las actividades con fotografía se preparan manualmente en el editor.':photos?'La IA prepara los ejercicios sin foto; las fotografías se completan en el editor.':'';
  };
  const restoreAvailability=()=>refresh(false);
  form.addEventListener('workshop:refresh',restoreAvailability);
  dialog.addEventListener('close',()=>form.removeEventListener('workshop:refresh',restoreAvailability),{once:true});
+ const changeCount=(tile,value)=>{
+  const field=$('count-'+tile.dataset.exercise),total=Object.keys(activityLabels).reduce((sum,type)=>sum+Number($('count-'+type).value),0);
+  if(value>Number(field.value)&&total>=MAX_GENERATOR_ACTIVITIES){$('workshopStatus').textContent='Puedes elegir hasta 3 actividades. Quita una para añadir otra.';return}
+  field.value=Math.max(0,Math.min(MAX_GENERATOR_ACTIVITIES,value));refresh();form.dispatchEvent(new Event('workshop:refresh'));
+ };
  form.querySelectorAll('[data-exercise]').forEach(tile=>{
-  tile.onclick=event=>{if(event.target.closest('[data-step]'))return;const field=$('count-'+tile.dataset.exercise);field.value=Number(field.value)>0?0:1;refresh()};
+  tile.onclick=event=>{if(event.target.closest('[data-step]'))return;const field=$('count-'+tile.dataset.exercise);changeCount(tile,Number(field.value)>0?0:1)};
   tile.querySelectorAll('[data-step]').forEach(control=>{
-   const change=event=>{event.stopPropagation();event.preventDefault();if(tile.disabled)return;const field=$('count-'+tile.dataset.exercise);field.value=Math.max(0,Math.min(10,Number(field.value)+Number(control.dataset.step)));refresh()};
+   const change=event=>{event.stopPropagation();event.preventDefault();if(tile.disabled||workshopBusy)return;const field=$('count-'+tile.dataset.exercise);changeCount(tile,Number(field.value)+Number(control.dataset.step))};
    control.onclick=change;
    control.onkeydown=event=>{if(event.key==='Enter'||event.key===' ')change(event)};
   });
@@ -518,6 +523,7 @@ function setupEditorNavigation(material){
 }
 let workshopBusy=false;
 let generatorRetry=null;
+const MAX_GENERATOR_ACTIVITIES=3;
 const activityLabels={pairs:'Relacionar',gaps:'Completar',multigaps:'Texto con huecos',numeric:'Respuesta numérica',quiz:'Elegir respuesta',short:'Respuesta breve',order:'Ordenar',classify:'Clasificar',boolean:'Verdadero / Falso',reading:'Comprensión',problem:'Problemas',flashcard:'Flashcards',memory:'Memory',sentence:'Construye la frase',timeline:'Línea temporal',error:'Encuentra el error',wordsearch:'Sopa de letras',crossword:'Crucigrama',dragdrop:'Arrastrar y soltar',pasapalabra:'Pasapalabra',hangman:'Ahorcado',visualquiz:'Quiz visual',imagepoint:'Señalar imagen'};
 const activityDescriptions={pairs:'Une conceptos y respuestas',gaps:'Completa una palabra',multigaps:'Completa varias partes del texto',numeric:'Calcula y escribe el resultado',quiz:'Elige entre varias opciones',short:'Responde de forma breve',order:'Coloca los pasos en orden',classify:'Elige la categoría correcta',boolean:'Decide si es verdadero o falso',reading:'Lee, comprende y responde',problem:'Razona paso a paso',flashcard:'Repasa y autoevalúate',memory:'Encuentra las parejas',sentence:'Ordena los fragmentos',timeline:'Ordena hechos y fechas',error:'Detecta y corrige el fallo',wordsearch:'Encuentra las palabras',crossword:'Resuelve mediante pistas',dragdrop:'Lleva cada pieza a su lugar',pasapalabra:'Completa la rueda de letras',hangman:'Descubre la palabra oculta',visualquiz:'Responde mirando la imagen',imagepoint:'Señala la zona correcta'};
 const openAnswerTypes=['short','reading','problem','error','flashcard'];
@@ -616,7 +622,7 @@ function mountPuzzleGame(q,i,isChecked,report){
   const complete=assignments.every(n=>n!==null)&&new Set(assignments).size===rows.length;answer.value=assignments.map((n,target)=>`${rows[target][1]}: ${n===null?'—':rows[n][0]}`).join(' · ');report(i,{complete,correct:complete&&assignments.every((n,target)=>n===target),answer:answer.value})}
  draw();
 }
-function openWorkshop(prefill={}){const owner=selected||'',draft={...prefill},st=student(owner);modal('Crear material',workshopMarkup(owner,draft,st),async f=>{const c={studentId:f.get('studentId'),course:f.get('course').trim(),subject:f.get('subject'),topic:f.get('topic').trim(),theme:f.get('theme').trim(),duration:15};for(const k of Object.keys(activityLabels))c[k]=Number(f.get(k));if(!c.topic||Object.keys(activityLabels).some(k=>!Number.isInteger(c[k])||c[k]<0||c[k]>10)||Object.keys(activityLabels).reduce((n,k)=>n+c[k],0)<1||Object.keys(activityLabels).reduce((n,k)=>n+c[k],0)>20)throw Error('Indica el tema y entre 1 y 20 ejercicios en total (máximo 10 por tipo).');let questions=Object.keys(activityLabels).flatMap(type=>Array.from({length:c[type]},()=>({id:uid(),type,prompt:'',answer:'',text:'',options:type==='boolean'?['Verdadero','Falso']:optionTypes.includes(type)?['','','']:[]})));if(f.get('mode')==='ai'){workshopBusy=true;$('workshopStatus').textContent='Generando contenido. Mantén abierta esta ventana…';const controlStates=[...$('form').querySelectorAll('input,select,button')].map(control=>[control,control.disabled]);controlStates.forEach(([control])=>control.disabled=true);try{const fingerprint=JSON.stringify(c);if(!generatorRetry||generatorRetry.fingerprint!==fingerprint)generatorRetry={fingerprint,id:crypto.randomUUID()};const aiContext={...c,focus:student(c.studentId)?String(learningSummary(student(c.studentId),c.subject).reinforce||'').slice(0,350):'',visualquiz:0,imagepoint:0};const data=await api('/api/profesor/generate',{...aiContext,request_id:generatorRetry.id});const generated=validateActivityQuestions(data.questions).map(q=>({...q,id:uid()}));for(const k of Object.keys(activityLabels).filter(k=>!visualTypes.includes(k)))if(generated.filter(q=>q.type===k).length!==c[k])throw Error('La IA devolvió cantidades distintas. Revisa la configuración e inténtalo de nuevo o crea el material manualmente.');const groups=Object.fromEntries(Object.keys(activityLabels).map(k=>[k,generated.filter(q=>q.type===k)]));questions=questions.map(q=>visualTypes.includes(q.type)?q:groups[q.type].shift());generatorRetry=null;}finally{workshopBusy=false;controlStates.forEach(([control,disabled])=>control.disabled=disabled);$('workshopStatus').textContent=''}}const m={id:uid(),title:c.topic,subject:c.subject,studentId:c.studentId,kind:'Actividad interactiva',body:'',activity:{version:1,context:c,questions}};setTimeout(()=>editActivity(m),0)});setupWorkshop(owner,draft,st);}
+function openWorkshop(prefill={}){const owner=selected||'',draft={...prefill},st=student(owner);modal('Crear material',workshopMarkup(owner,draft,st),async f=>{const c={studentId:f.get('studentId'),course:f.get('course').trim(),subject:f.get('subject'),topic:f.get('topic').trim(),theme:f.get('theme').trim(),duration:15};for(const k of Object.keys(activityLabels))c[k]=Number(f.get(k));if(!c.topic||Object.keys(activityLabels).some(k=>!Number.isInteger(c[k])||c[k]<0||c[k]>MAX_GENERATOR_ACTIVITIES)||Object.keys(activityLabels).reduce((n,k)=>n+c[k],0)<1||Object.keys(activityLabels).reduce((n,k)=>n+c[k],0)>MAX_GENERATOR_ACTIVITIES)throw Error('Indica el tema y selecciona entre 1 y 3 actividades.');let questions=Object.keys(activityLabels).flatMap(type=>Array.from({length:c[type]},()=>({id:uid(),type,prompt:'',answer:'',text:'',options:type==='boolean'?['Verdadero','Falso']:optionTypes.includes(type)?['','','']:[]})));if(f.get('mode')==='ai'){workshopBusy=true;$('workshopStatus').textContent='Generando contenido. Mantén abierta esta ventana…';const controlStates=[...$('form').querySelectorAll('input,select,button')].map(control=>[control,control.disabled]);controlStates.forEach(([control])=>control.disabled=true);try{const fingerprint=JSON.stringify(c);if(!generatorRetry||generatorRetry.fingerprint!==fingerprint)generatorRetry={fingerprint,id:crypto.randomUUID()};const aiContext={...c,focus:student(c.studentId)?String(learningSummary(student(c.studentId),c.subject).reinforce||'').slice(0,350):'',visualquiz:0,imagepoint:0};const data=await api('/api/profesor/generate',{...aiContext,request_id:generatorRetry.id});const generated=validateActivityQuestions(data.questions).map(q=>({...q,id:uid()}));for(const k of Object.keys(activityLabels).filter(k=>!visualTypes.includes(k)))if(generated.filter(q=>q.type===k).length!==c[k])throw Error('La IA devolvió cantidades distintas. Revisa la configuración e inténtalo de nuevo o crea el material manualmente.');const groups=Object.fromEntries(Object.keys(activityLabels).map(k=>[k,generated.filter(q=>q.type===k)]));questions=questions.map(q=>visualTypes.includes(q.type)?q:groups[q.type].shift());generatorRetry=null;}finally{workshopBusy=false;controlStates.forEach(([control,disabled])=>control.disabled=disabled);$('workshopStatus').textContent=''}}const m={id:uid(),title:c.topic,subject:c.subject,studentId:c.studentId,kind:'Actividad interactiva',body:'',activity:{version:1,context:c,questions}};setTimeout(()=>editActivity(m),0)});setupWorkshop(owner,draft,st);}
 
  const openWorkshopBase=openWorkshop;
  openWorkshop=function(prefill={}){return openWorkshopBase(isPremium()?prefill:{...prefill,visualquiz:0,imagepoint:0})};
@@ -729,6 +735,7 @@ init();
 .catalog-studio .tile-quantity{display:none;align-items:center;justify-content:center;gap:2px;margin-top:auto;line-height:1}
 .catalog-studio .exercise-tile[aria-pressed=true] .tile-quantity{display:flex}
 .catalog-studio .tile-quantity span[role=button]{display:grid;place-items:center;width:17px;height:17px;border-radius:5px;background:#d7e9ff;color:#075ed4;font-size:13px;font-weight:800}
+.catalog-studio .tile-quantity span[aria-disabled=true]{opacity:.4;cursor:not-allowed}
 .catalog-studio .tile-quantity output{min-width:11px;font-size:10px;font-weight:800}
 .catalog-studio .photo-manual{margin:6px 0 0;padding:6px 9px}
 .catalog-studio .studio-preview{min-height:0;max-height:none;overflow:hidden;padding:10px}
@@ -946,7 +953,7 @@ init();
 <link rel="stylesheet" href="./assets/profesor-temario.css?v=20261006-1">
 <script src="./profesor-support.js?v=20261005-9"></script>
 <link rel="stylesheet" href="./assets/profesor-generator.css?v=20261006-2">
-<script src="./profesor-generator.js?v=20261006-4"></script>
+<script src="./profesor-generator.js?v=20261006-5"></script>
 <style>
 #dialog.file-preview-dialog{width:min(1120px,96vw);max-width:1120px;max-height:94dvh;overflow:auto}
 .attachment-preview{margin:16px 0;border:1px solid #dce8f7;border-radius:14px;background:#f7faff;overflow:auto;min-width:0}

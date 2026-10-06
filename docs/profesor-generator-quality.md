@@ -10,6 +10,10 @@ doce huecos. Se mantienen los 21 tipos y las actividades con fotografía de Prem
 - Extensión orientativa breve, media o amplia y práctica guiada, autónoma o de reto.
 - Control de preguntas, parejas, palabras, letras o pasos por actividad seleccionada.
 - Cada visita empieza sin tipos marcados. Al seleccionar un tipo se añade una actividad.
+- Máximo tres actividades por creación, incluidas las repeticiones del mismo tipo y las
+  fotografías. El contador muestra el límite; intentar una cuarta no altera la selección.
+  El servidor rechaza peticiones mayores antes de llamar a la IA o descontar créditos.
+  Las preguntas dentro de cada actividad y los materiales ya guardados se conservan.
 - Edición de una pregunta por pantalla, con el grupo de actividad identificado y vista previa.
 - Las pistas de crucigramas, parejas y rosco permiten varias líneas y se leen completas.
 - El texto de una lectura se comparte entre sus preguntas y editarlo actualiza todo el grupo.

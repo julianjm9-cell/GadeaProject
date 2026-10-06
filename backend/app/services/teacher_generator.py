@@ -9,6 +9,7 @@ from fastapi import HTTPException
 TYPES = ('pairs', 'gaps', 'quiz', 'short', 'order', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'memory', 'sentence', 'timeline', 'error', 'wordsearch', 'crossword', 'dragdrop', 'multigaps', 'numeric', 'pasapalabra', 'hangman')
 BUNDLE_TYPES = {'pairs', 'gaps', 'quiz', 'short', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'error', 'numeric', 'hangman'}
 ELEMENT_LIMITS = {'multigaps': 20, 'pasapalabra': 27, 'crossword': 7, 'wordsearch': 8, 'memory': 8, 'dragdrop': 8, 'order': 8, 'sentence': 8, 'timeline': 8}
+MAX_ACTIVITIES = 3
 
 
 SPANISH_LEVELS = {
@@ -132,11 +133,11 @@ def generator_context(payload):
     context['levelGuidance'] = spanish_guidance(context['course']) if context['subject'] == 'Español' else course_guidance(context['course'])
     for key in TYPES:
         value = payload.get(key, 0)
-        if type(value) is not int or not 0 <= value <= 10:
-            raise HTTPException(422, 'Las cantidades deben ser enteros entre 0 y 10.')
+        if type(value) is not int or not 0 <= value <= MAX_ACTIVITIES:
+            raise HTTPException(422, 'Las cantidades deben ser enteros entre 0 y 3; máximo 3 actividades por material.')
         context[key] = value
-    if not 1 <= sum(context[k] for k in TYPES) <= 20:
-        raise HTTPException(422, 'Selecciona entre 1 y 20 ejercicios.')
+    if not 1 <= sum(context[k] for k in TYPES) <= MAX_ACTIVITIES:
+        raise HTTPException(422, 'Selecciona entre 1 y 3 actividades por material.')
     duration = payload.get('duration', 15)
     if type(duration) is not int or duration not in (10, 15, 30, 45):
         raise HTTPException(422, 'Duración no válida.')
