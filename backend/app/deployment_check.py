@@ -13,6 +13,8 @@ from app.database.session import engine
 def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://admin") -> None:
     with engine.connect() as connection:
         assert connection.execute(text("SELECT 1")).scalar() == 1, "PostgreSQL no responde"
+        connection.execute(text("SELECT id FROM profesor_student_accesses LIMIT 0"))
+        connection.execute(text("SELECT id FROM profesor_material_sessions LIMIT 0"))
     checks = {
         "/ocr-facturas": b'href="/facturas/login"',
         "/facturas": b"LOGIN_TARGETS",
@@ -38,11 +40,13 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/profesor-temario-revision.js": b"editorialRevision",
         "/profesor-activity-play.js": b"runActivity",
         "/profesor-access.js": b"accessView",
+        "/profesor-live.js": b"studentMaterials",
         "/assets/profesor-home.css": b".home-roster",
         "/assets/profesor-studio.css": b"studio-renewed",
         "/assets/profesor-temario.css": b"temario-renewed",
         "/assets/profesor-activity-play.css": b"activity-play",
         "/assets/profesor-access.css": b"access-page",
+        "/assets/profesor-live.css": b"live-player",
         "/profesor/alumno": b"Mi espacio de clase",
         "/profesor-particular": b"LOGIN_TARGETS",  # Unauthenticated request must reach login.
         "/assets/landing/profesor-dashboard.png": b"\x89PNG\r\n\x1a\n",

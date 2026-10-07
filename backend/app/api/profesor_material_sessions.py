@@ -13,7 +13,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import case, select
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import current_user
@@ -417,7 +417,7 @@ def teacher_review(session_id: UUID, payload: ReviewGrade, user: User = Depends(
 @router.get("/api/profesor/student-material-sessions")
 def student_sessions(request: Request, db: Session = Depends(get_db)):
     access, _, _ = active_student(request, db)
-    rows_ = db.scalars(select(ProfesorMaterialSession).where(ProfesorMaterialSession.access_id == access.id, ProfesorMaterialSession.status != "cancelled").order_by(ProfesorMaterialSession.created_at.desc()).limit(50)).all()
+    rows_ = db.scalars(select(ProfesorMaterialSession).where(ProfesorMaterialSession.access_id == access.id, ProfesorMaterialSession.status != "cancelled").order_by(case((ProfesorMaterialSession.status == "in_progress", 0), else_=1), ProfesorMaterialSession.created_at.desc()).limit(50)).all()
     return {"sessions": [{"id": str(row.id), "title": row.title, "subject": row.subject, "status": row.status,
                           "count": len(row.material_snapshot["questions"]), "created_at": row.created_at.isoformat()} for row in rows_]}
 
