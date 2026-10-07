@@ -38,6 +38,10 @@ const server=http.createServer((req,res)=>{
       await page.goto(origin+'/');
       assert.equal(await page.locator('.app-card').count(),6);
       assert.equal(await page.locator('.invoices h2').innerText(),'Lector Facturas');
+      assert.equal(await page.locator('.invoices').getAttribute('aria-disabled'),'true');
+      assert.equal(await page.locator('.invoices .state').innerText(),'Pausado');
+      assert.equal(await page.locator('a.invoices').count(),0);
+      assert.equal(await page.locator('.invoices').evaluate(card=>getComputedStyle(card).filter),await page.locator('.u25').evaluate(card=>getComputedStyle(card).filter));
       assert.equal(await page.locator('.app-logo img').evaluateAll(imgs=>imgs.every(img=>img.complete&&img.naturalWidth>0)),true);
       if(viewport.width>900)assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight),true,'suite home has desktop scroll');
       if(process.env.SUITE_HOME_SCREENSHOT&&viewport.width>900)await page.screenshot({path:process.env.SUITE_HOME_SCREENSHOT});
