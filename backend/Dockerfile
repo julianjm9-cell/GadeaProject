@@ -27,6 +27,7 @@ COPY apps/profesor/profesor-activity-play.js /app/app/static/assets/profesor-act
 COPY apps/profesor/profesor-generator.js /app/app/static/assets/profesor-generator.js
 COPY apps/profesor/profesor-rich-text.js /app/app/static/assets/profesor-rich-text.js
 COPY apps/profesor/profesor-access.js /app/app/static/assets/profesor-access.js
+COPY apps/profesor/profesor-live.js /app/app/static/assets/profesor-live.js
 COPY apps/profesor/assets /app/app/static/assets
 COPY apps/e25/assets/desk /app/app/static/assets/desk
 COPY marketing/app_landings_demo /app/app/static/marketing
