@@ -3,6 +3,7 @@ from __future__ import annotations
 from sqlalchemy import text
 
 from app.database.session import engine
+from app.models import ProfesorStudentAccess
 
 
 def ensure_runtime_schema() -> None:
@@ -16,8 +17,11 @@ def ensure_runtime_schema() -> None:
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS drive_refresh_token TEXT",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS drive_folder_id VARCHAR(255)",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS drive_connected_at TIMESTAMP WITH TIME ZONE",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS meet_refresh_token TEXT",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS meet_connected_at TIMESTAMP WITH TIME ZONE",
         "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_google_sub ON users (google_sub)",
     ]
     with engine.begin() as conn:
         for statement in statements:
             conn.execute(text(statement))
+        ProfesorStudentAccess.__table__.create(bind=conn, checkfirst=True)

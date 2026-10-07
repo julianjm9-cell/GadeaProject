@@ -22,7 +22,7 @@ from app.schemas.core import ApiOk, EsoRegisterRequest, LoginRequest, TokenRespo
 from app.security.passwords import hash_password, verify_password
 from app.security.tokens import create_token, decode_token
 from app.services.audit import audit
-from app.services.licenses import check_access, license_for_user
+from app.services.licenses import check_access, license_for_user, profesor_account_plan
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -74,6 +74,7 @@ def issue_login_response(user: User, response: Response) -> TokenResponse:
     refresh = create_token(user.id, "refresh", timedelta(days=settings.refresh_token_days))
     response.set_cookie("diplomator_access", access, httponly=True, secure=settings.cookie_secure, samesite="lax", max_age=settings.access_token_minutes * 60)
     response.set_cookie("diplomator_refresh", refresh, httponly=True, secure=settings.cookie_secure, samesite="lax", max_age=settings.refresh_token_days * 86400)
+    response.delete_cookie("profesor_student_access")
     return TokenResponse(access_token=access, refresh_token=refresh, user=public_user(user))
 
 
@@ -125,6 +126,8 @@ def google_auth_redirect(purpose: str, next_path: str = "/apps", user_id: str = 
     scopes = ["openid", "email", "profile"]
     if purpose == "drive":
         scopes.append("https://www.googleapis.com/auth/drive.file")
+    if purpose == "meet":
+        scopes.append("https://www.googleapis.com/auth/meetings.space.created")
     params = {
         "client_id": settings.google_client_id,
         "redirect_uri": settings.google_redirect_uri,
@@ -133,7 +136,7 @@ def google_auth_redirect(purpose: str, next_path: str = "/apps", user_id: str = 
         "state": state,
         "access_type": "offline",
         "include_granted_scopes": "true",
-        "prompt": "consent" if purpose == "drive" else "select_account",
+        "prompt": "consent" if purpose in {"drive", "meet"} else "select_account",
     }
     response = RedirectResponse("https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params))
     response.set_cookie("diplomator_google_state", state, httponly=True, secure=settings.cookie_secure, samesite="lax", max_age=600)
@@ -370,6 +373,25 @@ def google_drive(next: str = "/app?drive=connected", user: User = Depends(curren
     return google_auth_redirect("drive", clean_next_path(next, "/app?drive=connected"), str(user.id))
 
 
+@router.get("/google/meet")
+def google_meet(user: User = Depends(current_user), db: Session = Depends(get_db)):
+    decision = check_access(db, user, "PROFESOR_PARTICULAR", require_credits=False)
+    if not decision.ok or not decision.license or profesor_account_plan(decision.license) != "premium":
+        raise HTTPException(403, "Conectar Meet requiere Profesor Premium.")
+    return google_auth_redirect("meet", "/profesor-particular", str(user.id))
+
+
+@router.post("/google/meet-disconnect", response_model=ApiOk)
+def google_meet_disconnect(user: User = Depends(current_user), db: Session = Depends(get_db)):
+    decision = check_access(db, user, "PROFESOR_PARTICULAR", require_credits=False)
+    if not decision.ok or not decision.license or profesor_account_plan(decision.license) != "premium":
+        raise HTTPException(403, "Requiere Profesor Premium.")
+    user.meet_refresh_token = None
+    user.meet_connected_at = None
+    db.commit()
+    return ApiOk()
+
+
 @router.get("/google/drive-status")
 def google_drive_status(user: User = Depends(current_user)) -> dict:
     return {
@@ -400,11 +422,39 @@ async def google_callback(request: Request, response: Response, code: str | None
     except HTTPException:
         return RedirectResponse("/login?google_error=state")
     target = clean_next_path(str(payload.get("next") or "/apps"))
-    if error or not code:
-        return RedirectResponse("/login?" + urlencode({"google_error": "1", "next": target}))
-    token_data = await exchange_google_code(code)
-    info = token_data["userinfo"]
     purpose = str(payload.get("purpose") or "login")
+    if error or not code:
+        if purpose == "meet":
+            return RedirectResponse("/profesor-particular?meet=cancelled#accesos")
+        return RedirectResponse("/login?" + urlencode({"google_error": "1", "next": target}))
+    try:
+        token_data = await exchange_google_code(code)
+    except HTTPException:
+        if purpose == "meet":
+            return RedirectResponse("/profesor-particular?meet=error#accesos")
+        raise
+    info = token_data["userinfo"]
+    if purpose == "meet":
+        try:
+            user_id = UUID(str(payload.get("user_id")))
+            session_id = decode_token(request.cookies.get("diplomator_access") or "", "access")
+        except (ValueError, TypeError):
+            return RedirectResponse("/profesor/login?expired=1")
+        if session_id != user_id:
+            return RedirectResponse("/profesor/login?expired=1")
+        user = db.get(User, user_id)
+        decision = check_access(db, user, "PROFESOR_PARTICULAR", require_credits=False) if user else None
+        if not decision or not decision.ok or not decision.license or profesor_account_plan(decision.license) != "premium":
+            return RedirectResponse("/profesor-particular#accesos")
+        if token_data.get("refresh_token"):
+            user.meet_refresh_token = token_data["refresh_token"]
+        if not user.meet_refresh_token:
+            return RedirectResponse("/profesor-particular?meet=missing_refresh#accesos")
+        user.meet_connected_at = datetime.now(timezone.utc)
+        db.commit()
+        redirect = RedirectResponse("/profesor-particular?meet=connected#accesos")
+        redirect.delete_cookie("diplomator_google_state")
+        return redirect
     if purpose == "drive":
         user = db.get(User, UUID(str(payload.get("user_id"))))
         if not user:

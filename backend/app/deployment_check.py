@@ -36,10 +36,13 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/profesor-temario-depth.js": b"deepDive",
         "/profesor-temario-revision.js": b"editorialRevision",
         "/profesor-activity-play.js": b"runActivity",
+        "/profesor-access.js": b"accessView",
         "/assets/profesor-home.css": b".home-roster",
         "/assets/profesor-studio.css": b"studio-renewed",
         "/assets/profesor-temario.css": b"temario-renewed",
         "/assets/profesor-activity-play.css": b"activity-play",
+        "/assets/profesor-access.css": b"access-page",
+        "/profesor/alumno": b"Mi espacio de clase",
         "/profesor-particular": b"LOGIN_TARGETS",  # Unauthenticated request must reach login.
         "/assets/landing/profesor-dashboard.png": b"\x89PNG\r\n\x1a\n",
     }

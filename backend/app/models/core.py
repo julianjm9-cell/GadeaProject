@@ -50,6 +50,8 @@ class User(Base, TimestampMixin):
     drive_refresh_token: Mapped[str | None] = mapped_column(Text, nullable=True)
     drive_folder_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     drive_connected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    meet_refresh_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    meet_connected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     organization: Mapped[Organization] = relationship(back_populates="users")
 
@@ -109,6 +111,24 @@ class ClientState(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     data: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+
+
+class ProfesorStudentAccess(Base, TimestampMixin):
+    __tablename__ = "profesor_student_accesses"
+    __table_args__ = (
+        UniqueConstraint("teacher_user_id", "student_id", name="uq_profesor_access_teacher_student"),
+        UniqueConstraint("username", name="uq_profesor_access_username"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
+    teacher_user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    student_id: Mapped[str] = mapped_column(String(120), nullable=False)
+    username: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    session_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    meet_uri: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    meet_space: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
 
 class GamificationProfile(Base, TimestampMixin):

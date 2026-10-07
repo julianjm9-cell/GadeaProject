@@ -31,10 +31,11 @@ async function login(event) {
   button.disabled = true;
   try {
   const body = signupMode ? {email:document.getElementById('email').value.trim(),full_name:document.getElementById('fullName').value.trim(),password:document.getElementById('password').value} : {identifier:document.getElementById('email').value.trim(),password:document.getElementById('password').value,enroll_eso:nextPath() === '/eso-adultos',enroll_profesor:nextPath() === '/profesor-particular'};
-  const res = await fetch(signupMode ? (nextPath() === '/profesor-particular' ? '/auth/profesor/register' : '/auth/eso/register') : '/auth/login', {
+  const studentLogin = teacher && !signupMode && !body.identifier.includes('@');
+  const res = await fetch(studentLogin ? '/auth/profesor/student-login' : signupMode ? (nextPath() === '/profesor-particular' ? '/auth/profesor/register' : '/auth/eso/register') : '/auth/login', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(body)
+    body:JSON.stringify(studentLogin ? {username:body.identifier,password:body.password} : body)
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || data.ok === false) {
@@ -50,7 +51,7 @@ async function login(event) {
       return;
     }
   }
-  location.href = nextPath();
+  location.href = studentLogin ? data.next : nextPath();
   } catch (_) { error.textContent = 'No se pudo conectar. Prueba de nuevo.'; }
   finally { button.disabled = false; }
 }

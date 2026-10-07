@@ -12,6 +12,7 @@ from app.models.core import (
     License,
     Message,
     Organization,
+    ProfesorStudentAccess,
     UsageRecord,
     User,
 )
@@ -31,6 +32,7 @@ __all__ = [
     "License",
     "Message",
     "Organization",
+    "ProfesorStudentAccess",
     "UsageRecord",
     "User",
 ]
