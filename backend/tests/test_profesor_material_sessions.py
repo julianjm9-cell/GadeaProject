@@ -29,6 +29,7 @@ def test_material_delivery_live_progress_and_private_answers(client):
     assert sent.status_code == 200, sent.text
     session_id = sent.json()["session"]["id"]
     assert web.get(f"/api/profesor/material-sessions/{session_id}").json()["session"]["status"] == "pending"
+    assert web.get(f"/api/profesor/access/{access['access']['id']}/material-sessions").json()["sessions"][0]["id"] == session_id
 
     with TestClient(app) as pupil:
         assert pupil.post("/auth/profesor/student-login", json={"username": "maria.live", "password": access["password"]}).status_code == 200
@@ -58,6 +59,7 @@ def test_material_delivery_live_progress_and_private_answers(client):
         pupil.post(f"/api/profesor/student-material-sessions/{session_id}/move", json={"action": "draft", "question_index": 2, "value": "Lo pensé paso a paso."})
         finished = pupil.post(f"/api/profesor/student-material-sessions/{session_id}/move", json={"action": "finish"})
         assert finished.status_code == 200 and finished.json()["status"] == "completed"
+        assert pupil.get("/api/profesor/student-material-sessions").json()["sessions"][0]["status"] == "completed"
         result = pupil.get(f"/api/profesor/student-material-sessions/{session_id}").json()["session"]
         assert result["progress"]["grades"]["0"] == "correct"
         assert result["progress"]["grades"]["2"] == "pending"
@@ -67,6 +69,12 @@ def test_material_delivery_live_progress_and_private_answers(client):
     review = web.post(f"/api/profesor/material-sessions/{session_id}/review", json={"question_index": 2, "grade": "correct"})
     assert review.status_code == 200
     assert review.json()["session"]["progress"]["grades"]["2"] == "correct"
+    assert web.get(f"/api/profesor/access/{access['access']['id']}/material-sessions").json()["sessions"] == []
+    next_id = web.post("/api/profesor/material-sessions", json={"access_id": access["access"]["id"], "material_id": "m1"}).json()["session"]["id"]
+    with TestClient(app) as pupil:
+        pupil.post("/auth/profesor/student-login", json={"username": "maria.live", "password": access["password"]})
+        visible = pupil.get("/api/profesor/student-material-sessions").json()["sessions"]
+        assert [(item["id"], item["status"]) for item in visible] == [(next_id, "pending"), (session_id, "completed")]
 
 
 def test_material_isolation_and_one_active_session(client):
@@ -79,6 +87,9 @@ def test_material_isolation_and_one_active_session(client):
     a2 = web.post("/api/profesor/access", json={"student_id": "s2", "username": "two.live"}).json()
     first = web.post("/api/profesor/material-sessions", json={"access_id": a1["access"]["id"], "material_id": "m1"}).json()["session"]["id"]
     second = web.post("/api/profesor/material-sessions", json={"access_id": a1["access"]["id"], "material_id": "m1"}).json()["session"]["id"]
+    own_sessions = web.get(f"/api/profesor/access/{a1['access']['id']}/material-sessions").json()["sessions"]
+    assert {item["id"] for item in own_sessions} == {first, second}
+    assert web.get(f"/api/profesor/access/{a2['access']['id']}/material-sessions").json()["sessions"] == []
     with TestClient(app) as other:
         other.post("/auth/profesor/student-login", json={"username": "two.live", "password": a2["password"]})
         assert other.get(f"/api/profesor/student-material-sessions/{first}").status_code == 404
@@ -89,7 +100,9 @@ def test_material_isolation_and_one_active_session(client):
         assert pupil.post(f"/api/profesor/student-material-sessions/{second}/move", json={"action": "start"}).status_code == 409
         assert web.post(f"/api/profesor/material-sessions/{first}/cancel").status_code == 200
         assert pupil.get(f"/api/profesor/student-material-sessions/{first}").status_code == 410
+        assert [item["id"] for item in pupil.get("/api/profesor/student-material-sessions").json()["sessions"]] == [second]
         assert pupil.post(f"/api/profesor/student-material-sessions/{second}/move", json={"action": "start"}).status_code == 200
+    assert [item["id"] for item in web.get(f"/api/profesor/access/{a1['access']['id']}/material-sessions").json()["sessions"]] == [second]
 
 
 def test_game_grading_does_not_send_hidden_keys():

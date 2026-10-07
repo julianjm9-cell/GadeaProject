@@ -384,6 +384,22 @@ def teacher_sessions(user: User = Depends(current_user), db: Session = Depends(g
                           "created_at": row.created_at.isoformat()} for row in rows_ if row.access_id in accesses and accesses[row.access_id].student_id in valid]}
 
 
+@router.get("/api/profesor/access/{access_id}/material-sessions")
+def teacher_student_live_sessions(access_id: UUID, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    teacher_premium(db, user)
+    access = owned_access(db, user, access_id)
+    rows_ = db.scalars(
+        select(ProfesorMaterialSession)
+        .where(ProfesorMaterialSession.access_id == access.id,
+               ProfesorMaterialSession.status.in_(("pending", "in_progress")))
+        .order_by(case((ProfesorMaterialSession.status == "in_progress", 0), else_=1),
+                  ProfesorMaterialSession.created_at.desc())
+        .limit(20)
+    ).all()
+    return {"sessions": [{"id": str(row.id), "title": row.title, "subject": row.subject,
+                          "status": row.status, "created_at": row.created_at.isoformat()} for row in rows_]}
+
+
 @router.get("/api/profesor/material-sessions/{session_id}")
 def teacher_watch(session_id: UUID, user: User = Depends(current_user), db: Session = Depends(get_db)):
     teacher_premium(db, user)
@@ -417,7 +433,7 @@ def teacher_review(session_id: UUID, payload: ReviewGrade, user: User = Depends(
 @router.get("/api/profesor/student-material-sessions")
 def student_sessions(request: Request, db: Session = Depends(get_db)):
     access, _, _ = active_student(request, db)
-    rows_ = db.scalars(select(ProfesorMaterialSession).where(ProfesorMaterialSession.access_id == access.id, ProfesorMaterialSession.status != "cancelled").order_by(case((ProfesorMaterialSession.status == "in_progress", 0), else_=1), ProfesorMaterialSession.created_at.desc()).limit(50)).all()
+    rows_ = db.scalars(select(ProfesorMaterialSession).where(ProfesorMaterialSession.access_id == access.id, ProfesorMaterialSession.status.in_(("pending", "in_progress", "completed"))).order_by(case((ProfesorMaterialSession.status == "in_progress", 0), (ProfesorMaterialSession.status == "pending", 1), else_=2), ProfesorMaterialSession.created_at.desc()).limit(50)).all()
     return {"sessions": [{"id": str(row.id), "title": row.title, "subject": row.subject, "status": row.status,
                           "count": len(row.material_snapshot["questions"]), "created_at": row.created_at.isoformat()} for row in rows_]}
 

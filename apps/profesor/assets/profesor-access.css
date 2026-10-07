@@ -1,16 +1,4 @@
-.access-page{max-width:1560px;margin:0 auto;padding:18px 0 44px;color:#081b59}
-.access-toolbar{display:flex;align-items:center;justify-content:space-between;gap:22px;margin-bottom:20px}
-.access-toolbar h1{margin:0 0 4px;font-size:clamp(24px,2.5vw,34px);letter-spacing:-.035em}
-.access-toolbar p{margin:0;color:#5675a7}
-.access-toolbar-actions{display:flex;align-items:center;justify-content:flex-end;gap:11px;flex-wrap:wrap}
-.access-count,.access-toolbar-actions>a,.access-auto-setup>summary{display:inline-flex;align-items:center;min-height:38px;padding:8px 13px;border:1px solid #d9e9fc;border-radius:12px;background:#fff;color:#1164d1;font-size:13px;font-weight:750;text-decoration:none}
-.access-count{background:#e8f3ff}
-.access-connection{color:#54739e;font-size:13px;font-weight:700}
-.access-connection.connected{color:#11956d}
-.access-auto-setup{position:relative;font-size:13px}
-.access-auto-setup>summary{list-style:none;cursor:pointer}
-.access-auto-setup>summary::-webkit-details-marker{display:none}
-.access-auto-setup[open]>button{margin:6px 0 0;padding:8px 11px;border:1px solid #c9dffa;border-radius:10px;background:#fff;color:#0f61c7;cursor:pointer}
+.access-page{max-width:1560px;margin:0 auto;padding:8px 0 44px;color:#081b59}
 .access-grid{display:grid;gap:22px}
 .access-card{display:grid;grid-template-columns:minmax(245px,.95fr) minmax(310px,1.23fr) minmax(230px,.9fr);align-items:stretch;gap:0;min-width:0;padding:23px 26px;border:1px solid #d9eafd;border-radius:20px;background:#fff;box-shadow:0 12px 34px #2368a10c}
 .access-card-person{display:flex;align-items:center;gap:22px;min-width:0;padding-right:25px}
@@ -49,10 +37,9 @@
 .access-more summary::-webkit-details-marker{display:none}
 .access-more>div{position:absolute;right:0;top:100%;z-index:5;display:grid;gap:4px;width:210px;padding:7px;border:1px solid #d7e8fc;border-radius:12px;background:#fff;box-shadow:0 10px 24px #1b4e7d20}
 .access-more>div button,.access-more>div a{min-height:34px;border:0;font-size:12px}
-.access-automatic{font-size:12px!important;min-height:34px!important}
 .access-empty{padding:45px;text-align:center;border:1px dashed #c4ddf8;border-radius:18px;background:#fff;color:#5578a5}
 .access-empty h2{margin-top:0;color:#081b59}
 .access-error{padding:12px 15px;border-radius:11px;background:#fff0e9;color:#b3442c}
 .access-loading{color:#587bac}
 @media(max-width:1150px){.access-card{grid-template-columns:minmax(220px,.95fr) minmax(280px,1.1fr);row-gap:19px}.access-card-person{align-items:flex-start}.access-card-credentials{border-right:0}.access-card-controls{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;padding:18px 0 0;border-top:1px solid #e0ecfb}.access-card-controls>button{flex:1 1 210px}.access-control-pair{flex:1 1 310px}.access-more{align-self:center}}
-@media(max-width:760px){.access-page{padding:12px 0 80px}.access-toolbar{align-items:flex-start;flex-direction:column}.access-toolbar-actions{justify-content:flex-start}.access-card{display:flex;flex-direction:column;padding:18px;gap:18px}.access-card-person{padding:0}.access-avatar{width:68px;height:68px;font-size:22px}.access-card h2{font-size:20px}.access-person-copy p{font-size:16px;margin:5px 0 8px}.access-status{font-size:13px;padding:6px 10px}.access-card-credentials{padding:17px 0;border-left:0;border-top:1px solid #e0ecfb;border-bottom:1px solid #e0ecfb}.access-card-controls{padding:0;border:0;display:flex;flex-direction:column}.access-card-controls>button,.access-control-pair{width:100%;flex:none}.access-control-pair button,.access-control-pair a{min-height:45px}}
+@media(max-width:760px){.access-page{padding:8px 0 80px}.access-card{display:flex;flex-direction:column;padding:18px;gap:18px}.access-card-person{padding:0}.access-avatar{width:68px;height:68px;font-size:22px}.access-card h2{font-size:20px}.access-person-copy p{font-size:16px;margin:5px 0 8px}.access-status{font-size:13px;padding:6px 10px}.access-card-credentials{padding:17px 0;border-left:0;border-top:1px solid #e0ecfb;border-bottom:1px solid #e0ecfb}.access-card-controls{padding:0;border:0;display:flex;flex-direction:column}.access-card-controls>button,.access-control-pair{width:100%;flex:none}.access-control-pair button,.access-control-pair a{min-height:45px}}

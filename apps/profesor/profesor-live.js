@@ -105,6 +105,12 @@
       const data=await api('/api/profesor/material-sessions');
       modal('Materiales enviados',data.sessions.length?`<div class="live-sent-list">${data.sessions.map(item=>`<button type="button" data-live-teacher="watch" data-id="${escape(item.id)}"><strong>${escape(item.title)}</strong><span>${escape(item.student_name)} · ${escape(item.subject)}</span><small>${item.status==='pending'?'Nuevo':item.status==='in_progress'?'En curso':item.status==='completed'?'Terminado':'Retirado'} · ${new Date(item.created_at).toLocaleDateString('es-ES')}</small></button>`).join('')}</div>`:'<p>Todavía no has mandado materiales a alumnos.</p>',()=>false);
     }
+    async function watchStudent(accessId){
+      const data=await api('/api/profesor/access/'+encodeURIComponent(accessId)+'/material-sessions');
+      if(!data.sessions.length){notify('Este alumno no tiene materiales pendientes ni en curso.');return}
+      if(data.sessions.length===1){await watchSession(data.sessions[0].id);return}
+      modal('Materiales del alumno',`<div class="live-sent-list">${data.sessions.map(item=>`<button type="button" data-live-teacher="watch" data-id="${escape(item.id)}"><strong>${escape(item.title)}</strong><span>${escape(item.subject)}</span><small>${item.status==='in_progress'?'En curso':'Pendiente'} · ${new Date(item.created_at).toLocaleDateString('es-ES')}</small></button>`).join('')}</div>`,()=>false);
+    }
     async function watchSession(id){
       const result=await api('/api/profesor/material-sessions/'+encodeURIComponent(id));
       teacherReviewIndex=null;watchedSession=result.session;
@@ -121,6 +127,7 @@
       try{
         if(button.dataset.action==='sendLiveMaterial'){const material=state.library.find(item=>item.id===button.dataset.id);if(material)await sendMaterial(material)}
         if(button.dataset.action==='liveSessionList')await listSessions();
+        if(button.dataset.liveTeacher==='student-watch')await watchStudent(button.dataset.accessId);
         if(button.dataset.liveTeacher==='watch'){$('dialog').close();setTimeout(()=>watchSession(button.dataset.id).catch(error=>notify(error.message)),0)}
         if(button.dataset.liveTeacher==='refresh'){const data=await api('/api/profesor/material-sessions/'+button.dataset.id);watchedSession=data.session;$('liveWatch').innerHTML=sessionMarkup(data.session,true)}
         if(button.dataset.liveTeacher==='review'&&watchedSession){teacherReviewIndex=Number(button.dataset.index);$('liveWatch').innerHTML=sessionMarkup(watchedSession,true)}
