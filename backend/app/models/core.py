@@ -131,6 +131,21 @@ class ProfesorStudentAccess(Base, TimestampMixin):
     meet_space: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
 
+class ProfesorMaterialSession(Base, TimestampMixin):
+    __tablename__ = "profesor_material_sessions"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
+    teacher_user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    access_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("profesor_student_accesses.id"), nullable=False, index=True)
+    material_id: Mapped[str] = mapped_column(String(120), nullable=False)
+    title: Mapped[str] = mapped_column(String(180), nullable=False)
+    subject: Mapped[str] = mapped_column(String(100), nullable=False)
+    material_snapshot: Mapped[dict] = mapped_column(JSON, nullable=False)
+    progress: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False, index=True)
+    revision: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+
 class GamificationProfile(Base, TimestampMixin):
     __tablename__ = "gamification_profiles"
     __table_args__ = (UniqueConstraint("organization_id", "user_id", "app_key", name="uq_gamification_profile_owner_app"),)

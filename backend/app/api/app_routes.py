@@ -665,6 +665,7 @@ def profesor_temario_catalogue():
 @router.get("/profesor-generator.js")
 @router.get("/profesor-rich-text.js")
 @router.get("/profesor-access.js")
+@router.get("/profesor-live.js")
 def profesor_support_script(request: Request):
     filename = request.url.path.rsplit("/", 1)[-1]
     local_path = PROJECT_ROOT / "apps" / "profesor" / filename
@@ -682,6 +683,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-activity-play.css")
 @router.get("/assets/profesor-generator.css")
 @router.get("/assets/profesor-access.css")
+@router.get("/assets/profesor-live.css")
 def profesor_final_styles(request: Request):
     filename = request.url.path.rsplit("/", 1)[-1]
     local_path = PROJECT_ROOT / "apps" / "profesor" / "assets" / filename

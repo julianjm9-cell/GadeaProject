@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy import text
 
 from app.database.session import engine
-from app.models import ProfesorStudentAccess
+from app.models import ProfesorStudentAccess, ProfesorMaterialSession
 
 
 def ensure_runtime_schema() -> None:
@@ -25,3 +25,4 @@ def ensure_runtime_schema() -> None:
         for statement in statements:
             conn.execute(text(statement))
         ProfesorStudentAccess.__table__.create(bind=conn, checkfirst=True)
+        ProfesorMaterialSession.__table__.create(bind=conn, checkfirst=True)

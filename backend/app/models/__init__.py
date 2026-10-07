@@ -13,6 +13,7 @@ from app.models.core import (
     Message,
     Organization,
     ProfesorStudentAccess,
+    ProfesorMaterialSession,
     UsageRecord,
     User,
 )
@@ -33,6 +34,7 @@ __all__ = [
     "Message",
     "Organization",
     "ProfesorStudentAccess",
+    "ProfesorMaterialSession",
     "UsageRecord",
     "User",
 ]
