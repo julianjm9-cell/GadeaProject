@@ -108,6 +108,8 @@
 .error-fragments{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 18px;padding:14px;background:#fff8f5;border-radius:10px}
 .error-fragments button{padding:6px 8px;min-height:32px;border:1px solid transparent;background:#fff;color:#17345f}
 .error-fragments button[aria-pressed=true]{border-color:#e6745d;background:#ffe6df;text-decoration:underline wavy #b84d37}
+.error-fragments button.answer-right[aria-pressed=true]{border-color:#57bd88;background:#ddf7e8;color:#14603a;text-decoration:none}
+.error-fragments button.answer-wrong[aria-pressed=true]{border-color:#e6745d;background:#ffe6df;color:#8f3429}
 
 .activity-play [data-type=boolean] .play-choice-grid{max-width:550px;margin:10px auto}
 .activity-play [data-type=boolean] .play-choice{justify-content:center;font-size:17px;min-height:64px}
@@ -148,7 +150,7 @@
 .activity-play .memory-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:115px;aspect-ratio:1.25;padding:12px;font-size:15px;border-radius:13px;background:linear-gradient(140deg,#dfedff,#f7faff);color:#2664af;overflow-wrap:anywhere}
 .activity-play .memory-card>span{font-size:30px}
 .activity-play .memory-card.revealed{background:#fff;border:2px solid #87b9f2}
-.activity-play .memory-card.matched{opacity:1;background:hsl(var(--pair-hue) 55% 94%);border-color:hsl(var(--pair-hue) 45% 65%);color:#245e50}
+.activity-play .memory-card.matched{opacity:1;background:#e3f7ec;border-color:#75ce9d;color:#14603a}
 .memory-card small{font-size:10px}
 
 .rosco-layout{display:grid;grid-template-columns:minmax(230px,340px) minmax(0,1fr);align-items:center;gap:20px}

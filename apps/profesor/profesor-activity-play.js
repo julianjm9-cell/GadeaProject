@@ -17,6 +17,17 @@
     const rows=q.optionFeedback?.map(row=>[row.option,row.explanation])||q.itemExplanations?.map((value,n)=>[q.type==='multigaps'?'Hueco '+(n+1):q.options[n]?.split('|')[0]||String(n+1),value])||[];
     return rows.length?'<details class="play-item-reasons"><summary>Explicación de cada respuesta</summary><ol>'+rows.map(([label,value])=>'<li><b>'+escape(label)+':</b> '+rich(value)+'</li>').join('')+'</ol></details>':'';
   };
+  const errorExample = prompt => {
+    const quoted = [...String(prompt).matchAll(/[«“"]([^«»“”"]+)[»”"]/g)];
+    return quoted.length ? quoted.at(-1)[1] : String(prompt).split(/:\s*/).at(-1).trim();
+  };
+  const errorValue = value => normalize(String(value).replace(/^[.,;:!?«»“”"]+|[.,;:!?«»“”"]+$/g,''));
+  const timelineLabel = (value, reveal) => reveal ? value : String(value).replace(/\b(?:1\d{3}|20\d{2})\b/g, 'año oculto').replace(/\baño oculto\s*[–—:-]\s*/gi, '').trim() || 'Fecha oculta';
+  const expectedSequence = q => {
+    if(q.type!=='timeline')return q.options;
+    const dated=q.options.map(value=>({value,year:Number(String(value).match(/\b(?:1\d{3}|20\d{2})\b/)?.[0])}));
+    return dated.every(item=>Number.isFinite(item.year))&&new Set(dated.map(item=>item.year)).size===dated.length?dated.sort((a,b)=>a.year-b.year).map(item=>item.value):q.options;
+  };
   function recordAnswer(index, part, correct, value, assisted = false) {
     $('form').dispatchEvent(new CustomEvent('play:answer', {detail:{index,part,correct,value,assisted}}));
   }
@@ -94,11 +105,12 @@
     const cleaned = baseValidate(questions, requireImages);
     return cleaned.map((q, i) => {
       const source = questions[i];
-      for (const [key, limit] of [['explanation', 1500], ['rubric', 1000], ['unit', 30], ['errorSegment', 200]]) {
+      for (const [key, limit] of [['explanation', 1500], ['rubric', 1000], ['unit', 30], ['errorSegment', 200], ['correctedSegment', 200]]) {
         if (source[key] != null && (typeof source[key] !== 'string' || source[key].length > limit)) throw Error(`Revisa ${key} en el ejercicio ${i + 1}.`);
         if (source[key]?.trim()) q[key] = source[key].trim();
       }
       if (q.errorSegment && !q.prompt.includes(q.errorSegment)) throw Error('El fragmento erróneo debe aparecer en el enunciado.');
+      if (q.type === 'error' && q.correctedSegment && (!q.errorSegment || normalize(q.correctedSegment) === normalize(q.errorSegment))) throw Error('Indica un fragmento erróneo y una corrección distinta.');
       for (const [key, count, limit] of [['hints', 3, 300], ['alternatives', 6, 100], ['wordBank', 12, 100]]) {
         const values = source[key] || [];
         if (!Array.isArray(values) || values.length > count || values.some(v => typeof v !== 'string' || !v.trim() || v.length > limit)) throw Error(`Revisa las pistas o respuestas alternativas del ejercicio ${i + 1}.`);
@@ -128,7 +140,7 @@
     const matched = new Set();
     function draw() {
       root.style.setProperty('--memory-columns', cards.some(card => card.label.length > 40) ? 2 : cards.length <= 6 ? 3 : 4);
-      root.innerHTML = cards.map((card, n) => `<button type="button" class="memory-card ${matched.has(card.id) ? 'matched' : ''} ${opened.includes(n) ? 'revealed' : ''}" style="--pair-hue:${card.id * 47 + 150}" data-card="${n}" aria-label="${opened.includes(n) || matched.has(card.id) ? escape(card.label) : `Tarjeta ${n + 1}`}" ${matched.has(card.id) ? 'disabled' : ''}>${opened.includes(n) || matched.has(card.id) ? escape(card.label) : '<span aria-hidden="true">?</span>'}${matched.has(card.id) ? '<small>✓ Pareja</small>' : ''}</button>`).join('');
+      root.innerHTML = cards.map((card, n) => `<button type="button" class="memory-card ${matched.has(card.id) ? 'matched' : ''} ${opened.includes(n) ? 'revealed' : ''}" data-card="${n}" aria-label="${opened.includes(n) || matched.has(card.id) ? escape(card.label) : `Tarjeta ${n + 1}`}" ${matched.has(card.id) ? 'disabled' : ''}>${opened.includes(n) || matched.has(card.id) ? escape(card.label) : '<span aria-hidden="true">?</span>'}${matched.has(card.id) ? '<small>✓ Pareja</small>' : ''}</button>`).join('');
       status.textContent = `${matched.size}/${pairs.length} parejas · ${moves} intentos`;
       root.querySelectorAll('[data-card]').forEach(button => button.onclick = () => {
         const n = Number(button.dataset.card);
@@ -351,7 +363,7 @@
         section.querySelectorAll('[name^="zone-"]').forEach(input => input.oninput = () => box.dispatchEvent(new Event('zonechange')));
         if (question.image && !question.target) box.dispatchEvent(new Event('zonechange'));
       }
-      section.insertAdjacentHTML('beforeend', `<details class="pedagogy-editor"><summary>Explicación, pistas y criterios</summary><label>Explicación de la solución<textarea name="explanation-${index}" maxlength="1500" placeholder="Por qué es correcta y cómo se llega a ella">${escape(question.explanation || '')}</textarea></label><label>Pistas progresivas (una por línea, hasta 3)<textarea name="hints-${index}" maxlength="902">${escape((question.hints || []).join('\n'))}</textarea></label>${openAnswerTypes.includes(question.type) ? `<label>Criterios para revisar<textarea name="rubric-${index}" maxlength="1000">${escape(question.rubric || '')}</textarea></label>` : ''}${['gaps','short'].includes(question.type) ? `<label>Respuestas equivalentes (una por línea)<textarea name="alternatives-${index}" maxlength="605">${escape((question.alternatives || []).join('\n'))}</textarea></label>` : ''}${question.type === 'numeric' ? `<div class="editor-pair"><label>Unidad<input name="unit-${index}" maxlength="30" value="${escape(question.unit || '')}"></label><label>Tolerancia absoluta<input name="tolerance-${index}" type="number" min="0" max="1000000" step="any" value="${Number(question.tolerance || 0)}"></label></div>` : ''}${question.type === 'error' ? `<label>Fragmento erróneo exacto<input name="errorSegment-${index}" maxlength="200" value="${escape(question.errorSegment || '')}"></label>` : ''}</details>`);
+      section.insertAdjacentHTML('beforeend', `<details class="pedagogy-editor"><summary>Explicación, pistas y criterios</summary><label>Explicación de la solución<textarea name="explanation-${index}" maxlength="1500" placeholder="Por qué es correcta y cómo se llega a ella">${escape(question.explanation || '')}</textarea></label>${question.type === 'error' ? `<label>Fragmento erróneo exacto<input name="errorSegment-${index}" maxlength="200" value="${escape(question.errorSegment || '')}"></label><label>Corrección exacta del fragmento<input name="correctedSegment-${index}" maxlength="200" value="${escape(question.correctedSegment || '')}"></label>` : ''}<label>Pistas progresivas (una por línea, hasta 3)<textarea name="hints-${index}" maxlength="902">${escape((question.hints || []).join('\n'))}</textarea></label>${openAnswerTypes.includes(question.type) ? `<label>Criterios para revisar<textarea name="rubric-${index}" maxlength="1000">${escape(question.rubric || '')}</textarea></label>` : ''}${['gaps','short'].includes(question.type) ? `<label>Respuestas equivalentes (una por línea)<textarea name="alternatives-${index}" maxlength="605">${escape((question.alternatives || []).join('\n'))}</textarea></label>` : ''}${question.type === 'numeric' ? `<div class="editor-pair"><label>Unidad<input name="unit-${index}" maxlength="30" value="${escape(question.unit || '')}"></label><label>Tolerancia absoluta<input name="tolerance-${index}" type="number" min="0" max="1000000" step="any" value="${Number(question.tolerance || 0)}"></label></div>` : ''}</details>`);
       const options = $('o-' + index);
       if (['gaps','multigaps'].includes(question.type)) section.querySelector('.pedagogy-editor').insertAdjacentHTML('beforeend', `<label>Banco de palabras opcional (una por línea, hasta 12)<textarea name="wordBank-${index}" maxlength="1211">${escape((question.wordBank || []).join('\n'))}</textarea></label>`);
       if (options) {
@@ -401,11 +413,11 @@
     } else if (type === 'flashcard') {
       control = `<button type="button" id="flip-${index}" class="flash-card" aria-pressed="false"><small>Toca para girar</small><strong>${escape(question.prompt)}</strong></button><div class="play-flash-assess" id="flash-assess-${index}" hidden><button type="button" data-flash="correct" data-index="${index}">✓ La sabía</button><button type="button" data-flash="partial" data-index="${index}">◷ Con ayuda</button><button type="button" data-flash="incorrect" data-index="${index}">↻ Repasar</button></div><input id="r-${index}" name="r-${index}" type="hidden">`;
     } else if (sequenceTypes.includes(type)) {
-      control = `<p class="play-hint">Arrastra para ordenar. También puedes tocar una fila y luego otra, o usar las flechas.</p><div id="order-${index}" class="play-order-list"></div><input type="hidden" id="r-${index}" name="r-${index}">`;
+      control = `<p class="play-hint">Arrastra para ordenar. También puedes tocar una fila y luego otra, o usar las flechas.${type === 'timeline' ? ' Las fechas se mostrarán al comprobar.' : ''}</p><div id="order-${index}" class="play-order-list"></div><input type="hidden" id="r-${index}" name="r-${index}">`;
     } else if (type === 'problem') {
       control = `<div class="problem-steps">${['Datos importantes','Planteamiento','Cálculos','Respuesta y comprobación'].map((label, n) => `<label><span>${n + 1}</span>${label}<textarea data-problem-step="${index}" maxlength="700" rows="2" ${n === 3 ? 'required' : ''} aria-label="${label}"></textarea></label>`).join('')}</div><input type="hidden" id="r-${index}" name="r-${index}">`;
     } else if (type === 'error') {
-      control = `<div class="error-fragments" role="group" aria-label="Selecciona el fragmento que contiene el error">${question.prompt.split(/(\s+)/).filter(part => part.trim()).map((part, n) => `<button type="button" data-error-word="${n}" aria-pressed="false">${escape(part)}</button>`).join('')}</div><label>Escribe la corrección y explica por qué<textarea id="r-${index}" name="r-${index}" maxlength="3000" required rows="3"></textarea></label>`;
+      control = `<p class="play-hint">Toca la palabra errónea de la oración y escribe cómo debería aparecer.</p><div class="error-fragments" role="group" aria-label="Selecciona la palabra o fragmento erróneo de la oración">${errorExample(question.prompt).split(/\s+/).filter(Boolean).map((part, n) => `<button type="button" data-error-word="${n}" aria-pressed="false">${escape(part)}</button>`).join('')}</div><label>Tu corrección<input id="r-${index}" name="r-${index}" autocomplete="off" maxlength="200" required placeholder="Escribe aquí la forma correcta"></label>`;
     } else if (openAnswerTypes.includes(type)) {
       control = `<textarea id="r-${index}" name="r-${index}" maxlength="${type === 'short' ? 800 : 3000}" rows="${type === 'short' ? 2 : 4}" required placeholder="Escribe tu respuesta con tus propias palabras…" aria-label="Respuesta del ejercicio ${index + 1}"></textarea>`;
     } else if (type === 'pairs' && pairChoices.length < 2) {
@@ -467,9 +479,15 @@
       if(q.type==='flashcard')return flashGrades[index]||'unanswered';
       if(puzzleTypes.includes(q.type))return !games[index]?.complete?'unanswered':games[index].correct?'correct':'incorrect';
       if(q.type==='memory')return value?'correct':'unanswered';
+      if(q.type==='error') {
+        const selected = [...document.querySelectorAll(`[data-question="${index}"] [data-error-word][aria-pressed="true"]`)].map(button => button.textContent).join(' ');
+        if (!selected || !String(value).trim()) return 'unanswered';
+        if (!q.errorSegment || !q.correctedSegment) return 'pending';
+        return errorValue(selected) === errorValue(q.errorSegment) && errorValue(value) === errorValue(q.correctedSegment) ? 'correct' : 'incorrect';
+      }
       if(!String(value).trim())return 'unanswered';
       if(openAnswerTypes.includes(q.type))return 'pending';
-      if(sequenceTypes.includes(q.type))return touchedSequences.has(index)?accepts(value,q.answer)?'correct':'incorrect':'unanswered';
+      if(sequenceTypes.includes(q.type))return touchedSequences.has(index)?sequences[index].length===q.options.length&&sequences[index].every((item,position)=>item===expectedSequence(q)[position])?'correct':'incorrect':'unanswered';
       if(q.type==='numeric'){const n=numberValue(value),s=numberValue(q.answer);return Number.isFinite(n)&&Math.abs(n-s)<=(q.tolerance||0)+Number.EPSILON*Math.max(1,Math.abs(s))*4?'correct':'incorrect';}
       if(q.type==='imagepoint'){const [x,y]=value.split(',').map(Number);return (q.target.width&&q.target.height?Math.abs(x-q.target.x)<=q.target.width/2&&Math.abs(y-q.target.y)<=q.target.height/2:Math.hypot(x-q.target.x,y-q.target.y)<=10)?'correct':'incorrect';}
       return accepts(value,q.answer,q.alternatives)?'correct':'incorrect';
@@ -487,7 +505,9 @@
       if(!puzzleTypes.includes(q.type))feedback(index,grade);
       const field=$('r-'+index);if(field&&field.type!=='hidden'&&grade!=='pending')markControl(field,grade==='correct');
       document.querySelector(`[data-question="${index}"]`)?.querySelectorAll('.play-choice').forEach(label=>{const input=label.querySelector('input');label.classList.remove('answer-right','answer-wrong');label.querySelector('.choice-result')?.remove();if(input.checked){const right=grade==='correct';markControl(label,right);label.insertAdjacentHTML('beforeend',`<b class="choice-result" aria-label="${right?'Correcta':'Incorrecta'}">${right?'✓':'×'}</b>`);}});
-      if(sequenceTypes.includes(q.type))document.querySelectorAll(`#order-${index} [data-sequence-row]`).forEach((row,n)=>markControl(row,sequences[index][n]===q.options[n]));
+      if(sequenceTypes.includes(q.type))document.querySelectorAll(`#order-${index} [data-sequence-row]`).forEach((row,n)=>markControl(row,sequences[index][n]===expectedSequence(q)[n]));
+      if(q.type==='timeline')renderSequence(index);
+      if(q.type==='error')document.querySelectorAll(`[data-question="${index}"] [data-error-word][aria-pressed="true"]`).forEach(button=>markControl(button,grade==='correct'));
     }
     const touchedSequences = new Set(), groupReviews = [];
     let checked = false;
@@ -509,14 +529,14 @@
       questions.forEach((q, index) => {
         const feedback = $('feedback-' + index);
         const solution = puzzleTypes.includes(q.type) ? puzzleSolution(q) : q.type === 'imagepoint' ? 'Punto marcado por el profesor' : q.answer;
-        feedback.innerHTML = rich((grades[index]==='unanswered'?'Sin responder. ':openAnswerTypes.includes(q.type) && q.type !== 'flashcard' ? '◷ Solución orientativa: ' + q.answer : grades[index] === 'correct' ? '✓ ¡Correcto!' : '↻ Solución: ' + solution) + (q.errorSegment ? '\nFragmento que había que corregir: ' + q.errorSegment : '') + (q.explanation ? '\n\n' + q.explanation : '') + (q.rubric ? '\n\nCriterios de revisión: ' + q.rubric : '')) + itemReasons(q);
+        feedback.innerHTML = rich((grades[index]==='unanswered'?'Sin responder. ':grades[index]==='pending' ? '◷ Solución orientativa: ' + q.answer : grades[index] === 'correct' ? '✓ ¡Correcto!' : '↻ Solución: ' + solution) + (q.errorSegment ? '\nFragmento que había que corregir: ' + q.errorSegment : '') + (q.explanation ? '\n\n' + q.explanation : '') + (q.rubric ? '\n\nCriterios de revisión: ' + q.rubric : '')) + itemReasons(q);
         feedback.classList.add(grades[index] === 'correct' ? 'is-correct' : grades[index] === 'pending' ? 'is-pending' : 'is-incorrect');
         document.querySelector(`[data-question="${index}"]`).dataset.result = grades[index];
         games[index]?.review?.();
         document.querySelector(`[data-question="${index}"]`).querySelectorAll('.play-choice').forEach(label => { const input = label.querySelector('input');label.classList.remove('answer-right','answer-wrong');label.querySelector('.choice-result')?.remove(); if (input.value === q.answer || input.checked) { const right = input.value === q.answer; label.classList.add(right ? 'answer-right' : 'answer-wrong'); label.insertAdjacentHTML('beforeend', `<b class="choice-result" aria-label="${right ? 'Opción correcta' : 'Opción incorrecta'}">${right ? '✓' : '×'}</b>`); } });
         if (q.type === 'imagepoint') $('visual-' + index).insertAdjacentHTML('beforeend', `<span class="visual-solution-zone" style="left:${q.target.x}%;top:${q.target.y}%;width:${q.target.width || 20}%;height:${q.target.height || 20}%" aria-label="Zona correcta">✓</span>`);
         document.querySelector(`[data-question="${index}"]`).querySelectorAll('input,textarea,button').forEach(control => control.disabled = true);
-        if (openAnswerTypes.includes(q.type) && q.type !== 'flashcard') $('review-' + index).hidden = false;
+        if (openAnswerTypes.includes(q.type) && q.type !== 'flashcard' && grades[index] === 'pending') $('review-' + index).hidden = false;
       });
       Object.keys(sequences).forEach(index => renderSequence(Number(index)));
       groupReviews.forEach(review => review());
@@ -605,7 +625,9 @@
         root.querySelectorAll('[data-left-fragment]').forEach(button => button.onclick = () => { if (checked) return; const n = Number(button.dataset.leftFragment); [list[n-1],list[n]] = [list[n],list[n-1]]; renderSequence(index); });
         return;
       }
-      root.innerHTML = list.map((value, position) => `<div class="order-row ${checked ? value === questions[index].options[position] ? 'answer-right' : 'answer-wrong' : ''}" data-sequence-row="${position}" draggable="${!checked}" tabindex="${checked ? '-1' : '0'}" aria-label="${position + 1} de ${list.length}: ${escape(value)}"><span class="order-grip" aria-hidden="true">${checked ? value === questions[index].options[position] ? '✓' : '↻' : '⠿'}</span><span class="order-value"><b>${position + 1}.</b> ${escape(value)}</span><div class="order-actions"><button type="button" data-move="-1" data-pos="${position}" aria-label="Subir ${escape(value)}" ${checked || position === 0 ? 'disabled' : ''}>↑</button><button type="button" data-move="1" data-pos="${position}" aria-label="Bajar ${escape(value)}" ${checked || position === list.length - 1 ? 'disabled' : ''}>↓</button></div></div>`).join('') + (checked ? '' : '<button type="button" data-confirm-order>Confirmar este orden</button>');
+      const revealDates = checked || (questions[index].type === 'timeline' && touchedSequences.has(index));
+      const expected = expectedSequence(questions[index]);
+      root.innerHTML = list.map((value, position) => {const display = questions[index].type === 'timeline' ? timelineLabel(value,revealDates) : value;const result = revealDates && questions[index].type === 'timeline' || checked;return `<div class="order-row ${result ? value === expected[position] ? 'answer-right' : 'answer-wrong' : ''}" data-sequence-row="${position}" draggable="${!checked}" tabindex="${checked ? '-1' : '0'}" aria-label="${position + 1} de ${list.length}: ${escape(display)}"><span class="order-grip" aria-hidden="true">${result ? value === expected[position] ? '✓' : '↻' : '⠿'}</span><span class="order-value"><b>${position + 1}.</b> ${escape(display)}</span><div class="order-actions"><button type="button" data-move="-1" data-pos="${position}" aria-label="Subir ${escape(display)}" ${checked || position === 0 ? 'disabled' : ''}>↑</button><button type="button" data-move="1" data-pos="${position}" aria-label="Bajar ${escape(display)}" ${checked || position === list.length - 1 ? 'disabled' : ''}>↓</button></div></div>`;}).join('') + (checked ? '' : '<button type="button" data-confirm-order>Confirmar este orden</button>');
       $('r-' + index).value = list.join(' → ');
       if (checked) return;
       root.querySelector('[data-confirm-order]').onclick = () => { touchedSequences.add(index); updateProgress();confirmQuestion(index); };
@@ -628,8 +650,10 @@
       if (focusPosition !== null) root.querySelector(`[data-sequence-row="${focusPosition}"]`)?.focus();
       function move(from, to) {
         if (from < 0 || to < 0 || from >= list.length || to >= list.length || from === to) return;
-        const [item] = list.splice(from, 1); list.splice(to, 0, item); renderSequence(index, to);
-        touchedSequences.add(index); updateProgress();
+        const [item] = list.splice(from, 1); list.splice(to, 0, item);
+        if (questions[index].type === 'timeline') {touchedSequences.delete(index); document.querySelector(`[data-question="${index}"]`).removeAttribute('data-result'); $('feedback-'+index).textContent='';}
+        else touchedSequences.add(index);
+        renderSequence(index, to); updateProgress();
       }
     }
     Object.keys(sequences).forEach(index => renderSequence(Number(index)));
@@ -640,8 +664,8 @@
       if (q.type === 'hangman') mountHangman(q, index, () => checked);
       const section = document.querySelector(`[data-question="${index}"]`);
       if(!['quiz','boolean','visualquiz','pairs','classify','pasapalabra','memory','wordsearch','crossword','dragdrop','hangman','order','timeline'].includes(q.type)){
-        const check=document.createElement('button');check.type='button';check.dataset.checkQuestion=index;check.textContent=openAnswerTypes.includes(q.type)?'Guardar respuesta':'Comprobar';
-        check.onclick=()=>{if(q.type==='multigaps'){section.querySelectorAll('[data-multi-gap]').forEach((input,n)=>{if(input.value.trim()){const right=q.options[n].split('~').some(s=>accepts(input.value,s));markControl(input,right);recordAnswer(index,n,right,input.value.trim());}});}else confirmQuestion(index);};section.querySelector('.question-controls').append(check);
+        const check=document.createElement('button');check.type='button';check.dataset.checkQuestion=index;check.textContent=openAnswerTypes.includes(q.type)&&q.type!=='error'?'Guardar respuesta':'Comprobar';
+        check.onclick=()=>{if(q.type==='multigaps'){section.querySelectorAll('[data-multi-gap]').forEach((input,n)=>{if(input.value.trim()){const right=q.options[n].split('~').some(s=>accepts(input.value,s));markControl(input,right);recordAnswer(index,n,right,input.value.trim());}});}else if(q.type==='error'&&gradeQuestion(index)==='unanswered'){$('feedback-'+index).className='play-feedback is-incorrect';$('feedback-'+index).textContent='Selecciona el error de la oración y escribe su corrección.';}else confirmQuestion(index);};section.querySelector('.question-controls').append(check);
       }
       const solution=document.createElement('button');solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';solution.onclick=()=>{practice[index].assisted=true;const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):q.answer;$('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'')+itemReasons(q);};section.append(solution);
       if(!puzzleTypes.includes(q.type))section.addEventListener('click',()=>queueMicrotask(()=>{if(section.dataset.result==='incorrect'||section.dataset.result==='pending')solution.hidden=false;}),{signal});
@@ -667,7 +691,7 @@
       }
       if (q.type === 'gaps') $('r-' + index).style.setProperty('--gap-width', `${Math.min(280, Math.max(85, q.answer.length * 10 + 35))}px`);
       if (q.type === 'problem') section.querySelectorAll('[data-problem-step]').forEach(input => input.oninput = () => { const inputs = [...section.querySelectorAll('[data-problem-step]')]; $('r-' + index).value = inputs[3].value.trim() ? inputs.map((control, n) => `${['Datos','Planteamiento','Cálculos','Respuesta'][n]}: ${control.value}`).join('\n') : ''; });
-      if (q.type === 'error') section.querySelectorAll('[data-error-word]').forEach(button => button.onclick = () => { if (checked) return; button.setAttribute('aria-pressed', String(button.getAttribute('aria-pressed') !== 'true')); });
+      if (q.type === 'error') section.querySelectorAll('[data-error-word]').forEach(button => button.onclick = () => { if (checked) return; button.setAttribute('aria-pressed', String(button.getAttribute('aria-pressed') !== 'true'));button.classList.remove('answer-right','answer-wrong');section.removeAttribute('data-result');$('feedback-'+index).textContent=''; });
       let hintsUsed = 0;
       section.querySelector('[data-hint]')?.addEventListener('click', event => { if (checked || hintsUsed >= q.hints.length) return;practice[index].assisted=true;$('hints-' + index).insertAdjacentHTML('beforeend', `<li>${rich(q.hints[hintsUsed++])}</li>`); event.currentTarget.disabled = hintsUsed === q.hints.length; });
       section.querySelector('[data-zoom]')?.addEventListener('click', event => { const image = $('visual-' + index); image.classList.toggle('zoomed'); event.currentTarget.textContent = image.classList.contains('zoomed') ? 'Reducir imagen' : 'Ampliar imagen'; });

@@ -119,6 +119,29 @@ def test_game_grading_does_not_send_hidden_keys():
     assert all("pair" not in card for card in safe_question(memory, [memory], False)["cards"])
 
 
+def test_error_correction_requires_selection_and_never_exposes_solution():
+    from app.api.profesor_material_sessions import grade, prepare, safe_question
+
+    question = prepare({"id": "error", "type": "error", "prompt": "Corrige: Tú trajistes el libro.",
+                        "answer": "Tú trajiste el libro.", "errorSegment": "trajistes",
+                        "correctedSegment": "trajiste", "options": []}, 1)
+    public = safe_question(question, [question], False)
+    assert "correctedSegment" not in public and "errorSegment" not in public
+    assert grade(question, {"selected": "", "correction": "trajiste"}) == "unanswered"
+    assert grade(question, {"selected": "trajistes", "correction": "trajistes"}) == "incorrect"
+    assert grade(question, {"selected": "trajistes", "correction": "trajiste"}) == "correct"
+    assert grade({**question, "correctedSegment": ""}, {"selected": "trajistes", "correction": "trajiste"}) == "pending"
+
+
+def test_timeline_uses_dates_even_for_older_unsorted_materials():
+    from app.api.profesor_material_sessions import grade, prepare
+
+    question = prepare({"id": "timeline", "type": "timeline", "prompt": "Ordena los hechos.",
+                        "answer": "1901, 1910, 1920", "options": ["1910 – Segundo", "1901 – Primero", "1920 – Tercero"]}, 1)
+    assert grade(question, ["1901 – Primero", "1910 – Segundo", "1920 – Tercero"]) == "correct"
+    assert grade(question, question["options"]) == "incorrect"
+
+
 def test_every_generated_activity_type_can_be_prepared_for_a_student():
     from app.api.profesor_material_sessions import SUPPORTED, grade, prepare, safe_question
 

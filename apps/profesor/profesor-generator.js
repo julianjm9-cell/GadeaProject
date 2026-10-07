@@ -62,8 +62,9 @@
    if(q.type==='reading'&&!q.text.trim())throw Error('Añade el texto de lectura.');
    if(q.type==='numeric'&&(!q.answer.trim()||!Number.isFinite(Number(q.answer.replace(',','.')))))throw Error('La solución numérica debe ser un número.');
    if(q.type==='hangman'&&!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s-]{1,39}$/.test(q.answer))throw Error('Ahorcado: usa una palabra o expresión de 2 a 40 caracteres.');
-   for(const [key,limit] of [['explanation',1500],['rubric',1000],['unit',30],['errorSegment',200]])if(q[key]!=null&&(typeof q[key]!=='string'||q[key].length>limit))throw Error(`Revisa ${key} del ejercicio ${number}.`);
+   for(const [key,limit] of [['explanation',1500],['rubric',1000],['unit',30],['errorSegment',200],['correctedSegment',200]])if(q[key]!=null&&(typeof q[key]!=='string'||q[key].length>limit))throw Error(`Revisa ${key} del ejercicio ${number}.`);
    if(q.errorSegment&&!q.prompt.includes(q.errorSegment))throw Error('El fragmento erróneo debe aparecer en el enunciado.');
+   if(q.type==='error'&&q.correctedSegment&&(!q.errorSegment||q.correctedSegment.trim().toLocaleLowerCase('es')===q.errorSegment.trim().toLocaleLowerCase('es')))throw Error('La corrección debe ser distinta del fragmento erróneo.');
    for(const [key,count,limit] of [['hints',3,300],['alternatives',6,100],['wordBank',12,100]])if(q[key]!=null&&(!Array.isArray(q[key])||q[key].length>count||q[key].some(v=>typeof v!=='string'||!v.trim()||v.length>limit)))throw Error(`Revisa las pistas y alternativas del ejercicio ${number}.`);
    if(q.optionFeedback!=null&&(!['quiz','boolean','classify'].includes(q.type)||!Array.isArray(q.optionFeedback)||q.optionFeedback.length!==q.options.length||new Set(q.optionFeedback.map(row=>row?.option)).size!==q.options.length||q.optionFeedback.some(row=>!row||!q.options.includes(row.option)||typeof row.explanation!=='string'||!row.explanation.trim()||row.explanation.length>400)))throw Error('Revisa la explicación de cada opción.');
    if(q.itemExplanations!=null&&(!Object.hasOwn(limits,q.type)||!Array.isArray(q.itemExplanations)||q.itemExplanations.length!==q.options.length||q.itemExplanations.some(value=>typeof value!=='string'||!value.trim()||value.length>300)))throw Error('Añade una explicación por elemento en el mismo orden que sus opciones.');
@@ -138,7 +139,7 @@
  function editorDraft(){
   const material=JSON.parse(JSON.stringify($('form').editorMaterial)),fields=new FormData($('form'));
   material.title=String(fields.get('title')||'');
-  material.activity.questions=material.activity.questions.map((q,i)=>({...q,prompt:String(fields.get('q-'+i)||''),answer:String(fields.get('a-'+i)||''),text:q.type==='reading'?String(fields.get('text-'+i)||''):'',options:optionTypes.includes(q.type)?String(fields.get('o-'+i)||'').split('\n').map(v=>v.trim()).filter(Boolean):[],explanation:String(fields.get('explanation-'+i)||''),hints:String(fields.get('hints-'+i)||'').split('\n').map(v=>v.trim()).filter(Boolean),rubric:String(fields.get('rubric-'+i)||''),unit:String(fields.get('unit-'+i)||''),tolerance:Number(fields.get('tolerance-'+i)||0),alternatives:String(fields.get('alternatives-'+i)||'').split('\n').map(v=>v.trim()).filter(Boolean),wordBank:String(fields.get('wordBank-'+i)||'').split('\n').map(v=>v.trim()).filter(Boolean),errorSegment:String(fields.get('errorSegment-'+i)||''),...readQuestionFeedback(i,q)}));
+  material.activity.questions=material.activity.questions.map((q,i)=>({...q,prompt:String(fields.get('q-'+i)||''),answer:String(fields.get('a-'+i)||''),text:q.type==='reading'?String(fields.get('text-'+i)||''):'',options:optionTypes.includes(q.type)?String(fields.get('o-'+i)||'').split('\n').map(v=>v.trim()).filter(Boolean):[],explanation:String(fields.get('explanation-'+i)||''),hints:String(fields.get('hints-'+i)||'').split('\n').map(v=>v.trim()).filter(Boolean),rubric:String(fields.get('rubric-'+i)||''),unit:String(fields.get('unit-'+i)||''),tolerance:Number(fields.get('tolerance-'+i)||0),alternatives:String(fields.get('alternatives-'+i)||'').split('\n').map(v=>v.trim()).filter(Boolean),wordBank:String(fields.get('wordBank-'+i)||'').split('\n').map(v=>v.trim()).filter(Boolean),errorSegment:String(fields.get('errorSegment-'+i)||''),correctedSegment:String(fields.get('correctedSegment-'+i)||''),...readQuestionFeedback(i,q)}));
   return material;
  }
  editActivity=function(source){originalEdit(source);source.activity.questions.forEach((q,i)=>{if(q.type==='multigaps'){$('q-'+i).maxLength=12000;$('q-'+i).rows=8;const hint=$('q-'+i).nextElementSibling;if(hint?.classList.contains('play-editor-hint'))hint.textContent='Texto coherente con entre 2 y 20 huecos ___. Una solución por línea, en el mismo orden.';}if(q.type==='reading')$('text-'+i).maxLength=12000;$('a-'+i).maxLength=2500;if(q.activityGroup){const label=document.createElement('p');label.className='generator-help';label.textContent='Actividad '+q.activityGroup+' · '+activityLabels[q.type];$('q-'+i).closest('.block').prepend(label);}});
@@ -174,7 +175,7 @@
     set('q-'+index,next.prompt);set('a-'+index,next.answer);set('text-'+index,next.text);
     set('o-'+index,(next.options||[]).join('\n'));
     options?.dispatchEvent(new Event('editor:options'));
-    for(const field of ['explanation','rubric','unit','errorSegment','tolerance'])set(field+'-'+index,next[field]);
+    for(const field of ['explanation','rubric','unit','errorSegment','correctedSegment','tolerance'])set(field+'-'+index,next[field]);
     for(const field of ['hints','alternatives','wordBank'])set(field+'-'+index,(next[field]||[]).join('\n'));
     section.querySelector('.question-feedback-editor')?.resetFeedback(next);
     $('form').dispatchEvent(new Event('input',{bubbles:true}));

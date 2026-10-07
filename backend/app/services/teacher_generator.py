@@ -390,6 +390,13 @@ def parse_material(content, context):
                 if not isinstance(options, list) or not 2 <= len(options) <= (27 if kind == 'pasapalabra' else 8 if kind in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'dragdrop') else 7 if kind == 'crossword' else 20 if kind == 'multigaps' else 5) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in options):
                     raise ValueError()
                 options = [v.strip() for v in options]
+                if kind == 'timeline':
+                    dates = [re.search(r'\b(?:1\d{3}|20\d{2})\b', value) for value in options]
+                    if all(dates) and len({match.group() for match in dates}) == len(options):
+                        order = sorted(range(len(options)), key=lambda index: int(dates[index].group()))
+                        options = [options[index] for index in order]
+                        if isinstance(q.get('itemExplanations'), list) and len(q['itemExplanations']) == len(order):
+                            q = {**q, 'itemExplanations': [q['itemExplanations'][index] for index in order]}
                 if len('\n'.join(options)) > (8100 if kind == 'pasapalabra' else 2500 if kind == 'multigaps' else 1500):
                     raise ValueError()
                 if (kind != 'multigaps' and len(set(v.casefold() for v in options)) != len(options)) or (kind not in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop', 'pasapalabra', 'multigaps') and answer not in options):
@@ -421,7 +428,7 @@ def parse_material(content, context):
             if not isinstance(text, str) or len(text) > 12000 or (kind == 'reading' and not text.strip()):
                 raise ValueError()
             extra = {}
-            for field, limit in [('explanation', 1500), ('rubric', 1000), ('unit', 30), ('errorSegment', 200)]:
+            for field, limit in [('explanation', 1500), ('rubric', 1000), ('unit', 30), ('errorSegment', 200), ('correctedSegment', 200)]:
                 value = q.get(field, '')
                 if not isinstance(value, str) or len(value) > limit:
                     raise ValueError()
@@ -429,6 +436,8 @@ def parse_material(content, context):
                     extra[field] = value.strip()
             if extra.get('errorSegment') and extra['errorSegment'] not in prompt:
                 raise ValueError()
+            if kind == 'error' and extra.get('correctedSegment') and (not extra.get('errorSegment') or extra['correctedSegment'].casefold() == extra['errorSegment'].casefold()):
+                raise ValueError('La corrección debe ser distinta del fragmento erróneo.')
             for field, count, limit in [('hints', 3, 300), ('alternatives', 6, 100), ('wordBank', 12, 100)]:
                 values = q.get(field, [])
                 if not isinstance(values, list) or len(values) > count or any(not isinstance(v, str) or not v.strip() or len(v) > limit for v in values):
@@ -543,7 +552,7 @@ si se exige exactitud. En gaps puedes añadir alternatives con respuestas equiva
 En multigaps puedes repetir soluciones y separar variantes válidas de un hueco con ~.
 En gaps y multigaps puedes añadir wordBank: hasta 12 palabras de apoyo, incluyendo
 las respuestas y distractores razonables cuando el nivel necesite este apoyo.
-En error añade errorSegment con el fragmento erróneo EXACTO que aparece en prompt.
+En error añade errorSegment con el fragmento erróneo EXACTO que aparece en prompt y correctedSegment con su sustitución correcta exacta. El ejemplo debe contener un error real; nunca marques como error una forma correcta.
 En boolean falso, explanation reformula correctamente la afirmación. En quiz explica
 el razonamiento de la opción correcta y la confusión de los distractores cuando proceda.
 """
@@ -604,7 +613,7 @@ que NO se ocultarán: nunca introduzcas tiempos excluidos como había sucedido o
     'memory': 'Un tablero por objeto; options contiene exactamente elementCount parejas "concepto | respuesta", máximo 140 caracteres por lado. Ambos lados únicos e inequívocos. answer="Completado".',
     'sentence': 'options son exactamente elementCount fragmentos distintos EN ORDEN CORRECTO que forman una frase natural. La app los mezcla. No repitas fragmentos. answer resume la frase.',
     'timeline': 'options son exactamente elementCount acontecimientos distintos EN ORDEN CRONOLÓGICO, con sus fechas. No mezcles hechos simultáneos ni inventes fechas. answer resume el orden.',
-    'error': 'prompt presenta un ejemplo erróneo y pide corregirlo. answer explica el error y su corrección. errorSegment es el fragmento erróneo EXACTO en prompt, máximo 200 caracteres.',
+    'error': 'prompt presenta una oración con un error real y pide corregirlo. answer explica el error. errorSegment es el fragmento erróneo EXACTO en prompt; correctedSegment es la sustitución correcta exacta. Ambos son distintos y de máximo 200 caracteres.',
     'wordsearch': 'options contiene exactamente elementCount palabras distintas de 3 a 12 letras, sin espacios ni signos. answer="Completado". NO generes cuadrícula.',
     'crossword': 'options contiene exactamente elementCount entradas "PALABRA | pista". Palabras de 3 a 12 letras, pistas hasta 120 caracteres. Palabras distintas con letras compartidas para cruzarlas; pistas inequívocas sin revelar la palabra. answer="Completado". NO generes cuadrícula.',
     'dragdrop': 'options contiene exactamente elementCount parejas "elemento | destino", máximo 140 caracteres por lado. Elementos únicos; destinos pueden repetirse para agrupar. answer="Completado".',
@@ -715,6 +724,7 @@ def generation_response_format(context, provider, model):
         properties['itemExplanations'] = {'type': 'array', 'minItems': size, 'maxItems': size, 'items': string}
     if kind == 'error':
         properties['errorSegment'] = string
+        properties['correctedSegment'] = string
     question = {'type': 'object', 'properties': properties, 'required': list(properties), 'additionalProperties': False}
     count = context[kind]
     schema = {'type': 'object', 'properties': {'questions': {'type': 'array', 'items': question, 'minItems': count, 'maxItems': count}}, 'required': ['questions'], 'additionalProperties': False}

@@ -64,6 +64,16 @@ def rows(question: dict) -> list[list[str]]:
     return [[part.strip() for part in str(value).split("|")] for value in question.get("options", [])]
 
 
+def expected_sequence(question: dict) -> list[str]:
+    options = question["options"]
+    if question["type"] != "timeline":
+        return options
+    years = [re.search(r"\b(?:1\d{3}|20\d{2})\b", item) for item in options]
+    if any(year is None for year in years) or len({year.group() for year in years}) != len(options):
+        return options
+    return [item for _, item in sorted(zip((int(year.group()) for year in years), options))]
+
+
 def wordsearch_board(question: dict, seed: int) -> dict:
     words = [clean_word(str(word).strip()) for word in question["options"]]
     size = max(10, len(words), *(len(word) for word in words))
@@ -220,6 +230,17 @@ def grade(q: dict, value: object, part: int | None = None) -> str:
     kind = q["type"]
     if value is None or value == "":
         return "unanswered"
+    if kind == "error":
+        if not isinstance(value, dict):
+            return "pending" if str(value).strip() else "unanswered"  # Older sessions used plain text.
+        chosen = value.get("selected")
+        correction = value.get("correction")
+        if not isinstance(chosen, str) or not chosen.strip() or not isinstance(correction, str) or not correction.strip():
+            return "unanswered"
+        if not q.get("errorSegment") or not q.get("correctedSegment"):
+            return "pending"
+        marks = '.,;:!?«»“”"'
+        return "correct" if norm(chosen.strip(marks)) == norm(q["errorSegment"].strip(marks)) and norm(correction.strip(marks)) == norm(q["correctedSegment"].strip(marks)) else "incorrect"
     if kind in OPEN:
         return "pending" if str(value or "").strip() else "unanswered"
     if kind == "flashcard":
@@ -301,7 +322,7 @@ def grade(q: dict, value: object, part: int | None = None) -> str:
         except (TypeError, ValueError, KeyError):
             return "incorrect"
     if kind in SEQUENCE:
-        return "correct" if isinstance(value, list) and value == q["options"] else "incorrect"
+        return "correct" if isinstance(value, list) and value == expected_sequence(q) else "incorrect"
     if kind == "numeric":
         try:
             def number(raw):
@@ -475,6 +496,10 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
     elif payload.action in {"draft", "check", "next", "finish"}:
         if payload.value is not None:
             responses = dict(progress.get("responses", {})); responses[str(payload.question_index)] = payload.value; progress["responses"] = responses
+            if payload.action == "draft" and questions[payload.question_index]["type"] in {"timeline", "error"}:
+                grades = dict(progress.get("grades", {})); grades.pop(str(payload.question_index), None); progress["grades"] = grades
+                if questions[payload.question_index]["type"] == "timeline":
+                    parts = dict(progress.get("parts", {})); parts.pop(str(payload.question_index), None); progress["parts"] = parts
         if payload.current_index is not None:
             progress["current_index"] = payload.current_index
         if payload.action == "check":
@@ -484,11 +509,22 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
             feedback = grade(q, payload.value, payload.part)
             if payload.part is None:
                 grades = dict(progress.get("grades", {})); grades[str(payload.question_index)] = feedback; progress["grades"] = grades
+                if q["type"] == "timeline" and isinstance(payload.value, list):
+                    parts = dict(progress.get("parts", {}))
+                    expected = expected_sequence(q)
+                    parts[str(payload.question_index)] = {str(i): "correct" if i < len(expected) and item == expected[i] else "incorrect" for i, item in enumerate(payload.value)}
+                    progress["parts"] = parts
             else:
                 parts = dict(progress.get("parts", {})); question_parts = dict(parts.get(str(payload.question_index), {})); question_parts[str(payload.part)] = feedback; parts[str(payload.question_index)] = question_parts; progress["parts"] = parts
         if payload.action == "finish":
             grades = {str(n): grade(q, progress.get("responses", {}).get(str(n))) for n, q in enumerate(questions)}
             progress["grades"] = grades; row.status = "completed"
+            parts = dict(progress.get("parts", {}))
+            for n, q in enumerate(questions):
+                if q["type"] == "timeline" and isinstance(progress.get("responses", {}).get(str(n)), list):
+                    expected = expected_sequence(q)
+                    parts[str(n)] = {str(i): "correct" if i < len(expected) and item == expected[i] else "incorrect" for i, item in enumerate(progress["responses"][str(n)])}
+            progress["parts"] = parts
     elif payload.action == "reveal":
         if questions[payload.question_index]["type"] != "flashcard":
             raise HTTPException(422, "Esta actividad no tiene reverso.")
@@ -504,7 +540,7 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
         chosen = {clean_word(str(v)) for v in payload.value if isinstance(v, str) and len(v) == 1}
         extra = {"mask": "".join(c if c in chosen or not c.isalpha() else "_" for c in solution), "errors": sum(c not in solution for c in chosen)}
     return {"ok": True, "revision": row.revision, "status": row.status, "feedback": feedback, "extra": extra,
-            "session": public_session(row) if payload.action in {"finish", "start"} else None}
+            "session": public_session(row) if payload.action in {"finish", "start"} or (payload.action == "check" and questions[payload.question_index]["type"] == "timeline") else None}
 
 
 @router.get("/api/profesor/student-material-sessions/{session_id}/images/{image_id}")
