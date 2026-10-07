@@ -19,7 +19,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/facturas/login": b"facturas-access",
         "/assets/brand/facturas.svg": b"<svg",
         "/health": b'"ok"',
-        "/": b'href="/profesor"',
+        "/": b"<h1>Educame Tech</h1>",
         "/privacidad": b"Pol\xc3\xadtica de privacidad",
         "/profesor": b"/profesor/register",
         "/e25": b"/e25/register",
@@ -51,6 +51,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         with urlopen(base + path, timeout=20) as response:
             data = response.read()
             assert response.status == 200 and expected in data, f"Respuesta incorrecta: {path}"
+            if path == "/":
+                assert b'href="/profesor"' in data, "Falta Profesor Particular en la portada"
             if path == "/profesor-particular":
                 assert "/login?next=/profesor-particular" in response.url, "La app no redirige al login"
         print(f"OK {path}")
