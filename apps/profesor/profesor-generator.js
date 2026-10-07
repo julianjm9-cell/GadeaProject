@@ -102,12 +102,16 @@
     workshopBusy=true;const controls=[...$('form').querySelectorAll('input,textarea,select,button')].map(el=>[el,el.disabled]);controls.forEach(([el])=>el.disabled=true);
     $('workshopStatus').textContent='Preparando actividades completas y revisando sus respuestas…';
     try{
-     const fingerprint=JSON.stringify(c);if(!generatorRetry||generatorRetry.fingerprint!==fingerprint)generatorRetry={fingerprint,id:crypto.randomUUID()};
-     const response=await api('/api/profesor/generate',{...c,visualquiz:0,imagepoint:0,focus:st?String(learningSummary(st,c.subject).reinforce||'').slice(0,350):'',request_id:generatorRetry.id});
+     const focus=st?String(learningSummary(st,c.subject).reinforce||'').slice(0,350):'';
+     const fingerprint=JSON.stringify({...c,focus});
+     try{const saved=JSON.parse(sessionStorage.getItem('profesor.generatorRetry')||'null');if(saved?.fingerprint===fingerprint)generatorRetry=saved;}catch{}
+     if(!generatorRetry||generatorRetry.fingerprint!==fingerprint)generatorRetry={fingerprint,id:crypto.randomUUID()};
+     try{sessionStorage.setItem('profesor.generatorRetry',JSON.stringify(generatorRetry));}catch{}
+     const response=await api('/api/profesor/generate',{...c,visualquiz:0,imagepoint:0,focus,request_id:generatorRetry.id});
      const generated=validateActivityQuestions(response.questions);
      for(const type of Object.keys(activityLabels).filter(k=>!visualTypes.includes(k)))if(generated.filter(q=>q.type===type).length!==c[type]*(bundleTypes.has(type)?c.activitySizes[type]||0:1))throw Error('La IA devolvió una cantidad de preguntas distinta a la solicitada.');
      questions=generated.map(q=>({...q,id:uid()}));const lastGroup=Math.max(0,...questions.map(q=>q.activityGroup||0));let photoGroup=lastGroup;
-     for(const q of blank.filter(q=>visualTypes.includes(q.type)))questions.push({...q,activityGroup:++photoGroup});generatorRetry=null;
+     for(const q of blank.filter(q=>visualTypes.includes(q.type)))questions.push({...q,activityGroup:++photoGroup});generatorRetry=null;try{sessionStorage.removeItem('profesor.generatorRetry')}catch{}
     }finally{workshopBusy=false;controls.forEach(([el,disabled])=>el.disabled=disabled);$('workshopStatus').textContent='';$('form').dispatchEvent(new Event('workshop:refresh'));}
    }
    const material={id:uid(),title:c.topic,subject:c.subject,studentId:c.studentId,kind:'Actividad interactiva',body:'',activity:{version:1,context:c,questions}};

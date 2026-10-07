@@ -7,7 +7,7 @@ from sqlalchemy import select, func
 from test_access_control import client, seed_user, login
 from app.api import app_routes
 from app.models import UsageRecord, Conversation
-from app.services.teacher_generator import generator_context, generation_batches, parse_material, generation_response_format, generation_post, TYPES
+from app.services.teacher_generator import generator_context, generation_batches, parse_material, generation_response_format, generation_post, rosco_chunks, ROSCO_LETTERS, TYPES
 
 
 def payload(**extra):
@@ -20,12 +20,20 @@ def test_sizes_have_independent_groups_and_bounded_batches():
     body.update(gaps=2, pasapalabra=1, activitySizes={'gaps': 8, 'pasapalabra': 18}, instructions='Más contexto, sin tiempos compuestos.')
     _, context = generator_context(body)
     batches = generation_batches(context)
-    assert [(batch['gaps'], batch['pasapalabra'], group) for batch, group in batches] == [(6,0,1),(2,0,1),(6,0,2),(2,0,2),(0,1,3)]
-    assert batches[-1][0]['elementCount'] == 18
+    assert [(batch['gaps'], batch['pasapalabra'], group) for batch, group in batches] == [(6,0,1),(2,0,1),(6,0,2),(2,0,2),(0,1,3),(0,1,3),(0,1,3)]
+    assert [batch['elementCount'] for batch, _ in batches[-3:]] == [6, 6, 6]
+    assert ''.join(batch['roscoLetters'] for batch, _ in batches[-3:]) == 'ABCDEFGHIJLMNOPRST'
     assert context['instructions'] == body['instructions']
     body.update(gaps=10, activitySizes={'gaps': 12, 'pasapalabra': 18})
     with pytest.raises(HTTPException) as exc: generator_context(body)
     assert exc.value.status_code == 422
+
+
+def test_rosco_chunks_keep_every_batch_playable():
+    for size in range(7, 28):
+        chunks = rosco_chunks(size)
+        assert ''.join(letters for _, letters in chunks) == ROSCO_LETTERS[:size]
+        assert all(3 <= len(letters) <= 6 for _, letters in chunks)
 
 
 @pytest.mark.parametrize('counts', [dict(gaps=0), dict(gaps=4), dict(gaps=2, quiz=2), dict(gaps=1, quiz=1, short=1, problem=1)])
@@ -176,6 +184,23 @@ def test_provider_wait_is_bounded_and_does_not_spin(monkeypatch):
         async def post(self,*args,**kw):return httpx.Response(429,headers={'Retry-After':'120'})
     with pytest.raises(HTTPException) as exc:asyncio.run(generation_post(Full(),'https://test',headers={},json={}))
     assert exc.value.status_code==429 and sleeps==[4,4]
+    class TemporaryFailure:
+        def __init__(self): self.calls=0
+        async def post(self,*args,**kw):
+            self.calls+=1
+            return httpx.Response(503 if self.calls<3 else 200)
+    temporary=TemporaryFailure()
+    assert asyncio.run(generation_post(temporary,'https://test',headers={},json={})).status_code==200
+    assert temporary.calls==3 and sleeps==[4,4,1,2]
+    class TemporaryNetwork:
+        def __init__(self): self.calls=0
+        async def post(self,*args,**kw):
+            self.calls+=1
+            if self.calls==1: raise httpx.ConnectError('temporary')
+            return httpx.Response(200)
+    network=TemporaryNetwork()
+    assert asyncio.run(generation_post(network,'https://test',headers={},json={})).status_code==200
+    assert network.calls==2 and sleeps[-1]==1
 
 
 def test_later_invalid_batch_does_not_charge_partial_material(client,monkeypatch):
@@ -196,7 +221,7 @@ def test_later_invalid_batch_does_not_charge_partial_material(client,monkeypatch
     assert response.status_code==502 and len(sent)==4
     with factory() as db:
         assert db.scalar(select(func.count()).select_from(UsageRecord))==0
-        assert db.scalar(select(func.count()).select_from(Conversation))==0
+        assert db.scalar(select(func.count()).select_from(Conversation))==1
 
 
 def test_sensitive_board_schema_and_legacy_fallback():
@@ -204,7 +229,7 @@ def test_sensitive_board_schema_and_legacy_fallback():
     _,context=generator_context(body);batch,_=generation_batches(context)[0]
     response=generation_response_format(batch,'groq','openai/gpt-oss-120b')
     options=response['json_schema']['schema']['properties']['questions']['items']['properties']['options']
-    assert response['json_schema']['strict'] and options['minItems']==options['maxItems']==18
+    assert response['json_schema']['strict'] and options['minItems']==options['maxItems']==6
     assert generation_response_format(batch,'openai','other')=={'type':'json_object'}
 
 
@@ -265,11 +290,112 @@ def test_large_rosco_empty_response_is_clear_and_does_not_charge(client, monkeyp
     assert response.status_code == 502 and len(sent) == 3
     assert 'respuesta vacía o incompleta' in response.json()['detail']
     assert 'Expecting value' not in response.json()['detail']
-    assert all(request['max_tokens'] == 6000 and request['reasoning_effort'] == 'low' for request in sent)
+    assert [request['max_tokens'] for request in sent] == [4000, 6000, 6000]
+    assert all(request['reasoning_effort'] == 'low' for request in sent)
     assert sent[1]['response_format'] == {'type': 'json_object'}
     with factory() as db:
         assert db.scalar(select(func.count()).select_from(UsageRecord)) == 0
         assert db.scalar(select(func.count()).select_from(Conversation)) == 0
+
+
+def test_rosco_is_generated_in_small_batches_and_returned_as_one_activity(client, monkeypatch):
+    web, factory = client
+    seed_user(factory, product_codes=('PROFESOR_PARTICULAR',)); login(web)
+    monkeypatch.setattr(app_routes, 'chat_provider_config', lambda *args, **kw: ('test-key', 'https://example.test', 'groq'))
+    monkeypatch.setattr(app_routes, 'chat_model_for_purpose', lambda *args: 'openai/gpt-oss-120b')
+    sent = []
+    class FakeClient:
+        def __init__(self, **kw): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kw):
+            batch = json.loads(kw['json']['messages'][1]['content'])
+            sent.append(batch)
+            letters = batch['roscoLetters']
+            question = dict(type='pasapalabra', prompt='Resuelve el rosco de conceptos.', answer='Completado',
+                            options=[f'{letter} | Definición del concepto número {batch["itemOffset"]+i+1} | palabra{letter}' for i, letter in enumerate(letters)],
+                            itemExplanations=[f'La pista del concepto número {batch["itemOffset"]+i+1} se relaciona con el tema.' for i in range(len(letters))],
+                            explanation='Cada pista se resuelve mediante una palabra distinta relacionada con el tema.')
+            return httpx.Response(200, json={'choices': [{'message': {'content': json.dumps({'questions': [question]})}}]})
+    monkeypatch.setattr(app_routes.httpx, 'AsyncClient', FakeClient)
+    body = payload(); body.update(gaps=0, pasapalabra=1, activitySizes={'pasapalabra': 18})
+    response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
+    assert response.status_code == 200, response.text
+    questions = response.json()['questions']
+    assert len(sent) == 3 and len(questions) == 1 and len(questions[0]['options']) == 18
+    assert ''.join(q['roscoLetters'] for q in sent) == 'ABCDEFGHIJLMNOPRST'
+    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
+
+
+def test_resume_uses_valid_batches_without_charging_twice(client, monkeypatch):
+    web, factory = client
+    seed_user(factory, product_codes=('PROFESOR_PARTICULAR',)); login(web)
+    monkeypatch.setattr(app_routes, 'chat_provider_config', lambda *args, **kw: ('test-key', 'https://example.test', 'groq'))
+    monkeypatch.setattr(app_routes, 'chat_model_for_purpose', lambda *args: 'openai/gpt-oss-120b')
+    sent = []
+    state = {'recover': False}
+    class FakeClient:
+        def __init__(self, **kw): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kw):
+            batch = json.loads(kw['json']['messages'][1]['content'])
+            sent.append(batch['itemOffset'])
+            if batch['itemOffset'] and not state['recover']:
+                return httpx.Response(200, json={'choices': [{'message': {'content': '{"questions":[]}'}}]})
+            questions = [dict(type='gaps', prompt=f'Ayer, a las {batch["itemOffset"]+i+1}, Ana ___ (caminar) por el parque.',
+                              answer='caminaba', explanation='La acción se presenta en curso en ese momento.') for i in range(batch['gaps'])]
+            return httpx.Response(200, json={'choices': [{'message': {'content': json.dumps({'questions': questions})}}]})
+    monkeypatch.setattr(app_routes.httpx, 'AsyncClient', FakeClient)
+    body = payload()
+    first = web.post('/api/profesor/generate?app=profesor_particular', json=body)
+    assert first.status_code == 502 and sent == [0, 6, 6, 6]
+    with factory() as db:
+        saved = db.scalar(select(Conversation))
+        assert saved and db.scalar(select(func.count()).select_from(UsageRecord)) == 0
+    state['recover'] = True
+    second = web.post('/api/profesor/generate?app=profesor_particular', json=body)
+    assert second.status_code == 200, second.text
+    assert len(second.json()['questions']) == 8 and sent == [0, 6, 6, 6, 6]
+    assert web.post('/api/profesor/generate?app=profesor_particular', json=body).json()['reused'] is True
+    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
+
+
+@pytest.mark.parametrize('gemini_key', ['AQ.test', 'AIza-test'])
+def test_reserve_uses_gemini_after_primary_has_invalid_output(client, monkeypatch, gemini_key):
+    web, factory = client
+    seed_user(factory, role='superadmin', product_codes=('PROFESOR_PARTICULAR',)); login(web)
+    response = web.post('/admin/ai-settings/apps/PROFESOR_PARTICULAR', json={'capabilities': {'generator_fallback': {'provider': 'gemini', 'model': 'gemini-3.8-flash'}}})
+    assert response.status_code == 200, response.text
+    assert next(cap for cap in response.json()['apps']['PROFESOR_PARTICULAR'] if cap['id'] == 'generator_fallback')['enabled'] is True
+    monkeypatch.setattr(app_routes, 'chat_provider_config', lambda *args, **kw: (gemini_key, 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', 'gemini') if kw.get('provider_override') == 'gemini' else ('test-key', 'https://example.test', 'groq'))
+    monkeypatch.setattr(app_routes, 'chat_model_for_purpose', lambda *args: 'openai/gpt-oss-120b')
+    sent = []
+    class FakeClient:
+        def __init__(self, **kw): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kw):
+            sent.append((url, kw))
+            if url == 'https://example.test':
+                return httpx.Response(200, json={'choices': [{'message': {'content': ''}}]})
+            questions = [dict(type='gaps', prompt=f'Ayer, a las {i+1}, Ana ___ (caminar) por el parque.',
+                              answer='caminaba', explanation='La acción se presenta en curso en ese momento.') for i in range(2)]
+            if 'generateContent' in url:
+                return httpx.Response(200, json={'candidates': [{'content': {'parts': [{'text': json.dumps({'questions': questions})}]}}]})
+            return httpx.Response(200, json={'choices': [{'message': {'content': json.dumps({'questions': questions})}}]})
+    monkeypatch.setattr(app_routes.httpx, 'AsyncClient', FakeClient)
+    body = payload(); body.update(activitySizes={'gaps': 2})
+    generated = web.post('/api/profesor/generate?app=profesor_particular', json=body)
+    assert generated.status_code == 200, generated.text
+    assert len(sent) == 4 and len(generated.json()['questions']) == 2
+    if gemini_key.startswith('AQ.'):
+        assert sent[-1][1]['headers']['x-goog-api-key'] == gemini_key
+        assert sent[-1][1]['json']['generationConfig']['responseMimeType'] == 'application/json'
+    else:
+        assert sent[-1][1]['headers']['Authorization'] == 'Bearer ' + gemini_key
+        assert sent[-1][1]['json']['response_format'] == {'type': 'json_object'}
+    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
 
 
 def test_generator_assets_available_on_server_routes(client):

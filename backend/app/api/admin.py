@@ -28,6 +28,7 @@ from app.services.ai_config import (
     GEMINI_CHAT_DEFAULT,
     GROQ_CHAT_DEFAULT,
     GROQ_TRANSCRIBE_DEFAULT,
+    default_chat_model,
     normalize_chat_model,
     normalize_transcribe_model,
     valid_gemini_key,
@@ -211,6 +212,12 @@ def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends
         {"id": "ocr", "label": "Lectura de imágenes", "apps": [code for code in PRODUCT_CODES if code != "DIPLOMATOR"], "provider": ocr_provider, "model": ocr_model, "configured": configured.get(ocr_provider, False), "key_source": sources.get(ocr_provider, "sin clave")},
         {"id": "transcribe", "label": "Transcripción de audio", "apps": list(PRODUCT_CODES), "provider": transcribe_provider, "model": transcribe_model, "configured": configured.get(transcribe_provider, False), "key_source": sources.get(transcribe_provider, "sin clave")},
     ]
+    generator_fallback = app_ai_override(db, "PROFESOR_PARTICULAR", "generator_fallback")
+    fallback_provider = generator_fallback.get("provider", "gemini")
+    capabilities.append({"id": "generator_fallback", "label": "Reserva del generador", "apps": ["PROFESOR_PARTICULAR"],
+                         "provider": fallback_provider, "model": generator_fallback.get("model") or default_chat_model(fallback_provider),
+                         "enabled": bool(generator_fallback), "configured": configured.get(fallback_provider, False),
+                         "key_source": sources.get(fallback_provider, "sin clave")})
     saved_topic_style = get_setting(db, "topic_style_guide", "")
     topic_style_guide = (
         DEFAULT_TOPIC_STYLE_GUIDE
@@ -235,7 +242,7 @@ def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends
         "points_model": points_model,
         "chat_model": chat_model,
         "transcribe_model": transcribe_model,
-        "capabilities": capabilities,
+        "capabilities": [cap for cap in capabilities if cap["id"] != "generator_fallback"],
         "apps": {product: [dict(cap, **{
             "provider": app_ai_override(db, product, cap["id"]).get("provider", cap["provider"]),
             "model": app_ai_override(db, product, cap["id"]).get("model", cap["model"]),
@@ -245,6 +252,7 @@ def get_ai_settings(_: User = Depends(require_superadmin), db: Session = Depends
         }) for cap in capabilities if product in cap["apps"]] for product in PRODUCT_CODES},
         "model_choices": {
             "chat": {"groq": [GROQ_CHAT_DEFAULT, "openai/gpt-oss-20b"], "openai": ["gpt-4o-mini"], "gemini": [GEMINI_CHAT_DEFAULT, "gemini-3.5-flash"]},
+            "generator_fallback": {"groq": [GROQ_CHAT_DEFAULT, "openai/gpt-oss-20b"], "openai": ["gpt-4o-mini"], "gemini": [GEMINI_CHAT_DEFAULT, "gemini-3.5-flash"]},
             "points": {provider: list(models) for provider, models in DIPLOMATOR_POINT_MODELS.items()},
             "ocr": {"openai": ["gpt-4o-mini"], "gemini": [GEMINI_CHAT_DEFAULT]},
             "transcribe": {"groq": [GROQ_TRANSCRIBE_DEFAULT], "openai": ["whisper-1"]},
@@ -303,8 +311,8 @@ def save_app_ai_settings(product: str, payload: dict, actor: User = Depends(requ
         raise HTTPException(status_code=400, detail="Selecciona una función de IA.")
     clean = {}
     for capability, value in changes.items():
-        providers = {"chat": {"groq", "openai", "gemini"}, "points": {"groq", "openai", "gemini"}, "ocr": {"openai", "gemini"}, "transcribe": {"groq", "openai"}}
-        if capability not in providers or (capability == "points" and product != "DIPLOMATOR") or (capability == "ocr" and product == "DIPLOMATOR"):
+        providers = {"chat": {"groq", "openai", "gemini"}, "generator_fallback": {"groq", "openai", "gemini"}, "points": {"groq", "openai", "gemini"}, "ocr": {"openai", "gemini"}, "transcribe": {"groq", "openai"}}
+        if capability not in providers or (capability == "points" and product != "DIPLOMATOR") or (capability == "ocr" and product == "DIPLOMATOR") or (capability == "generator_fallback" and product != "PROFESOR_PARTICULAR"):
             raise HTTPException(status_code=400, detail="Función no disponible para esta app.")
         if value is None:
             clean[capability] = ""

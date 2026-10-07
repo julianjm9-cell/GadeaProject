@@ -3,12 +3,14 @@ import json
 import re
 import math
 import asyncio
+import httpx
 from uuid import UUID
 from fastapi import HTTPException
 
 TYPES = ('pairs', 'gaps', 'quiz', 'short', 'order', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'memory', 'sentence', 'timeline', 'error', 'wordsearch', 'crossword', 'dragdrop', 'multigaps', 'numeric', 'pasapalabra', 'hangman')
 BUNDLE_TYPES = {'pairs', 'gaps', 'quiz', 'short', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'error', 'numeric', 'hangman'}
 ELEMENT_LIMITS = {'multigaps': 20, 'pasapalabra': 27, 'crossword': 7, 'wordsearch': 8, 'memory': 8, 'dragdrop': 8, 'order': 8, 'sentence': 8, 'timeline': 8}
+ROSCO_LETTERS = 'ABCDEFGHIJLMNOPRSTUVWÑKXYZQ'
 MAX_ACTIVITIES = 3
 
 
@@ -190,6 +192,10 @@ def generation_batches(context):
             batch['regeneration'] = {**request, 'question': {**question, 'text': ''}}
         if kind == 'classify' and question['options']:
             batch['classificationCategories'] = question['options']
+        if kind == 'pasapalabra' and batch.get('elementCount', 0) > 6:
+            return [(dict(batch, elementCount=len(letters), roscoLetters=letters,
+                          itemOffset=offset, roscoTotal=batch['elementCount']), request['group'])
+                    for offset, letters in rosco_chunks(batch['elementCount'])]
         return [(batch, request['group'])]
     if 'activitySizes' not in context:
         return [(context, None)]
@@ -200,6 +206,15 @@ def generation_batches(context):
             group += 1
             size = context['activitySizes'][kind]
             count = size if kind in BUNDLE_TYPES else 1
+            if kind == 'pasapalabra' and size > 6:
+                for offset, letters in rosco_chunks(size):
+                    batch = {**context, **{k: 0 for k in TYPES}, kind: 1,
+                             'activitySizes': {kind: size}, 'activityIndex': group,
+                             'itemOffset': offset, 'activityQuestionCount': 1,
+                             'batchQuestionCount': 1, 'elementCount': len(letters),
+                             'roscoTotal': size, 'roscoLetters': letters}
+                    batches.append((batch, group))
+                continue
             for offset in range(0, count, 6):
                 batch = {**context, **{k: 0 for k in TYPES}, kind: min(6, count-offset), 'activityIndex': group, 'itemOffset': offset}
                 batch['activitySizes'] = {kind: size if kind not in BUNDLE_TYPES else min(6, count-offset)}
@@ -211,6 +226,32 @@ def generation_batches(context):
                 batch['readingWords'] = {'short': 80, 'standard': 180, 'long': 300}[context['extent']]
                 batches.append((batch, group))
     return batches
+
+
+def rosco_chunks(size):
+    letters = ROSCO_LETTERS[:size]
+    count = math.ceil(size / 6)
+    minimum, extra = divmod(size, count)
+    sizes = [minimum + (index < extra) for index in range(count)]
+    chunks, offset = [], 0
+    for chunk_size in sizes:
+        chunks.append((offset, letters[offset:offset + chunk_size]))
+        offset += chunk_size
+    return chunks
+
+
+def merge_rosco_parts(parts, context):
+    """Join validated small rosco responses into one playable activity."""
+    if not parts:
+        raise HTTPException(502, 'El rosco quedó incompleto. No se han descontado créditos.')
+    options = [option for part in parts for option in part['options']]
+    explanations = [explanation for part in parts for explanation in part.get('itemExplanations', [])]
+    wanted = context['activitySizes']['pasapalabra']
+    if len(options) != wanted or len(explanations) != wanted:
+        raise HTTPException(502, 'El rosco quedó incompleto. No se han descontado créditos.')
+    merged = {**parts[0], 'options': options, 'itemExplanations': explanations}
+    check_material_quality([merged], context)
+    return merged
 
 
 def check_material_quality(questions, context):
@@ -366,6 +407,9 @@ def parse_material(content, context):
                 answer = 'Completado'
             if kind in ('wordsearch', 'crossword', 'dragdrop', 'pasapalabra', 'multigaps'):
                 puzzle_rows(kind, options)
+                if kind == 'pasapalabra' and context.get('roscoLetters'):
+                    if ''.join(row[0].upper() for row in puzzle_rows(kind, options)) != context['roscoLetters']:
+                        raise ValueError('Usa exactamente las letras de roscoLetters y en ese orden.')
                 answer = ' | '.join(options) if kind == 'multigaps' else 'Completado'
             if kind == 'multigaps' and len(options) != prompt.count('___'):
                 raise ValueError(f'El texto tiene {prompt.count("___")} huecos y {len(options)} soluciones. Debe haber una solución por hueco.')
@@ -511,6 +555,8 @@ elementCount, cuando aparece, exige exactamente ese número de parejas, huecos, 
 En pasapalabra cada actividad es un rosco real, con definiciones o pistas descriptivas.
 NO uses frases con ___, preguntas de rellenar ni reveles la respuesta en la pista.
 Incluye una sola respuesta inequívoca por letra, con letras distintas y pistas variadas.
+Si roscoLetters está presente, usa exactamente esas letras y en ese orden. roscoTotal
+es el tamaño final del rosco; este lote solo genera las letras indicadas, sin repetir otras.
 Si el tema es gramatical describe el significado, función o forma con suficiente contexto;
 puedes usar 'Contiene' para respetar el tema sin inventar palabras por completar el alfabeto.
 Para reading usa un único pasaje por actividad y preguntas variadas sobre él. readingWords
@@ -676,19 +722,27 @@ def generation_response_format(context, provider, model):
 
 
 async def generation_post(client, url, *, headers, json):
-    """A small, bounded wait for the provider's token window, never an immediate loop."""
+    """Retry transient failures and respect Retry-After without an unbounded loop."""
     waited = 0
     for attempt in range(3):
-        response = await client.post(url, headers=headers, json=json)
-        if response.status_code != 429:
+        try:
+            response = await client.post(url, headers=headers, json=json)
+        except (httpx.TimeoutException, httpx.RequestError):
+            if attempt == 2:
+                raise
+            await asyncio.sleep(attempt + 1)
+            continue
+        if response.status_code not in {408, 429, 500, 502, 503, 504}:
             return response
         try:
             seconds = float(response.headers.get('retry-after', '0'))
-            delay = max(1, math.ceil(seconds) + 1) if math.isfinite(seconds) and seconds > 0 else 0
+            delay = max(1, math.ceil(seconds) + 1) if math.isfinite(seconds) and seconds > 0 else attempt + 1
         except (TypeError, ValueError):
-            delay = 0
-        if attempt == 2 or not delay or waited + delay > 60:
-            wait = f' Espera {math.ceil(seconds)} segundos antes de reintentar.' if delay else ''
-            raise HTTPException(429, 'La IA ha alcanzado su límite temporal.' + wait + ' Tu petición se conserva y no se han descontado créditos.', headers={'Retry-After': str(delay)} if delay else None)
+            seconds, delay = 0, attempt + 1
+        if attempt == 2 or waited + delay > 60:
+            if response.status_code == 429:
+                wait = f' Espera {math.ceil(seconds)} segundos antes de reintentar.' if seconds and math.isfinite(seconds) and seconds > 0 else ''
+                raise HTTPException(429, 'La IA ha alcanzado su límite temporal.' + wait + ' Tu petición se conserva y no se han descontado créditos.', headers={'Retry-After': str(delay)} if delay else None)
+            return response
         waited += delay
         await asyncio.sleep(delay)
