@@ -20,6 +20,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/brand/facturas.svg": b"<svg",
         "/health": b'"ok"',
         "/": b'href="/profesor"',
+        "/privacidad": b"Pol\xc3\xadtica de privacidad",
         "/profesor": b"/profesor/register",
         "/e25": b"/e25/register",
         "/e25/login": b"LOGIN_TARGETS",

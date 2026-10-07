@@ -16,6 +16,8 @@ Los documentos se conservan en el volumen `educa_suite_documents`. Si el backend
 
 Profesor Particular queda disponible en `/profesor`, `/profesor/login`, `/profesor/demo` y `/profesor-particular`. El dashboard sigue en `/admin-dashboard/`. La imagen incluye el código de la app, su landing y la captura de presentación; el dashboard usa el directorio `admin/` del repositorio.
 
+La política de privacidad pública está en `https://educame.tech/privacidad` y aparece enlazada desde la portada y el acceso a Profesor Particular. Tras el despliegue, comprueba que la URL abre sin iniciar sesión antes de añadirla en Google Auth Platform → Información de la marca.
+
 El registro inicial utiliza 365 días y 100 créditos por defecto. Opcionalmente configura en `.env` `PROFESOR_SIGNUP_ENABLED`, `PROFESOR_SIGNUP_DAYS` y `PROFESOR_SIGNUP_CREDITS`. Los accesos existentes no se renuevan ni se recargan al iniciar sesión.
 
 Si Git informa de cambios locales o divergencia, no uses `reset --hard`: revisa esos cambios antes de actualizar. Si falla Docker, consulta `docker compose logs --tail=80 backend reverse-proxy`. Una migración fallida requiere revisar el error antes de repetir; no se restaura automáticamente una copia sobre la base de datos activa.

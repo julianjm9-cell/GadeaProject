@@ -65,5 +65,5 @@ if [[ -f RELEASE_REVISION ]]; then
   rm -- RELEASE_REVISION
 fi
 printf '\nActualización completada. Abre estas rutas en tu dominio o IP habitual:\n'
-printf '  /                     Portada con las seis apps\n  /profesor             Landing de Profesor Particular\n  /profesor/login       Login y registro\n  /profesor/demo        Demo sin cuenta\n  /profesor-particular  App privada\n  /admin-dashboard/     Dashboard de administración\n'
+printf '  /                     Portada con las seis apps\n  /privacidad           Política de privacidad pública\n  /profesor             Landing de Profesor Particular\n  /profesor/login       Login y registro\n  /profesor/demo        Demo sin cuenta\n  /profesor-particular  App privada\n  /admin-dashboard/     Dashboard de administración\n'
 printf '\nCopia de seguridad: %s\n' "$BACKUP_DIR"

@@ -536,6 +536,12 @@ def suite_public_page():
     return marketing_file("index.html", "text/html")
 
 
+@router.get("/privacidad")
+@router.get("/politica-de-privacidad")
+def privacy_policy_page():
+    return marketing_file("privacidad.html", "text/html")
+
+
 HAZLOTU_PASSWORD_KEY = "hazlotu_access_password_hash"
 HAZLOTU_COOKIE = "hazlotu_access"
 HAZLOTU_ACCESS_SECONDS = 60 * 60 * 12
