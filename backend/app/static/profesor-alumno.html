@@ -1,7 +1,110 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mi clase · Profesor Particular</title><link rel="icon" href="/assets/brand/profesor-simple-v2.png"><style>
-:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#0d2451;background:#eef7ff}*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(circle at 80% 8%,#d7ebff,transparent 40%),#eef7ff}button,.button{font:inherit;cursor:pointer}header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px max(24px,calc((100vw - 1120px)/2));background:#fff;border-bottom:1px solid #dce9f8}.brand{display:flex;align-items:center;gap:10px;font-weight:850;line-height:1.1;color:#0b2154}.brand img{width:44px;height:44px;object-fit:contain}.logout{padding:10px 14px;border-radius:10px;border:1px solid #d2e2f8;background:#fff;color:#174f99;font-weight:700}main{max-width:1120px;margin:0 auto;padding:56px 24px}.eyebrow{color:#1172e7;font-size:12px;font-weight:850;letter-spacing:.12em;text-transform:uppercase}.welcome{display:grid;gap:7px;margin-bottom:30px}.welcome h1{font-size:clamp(30px,5vw,48px);line-height:1.1;margin:0}.welcome p{margin:0;color:#5b74a1;font-size:17px}.card{background:#fff;border:1px solid #dce8f8;border-radius:22px;box-shadow:0 15px 45px #2a71a014;padding:30px;max-width:760px}.card-top{display:flex;align-items:center;gap:14px;padding-bottom:22px;border-bottom:1px solid #e3edf9}.video-icon{display:grid;place-items:center;width:52px;height:52px;border-radius:15px;background:#e8f3ff;color:#0b72e9;font-size:27px}.card h2{margin:0;font-size:24px}.card small{display:block;color:#6780a5;margin-top:5px}.meeting{padding-top:20px}.meeting p{color:#59739d;line-height:1.6}.button{display:inline-block;text-decoration:none;border:0;border-radius:12px;padding:14px 22px;background:#096ef0;color:#fff;font-weight:750;box-shadow:0 7px 18px #0c6df025}.meeting-link{overflow-wrap:anywhere;margin:15px 0;color:#36669c}.empty{padding:15px 18px;border-radius:12px;background:#f1f7ff;color:#53739d}.refresh{margin-top:24px;padding:10px 0;border:0;background:transparent;color:#096de8;font-weight:700}.error{color:#b83323}footer{margin-top:40px;color:#7a8eae;font-size:13px}@media(max-width:600px){header{padding:12px 16px}main{padding:32px 16px}.card{padding:22px}.welcome p{font-size:15px}}
-</style><link rel="stylesheet" href="/assets/profesor-live.css?v=20261007-1"><link rel="stylesheet" href="/assets/vendor/katex/katex.min.css"></head><body><header><div class="brand"><img src="/assets/brand/profesor-simple-v2.png" alt=""><span>Profesor<br>Particular</span></div><button class="logout" id="logout">Cerrar sesión</button></header><main><div class="welcome"><span class="eyebrow">Mi espacio de clase</span><h1 id="greeting">Bienvenido</h1><p id="subtitle">Cargando tu espacio…</p></div><section class="card student-material-card"><div class="card-top"><span class="video-icon" aria-hidden="true">✦</span><div><h2>Mis materiales</h2><small>Actividades compartidas por tu profesor</small></div></div><div id="studentMaterialList" aria-live="polite"><p>Buscando materiales…</p></div></section><section id="studentMaterials" class="student-live-area" hidden></section><section class="card meeting-card"><div class="card-top"><span class="video-icon" aria-hidden="true">▣</span><div><h2>Tu videollamada</h2><small>Google Meet</small></div></div><div class="meeting" id="meeting" aria-live="polite"><p>Comprobando el enlace…</p></div><button class="refresh" id="refresh">Actualizar enlace</button></section><footer>El enlace y los materiales los comparte tu profesor. Puedes volver a esta pantalla desde cualquier dispositivo con tu usuario y contraseña. <a href="/privacidad">Política de privacidad</a>.</footer></main><script src="/assets/vendor/katex/katex.min.js"></script><script src="/profesor-rich-text.js?v=20261006-1"></script><script>
-const $=id=>document.getElementById(id);const safe=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let lastLink=null;
-async function load(){try{const response=await fetch('/auth/profesor/student-me',{credentials:'same-origin',cache:'no-store'});if(response.status===401||response.status===403){location.replace('/profesor/login?expired=1');return}if(!response.ok)throw Error('No se pudo cargar tu espacio.');const data=await response.json();$('greeting').textContent='Hola, '+data.student.name;$('subtitle').textContent=data.student.course+' · Clases con '+data.teacher.name;const link=data.meet_uri||'';if(link!==lastLink){$('meeting').innerHTML=link?`<p>Tu profesor ya ha preparado el enlace de clase.</p><a class="button" href="${safe(link)}" target="_blank" rel="noopener noreferrer">Entrar a la videollamada ↗</a><p class="meeting-link">${safe(link)}</p>`:'<p class="empty">Todavía no hay una videollamada compartida. Cuando tu profesor añada el enlace, aparecerá aquí automáticamente.</p>';lastLink=link}}catch(err){$('meeting').innerHTML='<p class="error">No hay conexión en este momento. Pulsa «Actualizar enlace» para reintentar.</p>'}}$('refresh').onclick=load;$('logout').onclick=async()=>{await fetch('/auth/profesor/student-logout',{method:'POST',credentials:'same-origin'});location.replace('/profesor/login')};document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});setInterval(()=>{if(!document.hidden)load()},20000);load();
-</script><script src="/profesor-live.js?v=20261007-1"></script></body></html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mi clase · Profesor Particular</title>
+  <link rel="icon" href="/assets/brand/profesor-simple-v2.png">
+  <link rel="stylesheet" href="/assets/vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="/assets/profesor-live.css?v=20261007-3">
+  <style>
+    :root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#081b5c;background:#eff8ff}
+    *{box-sizing:border-box}
+    body{min-height:100dvh;margin:0;background:linear-gradient(115deg,#ecf7ff,#f6fbff 55%,#eaf6ff)}
+    button,a{font:inherit}
+    button{cursor:pointer}
+    [hidden]{display:none!important}
+    .student-topbar{display:flex;align-items:center;gap:28px;min-height:91px;padding:12px clamp(18px,3vw,52px);background:#fff;box-shadow:0 3px 20px #2c6da00b}
+    .student-brand{display:flex;align-items:center;gap:13px;flex:none;color:#071b60;text-decoration:none}
+    .student-brand img{width:65px;height:65px;object-fit:contain}
+    .student-brand strong{font-size:22px;line-height:.95;letter-spacing:-.03em}
+    .student-call{display:flex;align-items:center;gap:14px;margin-left:clamp(12px,5vw,100px);min-width:0}
+    .student-call-icon{display:grid;place-items:center;flex:none;width:56px;height:56px;border-radius:14px;background:#edf6ff;color:#0d73f3;font-size:28px}
+    .student-call strong{white-space:nowrap;font-size:19px}
+    .student-meet-status{display:inline-flex;align-items:center;gap:9px;padding:8px 16px;border-radius:999px;background:#edf3f9;color:#667ca2;font-size:14px;font-weight:750;white-space:nowrap}
+    .student-meet-status:before{content:"";width:11px;height:11px;border-radius:50%;background:#879cb9}
+    .student-meet-status.available{background:#e3f8ed;color:#108b47}
+    .student-meet-status.available:before{background:#03a74e}
+    .student-meet-status.error{background:#fff1e9;color:#b54a32}
+    .student-meet-status.error:before{background:#cc593d}
+    .student-head-actions{display:flex;align-items:center;gap:13px;margin-left:auto}
+    .student-meet-action{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:47px;padding:8px 18px;border:1px solid #1380ff;border-radius:10px;background:#fff;color:#0872f0;text-decoration:none;font-weight:800;white-space:nowrap}
+    .student-meet-action:hover{background:#ecf6ff}
+    .student-account{position:relative}
+    .student-account summary{display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer;color:#0a2b71;font-weight:800}
+    .student-account summary::-webkit-details-marker{display:none}
+    .student-account-avatar{display:grid;place-items:center;flex:none;width:47px;height:47px;border-radius:50%;background:#e0f0ff;color:#126ee1}
+    .student-account-panel{position:absolute;right:0;top:calc(100% + 12px);z-index:10;width:225px;padding:12px;border:1px solid #d5e6fb;border-radius:13px;background:#fff;box-shadow:0 14px 36px #174a7b24}
+    .student-account-panel small{display:block;margin:0 4px 9px;color:#627aa1}
+    .student-account-panel button{display:block;width:100%;padding:10px;border:0;border-radius:8px;background:#f1f7ff;color:#145eb8;text-align:left;font-weight:700}
+    .student-account-panel button+button{margin-top:5px}
+    .student-layout{display:grid;grid-template-columns:minmax(290px,360px) minmax(0,1fr);gap:20px;max-width:1650px;min-height:calc(100dvh - 91px);margin:0 auto;padding:30px clamp(17px,2.8vw,48px)}
+    .student-sidebar,.student-welcome,.student-live-area{min-width:0;border:1px solid #e0effc;border-radius:20px;background:#fff;box-shadow:0 12px 32px #2b6ea10a}
+    .student-sidebar{padding:24px 20px;align-self:stretch}
+    .student-sidebar-heading{display:flex;align-items:center;gap:14px;margin-bottom:21px}
+    .student-sidebar-heading>span{display:grid;place-items:center;width:55px;height:55px;border-radius:12px;background:#eef7ff;color:#2b4c91;font-size:25px}
+    .student-sidebar h1{margin:0;font-size:25px;line-height:1.1;letter-spacing:-.025em}
+    .student-sidebar-heading small{display:block;margin-top:4px;color:#6c85aa}
+    .student-welcome{display:grid;align-content:center;justify-items:center;padding:45px;text-align:center;color:#4a6ca3}
+    .student-welcome span{display:grid;place-items:center;width:74px;height:74px;border-radius:20px;background:#eaf5ff;color:#1272e9;font-size:34px}
+    .student-welcome h2{margin:18px 0 5px;color:#0a2469;font-size:29px}
+    .student-welcome p{max-width:450px;line-height:1.6}
+    .student-live-area{align-self:start;padding:0;overflow:hidden}
+    .student-live-area[hidden]{display:none}
+    .student-footer{grid-column:1/-1;color:#7490b4;font-size:12px;text-align:center}
+    .student-footer a{color:#376ea9}
+    .student-inbox-empty{padding:15px;border-radius:12px;background:#f2f8ff;color:#617fa9;line-height:1.5}
+    @media(max-width:1100px){.student-topbar{gap:15px}.student-call{margin-left:0}.student-call strong{font-size:16px}.student-meet-status{padding:7px 10px;font-size:12px}.student-layout{grid-template-columns:minmax(245px,300px) minmax(0,1fr)}}
+    @media(max-width:850px){.student-topbar{flex-wrap:wrap}.student-call{order:3;width:100%}.student-head-actions{margin-left:auto}.student-layout{grid-template-columns:1fr;min-height:0;padding-top:18px}.student-sidebar{padding:18px}.student-welcome{min-height:240px}.student-call-icon{width:38px;height:38px;font-size:20px}}
+    @media(max-width:560px){.student-brand img{width:45px;height:45px}.student-brand strong{font-size:17px}.student-account-name{display:none}.student-meet-action{padding:8px 11px;font-size:12px}.student-meet-action span{display:none}.student-account-avatar{width:39px;height:39px}.student-layout{gap:13px;padding:14px}.student-sidebar-heading{margin-bottom:10px}.student-sidebar h1{font-size:21px}.student-call{gap:9px}.student-call strong{font-size:14px}}
+  </style>
+</head>
+<body class="student-portal">
+  <header class="student-topbar">
+    <a class="student-brand" href="/profesor/alumno"><img src="/assets/brand/profesor-simple-v2.png" alt=""><strong>Profesor<br>Particular</strong></a>
+    <div class="student-call" aria-live="polite"><span class="student-call-icon" aria-hidden="true">▣</span><strong>Tu videollamada</strong><span class="student-meet-status" id="meetStatus">Comprobando enlace</span></div>
+    <div class="student-head-actions">
+      <a id="meetAction" class="student-meet-action" href="#" target="_blank" rel="noopener noreferrer" hidden>▣ <span>Abrir Google Meet</span> ↗</a>
+      <details class="student-account"><summary><span class="student-account-avatar" id="studentInitials">A</span><span class="student-account-name" id="studentName">Alumno</span>⌄</summary><div class="student-account-panel"><small id="studentCourse">Mi cuenta</small><button id="refresh" type="button">Actualizar enlace</button><button id="logout" type="button">Cerrar sesión</button></div></details>
+    </div>
+  </header>
+  <main class="student-layout">
+    <aside class="student-sidebar"><div class="student-sidebar-heading"><span aria-hidden="true">▤</span><div><h1>Material pendiente</h1><small>Actividades de tu profesor</small></div></div><div id="studentMaterialList" aria-live="polite"><p class="student-inbox-empty">Buscando materiales…</p></div></aside>
+    <section id="studentWelcome" class="student-welcome"><span aria-hidden="true">✦</span><h2>Tu espacio de clase</h2><p>Elige un material de la izquierda para empezar o continuar. Tus respuestas se guardan automáticamente.</p></section>
+    <section id="studentMaterials" class="student-live-area" hidden></section>
+    <footer class="student-footer">El profesor comparte aquí tus materiales y el enlace de clase. <a href="/privacidad">Política de privacidad</a>.</footer>
+  </main>
+  <script src="/assets/vendor/katex/katex.min.js"></script>
+  <script src="/profesor-rich-text.js?v=20261006-1"></script>
+  <script>
+    const $=id=>document.getElementById(id);
+    let lastLink=null;
+    async function load(){
+      try{
+        const response=await fetch('/auth/profesor/student-me',{credentials:'same-origin',cache:'no-store'});
+        if(response.status===401||response.status===403){location.replace('/profesor/login?expired=1');return}
+        if(!response.ok)throw Error('No se pudo cargar tu espacio.');
+        const data=await response.json();
+        const name=String(data.student.name||'Alumno');
+        $('studentName').textContent=name.split(' ')[0];
+        $('studentInitials').textContent=name.split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase();
+        $('studentCourse').textContent=(data.student.course||'Alumno')+' · '+(data.teacher.name||'Tu profesor');
+        const link=data.meet_uri||'';
+        if(link!==lastLink){
+          $('meetStatus').textContent=link?'Enlace disponible':'Sin enlace todavía';
+          $('meetStatus').className='student-meet-status'+(link?' available':'');
+          $('meetAction').hidden=!link;
+          if(link)$('meetAction').href=link;
+          lastLink=link;
+        }
+      }catch(error){$('meetStatus').textContent='Sin conexión';$('meetStatus').className='student-meet-status error'}
+    }
+    $('refresh').onclick=load;
+    $('logout').onclick=async()=>{await fetch('/auth/profesor/student-logout',{method:'POST',credentials:'same-origin'});location.replace('/profesor/login')};
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
+    setInterval(()=>{if(!document.hidden)load()},20000);
+    load();
+  </script>
+  <script src="/profesor-live.js?v=20261007-3"></script>
+</body>
+</html>

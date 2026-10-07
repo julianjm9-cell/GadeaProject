@@ -25,4 +25,5 @@ def ensure_runtime_schema() -> None:
         for statement in statements:
             conn.execute(text(statement))
         ProfesorStudentAccess.__table__.create(bind=conn, checkfirst=True)
+        conn.execute(text("ALTER TABLE profesor_student_accesses ADD COLUMN IF NOT EXISTS password_encrypted TEXT"))
         ProfesorMaterialSession.__table__.create(bind=conn, checkfirst=True)

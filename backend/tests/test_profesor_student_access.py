@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 
 from test_access_control import client, login, seed_user
 
-from app.models import License, User
+from app.models import License, ProfesorStudentAccess, User
 from app.main import app
 from app.config import get_settings
 from app.api import auth as auth_api
@@ -29,9 +29,16 @@ def test_student_login_is_isolated_and_downgrade_closes_portal(client):
     assert web.get("/api/profesor/access").status_code == 200
     created = web.post("/api/profesor/access", json={"student_id": "s1", "username": "maria.123"})
     assert created.status_code == 200
+    assert created.headers["cache-control"] == "private, no-store"
     access = created.json()["access"]
     password = created.json()["password"]
-    assert password not in str(web.get("/api/profesor/access").json())
+    listed = web.get("/api/profesor/access")
+    assert listed.headers["cache-control"] == "private, no-store"
+    assert listed.json()["accesses"][0]["password"] == password
+    with factory() as db:
+        stored = db.get(ProfesorStudentAccess, UUID(access["id"]))
+        assert stored.password_encrypted and password not in stored.password_encrypted
+        assert password not in stored.password_hash
     assert web.post("/api/profesor/access", json={"student_id": "missing", "username": "fake.123"}).status_code == 404
     assert web.post(f"/api/profesor/access/{access['id']}/meet-link", json={"url": "https://evil.example/abc-defg-hij"}).status_code == 422
     assert web.post(f"/api/profesor/access/{access['id']}/meet-link", json={"url": "https://meet.google.com/abc-defg-hij"}).status_code == 200
@@ -69,8 +76,15 @@ def test_reset_pause_and_teacher_isolation(client):
     assert web.post(f"/api/profesor/access/{access_id}/reset-password").status_code == 404
     assert web.post(f"/api/profesor/access/{access_id}/meet-link", json={"url": "https://meet.google.com/abc-defg-hij"}).status_code == 404
     login(web)
-    new_password = web.post(f"/api/profesor/access/{access_id}/reset-password").json()["password"]
+    with factory() as db:
+        db.get(ProfesorStudentAccess, UUID(access_id)).password_encrypted = None
+        db.commit()
+    assert web.get("/api/profesor/access").json()["accesses"][0]["password"] is None
+    reset = web.post(f"/api/profesor/access/{access_id}/reset-password")
+    assert reset.headers["cache-control"] == "private, no-store"
+    new_password = reset.json()["password"]
     assert old_password != new_password
+    assert web.get("/api/profesor/access").json()["accesses"][0]["password"] == new_password
     web.post("/auth/logout")
     assert web.post("/auth/profesor/student-login", json={"username": "uno.123", "password": old_password}).status_code == 401
     assert web.post("/auth/profesor/student-login", json={"username": "uno.123", "password": new_password}).status_code == 200

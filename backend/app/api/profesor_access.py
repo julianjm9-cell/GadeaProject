@@ -3,11 +3,14 @@ from __future__ import annotations
 
 import re
 import secrets
+import base64
+import hashlib
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
 from uuid import UUID
 
 import httpx
+from cryptography.fernet import Fernet, InvalidToken
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from jose import JWTError, jwt
 from pydantic import BaseModel, Field
@@ -71,7 +74,22 @@ def owned_access(db: Session, user: User, access_id: UUID, *, for_update: bool =
 
 
 def public_access(access: ProfesorStudentAccess, student: dict) -> dict:
-    return {"id": str(access.id), "student_id": access.student_id, "name": str(student.get("name") or "Alumno"), "username": access.username, "active": access.is_active, "meet_uri": access.meet_uri or "", "created_at": access.created_at.isoformat()}
+    return {"id": str(access.id), "student_id": access.student_id, "name": str(student.get("name") or "Alumno"), "username": access.username, "password": visible_password(access), "active": access.is_active, "meet_uri": access.meet_uri or "", "created_at": access.created_at.isoformat()}
+
+
+def password_cipher() -> Fernet:
+    secret = get_settings().jwt_secret.encode("utf-8")
+    key = base64.urlsafe_b64encode(hashlib.sha256(b"profesor-student-password-v1:" + secret).digest())
+    return Fernet(key)
+
+
+def visible_password(access: ProfesorStudentAccess) -> str | None:
+    if not access.password_encrypted:
+        return None
+    try:
+        return password_cipher().decrypt(access.password_encrypted.encode("ascii")).decode("utf-8")
+    except (InvalidToken, ValueError, UnicodeError):
+        return None
 
 
 def meet_url(raw: str) -> str:
@@ -88,16 +106,18 @@ def meet_url(raw: str) -> str:
 
 
 @router.get("/api/profesor/access")
-def list_accesses(user: User = Depends(current_user), db: Session = Depends(get_db)):
+def list_accesses(response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
     teacher_premium(db, user)
+    response.headers["Cache-Control"] = "private, no-store"
     students = teacher_students(db, user)
     rows = db.scalars(select(ProfesorStudentAccess).where(ProfesorStudentAccess.teacher_user_id == user.id).order_by(ProfesorStudentAccess.created_at)).all()
     return {"ok": True, "google_meet_connected": bool(user.meet_refresh_token), "google_meet_configured": bool(get_settings().google_client_id and get_settings().google_client_secret), "accesses": [public_access(row, students[row.student_id]) for row in rows if row.student_id in students]}
 
 
 @router.post("/api/profesor/access")
-def create_access(payload: Credentials, user: User = Depends(current_user), db: Session = Depends(get_db)):
+def create_access(payload: Credentials, response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
     teacher_premium(db, user)
+    response.headers["Cache-Control"] = "private, no-store"
     students = teacher_students(db, user)
     if payload.student_id not in students:
         raise HTTPException(404, "Alumno no encontrado en tu cuenta.")
@@ -107,7 +127,7 @@ def create_access(payload: Credentials, user: User = Depends(current_user), db: 
     if db.scalar(select(ProfesorStudentAccess.id).where(ProfesorStudentAccess.teacher_user_id == user.id, ProfesorStudentAccess.student_id == payload.student_id)):
         raise HTTPException(409, "Este alumno ya tiene acceso. Puedes restablecer su contraseña.")
     password = secrets.token_urlsafe(15)
-    access = ProfesorStudentAccess(teacher_user_id=user.id, student_id=payload.student_id, username=username, password_hash=hash_password(password))
+    access = ProfesorStudentAccess(teacher_user_id=user.id, student_id=payload.student_id, username=username, password_hash=hash_password(password), password_encrypted=password_cipher().encrypt(password.encode("utf-8")).decode("ascii"))
     db.add(access)
     try:
         db.commit()
@@ -119,11 +139,13 @@ def create_access(payload: Credentials, user: User = Depends(current_user), db: 
 
 
 @router.post("/api/profesor/access/{access_id}/reset-password")
-def reset_password(access_id: UUID, user: User = Depends(current_user), db: Session = Depends(get_db)):
+def reset_password(access_id: UUID, response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
     teacher_premium(db, user)
+    response.headers["Cache-Control"] = "private, no-store"
     access = owned_access(db, user, access_id)
     password = secrets.token_urlsafe(15)
     access.password_hash = hash_password(password)
+    access.password_encrypted = password_cipher().encrypt(password.encode("utf-8")).decode("ascii")
     access.session_version += 1
     db.commit()
     return {"ok": True, "password": password}

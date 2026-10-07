@@ -13,7 +13,7 @@ from app.database.session import engine
 def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://admin") -> None:
     with engine.connect() as connection:
         assert connection.execute(text("SELECT 1")).scalar() == 1, "PostgreSQL no responde"
-        connection.execute(text("SELECT id FROM profesor_student_accesses LIMIT 0"))
+        connection.execute(text("SELECT id, password_encrypted FROM profesor_student_accesses LIMIT 0"))
         connection.execute(text("SELECT id FROM profesor_material_sessions LIMIT 0"))
     checks = {
         "/ocr-facturas": b'href="/facturas/login"',

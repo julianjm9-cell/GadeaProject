@@ -125,6 +125,7 @@ class ProfesorStudentAccess(Base, TimestampMixin):
     student_id: Mapped[str] = mapped_column(String(120), nullable=False)
     username: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    password_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     session_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     meet_uri: Mapped[str | None] = mapped_column(String(500), nullable=True)
