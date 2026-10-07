@@ -112,8 +112,21 @@ def test_cloze_explanation_follows_locator_order():
     result = parse(q, batch=batch)
     assert result['options'] == ['fui', 'jugaba', 'volví']
     assert result['itemExplanations'] == [q['clozeGaps'][i]['explanation'] for i in (1, 2, 0)]
+    q['clozeGaps'][0]['infinitive'] = 'volví'
+    assert '___ (volví)' not in parse(q, batch=batch)['prompt']
     q['clozeGaps'][0]['explanation'] = ''
     with pytest.raises(HTTPException): parse(q, batch=batch)
+
+
+def test_sentence_generator_places_clear_opening_fragment_first():
+    q = dict(type='sentence', prompt='Ordena una frase sobre fracciones equivalentes.', answer='Fracciones equivalentes',
+             options=['multiplica ambos términos por dos.', 'Para obtener fracciones equivalentes,', 'así conservas su valor.'],
+             explanation='Multiplicar ambos términos por el mismo número mantiene el valor.',
+             itemExplanations=['Operación sobre los dos términos.', 'Inicio de la frase.', 'Resultado de la operación.'])
+    result = parse(q)
+    assert result['options'] == [q['options'][1], q['options'][0], q['options'][2]]
+    assert result['answer'] == ' → '.join(result['options'])
+    assert result['itemExplanations'] == [q['itemExplanations'][1], q['itemExplanations'][0], q['itemExplanations'][2]]
 
 
 def test_numeric_calculation_rounding_and_units():

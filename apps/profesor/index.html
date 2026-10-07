@@ -532,9 +532,11 @@ function setupEditorNavigation(material){
  previous.onclick=()=>show(current-1);
  nav.querySelectorAll('[data-jump]').forEach(button=>button.onclick=()=>{const target=Number(button.dataset.jump);if(target<=current||validate(current))show(target)});
  form.noValidate=true;
- const guard=event=>{if(current<blocks.length-1){event.preventDefault();event.stopImmediatePropagation();next.click();return}if(!form.editorValidateAll()){event.preventDefault();event.stopImmediatePropagation()}};
+ const guard=event=>{if(!form.querySelector('#activityTitle'))return;if(current<blocks.length-1){event.preventDefault();event.stopImmediatePropagation();next.click();return}if(!form.editorValidateAll()){event.preventDefault();event.stopImmediatePropagation()}};
  form.addEventListener('submit',guard,true);
- dialog.addEventListener('close',()=>{form.removeEventListener('submit',guard,true);form.noValidate=false;delete form.editorValidateAll;delete dialog.dataset.editorStep},{once:true});
+ const cleanupEditor=()=>{form.removeEventListener('submit',guard,true);if(form.querySelector('#activityTitle'))form.noValidate=false;delete form.editorValidateAll;delete form.editorCleanup;delete dialog.dataset.editorStep};
+ form.editorCleanup=cleanupEditor;
+ dialog.addEventListener('close',cleanupEditor,{once:true});
  show(0);
 }
 let workshopBusy=false;
@@ -681,9 +683,9 @@ function reviewAttempt(id){const a=state.activityAttempts.find(x=>x.id===id);if(
 
 init();
 </script>
-<script src="./profesor-activity-play.js?v=20261007-5"></script>
-<script src="./profesor-live.js?v=20261007-5"></script>
-<link rel="stylesheet" href="./assets/profesor-activity-play.css?v=20261007-4">
+<script src="./profesor-activity-play.js?v=20261007-6"></script>
+<script src="./profesor-live.js?v=20261007-6"></script>
+<link rel="stylesheet" href="./assets/profesor-activity-play.css?v=20261007-5">
 <link rel="stylesheet" href="./assets/profesor-live.css?v=20261007-4">
 <style>
 .material-hub-card[data-tone="practice"],.activity-edit-block[data-tone="practice"],.activity-play .block[data-tone="practice"],.material-live-preview .preview-exercise[data-tone="practice"]{--activity-bg:#eef6ff;--activity-ink:#1e64b5;--activity-line:#c9e1ff}

@@ -361,8 +361,9 @@ def parse_material(content, context):
                 if any(current[0] < previous[1] for previous, current in zip(replacements, replacements[1:])):
                     raise ValueError('Los huecos seleccionados se solapan; elige respuestas distintas del relato.')
                 prompt_text = passage_text
-                for start, end, _, infinitive, _ in reversed(replacements):
-                    prompt_text = prompt_text[:start] + '___' + (' (' + infinitive + ')' if infinitive else '') + prompt_text[end:]
+                for start, end, solution, infinitive, _ in reversed(replacements):
+                    hint = infinitive and infinitive.casefold() != solution.casefold()
+                    prompt_text = prompt_text[:start] + '___' + (' (' + infinitive + ')' if hint else '') + prompt_text[end:]
                 q = {**q, 'prompt': prompt_text, 'options': [item[2] for item in replacements], 'answer': 'Completado'}
                 if any(item[4] for item in replacements):
                     q['itemExplanations'] = [item[4] for item in replacements]
@@ -394,6 +395,14 @@ def parse_material(content, context):
                     dates = [re.search(r'\b(?:1\d{3}|20\d{2})\b', value) for value in options]
                     if all(dates) and len({match.group() for match in dates}) == len(options):
                         order = sorted(range(len(options)), key=lambda index: int(dates[index].group()))
+                        options = [options[index] for index in order]
+                        if isinstance(q.get('itemExplanations'), list) and len(q['itemExplanations']) == len(order):
+                            q = {**q, 'itemExplanations': [q['itemExplanations'][index] for index in order]}
+                if kind == 'sentence':
+                    starts = [index for index, value in enumerate(options) if re.match(r'^[«“"(¿¡]*[A-ZÁÉÍÓÚÑÜ]', value)]
+                    ends = [index for index, value in enumerate(options) if re.search(r'[.!?][»”"’\')]*$', value)]
+                    if len(starts) == 1 or len(ends) == 1:
+                        order = [starts[0], *(index for index in range(len(options)) if index != starts[0])] if len(starts) == 1 else [*(index for index in range(len(options)) if index != ends[0]), ends[0]]
                         options = [options[index] for index in order]
                         if isinstance(q.get('itemExplanations'), list) and len(q['itemExplanations']) == len(order):
                             q = {**q, 'itemExplanations': [q['itemExplanations'][index] for index in order]}
@@ -597,7 +606,7 @@ El ejemplo solo enseña el formato; clozeGaps debe tener EXACTAMENTE elementCoun
 Cada fragment es una cita literal corta del relato que contiene answer exactamente una vez;
 incluye contexto para que el fragment aparezca una sola vez en el texto. No solapes respuestas.
 answer hasta 100 caracteres; infinitive es exactamente el verbo de answer, con se si reflexivo.
-NO escribas ___ en ningún campo. La app oculta las respuestas y añade los infinitivos.
+NO escribas ___ en ningún campo. La app oculta las respuestas y añade el infinitivo solo si no revela la respuesta.
 clozeText: short unas 80 palabras; standard 180 (mínimo 80); long 300 (mínimo 180), salvo
 longitud explícita compatible. Una historia con continuidad y contexto, no una lista de frases.
 Si se piden dos tiempos, incluye ambos naturalmente. Revisa también los verbos del relato

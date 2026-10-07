@@ -119,6 +119,25 @@ def test_game_grading_does_not_send_hidden_keys():
     assert all("pair" not in card for card in safe_question(memory, [memory], False)["cards"])
 
 
+def test_sentence_legacy_order_short_answers_and_hidden_cloze_solutions():
+    from app.api.profesor_material_sessions import expected_sequence, grade, safe_question
+    sentence = {"type": "sentence", "prompt": "Ordena", "options": ["multiplica ambos términos.", "Para obtener fracciones equivalentes,", "así mantienes el valor."], "answer": "Ordena"}
+    corrected = [sentence["options"][1], sentence["options"][0], sentence["options"][2]]
+    assert expected_sequence(sentence) == corrected
+    assert grade(sentence, corrected) == "correct"
+    assert grade(sentence, sentence["options"]) == "incorrect"
+    short = {"type": "short", "prompt": "Past of go", "answer": "went", "alternatives": ["had gone"]}
+    assert grade(short, "went.") == "correct"
+    assert grade(short, "goed") == "incorrect"
+    assert grade(short, "had gone") == "correct"
+    subjective = {"type": "short", "answer": "Puede expresarse como fracción de enteros."}
+    assert grade(subjective, "Una fracción") == "pending"
+    cloze = {"type": "multigaps", "prompt": "Debe **___ (simplificar) y ___ (factorizar)**.", "options": ["simplificar", "factorizar"]}
+    public = safe_question(cloze, [cloze], False)
+    assert public["prompt"] == "Debe ___ y ___."
+    assert "options" not in public
+
+
 def test_error_correction_requires_selection_and_never_exposes_solution():
     from app.api.profesor_material_sessions import grade, prepare, safe_question
 

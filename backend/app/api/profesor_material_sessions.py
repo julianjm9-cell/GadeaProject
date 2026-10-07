@@ -66,6 +66,14 @@ def rows(question: dict) -> list[list[str]]:
 
 def expected_sequence(question: dict) -> list[str]:
     options = question["options"]
+    if question["type"] == "sentence":
+        starts = [item for item in options if re.match(r'^[«“"(¿¡]*[A-ZÁÉÍÓÚÑÜ]', item.strip())]
+        ends = [item for item in options if re.search(r'[.!?][»”"’\')]*$', item.strip())]
+        if len(starts) == 1:
+            return [starts[0], *(item for item in options if item != starts[0])]
+        if len(ends) == 1:
+            return [*(item for item in options if item != ends[0]), ends[0]]
+        return options
     if question["type"] != "timeline":
         return options
     years = [re.search(r"\b(?:1\d{3}|20\d{2})\b", item) for item in options]
@@ -177,6 +185,13 @@ def prepare(question: dict, seed: int) -> dict:
 def safe_question(q: dict, all_questions: list[dict], completed: bool, revealed: bool = False, response: object = None) -> dict:
     kind = q["type"]
     out = {key: q[key] for key in ("id", "type", "prompt", "text", "unit", "wordBank") if key in q}
+    if kind in {"gaps", "multigaps"}:
+        solutions = q.get("options", []) if kind == "multigaps" else [q.get("answer", "")]
+        for solution in solutions:
+            exact = str(solution).split("~")[0].strip()
+            if exact:
+                out["prompt"] = re.sub(r"___\s*\(\s*" + re.escape(exact) + r"\s*\)", "___", out["prompt"], count=1, flags=re.I)
+        out["prompt"] = out["prompt"].replace("**", "")
     out["hints"] = q.get("hints", [])
     if kind in CHOICE:
         out["options"] = list(dict.fromkeys(other.get("answer", "") for other in all_questions if other.get("type") == "pairs")) if kind == "pairs" else q.get("options", [])
@@ -210,7 +225,7 @@ def safe_question(q: dict, all_questions: list[dict], completed: bool, revealed:
     if kind in {"visualquiz", "imagepoint"} and q.get("image"):
         out["image"] = {"id": q["image"]["id"], "filename": q["image"].get("filename", "Imagen")}
     if completed:
-        out["solution"] = q.get("answer", "")
+        out["solution"] = " → ".join(expected_sequence(q)) if kind in SEQUENCE else q.get("answer", "")
         if kind == "pasapalabra":
             out["solutions"] = [parts[2] for parts in rows(q)]
         elif kind == "crossword":
@@ -241,6 +256,9 @@ def grade(q: dict, value: object, part: int | None = None) -> str:
             return "pending"
         marks = '.,;:!?«»“”"'
         return "correct" if norm(chosen.strip(marks)) == norm(q["errorSegment"].strip(marks)) and norm(correction.strip(marks)) == norm(q["correctedSegment"].strip(marks)) else "incorrect"
+    if kind == "short" and len(str(q.get("answer", "")).split()) in (1, 2, 3) and not re.search(r"[;:]", q["answer"]):
+        key = lambda text: norm(re.sub(r"[.!?¡¿]+$", "", str(text).strip()))
+        return "correct" if any(key(value) == key(answer) for answer in [q["answer"], *q.get("alternatives", [])]) else "incorrect"
     if kind in OPEN:
         return "pending" if str(value or "").strip() else "unanswered"
     if kind == "flashcard":

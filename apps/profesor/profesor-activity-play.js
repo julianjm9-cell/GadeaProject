@@ -2,6 +2,8 @@
 (function () {
   const shuffle = values => values.map(value => ({ value, sort: Math.random() })).sort((a, b) => a.sort - b.sort).map(item => item.value);
   const normalize = value => String(value || '').trim().toLocaleLowerCase('es').replace(/\s+/g, ' ');
+  const shortKey = value => normalize(value).replace(/[.!?¡¿]+$/g, '').trim();
+  const objectiveShort = q => q.type === 'short' && /^\S+(?:\s+\S+){0,2}$/.test(String(q.answer || '').trim()) && !/[;:]/.test(q.answer);
   const escape = value => esc(String(value ?? ''));
   const accepts = (value, solution, alternatives = []) => [solution, ...alternatives].some(item => normalize(value) === normalize(item));
   const letterKey = value => String(value || '').toUpperCase().replaceAll('Ñ', '\u0001').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replaceAll('\u0001', 'Ñ');
@@ -24,9 +26,25 @@
   const errorValue = value => normalize(String(value).replace(/^[.,;:!?«»“”"]+|[.,;:!?«»“”"]+$/g,''));
   const timelineLabel = (value, reveal) => reveal ? value : String(value).replace(/\b(?:1\d{3}|20\d{2})\b/g, 'año oculto').replace(/\baño oculto\s*[–—:-]\s*/gi, '').trim() || 'Fecha oculta';
   const expectedSequence = q => {
+    if(q.type==='sentence'){
+      const options=q.options, starts=options.filter(value=>/^[«“"(¿¡]*[A-ZÁÉÍÓÚÑÜ]/.test(value.trim()));
+      const ends=options.filter(value=>/[.!?][»”"’')]*$/.test(value.trim()));
+      if(starts.length===1)return [starts[0],...options.filter(value=>value!==starts[0])];
+      if(ends.length===1)return [...options.filter(value=>value!==ends[0]),ends[0]];
+      return options;
+    }
     if(q.type!=='timeline')return q.options;
     const dated=q.options.map(value=>({value,year:Number(String(value).match(/\b(?:1\d{3}|20\d{2})\b/)?.[0])}));
     return dated.every(item=>Number.isFinite(item.year))&&new Set(dated.map(item=>item.year)).size===dated.length?dated.sort((a,b)=>a.year-b.year).map(item=>item.value):q.options;
+  };
+  const displayGapPrompt = q => {
+    let prompt=String(q.prompt||'');
+    const solutions=q.type==='multigaps'?q.options||[]:[q.answer];
+    solutions.forEach(solution=>{
+      const exact=String(solution||'').split('~')[0].trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      if(exact)prompt=prompt.replace(new RegExp('___\\s*\\(\\s*'+exact+'\\s*\\)','i'),'___');
+    });
+    return prompt.replace(/\*\*/g,'');
   };
   function recordAnswer(index, part, correct, value, assisted = false) {
     $('form').dispatchEvent(new CustomEvent('play:answer', {detail:{index,part,correct,value,assisted}}));
@@ -172,7 +190,7 @@
     }
     if (question.type === 'multigaps') {
       const root = $('puzzle-' + index), answer = $('r-' + index), solutions = puzzleRows('multigaps', question.options);
-      const parts = question.prompt.split('___');
+      const parts = displayGapPrompt(question).split('___');
       root.innerHTML = `<div class="multi-gap-play" aria-label="Texto con ${solutions.length} huecos">${parts.map((part, position) => `${escape(part)}${position < solutions.length ? `<input data-multi-gap="${position}" autocomplete="off" spellcheck="false" maxlength="100" placeholder="${position + 1}" aria-label="Respuesta del hueco ${position + 1}">` : ''}`).join('')}</div><p class="play-progress" id="multi-status-${index}" role="status">0 de ${solutions.length} huecos completados</p>`;
       const inputs = [...root.querySelectorAll('[data-multi-gap]')];
       const update = () => {
@@ -396,7 +414,7 @@
     const image = visualTypes.includes(type) ? `<div class="visual-image-box ${type === 'imagepoint' ? 'visual-answer-box' : ''}" id="visual-${index}" ${type === 'imagepoint' ? 'tabindex="0" role="button" aria-label="Marca el punto en la imagen; usa las flechas para ajustarlo"' : ''}><img data-activity-image="${index}" alt="${escape(question.image?.filename || 'Imagen del ejercicio')}"></div>` : '';
     let control = '';
     if (type === 'gaps') {
-      const [before, after] = question.prompt.split('___');
+      const [before, after] = displayGapPrompt(question).split('___');
       control = `<div class="play-gap-line"><span>${escape(before)}</span><input id="r-${index}" name="r-${index}" aria-label="Respuesta del hueco ${index + 1}" autocomplete="off" spellcheck="false" maxlength="300" required placeholder="Escribe aquí"><span>${escape(after)}</span></div>`;
     } else if (type === 'multigaps') {
       control = `<div id="puzzle-${index}"></div><input id="r-${index}" name="r-${index}" type="hidden">`;
@@ -419,7 +437,7 @@
     } else if (type === 'error') {
       control = `<p class="play-hint">Toca la palabra errónea de la oración y escribe cómo debería aparecer.</p><div class="error-fragments" role="group" aria-label="Selecciona la palabra o fragmento erróneo de la oración">${errorExample(question.prompt).split(/\s+/).filter(Boolean).map((part, n) => `<button type="button" data-error-word="${n}" aria-pressed="false">${escape(part)}</button>`).join('')}</div><label>Tu corrección<input id="r-${index}" name="r-${index}" autocomplete="off" maxlength="200" required placeholder="Escribe aquí la forma correcta"></label>`;
     } else if (openAnswerTypes.includes(type)) {
-      control = `<textarea id="r-${index}" name="r-${index}" maxlength="${type === 'short' ? 800 : 3000}" rows="${type === 'short' ? 2 : 4}" required placeholder="Escribe tu respuesta con tus propias palabras…" aria-label="Respuesta del ejercicio ${index + 1}"></textarea>`;
+      control = `<textarea id="r-${index}" name="r-${index}" maxlength="${type === 'short' ? 800 : 3000}" rows="${type === 'short' ? 2 : 4}" required placeholder="${objectiveShort(question)?'Escribe la palabra o expresión solicitada…':'Escribe tu respuesta con tus propias palabras…'}" aria-label="Respuesta del ejercicio ${index + 1}"></textarea>`;
     } else if (type === 'pairs' && pairChoices.length < 2) {
       control = `<input id="r-${index}" name="r-${index}" autocomplete="off" maxlength="300" required placeholder="Escribe el término relacionado" aria-label="Término relacionado con ${escape(question.prompt)}">`;
     } else {
@@ -486,6 +504,7 @@
         return errorValue(selected) === errorValue(q.errorSegment) && errorValue(value) === errorValue(q.correctedSegment) ? 'correct' : 'incorrect';
       }
       if(!String(value).trim())return 'unanswered';
+      if(objectiveShort(q))return [q.answer,...(q.alternatives||[])].some(answer=>shortKey(value)===shortKey(answer))?'correct':'incorrect';
       if(openAnswerTypes.includes(q.type))return 'pending';
       if(sequenceTypes.includes(q.type))return touchedSequences.has(index)?sequences[index].length===q.options.length&&sequences[index].every((item,position)=>item===expectedSequence(q)[position])?'correct':'incorrect':'unanswered';
       if(q.type==='numeric'){const n=numberValue(value),s=numberValue(q.answer);return Number.isFinite(n)&&Math.abs(n-s)<=(q.tolerance||0)+Number.EPSILON*Math.max(1,Math.abs(s))*4?'correct':'incorrect';}
@@ -506,16 +525,16 @@
       const field=$('r-'+index);if(field&&field.type!=='hidden'&&grade!=='pending')markControl(field,grade==='correct');
       document.querySelector(`[data-question="${index}"]`)?.querySelectorAll('.play-choice').forEach(label=>{const input=label.querySelector('input');label.classList.remove('answer-right','answer-wrong');label.querySelector('.choice-result')?.remove();if(input.checked){const right=grade==='correct';markControl(label,right);label.insertAdjacentHTML('beforeend',`<b class="choice-result" aria-label="${right?'Correcta':'Incorrecta'}">${right?'✓':'×'}</b>`);}});
       if(sequenceTypes.includes(q.type))document.querySelectorAll(`#order-${index} [data-sequence-row]`).forEach((row,n)=>markControl(row,sequences[index][n]===expectedSequence(q)[n]));
-      if(q.type==='timeline')renderSequence(index);
+      if(sequenceTypes.includes(q.type))renderSequence(index);
       if(q.type==='error')document.querySelectorAll(`[data-question="${index}"] [data-error-word][aria-pressed="true"]`).forEach(button=>markControl(button,grade==='correct'));
     }
-    const touchedSequences = new Set(), groupReviews = [];
+    const touchedSequences = new Set(), confirmedSequences = new Set(), groupReviews = [];
     let checked = false;
     let attempt = null;
     questions.forEach((q, index) => {
       if (!sequenceTypes.includes(q.type)) return;
       sequences[index] = shuffle(q.options);
-      if (sequences[index].join(' → ') === q.answer && sequences[index].length > 1) sequences[index].reverse();
+      if (sequences[index].every((item,position)=>item===expectedSequence(q)[position]) && sequences[index].length > 1) sequences[index].reverse();
     });
     const studentName = studentId ? student(studentId)?.name || 'Alumno' : '';
     modal('Ejercicios', `${questions.map((q, i) => questionMarkup(q, i, pairChoices)).join('')}<p id="activityScore" class="play-score" role="status"></p>${submit('Terminar')}`, form => {
@@ -528,7 +547,7 @@
       checked = true;
       questions.forEach((q, index) => {
         const feedback = $('feedback-' + index);
-        const solution = puzzleTypes.includes(q.type) ? puzzleSolution(q) : q.type === 'imagepoint' ? 'Punto marcado por el profesor' : q.answer;
+        const solution = puzzleTypes.includes(q.type) ? puzzleSolution(q) : sequenceTypes.includes(q.type) ? expectedSequence(q).join(' → ') : q.type === 'imagepoint' ? 'Punto marcado por el profesor' : q.answer;
         feedback.innerHTML = rich((grades[index]==='unanswered'?'Sin responder. ':grades[index]==='pending' ? '◷ Solución orientativa: ' + q.answer : grades[index] === 'correct' ? '✓ ¡Correcto!' : '↻ Solución: ' + solution) + (q.errorSegment ? '\nFragmento que había que corregir: ' + q.errorSegment : '') + (q.explanation ? '\n\n' + q.explanation : '') + (q.rubric ? '\n\nCriterios de revisión: ' + q.rubric : '')) + itemReasons(q);
         feedback.classList.add(grades[index] === 'correct' ? 'is-correct' : grades[index] === 'pending' ? 'is-pending' : 'is-incorrect');
         document.querySelector(`[data-question="${index}"]`).dataset.result = grades[index];
@@ -613,24 +632,12 @@
     }
     function renderSequence(index, focusPosition = null) {
       const list = sequences[index], root = $('order-' + index);
-      if (questions[index].type === 'sentence') {
-        if (!root.dataset.started) { root.dataset.started = '1'; list.splice(0); }
-        const bank = questions[index].options.filter(value => !list.includes(value)).sort((a,b) => a.localeCompare(b));
-        root.innerHTML = `<div class="sentence-bank" aria-label="Fragmentos disponibles">${bank.map(value => `<button type="button" data-fragment="${escape(value)}" draggable="true">${escape(value)}</button>`).join('') || '✓ Todos los fragmentos usados'}</div><div class="sentence-line" tabindex="0" aria-label="Frase construida; suelta aquí los fragmentos">${list.map((value, n) => `<span class="sentence-chip ${checked ? value === questions[index].options[n] ? 'answer-right' : 'answer-wrong' : ''}"><button type="button" data-remove-fragment="${n}" ${checked ? 'disabled' : ''}>${escape(value)} ×</button><button type="button" data-left-fragment="${n}" aria-label="Mover ${escape(value)} a la izquierda" ${checked || n === 0 ? 'disabled' : ''}>←</button></span>`).join('') || 'Toca o arrastra los fragmentos para construir la frase'}</div>`;
-        $('r-' + index).value = list.join(' → ');
-        const add = value => { if (checked || !bank.includes(value)) return; list.push(value); if (list.length === questions[index].options.length) touchedSequences.add(index); renderSequence(index); updateProgress(); };
-        root.querySelectorAll('[data-fragment]').forEach(button => { button.onclick = () => add(button.dataset.fragment); button.ondragstart = event => event.dataTransfer.setData('application/x-profesor-fragment', button.dataset.fragment); });
-        const line = root.querySelector('.sentence-line'); line.ondragover = event => event.preventDefault(); line.ondrop = event => { event.preventDefault(); add(event.dataTransfer.getData('application/x-profesor-fragment')); };
-        root.querySelectorAll('[data-remove-fragment]').forEach(button => button.onclick = () => { if (checked) return; list.splice(Number(button.dataset.removeFragment), 1); touchedSequences.delete(index); renderSequence(index); updateProgress(); });
-        root.querySelectorAll('[data-left-fragment]').forEach(button => button.onclick = () => { if (checked) return; const n = Number(button.dataset.leftFragment); [list[n-1],list[n]] = [list[n],list[n-1]]; renderSequence(index); });
-        return;
-      }
-      const revealDates = checked || (questions[index].type === 'timeline' && touchedSequences.has(index));
+      const revealDates = checked || (questions[index].type === 'timeline' && confirmedSequences.has(index));
       const expected = expectedSequence(questions[index]);
-      root.innerHTML = list.map((value, position) => {const display = questions[index].type === 'timeline' ? timelineLabel(value,revealDates) : value;const result = revealDates && questions[index].type === 'timeline' || checked;return `<div class="order-row ${result ? value === expected[position] ? 'answer-right' : 'answer-wrong' : ''}" data-sequence-row="${position}" draggable="${!checked}" tabindex="${checked ? '-1' : '0'}" aria-label="${position + 1} de ${list.length}: ${escape(display)}"><span class="order-grip" aria-hidden="true">${result ? value === expected[position] ? '✓' : '↻' : '⠿'}</span><span class="order-value"><b>${position + 1}.</b> ${escape(display)}</span><div class="order-actions"><button type="button" data-move="-1" data-pos="${position}" aria-label="Subir ${escape(display)}" ${checked || position === 0 ? 'disabled' : ''}>↑</button><button type="button" data-move="1" data-pos="${position}" aria-label="Bajar ${escape(display)}" ${checked || position === list.length - 1 ? 'disabled' : ''}>↓</button></div></div>`;}).join('') + (checked ? '' : '<button type="button" data-confirm-order>Confirmar este orden</button>');
+      root.innerHTML = list.map((value, position) => {const display = questions[index].type === 'timeline' ? timelineLabel(value,revealDates) : value;const result = checked || confirmedSequences.has(index);return `<div class="order-row ${result ? value === expected[position] ? 'answer-right' : 'answer-wrong' : ''}" data-sequence-row="${position}" draggable="${!checked}" tabindex="${checked ? '-1' : '0'}" aria-label="${position + 1} de ${list.length}: ${escape(display)}"><span class="order-grip" aria-hidden="true">${result ? value === expected[position] ? '✓' : '↻' : '⠿'}</span><span class="order-value"><b>${position + 1}.</b> ${escape(display)}</span><div class="order-actions"><button type="button" data-move="-1" data-pos="${position}" aria-label="Subir ${escape(display)}" ${checked || position === 0 ? 'disabled' : ''}>↑</button><button type="button" data-move="1" data-pos="${position}" aria-label="Bajar ${escape(display)}" ${checked || position === list.length - 1 ? 'disabled' : ''}>↓</button></div></div>`;}).join('') + (checked ? '' : '<div class="sequence-actions"><button type="button" class="primary" data-confirm-order>Comprobar orden</button></div>');
       $('r-' + index).value = list.join(' → ');
       if (checked) return;
-      root.querySelector('[data-confirm-order]').onclick = () => { touchedSequences.add(index); updateProgress();confirmQuestion(index); };
+      root.querySelector('[data-confirm-order]').onclick = () => { touchedSequences.add(index); confirmedSequences.add(index); updateProgress();confirmQuestion(index); };
       let picked = null;
       root.querySelectorAll('[data-sequence-row]').forEach(row => {
         const position = Number(row.dataset.sequenceRow);
@@ -651,8 +658,7 @@
       function move(from, to) {
         if (from < 0 || to < 0 || from >= list.length || to >= list.length || from === to) return;
         const [item] = list.splice(from, 1); list.splice(to, 0, item);
-        if (questions[index].type === 'timeline') {touchedSequences.delete(index); document.querySelector(`[data-question="${index}"]`).removeAttribute('data-result'); $('feedback-'+index).textContent='';}
-        else touchedSequences.add(index);
+        touchedSequences.add(index);confirmedSequences.delete(index);document.querySelector(`[data-question="${index}"]`).removeAttribute('data-result');$('feedback-'+index).textContent='';
         renderSequence(index, to); updateProgress();
       }
     }
@@ -663,11 +669,11 @@
       if (q.type === 'memory') mountMemory(q, index, () => checked);
       if (q.type === 'hangman') mountHangman(q, index, () => checked);
       const section = document.querySelector(`[data-question="${index}"]`);
-      if(!['quiz','boolean','visualquiz','pairs','classify','pasapalabra','memory','wordsearch','crossword','dragdrop','hangman','order','timeline'].includes(q.type)){
-        const check=document.createElement('button');check.type='button';check.dataset.checkQuestion=index;check.textContent=openAnswerTypes.includes(q.type)&&q.type!=='error'?'Guardar respuesta':'Comprobar';
+      if(!['quiz','boolean','visualquiz','pairs','classify','pasapalabra','memory','wordsearch','crossword','dragdrop','hangman','order','sentence','timeline'].includes(q.type)){
+        const check=document.createElement('button');check.type='button';check.dataset.checkQuestion=index;check.textContent=openAnswerTypes.includes(q.type)&&q.type!=='error'&&!objectiveShort(q)?'Guardar respuesta':'Comprobar';
         check.onclick=()=>{if(q.type==='multigaps'){section.querySelectorAll('[data-multi-gap]').forEach((input,n)=>{if(input.value.trim()){const right=q.options[n].split('~').some(s=>accepts(input.value,s));markControl(input,right);recordAnswer(index,n,right,input.value.trim());}});}else if(q.type==='error'&&gradeQuestion(index)==='unanswered'){$('feedback-'+index).className='play-feedback is-incorrect';$('feedback-'+index).textContent='Selecciona el error de la oración y escribe su corrección.';}else confirmQuestion(index);};section.querySelector('.question-controls').append(check);
       }
-      const solution=document.createElement('button');solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';solution.onclick=()=>{practice[index].assisted=true;const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):q.answer;$('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'')+itemReasons(q);};section.append(solution);
+      const solution=document.createElement('button');solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';solution.onclick=()=>{practice[index].assisted=true;const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):sequenceTypes.includes(q.type)?expectedSequence(q).join(' → '):q.answer;$('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'')+itemReasons(q);};section.append(solution);
       if(!puzzleTypes.includes(q.type))section.addEventListener('click',()=>queueMicrotask(()=>{if(section.dataset.result==='incorrect'||section.dataset.result==='pending')solution.hidden=false;}),{signal});
       section.querySelectorAll('input:not([type="radio"]):not([type="hidden"])').forEach(input=>{
         if(q.type==='multigaps'||q.type==='pasapalabra'||q.type==='crossword')return;

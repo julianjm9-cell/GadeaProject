@@ -34,6 +34,9 @@
 .activity-play .play-score:empty{display:none}
 .activity-play .order-row{display:flex;align-items:center;gap:9px;min-height:53px;margin:6px 0;padding:7px 9px;border:1px solid #d7e4f5;border-radius:10px;background:#fff;cursor:grab}
 .activity-play .order-row.selected,.activity-play .order-row.drag-over{border-color:#1374e9;background:#eaf4ff}
+.activity-play .sequence-actions{display:flex;justify-content:flex-end;margin:16px 0 2px}
+.activity-play .sequence-actions [data-confirm-order]{min-width:190px;padding:12px 20px;font-weight:700}
+@media(max-width:650px){.activity-play .sequence-actions [data-confirm-order]{width:100%}}
 .activity-play .order-row:focus-visible{outline:3px solid #76aeff}
 .activity-play .order-grip{color:#97add0;font-size:22px}
 .activity-play .order-value{flex:1;min-width:0;color:#173663;font-size:13px}
