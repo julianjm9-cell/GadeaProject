@@ -162,10 +162,10 @@ body{background:radial-gradient(ellipse at 78% 0,#e4f0ff90,transparent 50%),line
 <script src="./assets/vendor/katex/katex.min.js"></script>
 <script src="./profesor-rich-text.js?v=20261006-1"></script>
 <script src="./temario-presentation.js?v=20261006-3"></script>
-<script src="./profesor-temario.js?v=20261006-1"></script>
+<script src="./profesor-temario.js?v=20261007-2"></script>
 <script src="./profesor-temario-depth.js?v=20261003-3"></script>
 <script src="./profesor-spanish.js?v=20261005-1"></script>
-<script src="./profesor-temario-revision.js?v=20261006-1"></script>
+<script src="./profesor-temario-revision.js?v=20261007-2"></script>
 <script src="./profesor-access.js?v=20261007-4"></script>
 <script>
 'use strict';
@@ -219,9 +219,23 @@ function materialTone(type){if(visualTypes.includes(type))return 'visual';if(['f
 function materialArtwork(m){const q=m.activity?.questions?.find(item=>item.image)||m.activity?.questions?.[0],type=q?.type||legacyMaterialType(m),visual=visualTypes.includes(type);let art='';if(visual)art=q?.image||m.attachment?`<img data-card-image="${esc(m.id)}" alt="Imagen de ${esc(m.title)}">`:'<div><span class="art-symbol">▧</span><small>Espacio para imagen</small></div>';else if(type==='wordsearch'||type==='crossword')art='<div class="art-words">'+Array.from('SABERAPRENDIZAL',letter=>`<span>${letter}</span>`).join('')+'</div>';else if(type==='pasapalabra')art='<div class="art-wheel"><span>A</span><span>B</span><span>C</span><span>D</span></div>';else if(type==='hangman')art='<div class="art-hangman"><b>＿ ＿ ＿</b><small>A B C</small></div>';else if(type==='memory'||type==='flashcard')art='<div class="art-cards"><span>?</span><span>✓</span><span>?</span></div>';else if(['pairs','dragdrop','classify'].includes(type))art='<div class="art-pairs"><span>A</span>↔<span>1</span></div>';else if(['order','sentence','timeline'].includes(type))art='<div class="art-steps"><span>1</span>→<span>2</span>→<span>3</span></div>';else if(['quiz','boolean','visualquiz'].includes(type))art='<div class="art-options"><span>○ A</span><span>◉ B</span><span>○ C</span></div>';else if(type==='gaps'||type==='multigaps')art='<div class="art-line"><span></span><span></span><span></span></div>';else if(type==='numeric')art='<span class="art-symbol">12,5</span>';else if(type)art='<span class="art-symbol">✎</span>';else art=`<span class="art-symbol">${m.attachment?'▤':'▣'}</span>`;return `<div class="material-art" data-art="${visual?'visual':esc(type||'resource')}">${art}</div>`}
 async function paintMaterialCards(root=document){for(const img of root.querySelectorAll('[data-card-image]')){const m=state.library.find(item=>item.id===img.dataset.cardImage),image=m?.activity?.questions?.find(q=>q.image)?.image||m?.attachment;if(!image)continue;try{const url=await visualImageUrl(image);if(img.isConnected)img.src=url}catch{if(img.isConnected)img.replaceWith(Object.assign(document.createElement('small'),{textContent:'Imagen no disponible'}))}}}
 function materialHubCard(m,studentView=false){const first=m.activity?.questions?.find(item=>item.image)||m.activity?.questions?.[0],types=[...new Set(m.activity?.questions?.map(q=>q.type)||[])],tone=materialTone(first?.type||legacyMaterialType(m)),count=m.activity?.questions?.length||0,kind=types.length>1?'Material combinado':types.length?activityLabels[types[0]]:m.kind||'Material',description=String(m.body||first?.prompt||m.attachment?.filename||'Abre este recurso para prepararlo y usarlo en clase.').trim().slice(0,145);return `<article class="material-hub-card" data-tone="${tone}" tabindex="0"><div class="material-card-copy"><span class="material-kind">${icon(m.activity?'spark':m.attachment?'file':'book')} ${esc(kind)}</span><h3 title="${esc(m.title)}">${esc(m.title)}</h3><p class="material-card-description">${esc(description)}</p></div><div class="material-card-foot"><span class="badge ${subjectColor(m.subject)}">${esc(m.subject)}</span><small>${icon('file')} ${count||1}</small>${m.activity?`<details class="material-use-menu"><summary class="material-open" aria-label="Usar ${esc(m.title)}">Usar <span aria-hidden="true">⌄</span></summary><div>${button('Usar yo','useMaterial',m.id)}${button('Mandar a alumno','sendLiveMaterial',m.id)}</div></details>`:button('Usar','useMaterial',m.id,'material-open')}<details class="material-card-menu"><summary aria-label="Más opciones de ${esc(m.title)}" title="Más opciones">⋮</summary><div>${button('Editar','editMaterial',m.id)}${button('Asignar','assign',m.id)}</div></details></div></article>`}
+const materialMenus='.material-use-menu,.material-card-menu';
+document.addEventListener('click',event=>{
+ const selected=event.target.closest(materialMenus);
+ document.querySelectorAll(materialMenus).forEach(menu=>{if(menu!==selected)menu.open=false});
+ if(selected&&event.target.closest('button'))selected.open=false;
+});
+document.addEventListener('keydown',event=>{
+ if(event.key!=='Escape')return;
+ const open=[...document.querySelectorAll(materialMenus)].filter(menu=>menu.open);
+ if(!open.length)return;
+ open.forEach(menu=>menu.open=false);
+ open.at(-1).querySelector('summary')?.focus();
+ event.preventDefault();
+});
 function materialHubCards(){const materials=filteredMaterials();materialPage=Math.min(materialPage,Math.max(0,Math.ceil(materials.length/materialPageSize())-1));return materials.slice(materialPage*materialPageSize(),materialPage*materialPageSize()+materialPageSize()).map(m=>materialHubCard(m)).join('')||empty('No hay materiales con esos filtros. Prueba otra búsqueda o crea uno nuevo.')}
 function materialHubPager(){const count=filteredMaterials().length;return count>materialPageSize()?`${button('‹','materialPage','-1','quiet')}<span>${materialPage+1} / ${Math.ceil(count/materialPageSize())}</span>${button('›','materialPage','1','quiet')}`:''}
-function materialHubView(){const filters=[...new Set([...subjects,...state.library.map(m=>m.subject)])];return `<div class="material-page-head"><h1>Materiales <span class="material-count">${state.library.length}</span></h1><div class="actions">${isPremium()?button('Materiales enviados','liveSessionList'):''}${button(icon('spark')+' Crear material','workshop','','primary')}${button('+ Añadir archivo','newMaterial')}</div></div><div class="material-hub-toolbar"><label class="material-search">${icon('search')}<input id="librarySearch" type="search" value="${esc(materialQuery)}" placeholder="Buscar material…" aria-label="Buscar material"></label><select id="librarySubject" aria-label="Filtrar asignatura"><option value="">Todas las asignaturas</option>${filters.map(x=>`<option ${materialSubject===x?'selected':''}>${esc(x)}</option>`).join('')}</select></div><div id="libraryResults" class="material-hub-grid">${materialHubCards()}</div><div id="libraryPager" class="student-pager material-hub-pager">${materialHubPager()}</div>`}
+function materialHubView(){const filters=[...new Set([...subjects,...state.library.map(m=>m.subject)])];return `<div class="material-page-head"><h1>Materiales <span class="material-count">${state.library.length}</span></h1><div class="actions">${button(icon('spark')+' Crear material','workshop','','primary')}${button('+ Añadir archivo','newMaterial')}</div></div><div class="material-hub-toolbar"><label class="material-search">${icon('search')}<input id="librarySearch" type="search" value="${esc(materialQuery)}" placeholder="Buscar material…" aria-label="Buscar material"></label><select id="librarySubject" aria-label="Filtrar asignatura"><option value="">Todas las asignaturas</option>${filters.map(x=>`<option ${materialSubject===x?'selected':''}>${esc(x)}</option>`).join('')}</select></div><div id="libraryResults" class="material-hub-grid">${materialHubCards()}</div><div id="libraryPager" class="student-pager material-hub-pager">${materialHubPager()}</div>`}
  function render(){if(!ready)return;normalizeTeacherState();document.body.classList.toggle('home-view',view==='Inicio'&&!selected&&!activeClass);document.body.classList.toggle('app-shell-view',!activeClass);document.body.classList.toggle('class-mode',!!activeClass);updateChrome();$('nav').innerHTML=['Inicio','Temario','Alumnos','Clases','Biblioteca','Calendario','Cobros','IA'].map(v=>button(icon(navIcons[v])+'<span>'+v+'</span>','nav',v,view===v&&!selected?'active':'')).join('');syncRoute();if(activeClass){renderClass();return}if(selected){renderStudent();return}let html='';
  if(view==='Inicio'){html=homeView()}
  else if(view==='Cobros'){html=heading('Clases y cobros','Tarifas, pagos y bonos, sin perder el hilo.')+billingView()}
@@ -951,14 +965,14 @@ init();
 @media(max-width:820px){.temario-stage{grid-template-columns:1fr}.temario-main-column{min-height:0}.temario-list-panel{min-height:320px;max-height:480px}.temario-detail{min-height:0}.temario-topic-meta{display:flex}.temario-topic{grid-template-columns:39px minmax(0,1fr) auto 32px}}
 @media(max-width:620px){.temario-heading{height:46px}.temario-heading h1{font-size:24px}.temario-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.temario-toolbar .temario-search{grid-column:1/-1}.temario-topic{grid-template-columns:37px minmax(0,1fr) 27px;min-height:70px}.temario-topic-meta{display:none}.temario-topic-index{width:36px;height:36px}.temario-topic-arrow{width:26px;height:26px}.temario-resources{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style>
-<link rel="stylesheet" href="./assets/profesor-final.css?v=20261002-11">
+<link rel="stylesheet" href="./assets/profesor-final.css?v=20261007-2">
 <link rel="stylesheet" href="./assets/profesor-home.css?v=20261005-4">
 <link rel="stylesheet" href="./assets/profesor-studio.css?v=20261005-1">
 <link rel="stylesheet" href="./assets/profesor-temario.css?v=20261006-1">
-<script src="./profesor-support.js?v=20261005-9"></script>
+<script src="./profesor-support.js?v=20261007-2"></script>
 <link rel="stylesheet" href="./assets/profesor-generator.css?v=20261006-3">
 <script src="./profesor-generator.js?v=20261006-6"></script>
-<link rel="stylesheet" href="./assets/profesor-access.css?v=20261007-4">
+<link rel="stylesheet" href="./assets/profesor-access.css?v=20261007-5">
 <style>
 #dialog.file-preview-dialog{width:min(1120px,96vw);max-width:1120px;max-height:94dvh;overflow:auto}
 .attachment-preview{margin:16px 0;border:1px solid #dce8f7;border-radius:14px;background:#f7faff;overflow:auto;min-width:0}

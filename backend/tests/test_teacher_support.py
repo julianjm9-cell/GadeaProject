@@ -107,6 +107,18 @@ def test_support_accepts_json_with_surrounding_text():
     content=json.dumps({'topic':generated()})
     assert parse_topic('Aquí está el tema:\n```json\n'+content+'\n```')['title']==generated()['title']
 
+def test_support_rejects_placeholder_solution():
+    from fastapi import HTTPException
+    from app.services.teacher_support import parse_topic
+    topic=json.loads(json.dumps(generated()))
+    topic['didactic']['practice'][0]['answer']='Respuesta abierta.'
+    try:
+        parse_topic(json.dumps(topic))
+    except HTTPException as exc:
+        assert exc.status_code==502
+    else:
+        raise AssertionError('Una solución provisional no debe publicarse como tema terminado.')
+
 def test_support_model_without_json_mode(client,monkeypatch):
     import httpx
     from app.api import app_routes

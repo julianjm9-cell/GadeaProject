@@ -16,15 +16,15 @@
       const firstReason=c.deepDive,contrast='**Idea que debemos revisar:** '+wrong+'\n\n**Corrección y motivo:** '+correct;
       c.orientation=firstReason;
       c.objective=objective;c.prior=prior;c.evidence=objective;
-      c.explanation=topic.explanation+'\n\n**Por qué funciona**\n'+firstReason+'\n\n**Límite importante**\n'+correct;
+      c.explanation=topic.explanation+'\n\n**Por qué funciona**\n'+firstReason;
       c.deepDive=firstReason;
       c.concepts=[topic.explanation,correct,firstReason];
-      c.examples=[topic.example+'\n\n**Razonamiento:** '+firstReason,'**Otro caso**\n'+prompt+'\n\n**Solución explicada:** '+answer];
+      c.examples=[topic.example,'**Otro caso**\n'+prompt+'\n\n**Solución explicada:** '+answer];
       c.commonErrors=[contrast];
       c.practice=[{prompt:topic.question,answer:topic.answer+'\n'+firstReason},{prompt,answer},{prompt:'Revisa esta afirmación y justifica la corrección: «'+wrong+'».',answer:correct}];
       c.solutions=c.practice.map(item=>item.answer);
-      c.transfer='Compara estos dos casos:\n1. '+topic.example+'\n2. '+prompt+'\nExplica qué regla comparten y qué dato, forma o contexto cambia.';
-      c.recognition=correct;
+      c.transfer='Parte de este caso: '+prompt+'\n\nPropón una variante cambiando una condición o un dato. Explica qué mantienes y qué debes revisar en tu respuesta.';
+      c.recognition='Necesitas '+objective.charAt(0).toLocaleLowerCase('es')+objective.slice(1)+' Un caso para comprobarlo: '+prompt;
       c.steps=['**Identifica la relación:** '+topic.explanation,'**Comprueba el caso:** '+firstReason,'**Controla esta confusión:** '+correct];
       const q=(type,task,solution,extra={})=>({type,prompt:task,answer:solution,options:[],text:'',...extra});
       const questions=[
@@ -33,7 +33,7 @@
         q('error','Un alumno afirma: «'+wrong+'». Corrige su explicación.',correct,{explanation:correct,errorSegment:wrong,rubric:'Identifica la confusión y explica esta distinción: '+correct}),
         q('flashcard','¿Qué regla o relación explica este modelo?\n'+topic.example,topic.explanation+'\n'+firstReason,{explanation:firstReason}),
         q(calculated?'problem':'short',prompt,answer,{explanation:answer,rubric:objective}),
-        q('short',c.transfer,'En el primer caso: '+firstReason+'\nEn el segundo: '+answer,{rubric:'Relaciona ambos casos mediante esta idea: '+correct+' Admite otros razonamientos válidos.'})
+        q('short',c.transfer,'Caso de partida: '+answer+'\nLa variante debe conservar esta distinción: '+correct,{rubric:'Comprueba que explica qué condición modificó y cómo cambia la respuesta. Usa como referencia: '+correct+' Admite otras variantes justificadas.'})
       ].map((question,n)=>({...question,id:'preparado-'+topic.id+'-'+(n+1),activityGroup:n+1}));
       c.activities=[...new Set(questions.map(item=>item.type))];
       c.preparedMaterial={title:title+' · práctica guiada',duration:20,summary:objective,revision,questions};
