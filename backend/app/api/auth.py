@@ -22,7 +22,7 @@ from app.schemas.core import ApiOk, EsoRegisterRequest, LoginRequest, TokenRespo
 from app.security.passwords import hash_password, verify_password
 from app.security.tokens import create_token, decode_token
 from app.services.audit import audit
-from app.services.licenses import check_access, license_for_user, profesor_account_plan
+from app.services.licenses import PROFESOR_PREMIUM_PLAN, check_access, license_for_user, profesor_account_plan
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -201,7 +201,7 @@ def ensure_google_access(db: Session, user: User, product_codes: tuple[str, ...]
                 starts_at=now - timedelta(minutes=1),
                 expires_at=now + timedelta(days=settings.eso_signup_days if product_code == "ESO_ADULTOS" else settings.profesor_signup_days if product_code == "PROFESOR_PARTICULAR" else settings.google_signup_license_days),
                 usage_limit=settings.eso_signup_credits if product_code == "ESO_ADULTOS" else settings.profesor_signup_credits if product_code == "PROFESOR_PARTICULAR" else settings.google_signup_usage_limit,
-                plan="ESO_FREE" if product_code == "ESO_ADULTOS" else "PROFESOR_FREE" if product_code == "PROFESOR_PARTICULAR" else "MVP",
+                plan="ESO_FREE" if product_code == "ESO_ADULTOS" else settings.profesor_signup_plan if product_code == "PROFESOR_PARTICULAR" else "MVP",
                 legacy_key=f"{prefix}-GOOGLE-{secrets.token_urlsafe(10).upper()}",
             )
         )
@@ -291,7 +291,8 @@ def register_eso(payload: EsoRegisterRequest, request: Request, response: Respon
 @router.get("/profesor/signup-settings")
 def profesor_signup_settings():
     settings = get_settings()
-    return {"enabled": settings.profesor_signup_enabled, "credits": settings.profesor_signup_credits, "days": settings.profesor_signup_days}
+    return {"enabled": settings.profesor_signup_enabled, "credits": settings.profesor_signup_credits, "days": settings.profesor_signup_days,
+            "plan": "premium" if settings.profesor_signup_plan == PROFESOR_PREMIUM_PLAN else "normal"}
 
 
 @router.post("/profesor/register", response_model=TokenResponse, status_code=201)

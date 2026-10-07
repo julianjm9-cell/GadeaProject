@@ -377,7 +377,7 @@ async function loadSignupSettings() {
     document.getElementById('signupToggle').hidden = !signupAvailable;
     const allowance = document.getElementById('signupAllowance');
     allowance.hidden = false;
-    allowance.textContent = signupAvailable ? `Acceso gratuito durante ${settings.days} días y ${settings.credits} créditos iniciales de IA, una sola vez. Al agotarlos, puedes seguir usando la app sin IA.` : 'El registro gratuito está cerrado temporalmente.';
+    allowance.textContent = signupAvailable ? `${profesor && settings.plan === 'premium' ? 'Plan Premium incluido. ' : ''}Acceso gratuito durante ${settings.days} días y ${settings.credits} créditos iniciales de IA, una sola vez. Al agotarlos, puedes seguir usando la app sin IA.` : 'El registro gratuito está cerrado temporalmente.';
     toggleSignup(new URLSearchParams(location.search).get('mode') === 'register');
   } catch (error) { document.getElementById('error').textContent = error.message; }
 }

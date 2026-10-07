@@ -46,7 +46,7 @@ Las pruebas de integración de producto se encuentran en `backend/tests/test_acc
 
 ## Configuración de registro
 
-`PROFESOR_SIGNUP_ENABLED` (por defecto `true`), `PROFESOR_SIGNUP_DAYS` (365) y `PROFESOR_SIGNUP_CREDITS` (100) controlan el acceso inicial. La landing y el login muestran los valores del servidor. El acceso se otorga una sola vez; no renueva licencias suspendidas/caducadas ni repone créditos. La administración permite modificar el acceso de cada cuenta.
+`PROFESOR_SIGNUP_ENABLED` (por defecto `true`), `PROFESOR_SIGNUP_DAYS` (365), `PROFESOR_SIGNUP_CREDITS` (100) y `PROFESOR_SIGNUP_PLAN` (`PROFESOR_PREMIUM` por defecto) controlan el acceso inicial. Para que las altas futuras sean cuentas normales, cambia `PROFESOR_SIGNUP_PLAN=PROFESOR_FREE` en el entorno del servidor; las cuentas existentes conservan su plan. El registro con contraseña y el acceso con Google usan este mismo plan inicial. El acceso se otorga una sola vez; no renueva licencias suspendidas/caducadas ni repone créditos. La administración permite modificar el acceso de cada cuenta.
 
 `node tests/profesor-routes-browser.cjs` verifica el recorrido público, registro real en el backend local, perfil, logout/login, búsqueda, rutas internas y navegación móvil. Requiere un backend de pruebas independiente en `http://127.0.0.1:8891`, configurable con `PROFESOR_TEST_URL`; crea cuentas de prueba y genera la captura de la landing a partir de la demo.
 

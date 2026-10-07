@@ -109,7 +109,7 @@ def test_profesor_requires_its_own_license(client):
     assert test_client.post("/api/state?app=profesor_particular", json={"students": []}).status_code == 402
 
 
-def test_profesor_plan_is_controlled_only_by_admin_license(client):
+def test_profesor_plan_is_controlled_by_server_license(client):
     test_client, db_factory = client
     seed_user(db_factory, role="superadmin", email="admin@example.com")
     _, teacher_id = seed_user(db_factory, email="teacher@example.com", product_codes=("PROFESOR_PARTICULAR",))
@@ -171,7 +171,8 @@ def test_profesor_registration_and_admin_access_management(client):
     accounts = test_client.get("/admin/accounts", headers=headers).json()["accounts"]
     teacher = next(a for a in accounts if a["id"] == teacher_id)
     assert [a["product_code"] for a in teacher["accesses"]] == ["PROFESOR_PARTICULAR"]
-    assert teacher["accesses"][0]["plan"] == "PROFESOR_FREE"
+    assert teacher["accesses"][0]["plan"] == "PROFESOR_PREMIUM"
+    assert test_client.get("/api/state?app=profesor_particular").json()["teacherProfile"]["plan"] == "premium"
     result = test_client.patch(f"/admin/users/{teacher_id}/access/PROFESOR_PARTICULAR", headers=headers, json={"status": "suspended", "usage_limit": 100})
     assert result.status_code == 200
     assert test_client.get("/api/state?app=profesor_particular").status_code == 402
@@ -186,6 +187,7 @@ def test_profesor_enrollment_does_not_replenish_credits(client):
     with db_factory() as db:
         user = db.get(User, UUID(user_id))
         license_obj = license_for_user(db, user, "PROFESOR_PARTICULAR")
+        assert license_obj.plan == "PROFESOR_PREMIUM"
         license_obj.usage_limit = 7
         original_id = license_obj.id
         db.commit()

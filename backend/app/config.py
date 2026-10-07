@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import AnyHttpUrl, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -50,6 +51,7 @@ class Settings(BaseSettings):
     profesor_signup_enabled: bool = True
     profesor_signup_credits: int = Field(default=100, ge=1)
     profesor_signup_days: int = Field(default=365, ge=1)
+    profesor_signup_plan: Literal["PROFESOR_FREE", "PROFESOR_PREMIUM"] = "PROFESOR_PREMIUM"
 
     bootstrap_superadmin_email: str = ""
     bootstrap_superadmin_password: str = ""

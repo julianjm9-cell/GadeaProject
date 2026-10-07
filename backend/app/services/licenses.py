@@ -16,7 +16,7 @@ PROFESOR_PREMIUM_PLAN = "PROFESOR_PREMIUM"
 
 
 def profesor_account_plan(license_obj: License) -> str:
-    """Only an administrator-controlled license can grant Profesor Premium."""
+    """The server-issued license, never client state, determines Profesor Premium."""
     return "premium" if license_obj.plan == PROFESOR_PREMIUM_PLAN else "normal"
 
 
