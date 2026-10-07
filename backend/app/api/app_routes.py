@@ -1541,14 +1541,21 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
                 if group is not None and not context.get('regeneration'):
                     batch['previousPrompts'] = [q['prompt'][:200] for q in questions if q['type'] in [k for k in batch if k in context and type(batch[k]) is int and batch[k] > 0]][-12:]
                 repair_source = ''
+                empty_or_truncated = False
                 attempts = 3 if group is not None else 1
                 for attempt in range(attempts):
-                    budget = 4000 if group is not None and any(batch[k] for k in ('reading', 'multigaps', 'pasapalabra')) else 3000
-                    body = {"model": model, "messages": [{"role": "system", "content": generation_system(batch)}, {"role": "user", "content": json.dumps(batch, ensure_ascii=False)}], "temperature": 0.3, "max_tokens": budget, "response_format": generation_response_format(batch, provider, model)}
+                    large_board = batch.get('elementCount', 0) >= 12 or bool(batch.get('reading') or batch.get('multigaps'))
+                    budget = 6000 if large_board else 4000 if group is not None and batch.get('pasapalabra') else 3000
+                    if empty_or_truncated:
+                        budget = max(budget, 6000)
+                    response_format = generation_response_format(batch, provider, model)
+                    if empty_or_truncated and response_format['type'] == 'json_schema':
+                        response_format = {'type': 'json_object'}
+                    body = {"model": model, "messages": [{"role": "system", "content": generation_system(batch)}, {"role": "user", "content": json.dumps(batch, ensure_ascii=False)}], "temperature": 0.3, "max_tokens": budget, "response_format": response_format}
                     if repair_source:
                         body['messages'].extend([{'role': 'assistant', 'content': repair_source}, {'role': 'user', 'content': batch['repairInstruction'] + ' Corrige el borrador anterior y devuelve el lote completo, no solo el cambio. Conserva el contenido válido.'}])
                     if provider == 'groq' and model in ('openai/gpt-oss-120b', 'openai/gpt-oss-20b'):
-                        body.update(reasoning_effort='medium' if group is not None else 'low', include_reasoning=False)
+                        body.update(reasoning_effort='low' if large_board or empty_or_truncated or group is None else 'medium', include_reasoning=False)
                     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
                     response = await generation_post(client, url, headers=headers, json=body) if group is not None else await client.post(url, headers=headers, json=body)
                     # Groq may return its draft alongside a schema-validation 400.
@@ -1566,10 +1573,14 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
                     content = ''
                     try:
                         data = provider_draft if provider_draft is not None else response.json()
-                        content = data["choices"][0]["message"]["content"]
+                        choice = data["choices"][0]
+                        content = choice["message"].get("content") or ''
                         sent, received = token_usage(data)
                         input_tokens += sent
                         output_tokens += received
+                        if not isinstance(content, str) or not content.strip() or choice.get('finish_reason') == 'length':
+                            empty_or_truncated = True
+                            raise HTTPException(502, 'La IA devolvió una respuesta vacía o incompleta. No se han descontado créditos.')
                         result = parse_material(content, batch)
                         if group is not None:
                             for item in result:

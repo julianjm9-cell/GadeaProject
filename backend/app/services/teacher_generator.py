@@ -429,7 +429,7 @@ def parse_material(content, context):
         check_material_quality(cleaned, context)
         return cleaned
     except (ValueError, TypeError, KeyError) as exc:
-        reason = str(exc) if isinstance(exc, ValueError) else ''
+        reason = str(exc) if isinstance(exc, ValueError) and not isinstance(exc, json.JSONDecodeError) else ''
         raise HTTPException(502, 'La IA no devolvió actividades válidas. ' + (reason + ' ' if reason else '') + 'No se han descontado créditos. Puedes reintentar o escribir el contenido manualmente.') from exc
 
 SYSTEM = '''Crea material educativo correcto para estudiantes escolares y adultos. Para Español sigue el nivel MCER A1-C2 de levelGuidance, no un curso escolar. Devuelve SOLO JSON:

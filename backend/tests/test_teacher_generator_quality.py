@@ -208,6 +208,70 @@ def test_sensitive_board_schema_and_legacy_fallback():
     assert generation_response_format(batch,'openai','other')=={'type':'json_object'}
 
 
+def test_malformed_json_does_not_expose_parser_in_user_message():
+    _, context = generator_context(payload())
+    batch, _ = generation_batches(context)[0]
+    with pytest.raises(HTTPException) as exc:
+        parse_material('not JSON', batch)
+    assert 'Expecting value' not in exc.value.detail
+    assert 'No se han descontado créditos' in exc.value.detail
+
+
+def test_empty_response_retries_with_more_room_and_without_strict_schema(client, monkeypatch):
+    web, factory = client
+    seed_user(factory, product_codes=('PROFESOR_PARTICULAR',)); login(web)
+    monkeypatch.setattr(app_routes, 'chat_provider_config', lambda *args, **kw: ('test-key', 'https://example.test', 'groq'))
+    monkeypatch.setattr(app_routes, 'chat_model_for_purpose', lambda *args: 'openai/gpt-oss-120b')
+    sent = []
+    class FakeClient:
+        def __init__(self, **kw): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kw):
+            sent.append(kw['json'])
+            if len(sent) == 1:
+                return httpx.Response(200, json={'choices': [{'message': {'content': None}, 'finish_reason': 'length'}]})
+            questions = [dict(type='gaps', prompt=f'Ayer, a las {n+1}, Ana ___ (caminar) por el parque.',
+                              answer='caminaba', explanation='La acción se presenta en curso en ese momento.') for n in range(2)]
+            return httpx.Response(200, json={'choices': [{'message': {'content': json.dumps({'questions': questions})}, 'finish_reason': 'stop'}]})
+    monkeypatch.setattr(app_routes.httpx, 'AsyncClient', FakeClient)
+    body = payload(); body.update(activitySizes={'gaps': 2})
+    response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
+    assert response.status_code == 200, response.text
+    assert len(response.json()['questions']) == 2
+    assert len(sent) == 2
+    assert sent[0]['response_format']['type'] == 'json_schema'
+    assert sent[1]['response_format'] == {'type': 'json_object'}
+    assert sent[1]['max_tokens'] == 6000 and sent[1]['reasoning_effort'] == 'low'
+    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
+
+
+def test_large_rosco_empty_response_is_clear_and_does_not_charge(client, monkeypatch):
+    web, factory = client
+    seed_user(factory, product_codes=('PROFESOR_PARTICULAR',)); login(web)
+    monkeypatch.setattr(app_routes, 'chat_provider_config', lambda *args, **kw: ('test-key', 'https://example.test', 'groq'))
+    monkeypatch.setattr(app_routes, 'chat_model_for_purpose', lambda *args: 'openai/gpt-oss-120b')
+    sent = []
+    class FakeClient:
+        def __init__(self, **kw): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kw):
+            sent.append(kw['json'])
+            return httpx.Response(200, json={'choices': [{'message': {'content': ''}, 'finish_reason': 'stop'}]})
+    monkeypatch.setattr(app_routes.httpx, 'AsyncClient', FakeClient)
+    body = payload(); body.update(gaps=0, pasapalabra=1, activitySizes={'pasapalabra': 18})
+    response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
+    assert response.status_code == 502 and len(sent) == 3
+    assert 'respuesta vacía o incompleta' in response.json()['detail']
+    assert 'Expecting value' not in response.json()['detail']
+    assert all(request['max_tokens'] == 6000 and request['reasoning_effort'] == 'low' for request in sent)
+    assert sent[1]['response_format'] == {'type': 'json_object'}
+    with factory() as db:
+        assert db.scalar(select(func.count()).select_from(UsageRecord)) == 0
+        assert db.scalar(select(func.count()).select_from(Conversation)) == 0
+
+
 def test_generator_assets_available_on_server_routes(client):
     web,_=client
     script=web.get('/profesor-generator.js');style=web.get('/assets/profesor-generator.css')
