@@ -350,6 +350,36 @@
   const originalEditActivity = editActivity;
   editActivity = function (source) {
     originalEditActivity(source);
+    const dialog = $('dialog'), form = $('form');
+    dialog.classList.add('material-editor-dialog');
+    const previewAbort = new AbortController();
+    const renderEditorPreview = () => {
+      const index = Number(dialog.dataset.editorStep || 0);
+      const original = source.activity.questions[index];
+      if (!original || !$('editorPreview')) return;
+      const question = {
+        ...original,
+        prompt: $('q-' + index)?.value || '',
+        answer: $('a-' + index)?.value || '',
+        text: $('text-' + index)?.value || original.text,
+        options: $('o-' + index)?.value.split('\n').map(value => value.trim()).filter(Boolean) || original.options,
+      };
+      const editorImage = $('image-preview-' + index)?.querySelector('img');
+      if (editorImage && !question.image) question.image = { filename: 'Imagen del ejercicio' };
+      const preview = $('editorPreview');
+      preview.innerHTML = `<div class="activity-play editor-preview-play">${playableEditorPreview(question, index)}</div>`;
+      preview.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
+      preview.querySelectorAll('[name],[required]').forEach(node => { node.removeAttribute('name'); node.removeAttribute('required'); });
+      preview.querySelectorAll('button,input,textarea,select,[tabindex]').forEach(node => node.setAttribute('tabindex', '-1'));
+      Promise.resolve(paintActivityImages(source.activity.questions, preview)).then(() => {
+        const target = preview.querySelector('[data-activity-image]');
+        if (target && editorImage?.src && preview.isConnected) target.src = editorImage.src;
+      });
+    };
+    form.addEventListener('input', renderEditorPreview, { signal: previewAbort.signal });
+    form.addEventListener('editor:step', renderEditorPreview, { signal: previewAbort.signal });
+    dialog.addEventListener('close', () => { previewAbort.abort(); dialog.classList.remove('material-editor-dialog'); }, { once: true });
+    renderEditorPreview();
     const hints = {
       pairs: 'Cada tarjeta relaciona este enunciado con su respuesta. Crea al menos dos tarjetas para que haya opciones entre las que elegir.',
       gaps: 'Escribe ___ dentro de la frase donde quieres que el alumno complete la palabra. Solo un hueco por ejercicio.',
@@ -404,6 +434,58 @@
       }
     });
   };
+
+  function playableEditorPreview(question, index) {
+    const shell = document.createElement('div');
+    shell.innerHTML = questionMarkup(question, index, [question.answer]);
+    const type = question.type;
+    const options = question.options || [];
+    const sequence = shell.querySelector('.play-order-list');
+    if (sequence) {
+      const labels = options.map(value => type === 'timeline' ? timelineLabel(value, false) : value);
+      sequence.classList.toggle('is-dense', labels.length > 8);
+      sequence.classList.toggle('is-very-dense', labels.length > 12);
+      sequence.innerHTML = labels.map((label, position) => `<div class="order-row"><span class="order-grip" aria-hidden="true">⠿</span><span class="order-value"><b>${position + 1}.</b> ${escape(label)}</span><div class="order-actions"><button type="button">↑</button><button type="button">↓</button></div></div>`).join('') + '<div class="sequence-actions"><button type="button" class="primary">Comprobar orden</button></div>';
+      if (type === 'timeline') sequence.style.maxWidth = `min(100%, ${Math.max(430, Math.min(960, Math.max(...labels.map(label => label.length), 0) * 7 + 145))}px)`;
+    }
+    const memory = shell.querySelector('.memory-board');
+    if (memory) {
+      const count = Math.max(2, Math.min(12, options.length * 2));
+      memory.style.setProperty('--memory-columns', count <= 6 ? 3 : 4);
+      memory.innerHTML = Array.from({ length: count }, (_, position) => `<button type="button" class="memory-card" aria-label="Tarjeta ${position + 1}"><span aria-hidden="true">?</span></button>`).join('');
+    }
+    const puzzle = shell.querySelector('[id^="puzzle-"]');
+    if (type === 'multigaps' && puzzle) {
+      const parts = displayGapPrompt(question).split('___');
+      puzzle.innerHTML = `<div class="multi-gap-play">${parts.map((part, position) => `${escape(part)}${position < parts.length - 1 ? '<input placeholder="' + (position + 1) + '">' : ''}`).join('')}</div>`;
+    } else if (type === 'pasapalabra' && puzzle) {
+      try {
+        const rows = puzzleRows(type, options);
+        puzzle.innerHTML = `<div class="rosco-layout"><div class="pasapalabra-wheel" aria-label="Rosco de Pasapalabra">${rows.map(([letter], position) => { const angle = position / rows.length * Math.PI * 2 - Math.PI / 2; return `<button type="button" class="${position === 0 ? 'active' : ''}" style="--x:${50 + 43 * Math.cos(angle)}%;--y:${50 + 43 * Math.sin(angle)}%">${escape(letter)}</button>`; }).join('')}<div class="rosco-center"><strong>0/${rows.length}</strong><span>aciertos</span></div></div><div class="pasapalabra-card"><span>Empieza por ${escape(rows[0][0])}</span><p>${escape(rows[0][1] || 'Escribe una pista')}</p><label>Tu respuesta<input placeholder="Respuesta"></label><div><button type="button">Pasapalabra</button><button type="button" class="primary">Confirmar</button></div></div></div>`;
+      } catch { puzzle.innerHTML = '<p class="play-hint">Completa las letras, pistas y respuestas para ver el rosco.</p>'; }
+    } else if (type === 'dragdrop' && puzzle) {
+      try {
+        const rows = puzzleRows(type, options);
+        const targets = [...new Set(rows.map(([, destination]) => destination))];
+        puzzle.innerHTML = `<p class="play-hint">Elige una pieza y después su destino, o arrástrala. Pulsa × para devolverla.</p><div class="placement-bank" aria-label="Piezas pendientes">${rows.map(([piece]) => `<button type="button">${escape(piece || 'Elemento')}</button>`).join('')}</div><div class="placement-targets">${targets.map(destination => `<div class="placement-bucket"><button type="button" class="bucket-title">${escape(destination || 'Destino')}<small>Coloca las piezas de este grupo</small></button><div></div></div>`).join('')}</div>`;
+      } catch { puzzle.innerHTML = '<p class="play-hint">Completa las piezas y destinos para ver el tablero.</p>'; }
+    } else if (type === 'wordsearch' && puzzle) {
+      try {
+        const rows = puzzleRows(type, options), board = buildWordSearch(rows);
+        puzzle.innerHTML = `<p class="puzzle-help">Pulsa la primera y la última letra de cada palabra. Puedes usar el teclado.</p><div class="puzzle-grid" style="--puzzle-size:${board.size}">${board.grid.flatMap(row => row.map(letter => `<button type="button">${escape(letter)}</button>`)).join('')}</div><div class="puzzle-word-list">${rows.map(word => `<span>${escape(word)}</span>`).join('')}</div>`;
+      } catch { puzzle.innerHTML = '<p class="puzzle-help">Añade palabras para ver la sopa de letras.</p>'; }
+    } else if (type === 'crossword' && puzzle) {
+      try {
+        const rows = puzzleRows(type, options), board = buildCrossword(rows.map(([word]) => puzzleWord(word)));
+        puzzle.innerHTML = `<p class="puzzle-help">Escribe una letra en cada casilla. La columna azul es la palabra vertical.</p><div class="puzzle-grid" style="--puzzle-size:${board.width}">${board.grid.flatMap(row => row.map((letter, column) => letter ? `<input class="${column === board.left ? 'anchor' : ''}" maxlength="1">` : '<span class="blank"></span>')).join('')}</div><ol class="puzzle-clues">${rows.map(([word, clue]) => `<li>${puzzleWord(word) === board.anchor ? '↓ vertical' : '→ horizontal'} · ${escape(clue)} <small>(${puzzleWord(word).length} letras)</small></li>`).join('')}</ol>`;
+      } catch { puzzle.innerHTML = '<p class="puzzle-help">Añade palabras que compartan letras para ver el crucigrama.</p>'; }
+    }
+    const hangman = shell.querySelector('.hangman-game');
+    if (hangman) hangman.innerHTML = `<div class="hangman-stage"><div class="hangman-figure"><svg viewBox="0 0 115 115" aria-hidden="true"></svg></div><div><div class="hangman-word">${'· '.repeat(Math.min(15, Math.max(3, String(question.answer || '').length)))}</div><p>Te quedan 7 intentos.</p></div></div><div class="hangman-keyboard">${'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('').map(letter => `<button type="button">${letter}</button>`).join('')}</div>`;
+    const image = shell.querySelector('[data-activity-image]');
+    if (image && !question.image) image.replaceWith(Object.assign(document.createElement('div'), { className: 'material-image-slot', innerHTML: '<strong>Tu imagen irá aquí</strong><small>Añade una imagen en el editor.</small>' }));
+    return shell.innerHTML;
+  }
 
   function choiceMarkup(question, index, options) {
     return `<div class="play-choice-grid" role="group" aria-label="Opciones del ejercicio ${index + 1}">${options.map((option, n) => `<label class="play-choice"><input type="radio" name="r-${index}" value="${escape(option)}" required><span class="play-choice-letter">${String.fromCharCode(65 + n)}</span><span>${escape(option)}</span></label>`).join('')}</div>`;
@@ -632,7 +714,13 @@
     }
     function renderSequence(index, focusPosition = null) {
       const list = sequences[index], root = $('order-' + index);
+      root.classList.toggle('is-dense', list.length > 8);
+      root.classList.toggle('is-very-dense', list.length > 12);
       const revealDates = checked || (questions[index].type === 'timeline' && confirmedSequences.has(index));
+      if(questions[index].type==='timeline'){
+        const longest=Math.max(...list.map(value=>timelineLabel(value,revealDates).length),0);
+        root.style.maxWidth=`min(100%, ${Math.max(430,Math.min(960,longest*7+145))}px)`;
+      }
       const expected = expectedSequence(questions[index]);
       root.innerHTML = list.map((value, position) => {const display = questions[index].type === 'timeline' ? timelineLabel(value,revealDates) : value;const result = checked || confirmedSequences.has(index);return `<div class="order-row ${result ? value === expected[position] ? 'answer-right' : 'answer-wrong' : ''}" data-sequence-row="${position}" draggable="${!checked}" tabindex="${checked ? '-1' : '0'}" aria-label="${position + 1} de ${list.length}: ${escape(display)}"><span class="order-grip" aria-hidden="true">${result ? value === expected[position] ? '✓' : '↻' : '⠿'}</span><span class="order-value"><b>${position + 1}.</b> ${escape(display)}</span><div class="order-actions"><button type="button" data-move="-1" data-pos="${position}" aria-label="Subir ${escape(display)}" ${checked || position === 0 ? 'disabled' : ''}>↑</button><button type="button" data-move="1" data-pos="${position}" aria-label="Bajar ${escape(display)}" ${checked || position === list.length - 1 ? 'disabled' : ''}>↓</button></div></div>`;}).join('') + (checked ? '' : '<div class="sequence-actions"><button type="button" class="primary" data-confirm-order>Comprobar orden</button></div>');
       $('r-' + index).value = list.join(' → ');
