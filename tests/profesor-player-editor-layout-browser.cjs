@@ -24,6 +24,34 @@ const path = require('node:path');
     await page.screenshot({ path: 'tools/profesor-timeline-compact.png' });
     await page.locator('[data-action="close"]:visible').last().click();
 
+    const longTimeline = { ...timeline,
+      prompt: 'Arrange the following six stages in the correct chronological order. Each stage is described using the passive voice and relates to the making of a film.',
+      options: ['The script was written by the screenwriter.', 'The main actors were cast by the director.',
+        'Filming was started on the studio set.', 'Special effects were added during post-production.',
+        'The movie was released in cinemas.', 'The finished film was considered for awards.'],
+      hints: ['Think about what happens before filming.'],
+      explanation: 'The steps progress from writing to release and possible recognition.',
+    };
+    await page.evaluate(value => runActivity(value, ''), { ...material, activity: { version: 1, questions: [longTimeline] } });
+    await page.getByRole('button', { name: 'Necesito una pista' }).click();
+    await page.locator('[data-confirm-order]').click();
+    const confirmedOverflow = await page.locator('.play-content').evaluate(node => node.scrollHeight - node.clientHeight);
+    assert.ok(confirmedOverflow <= 2, `Confirmed six-step timeline with a hint fits without scrolling (${confirmedOverflow}px)`);
+    await page.locator('[data-action="close"]:visible').last().click();
+
+    const eightSteps = { ...longTimeline, options: [
+      'The initial screenplay was drafted by the writer.', 'The screenplay was revised by the producer.',
+      'The lead actors were cast by the director.', 'The sets were designed by the art department.',
+      'The scenes were filmed by the crew.', 'The footage was edited by the team.',
+      'The special effects were added in post-production.', 'The film was released in cinemas.',
+    ] };
+    await page.evaluate(value => runActivity(value, ''), { ...material, activity: { version: 1, questions: [eightSteps] } });
+    await page.getByRole('button', { name: 'Necesito una pista' }).click();
+    await page.locator('[data-confirm-order]').click();
+    const denseOverflow = await page.locator('.play-content').evaluate(node => node.scrollHeight - node.clientHeight);
+    assert.ok(denseOverflow <= 1, `Eight-step timeline with a hint fits without scrolling (${denseOverflow}px)`);
+    await page.locator('[data-action="close"]:visible').last().click();
+
     await page.evaluate(value => editActivity(value), material);
     assert.equal(await page.locator('.material-editor-dialog').count(), 1);
     assert.equal(await page.locator('#dialogTitle').isVisible(), false);

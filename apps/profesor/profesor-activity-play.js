@@ -443,7 +443,7 @@
     const sequence = shell.querySelector('.play-order-list');
     if (sequence) {
       const labels = options.map(value => type === 'timeline' ? timelineLabel(value, false) : value);
-      sequence.classList.toggle('is-dense', labels.length > 8);
+      sequence.classList.toggle('is-dense', labels.length >= 8);
       sequence.classList.toggle('is-very-dense', labels.length > 12);
       sequence.innerHTML = labels.map((label, position) => `<div class="order-row"><span class="order-grip" aria-hidden="true">⠿</span><span class="order-value"><b>${position + 1}.</b> ${escape(label)}</span><div class="order-actions"><button type="button">↑</button><button type="button">↓</button></div></div>`).join('') + '<div class="sequence-actions"><button type="button" class="primary">Comprobar orden</button></div>';
       if (type === 'timeline') sequence.style.maxWidth = `min(100%, ${Math.max(430, Math.min(960, Math.max(...labels.map(label => label.length), 0) * 7 + 145))}px)`;
@@ -513,7 +513,7 @@
     } else if (type === 'flashcard') {
       control = `<button type="button" id="flip-${index}" class="flash-card" aria-pressed="false"><small>Toca para girar</small><strong>${escape(question.prompt)}</strong></button><div class="play-flash-assess" id="flash-assess-${index}" hidden><button type="button" data-flash="correct" data-index="${index}">✓ La sabía</button><button type="button" data-flash="partial" data-index="${index}">◷ Con ayuda</button><button type="button" data-flash="incorrect" data-index="${index}">↻ Repasar</button></div><input id="r-${index}" name="r-${index}" type="hidden">`;
     } else if (sequenceTypes.includes(type)) {
-      control = `<p class="play-hint">Arrastra para ordenar. También puedes tocar una fila y luego otra, o usar las flechas.${type === 'timeline' ? ' Las fechas se mostrarán al comprobar.' : ''}</p><div id="order-${index}" class="play-order-list"></div><input type="hidden" id="r-${index}" name="r-${index}">`;
+      control = `<p class="play-hint">Arrastra para ordenar. También puedes tocar una fila y luego otra, o usar las flechas.${type === 'timeline' && question.options.some(value => /\b(?:1\d{3}|20\d{2})\b/.test(value)) ? ' Las fechas se mostrarán al comprobar.' : ''}</p><div id="order-${index}" class="play-order-list"></div><input type="hidden" id="r-${index}" name="r-${index}">`;
     } else if (type === 'problem') {
       control = `<div class="problem-steps">${['Datos importantes','Planteamiento','Cálculos','Respuesta y comprobación'].map((label, n) => `<label><span>${n + 1}</span>${label}<textarea data-problem-step="${index}" maxlength="700" rows="2" ${n === 3 ? 'required' : ''} aria-label="${label}"></textarea></label>`).join('')}</div><input type="hidden" id="r-${index}" name="r-${index}">`;
     } else if (type === 'error') {
@@ -714,7 +714,7 @@
     }
     function renderSequence(index, focusPosition = null) {
       const list = sequences[index], root = $('order-' + index);
-      root.classList.toggle('is-dense', list.length > 8);
+      root.classList.toggle('is-dense', list.length >= 8);
       root.classList.toggle('is-very-dense', list.length > 12);
       const revealDates = checked || (questions[index].type === 'timeline' && confirmedSequences.has(index));
       if(questions[index].type==='timeline'){

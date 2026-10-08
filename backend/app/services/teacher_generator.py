@@ -276,6 +276,8 @@ def check_material_quality(questions, context):
             paired_answers.add(pair_key)
         if not question.get('explanation'):
             raise HTTPException(502, 'Falta la explicación de una respuesta. No se han descontado créditos.')
+        if question['type'] == 'timeline':
+            check_timeline_grounding(question, context)
         if context.get('qualityVersion') == 1 and question['type'] not in ('multigaps', 'pasapalabra', 'crossword', 'wordsearch', 'memory', 'dragdrop', 'order', 'sentence', 'timeline', 'short', 'reading', 'problem', 'error'):
             solution = ' '.join(question['answer'].casefold().split())
             if len(solution) >= 3 and any(re.search(r'(?<!\w)' + re.escape(solution) + r'(?!\w)', ' '.join(hint.casefold().split())) for hint in question.get('hints', [])):
@@ -314,6 +316,31 @@ def check_material_quality(questions, context):
             compound = re.search(r'\b(?:he|has|ha|hemos|habeis|han|habia|habias|habiamos|habiais|habian)\s+\w*(?:ado|ido|to|cho)\b', key(filled))
             if compound and question['type'] != 'error':
                 raise HTTPException(502, f'El texto introduce el tiempo compuesto «{compound[0]}» fuera del objetivo. Reformula esa acción en imperfecto o indefinido. No se han descontado créditos.')
+
+def check_timeline_grounding(question, context):
+    """Keep invented calendar years out of process and language exercises."""
+    options = question['options']
+    prompt = question['prompt'].casefold()
+    if re.search(r'making (?:of )?a film|film production|producci[oó]n de (?:una|un) pel[ií]cula|c[oó]mo se (?:hace|produce) una pel[ií]cula', prompt) and any(re.search(r'\b(?:oscar|award(?:ed)?|prize|premi(?:o|ada|ado))\b', item.casefold()) for item in options):
+        raise ValueError('Línea temporal: hacer una película no implica ganar un premio. Describe solo etapas normales del proceso.')
+    dated = [re.search(r'\b(?:1\d{3}|20\d{2})\b', item) for item in options]
+    if not any(dated):
+        return
+    if not all(dated) or len({match.group() for match in dated}) != len(options):
+        raise ValueError('Línea temporal: usa fechas completas y distintas en todos los hechos, o ninguna fecha.')
+    context_text = ' '.join(str(context.get(key, '')) for key in ('subject', 'topic', 'instructions')).casefold()
+    historical = re.search(r'\b(?:historia|history|historical|histórico|histórica|fechas|dates|años|years|siglos|centuries|hitos|milestones)\b|\b(?:1\d{3}|20\d{2})\b', context_text)
+    if re.search(r'\b(?:sin años|sin fechas|without years|without dates|no dates|no years)\b', context_text):
+        historical = None
+    if not historical:
+        raise ValueError('Línea temporal: para practicar idiomas o procesos, ordena etapas reales sin inventar años. Usa fechas solo si el tema pide hechos históricos documentados.')
+    generic = {'the', 'a', 'an', 'el', 'la', 'los', 'las', 'un', 'una', 'first', 'second', 'primera', 'primer', 'segunda', 'inicio', 'comienzo', 'fin', 'final', 'fundación', 'creación', 'filming', 'actors', 'movie', 'film', 'película', 'rodaje', 'actores', 'guion'}
+    for item, match in zip(options, dated):
+        description = item[match.end():]
+        names = re.findall(r'\b[A-ZÁÉÍÓÚÜÑ][\wÁÉÍÓÚÜÑáéíóúüñ]{1,}\b', description)
+        if not any(name.casefold() not in generic for name in names):
+            raise ValueError('Línea temporal: cada fecha debe identificar un hecho real y concreto (persona, obra, lugar o acontecimiento), no una etapa genérica con un año supuesto.')
+
 
 def parse_material(content, context):
     try:
@@ -534,8 +561,11 @@ con el formato exacto "concepto | respuesta". Cada lado debe ser único y medir 
 140 caracteres. Las parejas deben ser inequívocas. answer es "Completado".
 En sentence, options son entre 2 y 8 fragmentos EN ORDEN CORRECTO que forman una frase
 coherente sobre el contenido. No repitas fragmentos idénticos. answer es la frase completa.
-En timeline, options son entre 2 y 8 hechos EN ORDEN CRONOLÓGICO CORRECTO, con sus fechas
-cuando proceda. answer resume el orden. Evita hechos simultáneos o ambiguos.
+En timeline, options son entre 2 y 8 hechos EN ORDEN CRONOLÓGICO CORRECTO. Para
+idiomas, ciencias o procesos, usa etapas sin años inventados. Solo usa fechas si el
+tema pide historia real: identifica en cada elemento la persona, obra o acontecimiento
+concreto y usa fechas documentadas que conozcas con certeza. answer resume el orden.
+Evita hechos simultáneos, ambiguos o ficticios presentados como reales.
 En error, prompt contiene un ejemplo erróneo y pide corregirlo; answer explica el error
 y su corrección. No presentes datos erróneos como correctos fuera de este ejercicio.
 En wordsearch, cada pregunta representa UNA sopa de letras. options contiene de 3 a 8
@@ -621,7 +651,7 @@ que NO se ocultarán: nunca introduzcas tiempos excluidos como había sucedido o
     'flashcard': 'prompt es una pregunta o concepto breve (anverso), answer su explicación breve (reverso). Una tarjeta por objeto, sin repetir contenidos.',
     'memory': 'Un tablero por objeto; options contiene exactamente elementCount parejas "concepto | respuesta", máximo 140 caracteres por lado. Ambos lados únicos e inequívocos. answer="Completado".',
     'sentence': 'options son exactamente elementCount fragmentos distintos EN ORDEN CORRECTO que forman una frase natural. La app los mezcla. No repitas fragmentos. answer resume la frase.',
-    'timeline': 'options son exactamente elementCount acontecimientos distintos EN ORDEN CRONOLÓGICO, con sus fechas. No mezcles hechos simultáneos ni inventes fechas. answer resume el orden.',
+    'timeline': 'options son exactamente elementCount hechos o etapas EN ORDEN CRONOLÓGICO. Si el tema practica un idioma o un proceso (por ejemplo, cómo se hace una película), usa fases sin años: guion, reparto, rodaje, montaje, estreno; no inventes fechas ni premios. Usa años SOLO si topic o instructions piden historia real, fechas o hitos: cada opción debe nombrar una persona, obra, lugar o acontecimiento identificable y tener una fecha fiable. Si dudas de una fecha, usa una secuencia sin años. No mezcles hechos simultáneos. answer resume el orden.',
     'error': 'prompt presenta una oración con un error real y pide corregirlo. answer explica el error. errorSegment es el fragmento erróneo EXACTO en prompt; correctedSegment es la sustitución correcta exacta. Ambos son distintos y de máximo 200 caracteres.',
     'wordsearch': 'options contiene exactamente elementCount palabras distintas de 3 a 12 letras, sin espacios ni signos. answer="Completado". NO generes cuadrícula.',
     'crossword': 'options contiene exactamente elementCount entradas "PALABRA | pista". Palabras de 3 a 12 letras, pistas hasta 120 caracteres. Palabras distintas con letras compartidas para cruzarlas; pistas inequívocas sin revelar la palabra. answer="Completado". NO generes cuadrícula.',

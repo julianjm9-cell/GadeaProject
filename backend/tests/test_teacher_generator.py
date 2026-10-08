@@ -139,6 +139,44 @@ def test_game_formats_and_invalid_memory():
     with pytest.raises(HTTPException):parse_format_groups(questions)
 
 
+def test_timeline_rejects_invented_years_for_language_processes():
+    from fastapi import HTTPException
+    from app.services.teacher_generator import generator_context, parse_material, TYPES
+    data = request()
+    data.update({kind: 0 for kind in TYPES})
+    data.update(subject='Inglés', topic='Voz pasiva en la producción de una película', timeline=1,
+                activitySizes={'timeline': 3})
+    _, context = generator_context(data)
+    question = dict(type='timeline', prompt='Arrange the steps in making a film.', answer='Completado',
+                    options=['1938 – The script was written.', '1939 – The actors were cast.',
+                             '1940 – The film was released.'], explanation='The production stages follow one another.')
+    with pytest.raises(HTTPException, match='sin inventar años'):
+        parse_material(json.dumps({'questions': [question]}), context)
+    question['options'] = ['The script was written.', 'The actors were cast.', 'The film was released.']
+    assert len(parse_material(json.dumps({'questions': [question]}), context)) == 1
+    question['options'][-1] = 'The film was awarded the Best Picture Oscar.'
+    with pytest.raises(HTTPException, match='no implica ganar un premio'):
+        parse_material(json.dumps({'questions': [question]}), context)
+
+
+def test_timeline_allows_named_historical_events_with_dates():
+    from fastapi import HTTPException
+    from app.services.teacher_generator import generator_context, parse_material, TYPES
+    data = request()
+    data.update({kind: 0 for kind in TYPES})
+    data.update(subject='Geografía e Historia', topic='Segunda Guerra Mundial', timeline=1,
+                activitySizes={'timeline': 3})
+    _, context = generator_context(data)
+    question = dict(type='timeline', prompt='Ordena tres hitos de la Segunda Guerra Mundial.', answer='Completado',
+                    options=['1945 – Alemania se rinde.', '1939 – Alemania invade Polonia.',
+                             '1941 – Japón ataca Pearl Harbor.'], explanation='Los hechos se ordenan por año.')
+    result = parse_material(json.dumps({'questions': [question]}), context)
+    assert [item[:4] for item in result[0]['options']] == ['1939', '1941', '1945']
+    context['instructions'] = 'Ordena los hechos sin fechas.'
+    with pytest.raises(HTTPException, match='sin inventar años'):
+        parse_material(json.dumps({'questions': [question]}), context)
+
+
 def test_puzzle_formats_are_validated_before_charging(client, monkeypatch):
     from app.services.teacher_generator import generator_context, parse_material, TYPES
     from fastapi import HTTPException
