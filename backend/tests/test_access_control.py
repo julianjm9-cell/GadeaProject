@@ -91,7 +91,7 @@ def test_profesor_product_login_and_state_isolation(client):
     assert product["available"] is True
     assert product["path"] == "/profesor-particular"
     assert test_client.get(product["path"]).status_code == 200
-    teacher_data = {"version": 1, "students": [{"id": "student-a", "name": "Alumno A"}]}
+    teacher_data = {"version": 1, "students": [{"id": "student-a", "name": "Alumno A"}], "uploadedTopics": [{"id": "tema-propio", "title": "Mi unidad", "course": "3.º ESO", "subject": "Matemáticas", "uploadedDocuments": True, "documents": [{"id": "archivo-a", "filename": "apuntes.pdf", "size": 1024}]}]}
     assert test_client.post("/api/state?app=profesor_particular", json=teacher_data).status_code == 200
     assert test_client.post("/api/state?app=eso_adultos", json={"done": {"topic": True}}).status_code == 200
     assert test_client.get("/api/state?app=profesor-particular").json() == {**teacher_data, "teacherProfile": {"plan": "normal"}}
@@ -323,8 +323,22 @@ def test_profesor_uploaded_document_previews(client, monkeypatch, tmp_path):
     word = BytesIO()
     with ZipFile(word, "w") as archive:
         archive.writestr("word/document.xml", '''<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:rPr><w:b/></w:rPr><w:t>Título &amp; contenido</w:t></w:r></w:p><w:tbl><w:tr><w:tc><w:p><w:r><w:t>&lt;script&gt;alert(1)&lt;/script&gt;</w:t></w:r></w:p></w:tc></w:tr></w:tbl></w:body></w:document>''')
+    from openpyxl import Workbook
+    workbook = Workbook()
+    workbook.active.title = "Práctica"
+    workbook.active.append(["Pregunta", "Respuesta"])
+    workbook.active.append(["2 + 2", 4])
+    spreadsheet = BytesIO()
+    workbook.save(spreadsheet)
+    slides = BytesIO()
+    with ZipFile(slides, "w") as archive:
+        archive.writestr("ppt/slides/slide1.xml", '<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><p:cSld><p:spTree><p:sp><p:txBody><a:p><a:r><a:t>Diapositiva de prueba</a:t></a:r></a:p></p:txBody></p:sp></p:spTree></p:cSld></p:sld>')
+    odt = BytesIO()
+    with ZipFile(odt, "w") as archive:
+        archive.writestr("content.xml", '<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"><office:body><office:text><text:p>Mis apuntes</text:p></office:text></office:body></office:document-content>')
     ids = []
-    for name, raw, mime in [("clase.pdf", pdf.getvalue(), "application/pdf"), ("notas.txt", "Español: explicación <script>".encode(), "text/plain"), ("tema.docx", word.getvalue(), "application/json")]:
+    samples = [("clase.pdf", pdf.getvalue(), "application/pdf"), ("notas.txt", "Español: explicación <script>".encode(), "text/plain"), ("tema.docx", word.getvalue(), "application/json"), ("tabla.xlsx", spreadsheet.getvalue(), "application/json"), ("presentacion.pptx", slides.getvalue(), "application/json"), ("apuntes.odt", odt.getvalue(), "application/json"), ("texto.rtf", b"{\\rtf1 Apuntes de clase}", "application/json"), ("resumen.md", b"# Resumen", "text/plain"), ("ejercicios.csv", b"pregunta,respuesta\n2+2,4", "text/plain")]
+    for name, raw, mime in samples:
         uploaded = web.post("/api/profesor/materials?app=profesor_particular", json={"filename": name, "base64": base64.b64encode(raw).decode()})
         assert uploaded.status_code == 200
         document_id = uploaded.json()["id"]
@@ -339,6 +353,8 @@ def test_profesor_uploaded_document_previews(client, monkeypatch, tmp_path):
             assert blocks[0]["heading"] == 1 and blocks[0]["runs"][0]["bold"]
             assert blocks[1]["type"] == "table"
             assert blocks[1]["rows"][0][0][0]["runs"][0]["text"] == "<script>alert(1)</script>"
+        if name.endswith((".xlsx", ".pptx", ".odt", ".rtf")):
+            assert preview.json()["blocks"]
         assert web.get(f"/api/profesor/materials/{document_id}?app=profesor_particular").content == raw
     broken = web.post("/api/profesor/materials?app=profesor_particular", json={"filename": "roto.docx", "base64": base64.b64encode(b"not a zip").decode()}).json()["id"]
     assert web.get(f"/api/profesor/materials/{broken}/preview?app=profesor_particular").status_code == 422

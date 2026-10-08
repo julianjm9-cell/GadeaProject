@@ -23,6 +23,7 @@ COPY apps/profesor/profesor-temario-depth.js /app/app/static/assets/profesor-tem
 COPY apps/profesor/profesor-spanish.js /app/app/static/assets/profesor-spanish.js
 COPY apps/profesor/profesor-temario-revision.js /app/app/static/assets/profesor-temario-revision.js
 COPY apps/profesor/profesor-support.js /app/app/static/assets/profesor-support.js
+COPY apps/profesor/profesor-uploaded-topics.js /app/app/static/assets/profesor-uploaded-topics.js
 COPY apps/profesor/profesor-activity-play.js /app/app/static/assets/profesor-activity-play.js
 COPY apps/profesor/profesor-generator.js /app/app/static/assets/profesor-generator.js
 COPY apps/profesor/profesor-rich-text.js /app/app/static/assets/profesor-rich-text.js

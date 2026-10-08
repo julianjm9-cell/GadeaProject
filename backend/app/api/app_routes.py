@@ -668,6 +668,7 @@ def profesor_temario_catalogue():
 @router.get("/profesor-rich-text.js")
 @router.get("/profesor-access.js")
 @router.get("/profesor-live.js")
+@router.get("/profesor-uploaded-topics.js")
 def profesor_support_script(request: Request):
     filename = request.url.path.rsplit("/", 1)[-1]
     local_path = PROJECT_ROOT / "apps" / "profesor" / filename
@@ -686,6 +687,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-generator.css")
 @router.get("/assets/profesor-access.css")
 @router.get("/assets/profesor-live.css")
+@router.get("/assets/profesor-uploaded-topics.css")
 def profesor_final_styles(request: Request):
     filename = request.url.path.rsplit("/", 1)[-1]
     local_path = PROJECT_ROOT / "apps" / "profesor" / "assets" / filename
@@ -1055,8 +1057,8 @@ def upload_profesor_material(payload: dict, user: User = Depends(current_user), 
         raise HTTPException(403, "Requiere acceso a Profesor Particular.")
     filename = safe_document_name(str(payload.get("filename") or "material"))[:200]
     suffix = Path(filename).suffix.lower()
-    if suffix not in {".pdf", ".docx", ".png", ".jpg", ".jpeg", ".webp", ".txt"}:
-        raise HTTPException(422, "Admite PDF, DOCX, imágenes PNG/JPG/WebP y TXT.")
+    if suffix not in {".pdf", ".docx", ".xlsx", ".pptx", ".odt", ".rtf", ".md", ".csv", ".png", ".jpg", ".jpeg", ".webp", ".txt"}:
+        raise HTTPException(422, "Admite PDF, DOCX, XLSX, PPTX, ODT, RTF, TXT, MD, CSV e imágenes PNG/JPG/WebP.")
     encoded = payload.get("base64")
     if not isinstance(encoded, str) or len(encoded) > 11_184_812:
         raise HTTPException(413, "El archivo no puede superar 8 MB.")
@@ -1223,14 +1225,14 @@ def preview_profesor_image(document_id: UUID, user: User = Depends(current_user)
     row, target = _private_profesor_document(document_id, user, license_obj, db)
     headers = {"X-Content-Type-Options": "nosniff", "Cache-Control": "private, no-store"}
     suffix = target.suffix.lower()
-    if suffix == ".docx":
-        from app.services.teacher_file_preview import docx_preview
+    if suffix in {".docx", ".xlsx", ".pptx", ".odt", ".rtf"}:
+        from app.services.teacher_file_preview import document_preview
         from fastapi.responses import JSONResponse
         try:
-            return JSONResponse(docx_preview(target), headers=headers)
+            return JSONResponse(document_preview(target), headers=headers)
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
-    if suffix == ".txt":
+    if suffix in {".txt", ".md", ".csv"}:
         return Response(target.read_bytes().decode("utf-8-sig", errors="replace"), media_type="text/plain", headers=headers)
     if suffix == ".pdf":
         if not target.read_bytes().startswith(b"%PDF-"):
