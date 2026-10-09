@@ -32,12 +32,25 @@ MAX_IMAGE_BYTES = 5_000_000
 MAX_IMAGE_PIXELS = 12_000_000
 CONSENT_VERSION = "2026-10-09"
 _ALL_SENDS: list[float] = []
+AD_COURSES = {
+    "Infantil", *(f"{number}.º Primaria" for number in range(1, 7)),
+    *(f"{number}.º ESO" for number in range(1, 5)), "1.º Bachillerato", "2.º Bachillerato",
+    "Formación Profesional", "Universidad", "Adultos / Otros",
+}
+AD_SUBJECTS = {
+    "Apoyo escolar", "Matemáticas", "Lengua", "Inglés", "Español para extranjeros",
+    "Ciencias Naturales", "Física y Química", "Biología y Geología", "Geografía e Historia",
+    "Francés", "Tecnología", "Economía", "Latín y Griego", "Filosofía", "Música", "Dibujo",
+    "Informática", "Preparación de exámenes", "Otra materia",
+}
 
 
 class AdInput(BaseModel):
     title: str = Field(default="", max_length=100)
     name: str = Field(default="", max_length=100)  # Older clients.
-    subjects: str = Field(min_length=2, max_length=300)
+    course: str = Field(default="", max_length=200)
+    subject: str = Field(default="", max_length=300)
+    subjects: str = Field(default="", max_length=300)  # Older clients.
     information: str = Field(default="", max_length=1600)
     headline: str = Field(default="", max_length=140)
     levels: str = Field(default="", max_length=200)
@@ -85,10 +98,14 @@ def clean_line(value: str, maximum: int) -> str:
 
 
 def cleaned_input(payload: AdInput) -> dict:
+    new_format = bool({"course", "subject"} & payload.model_fields_set)
     name = clean_line(payload.title if "title" in payload.model_fields_set else payload.name, 100)
-    subjects = clean_line(payload.subjects, 300)
-    if len(name) < 2 or len(subjects) < 2:
-        raise HTTPException(422, "Escribe un título y al menos una asignatura o curso.")
+    subjects = clean_line(payload.subject if new_format else payload.subjects, 300)
+    course = clean_line(payload.course if new_format else payload.levels, 200)
+    if len(name) < 2 or len(subjects) < 2 or new_format and len(course) < 2:
+        raise HTTPException(422, "Escribe un título y selecciona el curso y la materia.")
+    if new_format and (course not in AD_COURSES or subjects not in AD_SUBJECTS):
+        raise HTTPException(422, "Selecciona un curso y una materia de las listas.")
     email = clean_line(payload.contact_email, 255)
     if email and not re.fullmatch(r"[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+", email):
         raise HTTPException(422, "Revisa el correo de contacto.")
@@ -103,7 +120,7 @@ def cleaned_input(payload: AdInput) -> dict:
         "name": name,
         "subjects": subjects,
         "headline": "" if "title" in payload.model_fields_set else clean_line(payload.headline, 140),
-        "levels": clean_line(payload.levels, 200),
+        "levels": course,
         "modality": modality,
         "location": clean_line(payload.location, 120),
         "description": (payload.information if "information" in payload.model_fields_set else payload.description).strip()[:1600],
@@ -143,7 +160,8 @@ def image_path(ad: ProfesorAd) -> Path:
 
 def public_ad(ad: ProfesorAd) -> dict:
     return {
-        "id": str(ad.id), "title": ad.headline or ad.name, "subjects": ad.subjects,
+        "id": str(ad.id), "title": ad.headline or ad.name, "subject": ad.subjects,
+        "course": ad.levels, "subjects": ad.subjects,
         "information": ad.description, "name": ad.name,
         "headline": ad.headline, "levels": ad.levels, "modality": ad.modality,
         "location": ad.location, "description": ad.description, "price": ad.price,
