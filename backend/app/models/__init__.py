@@ -14,6 +14,8 @@ from app.models.core import (
     Organization,
     ProfesorStudentAccess,
     ProfesorMaterialSession,
+    ProfesorAd,
+    ProfesorAdReport,
     UsageRecord,
     User,
 )
@@ -35,6 +37,8 @@ __all__ = [
     "Organization",
     "ProfesorStudentAccess",
     "ProfesorMaterialSession",
+    "ProfesorAd",
+    "ProfesorAdReport",
     "UsageRecord",
     "User",
 ]

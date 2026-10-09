@@ -147,6 +147,36 @@ class ProfesorMaterialSession(Base, TimestampMixin):
     revision: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
 
+class ProfesorAd(Base, TimestampMixin):
+    __tablename__ = "profesor_ads"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
+    manage_token_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    subjects: Mapped[str] = mapped_column(String(300), nullable=False)
+    headline: Mapped[str] = mapped_column(String(140), default="", nullable=False)
+    levels: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    modality: Mapped[str] = mapped_column(String(30), default="", nullable=False)
+    location: Mapped[str] = mapped_column(String(120), default="", nullable=False)
+    description: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    price: Mapped[str] = mapped_column(String(80), default="", nullable=False)
+    contact_email: Mapped[str] = mapped_column(String(255), default="", nullable=False)
+    contact_phone: Mapped[str] = mapped_column(String(40), default="", nullable=False)
+    image_name: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="active", nullable=False, index=True)
+    consent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    consent_version: Mapped[str] = mapped_column(String(30), default="2026-10-09", nullable=False)
+
+
+class ProfesorAdReport(Base):
+    __tablename__ = "profesor_ad_reports"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
+    ad_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("profesor_ads.id", ondelete="CASCADE"), nullable=False, index=True)
+    reason: Mapped[str] = mapped_column(String(500), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
 class GamificationProfile(Base, TimestampMixin):
     __tablename__ = "gamification_profiles"
     __table_args__ = (UniqueConstraint("organization_id", "user_id", "app_key", name="uq_gamification_profile_owner_app"),)

@@ -545,6 +545,7 @@ def sitemap_xml():
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         '  <url><loc>https://educame.tech/</loc></url>\n'
         '  <url><loc>https://educame.tech/profesor</loc></url>\n'
+        '  <url><loc>https://educame.tech/profesor/anuncios</loc></url>\n'
         '</urlset>\n'
     )
     return Response(xml, media_type="application/xml")
@@ -816,6 +817,21 @@ def ocr_facturas_landing():
 @router.get("/profesor")
 def profesor_landing():
     return marketing_file("profesor-particular.html", "text/html")
+
+
+@router.get("/profesor/anunciar")
+@router.get("/profesor/anuncios")
+@router.get("/profesor/anuncios/{ad_id}")
+def profesor_ads_page():
+    return marketing_file("profesor-anuncios.html", "text/html")
+
+
+@router.get("/profesor/anunciar/gestionar")
+def profesor_ads_manage_page():
+    response = marketing_file("profesor-anuncios.html", "text/html")
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return response
 
 
 @router.get("/profesor-info")

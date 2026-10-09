@@ -192,6 +192,7 @@
       <div class="nav-group">
         <div class="nav-label">Gestion</div>
         <button data-view="ai" onclick="setView('ai')"><span class="nav-icon">IA</span>Modelos de IA</button>
+        <button data-view="ads" onclick="setView('ads')"><span class="nav-icon">AN</span>Anuncios</button>
       </div>
       <div class="nav-group">
         <div class="nav-label">Apps</div>
@@ -271,6 +272,11 @@
         </form>
       </div>
     </section>
+    <section id="view-ads" class="card screen-card" hidden>
+      <div class="head"><div><h2>Anuncios de profesores</h2><p class="muted">Revisa denuncias y retira anuncios inapropiados.</p></div><button type="button" onclick="loadAds()">Actualizar</button></div>
+      <div id="adsTable"></div>
+      <div id="adReports" class="app-form" hidden style="margin-top:18px"></div>
+    </section>
     </main>
   </div>
 </div>
@@ -287,7 +293,7 @@ const PRODUCTS=[
 const PRODUCT_ORDER=['eso','profesor','diplomator','ocr','universidad','cambridge'];PRODUCTS.sort((a,b)=>PRODUCT_ORDER.indexOf(a.key)-PRODUCT_ORDER.indexOf(b.key));
 let aiApp='ESO_ADULTOS';const aiDrafts={};
 let token=localStorage.getItem('educa_admin_token')||'',view='overview',currentApp='universidad',selectedUserId='';
-let orgs=[],users=[],accounts=[],ai=null;
+let orgs=[],users=[],accounts=[],ai=null,ads=[];
 const $=id=>document.getElementById(id);
 function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3200)}
 function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -298,9 +304,13 @@ async function api(path,options={}){const headers={'Content-Type':'application/j
 function setLoginState(on){$('authScreen').hidden=!!on;$('adminPage').hidden=!on;$('loginStatus').textContent=on?'Sesion activa':'Introduce tus datos';$('loginStatus').classList.toggle('on',!!on)}
 async function login(event){event.preventDefault();try{const res=await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier:$('email').value.trim(),password:$('password').value})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'No se pudo entrar.');token=data.access_token;localStorage.setItem('educa_admin_token',token);setLoginState(true);await loadAll();toast('Panel cargado.')}catch(e){toast(e.message)}}
 function logout(){token='';localStorage.removeItem('educa_admin_token');setLoginState(false);toast('Sesion cerrada.')}
-async function loadAll(){if(!token){setLoginState(false);return}try{const [o,u,ac,a,h]=await Promise.all([api('/admin/organizations'),api('/admin/users'),api('/admin/accounts'),api('/admin/ai-settings').catch(()=>null),api('/admin/hazlotu-access')]);orgs=o;users=u;accounts=ac.accounts||[];ai=a;hazlotuAccess=h;setLoginState(true);renderAll()}catch(e){setLoginState(false);toast(e.message)}}
+async function loadAll(){if(!token){setLoginState(false);return}try{const [o,u,ac,a,h,ad]=await Promise.all([api('/admin/organizations'),api('/admin/users'),api('/admin/accounts'),api('/admin/ai-settings').catch(()=>null),api('/admin/hazlotu-access'),api('/admin/profesor-ads').catch(()=>({ads:[]}))]);orgs=o;users=u;accounts=ac.accounts||[];ai=a;hazlotuAccess=h;ads=ad.ads||[];setLoginState(true);renderAll()}catch(e){setLoginState(false);toast(e.message)}}
 function setView(next){view=next;if(PRODUCTS.some(p=>p.key===next)){if(currentApp!==next)$('appUserSearch').value='';currentApp=next;closeUserEditor();toggleCreateUser(false)}document.body.dataset.app=PRODUCTS.some(p=>p.key===next)?next:'';document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.view===next));renderAll()}
-function renderAll(){$('view-overview').hidden=view!=='overview';$('view-app').hidden=!PRODUCTS.some(p=>p.key===view);$('view-ai').hidden=view!=='ai';$('view-hazlotu').hidden=view!=='hazlotu';$('hazlotuAccessStatus').textContent=hazlotuAccess?.configured?'Contraseña configurada. La web está protegida.':'Sin contraseña configurada. La web permanece cerrada.';renderOverview();if(!$('view-app').hidden)renderApp();if(!$('view-ai').hidden)renderAI()}
+function renderAll(){$('view-overview').hidden=view!=='overview';$('view-app').hidden=!PRODUCTS.some(p=>p.key===view);$('view-ai').hidden=view!=='ai';$('view-hazlotu').hidden=view!=='hazlotu';$('view-ads').hidden=view!=='ads';$('hazlotuAccessStatus').textContent=hazlotuAccess?.configured?'Contraseña configurada. La web está protegida.':'Sin contraseña configurada. La web permanece cerrada.';renderOverview();if(!$('view-app').hidden)renderApp();if(!$('view-ai').hidden)renderAI();if(view==='ads')renderAds()}
+function renderAds(){$('adsTable').innerHTML=table(['Anuncio','Asignaturas','Estado','Denuncias','Acciones'],ads.map(a=>[`${a.image_url?`<img src="${esc(a.image_url)}" alt="" style="width:42px;height:42px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px">`:''}<strong>${esc(a.name)}</strong><br><small>${esc(a.location||'')}</small>`,esc(a.subjects),badge(a.status),String(a.reports||0),`<button type="button" onclick="viewAdReports('${esc(a.id)}')">Denuncias</button> <button type="button" class="${a.status==='removed'?'':'danger'}" onclick="changeAdStatus('${esc(a.id)}','${a.status==='removed'?'active':'removed'}')">${a.status==='removed'?'Restaurar':'Retirar'}</button>`]))}
+async function loadAds(){try{ads=(await api('/admin/profesor-ads')).ads||[];renderAds();toast('Anuncios actualizados.')}catch(e){toast(e.message)}}
+async function viewAdReports(id){try{const reports=(await api(`/admin/profesor-ads/${id}/reports`)).reports||[];const ad=ads.find(a=>a.id===id);$('adReports').hidden=false;$('adReports').innerHTML=`<h3>Denuncias de ${esc(ad?.name||'anuncio')}</h3>${reports.length?reports.map(r=>`<p><strong>${esc(new Date(r.created_at).toLocaleString('es-ES'))}</strong><br>${esc(r.reason)}</p>`).join(''):'<p class="muted">Sin denuncias.</p>'}`;$('adReports').scrollIntoView({behavior:'smooth'})}catch(e){toast(e.message)}}
+async function changeAdStatus(id,status){if(status==='removed'&&!confirm('¿Retirar este anuncio del tablón?'))return;try{await api(`/admin/profesor-ads/${id}/status`,{method:'POST',body:JSON.stringify({status})});await loadAds()}catch(e){toast(e.message)}}
 let hazlotuAccess=null;
 async function saveHazlotuAccess(event){event.preventDefault();const password=$('hazlotuPassword').value;if(password!==$('hazlotuPasswordConfirm').value)return toast('Las contraseñas no coinciden.');try{hazlotuAccess=await api('/admin/hazlotu-access',{method:'POST',body:JSON.stringify({password})});$('hazlotuPassword').value='';$('hazlotuPasswordConfirm').value='';renderAll();toast('Contraseña de HazloTú actualizada.')}catch(e){toast(e.message)}}
 function metric(label,value){return `<div class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`}

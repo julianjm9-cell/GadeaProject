@@ -15,6 +15,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         assert connection.execute(text("SELECT 1")).scalar() == 1, "PostgreSQL no responde"
         connection.execute(text("SELECT id, password_encrypted FROM profesor_student_accesses LIMIT 0"))
         connection.execute(text("SELECT id FROM profesor_material_sessions LIMIT 0"))
+        connection.execute(text("SELECT id FROM profesor_ads LIMIT 0"))
+        connection.execute(text("SELECT id FROM profesor_ad_reports LIMIT 0"))
     checks = {
         "/ocr-facturas": b'href="/facturas/login"',
         "/facturas": b"LOGIN_TARGETS",
@@ -24,6 +26,9 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/": b"<h1>Educame Tech</h1>",
         "/privacidad": b"Pol\xc3\xadtica de privacidad",
         "/profesor": b"/profesor/register",
+        "/profesor/anunciar": b"Publica tu anuncio gratis",
+        "/profesor/anuncios": b"TablÃ³n de profesores",
+        "/api/profesor/ads": b'"ads"',
         "/e25": b"/e25/register",
         "/e25/login": b"LOGIN_TARGETS",
         "/e25/register": b"signupMode",
@@ -73,7 +78,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         raise AssertionError("El estado privado no debe ser público")
     with urlopen(admin + "/", timeout=20) as response:
         page = response.read()
-        assert b"PROFESOR_PARTICULAR" in page and b"aiAppPicker" in page, "El dashboard no incluye la nueva selección de modelos"
+        assert b"PROFESOR_PARTICULAR" in page and b"aiAppPicker" in page and b"view-ads" in page, "El dashboard no incluye anuncios y modelos"
     print("OK PostgreSQL, registro, autenticación y dashboard")
 
 

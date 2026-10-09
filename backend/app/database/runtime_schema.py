@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy import text
 
 from app.database.session import engine
-from app.models import ProfesorStudentAccess, ProfesorMaterialSession
+from app.models import ProfesorStudentAccess, ProfesorMaterialSession, ProfesorAd, ProfesorAdReport
 
 
 def ensure_runtime_schema() -> None:
@@ -27,3 +27,5 @@ def ensure_runtime_schema() -> None:
         ProfesorStudentAccess.__table__.create(bind=conn, checkfirst=True)
         conn.execute(text("ALTER TABLE profesor_student_accesses ADD COLUMN IF NOT EXISTS password_encrypted TEXT"))
         ProfesorMaterialSession.__table__.create(bind=conn, checkfirst=True)
+        ProfesorAd.__table__.create(bind=conn, checkfirst=True)
+        ProfesorAdReport.__table__.create(bind=conn, checkfirst=True)
