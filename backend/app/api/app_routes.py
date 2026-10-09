@@ -1581,8 +1581,8 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
             reserve_key, reserve_url, reserve_provider = chat_provider_config(db, product="", provider_override=fallback["provider"])
             if not any((entry[2], entry[3]) == (reserve_provider, fallback["model"]) for entry in candidates):
                 candidates.append((reserve_key, reserve_url, reserve_provider, fallback["model"]))
-        except HTTPException:
-            logger.warning("teacher_generator_reserve_unavailable provider=%s", fallback["provider"])
+        except HTTPException as exc:
+            logger.warning("teacher_generator_reserve_unavailable request=%s provider=%s status=%s", request_id, fallback["provider"], exc.status_code)
     if not candidates:
         raise HTTPException(503, "No hay una IA configurada y disponible para Profesor Particular. Revisa las claves y los modelos en Administración → IA.") from primary_error
     provider, model = candidates[0][2], candidates[0][3]
@@ -1700,7 +1700,7 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
                             break
                         except (ValueError, KeyError, TypeError, IndexError, HTTPException, httpx.RequestError) as exc:
                             last_error = exc
-                            logger.warning("teacher_generator_batch_failure request=%s provider=%s model=%s batch=%s attempt=%s error=%s", request_id, candidate_provider, candidate_model, batch_index + 1, attempt + 1, type(exc).__name__)
+                            logger.warning("teacher_generator_batch_failure request=%s provider=%s model=%s batch=%s attempt=%s error=%s status=%s provider_status=%s", request_id, candidate_provider, candidate_model, batch_index + 1, attempt + 1, type(exc).__name__, exc.status_code if isinstance(exc, HTTPException) else None, response.status_code if response is not None else None)
                             result = None
                             if isinstance(exc, httpx.RequestError) or isinstance(exc, HTTPException) and exc.status_code in (429, 503, 504) or response is not None and response.status_code >= 400 and provider_draft is None and not schema_rejected:
                                 break
