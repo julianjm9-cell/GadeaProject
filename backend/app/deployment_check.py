@@ -58,6 +58,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/profesor-activity-play.css": b"activity-play",
         "/assets/profesor-access.css": b"access-page",
         "/assets/profesor-live.css": b"live-player",
+        "/assets/games/flashcards.webp": b"WEBP",
         "/profesor/alumno": b"Material pendiente",
         "/profesor-particular": b"LOGIN_TARGETS",  # Unauthenticated request must reach login.
         "/assets/landing/profesor-dashboard.png": b"\x89PNG\r\n\x1a\n",

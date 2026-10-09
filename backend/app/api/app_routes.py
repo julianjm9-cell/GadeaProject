@@ -731,6 +731,30 @@ def profesor_final_styles(request: Request):
     return FileResponse(path, media_type="text/css", headers={"Cache-Control": "public, max-age=3600"})
 
 
+@router.get("/assets/games/{filename}")
+def profesor_game_illustration(filename: str):
+    allowed = {
+        "crossword.webp",
+        "dragdrop.webp",
+        "error.webp",
+        "flashcards.webp",
+        "hangman.webp",
+        "memory.webp",
+        "pasapalabra.webp",
+        "sentence.webp",
+        "timeline.webp",
+        "wordsearch.webp",
+    }
+    if filename not in allowed:
+        raise HTTPException(status_code=404, detail="Ilustración de actividad no encontrada.")
+    local_path = PROJECT_ROOT / "apps" / "profesor" / "assets" / "games" / filename
+    static_path = STATIC_DIR / "assets" / "games" / filename
+    path = local_path if local_path.exists() else static_path
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Ilustración de actividad no encontrada.")
+    return FileResponse(path, media_type="image/webp", headers={"Cache-Control": "public, max-age=86400"})
+
+
 @router.get("/assets/vendor/katex/{filename:path}")
 def profesor_math_asset(filename: str):
     root = PROJECT_ROOT / "apps" / "profesor" / "assets" / "vendor" / "katex"
