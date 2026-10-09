@@ -35,8 +35,10 @@ _ALL_SENDS: list[float] = []
 
 
 class AdInput(BaseModel):
-    name: str = Field(min_length=2, max_length=100)
+    title: str = Field(default="", max_length=100)
+    name: str = Field(default="", max_length=100)  # Older clients.
     subjects: str = Field(min_length=2, max_length=300)
+    information: str = Field(default="", max_length=1600)
     headline: str = Field(default="", max_length=140)
     levels: str = Field(default="", max_length=200)
     modality: str = Field(default="", max_length=30)
@@ -83,10 +85,10 @@ def clean_line(value: str, maximum: int) -> str:
 
 
 def cleaned_input(payload: AdInput) -> dict:
-    name = clean_line(payload.name, 100)
+    name = clean_line(payload.title if "title" in payload.model_fields_set else payload.name, 100)
     subjects = clean_line(payload.subjects, 300)
     if len(name) < 2 or len(subjects) < 2:
-        raise HTTPException(422, "Escribe tu nombre y al menos una asignatura.")
+        raise HTTPException(422, "Escribe un título y al menos una asignatura o curso.")
     email = clean_line(payload.contact_email, 255)
     if email and not re.fullmatch(r"[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+", email):
         raise HTTPException(422, "Revisa el correo de contacto.")
@@ -100,11 +102,11 @@ def cleaned_input(payload: AdInput) -> dict:
     return {
         "name": name,
         "subjects": subjects,
-        "headline": clean_line(payload.headline, 140),
+        "headline": "" if "title" in payload.model_fields_set else clean_line(payload.headline, 140),
         "levels": clean_line(payload.levels, 200),
         "modality": modality,
         "location": clean_line(payload.location, 120),
-        "description": payload.description.strip()[:1600],
+        "description": (payload.information if "information" in payload.model_fields_set else payload.description).strip()[:1600],
         "price": clean_line(payload.price, 80),
         "contact_email": email,
         "contact_phone": phone,
@@ -141,7 +143,8 @@ def image_path(ad: ProfesorAd) -> Path:
 
 def public_ad(ad: ProfesorAd) -> dict:
     return {
-        "id": str(ad.id), "name": ad.name, "subjects": ad.subjects,
+        "id": str(ad.id), "title": ad.headline or ad.name, "subjects": ad.subjects,
+        "information": ad.description, "name": ad.name,
         "headline": ad.headline, "levels": ad.levels, "modality": ad.modality,
         "location": ad.location, "description": ad.description, "price": ad.price,
         "contact_email": ad.contact_email, "contact_phone": ad.contact_phone,

@@ -20,6 +20,32 @@ def ad_payload(**changes):
     }
 
 
+def test_four_field_ad_can_be_published_and_edited(client):
+    web, _ = client
+    page = web.get('/profesor/anunciar').text
+    assert '<label for="title">Título *' in page
+    assert '<label for="subjects">Asignaturas/Curso *' in page
+    assert '<label for="information">Información' in page
+    assert '<label for="photo">Imagen' in page
+    assert 'id="contact_email"' not in page and 'id="locationFilter"' not in page
+
+    payload = {"title": "Apoyo en matemáticas", "subjects": "Matemáticas · 3.º ESO",
+               "information": "Clases online. Escríbeme a ejemplo@example.com", "consent": True}
+    assert web.post('/api/profesor/ads', json={**payload, 'title': ' '}).status_code == 422
+    created = web.post('/api/profesor/ads', json=payload)
+    assert created.status_code == 201, created.text
+    ad_id, key = created.json()['ad']['id'], created.json()['manage_key']
+    ad = web.get(f'/api/profesor/ads/{ad_id}').json()['ad']
+    assert (ad['title'], ad['subjects'], ad['information']) == (
+        payload['title'], payload['subjects'], payload['information'])
+    assert ad['contact_email'] == ad['contact_phone'] == ''
+    edited = web.post(f'/api/profesor/ads/manage/{ad_id}', headers={'X-Ad-Key': key},
+                      json={**payload, 'title': 'Refuerzo de álgebra', 'information': 'Clases presenciales'})
+    assert edited.status_code == 200, edited.text
+    assert edited.json()['ad']['title'] == 'Refuerzo de álgebra'
+    assert edited.json()['ad']['information'] == 'Clases presenciales'
+
+
 def test_publication_management_and_public_visibility(client):
     web, factory = client
     assert 'Anúnciate Gratis' in web.get('/profesor').text
@@ -44,6 +70,7 @@ def test_publication_management_and_public_visibility(client):
     updated = web.post(f"/api/profesor/ads/manage/{ad_id}", headers={"X-Ad-Key": key}, json=ad_payload(headline="Nueva propuesta"))
     assert updated.status_code == 200
     assert updated.json()["ad"]["headline"] == "Nueva propuesta"
+    assert updated.json()["ad"]["title"] == "Nueva propuesta"
     paused = web.post(f"/api/profesor/ads/manage/{ad_id}/status", headers={"X-Ad-Key": key}, json={"status": "paused"})
     assert paused.status_code == 200
     assert web.get(f"/api/profesor/ads/{ad_id}").status_code == 404
