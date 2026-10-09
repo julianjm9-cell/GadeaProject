@@ -562,6 +562,21 @@ def privacy_policy_page():
     return marketing_file("privacidad.html", "text/html")
 
 
+@router.get("/aviso-legal")
+def legal_notice_page():
+    return marketing_file("aviso-legal.html", "text/html")
+
+
+@router.get("/cookies")
+def cookies_page():
+    return marketing_file("cookies.html", "text/html")
+
+
+@router.get("/profesor/condiciones")
+def teacher_board_terms_page():
+    return marketing_file("profesor-condiciones.html", "text/html")
+
+
 HAZLOTU_PASSWORD_KEY = "hazlotu_access_password_hash"
 HAZLOTU_COOKIE = "hazlotu_access"
 HAZLOTU_ACCESS_SECONDS = 60 * 60 * 12

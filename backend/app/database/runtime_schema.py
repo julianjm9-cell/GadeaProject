@@ -29,3 +29,5 @@ def ensure_runtime_schema() -> None:
         ProfesorMaterialSession.__table__.create(bind=conn, checkfirst=True)
         ProfesorAd.__table__.create(bind=conn, checkfirst=True)
         ProfesorAdReport.__table__.create(bind=conn, checkfirst=True)
+        conn.execute(text("ALTER TABLE profesor_ads ADD COLUMN IF NOT EXISTS governance JSON NOT NULL DEFAULT '{}'"))
+        conn.execute(text("ALTER TABLE profesor_ad_reports ADD COLUMN IF NOT EXISTS details JSON NOT NULL DEFAULT '{}'"))

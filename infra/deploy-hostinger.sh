@@ -61,6 +61,33 @@ printf '\n[5/5] Comprobando base de datos, app, landing, login y dashboard…\n'
 docker compose exec -T backend python -m app.deployment_check
 docker compose exec -T reverse-proxy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 docker compose ps
+# Keep completed deployment backups for 30 days, even without later deploys.
+if [[ "$EUID" -eq 0 ]] && command -v systemctl >/dev/null && [[ -d /run/systemd/system ]]; then
+  cat > /etc/systemd/system/educa-suite-backup-retention.service <<EOF
+[Unit]
+Description=Conservacion de copias de Educa Suite
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 "$ROOT/infra/expire-backups.py"
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths="$ROOT/backups"
+EOF
+  cat > /etc/systemd/system/educa-suite-backup-retention.timer <<'EOF'
+[Unit]
+Description=Limpieza diaria de copias de Educa Suite
+[Timer]
+OnCalendar=daily
+Persistent=true
+[Install]
+WantedBy=timers.target
+EOF
+  systemctl daemon-reload
+  systemctl enable --now educa-suite-backup-retention.timer
+  systemctl start educa-suite-backup-retention.service
+else
+  printf '\nPENDIENTE: programa infra/expire-backups.py diariamente para aplicar la conservación de 30 días.\n' >&2
+fi
 if [[ -f RELEASE_REVISION ]]; then
   rm -- RELEASE_REVISION
 fi
