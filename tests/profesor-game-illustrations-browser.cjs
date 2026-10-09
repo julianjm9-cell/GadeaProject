@@ -26,6 +26,17 @@ const path = require('node:path');
     await memory.click();
     assert.equal(await memory.getAttribute('aria-pressed'), 'true');
     assert.equal(await memory.locator('.exercise-visual').isVisible(), true);
+    await page.locator('.basic-family summary').click();
+    const basicTiles = page.locator('.basic-family .exercise-tile.has-illustration');
+    const basicImages = basicTiles.locator('.exercise-visual img');
+    assert.equal(await basicTiles.count(), 11);
+    await page.waitForFunction(() => [...document.querySelectorAll('.basic-family .exercise-visual img')].every(image => image.complete && image.naturalWidth > 0));
+    assert.equal(await page.locator('.basic-family .exercise-tiles').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length), 6);
+    assert.equal(await basicImages.evaluateAll(nodes => new Set(nodes.map(node => node.getAttribute('src'))).size), 11);
+    const pairs = page.locator('[data-exercise="pairs"]');
+    await pairs.click();
+    assert.equal(await pairs.getAttribute('aria-pressed'), 'true');
+    assert.equal(await pairs.locator('.exercise-visual').isVisible(), true);
     await page.screenshot({ path: 'tools/profesor-game-illustrations.png' });
 
     const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
@@ -33,11 +44,11 @@ const path = require('node:path');
     await mobile.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
     await mobile.locator('.home-primary-nav').getByRole('button', { name: 'Material' }).click();
     await mobile.getByRole('button', { name: 'Crear material', exact: true }).click();
-    await mobile.locator('.playful-family summary').click();
-    assert.equal(await mobile.locator('.playful-family .exercise-tiles').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length), 2);
+    await mobile.locator('.basic-family summary').click();
+    assert.equal(await mobile.locator('.basic-family .exercise-tiles').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length), 2);
     assert.equal(await mobile.locator('#dialog').evaluate(dialog => dialog.scrollWidth > dialog.clientWidth + 2), false);
     assert.deepEqual(errors, []);
-    console.log('PASS ten optimized game illustrations, six-column desktop catalog and two-column mobile catalog');
+    console.log('PASS twenty-one optimized activity illustrations, six-column desktop catalog and two-column mobile catalog');
   } finally {
     await browser.close();
   }

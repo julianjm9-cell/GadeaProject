@@ -113,7 +113,8 @@ dialog.material-studio:not(.studio-renewed) #editorPrevious[hidden],dialog.mater
 @media(max-width:1050px){dialog.studio-renewed .workshop-all-fields{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){dialog.studio-renewed .workshop-all-fields{grid-template-columns:repeat(2,minmax(0,1fr));margin-right:0}dialog.studio-renewed .workshop-all-fields>div:nth-child(4){grid-column:1/-1}dialog.studio-renewed details.exercise-family[open]>.exercise-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}dialog.studio-renewed .exercise-tile,dialog.studio-renewed .exercise-tile[aria-pressed="true"]{height:92px;min-height:92px}dialog.material-studio:not(.studio-renewed) .material-editor-layout{grid-template-columns:1fr}dialog.material-studio:not(.studio-renewed) .material-live-preview{position:static;max-height:none;overflow:visible}}
 
-/* Los juegos se reconocen de un vistazo con las ilustraciones del catálogo. */
+/* Cada actividad se reconoce de un vistazo con las ilustraciones del catálogo. */
+dialog.studio-renewed details.basic-family[open]>.exercise-tiles,
 dialog.studio-renewed details.playful-family[open]>.exercise-tiles{grid-template-columns:repeat(6,minmax(0,1fr))}
 dialog.studio-renewed .exercise-tile.has-illustration,
 dialog.studio-renewed .exercise-tile.has-illustration[aria-pressed="true"]{height:150px;min-height:150px;justify-content:flex-start;gap:3px;padding:6px;overflow:hidden}
@@ -124,5 +125,5 @@ dialog.studio-renewed .exercise-tile.has-illustration .tile-check,
 dialog.studio-renewed .exercise-tile.has-illustration[aria-pressed="true"] .tile-check{top:10px;right:10px;box-shadow:0 1px 6px #17315d38}
 dialog.studio-renewed .exercise-tile.has-illustration:hover .exercise-visual img{transform:scale(1.025)}
 dialog.studio-renewed .exercise-tile.has-illustration .exercise-visual img{transition:transform .16s ease}
-@media(max-width:1250px){dialog.studio-renewed details.playful-family[open]>.exercise-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:650px){dialog.studio-renewed details.playful-family[open]>.exercise-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}dialog.studio-renewed .exercise-tile.has-illustration,dialog.studio-renewed .exercise-tile.has-illustration[aria-pressed="true"]{height:122px;min-height:122px}dialog.studio-renewed .exercise-tile.has-illustration .exercise-visual{height:62px;min-height:62px}}
+@media(max-width:1250px){dialog.studio-renewed details.basic-family[open]>.exercise-tiles,dialog.studio-renewed details.playful-family[open]>.exercise-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:650px){dialog.studio-renewed details.basic-family[open]>.exercise-tiles,dialog.studio-renewed details.playful-family[open]>.exercise-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}dialog.studio-renewed .exercise-tile.has-illustration,dialog.studio-renewed .exercise-tile.has-illustration[aria-pressed="true"]{height:122px;min-height:122px}dialog.studio-renewed .exercise-tile.has-illustration .exercise-visual{height:62px;min-height:62px}}

@@ -734,6 +734,17 @@ def profesor_final_styles(request: Request):
 @router.get("/assets/games/{filename}")
 def profesor_game_illustration(filename: str):
     allowed = {
+        "basic-boolean.webp",
+        "basic-classify.webp",
+        "basic-gaps.webp",
+        "basic-multigaps.webp",
+        "basic-numeric.webp",
+        "basic-order.webp",
+        "basic-pairs.webp",
+        "basic-problem.webp",
+        "basic-quiz.webp",
+        "basic-reading.webp",
+        "basic-short.webp",
         "crossword.webp",
         "dragdrop.webp",
         "error.webp",
