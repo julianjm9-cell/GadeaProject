@@ -151,7 +151,14 @@ def test_profesor_public_routes_and_landing_links(client):
     assert landing.status_code == 200
     assert '/profesor/register' in landing.text
     assert '/assets/landing/profesor-dashboard.png' in landing.text
+    assert '<link rel="canonical" href="https://educame.tech/profesor">' in landing.text
     assert 'href="/profesor"' in test_client.get("/").text
+    assert test_client.get("/profesor-info", follow_redirects=False).headers["location"] == "/profesor"
+    sitemap = test_client.get("/sitemap.xml")
+    assert sitemap.status_code == 200
+    assert sitemap.headers["content-type"].startswith("application/xml")
+    assert "https://educame.tech/profesor" in sitemap.text
+    assert "https://educame.tech/sitemap.xml" in test_client.get("/robots.txt").text
     assert test_client.get("/profesor/login").status_code == 200
     assert test_client.get("/profesor/demo").status_code == 200
 

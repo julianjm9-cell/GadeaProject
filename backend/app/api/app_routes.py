@@ -533,6 +533,23 @@ def root():
     return marketing_file("index.html", "text/html")
 
 
+@router.get("/robots.txt")
+def robots_txt():
+    return Response("User-agent: *\nSitemap: https://educame.tech/sitemap.xml\n", media_type="text/plain")
+
+
+@router.get("/sitemap.xml")
+def sitemap_xml():
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        '  <url><loc>https://educame.tech/</loc></url>\n'
+        '  <url><loc>https://educame.tech/profesor</loc></url>\n'
+        '</urlset>\n'
+    )
+    return Response(xml, media_type="application/xml")
+
+
 @router.get("/suite")
 def suite_public_page():
     return marketing_file("index.html", "text/html")
@@ -797,9 +814,13 @@ def ocr_facturas_landing():
 
 
 @router.get("/profesor")
-@router.get("/profesor-info")
 def profesor_landing():
     return marketing_file("profesor-particular.html", "text/html")
+
+
+@router.get("/profesor-info")
+def profesor_landing_alias():
+    return RedirectResponse("/profesor", status_code=308)
 
 
 @router.get("/profesor/demo")
