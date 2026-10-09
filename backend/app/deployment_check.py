@@ -27,7 +27,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/privacidad": b"Pol\xc3\xadtica de privacidad",
         "/profesor": b"/profesor/register",
         "/profesor/anunciar": b"Publica tu anuncio gratis",
-        "/profesor/anuncios": b"TablÃ³n de profesores",
+        "/profesor/anuncios": "Tablón de profesores".encode("utf-8"),
         "/api/profesor/ads": b'"ads"',
         "/e25": b"/e25/register",
         "/e25/login": b"LOGIN_TARGETS",
