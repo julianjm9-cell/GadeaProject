@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import admin, app_routes, auth, ocr, ocr_legacy, profesor_access, profesor_ads, profesor_material_sessions
 from app.config import get_settings
 from app.database.runtime_schema import ensure_runtime_schema
-from app.services.ads_maintenance import lifespan
 from starlette.responses import JSONResponse
 
 
@@ -15,7 +14,7 @@ try:
     ensure_runtime_schema()
 except Exception:
     pass
-app = FastAPI(title=settings.app_name, lifespan=lifespan)
+app = FastAPI(title=settings.app_name)
 
 
 @app.middleware("http")

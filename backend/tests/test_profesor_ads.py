@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from uuid import UUID
 
@@ -12,7 +13,6 @@ from app.auth.dependencies import require_superadmin
 from app.main import app
 from app.models import ProfesorAd, ProfesorAdReport
 from app.api.profesor_ads import CONSENT_VERSION, TERMS_TEXT, PUBLICATION_TEXT
-from datetime import datetime, timedelta, timezone
 
 
 def test_separate_current_consent_is_required_and_recorded(client):
@@ -36,7 +36,7 @@ def test_separate_current_consent_is_required_and_recorded(client):
     assert web.get('/api/profesor/ad-policy').json()['version'] == CONSENT_VERSION
 
 
-def test_expiry_covers_details_images_and_renewal(client, tmp_path, monkeypatch):
+def test_old_ads_remain_public_until_paused_or_deleted(client, tmp_path, monkeypatch):
     import app.api.profesor_ads as api
     web, factory = client
     monkeypatch.setattr(api, 'IMAGE_DIR', tmp_path)
@@ -49,33 +49,14 @@ def test_expiry_covers_details_images_and_renewal(client, tmp_path, monkeypatch)
         ad.image_name = 'image.webp'
         api.image_path(ad).write_bytes(b'old-image')
         db.commit()
-    assert web.get('/api/profesor/ads').json()['ads'] == []
-    assert web.get(f'/api/profesor/ads/{ad_id}').status_code == 404
-    assert web.get(f'/api/profesor/ads/{ad_id}/image').status_code == 404
-    assert web.get(f'/api/profesor/ads/manage/{ad_id}', headers=headers).json()['status'] == 'expired'
-    assert web.post(f'/api/profesor/ads/manage/{ad_id}/status', headers=headers, json={'status':'active'}).status_code == 422
-    assert web.post(f'/api/profesor/ads/manage/{ad_id}', headers=headers, json=ad_payload()).status_code == 200
+    assert len(web.get('/api/profesor/ads').json()['ads']) == 1
     assert web.get(f'/api/profesor/ads/{ad_id}').status_code == 200
-
-
-def test_retention_purges_image_ad_and_reports(client, tmp_path, monkeypatch):
-    import app.api.profesor_ads as api
-    web, factory = client
-    monkeypatch.setattr(api, 'IMAGE_DIR', tmp_path)
-    result = web.post('/api/profesor/ads', json=ad_payload()).json()
-    ad_id = UUID(result['ad']['id'])
-    with factory() as db:
-        ad = db.get(ProfesorAd, ad_id)
-        ad.consent_at = datetime.now(timezone.utc) - timedelta(days=181)
-        ad.image_name = 'image.webp'
-        path = api.image_path(ad)
-        path.write_bytes(b'old-image')
-        db.add(ProfesorAdReport(ad_id=ad_id, reason='An old report'))
-        db.commit()
-        assert api.purge_expired(db) == 1
-        assert db.get(ProfesorAd, ad_id) is None
-        assert db.query(ProfesorAdReport).count() == 0
-    assert not path.exists()
+    assert web.get(f'/api/profesor/ads/{ad_id}/image').status_code == 200
+    managed = web.get(f'/api/profesor/ads/manage/{ad_id}', headers=headers).json()
+    assert managed['status'] == 'active'
+    assert 'expires_at' not in managed['ad'] and 'delete_after' not in managed['ad']
+    policy = web.get('/api/profesor/ad-policy').json()
+    assert policy['automatic_expiry'] is False and policy['automatic_deletion'] is False
 
 
 def test_private_reports_receipts_moderation_and_notification(client):
@@ -140,15 +121,17 @@ def test_simple_ad_can_be_published_and_edited(client):
     web, _ = client
     page = web.get('/profesor/anunciar').text
     assert '<label for="title">Título *' in page
-    assert '<label for="course">Curso *' in page
-    assert '<label for="subject">Materia *' in page
+    assert 'id="coursePicker"' in page and 'data-choice="course"' in page
+    assert 'id="subjectPicker"' in page and 'data-choice="subject"' in page
     assert '<label for="location">Ubicación' in page
     assert '<label for="information">Información' in page
     assert '<label for="photo">Imagen' in page
-    assert 'id="contact_email"' not in page and 'id="locationFilter"' not in page
+    assert 'id="contact_email"' in page and 'id="contact_phone"' in page
+    assert 'id="locationFilter"' not in page
 
-    payload = {"title": "Apoyo en matemáticas", "course": "3.º ESO", "subject": "Matemáticas",
-               "location": "Madrid y online", "information": "Escríbeme a ejemplo@example.com", "consent": True, "terms_accepted": True, "consent_version": CONSENT_VERSION}
+    payload = {"title": "Apoyo en matemáticas", "course": "3.º ESO, 4.º ESO", "subject": "Matemáticas, Física y Química",
+               "location": "Madrid y online", "information": "Clases prácticas y adaptadas.",
+               "contact_email": "ejemplo@example.com", "consent": True, "terms_accepted": True, "consent_version": CONSENT_VERSION}
     assert web.post('/api/profesor/ads', json={**payload, 'title': ' '}).status_code == 422
     assert web.post('/api/profesor/ads', json={**payload, 'course': 'Curso inventado'}).status_code == 422
     created = web.post('/api/profesor/ads', json=payload)
@@ -157,13 +140,13 @@ def test_simple_ad_can_be_published_and_edited(client):
     ad = web.get(f'/api/profesor/ads/{ad_id}').json()['ad']
     assert (ad['title'], ad['course'], ad['subject'], ad['location'], ad['information']) == (
         payload['title'], payload['course'], payload['subject'], payload['location'], payload['information'])
-    assert ad['contact_email'] == ad['contact_phone'] == ''
+    assert ad['contact_email'] == payload['contact_email'] and ad['contact_phone'] == ''
     edited = web.post(f'/api/profesor/ads/manage/{ad_id}', headers={'X-Ad-Key': key},
-                      json={**payload, 'title': 'Refuerzo de álgebra', 'course': '4.º ESO',
+                      json={**payload, 'title': 'Refuerzo de álgebra', 'course': '4.º ESO, 1.º Bachillerato',
                             'location': 'Getafe', 'information': 'Clases presenciales'})
     assert edited.status_code == 200, edited.text
     assert edited.json()['ad']['title'] == 'Refuerzo de álgebra'
-    assert edited.json()['ad']['course'] == '4.º ESO'
+    assert edited.json()['ad']['course'] == '4.º ESO, 1.º Bachillerato'
     assert edited.json()['ad']['location'] == 'Getafe'
     assert edited.json()['ad']['information'] == 'Clases presenciales'
 

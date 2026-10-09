@@ -1,6 +1,6 @@
 # Tablón: operación, privacidad y tareas del titular
 
-Fecha y versión: 2026-10-09.2. Este registro describe medidas aplicadas; no certifica cumplimiento jurídico completo.
+Fecha y versión: 2026-10-09.3. Este registro describe medidas aplicadas; no certifica cumplimiento jurídico completo.
 
 ## Funcionamiento implementado
 
@@ -8,9 +8,9 @@ Fecha y versión: 2026-10-09.2. Este registro describe medidas aplicadas; no cer
 - Contenido/contacto profesional voluntario visible, avisando de buscadores y copias. No se promete anonimato ni ausencia de datos personales.
 - Gestión con clave aleatoria en fragmento URL, solo hash en BD; API mediante cabecera. Enlace descargable, no almacenado automáticamente en localStorage. No enviar nunca la clave por correo a soporte.
 - Datos y claves privados no se cachean ni indexan; CSP, bloqueo de marcos y no-referrer en el tablón. Subidas limitadas a 5 MB, decodificadas y recodificadas sin EXIF; límite total de solicitud, límites de frecuencia y validaciones del servidor. Texto escapado en interfaces pública y administrativa.
-- Anuncios ocultos a los 90 días desde consentimiento/renovación, incluida su imagen. Eliminación automática a los 180 días, con revisiones horarias; también se borran avisos relacionados. Pausar no renueva. Administradores no pueden alargar la autorización del autor al restaurar.
+- Los anuncios no caducan ni se borran automáticamente. El anunciante puede pausarlos o eliminarlos con su enlace privado y administración puede retirarlos o borrarlos cuando corresponda.
 - Avisos privados: nombre/correo salvo excepción de abuso sexual infantil, motivo, URL, buena fe, referencia y enlace de seguimiento. Resoluciones motivadas y registro manual de correos enviados. No se identifica al denunciante ante el anunciante.
-- Copias del script de despliegue: 30 días; el despliegue en Hostinger como root instala un temporizador systemd diario. Solo elimina carpetas reconocidas de despliegues completos, no otras carpetas. Revisar `systemctl status educa-suite-backup-retention.timer` y el diario del servicio. Las copias de proveedor, manuales y exportaciones quedan fuera de este mecanismo.
+- Las copias de despliegue se conservan hasta una revisión manual. El despliegue desactiva y elimina el antiguo temporizador `educa-suite-backup-retention.timer`. Las copias del proveedor, manuales y exportaciones también deben revisarse de forma manual.
 
 ## Cada día: comunicaciones
 
@@ -24,7 +24,7 @@ Canal: educamesuite@gmail.com. Acusar recibo, registrar fecha, petición, anunci
 
 ## Registro de tratamientos del tablón
 
-Responsable: Julián Jiménez Moreno (datos en aviso legal). Personas: anunciantes adultos, informantes y usuarios técnicos. Publicación: consentimiento; gestión: prestación del servicio; seguridad: interés legítimo documentable de evitar fraude/abuso; avisos legales: obligación legal. Datos: contenido e imagen, contacto voluntario, consentimiento, hash de gestión; avisos: identidad/contacto, motivo y resolución. Público: solo contenido del anuncio. Destinatarios privados: administración, alojamiento y autoridades cuando corresponda. Periodos: 90 días visible/180 desde última autorización; avisos 180 días o menos con borrado del anuncio; copias operativas 30 días. Revisar garantías de Hostinger y del correo antes de afirmar regiones o transferencias concretas. En el tablón no se envían anuncios a IA.
+Responsable: Julián Jiménez Moreno (datos en aviso legal). Personas: anunciantes adultos, informantes y usuarios técnicos. Publicación: consentimiento; gestión: prestación del servicio; seguridad: interés legítimo documentable de evitar fraude/abuso; avisos legales: obligación legal. Datos: contenido e imagen, contacto público, consentimiento, hash de gestión; avisos: identidad/contacto, motivo y resolución. Público: solo contenido del anuncio. Destinatarios privados: administración, alojamiento y autoridades cuando corresponda. Conservación: sin borrado por plazos automáticos; revisar manualmente anuncios, avisos y copias y atender las solicitudes de supresión verificadas. Revisar garantías de Hostinger y del correo antes de afirmar regiones o transferencias concretas. En el tablón no se envían anuncios a IA.
 
 ## Proveedores, cookies y seguridad: completar fuera del código
 

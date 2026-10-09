@@ -8,7 +8,7 @@ import hmac
 import ipaddress
 import re
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
 from uuid import UUID
@@ -30,11 +30,9 @@ router = APIRouter(tags=["profesor-ads"])
 IMAGE_DIR = Path("/app/data/documents/teacher-ads") if Path("/app").exists() else Path(__file__).resolve().parents[3] / "backend" / "data" / "documents" / "teacher-ads"
 MAX_IMAGE_BYTES = 5_000_000
 MAX_IMAGE_PIXELS = 12_000_000
-CONSENT_VERSION = "2026-10-09.2"
+CONSENT_VERSION = "2026-10-09.3"
 TERMS_TEXT = "Soy mayor de edad, acepto las condiciones del tablón y tengo derecho a publicar este contenido e imagen. No incluyo datos de menores ni de terceros."
 PUBLICATION_TEXT = "Autorizo la publicación de mi anuncio, imagen y los datos de contacto que decida incluir. Serán visibles para cualquier visitante y podrán aparecer en buscadores. Puedo retirar mi consentimiento y borrar el anuncio con mi enlace privado o contactando con el titular."
-ACTIVE_DAYS = 90
-RETENTION_DAYS = 180
 _ALL_SENDS: list[float] = []
 AD_COURSES = {
     "Infantil", *(f"{number}.º Primaria" for number in range(1, 7)),
@@ -87,26 +85,8 @@ def accept_publication(payload: AdInput) -> dict:
     return {"terms": TERMS_TEXT, "publication": PUBLICATION_TEXT, "version": CONSENT_VERSION}
 
 
-def aware(value: datetime) -> datetime:
-    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
-
-
 def is_public(ad: ProfesorAd) -> bool:
-    return ad.status == "active" and aware(ad.consent_at) + timedelta(days=ACTIVE_DAYS) > datetime.now(timezone.utc)
-
-
-def purge_expired(db: Session) -> int:
-    """Run hourly; visibility checks also enforce expiry between sweeps."""
-    cutoff = datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)
-    ads = db.scalars(select(ProfesorAd).where(ProfesorAd.consent_at < cutoff).limit(1000)).all()
-    for ad in ads:
-        # Remove the image first: a failed unlink is retried on the next sweep.
-        image_path(ad).unlink(missing_ok=True)
-        db.execute(delete(ProfesorAdReport).where(ProfesorAdReport.ad_id == ad.id))
-        db.delete(ad)
-    db.execute(delete(ProfesorAdReport).where(ProfesorAdReport.created_at < cutoff))
-    db.commit()
-    return len(ads)
+    return ad.status == "active"
 
 
 def remote_key(request: Request) -> str:
@@ -136,16 +116,29 @@ def clean_line(value: str, maximum: int) -> str:
     return " ".join(value.strip().split())[:maximum]
 
 
+def clean_choices(value: str, allowed: set[str], previous: str, maximum: int) -> str:
+    choices = list(dict.fromkeys(clean_line(item, maximum) for item in re.split(r"[,;]", value) if item.strip()))
+    joined = ", ".join(choices)
+    if not choices:
+        return ""
+    if len(choices) > 8 or len(joined) > maximum:
+        raise HTTPException(422, "Selecciona como máximo ocho opciones en cada lista.")
+    if any(choice not in allowed for choice in choices) and joined != previous:
+        raise HTTPException(422, "Selecciona los cursos y las materias de las listas.")
+    return joined
+
+
 def cleaned_input(payload: AdInput, previous: ProfesorAd | None = None) -> dict:
     new_format = bool({"course", "subject"} & payload.model_fields_set)
     name = clean_line(payload.title if "title" in payload.model_fields_set else payload.name, 100)
-    subjects = clean_line(payload.subject if new_format else payload.subjects, 300)
-    course = clean_line(payload.course if new_format else payload.levels, 200)
+    previous_subjects = previous.subjects if previous else ""
+    previous_courses = previous.levels if previous else ""
+    subjects = (clean_choices(payload.subject, AD_SUBJECTS, previous_subjects, 300) if new_format
+                else clean_line(payload.subjects, 300))
+    course = (clean_choices(payload.course, AD_COURSES, previous_courses, 200) if new_format
+              else clean_line(payload.levels, 200))
     if len(name) < 2 or len(subjects) < 2 or new_format and len(course) < 2:
-        raise HTTPException(422, "Escribe un título y selecciona el curso y la materia.")
-    if new_format and (course not in AD_COURSES and (not previous or course != previous.levels)
-                       or subjects not in AD_SUBJECTS and (not previous or subjects != previous.subjects)):
-        raise HTTPException(422, "Selecciona un curso y una materia de las listas.")
+        raise HTTPException(422, "Escribe un título y selecciona al menos un curso y una materia.")
     email = clean_line(payload.contact_email, 255)
     if email and not re.fullmatch(r"[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+", email):
         raise HTTPException(422, "Revisa el correo de contacto.")
@@ -153,6 +146,8 @@ def cleaned_input(payload: AdInput, previous: ProfesorAd | None = None) -> dict:
     digits = re.sub(r"\D", "", phone)
     if phone and (not re.fullmatch(r"[+\d ()-]+", phone) or not 7 <= len(digits) <= 15):
         raise HTTPException(422, "Revisa el teléfono de contacto.")
+    if new_format and not email and not phone:
+        raise HTTPException(422, "Indica un correo o un teléfono de contacto.")
     modality = clean_line(payload.modality, 30)
     if modality not in {"", "online", "presencial", "ambas"}:
         raise HTTPException(422, "Selecciona una modalidad válida.")
@@ -213,8 +208,6 @@ def public_ad(ad: ProfesorAd) -> dict:
 
 def private_ad(ad: ProfesorAd) -> dict:
     data = public_ad(ad)
-    data["expires_at"] = (aware(ad.consent_at) + timedelta(days=ACTIVE_DAYS)).isoformat()
-    data["delete_after"] = (aware(ad.consent_at) + timedelta(days=RETENTION_DAYS)).isoformat()
     data["moderation_reason"] = (ad.governance or {}).get("moderation_reason", "")
     data["consent_version"] = ad.consent_version
     if ad.image_name and image_path(ad).is_file():
@@ -231,14 +224,14 @@ def managed_ad(db: Session, ad_id: UUID, key: str) -> ProfesorAd:
 
 @router.get("/api/profesor/ads")
 def list_ads(db: Session = Depends(get_db)):
-    ads = db.scalars(select(ProfesorAd).where(ProfesorAd.status == "active", ProfesorAd.consent_at > datetime.now(timezone.utc) - timedelta(days=ACTIVE_DAYS)).order_by(ProfesorAd.created_at.desc()).limit(200)).all()
+    ads = db.scalars(select(ProfesorAd).where(ProfesorAd.status == "active").order_by(ProfesorAd.created_at.desc()).limit(200)).all()
     return {"ads": [public_ad(ad) for ad in ads]}
 
 
 @router.get("/api/profesor/ad-policy")
 def publication_policy():
     return {"version": CONSENT_VERSION, "terms": TERMS_TEXT, "publication": PUBLICATION_TEXT,
-            "active_days": ACTIVE_DAYS, "retention_days": RETENTION_DAYS}
+            "automatic_expiry": False, "automatic_deletion": False}
 
 
 @router.post("/api/profesor/ads", status_code=201)
@@ -272,7 +265,7 @@ def publish_ad(payload: AdInput, request: Request, response: Response, db: Sessi
 def get_managed_ad(ad_id: UUID, response: Response, x_ad_key: str = Header(default=""), db: Session = Depends(get_db)):
     ad = managed_ad(db, ad_id, x_ad_key)
     response.headers["Cache-Control"] = "no-store"
-    return {"ad": private_ad(ad), "status": "expired" if ad.status == "active" and not is_public(ad) else ad.status}
+    return {"ad": private_ad(ad), "status": ad.status}
 
 
 @router.post("/api/profesor/ads/manage/{ad_id}")
@@ -307,8 +300,8 @@ def change_status(ad_id: UUID, payload: dict, x_ad_key: str = Header(default="")
         raise HTTPException(403, "Este anuncio fue retirado. Contacta con administración.")
     if payload.get("status") not in {"active", "paused"}:
         raise HTTPException(422, "Estado no válido.")
-    if payload["status"] == "active" and (ad.consent_version != CONSENT_VERSION or aware(ad.consent_at) + timedelta(days=ACTIVE_DAYS) <= datetime.now(timezone.utc)):
-        raise HTTPException(422, "Edita y guarda el anuncio aceptando las condiciones actuales para renovarlo.")
+    if payload["status"] == "active" and ad.consent_version != CONSENT_VERSION:
+        raise HTTPException(422, "Edita y guarda el anuncio aceptando las condiciones actuales para volver a publicarlo.")
     ad.status = payload["status"]
     db.commit()
     return {"status": ad.status}
