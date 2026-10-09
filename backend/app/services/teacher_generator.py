@@ -230,7 +230,9 @@ def generation_batches(context):
 
 def rosco_chunks(size):
     letters = ROSCO_LETTERS[:size]
-    count = math.ceil(size / 6)
+    # Nine letters in two batches (5 + 4) makes one malformed clue discard too
+    # much otherwise valid work. Three small batches remain valid standalone roscos.
+    count = 3 if size == 9 else math.ceil(size / 6)
     minimum, extra = divmod(size, count)
     sizes = [minimum + (index < extra) for index in range(count)]
     chunks, offset = [], 0

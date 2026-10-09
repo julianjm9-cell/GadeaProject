@@ -1,12 +1,12 @@
 import json
-from uuid import uuid4
+from uuid import UUID, uuid4
 import httpx
 import pytest
 from fastapi import HTTPException
 from sqlalchemy import select, func
 from test_access_control import client, seed_user, login
 from app.api import app_routes
-from app.models import UsageRecord, Conversation
+from app.models import UsageRecord, Conversation, Message
 from app.services.teacher_generator import generator_context, generation_batches, parse_material, generation_response_format, generation_post, rosco_chunks, ROSCO_LETTERS, TYPES
 
 
@@ -34,6 +34,36 @@ def test_rosco_chunks_keep_every_batch_playable():
         chunks = rosco_chunks(size)
         assert ''.join(letters for _, letters in chunks) == ROSCO_LETTERS[:size]
         assert all(3 <= len(letters) <= 6 for _, letters in chunks)
+    assert [letters for _, letters in rosco_chunks(9)] == ['ABC', 'DEF', 'GHI']
+
+
+def test_strict_schema_rejection_retries_with_plain_json(client, monkeypatch):
+    web, factory = client
+    seed_user(factory, product_codes=('PROFESOR_PARTICULAR',)); login(web)
+    monkeypatch.setattr(app_routes, 'chat_provider_config', lambda *args, **kw: ('test-key', 'https://example.test', 'groq'))
+    monkeypatch.setattr(app_routes, 'chat_model_for_purpose', lambda *args: 'openai/gpt-oss-120b')
+    formats = []
+
+    class FakeClient:
+        def __init__(self, **kw): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kw):
+            body = kw['json']
+            formats.append(body['response_format']['type'])
+            if len(formats) == 1:
+                return httpx.Response(400, json={'error': {'message': 'Schema validation failed'}})
+            context = json.loads(body['messages'][1]['content'])
+            questions = [dict(type='gaps', prompt=f'Ayer, a las {n+1}, Ana ___ (caminar) por el parque.',
+                              answer='caminaba', explanation='El imperfecto expresa una acción en curso.') for n in range(context['gaps'])]
+            return httpx.Response(200, json={'choices': [{'message': {'content': json.dumps({'questions': questions})}}]})
+
+    monkeypatch.setattr(app_routes.httpx, 'AsyncClient', FakeClient)
+    body = payload(); body.update(activitySizes={'gaps': 2})
+    response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
+    assert response.status_code == 200, response.text
+    assert formats == ['json_schema', 'json_object']
+    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
 
 
 @pytest.mark.parametrize('counts', [dict(gaps=0), dict(gaps=4), dict(gaps=2, quiz=2), dict(gaps=1, quiz=1, short=1, problem=1)])
@@ -327,6 +357,51 @@ def test_rosco_is_generated_in_small_batches_and_returned_as_one_activity(client
     with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
 
 
+def test_old_nine_letter_checkpoint_restarts_rosco_without_duplicate_letters(client, monkeypatch):
+    web, factory = client
+    org_id, user_id = (UUID(value) for value in seed_user(factory, product_codes=('PROFESOR_PARTICULAR',)))
+    login(web)
+    monkeypatch.setattr(app_routes, 'chat_provider_config', lambda *args, **kw: ('test-key', 'https://example.test', 'groq'))
+    monkeypatch.setattr(app_routes, 'chat_model_for_purpose', lambda *args: 'openai/gpt-oss-120b')
+    body = payload(); body.update(gaps=0, pasapalabra=1, activitySizes={'pasapalabra': 9})
+    _, context = generator_context(body)
+
+    def rosco_part(letters, offset):
+        return dict(type='pasapalabra', prompt='Resuelve el rosco de conceptos.', answer='Completado',
+                    options=[f'{letter} | Concepto número {offset+i+1} del tema | palabra{letter}' for i, letter in enumerate(letters)],
+                    itemExplanations=[f'El concepto número {offset+i+1} se relaciona con el tema.' for i in range(len(letters))],
+                    explanation='Cada pista identifica una palabra diferente relacionada con el tema.', activityGroup=1)
+
+    with factory() as db:
+        conversation = Conversation(organization_id=org_id, user_id=user_id, title='teacher-generator:' + body['request_id'])
+        db.add(conversation); db.flush()
+        old_checkpoint = dict(context=context, questions=[], complete=False, completed_batches=1,
+                              rosco_parts={'1': [rosco_part('ABCDE', 0)]}, reading_passages={},
+                              classification_categories={}, input_tokens=0, output_tokens=0)
+        db.add(Message(conversation_id=conversation.id, organization_id=org_id, user_id=user_id,
+                       role='assistant', content=json.dumps(old_checkpoint)))
+        db.commit()
+
+    offsets = []
+    class FakeClient:
+        def __init__(self, **kw): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kw):
+            batch = json.loads(kw['json']['messages'][1]['content'])
+            offsets.append(batch['itemOffset'])
+            question = rosco_part(batch['roscoLetters'], batch['itemOffset'])
+            question.pop('activityGroup')
+            return httpx.Response(200, json={'choices': [{'message': {'content': json.dumps({'questions': [question]})}}]})
+
+    monkeypatch.setattr(app_routes.httpx, 'AsyncClient', FakeClient)
+    response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
+    assert response.status_code == 200, response.text
+    assert offsets == [0, 3, 6]
+    assert len(response.json()['questions'][0]['options']) == 9
+    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
+
+
 def test_resume_uses_valid_batches_without_charging_twice(client, monkeypatch):
     web, factory = client
     seed_user(factory, product_codes=('PROFESOR_PARTICULAR',)); login(web)
@@ -395,6 +470,39 @@ def test_reserve_uses_gemini_after_primary_has_invalid_output(client, monkeypatc
     else:
         assert sent[-1][1]['headers']['Authorization'] == 'Bearer ' + gemini_key
         assert sent[-1][1]['json']['response_format'] == {'type': 'json_object'}
+    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
+
+
+def test_configured_reserve_works_when_primary_key_is_missing(client, monkeypatch):
+    web, factory = client
+    seed_user(factory, role='superadmin', product_codes=('PROFESOR_PARTICULAR',)); login(web)
+    configured = web.post('/admin/ai-settings/apps/PROFESOR_PARTICULAR', json={
+        'capabilities': {'generator_fallback': {'provider': 'gemini', 'model': 'gemini-3.8-flash'}}})
+    assert configured.status_code == 200, configured.text
+
+    def provider(*args, **kwargs):
+        if kwargs.get('provider_override') == 'gemini':
+            return 'AQ.test', 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', 'gemini'
+        raise HTTPException(500, 'Falta GROQ_API_KEY.')
+
+    monkeypatch.setattr(app_routes, 'chat_provider_config', provider)
+    sent = []
+
+    class FakeClient:
+        def __init__(self, **kw): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kw):
+            sent.append(url)
+            questions = [dict(type='gaps', prompt=f'Ayer, a las {n+1}, Ana ___ (caminar) por el parque.',
+                              answer='caminaba', explanation='El imperfecto expresa una acción en curso.') for n in range(2)]
+            return httpx.Response(200, json={'candidates': [{'content': {'parts': [{'text': json.dumps({'questions': questions})}]}}]})
+
+    monkeypatch.setattr(app_routes.httpx, 'AsyncClient', FakeClient)
+    body = payload(); body.update(activitySizes={'gaps': 2})
+    response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
+    assert response.status_code == 200, response.text
+    assert len(sent) == 1 and 'generateContent' in sent[0]
     with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
 
 
