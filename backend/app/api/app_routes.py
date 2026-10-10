@@ -733,7 +733,7 @@ def profesor_final_styles(request: Request):
 
 @router.get("/assets/games/{filename}")
 def profesor_game_illustration(filename: str):
-    allowed = {
+    base_files = {
         "basic-boolean.webp",
         "basic-classify.webp",
         "basic-gaps.webp",
@@ -757,6 +757,7 @@ def profesor_game_illustration(filename: str):
         "uploaded-material.webp",
         "wordsearch.webp",
     }
+    allowed = base_files | {f"mature-{name}" for name in base_files if name != "uploaded-material.webp"}
     if filename not in allowed:
         raise HTTPException(status_code=404, detail="Ilustración de actividad no encontrada.")
     local_path = PROJECT_ROOT / "apps" / "profesor" / "assets" / "games" / filename

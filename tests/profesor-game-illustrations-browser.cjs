@@ -40,11 +40,11 @@ const path = require('node:path');
     await page.locator('#workshopCourse').selectOption('4.º Primaria');
     assert.equal(await basicImages.evaluateAll(nodes => nodes.every(node => !node.getAttribute('src').includes('/mature/'))), true, 'Primaria keeps the child illustrations');
     await page.locator('#workshopCourse').selectOption('3.º ESO');
-    await page.waitForFunction(() => [...document.querySelectorAll('[data-activity-art]')].every(image => image.getAttribute('src').includes('/mature/') && image.complete && image.naturalWidth > 0));
-    assert.equal(await page.locator('[data-activity-art="problem"]').getAttribute('src'), './assets/games/mature/basic-problem.webp');
+    await page.waitForFunction(() => [...document.querySelectorAll('[data-activity-art]')].every(image => image.getAttribute('src').includes('/mature-') && image.complete && image.naturalWidth > 0));
+    assert.equal(await page.locator('[data-activity-art="problem"]').getAttribute('src'), './assets/games/mature-basic-problem.webp');
     await page.locator('#workshopCourse').selectOption('4.º Primaria');
     await page.locator('#workshopSubject').selectOption('Inglés');
-    await page.waitForFunction(() => [...document.querySelectorAll('[data-activity-art]')].every(image => image.getAttribute('src').includes('/mature/') && image.complete && image.naturalWidth > 0));
+    await page.waitForFunction(() => [...document.querySelectorAll('[data-activity-art]')].every(image => image.getAttribute('src').includes('/mature-') && image.complete && image.naturalWidth > 0));
     await page.locator('#workshopSubject').selectOption('Matemáticas');
     await page.waitForFunction(() => [...document.querySelectorAll('[data-activity-art]')].every(image => !image.getAttribute('src').includes('/mature/') && image.complete && image.naturalWidth > 0));
     assert.deepEqual(await page.evaluate(() => ({
@@ -54,9 +54,9 @@ const path = require('node:path');
       english: activityArtworkUrl('pairs', '2.º Primaria', 'Inglés')
     })), {
       primary: './assets/games/basic-pairs.webp',
-      eso: './assets/games/mature/basic-pairs.webp',
-      bach: './assets/games/mature/basic-pairs.webp',
-      english: './assets/games/mature/basic-pairs.webp'
+      eso: './assets/games/mature-basic-pairs.webp',
+      bach: './assets/games/mature-basic-pairs.webp',
+      english: './assets/games/mature-basic-pairs.webp'
     });
     assert.deepEqual(await page.evaluate(() => {
       const source = (course, subject) => {
@@ -71,8 +71,8 @@ const path = require('node:path');
       };
     }), {
       primaryCard: './assets/games/basic-pairs.webp',
-      secondaryCard: './assets/games/mature/basic-pairs.webp',
-      englishCard: './assets/games/mature/basic-pairs.webp'
+      secondaryCard: './assets/games/mature-basic-pairs.webp',
+      englishCard: './assets/games/mature-basic-pairs.webp'
     }, 'material library cards use the same age-aware artwork rule');
     await page.screenshot({ path: 'tools/profesor-game-illustrations.png' });
 
