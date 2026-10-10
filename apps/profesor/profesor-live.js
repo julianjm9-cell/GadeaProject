@@ -4,7 +4,9 @@
   const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const rich = value => window.profesorText?.rich ? window.profesorText.rich(value) : escape(value);
   const errorExample = prompt => {const quoted=[...String(prompt).matchAll(/[«“"]([^«»“”"]+)[»”"]/g)];return quoted.length?quoted.at(-1)[1]:String(prompt).split(/:\s*/).at(-1).trim()};
-  const timelineLabel = (value,reveal) => reveal?String(value):String(value).replace(/\b(?:1\d{3}|20\d{2})\b/g,'año oculto').replace(/\baño oculto\s*[–—:-]\s*/gi,'')||'Fecha oculta';
+  const timelineLabel = (value,reveal) => reveal?String(value):String(value)
+    .replace(/\b(?:1\d{3}|20\d{2})-\d{1,2}-\d{1,2}\b|\b\d{1,2}[/.]\d{1,2}[/.](?:1\d{3}|20\d{2})\b|\b\d{1,2}\s+(?:de\s+)?(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s+(?:de\s+)?(?:1\d{3}|20\d{2})\b|\b(?:1\d{3}|20\d{2})\b/gi,'fecha oculta')
+    .replace(/\bfecha oculta\s*[–—:-]\s*/gi,'').trim()||'Fecha oculta';
   const labels = {pairs:'Relacionar',gaps:'Completar',multigaps:'Texto con huecos',numeric:'Respuesta numérica',quiz:'Elegir respuesta',short:'Respuesta breve',order:'Ordenar',classify:'Clasificar',boolean:'Verdadero / Falso',reading:'Comprensión',problem:'Problemas',flashcard:'Flashcards',memory:'Memory',sentence:'Construye la frase',timeline:'Línea temporal',error:'Encuentra el error',wordsearch:'Sopa de letras',crossword:'Crucigrama',dragdrop:'Arrastrar y soltar',pasapalabra:'Pasapalabra',hangman:'Ahorcado',visualquiz:'Quiz visual',imagepoint:'Señalar imagen'};
   const choice = new Set(['pairs','quiz','boolean','classify','visualquiz']);
   const sequence = new Set(['order','sentence','timeline']);

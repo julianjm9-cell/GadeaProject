@@ -63,19 +63,19 @@ def puzzle_rows(kind, options):
     if kind == 'wordsearch':
         words = [puzzle_word(item) for item in options]
         if not 3 <= len(words) <= 8 or any(not word for word in words) or len(set(words)) != len(words):
-            raise ValueError()
+            raise ValueError('Sopa de letras: usa de 3 a 8 palabras distintas, de 3 a 12 letras y sin espacios.')
         return words
     if kind == 'pasapalabra':
         entries = [[part.strip() for part in item.split('|')] for item in options]
         if not 3 <= len(entries) <= 27 or any(len(entry) != 3 or not re.fullmatch(r'[A-Za-zÑñ]', entry[0]) or not entry[1] or not entry[2] or len(entry[1]) > 180 or len(entry[2]) > 60 for entry in entries):
-            raise ValueError()
+            raise ValueError('Rosco: cada entrada necesita una letra, una pista de hasta 180 caracteres y una respuesta de hasta 60.')
         if len({entry[0].casefold() for entry in entries}) != len(entries):
-            raise ValueError()
+            raise ValueError('Rosco: hay letras repetidas.')
         import unicodedata
         def letters(value):
             return ''.join(c for c in unicodedata.normalize('NFD', value.casefold().replace('ñ', '\u0001')) if not unicodedata.combining(c)).replace('\u0001', 'ñ')
         if any(letters(letter) not in letters(answer) for letter, _, answer in entries):
-            raise ValueError()
+            raise ValueError('Rosco: una respuesta no contiene la letra asignada.')
         return entries
     if kind == 'multigaps':
         if not 2 <= len(options) <= 20 or any(not option.strip() or len(option.strip()) > 100 for option in options):
@@ -88,9 +88,9 @@ def puzzle_rows(kind, options):
     if kind == 'crossword':
         words = [puzzle_word(pair[0]) for pair in pairs]
         if any(not word or len(pair[1]) > 120 for word, pair in zip(words, pairs)) or len(set(words)) != len(words):
-            raise ValueError()
+            raise ValueError('Crucigrama: palabras distintas de 3 a 12 letras, sin espacios, y pistas de hasta 120 caracteres.')
         if not crossword_layout_possible(words):
-            raise ValueError()
+            raise ValueError('Crucigrama: las palabras no se pueden cruzar. Elige una palabra larga como eje y otras que compartan letras en posiciones distintas de ese eje.')
     else:
         left = [pair[0].casefold() for pair in pairs]
         right = [pair[1].casefold() for pair in pairs]
@@ -177,7 +177,7 @@ def generator_context(payload):
     return request_id, context
 
 
-def generation_batches(context, *, rosco_max_chunk=3):
+def generation_batches(context, *, rosco_max_chunk=3, content_contract=1):
     """Bound each response and preserve the requested activity grouping."""
     if context.get('regeneration'):
         request = context['regeneration']
@@ -193,6 +193,8 @@ def generation_batches(context, *, rosco_max_chunk=3):
             batch['regeneration'] = {**request, 'question': {**question, 'text': ''}}
         if kind == 'classify' and question['options']:
             batch['classificationCategories'] = question['options']
+        if kind == 'pasapalabra' and content_contract >= 2:
+            return [(dict(batch, roscoFlexible=True), request['group'])]
         if kind == 'pasapalabra' and batch.get('elementCount', 0) > 6:
             return [(dict(batch, elementCount=len(letters), roscoLetters=letters,
                           itemOffset=offset, roscoTotal=batch['elementCount']), request['group'])
@@ -207,6 +209,11 @@ def generation_batches(context, *, rosco_max_chunk=3):
             group += 1
             size = context['activitySizes'][kind]
             count = size if kind in BUNDLE_TYPES else 1
+            if kind == 'pasapalabra' and content_contract >= 2:
+                batches.append(({**context, kind: 1, 'activityIndex': group, 'itemOffset': 0,
+                                 'batchQuestionCount': 1, 'activityQuestionCount': 1,
+                                 'elementCount': size, 'roscoFlexible': True}, group))
+                continue
             if kind == 'pasapalabra' and size > 6:
                 for offset, letters in rosco_chunks(size, rosco_max_chunk):
                     batch = {**context, **{k: 0 for k in TYPES}, kind: 1,
@@ -331,12 +338,10 @@ def check_material_quality(questions, context):
                 raise HTTPException(502, 'El rosco necesita pistas sin huecos y sin revelar las respuestas. No se han descontado créditos.')
             if context['subject'] == 'Español':
                 for _, clue, _ in rows:
-                    clue_key = key(clue)
-                    if re.search(r'\b(?:verbo|forma)\b', clue_key) and re.search(r'\b(?:imperfecto|preterito|indefinido|presente|futuro|subjuntivo)\b', clue_key):
-                        person = re.search(r'\b(?:primera|segunda|tercera) persona\b|\b(?:con|para|sujeto) (?:yo|tu|el|ella|nosotros|nosotras|vosotros|vosotras|ellos|ellas|usted|ustedes|vos)\b', clue_key)
-                        verb = re.search(r'\b(?:de|verbo) [\'"«]?\w*(?:ar|er|ir)(?:se)?\b', clue_key)
-                        if not person or not verb:
-                            raise HTTPException(502, 'Las pistas de formas verbales del rosco deben indicar infinitivo, persona y tiempo: por ejemplo, «Forma de cantar con yo en imperfecto». Evita pistas genéricas que admitan varios verbos o personas. No se han descontado créditos.')
+                    try:
+                        check_rosco_clue(clue, context)
+                    except ValueError as exc:
+                        raise HTTPException(502, str(exc) + ' No se han descontado créditos.') from exc
         wanted = key(context.get('topic', '') + ' ' + context.get('instructions', ''))
         allows_compound = bool(re.search(r'(?:incluye|practica|tambien|usa|anade).{0,25}(?:perfecto compuesto|pluscuamperfecto)', wanted)) or 'compuesto' in key(context['topic']) or 'pluscuamperfecto' in key(context['topic'])
         if context['subject'] == 'Español' and 'imperfecto' in wanted and ('perfecto simple' in wanted or 'indefinido' in wanted) and not allows_compound:
@@ -348,17 +353,55 @@ def check_material_quality(questions, context):
             if compound and question['type'] != 'error':
                 raise HTTPException(502, f'El texto introduce el tiempo compuesto «{compound[0]}» fuera del objetivo. Reformula esa acción en imperfecto o indefinido. No se han descontado créditos.')
 
+def check_rosco_clue(clue, context):
+    if context['subject'] != 'Español':
+        return
+    from app.services.teacher_question_quality import text_key
+    clue_key = text_key(clue)
+    if re.search(r'\b(?:verbo|forma)\b', clue_key) and re.search(r'\b(?:imperfecto|preterito|indefinido|presente|futuro|subjuntivo)\b', clue_key):
+        person = re.search(r'\b(?:primera|segunda|tercera) persona\b|\b(?:con|para|sujeto) (?:yo|tu|el|ella|nosotros|nosotras|vosotros|vosotras|ellos|ellas|usted|ustedes|vos)\b', clue_key)
+        verb = re.search(r'\b(?:de|verbo) [\'"«]?\w*(?:ar|er|ir)(?:se)?\b', clue_key)
+        if not person or not verb:
+            raise ValueError('Las pistas de formas verbales del rosco deben indicar infinitivo, persona y tiempo: por ejemplo, «Forma de cantar con yo en imperfecto». Evita pistas genéricas que admitan varios verbos o personas.')
+
+
+def timeline_date(item):
+    """Extract a calendar key without inventing precision or changing the event."""
+    from datetime import date
+    year = re.search(r'\b(?:1\d{3}|20\d{2})\b', item)
+    if not year:
+        return None
+    key = (int(year[0]), 0, 0)
+    iso = re.search(r'\b(1\d{3}|20\d{2})-(\d{1,2})-(\d{1,2})\b', item)
+    european = re.search(r'\b(\d{1,2})[/.](\d{1,2})[/.](1\d{3}|20\d{2})\b', item)
+    months = ('enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre')
+    written = re.search(r'\b(\d{1,2})\s+(?:de\s+)?(' + '|'.join(months) + r')\s+(?:de\s+)?(1\d{3}|20\d{2})\b', item, re.I)
+    match = year
+    if iso:
+        key, match = tuple(int(v) for v in iso.groups()), iso
+    elif european:
+        key, match = (int(european[3]), int(european[2]), int(european[1])), european
+    elif written:
+        key, match = (int(written[3]), months.index(written[2].lower()) + 1, int(written[1])), written
+    if key[1]:
+        date(*key)  # Reject impossible dates rather than silently sorting them.
+    return key, match.span()
+
+
 def check_timeline_grounding(question, context):
     """Keep invented calendar years out of process and language exercises."""
     options = question['options']
     prompt = question['prompt'].casefold()
     if re.search(r'making (?:of )?a film|film production|producci[oó]n de (?:una|un) pel[ií]cula|c[oó]mo se (?:hace|produce) una pel[ií]cula', prompt) and any(re.search(r'\b(?:oscar|award(?:ed)?|prize|premi(?:o|ada|ado))\b', item.casefold()) for item in options):
         raise ValueError('Línea temporal: hacer una película no implica ganar un premio. Describe solo etapas normales del proceso.')
-    dated = [re.search(r'\b(?:1\d{3}|20\d{2})\b', item) for item in options]
+    dated = [timeline_date(item) for item in options]
     if not any(dated):
         return
-    if not all(dated) or len({match.group() for match in dated}) != len(options):
-        raise ValueError('Línea temporal: usa fechas completas y distintas en todos los hechos, o ninguna fecha.')
+    if not all(dated) or len({value[0] for value in dated}) != len(options):
+        raise ValueError('Línea temporal: cada hecho necesita una fecha distinta; si varios son del mismo año, usa YYYY-MM-DD con día y mes reales. No mezcles hechos fechados con etapas sin fecha.')
+    for index, (key, _) in enumerate(dated):
+        if not key[1] and any(other[0][0] == key[0] for other in dated[:index] + dated[index + 1:]):
+            raise ValueError('Línea temporal: dentro de un mismo año todos los hechos necesitan día y mes reales en formato YYYY-MM-DD para determinar el orden.')
     context_text = ' '.join(str(context.get(key, '')) for key in ('subject', 'topic', 'instructions')).casefold()
     historical = re.search(r'\b(?:historia|history|historical|histórico|histórica|fechas|dates|años|years|siglos|centuries|hitos|milestones)\b|\b(?:1\d{3}|20\d{2})\b', context_text)
     if re.search(r'\b(?:sin años|sin fechas|without years|without dates|no dates|no years)\b', context_text):
@@ -366,14 +409,16 @@ def check_timeline_grounding(question, context):
     if not historical:
         raise ValueError('Línea temporal: para practicar idiomas o procesos, ordena etapas reales sin inventar años. Usa fechas solo si el tema pide hechos históricos documentados.')
     generic = {'the', 'a', 'an', 'el', 'la', 'los', 'las', 'un', 'una', 'first', 'second', 'primera', 'primer', 'segunda', 'inicio', 'comienzo', 'fin', 'final', 'fundación', 'creación', 'filming', 'actors', 'movie', 'film', 'película', 'rodaje', 'actores', 'guion'}
-    for item, match in zip(options, dated):
-        description = item[match.end():]
+    for item, (_, span) in zip(options, dated):
+        description = item[:span[0]] + item[span[1]:]
         names = re.findall(r'\b[A-ZÁÉÍÓÚÜÑ][\wÁÉÍÓÚÜÑáéíóúüñ]{1,}\b', description)
         if not any(name.casefold() not in generic for name in names):
             raise ValueError('Línea temporal: cada fecha debe identificar un hecho real y concreto (persona, obra, lugar o acontecimiento), no una etapa genérica con un año supuesto.')
 
 
 def parse_material(content, context):
+    field = 'response'
+    index = 0
     try:
         if not isinstance(content, str) or len(content) > 60000:
             raise ValueError()
@@ -388,16 +433,24 @@ def parse_material(content, context):
                 document, _ = json.JSONDecoder().raw_decode(raw[start:])
             except json.JSONDecodeError:
                 raise ValueError('La IA devolvió un JSON incompleto.') from None
-        questions = document['questions']
+        if context.get('contentContract') == 2:
+            from app.services.teacher_generation_contract import read_document, question_rows, normalize_question
+            requested_kind = next(k for k in TYPES if context[k])
+            questions = [normalize_question(q, requested_kind, context) for q in question_rows(read_document(content), requested_kind)]
+        else:
+            questions = document['questions']
+        field = 'questions'
         if not isinstance(questions, list) or len(questions) != sum(context[k] for k in TYPES):
             raise ValueError(f'Este lote necesita exactamente {sum(context[k] for k in TYPES)} preguntas; no devuelvas la actividad completa si está dividida en lotes.')
         passage = context.get('readingPassage') or next((q.get('text') for q in questions if isinstance(q, dict) and q.get('type') == 'reading' and q.get('text')), '')
         cleaned = []
-        for q in questions:
+        for index, q in enumerate(questions, 1):
+            field = 'type'
             kind = q['type']
             if kind not in TYPES:
                 raise ValueError()
             if kind == 'pasapalabra':
+                field = 'roscoEntries'
                 q = normalize_rosco_question(q)
             # Start from a coherent solved passage. Replace exact contextual fragments,
             # rather than trusting the model to keep a long list of blanks in sync.
@@ -437,6 +490,7 @@ def parse_material(content, context):
                 q = {**q, 'prompt': prompt_text, 'options': [item[2] for item in replacements], 'answer': 'Completado'}
                 if any(item[4] for item in replacements):
                     q['itemExplanations'] = [item[4] for item in replacements]
+            field = 'prompt/answer'
             prompt, answer = q['prompt'], q['answer']
             if not isinstance(prompt, str) or not isinstance(answer, str):
                 raise ValueError()
@@ -448,23 +502,25 @@ def parse_material(content, context):
             if kind == 'multigaps' and not 2 <= prompt.count('___') <= 20:
                 raise ValueError(f'El texto contiene {prompt.count("___")} marcas ___; necesita {context.get("elementCount", "entre 2 y 20")}. Usa solo ___, nunca ____(1)____ ni números dentro de los huecos.')
             if kind == 'numeric':
+                field = 'answer'
                 try:
                     if not math.isfinite(float(answer.replace(',', '.'))):
                         raise ValueError()
                 except ValueError:
                     raise ValueError()
             if kind == 'hangman' and not re.fullmatch(r'[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s-]{1,39}', answer):
-                raise ValueError()
+                raise ValueError('Ahorcado requiere una palabra o expresión de 2 a 40 caracteres, solo letras, espacios y guiones.')
             options = []
+            field = 'options'
             if kind in ('quiz', 'classify', 'boolean', 'order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop', 'pasapalabra', 'multigaps'):
                 options = q['options']
                 if not isinstance(options, list) or not 2 <= len(options) <= (27 if kind == 'pasapalabra' else 8 if kind in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'dragdrop') else 7 if kind == 'crossword' else 20 if kind == 'multigaps' else 5) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in options):
                     raise ValueError(f'{kind}: la lista options tiene un tamaño o formato incorrecto.')
                 options = [v.strip() for v in options]
                 if kind == 'timeline':
-                    dates = [re.search(r'\b(?:1\d{3}|20\d{2})\b', value) for value in options]
-                    if all(dates) and len({match.group() for match in dates}) == len(options):
-                        order = sorted(range(len(options)), key=lambda index: int(dates[index].group()))
+                    dates = [timeline_date(value) for value in options]
+                    if all(dates) and len({value[0] for value in dates}) == len(options):
+                        order = sorted(range(len(options)), key=lambda index: dates[index][0])
                         options = [options[index] for index in order]
                         if isinstance(q.get('itemExplanations'), list) and len(q['itemExplanations']) == len(order):
                             q = {**q, 'itemExplanations': [q['itemExplanations'][index] for index in order]}
@@ -502,6 +558,7 @@ def parse_material(content, context):
             if len(answer) > 2500:
                 raise ValueError()
             text = q.get('text', '')
+            field = 'text'
             if kind == 'reading' and 'activitySizes' in context and not text:
                 text = passage
             if not isinstance(text, str) or len(text) > 12000 or (kind == 'reading' and not text.strip()):
@@ -529,13 +586,16 @@ def parse_material(content, context):
                     raise ValueError()
                 extra['tolerance'] = tolerance
             from app.services.teacher_question_quality import feedback_fields, check_question_quality
+            field = 'feedback'
             recoverable_feedback = context.get('allowOptionalFeedback') and kind in (
                 'quiz', 'boolean', 'classify', 'wordsearch', 'crossword', 'memory',
                 'dragdrop', 'order', 'sentence', 'timeline', 'pasapalabra')
-            if context.get('qualityVersion') == 1:
+            if context.get('qualityVersion') == 1 and context.get('contentContract') != 2:
                 required = ['optionFeedback'] if kind in ('quiz', 'boolean', 'classify') else ['itemExplanations'] if kind in ELEMENT_LIMITS else ['calculation'] if kind == 'numeric' else []
                 if not recoverable_feedback and any(field not in q for field in required):
                     raise ValueError('Falta la corrección específica de cada opción o elemento, o el cálculo de comprobación.')
+            if context.get('qualityVersion') == 1 and kind == 'numeric' and 'calculation' not in q:
+                raise ValueError('Falta calculation para comprobar la respuesta numérica.')
             for field in ('optionFeedback', 'itemExplanations', 'calculation'):
                 if field in q:
                     try:
@@ -544,8 +604,19 @@ def parse_material(content, context):
                         if not recoverable_feedback:
                             raise
             question = dict(type=kind, prompt=prompt, answer=answer, options=options, text=text.strip(), **extra)
+            field = 'quality'
+            if context.get('contentContract') == 2:
+                core = {k: v for k, v in question.items() if k not in ('optionFeedback', 'itemExplanations')}
+                check_question_quality(core)
+                for optional in ('optionFeedback', 'itemExplanations'):
+                    if optional in question:
+                        try:
+                            check_question_quality({**core, optional: question[optional]})
+                        except ValueError:
+                            question.pop(optional)
             check_question_quality(question)
             cleaned.append(question)
+        field = 'counts'
         for kind in TYPES:
             if sum(q['type'] == kind for q in cleaned) != context[kind]:
                 raise ValueError()
@@ -570,8 +641,11 @@ def parse_material(content, context):
         check_material_quality(cleaned, context)
         return cleaned
     except (ValueError, TypeError, KeyError) as exc:
-        reason = str(exc) if isinstance(exc, ValueError) and not isinstance(exc, json.JSONDecodeError) else ''
-        raise HTTPException(502, 'La IA no devolvió actividades válidas. ' + (reason + ' ' if reason else '') + 'No se han descontado créditos. Puedes reintentar o escribir el contenido manualmente.') from exc
+        reason = str(exc) if isinstance(exc, ValueError) and not isinstance(exc, json.JSONDecodeError) else f'Falta el campo obligatorio {str(exc)}.' if isinstance(exc, KeyError) else ''
+        reason = reason or f'El campo {field} tiene un formato o valor incompatible con el ejercicio.'
+        error = HTTPException(502, f'El ejercicio {index or 1} no pudo completarse: {reason} No se han descontado créditos.')
+        error.validation_code = field.replace('/', '_')
+        raise error from exc
 
 SYSTEM = '''Crea material educativo correcto para estudiantes escolares y adultos. Para Español sigue el nivel MCER A1-C2 de levelGuidance, no un curso escolar. Devuelve SOLO JSON:
 {"questions":[{"type":"uno de los tipos solicitados","prompt":"enunciado","answer":"solución","options":[]}]}
@@ -716,6 +790,40 @@ que NO se ocultarán: nunca introduzcas tiempos excluidos como había sucedido o
 
 def generation_system(context):
     """Send only the current type's contract, keeping provider token use bounded."""
+    if context.get('contentContract') == 2:
+        from app.services.teacher_generation_contract import wire_schema
+        kind = next(k for k in TYPES if context[k])
+        rule = TYPE_RULES[kind]
+        if kind == 'pasapalabra':
+            rule = 'roscoEntries contiene conceptos distintos del tema con clue y answer. NO elijas letras: el servidor las asigna a las respuestas. Las pistas definen una respuesta inequívoca, sin revelarla ni usar huecos. No repitas pistas ni respuestas de acceptedElements. No fuerces palabras ajenas al tema para completar un alfabeto. Formas verbales: especifica infinitivo, persona y tiempo.'
+        elif kind in ('memory', 'dragdrop', 'crossword'):
+            rule = {'memory': 'entries contiene parejas distintas left y right de hasta 140 caracteres; ambos lados son únicos y la relación es inequívoca.',
+                    'dragdrop': 'entries contiene parejas element y target de hasta 100 caracteres. Los elementos son únicos; varios pueden compartir destino para clasificar.',
+                    'crossword': 'entries contiene objetos word y clue. Palabras distintas de 3 a 12 letras, sin espacios ni signos; pistas inequívocas de hasta 120 caracteres que no revelen la palabra. Escoge una palabra larga como eje y otras que compartan letras en posiciones diferentes de ese eje. El servidor construye la cuadrícula.'}[kind]
+        elif kind in ('order', 'sentence', 'timeline'):
+            rule = re.sub(r'answer[^.]*\.', '', rule.replace('options', 'items'))
+            if kind == 'timeline':
+                rule += ' Si varios hechos históricos ocurren en el mismo año, escribe cada fecha completa como YYYY-MM-DD — hecho concreto. Nunca cambies fechas reales para que los años sean distintos.'
+        elif kind == 'wordsearch':
+            rule = 'words contiene palabras distintas del tema, de 3 a 12 letras, sin espacios ni signos. El servidor construye la cuadrícula.'
+        elif kind == 'reading':
+            rule += f' El pasaje inicial debe tener al menos {dict(short=50, standard=100, long=180)[context["extent"]]} palabras y alrededor de {context.get("readingWords", 180)}. Las preguntas y respuestas deben estar justificadas por el pasaje.'
+        elif kind == 'numeric':
+            rule += ' calculation es SOLO la expresión que representa los datos del enunciado, usando números y + - * / ** (). Ejemplo: prompt="Calcula (-8) + 5.", answer="-3", calculation="(-8)+5", unit="". NO pongas =, resultado, unidades, variables, LaTeX ni pasos en calculation. Usa calculation vacío solo para un dato cuantitativo que no se calcula mediante aritmética elemental.'
+        return '''Crea contenido educativo correcto, natural y útil. Devuelve SOLO el JSON del contrato final.
+course y levelGuidance marcan la dificultad; topic marca el contenido; theme solo ambienta.
+Respeta el objetivo de instructions sin cambiar los campos ni las cantidades del contrato.
+acceptedElements y previousPrompts contienen trabajo YA aceptado: devuelve SOLO elementos pendientes, distintos de ellos.
+La app construye tableros, soluciones derivadas, letras y formato visual.
+No añadas campos fuera del contrato. explanation explica el concepto, no solo repite la solución.
+Verifica respuestas, cálculos, unidades, concordancia y tildes. No inventes fechas o hechos.
+Si readingPassage está presente, conserva ese texto; usa text vacío en las nuevas preguntas.
+Si classificationCategories está presente, conserva esas opciones.
+Si se piden tiempos verbales concretos, respétalos también en el resto del relato.
+Si hay regeneration, mejora únicamente su pregunta y conserva el pasaje y las categorías compartidas.
+En secuencias envía el orden CORRECTO; el servidor mezclará los elementos.
+No repitas preguntas ni cambies solo los nombres. No devuelvas menos elementos para ahorrar texto.
+''' + rule + '\nContrato JSON único (cantidades exactas para este intento):\n' + json.dumps(wire_schema(context), ensure_ascii=False)
     if 'activitySizes' not in context:
         return SYSTEM
     common = '''Crea material educativo preciso, natural y útil. Devuelve SOLO JSON:
@@ -787,6 +895,9 @@ def generation_response_format(context, provider, model):
     """Constrain the current batch's fields and counts on supported Groq models."""
     if 'activitySizes' not in context or provider != 'groq' or model not in ('openai/gpt-oss-120b', 'openai/gpt-oss-20b'):
         return {'type': 'json_object'}
+    if context.get('contentContract') == 2:
+        from app.services.teacher_generation_contract import wire_schema
+        return {'type': 'json_schema', 'json_schema': {'name': 'teacher_content_v2', 'strict': True, 'schema': wire_schema(context)}}
     kind = next(k for k in TYPES if context[k])
     string = {'type': 'string'}
     properties = {'type': {'type': 'string', 'enum': [kind]}, 'prompt': string, 'answer': string, 'explanation': string, 'hints': {'type': 'array', 'items': string, 'maxItems': 3}}

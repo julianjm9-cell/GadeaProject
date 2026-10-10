@@ -18,12 +18,12 @@ const path=require('node:path');
    const oldApi=api;
    api=async(url,body)=>{
     if(url==='/api/state'){savedStates.push(body);return{}}
-    if(url==='/api/profesor/generate'){
+    if(url==='/api/profesor/generation/start'){
      regenRequests.push(JSON.parse(JSON.stringify(body)));await new Promise(resolve=>setTimeout(resolve,120));
      if(failNext){failNext=false;throw Error('Límite temporal de IA. No se han descontado créditos.')}
      const q=body.regenerate.question;
-     if(q.type==='reading')return{questions:[{...q,prompt:'¿Con qué frecuencia pasea Ana?',answer:'Cada tarde.',explanation:'Cada tarde indica la frecuencia.'}]};
-     return{questions:[{...q,prompt:'¿Cuánto es 4 × 3?',options:['12','43','7'],explanation:'Cuatro grupos de tres dan doce.',optionFeedback:[{option:'12',explanation:'Cuatro grupos de tres suman doce.'},{option:'43',explanation:'Unir las cifras no calcula el producto.'},{option:'7',explanation:'Has sumado los factores; aquí multiplicas.'}]}]};
+     if(q.type==='reading')return{status:'completed',result:{questions:[{...q,prompt:'¿Con qué frecuencia pasea Ana?',answer:'Cada tarde.',explanation:'Cada tarde indica la frecuencia.'}]}};
+     return{status:'completed',result:{questions:[{...q,prompt:'¿Cuánto es 4 × 3?',options:['12','43','7'],explanation:'Cuatro grupos de tres dan doce.',optionFeedback:[{option:'12',explanation:'Cuatro grupos de tres suman doce.'},{option:'43',explanation:'Unir las cifras no calcula el producto.'},{option:'7',explanation:'Has sumado los factores; aquí multiplicas.'}]}]}};
     }
     return oldApi(url,body);
    };

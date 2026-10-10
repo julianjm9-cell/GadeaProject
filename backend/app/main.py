@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import admin, app_routes, auth, ocr, ocr_legacy, profesor_access, profesor_ads, profesor_material_sessions
+from app.api import admin, app_routes, auth, ocr, ocr_legacy, profesor_access, profesor_ads, profesor_material_sessions, teacher_generation_jobs
 from app.config import get_settings
 from app.database.runtime_schema import ensure_runtime_schema
 from starlette.responses import JSONResponse
@@ -52,6 +52,7 @@ app.include_router(auth.router)
 app.include_router(profesor_access.router)
 app.include_router(profesor_ads.router)
 app.include_router(profesor_material_sessions.router)
+app.include_router(teacher_generation_jobs.router)
 app.include_router(admin.router)
 app.include_router(app_routes.router)
 app.include_router(ocr.router)

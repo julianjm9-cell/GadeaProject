@@ -147,7 +147,10 @@ def check_question_quality(question):
         calculation = question.get('calculation')
         if calculation:
             try:
-                calculated = arithmetic(calculation)
+                try:
+                    calculated = arithmetic(calculation)
+                except ValueError as exc:
+                    raise ValueError('calculation debe contener solo la expresión aritmética con números y + - * / ** (), sin =, resultado, unidades, variables ni pasos. Corrige ese campo y comprueba el resultado.') from exc
                 actual = float(answer.replace(',', '.'))
                 if abs(actual-calculated) > max(question.get('tolerance', 0), 1e-9):
                     raise ValueError('La solución numérica no coincide con calculation. Revisa los pasos y el resultado.')

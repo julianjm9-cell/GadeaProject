@@ -24,7 +24,10 @@
     return quoted.length ? quoted.at(-1)[1] : String(prompt).split(/:\s*/).at(-1).trim();
   };
   const errorValue = value => normalize(String(value).replace(/^[.,;:!?«»“”"]+|[.,;:!?«»“”"]+$/g,''));
-  const timelineLabel = (value, reveal) => reveal ? value : String(value).replace(/\b(?:1\d{3}|20\d{2})\b/g, 'año oculto').replace(/\baño oculto\s*[–—:-]\s*/gi, '').trim() || 'Fecha oculta';
+  const timelineLabel = (value, reveal) => reveal ? value : String(value)
+    .replace(/\b(?:1\d{3}|20\d{2})-\d{1,2}-\d{1,2}\b|\b\d{1,2}[/.]\d{1,2}[/.](?:1\d{3}|20\d{2})\b|\b\d{1,2}\s+(?:de\s+)?(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s+(?:de\s+)?(?:1\d{3}|20\d{2})\b|\b(?:1\d{3}|20\d{2})\b/gi, 'fecha oculta')
+    .replace(/\bfecha oculta\s*[–—:-]\s*/gi, '').trim() || 'Fecha oculta';
+  window.profesorTimelineLabel = timelineLabel;
   const expectedSequence = q => {
     if(q.type==='sentence'){
       const options=q.options, starts=options.filter(value=>/^[«“"(¿¡]*[A-ZÁÉÍÓÚÑÜ]/.test(value.trim()));

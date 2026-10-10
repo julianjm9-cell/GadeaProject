@@ -6,6 +6,22 @@
  const unitLabels={pairs:'parejas',gaps:'frases',multigaps:'huecos',numeric:'preguntas',quiz:'preguntas',short:'preguntas',order:'elementos',classify:'elementos',boolean:'preguntas',reading:'preguntas',problem:'problemas',flashcard:'tarjetas',memory:'parejas',sentence:'fragmentos',timeline:'eventos',error:'frases',wordsearch:'palabras',crossword:'palabras',dragdrop:'parejas',pasapalabra:'letras',hangman:'palabras',visualquiz:'imagen',imagepoint:'imagen'};
  const minSize=type=>['pasapalabra','wordsearch','crossword','dragdrop'].includes(type)?3:2;
  const maxSize=type=>limits[type]||12;
+ async function generateInBackground(body,status){
+  let job=await api('/api/profesor/generation/start',body),networkFailures=0;
+  const started=Date.now();
+  while(job.status==='running'||job.status==='queued'){
+   if(status)status.textContent=job.completed?`${job.completed} de ${job.total} elementos preparados. Comprobando los restantes…`:'Preparando el contenido y comprobando las respuestas…';
+   if(Date.now()-started>25*60*1000)throw Error('El material sigue en proceso. El progreso está guardado; pulsa Generar con IA para recuperarlo.');
+   await new Promise(resolve=>setTimeout(resolve,1500));
+   try{job=await api('/api/profesor/generation/'+encodeURIComponent(body.request_id));networkFailures=0}
+   catch(error){
+    if(++networkFailures>=6)throw Error('No se pudo consultar el progreso. La generación continúa en el servidor; vuelve a este material para recuperarla. '+error.message);
+    if(status)status.textContent='Reconectando… El progreso está guardado.';
+   }
+  }
+  if(job.status!=='completed'||!job.result?.questions)throw Error(job.error||'El intento se interrumpió. Pulsa Generar con IA para recuperar el progreso guardado.');
+  return job.result;
+ }
  const originalMarkup=workshopMarkup;
  workshopMarkup=function(owner,draft,st){
   return originalMarkup(owner,draft,st).replace('<div class="catalog-board">',`<section class="generator-brief"><label for="workshopInstructions">Describe el material que necesitas</label><textarea id="workshopInstructions" name="instructions" maxlength="3000" rows="2" placeholder="Por ejemplo: un relato con huecos para practicar imperfecto y pretérito perfecto simple, con vocabulario A2.">${esc(draft.instructions||'')}</textarea></section><div class="catalog-board">`);
@@ -106,7 +122,8 @@
   if(new Set(pairs).size!==pairs.length)throw Error('Las respuestas de Relacionar deben ser distintas en cada actividad.');return clean;
  };
  openWorkshop=function(prefill={}){
-  const owner=selected||prefill.studentId||'',draft=isPremium()?{...prefill}:{...prefill,visualquiz:0,imagepoint:0},st=student(owner);
+  if(!Object.keys(prefill).length)try{const saved=JSON.parse(sessionStorage.getItem('profesor.generatorRetry')||'null');if(saved?.body&&saved.account===accountEmail)prefill=saved.body}catch{}
+  const owner=Object.hasOwn(prefill,'studentId')?prefill.studentId:selected||'',draft=isPremium()?{...prefill}:{...prefill,visualquiz:0,imagepoint:0},st=student(owner);
   modal('Crear material',workshopMarkup(owner,draft,st),async form=>{
    const c={studentId:form.get('studentId'),course:form.get('course').trim(),subject:form.get('subject'),topic:form.get('topic').trim(),theme:form.get('theme').trim(),duration:15,instructions:String(form.get('instructions')||'').trim(),extent:'standard',difficulty:'standard',activitySizes:{},qualityVersion:1};
    let total=0,totalQuestions=0;
@@ -123,10 +140,11 @@
     try{
      const focus=st?String(learningSummary(st,c.subject).reinforce||'').slice(0,350):'';
      const fingerprint=JSON.stringify({...c,focus});
-     try{const saved=JSON.parse(sessionStorage.getItem('profesor.generatorRetry')||'null');if(saved?.fingerprint===fingerprint)generatorRetry=saved;}catch{}
+     try{const saved=JSON.parse(sessionStorage.getItem('profesor.generatorRetry')||'null');if(saved?.fingerprint===fingerprint&&(!saved.account||saved.account===accountEmail))generatorRetry=saved;}catch{}
      if(!generatorRetry||generatorRetry.fingerprint!==fingerprint)generatorRetry={fingerprint,id:crypto.randomUUID()};
+     generatorRetry.body={...c,focus};generatorRetry.account=accountEmail;
      try{sessionStorage.setItem('profesor.generatorRetry',JSON.stringify(generatorRetry));}catch{}
-     const response=await api('/api/profesor/generate',{...c,visualquiz:0,imagepoint:0,focus,request_id:generatorRetry.id});
+     const response=await generateInBackground({...c,visualquiz:0,imagepoint:0,focus,request_id:generatorRetry.id},$('workshopStatus'));
      const generated=validateActivityQuestions(response.questions);
      for(const type of Object.keys(activityLabels).filter(k=>!visualTypes.includes(k)))if(generated.filter(q=>q.type===type).length!==c[type]*(bundleTypes.has(type)?c.activitySizes[type]||0:1))throw Error('La IA devolvió una cantidad de preguntas distinta a la solicitada.');
      questions=generated.map(q=>({...q,id:uid()}));const lastGroup=Math.max(0,...questions.map(q=>q.activityGroup||0));let photoGroup=lastGroup;
@@ -210,7 +228,7 @@
     const preventClose=event=>event.preventDefault();$('dialog').addEventListener('cancel',preventClose);
     busy=true;controls.forEach(([el])=>el.disabled=true);status.textContent='Mejorando esta pregunta y comprobando su solución…';
     try{
-     const response=await api('/api/profesor/generate',body),result=validateActivityQuestions(response.questions);
+     const response=await generateInBackground(body,status),result=validateActivityQuestions(response.questions);
      if(result.length!==1||result[0].type!==original.type)throw Error('La IA no devolvió una única pregunta del mismo tipo.');
      const next={...result[0],id:original.id,activityGroup:original.activityGroup};
      if(original.type==='reading'&&original.text&&next.text!==original.text)throw Error('El texto compartido debe conservarse.');

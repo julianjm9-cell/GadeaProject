@@ -10,8 +10,8 @@ doce huecos. Se mantienen los 21 tipos y las actividades con fotografía de Prem
 - Generación directa con extensión y dificultad estándar, sin selectores adicionales.
 - Control de preguntas, parejas, palabras, letras o pasos por actividad seleccionada.
 - Cada visita empieza sin tipos marcados. Al seleccionar un tipo se añade una actividad.
-- Máximo tres actividades por creación, incluidas las repeticiones del mismo tipo y las
-  fotografías. El contador muestra el límite; intentar una cuarta no altera la selección.
+- Máximo una actividad y un tipo por creación, incluidas las fotografías. El contador
+  de la tarjeta muestra preguntas, parejas, palabras, letras o pasos según su formato.
   El servidor rechaza peticiones mayores antes de llamar a la IA o descontar créditos.
   Las preguntas dentro de cada actividad y los materiales ya guardados se conservan.
 - Edición de una pregunta por pantalla, con el grupo de actividad identificado y vista previa.
@@ -83,10 +83,11 @@ La naturalidad, concordancia y precisión pedagógica se refuerzan en las instru
 generación. Estos controles no constituyen una revisión lingüística exhaustiva: el profesor
 conserva la edición y la revisión del borrador antes de guardarlo.
 
-Cada petición incluye solo las reglas del tipo actual. Groq GPT-OSS usa esquemas JSON
-concretos por lote; otros proveedores conservan el modo JSON existente. Presupuesto máximo
-de 3000 tokens por lote, o 4000 para lecturas, textos con huecos y rosco. Se permiten hasta
-dos correcciones de un borrador inválido, con una referencia acotada a 6000 caracteres.
+Cada petición incluye solo las reglas y campos esenciales del tipo actual. Groq GPT-OSS
+usa esquemas JSON concretos por lote; otros proveedores conservan el modo JSON existente.
+El presupuesto se adapta entre 3000 y 6000 tokens. Se conservan las preguntas o pistas
+aceptadas y se pide lo pendiente, con tres intentos consecutivos sin progreso como límite
+por proveedor y un máximo total acotado por lote.
 Los 429 respetan Retry-After, con hasta tres intentos y como máximo 60 segundos de espera
 acumulada por envío. Si el proveedor sigue sin responder, se conserva la petición del formulario.
 
@@ -96,10 +97,10 @@ contexto recupera la respuesta guardada sin un nuevo cargo.
 
 ## Calidad por pregunta y regeneración individual
 
-El generador nuevo envía `qualityVersion: 1`. Quiz, verdadero/falso y clasificación incluyen
-una explicación específica por opción, también para los distractores. Huecos y tableros
-guardan una explicación por elemento; cada hueco conserva su razonamiento en el orden real
-del texto. Las respuestas numéricas pueden incluir un cálculo elemental verificable.
+El generador nuevo envía `qualityVersion: 1`. La explicación principal sigue siendo
+obligatoria. Las explicaciones por opción o elemento son opcionales y pueden añadirse en
+el editor; cada hueco conserva su razonamiento en el orden real del texto. Las respuestas
+numéricas incluyen el campo de cálculo elemental verificable, vacío cuando no procede.
 Los materiales antiguos siguen siendo compatibles sin estos campos.
 
 La práctica muestra el motivo de la opción elegida o del hueco comprobado. La revisión de
@@ -118,6 +119,11 @@ demás ediciones, identificadores, grupo, pasaje de lectura y categorías. Admit
 concretas y deshacer antes de guardar. La regeneración es una petición nueva: consume
 **un crédito solo si termina correctamente**; un fallo deja el ejercicio intacto. Reintentar
 la misma petición no duplica el cargo. Editar o deshacer localmente no consume créditos.
+
+El flujo actual utiliza contratos mínimos por tipo, progreso persistido y recuperación
+parcial. Los detalles y la comprobación con el modelo real están en
+[profesor-generator-reliability.md](profesor-generator-reliability.md), que sustituye las
+reglas antiguas de reintentar el lote completo o imponer letras fijas al rosco.
 
 Referencia de integración: [Structured Outputs de Groq](https://console.groq.com/docs/structured-outputs).
 Las restricciones del proveedor se complementan con la validación propia del servidor.
@@ -140,5 +146,7 @@ letras, texto de 12 huecos, lectura compartida y móvil de 390 px.
 Para desplegar en Hostinger:
 
 ```bash
-cd /opt/educa-suite && git pull && docker compose --profile proxy up -d --build && docker compose ps
+cd /opt/educa-suite
+git pull --ff-only origin main
+bash infra/deploy-hostinger.sh
 ```

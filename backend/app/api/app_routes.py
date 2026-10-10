@@ -1599,13 +1599,37 @@ def save_state(payload: dict, request: Request, user: User = Depends(current_use
 
 @router.post("/api/profesor/generate")
 async def generate_teacher_material(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    return await generate_teacher_material_impl(payload, user, license_obj, db)
+
+
+async def generate_teacher_material_impl(payload, user, license_obj, db, progress=None):
+    from app.services.teacher_generation_contract import GenerationAlreadyCompleted
+    try:
+        return await _generate_teacher_material(payload, user, license_obj, db, progress)
+    except GenerationAlreadyCompleted as completed:
+        db.rollback()
+        return completed.result
+
+
+async def _generate_teacher_material(payload, user, license_obj, db, progress=None):
     from app.services.teacher_generator import generator_context, parse_material, generation_batches, check_material_quality, generation_system, generation_response_format, generation_post, merge_rosco_parts
+    from app.services.teacher_generation_contract import GenerationDraft, GenerationAlreadyCompleted
     if license_obj.product_code != "PROFESOR_PARTICULAR":
         raise HTTPException(403, "Esta función requiere acceso a Profesor Particular.")
     request_id, context = generator_context(payload)
-    # Lock the same account row used by credit accounting, including unlimited plans.
-    db.scalar(select(User).where(User.id == user.id).with_for_update())
     title = "teacher-generator:" + request_id
+    def existing_record():
+        records = db.scalars(select(Message).join(Conversation, Message.conversation_id == Conversation.id).where(
+            Conversation.user_id == user.id, Conversation.organization_id == user.organization_id,
+            Conversation.title == title, Message.role == 'assistant').execution_options(populate_existing=True)).all()
+        for record in records:
+            value = json.loads(record.content)
+            if value['context'] != context:
+                raise HTTPException(409, 'Este identificador ya se utilizó con otro contexto.')
+            if value.get('complete', True):
+                raise GenerationAlreadyCompleted(value['questions'])
+        return records[0] if records else None
+    existing_record()
     previous = db.scalar(select(Conversation).where(Conversation.user_id == user.id, Conversation.organization_id == user.organization_id, Conversation.title == title))
     saved = None
     message = None
@@ -1643,8 +1667,24 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
     classification_categories = dict((saved or {}).get("classification_categories", {}))
     rosco_parts = dict((saved or {}).get("rosco_parts", {}))
     completed_batches = (saved or {}).get("completed_batches", 0)
-    batch_version = (saved or {}).get('batch_version', 3)
-    batches = generation_batches(context, rosco_max_chunk=6 if batch_version < 3 else 3)
+    batch_version = saved.get('batch_version', 1) if saved else 4
+    drafts = dict((saved or {}).get('drafts', {}))
+    if type(batch_version) is not int or batch_version < 1:
+        raise HTTPException(409, 'El progreso guardado no tiene una versión válida.')
+    if batch_version < 4 and context.get('pasapalabra') and 'activitySizes' in context:
+        # Reuse old valid clues, but let the new matcher choose appropriate
+        # letters. A browser retry must not remain trapped in the old contract.
+        old_parts = questions + [part for parts in rosco_parts.values() for part in parts]
+        elements = []
+        for part in old_parts:
+            for option in part.get('options', []):
+                pieces = option.split('|')
+                if len(pieces) == 3:
+                    elements.append({'clue': pieces[1].strip(), 'answer': pieces[2].strip()})
+        drafts = {'0': {'elements': elements, 'metadata': {k: old_parts[0].get(k, '') for k in ('prompt', 'explanation')} if old_parts else {}}}
+        questions, rosco_parts, completed_batches = [], {}, 0
+        batch_version = 4
+    batches = generation_batches(context, rosco_max_chunk=6 if batch_version < 3 else 3, content_contract=2)
     if type(completed_batches) is not int or completed_batches < 0:
         raise HTTPException(409, "El progreso guardado no coincide con este material. Crea una generación nueva.")
     if saved and saved.get('batch_version', 1) < 2:
@@ -1669,6 +1709,32 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
         raise HTTPException(409, "El progreso guardado no coincide con este material. Crea una generación nueva.")
     checkpoint_start = completed_batches
     used_model = model
+    from app.services.teacher_generation_contract import generation_units
+    total_units = generation_units(context)
+    def report_progress():
+        if progress:
+            from app.services.teacher_generator import ELEMENT_LIMITS
+            done = sum(len(q['options']) if q['type'] in ELEMENT_LIMITS else 1 for q in questions)
+            done += sum(len(d.get('elements', [])) or len(d.get('questions', [])) for d in drafts.values())
+            progress(db, min(done, total_units), total_units)
+    def checkpoint():
+        nonlocal message, previous
+        value = {'context': context, 'questions': questions, 'complete': False, 'batch_version': 4,
+                 'completed_batches': completed_batches, 'rosco_parts': rosco_parts, 'drafts': drafts,
+                 'reading_passages': reading_passages, 'classification_categories': classification_categories,
+                 'input_tokens': input_tokens, 'output_tokens': output_tokens}
+        db.scalar(select(User).where(User.id == user.id).with_for_update())
+        current = existing_record()
+        if current is not None:
+            message = current
+        if message is None:
+            previous = Conversation(organization_id=user.organization_id, user_id=user.id, title=title)
+            db.add(previous); db.flush()
+            message = Message(conversation_id=previous.id, organization_id=user.organization_id, user_id=user.id, role='assistant', content='')
+            db.add(message)
+        message.content = json.dumps(value, ensure_ascii=False)
+        report_progress()
+        db.commit()
     try:
         async with httpx.AsyncClient(timeout=120) as client:
             for batch_index, (batch, group) in enumerate(batches):
@@ -1683,25 +1749,40 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
                 if group is not None and not context.get('regeneration'):
                     batch['previousPrompts'] = [q['prompt'][:200] for q in questions if q['type'] in [k for k in batch if k in context and type(batch[k]) is int and batch[k] > 0]][-12:]
                 result = None
+                draft = GenerationDraft(batch, drafts.get(str(batch_index)), questions) if group is not None else None
+                if draft and draft.complete:
+                    try:
+                        result = draft.result()
+                    except (HTTPException, ValueError):
+                        draft = GenerationDraft(batch, prior=questions)
                 merged_rosco = None
                 last_error = None
-                attempts = 3 if group is not None else 1
+                attempts = 3 + (batch.get('elementCount', 0) + 5) // 6 if batch.get('pasapalabra') else 4 if group is not None else 1
                 for candidate_key, candidate_url, candidate_provider, candidate_model in candidates:
+                    if result is not None:
+                        break
                     repair_source = ''
                     empty_or_truncated = False
                     schema_rejected = False
+                    stalled_attempts = 0
                     batch.pop('repairInstruction', None)
                     for attempt in range(attempts):
-                        large_board = batch.get('elementCount', 0) >= 12 or bool(batch.get('reading') or batch.get('multigaps') or batch.get('pasapalabra'))
-                        budget = 6000 if batch.get('elementCount', 0) >= 12 or batch.get('multigaps') else 4000 if large_board else 3000
+                        if progress:
+                            report_progress()
+                            db.commit()
+                        request_batch = draft.request_context() if draft else batch
+                        if batch.get('repairInstruction') and 'repairInstruction' not in request_batch:
+                            request_batch['repairInstruction'] = batch['repairInstruction']
+                        large_board = request_batch.get('elementCount', 0) >= 12 or bool(batch.get('reading') or batch.get('multigaps') or batch.get('pasapalabra'))
+                        budget = 6000 if request_batch.get('elementCount', 0) >= 12 or batch.get('multigaps') else 4000 if large_board else 3000
                         if empty_or_truncated:
                             budget = max(budget, 6000)
-                        response_format = generation_response_format(batch, candidate_provider, candidate_model)
+                        response_format = generation_response_format(request_batch, candidate_provider, candidate_model)
                         if (empty_or_truncated or schema_rejected) and response_format['type'] == 'json_schema':
                             response_format = {'type': 'json_object'}
-                        body = {"model": candidate_model, "messages": [{"role": "system", "content": generation_system(batch)}, {"role": "user", "content": json.dumps(batch, ensure_ascii=False)}], "temperature": 0.3, "max_tokens": budget, "response_format": response_format}
+                        body = {"model": candidate_model, "messages": [{"role": "system", "content": generation_system(request_batch)}, {"role": "user", "content": json.dumps(request_batch, ensure_ascii=False)}], "temperature": 0.3, "max_tokens": budget, "response_format": response_format}
                         if repair_source:
-                            body['messages'].extend([{'role': 'assistant', 'content': repair_source}, {'role': 'user', 'content': batch['repairInstruction'] + ' Corrige el borrador anterior y devuelve el lote completo, no solo el cambio. Conserva el contenido válido.'}])
+                            body['messages'].extend([{'role': 'assistant', 'content': repair_source}, {'role': 'user', 'content': request_batch.get('repairInstruction', 'Completa los elementos pendientes.') + ' Devuelve SOLO los elementos pendientes según el contrato de este intento.'}])
                         if candidate_provider == 'groq' and candidate_model in ('openai/gpt-oss-120b', 'openai/gpt-oss-20b'):
                             body.update(reasoning_effort='low' if large_board or empty_or_truncated or group is None else 'medium', include_reasoning=False)
                         native_gemini = candidate_provider == 'gemini' and is_gemini_auth_key(candidate_key)
@@ -1734,7 +1815,23 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
                             if not isinstance(content, str) or not content.strip() or truncated:
                                 empty_or_truncated = True
                                 raise HTTPException(502, 'La IA devolvió una respuesta vacía o incompleta. No se han descontado créditos.')
-                            result = parse_material(content, {**batch, 'allowOptionalFeedback': attempt > 0})
+                            if draft:
+                                gained = draft.ingest(content)
+                                drafts[str(batch_index)] = draft.snapshot()
+                                if gained:
+                                    stalled_attempts = 0
+                                    checkpoint()
+                                if not draft.complete:
+                                    issue = ' '.join(draft.issues[:3]) or f'Faltan {draft.target - draft.completed} elementos válidos.'
+                                    last_error = HTTPException(502, issue)
+                                    if gained:
+                                        logger.info('teacher_generator_progress request=%s type=%s batch=%s completed=%s target=%s', request_id, draft.kind, batch_index + 1, draft.completed, draft.target)
+                                        repair_source = ''
+                                        continue
+                                    raise last_error
+                                result = draft.result()
+                            else:
+                                result = parse_material(content, batch)
                             for item in result:
                                 if group is not None:
                                     item['activityGroup'] = group
@@ -1753,7 +1850,7 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
                         except (ValueError, KeyError, TypeError, IndexError, HTTPException, httpx.RequestError) as exc:
                             last_error = exc
                             safe_reason = re.sub(r'«[^»]*»', '«…»', str(exc.detail) if isinstance(exc, HTTPException) else str(exc))[:240]
-                            logger.warning("teacher_generator_batch_failure request=%s provider=%s model=%s batch=%s attempt=%s error=%s cause=%s status=%s provider_status=%s reason=%s", request_id, candidate_provider, candidate_model, batch_index + 1, attempt + 1, type(exc).__name__, type(exc.__cause__).__name__ if exc.__cause__ else None, exc.status_code if isinstance(exc, HTTPException) else None, response.status_code if response is not None else None, safe_reason)
+                            logger.warning("teacher_generator_batch_failure request=%s provider=%s model=%s type=%s batch=%s attempt=%s error=%s cause=%s validation=%s status=%s provider_status=%s reason=%s", request_id, candidate_provider, candidate_model, draft.kind if draft else 'legacy', batch_index + 1, attempt + 1, type(exc).__name__, type(exc.__cause__).__name__ if exc.__cause__ else None, getattr(exc, 'validation_code', 'provider' if response is not None and response.status_code >= 400 else 'content'), exc.status_code if isinstance(exc, HTTPException) else None, response.status_code if response is not None else None, safe_reason)
                             result = None
                             if isinstance(exc, HTTPException) and exc.status_code == 502 and content:
                                 schema_rejected = True  # Retry the playable core as plain JSON.
@@ -1761,6 +1858,9 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
                                 break
                             batch['repairInstruction'] = 'Regenera este lote completo cumpliendo el contrato. Revisa cantidades, soluciones, naturalidad y pistas. ' + str(getattr(exc, 'detail', 'JSON no válido.'))[:350]
                             repair_source = content[:6000] if isinstance(content, str) else ''
+                            stalled_attempts += 1
+                            if stalled_attempts >= (3 if group is not None else 1):
+                                break
                     if result is not None:
                         break
                 if result is None:
@@ -1786,20 +1886,11 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
                 else:
                     questions.extend(result)
                 completed_batches = batch_index + 1
+                drafts.pop(str(batch_index), None)
+                checkpoint()
     except (HTTPException, httpx.RequestError) as exc:
-        if completed_batches > checkpoint_start:
-            checkpoint = {"context": context, "questions": questions, "complete": False, "batch_version": max(2, batch_version),
-                          "completed_batches": completed_batches, "rosco_parts": rosco_parts,
-                          "reading_passages": reading_passages, "classification_categories": classification_categories,
-                          "input_tokens": input_tokens, "output_tokens": output_tokens}
-            if message is not None:
-                message.content = json.dumps(checkpoint, ensure_ascii=False)
-            else:
-                previous = Conversation(organization_id=user.organization_id, user_id=user.id, title=title)
-                db.add(previous)
-                db.flush()
-                db.add(Message(conversation_id=previous.id, organization_id=user.organization_id, user_id=user.id, role="assistant", content=json.dumps(checkpoint, ensure_ascii=False)))
-            db.commit()
+        if completed_batches > checkpoint_start or any(d.get('questions') or d.get('elements') for d in drafts.values()):
+            checkpoint()
         if isinstance(exc, httpx.TimeoutException):
             raise HTTPException(504, "La IA ha tardado demasiado. El progreso válido está guardado y no se han descontado créditos.") from exc
         if isinstance(exc, httpx.RequestError):
@@ -1809,6 +1900,16 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
         if exc.status_code >= 500:
             raise HTTPException(exc.status_code, str(exc.detail) + ' Código de incidencia: ' + request_id[:8] + '.') from exc
         raise
+    from app.services.teacher_generator import TYPES, BUNDLE_TYPES
+    for kind in TYPES:
+        expected = context[kind] * (context.get('activitySizes', {}).get(kind, 1) if kind in BUNDLE_TYPES and not context.get('regeneration') else 1)
+        if len([q for q in questions if q['type'] == kind]) != expected:
+            raise HTTPException(502, 'El material quedó incompleto. El progreso está guardado y no se han descontado créditos. Código de incidencia: ' + request_id[:8] + '.')
+    # Serialize only the final charge, rather than blocking the account during
+    # all network calls. Repeated deliveries return the already-paid result.
+    db.scalar(select(User).where(User.id == user.id).with_for_update())
+    existing_record()
+    ensure_credit_balance(db, user, license_obj, 1)
     record_usage(db, user, used_model, input_tokens, output_tokens, "PROFESOR_PARTICULAR", 1)
     final_content = json.dumps({"context": context, "questions": questions, "complete": True, "batch_version": max(2, batch_version)}, ensure_ascii=False)
     if message is not None:

@@ -21,6 +21,7 @@ from app.models.core import (
 )
 
 __all__ = [
+    "ProfesorGenerationJob",
     "OcrJob",
     "AuditLog",
     "AppSetting",
@@ -44,3 +45,4 @@ __all__ = [
 ]
 
 from app.models.ocr import OcrJob
+from app.models.teacher_generation import ProfesorGenerationJob

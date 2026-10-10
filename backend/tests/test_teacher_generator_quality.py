@@ -301,7 +301,7 @@ def test_malformed_optional_option_feedback_does_not_discard_quiz():
     assert len(result)==2 and 'optionFeedback' not in result[0]
 
 
-def test_generation_recovers_optional_feedback_after_strict_attempt(client,monkeypatch):
+def test_generation_optional_feedback_never_discards_valid_quiz(client,monkeypatch):
     web,factory=client;seed_user(factory,product_codes=('PROFESOR_PARTICULAR',));login(web)
     monkeypatch.setattr(app_routes,'chat_provider_config',lambda *args,**kw:('test-key','https://example.test','groq'))
     monkeypatch.setattr(app_routes,'chat_model_for_purpose',lambda *args:'openai/gpt-oss-120b')
@@ -322,8 +322,7 @@ def test_generation_recovers_optional_feedback_after_strict_attempt(client,monke
     body=payload();body.update(gaps=0,quiz=1,activitySizes={'quiz':2})
     response=web.post('/api/profesor/generate?app=profesor_particular',json=body)
     assert response.status_code==200,response.text
-    assert len(sent)==2 and sent[0]['response_format']['type']=='json_schema'
-    assert sent[1]['response_format']=={'type':'json_object'}
+    assert len(sent)==1 and sent[0]['response_format']['type']=='json_schema'
     assert 'optionFeedback' not in response.json()['questions'][0]
     with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord))==1
 
@@ -407,9 +406,10 @@ def test_rosco_is_generated_in_small_batches_and_returned_as_one_activity(client
         async def post(self, url, **kw):
             batch = json.loads(kw['json']['messages'][1]['content'])
             sent.append(batch)
-            letters = batch['roscoLetters']
+            offset = len(batch.get('acceptedElements', []))
+            letters = ROSCO_LETTERS[offset:offset+batch['elementCount']]
             question = dict(type='pasapalabra', prompt='Resuelve el rosco de conceptos.', answer='Completado',
-                            roscoEntries=[dict(letter=letter,clue=f'Definición del concepto número {batch["itemOffset"]+i+1}',answer=f'palabra{letter}') for i,letter in enumerate(letters)],
+                            roscoEntries=[dict(clue=f'Definición del concepto número {offset+i+1}',answer=f'palabra{letter}') for i,letter in enumerate(letters)],
                             explanation='Cada pista se resuelve mediante una palabra distinta relacionada con el tema.')
             return httpx.Response(200, json={'choices': [{'message': {'content': json.dumps({'questions': [question]})}}]})
     monkeypatch.setattr(app_routes.httpx, 'AsyncClient', FakeClient)
@@ -417,8 +417,9 @@ def test_rosco_is_generated_in_small_batches_and_returned_as_one_activity(client
     response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
     assert response.status_code == 200, response.text
     questions = response.json()['questions']
-    assert len(sent) == 6 and len(questions) == 1 and len(questions[0]['options']) == 18
-    assert ''.join(q['roscoLetters'] for q in sent) == 'ABCDEFGHIJLMNOPRST'
+    assert len(sent) == 3 and len(questions) == 1 and len(questions[0]['options']) == 18
+    assert len({option.split('|')[0].strip() for option in questions[0]['options']}) == 18
+    assert all('roscoLetters' not in request for request in sent)
     with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
 
 
@@ -454,15 +455,16 @@ def test_old_nine_letter_checkpoint_restarts_rosco_without_duplicate_letters(cli
         async def __aexit__(self, *args): pass
         async def post(self, url, **kw):
             batch = json.loads(kw['json']['messages'][1]['content'])
-            offsets.append(batch['itemOffset'])
-            question = rosco_part(batch['roscoLetters'], batch['itemOffset'])
+            offset = len(batch.get('acceptedElements', []))
+            offsets.append(offset)
+            question = rosco_part(ROSCO_LETTERS[offset:offset+batch['elementCount']], offset)
             question.pop('activityGroup')
             return httpx.Response(200, json={'choices': [{'message': {'content': json.dumps({'questions': [question]})}}]})
 
     monkeypatch.setattr(app_routes.httpx, 'AsyncClient', FakeClient)
     response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
     assert response.status_code == 200, response.text
-    assert offsets == [0, 3, 6]
+    assert offsets == [5]
     assert len(response.json()['questions'][0]['options']) == 9
     with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
 

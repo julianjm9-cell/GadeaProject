@@ -10,7 +10,7 @@ const path=require('node:path');
     await page.setContent('<div id="studentWelcome"></div><div id="studentMaterialList"></div><section id="studentMaterials" hidden></section>');
     await page.evaluate(()=>{
       const session={id:'test',title:'Práctica',subject:'Historia',status:'in_progress',revision:1,questions:[
-        {type:'timeline',prompt:'Ordena los acontecimientos.',options:['1910 – Primer hecho','1901 – Segundo hecho'],hints:[]},
+        {type:'timeline',prompt:'Ordena los acontecimientos.',options:['1945-05-08 – Rendición de Alemania','1945-09-02 – Rendición de Japón'],hints:[]},
         {type:'error',prompt:'Corrige: “Tú trajistes el libro.”',hints:[]}
       ],progress:{current_index:0,responses:{},grades:{},parts:{}}};
       window.fetch=async(url,options={})=>{
@@ -31,9 +31,9 @@ const path=require('node:path');
     });
     await page.addScriptTag({path:path.resolve('apps/profesor/profesor-live.js')});
     await page.locator('.live-stack-row').first().waitFor();
-    assert.doesNotMatch(await page.locator('.live-stack').innerText(),/1901|1910/);
+    assert.doesNotMatch(await page.locator('.live-stack').innerText(),/1945|05-08|09-02/);
     await page.getByRole('button',{name:'Comprobar respuesta'}).click();
-    assert.match(await page.locator('.live-stack').innerText(),/1901|1910/);
+    assert.match(await page.locator('.live-stack').innerText(),/1945-05-08|1945-09-02/);
     assert.equal(await page.locator('.live-stack-row.correct,.live-stack-row.incorrect').count(),2);
     await page.getByRole('button',{name:'Siguiente →'}).click();
     assert.equal(await page.getByRole('button',{name:'Corrige:',exact:false}).count(),0);
