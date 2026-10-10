@@ -22,7 +22,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
    else if(p.startsWith('/assets/landing/'))file='marketing/app_landings_demo'+p;
    else if(p.startsWith('/assets/'))file='apps/profesor'+p;
    else if(p.endsWith('.js'))file='apps/profesor'+p;
-   if(file&&fs.existsSync(file))return route.fulfill({body:fs.readFileSync(file),contentType:file.endsWith('.png')?'image/png':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html'});
+   if(file&&fs.existsSync(file))return route.fulfill({body:fs.readFileSync(file),contentType:file.endsWith('.png')?'image/png':file.endsWith('.webp')?'image/webp':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html'});
    return route.fulfill({status:404,body:'Not found'});
   });
   await page.goto('http://profesor.test/profesor-particular#inicio');
@@ -51,18 +51,19 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
    await page.setViewportSize({width,height:900});await page.goto('http://profesor.test'+pathname);
    await page.locator('a[href="mailto:educamesuite@gmail.com"]').last().waitFor();
    assert.equal(await page.locator('a[href*="instagram.com/profesorparticularapp"]').count(),1);
-   await page.locator('.laptop-screen img').evaluate(img=>img.decode());
-   assert.match(await page.locator('.laptop-screen img').getAttribute('src'),/profesor-dashboard\.png\?v=20261005-generator/);
-   const phone=page.locator('.phone img');
-   await phone.evaluate(img=>img.decode());
-   assert.match(await phone.getAttribute('src'),/profesor-mobile\.png\?v=20261005-generator/);
    if(pathname.endsWith('login')){
+    await page.locator('.laptop-screen img').evaluate(img=>img.decode());
+    await page.locator('.phone img').evaluate(img=>img.decode());
     assert.match(await page.locator('#introTitle').innerText(),/Todo lo que necesitas\s+para tus clases\./);
     assert.equal(await page.locator('.teacher-material-preview, .teacher-preview-caption').count(),0);
     assert.equal(await page.locator('#devicePreview img').count(),2);
    }else{
+    assert.equal(await page.getByRole('tab').count(),3);
+    await page.getByRole('tab',{name:/Materiales/}).click();
+    assert.equal(await page.locator('#preview-materiales').isVisible(),true);
+    assert.equal(await page.getByRole('button',{name:/Ver cómo funciona/}).isDisabled(),true);
     await page.getByText('¿Es gratis?',{exact:true}).click();
-    assert.match(await page.locator('#priceAnswer').innerText(),/Sí.*Premium.*gratuita temporalmente.*creador.*educamesuite@gmail.com/s);
+    assert.match(await page.locator('#priceAnswer').innerText(),/Sí.*30 días.*10 créditos/);
    }
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
    await page.screenshot({path:path.join('tools',`profesor-public-${pathname.endsWith('login')?'login':'landing'}-${width}.png`),fullPage:true});
