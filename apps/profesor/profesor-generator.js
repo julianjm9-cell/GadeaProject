@@ -14,7 +14,8 @@
   const form=$('form'),controller=new AbortController();
   const sizes={...(draft.activitySizes||{})};
   function refreshSizes(){
-   const selected=Object.keys(activityLabels).filter(type=>Number($('count-'+type).value)>0&&!visualTypes.includes(type));
+   const selectedTypes=Object.keys(activityLabels).filter(type=>Number($('count-'+type).value)>0);
+   const selected=selectedTypes.filter(type=>!visualTypes.includes(type));
    const root=$('generatorSizes');
    if(root.dataset.selection!==selected.join('|')){
     root.dataset.selection=selected.join('|');
@@ -23,12 +24,12 @@
    }
    let activities=0,questions=0,photos=0;
    for(const type of Object.keys(activityLabels)){const n=Number($('count-'+type).value)||0;activities+=n;if(visualTypes.includes(type))photos+=n;questions+=n*(bundleTypes.has(type)?Number($('size-'+type)?.value||defaults[type]||6):1)}
-   $('workshopSelection').textContent=`${activities} de ${MAX_GENERATOR_ACTIVITIES} actividades · ${questions} preguntas o tableros${questions>80?' · Máximo 80':''}`;
-   const invalid=workshopBusy||activities<1||activities>MAX_GENERATOR_ACTIVITIES||questions>80;
-   $('workshopSelection').classList.toggle('error',activities>MAX_GENERATOR_ACTIVITIES||questions>80);
+   $('workshopSelection').textContent=selectedTypes.length===1?`${esc(activityLabels[selectedTypes[0]])} · ${activities} ${activities===1?'actividad':'actividades'} · ${questions} preguntas o tableros${questions>80?' · Máximo 80':''}`:'Selecciona un único tipo de actividad';
+   const invalid=workshopBusy||selectedTypes.length!==MAX_GENERATOR_TYPES||activities<1||activities>MAX_GENERATOR_ACTIVITIES||questions>80;
+   $('workshopSelection').classList.toggle('error',selectedTypes.length>MAX_GENERATOR_TYPES||activities>MAX_GENERATOR_ACTIVITIES||questions>80);
    $('workshopManual').disabled=invalid;$('workshopContinue').disabled=invalid||photos===activities;
   }
-  form.addEventListener('click',()=>setTimeout(()=>{if($('dialog').open&&$('generatorSizes'))refreshSizes()},0),{signal:controller.signal,capture:true});
+  form.addEventListener('click',()=>setTimeout(()=>{if(!controller.signal.aborted&&form.isConnected&&$('dialog').open&&$('form')===form&&$('generatorSizes'))refreshSizes()},0),{signal:controller.signal,capture:true});
   form.addEventListener('change',()=>queueMicrotask(refreshSizes),{signal:controller.signal});
   form.addEventListener('workshop:refresh',refreshSizes,{signal:controller.signal});
   $('dialog').addEventListener('close',()=>controller.abort(),{once:true});refreshSizes();
@@ -93,8 +94,9 @@
   modal('Crear material',workshopMarkup(owner,draft,st),async form=>{
    const c={studentId:form.get('studentId'),course:form.get('course').trim(),subject:form.get('subject'),topic:form.get('topic').trim(),theme:form.get('theme').trim(),duration:15,instructions:String(form.get('instructions')||'').trim(),extent:'standard',difficulty:'standard',activitySizes:{},qualityVersion:1};
    let total=0,totalQuestions=0;
-   for(const type of Object.keys(activityLabels)){c[type]=Number(form.get(type));if(!Number.isInteger(c[type])||c[type]<0||c[type]>MAX_GENERATOR_ACTIVITIES)throw Error('Elige hasta 3 actividades en total.');if(visualTypes.includes(type)&&!isPremium()&&c[type])throw Error('Las fotografías requieren Premium.');total+=c[type];if(c[type]&&!visualTypes.includes(type)){const size=Number(form.get('size-'+type));if(!Number.isInteger(size)||size<(['pasapalabra','wordsearch','crossword','dragdrop'].includes(type)?3:2)||size>(limits[type]||12))throw Error('Revisa el número de preguntas o elementos de '+activityLabels[type]+'.');c.activitySizes[type]=size;}totalQuestions+=c[type]*(bundleTypes.has(type)?c.activitySizes[type]:1);}
-   if(!c.topic||total<1||total>MAX_GENERATOR_ACTIVITIES||totalQuestions>80)throw Error('Indica el tema y selecciona entre 1 y 3 actividades.');
+   for(const type of Object.keys(activityLabels)){c[type]=Number(form.get(type));if(!Number.isInteger(c[type])||c[type]<0||c[type]>MAX_GENERATOR_ACTIVITIES)throw Error('Elige un único tipo de actividad.');if(visualTypes.includes(type)&&!isPremium()&&c[type])throw Error('Las fotografías requieren Premium.');total+=c[type];if(c[type]&&!visualTypes.includes(type)){const size=Number(form.get('size-'+type));if(!Number.isInteger(size)||size<(['pasapalabra','wordsearch','crossword','dragdrop'].includes(type)?3:2)||size>(limits[type]||12))throw Error('Revisa el número de preguntas o elementos de '+activityLabels[type]+'.');c.activitySizes[type]=size;}totalQuestions+=c[type]*(bundleTypes.has(type)?c.activitySizes[type]:1);}
+   const selectedTypes=Object.keys(activityLabels).filter(type=>c[type]>0);
+   if(!c.topic||selectedTypes.length!==MAX_GENERATOR_TYPES||total<1||total>MAX_GENERATOR_ACTIVITIES||totalQuestions>80)throw Error('Indica el tema y selecciona un único tipo de actividad.');
    let group=0;
    const blank=[];
    for(const type of Object.keys(activityLabels))for(let n=0;n<c[type];n++){group++;for(let i=0;i<(bundleTypes.has(type)?c.activitySizes[type]:1);i++)blank.push({id:uid(),type,activityGroup:group,prompt:'',answer:'',text:'',options:type==='boolean'?['Verdadero','Falso']:optionTypes.includes(type)?Array(['quiz','classify'].includes(type)?3:c.activitySizes[type]||3).fill(''):[]});}

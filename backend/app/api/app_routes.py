@@ -754,6 +754,7 @@ def profesor_game_illustration(filename: str):
         "pasapalabra.webp",
         "sentence.webp",
         "timeline.webp",
+        "uploaded-material.webp",
         "wordsearch.webp",
     }
     if filename not in allowed:

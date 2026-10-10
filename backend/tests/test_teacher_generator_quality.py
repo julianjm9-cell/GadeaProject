@@ -17,14 +17,18 @@ def payload(**extra):
 
 def test_sizes_have_independent_groups_and_bounded_batches():
     body = payload()
-    body.update(gaps=2, pasapalabra=1, activitySizes={'gaps': 8, 'pasapalabra': 18}, instructions='Más contexto, sin tiempos compuestos.')
+    body.update(gaps=2, activitySizes={'gaps': 8}, instructions='Más contexto, sin tiempos compuestos.')
     _, context = generator_context(body)
     batches = generation_batches(context)
-    assert [(batch['gaps'], batch['pasapalabra'], group) for batch, group in batches] == [(6,0,1),(2,0,1),(6,0,2),(2,0,2),(0,1,3),(0,1,3),(0,1,3)]
-    assert [batch['elementCount'] for batch, _ in batches[-3:]] == [6, 6, 6]
-    assert ''.join(batch['roscoLetters'] for batch, _ in batches[-3:]) == 'ABCDEFGHIJLMNOPRST'
+    assert [(batch['gaps'], group) for batch, group in batches] == [(6,1),(2,1),(6,2),(2,2)]
     assert context['instructions'] == body['instructions']
-    body.update(gaps=10, activitySizes={'gaps': 12, 'pasapalabra': 18})
+    rosco = payload()
+    rosco.update(gaps=0, pasapalabra=1, activitySizes={'pasapalabra': 18})
+    _, rosco_context = generator_context(rosco)
+    rosco_batches = generation_batches(rosco_context)
+    assert [batch['elementCount'] for batch, _ in rosco_batches] == [6, 6, 6]
+    assert ''.join(batch['roscoLetters'] for batch, _ in rosco_batches) == 'ABCDEFGHIJLMNOPRST'
+    body.update(gaps=10, activitySizes={'gaps': 12})
     with pytest.raises(HTTPException) as exc: generator_context(body)
     assert exc.value.status_code == 422
 
@@ -76,7 +80,7 @@ def test_selection_limit_rejects_excess_activities_before_provider_and_charging(
     body = payload(); body.update(counts)
     response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
     assert response.status_code == 422, response.text
-    assert '3' in response.json()['detail']
+    assert response.json()['detail']
     with factory() as db:
         assert db.scalar(select(func.count()).select_from(UsageRecord)) == 0
         assert db.scalar(select(func.count()).select_from(Conversation)) == 0

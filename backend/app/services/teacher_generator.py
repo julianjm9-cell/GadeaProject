@@ -138,8 +138,9 @@ def generator_context(payload):
         if type(value) is not int or not 0 <= value <= MAX_ACTIVITIES:
             raise HTTPException(422, 'Las cantidades deben ser enteros entre 0 y 3; máximo 3 actividades por material.')
         context[key] = value
-    if not 1 <= sum(context[k] for k in TYPES) <= MAX_ACTIVITIES:
-        raise HTTPException(422, 'Selecciona entre 1 y 3 actividades por material.')
+    selected_types = [kind for kind in TYPES if context[kind] > 0]
+    if len(selected_types) != 1 or not 1 <= sum(context[k] for k in TYPES) <= MAX_ACTIVITIES:
+        raise HTTPException(422, 'Selecciona un único tipo de actividad por material.')
     duration = payload.get('duration', 15)
     if type(duration) is not int or duration not in (10, 15, 30, 45):
         raise HTTPException(422, 'Duración no válida.')

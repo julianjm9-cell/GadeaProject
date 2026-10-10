@@ -127,3 +127,18 @@ dialog.studio-renewed .exercise-tile.has-illustration:hover .exercise-visual img
 dialog.studio-renewed .exercise-tile.has-illustration .exercise-visual img{transition:transform .16s ease}
 @media(max-width:1250px){dialog.studio-renewed details.basic-family[open]>.exercise-tiles,dialog.studio-renewed details.playful-family[open]>.exercise-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:650px){dialog.studio-renewed details.basic-family[open]>.exercise-tiles,dialog.studio-renewed details.playful-family[open]>.exercise-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}dialog.studio-renewed .exercise-tile.has-illustration,dialog.studio-renewed .exercise-tile.has-illustration[aria-pressed="true"]{height:122px;min-height:122px}dialog.studio-renewed .exercise-tile.has-illustration .exercise-visual{height:62px;min-height:62px}}
+
+/* Biblioteca visual: cada material conserva la portada de su único tipo. */
+.material-hub-card{display:flex;flex-direction:column;min-height:252px!important;aspect-ratio:auto;padding:0!important;gap:0;overflow:visible;background:#fff!important;border-radius:14px}
+.material-hub-card .material-art{display:block;width:100%;height:112px;min-height:112px;border-radius:13px 13px 0 0;overflow:hidden;background:#edf6ff}
+.material-hub-card .material-art img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .18s ease}
+.material-hub-card:hover .material-art img{transform:scale(1.02)}
+.material-hub-card .material-card-copy{display:block;flex:1;padding:11px 14px 8px}
+.material-hub-card .material-card-copy .material-kind{padding:4px 7px;font-size:10px}
+.material-hub-card .material-card-copy h3{margin:7px 0 3px;font-size:15px;line-height:1.25}
+.material-hub-card .material-card-description{-webkit-line-clamp:2;min-height:31px;font-size:11px!important;line-height:1.4!important}
+.material-hub-card .material-card-foot{display:flex;grid-column:auto;grid-row:auto;align-items:center;gap:7px;width:100%;padding:8px 12px 11px;border-top:1px solid #e7eef8}
+.material-card-foot .material-course{display:inline-flex;align-items:center;min-height:24px;padding:4px 7px;border:1px solid #dce7f4;border-radius:8px;background:#f5f8fc;color:#637793;font-size:9px;font-weight:650;white-space:nowrap}
+.material-card-foot>small{margin-left:auto}
+.material-hub-card .material-use-menu>summary,.material-hub-card .material-open{white-space:nowrap}
+@media(max-width:580px){.material-hub-card{min-height:236px!important}.material-hub-card .material-art{height:105px;min-height:105px}.material-hub-card .material-card-foot{gap:5px;padding-left:10px;padding-right:10px}.material-card-foot .material-course{max-width:88px;overflow:hidden;text-overflow:ellipsis}}
