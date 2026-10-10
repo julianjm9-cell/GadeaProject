@@ -177,7 +177,7 @@ def generator_context(payload):
     return request_id, context
 
 
-def generation_batches(context):
+def generation_batches(context, *, rosco_max_chunk=3):
     """Bound each response and preserve the requested activity grouping."""
     if context.get('regeneration'):
         request = context['regeneration']
@@ -196,7 +196,7 @@ def generation_batches(context):
         if kind == 'pasapalabra' and batch.get('elementCount', 0) > 6:
             return [(dict(batch, elementCount=len(letters), roscoLetters=letters,
                           itemOffset=offset, roscoTotal=batch['elementCount']), request['group'])
-                    for offset, letters in rosco_chunks(batch['elementCount'])]
+                    for offset, letters in rosco_chunks(batch['elementCount'], rosco_max_chunk)]
         return [(batch, request['group'])]
     if 'activitySizes' not in context:
         return [(context, None)]
@@ -208,7 +208,7 @@ def generation_batches(context):
             size = context['activitySizes'][kind]
             count = size if kind in BUNDLE_TYPES else 1
             if kind == 'pasapalabra' and size > 6:
-                for offset, letters in rosco_chunks(size):
+                for offset, letters in rosco_chunks(size, rosco_max_chunk):
                     batch = {**context, **{k: 0 for k in TYPES}, kind: 1,
                              'activitySizes': {kind: size}, 'activityIndex': group,
                              'itemOffset': offset, 'activityQuestionCount': 1,
@@ -229,11 +229,11 @@ def generation_batches(context):
     return batches
 
 
-def rosco_chunks(size):
+def rosco_chunks(size, max_chunk=3):
     letters = ROSCO_LETTERS[:size]
-    # Nine letters in two batches (5 + 4) makes one malformed clue discard too
-    # much otherwise valid work. Three small batches remain valid standalone roscos.
-    count = 3 if size == 9 else math.ceil(size / 6)
+    # Three-clue batches are easier to validate and retry. Every batch still
+    # contains at least three letters so it is a valid standalone rosco.
+    count = 3 if size == 9 else min(size // 3, math.ceil(size / max_chunk))
     minimum, extra = divmod(size, count)
     sizes = [minimum + (index < extra) for index in range(count)]
     chunks, offset = [], 0
@@ -255,6 +255,34 @@ def merge_rosco_parts(parts, context):
     merged = {**parts[0], 'options': options, 'itemExplanations': explanations}
     check_material_quality([merged], context)
     return merged
+
+
+def normalize_rosco_question(question):
+    """Accept structured clues and derive review feedback without changing answers."""
+    entries = question.get('roscoEntries')
+    if entries is not None:
+        if not isinstance(entries, list) or not 3 <= len(entries) <= 27:
+            raise ValueError('El rosco necesita una entrada por letra solicitada.')
+        options = []
+        for entry in entries:
+            if not isinstance(entry, dict):
+                raise ValueError('Cada letra del rosco necesita letra, pista y respuesta.')
+            letter, clue, answer = (entry.get(field) for field in ('letter', 'clue', 'answer'))
+            if any(not isinstance(value, str) for value in (letter, clue, answer)):
+                raise ValueError('Cada letra del rosco necesita letra, pista y respuesta.')
+            options.append(' | '.join(value.strip() for value in (letter, clue, answer)))
+        question = {**question, 'options': options}
+    options = question.get('options')
+    if not isinstance(options, list):
+        raise ValueError('El rosco necesita una lista de pistas.')
+    rows = puzzle_rows('pasapalabra', options)
+    explanations = question.get('itemExplanations')
+    if not isinstance(explanations, list) or len(explanations) != len(rows) or any(not isinstance(value, str) or not value.strip() or len(value) > 300 for value in explanations):
+        # Feedback is shown after solving. Keep the clue and answer exact;
+        # never invent a factual justification merely to satisfy the schema.
+        explanations = [f'La respuesta «{answer}» corresponde a la pista «{clue}».'[:300]
+                        for _, clue, answer in rows]
+    return {**question, 'options': options, 'itemExplanations': explanations}
 
 
 def check_material_quality(questions, context):
@@ -350,7 +378,17 @@ def parse_material(content, context):
         if not isinstance(content, str) or len(content) > 60000:
             raise ValueError()
         raw = re.sub(r'^```(?:json)?\s*|\s*```$', '', content.strip())
-        questions = json.loads(raw)['questions']
+        try:
+            document = json.loads(raw)
+        except json.JSONDecodeError:
+            start = raw.find('{')
+            if start < 0:
+                raise ValueError('La IA no devolvió un objeto JSON.') from None
+            try:
+                document, _ = json.JSONDecoder().raw_decode(raw[start:])
+            except json.JSONDecodeError:
+                raise ValueError('La IA devolvió un JSON incompleto.') from None
+        questions = document['questions']
         if not isinstance(questions, list) or len(questions) != sum(context[k] for k in TYPES):
             raise ValueError(f'Este lote necesita exactamente {sum(context[k] for k in TYPES)} preguntas; no devuelvas la actividad completa si está dividida en lotes.')
         passage = context.get('readingPassage') or next((q.get('text') for q in questions if isinstance(q, dict) and q.get('type') == 'reading' and q.get('text')), '')
@@ -359,6 +397,8 @@ def parse_material(content, context):
             kind = q['type']
             if kind not in TYPES:
                 raise ValueError()
+            if kind == 'pasapalabra':
+                q = normalize_rosco_question(q)
             # Start from a coherent solved passage. Replace exact contextual fragments,
             # rather than trusting the model to keep a long list of blanks in sync.
             if kind == 'multigaps' and 'activitySizes' in context and 'clozeGaps' in q:
@@ -419,7 +459,7 @@ def parse_material(content, context):
             if kind in ('quiz', 'classify', 'boolean', 'order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop', 'pasapalabra', 'multigaps'):
                 options = q['options']
                 if not isinstance(options, list) or not 2 <= len(options) <= (27 if kind == 'pasapalabra' else 8 if kind in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'dragdrop') else 7 if kind == 'crossword' else 20 if kind == 'multigaps' else 5) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in options):
-                    raise ValueError()
+                    raise ValueError(f'{kind}: la lista options tiene un tamaño o formato incorrecto.')
                 options = [v.strip() for v in options]
                 if kind == 'timeline':
                     dates = [re.search(r'\b(?:1\d{3}|20\d{2})\b', value) for value in options]
@@ -489,11 +529,20 @@ def parse_material(content, context):
                     raise ValueError()
                 extra['tolerance'] = tolerance
             from app.services.teacher_question_quality import feedback_fields, check_question_quality
+            recoverable_feedback = context.get('allowOptionalFeedback') and kind in (
+                'quiz', 'boolean', 'classify', 'wordsearch', 'crossword', 'memory',
+                'dragdrop', 'order', 'sentence', 'timeline', 'pasapalabra')
             if context.get('qualityVersion') == 1:
                 required = ['optionFeedback'] if kind in ('quiz', 'boolean', 'classify') else ['itemExplanations'] if kind in ELEMENT_LIMITS else ['calculation'] if kind == 'numeric' else []
-                if any(field not in q for field in required):
+                if not recoverable_feedback and any(field not in q for field in required):
                     raise ValueError('Falta la corrección específica de cada opción o elemento, o el cálculo de comprobación.')
-            extra.update(feedback_fields(q, kind, options))
+            for field in ('optionFeedback', 'itemExplanations', 'calculation'):
+                if field in q:
+                    try:
+                        extra.update(feedback_fields({field: q[field]}, kind, options))
+                    except ValueError:
+                        if not recoverable_feedback:
+                            raise
             question = dict(type=kind, prompt=prompt, answer=answer, options=options, text=text.strip(), **extra)
             check_question_quality(question)
             cleaned.append(question)
@@ -660,7 +709,7 @@ que NO se ocultarán: nunca introduzcas tiempos excluidos como había sucedido o
     'crossword': 'options contiene exactamente elementCount entradas "PALABRA | pista". Palabras de 3 a 12 letras, pistas hasta 120 caracteres. Palabras distintas con letras compartidas para cruzarlas; pistas inequívocas sin revelar la palabra. answer="Completado". NO generes cuadrícula.',
     'dragdrop': 'options contiene exactamente elementCount parejas "elemento | destino", máximo 140 caracteres por lado. Elementos únicos; destinos pueden repetirse para agrupar. answer="Completado".',
     'numeric': 'answer es solo un número finito, sin unidad ni explicación. Verifica el cálculo. unit contiene la unidad aparte (hasta 30 caracteres), tolerance es la tolerancia absoluta (por defecto 0).',
-    'pasapalabra': 'Un rosco real: options contiene exactamente elementCount entradas "LETRA | pista | respuesta", letras únicas A-Z o Ñ. Pista descriptiva hasta 180 caracteres, respuesta inequívoca hasta 60. La respuesta debe empezar por su letra o CONTENERLA; comprueba cada letra. NO uses ___, frases para rellenar ni reveles respuestas en las pistas. Respuestas y pistas únicas. En formas verbales la pista debe dar INFINITIVO, PERSONA y TIEMPO explícitos: «Forma de cantar con yo en imperfecto» da cantaba. Nunca «Verbo que describe una acción continua»: admite muchas respuestas. También puedes definir conceptos concretos del tema. Usa contiene si hace falta; no fuerces todo el alfabeto. answer="Completado".',
+    'pasapalabra': 'Un rosco real: roscoEntries contiene exactamente elementCount objetos {"letter":"A","clue":"pista","answer":"respuesta"}, siguiendo roscoLetters en orden. NO envíes options ni itemExplanations: la app los construye. Letras únicas A-Z o Ñ, pista descriptiva hasta 180 caracteres, respuesta inequívoca hasta 60. La respuesta debe empezar por su letra o CONTENERLA; comprueba cada letra. NO uses ___, frases para rellenar ni reveles respuestas en las pistas. Respuestas y pistas únicas. En formas verbales la pista debe dar INFINITIVO, PERSONA y TIEMPO explícitos: «Forma de cantar con yo en imperfecto» da cantaba. Nunca «Verbo que describe una acción continua»: admite muchas respuestas. También puedes definir conceptos concretos del tema. Usa contiene si hace falta; no fuerces todo el alfabeto. answer="Completado".',
     'hangman': 'prompt es una pista inequívoca sobre el tema, answer una palabra o expresión de 2 a 40 caracteres (solo letras, espacios o guiones). No reveles la palabra en la pista.',
 }
 
@@ -708,7 +757,7 @@ no solo «es incorrecta». Distractores plausibles basados en errores reales, si
 sin duplicados equivalentes ni varias respuestas correctas. Explicaciones de hasta 400 caracteres.
 En multigaps cada clozeGaps incluye explanation (hasta 300 caracteres): señala la pista del contexto
 y por qué esa forma encaja. Conserva el orden del relato; evita explicaciones genéricas repetidas.
-En pasapalabra, crossword, memory, dragdrop, wordsearch, order, sentence y timeline añade
+En crossword, memory, dragdrop, wordsearch, order, sentence y timeline añade
 itemExplanations: una frase de 8–18 palabras por elemento, en el orden de options (hasta 300 caracteres).
 Conecta la respuesta con el objetivo del tema. Las pistas identifican una sola respuesta y no la revelan.
 En gaps explica la pista específica de esa frase. En reading cita el fragmento que justifica answer;
@@ -746,6 +795,11 @@ def generation_response_format(context, provider, model):
     if kind == 'multigaps':
         properties['clozeText'] = string
         properties['clozeGaps'] = {'type': 'array', 'minItems': context['elementCount'], 'maxItems': context['elementCount'], 'items': {'type': 'object', 'properties': {'fragment': string, 'answer': string, 'infinitive': string, 'explanation': string}, 'required': ['fragment', 'answer', 'infinitive', 'explanation'], 'additionalProperties': False}}
+    elif kind == 'pasapalabra':
+        entry = {'type': 'object', 'properties': {'letter': string, 'clue': string, 'answer': string},
+                 'required': ['letter', 'clue', 'answer'], 'additionalProperties': False}
+        properties['roscoEntries'] = {'type': 'array', 'minItems': context['elementCount'],
+                                     'maxItems': context['elementCount'], 'items': entry}
     elif kind in ('quiz', 'boolean', 'classify', *ELEMENT_LIMITS.keys()):
         size = context.get('elementCount')
         properties['options'] = {'type': 'array', 'minItems': size or 2, 'maxItems': size or (2 if kind == 'boolean' else 5), 'items': string}
@@ -761,7 +815,7 @@ def generation_response_format(context, provider, model):
         properties.update(unit=string, tolerance={'type': 'number', 'minimum': 0, 'maximum': 1000000}, calculation=string)
     if kind in ('quiz', 'boolean', 'classify'):
         properties['optionFeedback'] = {'type': 'array', 'minItems': 2, 'maxItems': 5, 'items': {'type': 'object', 'properties': {'option': string, 'explanation': string}, 'required': ['option', 'explanation'], 'additionalProperties': False}}
-    if kind in ELEMENT_LIMITS and kind != 'multigaps':
+    if kind in ELEMENT_LIMITS and kind not in ('multigaps', 'pasapalabra'):
         size = context['elementCount']
         properties['itemExplanations'] = {'type': 'array', 'minItems': size, 'maxItems': size, 'items': string}
     if kind == 'error':

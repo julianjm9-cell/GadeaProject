@@ -26,7 +26,8 @@ def test_one_activity_uses_its_requested_size_and_bounded_batches():
     rosco.update(gaps=0, pasapalabra=1, activitySizes={'pasapalabra': 18})
     _, rosco_context = generator_context(rosco)
     rosco_batches = generation_batches(rosco_context)
-    assert [batch['elementCount'] for batch, _ in rosco_batches] == [6, 6, 6]
+    assert [batch['elementCount'] for batch, _ in rosco_batches] == [3] * 6
+    assert [batch['elementCount'] for batch, _ in generation_batches(rosco_context, rosco_max_chunk=6)] == [6] * 3
     assert ''.join(batch['roscoLetters'] for batch, _ in rosco_batches) == 'ABCDEFGHIJLMNOPRST'
     body.update(gaps=10, activitySizes={'gaps': 12})
     with pytest.raises(HTTPException) as exc: generator_context(body)
@@ -262,9 +263,69 @@ def test_sensitive_board_schema_and_legacy_fallback():
     body=payload();body.update(gaps=0,pasapalabra=1,activitySizes={'pasapalabra':18})
     _,context=generator_context(body);batch,_=generation_batches(context)[0]
     response=generation_response_format(batch,'groq','openai/gpt-oss-120b')
-    options=response['json_schema']['schema']['properties']['questions']['items']['properties']['options']
-    assert response['json_schema']['strict'] and options['minItems']==options['maxItems']==6
+    entries=response['json_schema']['schema']['properties']['questions']['items']['properties']['roscoEntries']
+    assert response['json_schema']['strict'] and entries['minItems']==entries['maxItems']==3
+    assert set(entries['items']['properties']) == {'letter', 'clue', 'answer'}
     assert generation_response_format(batch,'openai','other')=={'type':'json_object'}
+
+
+def test_structured_syntax_rosco_and_optional_feedback_survive_format_errors():
+    body=payload();body.update(course='3.º ESO',subject='Lengua',topic='Sintaxis',gaps=0,
+                               pasapalabra=1,activitySizes={'pasapalabra':18})
+    _,context=generator_context(body);batch,_=generation_batches(context)[0]
+    entries=[('A','Modificador del sustantivo que concuerda en género y número','adjetivo'),
+             ('B','Palabra que expresa acción, estado o proceso','verbo'),
+             ('C','Función que añade información al núcleo de un sintagma','complemento')]
+    question=dict(type='pasapalabra',prompt='Resuelve el rosco de sintaxis.',answer='Completado',
+                  roscoEntries=[dict(letter=letter,clue=clue,answer=answer) for letter,clue,answer in entries],
+                  itemExplanations=['explicación incompleta'],
+                  explanation='Cada pista identifica un concepto de sintaxis.')
+    content='Aquí tienes el JSON: '+json.dumps({'questions':[question]},ensure_ascii=False)
+    result=parse_material(content,batch)
+    assert len(result)==1 and len(result[0]['options'])==3
+    assert len(result[0]['itemExplanations'])==3
+    assert result[0]['options'][1].endswith('verbo')
+
+
+def test_malformed_optional_option_feedback_does_not_discard_quiz():
+    body=payload();body.update(gaps=0,quiz=1,activitySizes={'quiz':2})
+    _,context=generator_context(body);batch,_=generation_batches(context)[0]
+    questions=[dict(type='quiz',prompt='¿Cuál de estas palabras es un verbo?',answer='caminar',
+                    options=['caminar','árbol','azul'],explanation='Caminar expresa una acción.',
+                    optionFeedback=[dict(option='árbol',explanation='Es un sustantivo.')]),
+               dict(type='quiz',prompt='¿Cuál de estas palabras es un sustantivo?',answer='árbol',
+                    options=['caminar','árbol','azul'],explanation='Árbol nombra una planta.')]
+    with pytest.raises(HTTPException):
+        parse_material(json.dumps({'questions':questions}),batch)
+    result=parse_material(json.dumps({'questions':questions}),{**batch,'allowOptionalFeedback':True})
+    assert len(result)==2 and 'optionFeedback' not in result[0]
+
+
+def test_generation_recovers_optional_feedback_after_strict_attempt(client,monkeypatch):
+    web,factory=client;seed_user(factory,product_codes=('PROFESOR_PARTICULAR',));login(web)
+    monkeypatch.setattr(app_routes,'chat_provider_config',lambda *args,**kw:('test-key','https://example.test','groq'))
+    monkeypatch.setattr(app_routes,'chat_model_for_purpose',lambda *args:'openai/gpt-oss-120b')
+    sent=[]
+    class FakeClient:
+        def __init__(self,**kw): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self,*args): pass
+        async def post(self,url,**kw):
+            sent.append(kw['json'])
+            questions=[dict(type='quiz',prompt='¿Cuál es un verbo?',answer='caminar',
+                            options=['caminar','árbol','azul'],explanation='Caminar expresa una acción.',
+                            optionFeedback=[dict(option='árbol',explanation='Es un sustantivo.')]),
+                       dict(type='quiz',prompt='¿Cuál es un sustantivo?',answer='árbol',
+                            options=['caminar','árbol','azul'],explanation='Árbol nombra una planta.')]
+            return httpx.Response(200,json={'choices':[{'message':{'content':json.dumps({'questions':questions})}}]})
+    monkeypatch.setattr(app_routes.httpx,'AsyncClient',FakeClient)
+    body=payload();body.update(gaps=0,quiz=1,activitySizes={'quiz':2})
+    response=web.post('/api/profesor/generate?app=profesor_particular',json=body)
+    assert response.status_code==200,response.text
+    assert len(sent)==2 and sent[0]['response_format']['type']=='json_schema'
+    assert sent[1]['response_format']=={'type':'json_object'}
+    assert 'optionFeedback' not in response.json()['questions'][0]
+    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord))==1
 
 
 def test_malformed_json_does_not_expose_parser_in_user_message():
@@ -323,6 +384,7 @@ def test_large_rosco_empty_response_is_clear_and_does_not_charge(client, monkeyp
     response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
     assert response.status_code == 502 and len(sent) == 3
     assert 'respuesta vacía o incompleta' in response.json()['detail']
+    assert body['request_id'][:8] in response.json()['detail']
     assert 'Expecting value' not in response.json()['detail']
     assert [request['max_tokens'] for request in sent] == [4000, 6000, 6000]
     assert all(request['reasoning_effort'] == 'low' for request in sent)
@@ -347,16 +409,15 @@ def test_rosco_is_generated_in_small_batches_and_returned_as_one_activity(client
             sent.append(batch)
             letters = batch['roscoLetters']
             question = dict(type='pasapalabra', prompt='Resuelve el rosco de conceptos.', answer='Completado',
-                            options=[f'{letter} | Definición del concepto número {batch["itemOffset"]+i+1} | palabra{letter}' for i, letter in enumerate(letters)],
-                            itemExplanations=[f'La pista del concepto número {batch["itemOffset"]+i+1} se relaciona con el tema.' for i in range(len(letters))],
+                            roscoEntries=[dict(letter=letter,clue=f'Definición del concepto número {batch["itemOffset"]+i+1}',answer=f'palabra{letter}') for i,letter in enumerate(letters)],
                             explanation='Cada pista se resuelve mediante una palabra distinta relacionada con el tema.')
             return httpx.Response(200, json={'choices': [{'message': {'content': json.dumps({'questions': [question]})}}]})
     monkeypatch.setattr(app_routes.httpx, 'AsyncClient', FakeClient)
-    body = payload(); body.update(gaps=0, pasapalabra=1, activitySizes={'pasapalabra': 18})
+    body = payload(); body.update(course='3.º ESO',subject='Lengua',topic='Sintaxis',gaps=0,pasapalabra=1,activitySizes={'pasapalabra':18})
     response = web.post('/api/profesor/generate?app=profesor_particular', json=body)
     assert response.status_code == 200, response.text
     questions = response.json()['questions']
-    assert len(sent) == 3 and len(questions) == 1 and len(questions[0]['options']) == 18
+    assert len(sent) == 6 and len(questions) == 1 and len(questions[0]['options']) == 18
     assert ''.join(q['roscoLetters'] for q in sent) == 'ABCDEFGHIJLMNOPRST'
     with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
 
