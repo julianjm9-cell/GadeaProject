@@ -11,7 +11,7 @@ TYPES = ('pairs', 'gaps', 'quiz', 'short', 'order', 'classify', 'boolean', 'read
 BUNDLE_TYPES = {'pairs', 'gaps', 'quiz', 'short', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'error', 'numeric', 'hangman'}
 ELEMENT_LIMITS = {'multigaps': 20, 'pasapalabra': 27, 'crossword': 7, 'wordsearch': 8, 'memory': 8, 'dragdrop': 8, 'order': 8, 'sentence': 8, 'timeline': 8}
 ROSCO_LETTERS = 'ABCDEFGHIJLMNOPRSTUVWÑKXYZQ'
-MAX_ACTIVITIES = 3
+MAX_ACTIVITIES = 1
 
 
 SPANISH_LEVELS = {
@@ -136,11 +136,11 @@ def generator_context(payload):
     for key in TYPES:
         value = payload.get(key, 0)
         if type(value) is not int or not 0 <= value <= MAX_ACTIVITIES:
-            raise HTTPException(422, 'Las cantidades deben ser enteros entre 0 y 3; máximo 3 actividades por material.')
+            raise HTTPException(422, 'Selecciona una sola actividad por material (0 o 1 por tipo).')
         context[key] = value
     selected_types = [kind for kind in TYPES if context[kind] > 0]
     if len(selected_types) != 1 or not 1 <= sum(context[k] for k in TYPES) <= MAX_ACTIVITIES:
-        raise HTTPException(422, 'Selecciona un único tipo de actividad por material.')
+        raise HTTPException(422, 'Selecciona una sola actividad por material.')
     duration = payload.get('duration', 15)
     if type(duration) is not int or duration not in (10, 15, 30, 45):
         raise HTTPException(422, 'Duración no válida.')

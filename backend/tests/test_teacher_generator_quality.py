@@ -15,12 +15,12 @@ def payload(**extra):
                 gaps=1, activitySizes={'gaps': 8}, instructions='Solo estos dos tiempos, con infinitivos entre paréntesis.', extent='standard', **extra)
 
 
-def test_sizes_have_independent_groups_and_bounded_batches():
+def test_one_activity_uses_its_requested_size_and_bounded_batches():
     body = payload()
-    body.update(gaps=2, activitySizes={'gaps': 8}, instructions='Más contexto, sin tiempos compuestos.')
+    body.update(activitySizes={'gaps': 8}, instructions='Más contexto, sin tiempos compuestos.')
     _, context = generator_context(body)
     batches = generation_batches(context)
-    assert [(batch['gaps'], group) for batch, group in batches] == [(6,1),(2,1),(6,2),(2,2)]
+    assert [(batch['gaps'], group) for batch, group in batches] == [(6,1),(2,1)]
     assert context['instructions'] == body['instructions']
     rosco = payload()
     rosco.update(gaps=0, pasapalabra=1, activitySizes={'pasapalabra': 18})
@@ -70,7 +70,7 @@ def test_strict_schema_rejection_retries_with_plain_json(client, monkeypatch):
     with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord)) == 1
 
 
-@pytest.mark.parametrize('counts', [dict(gaps=0), dict(gaps=4), dict(gaps=2, quiz=2), dict(gaps=1, quiz=1, short=1, problem=1)])
+@pytest.mark.parametrize('counts', [dict(gaps=0), dict(gaps=2), dict(gaps=4), dict(gaps=1, quiz=1), dict(gaps=1, quiz=1, short=1, problem=1)])
 def test_selection_limit_rejects_excess_activities_before_provider_and_charging(client, monkeypatch, counts):
     web, factory = client
     seed_user(factory, product_codes=('PROFESOR_PARTICULAR',)); login(web)
@@ -86,12 +86,12 @@ def test_selection_limit_rejects_excess_activities_before_provider_and_charging(
         assert db.scalar(select(func.count()).select_from(Conversation)) == 0
 
 
-def test_three_activities_keep_their_full_question_sizes():
-    body = payload(); body.update(gaps=3, activitySizes={'gaps':12})
+def test_one_activity_keeps_its_full_question_size():
+    body = payload(); body.update(activitySizes={'gaps':12})
     _, context = generator_context(body)
     batches = generation_batches(context)
-    assert sum(batch['gaps'] for batch, _ in batches) == 36
-    assert {group for _, group in batches} == {1, 2, 3}
+    assert sum(batch['gaps'] for batch, _ in batches) == 12
+    assert {group for _, group in batches} == {1}
 
 
 def test_long_cloze_and_real_rosco_contract():
@@ -514,7 +514,7 @@ def test_generator_assets_available_on_server_routes(client):
     web,_=client
     script=web.get('/profesor-generator.js');style=web.get('/assets/profesor-generator.css')
     assert script.status_code==style.status_code==200
-    assert 'activitySizes' in script.text and '.generator-sizes' in style.text
+    assert 'activitySizes' in script.text and '.generator-brief' in style.text
 
 
 @pytest.mark.parametrize('kind',['reading','classify'])

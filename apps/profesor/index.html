@@ -483,7 +483,7 @@ function setupWorkshop(owner,draft,st){
  const changeCount=(tile,value)=>{
   const field=$('count-'+tile.dataset.exercise);let total=Object.keys(activityLabels).reduce((sum,type)=>sum+Number($('count-'+type).value),0);
   if(value>0&&Number(field.value)===0){Object.keys(activityLabels).forEach(type=>{if(type!==tile.dataset.exercise)$('count-'+type).value=0});total=0}
-  if(value>Number(field.value)&&total>=MAX_GENERATOR_ACTIVITIES){$('workshopStatus').textContent='Puedes elegir hasta 3 actividades. Quita una para añadir otra.';return}
+  if(value>Number(field.value)&&total>=MAX_GENERATOR_ACTIVITIES){$('workshopStatus').textContent='Solo puedes crear una actividad por material.';return}
   field.value=Math.max(0,Math.min(MAX_GENERATOR_ACTIVITIES,value));refresh();form.dispatchEvent(new Event('workshop:refresh'));
  };
  form.querySelectorAll('[data-exercise]').forEach(tile=>{
@@ -544,7 +544,7 @@ function setupEditorNavigation(material){
 }
 let workshopBusy=false;
 let generatorRetry=null;
-const MAX_GENERATOR_ACTIVITIES=3;
+const MAX_GENERATOR_ACTIVITIES=1;
 const MAX_GENERATOR_TYPES=1;
 const activityLabels={pairs:'Relacionar',gaps:'Completar',multigaps:'Texto con huecos',numeric:'Respuesta numérica',quiz:'Elegir respuesta',short:'Respuesta breve',order:'Ordenar',classify:'Clasificar',boolean:'Verdadero / Falso',reading:'Comprensión',problem:'Problemas',flashcard:'Flashcards',memory:'Memory',sentence:'Construye la frase',timeline:'Línea temporal',error:'Encuentra el error',wordsearch:'Sopa de letras',crossword:'Crucigrama',dragdrop:'Arrastrar y soltar',pasapalabra:'Pasapalabra',hangman:'Ahorcado',visualquiz:'Quiz visual',imagepoint:'Señalar imagen'};
 const activityDescriptions={pairs:'Une conceptos y respuestas',gaps:'Completa una palabra',multigaps:'Completa varias partes del texto',numeric:'Calcula y escribe el resultado',quiz:'Elige entre varias opciones',short:'Responde de forma breve',order:'Coloca los pasos en orden',classify:'Elige la categoría correcta',boolean:'Decide si es verdadero o falso',reading:'Lee, comprende y responde',problem:'Razona paso a paso',flashcard:'Repasa y autoevalúate',memory:'Encuentra las parejas',sentence:'Ordena los fragmentos',timeline:'Ordena hechos y fechas',error:'Detecta y corrige el fallo',wordsearch:'Encuentra las palabras',crossword:'Resuelve mediante pistas',dragdrop:'Lleva cada pieza a su lugar',pasapalabra:'Completa la rueda de letras',hangman:'Descubre la palabra oculta',visualquiz:'Responde mirando la imagen',imagepoint:'Señala la zona correcta'};

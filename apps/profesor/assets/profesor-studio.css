@@ -51,12 +51,14 @@ dialog.studio-renewed .exercise-tile[aria-pressed="true"]{background:#eef7ff;bor
 dialog.studio-renewed .exercise-tile[aria-pressed="true"] .tile-check{background:#0874ff;border-color:#0874ff;font-size:12px}
 dialog.studio-renewed .exercise-tile .tile-check{left:auto;bottom:auto;transform:none}
 dialog.studio-renewed .exercise-tile[aria-pressed="true"] .tile-check{position:absolute;left:auto;right:12px;top:12px;bottom:auto;transform:none}
-dialog.studio-renewed .exercise-tile .tile-quantity{position:static;display:none;align-items:center;gap:12px;margin:0;height:24px;min-height:24px;padding:0;border:0;background:transparent;transform:none}
+dialog.studio-renewed .exercise-tile .tile-quantity{position:static;display:none;align-items:center;justify-content:center;gap:6px;margin:0;height:24px;min-height:24px;padding:0;border:0;background:transparent;transform:none}
 dialog.studio-renewed .exercise-tile[aria-pressed="true"] .tile-quantity{display:flex}
 dialog.studio-renewed .exercise-tile[aria-pressed="true"]{gap:4px;padding-top:7px;padding-bottom:7px}
 dialog.studio-renewed .exercise-tile[aria-pressed="true"]>small{display:none}
 dialog.studio-renewed .tile-quantity>[data-step]{display:grid;place-items:center;width:26px;height:24px;border:1px solid #c4ddfa;border-radius:6px;background:#fff;color:#066bed;font-size:17px;line-height:1;cursor:pointer}
 dialog.studio-renewed .tile-quantity>output{min-width:16px;color:#164878;font-size:13px;font-weight:700}
+dialog.studio-renewed .tile-quantity>.tile-unit{color:#526f95;font-size:10px;font-weight:600;white-space:nowrap}
+dialog.studio-renewed .tile-quantity.fixed-size>[data-step]{display:none}
 dialog.studio-renewed .tile-quantity>[aria-disabled="true"]{opacity:.45}
 dialog.studio-renewed #workshopStatus:empty{display:none}
 dialog.studio-renewed #workshopStatus{margin:0;color:#64779a;font-size:12px}

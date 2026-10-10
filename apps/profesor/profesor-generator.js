@@ -3,33 +3,49 @@
  const bundleTypes=new Set(['pairs','gaps','quiz','short','classify','boolean','reading','problem','flashcard','error','numeric','hangman']);
  const limits={multigaps:20,pasapalabra:27,crossword:7,wordsearch:8,memory:8,dragdrop:8,order:8,sentence:8,timeline:8};
  const defaults={pasapalabra:18,multigaps:10,reading:4,problem:3,hangman:3};
- const elementLabel=type=>type==='pasapalabra'?'Letras por rosco':type==='multigaps'?'Huecos por texto':['memory','dragdrop'].includes(type)?'Parejas por tablero':['wordsearch','crossword'].includes(type)?'Palabras por juego':sequenceTypes.includes(type)?'Elementos por secuencia':type==='flashcard'?'Tarjetas por actividad':'Preguntas por actividad';
+ const unitLabels={pairs:'parejas',gaps:'frases',multigaps:'huecos',numeric:'preguntas',quiz:'preguntas',short:'preguntas',order:'elementos',classify:'elementos',boolean:'preguntas',reading:'preguntas',problem:'problemas',flashcard:'tarjetas',memory:'parejas',sentence:'fragmentos',timeline:'eventos',error:'frases',wordsearch:'palabras',crossword:'palabras',dragdrop:'parejas',pasapalabra:'letras',hangman:'palabras',visualquiz:'imagen',imagepoint:'imagen'};
+ const minSize=type=>['pasapalabra','wordsearch','crossword','dragdrop'].includes(type)?3:2;
+ const maxSize=type=>limits[type]||12;
  const originalMarkup=workshopMarkup;
  workshopMarkup=function(owner,draft,st){
-  return originalMarkup(owner,draft,st).replace('<div class="catalog-board">',`<section class="generator-brief"><label for="workshopInstructions">Describe el material que necesitas</label><textarea id="workshopInstructions" name="instructions" maxlength="3000" rows="2" placeholder="Por ejemplo: un relato con huecos para practicar imperfecto y pretérito perfecto simple, con vocabulario A2.">${esc(draft.instructions||'')}</textarea><div id="generatorSizes" class="generator-sizes" aria-label="Contenido de cada actividad"></div></section><div class="catalog-board">`);
+  return originalMarkup(owner,draft,st).replace('<div class="catalog-board">',`<section class="generator-brief"><label for="workshopInstructions">Describe el material que necesitas</label><textarea id="workshopInstructions" name="instructions" maxlength="3000" rows="2" placeholder="Por ejemplo: un relato con huecos para practicar imperfecto y pretérito perfecto simple, con vocabulario A2.">${esc(draft.instructions||'')}</textarea></section><div class="catalog-board">`);
  };
  const originalSetup=setupWorkshop;
  setupWorkshop=function(owner,draft,st){
   originalSetup(owner,draft,st);
   const form=$('form'),controller=new AbortController();
   const sizes={...(draft.activitySizes||{})};
+  for(const type of Object.keys(activityLabels)){
+   const input=document.createElement('input');
+   input.type='hidden';input.name=input.id='size-'+type;
+   input.value=String(visualTypes.includes(type)?1:Math.max(minSize(type),Math.min(maxSize(type),Number(sizes[type])||defaults[type]||6)));
+   form.querySelector('.studio-counts').append(input);
+   const tile=form.querySelector(`[data-exercise="${type}"]`),quantity=tile.querySelector('.tile-quantity');
+   const unit=document.createElement('span');unit.className='tile-unit';unit.textContent=unitLabels[type];
+   quantity.setAttribute('aria-label',`Número de ${unitLabels[type]} de ${activityLabels[type]}`);
+   quantity.querySelector('output').after(unit);
+   tile.querySelectorAll('[data-step]').forEach(control=>{
+    control.setAttribute('aria-label',`${control.dataset.step==='1'?'Añadir':'Quitar'} ${unitLabels[type]} de ${activityLabels[type]}`);
+    const change=event=>{event.stopPropagation();event.preventDefault();if(tile.disabled||workshopBusy||Number($('count-'+type).value)!==1||visualTypes.includes(type))return;input.value=String(Math.max(minSize(type),Math.min(maxSize(type),Number(input.value)+Number(control.dataset.step))));refreshSizes()};
+    control.onclick=change;
+    control.onkeydown=event=>{if(event.key==='Enter'||event.key===' ')change(event)};
+   });
+  }
   function refreshSizes(){
    const selectedTypes=Object.keys(activityLabels).filter(type=>Number($('count-'+type).value)>0);
-   const selected=selectedTypes.filter(type=>!visualTypes.includes(type));
-   const root=$('generatorSizes');
-   if(root.dataset.selection!==selected.join('|')){
-    root.dataset.selection=selected.join('|');
-    root.innerHTML=selected.map(type=>`<label>${esc(activityLabels[type])}<span>${elementLabel(type)}</span><input name="size-${type}" id="size-${type}" type="number" min="${type==='pasapalabra'||['crossword','wordsearch','dragdrop'].includes(type)?3:2}" max="${limits[type]||12}" value="${sizes[type]||defaults[type]||6}"></label>`).join('');
-    root.querySelectorAll('input').forEach(input=>input.addEventListener('input',()=>{sizes[input.id.slice(5)]=Number(input.value);refreshSizes()},{signal:controller.signal}));
+   for(const type of Object.keys(activityLabels)){
+    const tile=form.querySelector(`[data-exercise="${type}"]`),selected=selectedTypes.includes(type),size=Number($('size-'+type).value);
+    tile.querySelector('output').textContent=selected?String(size):'0';
+    tile.querySelectorAll('[data-step]').forEach(control=>control.setAttribute('aria-disabled',String(!selected||visualTypes.includes(type)||size<=(control.dataset.step==='-1'?minSize(type):0)||control.dataset.step==='1'&&size>=maxSize(type))));
+    tile.querySelector('.tile-quantity').classList.toggle('fixed-size',visualTypes.includes(type));
    }
-   let activities=0,questions=0,photos=0;
-   for(const type of Object.keys(activityLabels)){const n=Number($('count-'+type).value)||0;activities+=n;if(visualTypes.includes(type))photos+=n;questions+=n*(bundleTypes.has(type)?Number($('size-'+type)?.value||defaults[type]||6):1)}
-   $('workshopSelection').textContent=selectedTypes.length===1?`${esc(activityLabels[selectedTypes[0]])} · ${activities} ${activities===1?'actividad':'actividades'} · ${questions} preguntas o tableros${questions>80?' · Máximo 80':''}`:'Selecciona un único tipo de actividad';
-   const invalid=workshopBusy||selectedTypes.length!==MAX_GENERATOR_TYPES||activities<1||activities>MAX_GENERATOR_ACTIVITIES||questions>80;
-   $('workshopSelection').classList.toggle('error',selectedTypes.length>MAX_GENERATOR_TYPES||activities>MAX_GENERATOR_ACTIVITIES||questions>80);
-   $('workshopManual').disabled=invalid;$('workshopContinue').disabled=invalid||photos===activities;
+   const type=selectedTypes[0],size=type?Number($('size-'+type).value):0;
+   $('workshopSelection').textContent=selectedTypes.length===1?`Una actividad de ${activityLabels[type]} · ${size} ${unitLabels[type]}`:'Selecciona una actividad';
+   const invalid=workshopBusy||selectedTypes.length!==1||size<1;
+   $('workshopSelection').classList.toggle('error',selectedTypes.length>1);
+   $('workshopManual').disabled=invalid;$('workshopContinue').disabled=invalid||type&&visualTypes.includes(type);
   }
-  form.addEventListener('click',()=>setTimeout(()=>{if(!controller.signal.aborted&&form.isConnected&&$('dialog').open&&$('form')===form&&$('generatorSizes'))refreshSizes()},0),{signal:controller.signal,capture:true});
+  form.addEventListener('click',()=>setTimeout(()=>{if(!controller.signal.aborted&&form.isConnected&&$('dialog').open&&$('form')===form)refreshSizes()},0),{signal:controller.signal,capture:true});
   form.addEventListener('change',()=>queueMicrotask(refreshSizes),{signal:controller.signal});
   form.addEventListener('workshop:refresh',refreshSizes,{signal:controller.signal});
   $('dialog').addEventListener('close',()=>controller.abort(),{once:true});refreshSizes();
