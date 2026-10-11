@@ -718,6 +718,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-temario.css")
 @router.get("/assets/profesor-activity-play.css")
 @router.get("/assets/profesor-game-theme.css")
+@router.get("/assets/profesor-pasapalabra-theme.css")
 @router.get("/assets/profesor-generator.css")
 @router.get("/assets/profesor-access.css")
 @router.get("/assets/profesor-live.css")
@@ -735,6 +736,7 @@ def profesor_final_styles(request: Request):
 @router.get("/assets/games/{filename}")
 def profesor_game_illustration(filename: str):
     base_files = {
+        "pasapalabra-stage.png",
         "basic-boolean.webp",
         "basic-classify.webp",
         "basic-gaps.webp",
@@ -758,7 +760,7 @@ def profesor_game_illustration(filename: str):
         "uploaded-material.webp",
         "wordsearch.webp",
     }
-    allowed = base_files | {f"mature-{name}" for name in base_files if name != "uploaded-material.webp"}
+    allowed = base_files | {f"mature-{name}" for name in base_files if name not in {"uploaded-material.webp", "pasapalabra-stage.png"}}
     if filename not in allowed:
         raise HTTPException(status_code=404, detail="Ilustración de actividad no encontrada.")
     local_path = PROJECT_ROOT / "apps" / "profesor" / "assets" / "games" / filename
@@ -766,7 +768,7 @@ def profesor_game_illustration(filename: str):
     path = local_path if local_path.exists() else static_path
     if not path.exists():
         raise HTTPException(status_code=404, detail="Ilustración de actividad no encontrada.")
-    return FileResponse(path, media_type="image/webp", headers={"Cache-Control": "public, max-age=86400"})
+    return FileResponse(path, media_type="image/png" if filename.endswith(".png") else "image/webp", headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/assets/vendor/katex/{filename:path}")
