@@ -217,13 +217,39 @@
     }
     if (question.type === 'pasapalabra') {
       const root = $('puzzle-' + index), answer = $('r-' + index), rows = puzzleRows('pasapalabra', question.options);
+      const alphabet = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('');
+      const rowForSlot = alphabet.map(letter => rows.findIndex(([rowLetter]) => letterKey(rowLetter) === letter));
       const values = Array(rows.length).fill('');
       const outcomes=Array(rows.length).fill(null);
       let active = 0, focusInput = false;
       const passed = new Set();
+      const fitClue = () => {
+        const clue = root.querySelector('.pasapalabra-card>p');
+        if (!clue) return;
+        clue.style.fontSize = '';
+        let clueSize = parseFloat(getComputedStyle(clue).fontSize);
+        while (clue.scrollHeight > clue.clientHeight + 1 && clueSize > 8) {
+          clueSize -= .5;
+          clue.style.fontSize = `${clueSize}px`;
+        }
+      };
       const draw = () => {
         const completed = values.filter(Boolean).length;
-        root.innerHTML = `<div class="rosco-layout"><div class="pasapalabra-wheel" aria-label="Rosco de Pasapalabra">${rows.map(([letter],position)=>{const angle=position/rows.length*Math.PI*2-Math.PI/2;const status=outcomes[position]===true?'correct':outcomes[position]===false?'incorrect':passed.has(position)?'passed':'';return `<button type="button" style="--x:${50+43*Math.cos(angle)}%;--y:${50+43*Math.sin(angle)}%" class="${position===active?'active':''} ${status}" data-letter="${position}" aria-label="Letra ${escape(letter)}: ${outcomes[position]===true?'correcta':outcomes[position]===false?'incorrecta':passed.has(position)?'pasada':'pendiente'}">${escape(letter)}${outcomes[position]!==null?`<small>${outcomes[position]?'✓':'×'}</small>`:''}</button>`}).join('')}</div><div class="pasapalabra-card"><span>${letterKey(rows[active][2]).startsWith(letterKey(rows[active][0]))?'Con la':'Contiene la'} ${escape(rows[active][0])}:</span><p>${rich(rows[active][1])}</p><label>Tu respuesta<input id="pasapalabra-input-${index}" value="${escape(values[active])}" autocomplete="off" maxlength="60" aria-label="Respuesta para la letra ${escape(rows[active][0])}"></label><button type="button" class="primary" data-answer>Comprobar</button>${completed===rows.length&&outcomes.some(v=>v===false)?'<button type="button" data-review-rosco>Volver a los fallos</button>':''}</div></div><div class="pasapalabra-controls"><button type="button" data-prev aria-label="Letra anterior">‹ <span>Anterior</span></button><button type="button" data-pass>↠ <span>Pasar</span></button><button type="button" data-next>› <span>Siguiente</span></button></div><p class="play-progress" role="status"><span>${outcomes.filter(v=>v===true).length} correctas · ${outcomes.filter(v=>v===false).length} incorrectas · ${rows.length-completed} pendientes</span><strong>${active+1} / ${rows.length}</strong></p>`;
+        const slots = alphabet.map((letter, slot) => {
+          const angle = slot / alphabet.length * Math.PI * 2 - Math.PI / 2;
+          const style = `--x:${50 + 45 * Math.cos(angle)}%;--y:${50 + 45 * Math.sin(angle)}%`;
+          const position = rowForSlot[slot];
+          if (position < 0) return `<button type="button" style="${style}" class="empty" data-slot="${slot}" aria-label="Letra ${letter} sin actividad" disabled></button>`;
+          const status = outcomes[position] === true ? 'correct' : outcomes[position] === false ? 'incorrect' : passed.has(position) ? 'passed' : '';
+          const state = outcomes[position] === true ? 'correcta' : outcomes[position] === false ? 'incorrecta' : passed.has(position) ? 'pasada' : 'pendiente';
+          return `<button type="button" style="${style}" class="${position === active ? 'active' : ''} ${status}" data-slot="${slot}" data-letter="${position}" aria-label="Letra ${letter}: ${state}">${letter}${outcomes[position] !== null ? `<small>${outcomes[position] ? '✓' : '×'}</small>` : ''}</button>`;
+        }).join('');
+        const clueLength = String(rows[active][1] || '').length;
+        root.innerHTML = `<div class="rosco-layout"><div class="pasapalabra-wheel" aria-label="Rosco de Pasapalabra">${slots}</div><div class="pasapalabra-card ${clueLength > 145 ? 'very-long-clue' : clueLength > 85 ? 'long-clue' : ''}"><span>${letterKey(rows[active][2]).startsWith(letterKey(rows[active][0])) ? 'Con la' : 'Contiene la'} ${escape(rows[active][0])}:</span><p>${rich(rows[active][1])}</p><label>Tu respuesta<input id="pasapalabra-input-${index}" value="${escape(values[active])}" autocomplete="off" maxlength="60" aria-label="Respuesta para la letra ${escape(rows[active][0])}"></label><button type="button" class="primary" data-answer>Comprobar</button>${completed === rows.length && outcomes.some(v => v === false) ? '<button type="button" data-review-rosco>Volver a los fallos</button>' : ''}</div></div><div class="pasapalabra-controls"><button type="button" data-prev aria-label="Letra anterior">‹ <span>Anterior</span></button><button type="button" data-pass>↠ <span>Pasar</span></button><button type="button" data-next>› <span>Siguiente</span></button></div>`;
+        fitClue();
+        const score = $('pasapalabra-score-' + index), position = $('pasapalabra-position-' + index);
+        if (score) score.textContent = `${outcomes.filter(v => v === true).length} correctas · ${outcomes.filter(v => v === false).length} incorrectas · ${rows.length - completed} pendientes`;
+        if (position) position.textContent = `${active + 1} / ${rows.length}`;
         root.querySelectorAll('[data-letter]').forEach(button => button.onclick = () => { if (!isChecked()) { active = Number(button.dataset.letter); draw(); } });
         const input = root.querySelector(`#pasapalabra-input-${index}`);
         input.onkeydown = event => { if (event.key === 'Enter') { event.preventDefault(); saveAnswer(); } };
@@ -246,10 +272,11 @@
         active = next >= 0 ? next : Math.max(0, values.findIndex(value => !value));
         const complete = values.every(Boolean), correct = complete && outcomes.every(Boolean);
         answer.value = values.join(' | ');
-        report(index, { complete, correct, answer: answer.value, review: () => root.querySelectorAll('[data-letter]').forEach((button, n) => { const right = accepts(values[n], rows[n][2]); button.classList.remove('correct','incorrect');button.classList.add(right ? 'correct' : 'incorrect'); button.setAttribute('aria-label', `${rows[n][0]}: ${right ? 'correcta' : 'incorrecta'}`);button.querySelector('small')?.remove();button.innerHTML += `<small>${right ? '✓' : '×'}</small>`; }) });
+        report(index, { complete, correct, answer: answer.value, review: () => root.querySelectorAll('[data-letter]').forEach(button => { const n = Number(button.dataset.letter), right = accepts(values[n], rows[n][2]); button.classList.remove('correct','incorrect');button.classList.add(right ? 'correct' : 'incorrect'); button.setAttribute('aria-label', `${rows[n][0]}: ${right ? 'correcta' : 'incorrecta'}`);button.querySelector('small')?.remove();button.innerHTML += `<small>${right ? '✓' : '×'}</small>`; }) });
         draw();
       };
       draw();
+      if (typeof ResizeObserver !== 'undefined') new ResizeObserver(fitClue).observe(root);
       return;
     }
     if (question.type === 'wordsearch') {
@@ -532,7 +559,7 @@
       control = choiceMarkup(question, index, options);
     }
     const review = openAnswerTypes.includes(type) && type !== 'flashcard' ? `<div id="review-${index}" hidden><label for="grade-${index}">Valoración del profesor</label><select id="grade-${index}"><option value="pending">Pendiente de revisar</option><option value="correct">Correcta</option><option value="incorrect">Necesita revisión</option><option value="partial">Parcialmente correcta</option></select></div>` : '';
-    return `<section class="block play-question" data-type="${type}" data-tone="${materialTone(type)}" data-question="${index}"><div class="play-question-top"><span class="play-number">${String(index + 1).padStart(2, '0')}</span><span class="play-kind">${escape(activityLabels[type])}</span>${['flashcard','memory','sentence','timeline','error','wordsearch','crossword','dragdrop','pasapalabra','hangman'].includes(type) ? `<div class="game-timer"><button type="button" data-timer="${index}" aria-label="Iniciar cronómetro opcional">Cronómetro</button><output id="timer-${index}" aria-label="Tiempo de práctica">00:00</output></div>` : ''}</div>${heading}<div class="question-workspace">${type === 'reading' ? `<div class="reading-passage prewrap" tabindex="0">${escape(question.text)}<button type="button" data-highlight="${index}">Subrayar selección</button></div>` : ''}<div class="question-controls">${image}${type === 'visualquiz' ? `<button type="button" data-zoom="${index}">Ampliar imagen</button>` : ''}${control}</div></div>${question.hints?.length ? `<div class="play-hints"><button type="button" data-hint="${index}">Necesito una pista</button><ol id="hints-${index}"></ol></div>` : ''}<p id="feedback-${index}" class="play-feedback prewrap" role="status"></p>${review}</section>`;
+    return `<section class="block play-question" data-type="${type}" data-tone="${materialTone(type)}" data-question="${index}"><div class="play-question-top"><span class="play-number">${String(index + 1).padStart(2, '0')}</span><span class="play-kind">${escape(activityLabels[type])}</span>${['flashcard','memory','sentence','timeline','error','wordsearch','crossword','dragdrop','pasapalabra','hangman'].includes(type) ? `<div class="game-timer"><button type="button" data-timer="${index}" aria-label="Iniciar cronómetro opcional">Cronómetro</button><output id="timer-${index}" aria-label="Tiempo de práctica">00:00</output></div>` : ''}</div>${heading}<div class="question-workspace">${type === 'reading' ? `<div class="reading-passage prewrap" tabindex="0">${escape(question.text)}<button type="button" data-highlight="${index}">Subrayar selección</button></div>` : ''}<div class="question-controls">${image}${type === 'visualquiz' ? `<button type="button" data-zoom="${index}">Ampliar imagen</button>` : ''}${control}</div></div>${type === 'pasapalabra' ? `<div class="pasapalabra-meta" role="status"><span id="pasapalabra-score-${index}"></span><span class="pasapalabra-meta-actions"></span><strong id="pasapalabra-position-${index}"></strong></div>` : ''}${question.hints?.length ? `<div class="play-hints"><button type="button" data-hint="${index}">Necesito una pista</button><ol id="hints-${index}"></ol></div>` : ''}<p id="feedback-${index}" class="play-feedback prewrap" role="status"></p>${review}</section>`;
   }
 
   function mountHangman(question, index, isChecked) {
@@ -766,7 +793,7 @@
         const check=document.createElement('button');check.type='button';check.dataset.checkQuestion=index;check.textContent=openAnswerTypes.includes(q.type)&&q.type!=='error'&&!objectiveShort(q)?'Guardar respuesta':'Comprobar';
         check.onclick=()=>{if(q.type==='multigaps'){section.querySelectorAll('[data-multi-gap]').forEach((input,n)=>{if(input.value.trim()){const right=q.options[n].split('~').some(s=>accepts(input.value,s));markControl(input,right);recordAnswer(index,n,right,input.value.trim());}});}else if(q.type==='error'&&gradeQuestion(index)==='unanswered'){$('feedback-'+index).className='play-feedback is-incorrect';$('feedback-'+index).textContent='Selecciona el error de la oración y escribe su corrección.';}else confirmQuestion(index);};section.querySelector('.question-controls').append(check);
       }
-      const solution=document.createElement('button');solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';solution.onclick=()=>{practice[index].assisted=true;const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):sequenceTypes.includes(q.type)?expectedSequence(q).join(' → '):q.answer;$('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'')+itemReasons(q);};section.append(solution);
+      const solution=document.createElement('button');solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';solution.onclick=()=>{practice[index].assisted=true;const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):sequenceTypes.includes(q.type)?expectedSequence(q).join(' → '):q.answer;$('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'')+itemReasons(q);};(q.type==='pasapalabra'?section.querySelector('.pasapalabra-meta-actions'):section).append(solution);
       if(!puzzleTypes.includes(q.type))section.addEventListener('click',()=>queueMicrotask(()=>{if(section.dataset.result==='incorrect'||section.dataset.result==='pending')solution.hidden=false;}),{signal});
       section.querySelectorAll('input:not([type="radio"]):not([type="hidden"])').forEach(input=>{
         if(q.type==='multigaps'||q.type==='pasapalabra'||q.type==='crossword')return;
