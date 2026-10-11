@@ -717,6 +717,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-studio.css")
 @router.get("/assets/profesor-temario.css")
 @router.get("/assets/profesor-activity-play.css")
+@router.get("/assets/profesor-game-theme.css")
 @router.get("/assets/profesor-generator.css")
 @router.get("/assets/profesor-access.css")
 @router.get("/assets/profesor-live.css")
