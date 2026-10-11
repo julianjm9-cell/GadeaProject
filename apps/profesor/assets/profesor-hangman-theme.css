@@ -1,0 +1,122 @@
+/* The supplied image is an empty stage. All clues, letters and controls stay live HTML. */
+.activity-play:has(.play-question[data-type="hangman"]:not([hidden])){
+  width:min(1500px,96vw);max-width:1500px;height:min(94dvh,900px);max-height:94dvh;
+  padding:18px 22px 14px;border:1px solid #b8dcff;border-radius:24px;
+  background:#86bdfa url('./games/hangman-stage.png') center/cover no-repeat;
+  box-shadow:0 28px 80px #073b8d5c;color:#091f55;overflow:hidden;
+}
+.activity-play:has(.play-question[data-type="hangman"]:not([hidden])) #form{flex:1;min-height:0;gap:0}
+.activity-play:has(.play-question[data-type="hangman"]:not([hidden])) .play-content{flex:1;min-height:0;gap:0;padding:0;overflow:auto}
+.activity-play:has(.play-question[data-type="hangman"]:not([hidden])) .play-footer{flex:none;border:0;padding:4px 0 0;background:transparent}
+.activity-play:has(.play-question[data-type="hangman"]:not([hidden])) .play-footer .actions{align-items:center}
+.activity-play:has(.play-question[data-type="hangman"]:not([hidden])) .play-footer [type="submit"]{min-width:150px;background:#0869ed;border-color:#0869ed;color:#fff}
+.activity-play:has(.play-question[data-type="hangman"]:not([hidden]))>.row .close{background:#fffffff0}
+.activity-play .play-question[data-type="hangman"]{
+  display:flex;flex-direction:column;flex:1;min-height:100%;margin:0;padding:0!important;
+  border:0!important;border-radius:0;background:none!important;box-shadow:none!important;overflow:visible;
+}
+.activity-play .play-question[data-type="hangman"]::before,.activity-play .play-question[data-type="hangman"]::after{display:none}
+.activity-play .play-question[data-type="hangman"] .play-question-top{position:relative;display:flex;justify-content:center;min-height:37px;margin:0 0 12px;padding:0 105px}
+.activity-play .play-question[data-type="hangman"] .play-number{position:absolute;left:0;top:3px;background:#fff;border-color:#9fd2ff;color:#0957bd}
+.activity-play .play-question[data-type="hangman"] .play-kind{justify-content:center;min-width:175px;border:0;border-radius:999px;background:#c4e1ffb8;color:#082966;font-size:14px;font-weight:900;letter-spacing:.01em}
+.activity-play .play-question[data-type="hangman"] .game-timer{position:absolute;right:45px;top:1px;background:#ffffffec;border-color:#9fd2ff}
+.activity-play [data-type="hangman"] .question-workspace,.activity-play [data-type="hangman"] .question-controls{display:flex;flex-direction:column;flex:1;min-height:0}
+.activity-play [data-type="hangman"] .hangman-game{display:flex;flex-direction:column;justify-content:center;flex:1;min-height:0;width:100%;max-width:none;margin:0;padding:0;border:0;background:none;box-shadow:none}
+.activity-play [data-type="hangman"] .hangman-game:focus{outline:none}
+.activity-play [data-type="hangman"] .hangman-game:focus-visible .hangman-board{outline:3px solid #3085e3;outline-offset:3px}
+.activity-play [data-type="hangman"] .hangman-board{
+  display:grid;grid-template-rows:auto auto auto;align-content:center;gap:12px;flex:none;min-height:0;
+  width:min(100%,1250px);box-sizing:border-box;margin:0 auto;padding:20px 25px 12px;
+  border:1px solid #ffffffdb;border-radius:24px;background:#ffffffeb;
+  box-shadow:0 18px 45px #145aab31,inset 0 1px #fff;
+}
+.activity-play [data-type="hangman"] .hangman-main-row{display:grid;grid-template-columns:minmax(145px,235px) minmax(0,1fr) minmax(135px,175px);align-items:center;gap:20px;min-height:0}
+.activity-play [data-type="hangman"] .hangman-figure{display:grid;place-items:center;min-height:0;padding:8px;background:transparent;color:#193967}
+.activity-play [data-type="hangman"] .hangman-figure svg{width:min(100%,230px);max-width:none;height:clamp(170px,24dvh,245px);min-height:0;filter:drop-shadow(0 6px 5px #24599738)}
+.activity-play [data-type="hangman"] .hangman-center{display:grid;grid-template-rows:auto auto;align-content:center;min-width:0;min-height:0;gap:10px}
+.activity-play [data-type="hangman"] .hangman-clue{display:flex;align-items:center;gap:15px;min-width:0;min-height:110px;padding:14px 18px;border:1px solid #cfe3fb;border-radius:17px;background:linear-gradient(145deg,#f5faff,#e5f2ff);box-shadow:0 5px 15px #1a5ca71a}
+.activity-play [data-type="hangman"] .hangman-clue-mark{display:grid;place-items:center;flex:none;width:52px;height:52px;border-radius:50%;background:#fff;color:#0c6fe9;font-size:27px;box-shadow:0 4px 10px #1c64ad25}
+.activity-play [data-type="hangman"] .hangman-clue>div{min-width:0}
+.activity-play [data-type="hangman"] .hangman-clue strong{display:block;color:#0869ed;font-size:16px}
+.activity-play [data-type="hangman"] .hangman-clue p{margin:3px 0 0;color:#0c285c;font-size:clamp(14px,1.35vw,20px);font-weight:750;line-height:1.35;overflow-wrap:anywhere}
+.activity-play [data-type="hangman"] .hangman-word-panel{display:grid;place-items:center;min-height:100px;padding:12px;border:1px solid #d2e5fb;border-radius:16px;background:#eaf5ff}
+.activity-play [data-type="hangman"] .hangman-word{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:5px;width:100%;margin:0;color:#10295c;font-family:inherit;font-size:clamp(18px,2vw,27px);letter-spacing:0}
+.activity-play [data-type="hangman"] .hangman-word-group{display:inline-flex;flex-wrap:wrap;justify-content:center;max-width:100%;gap:5px}
+.activity-play [data-type="hangman"] .hangman-word .letter-slot{display:grid;place-items:center;box-sizing:border-box;min-width:clamp(21px,2.5vw,34px);min-height:39px;padding:2px;border-bottom:3px solid #113b79;font-size:inherit;font-weight:900}
+.activity-play [data-type="hangman"] .hangman-word.long-word{gap:3px;font-size:clamp(15px,1.7vw,22px)}
+.activity-play [data-type="hangman"] .hangman-word.long-word .hangman-word-group{gap:3px}
+.activity-play [data-type="hangman"] .hangman-word.long-word .letter-slot{min-width:clamp(18px,2vw,26px);min-height:31px}
+.activity-play [data-type="hangman"] .hangman-word.very-long-word{gap:2px;font-size:clamp(13px,1.4vw,19px)}
+.activity-play [data-type="hangman"] .hangman-word.very-long-word .hangman-word-group{gap:2px}
+.activity-play [data-type="hangman"] .hangman-word.very-long-word .letter-slot{min-width:clamp(15px,1.6vw,22px);min-height:27px}
+.activity-play [data-type="hangman"] .hangman-word .word-gap{width:12px}
+.activity-play [data-type="hangman"] .hangman-attempts{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;align-self:center;min-height:150px;padding:12px;border:1px solid #cfe3fb;border-radius:16px;background:#eef7ff;color:#0a2d67;text-align:center}
+.activity-play [data-type="hangman"] .hangman-attempts strong{font-size:15px;line-height:1.2}
+.activity-play [data-type="hangman"] .hangman-hearts{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;width:100%;color:#0873ef;font-size:31px;line-height:1}
+.activity-play [data-type="hangman"] .hangman-hearts .lost{color:#b4c3d7}
+.activity-play [data-type="hangman"] .hangman-attempts small{font-size:11px;font-weight:750}
+.activity-play [data-type="hangman"] .hangman-keyboard{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px;width:min(100%,730px);margin:0 auto}
+.activity-play [data-type="hangman"] .hangman-keyboard button{width:100%;height:39px;min-height:39px;padding:0;border:1px solid #a9ccf8;border-radius:10px;background:#fff;color:#0a2c67;font-size:17px;font-weight:850;box-shadow:0 3px 8px #1c63b01f}
+.activity-play [data-type="hangman"] .hangman-keyboard button:not(:disabled):hover{border-color:#1477ee;background:#e8f3ff;transform:translateY(-1px)}
+.activity-play [data-type="hangman"] .hangman-keyboard button.answer-right:disabled{border-color:#6acb9a;background:#dcf8e9;color:#126f4c;opacity:1}
+.activity-play [data-type="hangman"] .hangman-keyboard button.answer-wrong:disabled{border-color:#cbd4df;background:#d9e0eb;color:#72849e;opacity:1}
+.activity-play [data-type="hangman"] .hangman-keyboard button:focus-visible,.activity-play [data-type="hangman"] [data-hangman-reset]:focus-visible{outline:3px solid #1375ec;outline-offset:2px}
+.activity-play [data-type="hangman"] .hangman-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:31px}
+.activity-play [data-type="hangman"] .hangman-status{margin:0;color:#315b91;font-size:12px;font-weight:750}
+.activity-play [data-type="hangman"] [data-hangman-reset]{min-height:31px;padding:4px 12px;border:1px solid #77b4ff;border-radius:9px;background:#fff;color:#0869e4;font-size:12px;font-weight:750}
+.activity-play [data-type="hangman"] [data-hangman-reset]:disabled{opacity:.55}
+.activity-play [data-type="hangman"] .play-feedback:not(:empty){max-width:850px;margin:6px auto;padding:7px 11px;font-size:11px}
+@media(max-width:900px){
+  .activity-play [data-type="hangman"] .hangman-board{padding:14px;gap:8px}
+  .activity-play [data-type="hangman"] .hangman-main-row{grid-template-columns:minmax(115px,175px) minmax(0,1fr) minmax(110px,145px);gap:10px}
+  .activity-play [data-type="hangman"] .hangman-figure svg{min-height:140px}
+  .activity-play [data-type="hangman"] .hangman-clue{padding:10px;gap:8px}
+  .activity-play [data-type="hangman"] .hangman-clue-mark{width:38px;height:38px;font-size:21px}
+  .activity-play [data-type="hangman"] .hangman-attempts{padding:8px}
+  .activity-play [data-type="hangman"] .hangman-attempts strong{font-size:12px}
+  .activity-play [data-type="hangman"] .hangman-hearts{font-size:25px}
+}
+@media(max-width:700px){
+  .activity-play:has(.play-question[data-type="hangman"]:not([hidden])){width:98vw;height:95dvh;padding:9px 8px 7px;border-radius:15px}
+  .activity-play .play-question[data-type="hangman"] .play-question-top{min-height:82px;margin-bottom:5px;padding:0 65px}
+  .activity-play .play-question[data-type="hangman"] .play-kind{min-width:110px;min-height:25px;padding:4px 7px;font-size:10px}
+  .activity-play .play-question[data-type="hangman"] .play-number{width:24px;height:24px;font-size:10px}
+  .activity-play .play-question[data-type="hangman"] .game-timer{right:28px;top:55px;padding:2px 4px}
+  .activity-play .play-question[data-type="hangman"] .game-timer button{padding:2px 5px;font-size:9px}
+  .activity-play .play-question[data-type="hangman"] .game-timer output{min-width:30px;font-size:9px}
+  .activity-play [data-type="hangman"] .hangman-board{min-height:0;padding:9px;gap:7px;border-radius:16px}
+  .activity-play [data-type="hangman"] .hangman-main-row{grid-template-columns:minmax(0,1fr) 105px;gap:7px;align-items:start}
+  .activity-play [data-type="hangman"] .hangman-figure{grid-column:1;grid-row:1;min-height:105px;padding:0}
+  .activity-play [data-type="hangman"] .hangman-figure svg{width:auto;height:105px;min-height:0}
+  .activity-play [data-type="hangman"] .hangman-attempts{grid-column:2;grid-row:1;min-height:95px;gap:3px}
+  .activity-play [data-type="hangman"] .hangman-attempts strong{font-size:10px}
+  .activity-play [data-type="hangman"] .hangman-hearts{gap:1px;font-size:17px}
+  .activity-play [data-type="hangman"] .hangman-attempts small{font-size:9px}
+  .activity-play [data-type="hangman"] .hangman-center{grid-column:1/-1;grid-row:2;gap:6px}
+  .activity-play [data-type="hangman"] .hangman-clue{min-height:56px;padding:8px 10px}
+  .activity-play [data-type="hangman"] .hangman-clue-mark{width:30px;height:30px;font-size:18px}
+  .activity-play [data-type="hangman"] .hangman-clue strong{font-size:11px}
+  .activity-play [data-type="hangman"] .hangman-clue p{font-size:12px;line-height:1.25}
+  .activity-play [data-type="hangman"] .hangman-word-panel{min-height:53px;padding:5px}
+  .activity-play [data-type="hangman"] .hangman-word{font-size:18px;gap:3px}
+  .activity-play [data-type="hangman"] .hangman-word-group{gap:3px}
+  .activity-play [data-type="hangman"] .hangman-word .letter-slot{min-width:21px;min-height:29px}
+  .activity-play [data-type="hangman"] .hangman-word.long-word .letter-slot{min-width:17px;min-height:25px}
+  .activity-play [data-type="hangman"] .hangman-word.very-long-word{gap:1px;font-size:clamp(11px,3vw,13px)}
+  .activity-play [data-type="hangman"] .hangman-word.very-long-word .hangman-word-group{gap:1px}
+  .activity-play [data-type="hangman"] .hangman-word.very-long-word .letter-slot{min-width:clamp(10px,2.8vw,12px);min-height:21px;padding:0}
+  .activity-play [data-type="hangman"] .hangman-keyboard{gap:3px}
+  .activity-play [data-type="hangman"] .hangman-keyboard button{height:30px;min-height:30px;border-radius:6px;font-size:12px}
+  .activity-play [data-type="hangman"] .hangman-bottom{min-height:25px;gap:5px}
+  .activity-play [data-type="hangman"] .hangman-status{font-size:9px}
+  .activity-play [data-type="hangman"] [data-hangman-reset]{min-height:25px;padding:3px 7px;font-size:10px}
+}
+@media(max-width:360px), (max-height:680px){
+  .activity-play [data-type="hangman"] .hangman-board{gap:5px;padding:7px}
+  .activity-play [data-type="hangman"] .hangman-figure{min-height:85px}
+  .activity-play [data-type="hangman"] .hangman-figure svg{height:85px}
+  .activity-play [data-type="hangman"] .hangman-attempts{min-height:80px}
+  .activity-play [data-type="hangman"] .hangman-clue{min-height:45px}
+  .activity-play [data-type="hangman"] .hangman-word-panel{min-height:42px}
+  .activity-play [data-type="hangman"] .hangman-keyboard button{height:27px;min-height:27px}
+}
