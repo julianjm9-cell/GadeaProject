@@ -36,14 +36,15 @@
     @media(max-width:380px){.product-nav .nav-chip:nth-of-type(4){display:none}.student-next small{display:none}.material-creator p{display:none}.hero-actions .login{padding-inline:3px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
     .landing{position:relative;gap:clamp(14px,2vw,24px);padding-bottom:20px}
-    .landing-top-actions{position:absolute;z-index:3;top:clamp(18px,2vw,32px);right:clamp(18px,3.2vw,56px);display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+    .landing-top-actions{position:absolute;z-index:3;top:clamp(18px,2vw,32px);left:clamp(18px,3.2vw,56px);display:flex;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap}
     .landing-top-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 14px;border:1px solid #b7d5fa;border-radius:11px;background:#fffffff2;color:#175da9;font-size:13px;font-weight:700;box-shadow:0 7px 18px #2b73c30d}
     .landing-top-actions a:last-child{border-color:#82b8fb;background:#eaf5ff;color:#075bd4}.landing-top-actions a:hover{background:#ddebff}
-    .account-actions{margin-top:4px}.google-mark{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#fff;color:#4285f4;font-weight:900}.access-note{max-width:430px;margin:8px 0 0;color:#7185a8;font-size:11px;line-height:1.45}.access-note a{text-decoration:underline}.video-actions{margin-top:8px}.video-actions .video{min-height:42px;padding:8px 14px}
-    .product-screen{min-height:440px}.preview-panel{padding:17px 20px}.feature-tabs{gap:12px;margin-top:12px}.feature-tab{min-height:76px;padding:10px 14px;border-radius:15px;gap:11px}.tab-icon{width:44px;height:44px}.tab-icon svg{width:24px;height:24px}.tab-text strong{font-size:17px}.tab-text small{font-size:11px}.tab-arrow{width:27px;height:27px;font-size:18px}
-    @media(max-width:1200px){.product-screen{min-height:425px}.preview-panel{padding:14px}.feature-tab{min-height:70px;padding:9px}.tab-icon{width:40px;height:40px}.tab-icon svg{width:22px;height:22px}.tab-text strong{font-size:16px}.tab-text small{font-size:10px}.material-card img{height:48px}}
+    .account-actions{margin-top:4px}.hero-actions>a.google-entry{min-height:50px;padding:10px 17px;border:1px solid #dadce0;border-radius:8px;background:#fff;color:#3c4043;font-size:15px;font-weight:600;letter-spacing:.01em;box-shadow:0 2px 7px #2021241a}.hero-actions>a.google-entry:hover{background:#f8fafd;border-color:#c8ccd2;box-shadow:0 4px 12px #20212423}.google-mark{display:block;width:22px;height:22px;flex:none}.access-note{max-width:430px;margin:8px 0 0;color:#7185a8;font-size:11px;line-height:1.45}.access-note a{text-decoration:underline}.video-actions{margin-top:8px}.video-actions .video{min-height:42px;padding:8px 14px}
+    .product-screen{height:575px;min-height:0}.preview-panel{padding:17px 20px}.feature-tabs{gap:12px;margin-top:12px}.feature-tab{min-height:76px;padding:10px 14px;border-radius:15px;gap:11px}.tab-icon{width:44px;height:44px}.tab-icon svg{width:24px;height:24px}.tab-text strong{font-size:17px}.tab-text small{font-size:11px}.tab-arrow{width:27px;height:27px;font-size:18px}
+    @media(max-width:1200px){.product-screen{height:575px;min-height:0}.preview-panel{padding:14px}.feature-tab{min-height:70px;padding:9px}.tab-icon{width:40px;height:40px}.tab-icon svg{width:22px;height:22px}.tab-text strong{font-size:16px}.tab-text small{font-size:10px}.material-card img{height:48px}}
     @media(max-width:950px){.landing-top-actions{position:static;justify-content:flex-start;order:-1}.landing{gap:18px}}
-    @media(max-width:620px){.product-screen{min-height:430px}.landing-top-actions{gap:7px}.landing-top-actions a{min-height:38px;padding:8px 11px;font-size:12px}.feature-tab{min-height:76px}}
+    @media(max-width:950px){.product-screen{height:540px}}
+    @media(max-width:620px){.product-screen{height:550px}.landing-top-actions{gap:7px}.landing-top-actions a{min-height:38px;padding:8px 11px;font-size:12px}.feature-tab{min-height:76px}.material-creator{display:none}}
   </style>
 </head>
 <body>
@@ -55,7 +56,7 @@
       <h1>Todo para <span>tus clases</span></h1>
       <p class="intro">Organiza a tus alumnos, prepara materiales y planifica cada clase desde un mismo lugar.</p>
       <div class="hero-actions account-actions">
-        <a class="primary" id="googleEntry" href="/auth/google/login?next=%2Fprofesor-particular"><span class="google-mark" aria-hidden="true">G</span>Entrar con Google <span aria-hidden="true">→</span></a>
+        <a class="google-entry" id="googleEntry" href="/auth/google/login?next=%2Fprofesor-particular"><svg class="google-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.42-.18-2.1H12v3.98h5.38a4.6 4.6 0 0 1-2 3.02v2.49h3.24c1.9-1.75 2.98-4.33 2.98-7.39Z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.38l-3.24-2.49c-.9.61-2.05.97-3.38.97-2.6 0-4.8-1.76-5.59-4.12H3.06v2.57A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.41 13.98A6 6 0 0 1 6.1 12c0-.69.12-1.36.32-1.98V7.45H3.06a10 10 0 0 0 0 9.1l3.35-2.57Z"/><path fill="#EA4335" d="M12 5.9c1.43 0 2.71.49 3.72 1.46l2.79-2.79A9.58 9.58 0 0 0 12 2a10 10 0 0 0-8.94 5.45l3.35 2.57C7.2 7.66 9.4 5.9 12 5.9Z"/></svg>Entrar con Google</a>
       </div>
       <p class="access-note">Al continuar aceptas la <a href="/privacidad">Política de privacidad</a> y el <a href="/aviso-legal">Aviso legal</a>.</p>
       <div class="hero-actions video-actions"><button class="video" type="button" disabled aria-label="Ver cómo funciona, vídeo próximamente" title="Vídeo próximamente"><span class="play" aria-hidden="true">▶</span> Ver cómo funciona</button></div>
