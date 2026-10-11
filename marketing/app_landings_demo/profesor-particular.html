@@ -35,20 +35,29 @@
     @media(max-width:620px){.landing{padding:24px 16px 20px;gap:24px}.hero{gap:22px}.brand{gap:10px;margin-bottom:21px;font-size:26px}.brand img{width:56px;height:56px}h1{font-size:clamp(48px,14vw,68px)}.intro{font-size:17px;margin:18px 0 23px}.hero-actions>a,.hero-actions>button{min-height:47px;font-size:13px;padding:10px 13px}.board-actions{margin-top:9px}.showcase-frame{padding:6px;border-radius:17px}.product-screen{min-height:455px;border-radius:12px}.product-nav{height:43px;gap:5px;padding:5px 7px;font-size:8px}.product-nav .mini-brand{font-size:8px;margin-right:0}.mini-brand img{width:25px;height:25px}.product-nav .nav-chip{padding:6px 4px}.product-nav .premium,.product-nav .demo-avatar{display:none}.preview-heading h2{font-size:21px}.preview-heading p{font-size:10px}.preview-panel{padding:11px}.mock-button{min-height:27px;padding:5px 7px;font-size:9px}.students-layout{grid-template-columns:1fr}.students-main{padding:9px}.student-row{grid-template-columns:32px minmax(0,.9fr) minmax(0,1fr);min-height:66px;gap:6px;padding:6px}.student-next{grid-column:auto;border-left:1px solid #e2ecf8;padding-left:6px}.students-side{grid-template-columns:1fr 1fr}.students-side .mock-card{padding:8px}.students-side .mock-card:nth-child(1) .session-row:nth-of-type(3){display:none}.students-side h3,.students-main h3{font-size:11px}.session-row,.task-row{min-height:34px}.topic-filter{gap:4px}.fake-field{font-size:9px;padding:5px;min-height:32px}.topic-layout{grid-template-columns:.9fr 1.1fr;gap:5px}.topic-list,.topic-detail{padding:6px}.topic-row{font-size:9px;gap:3px;padding:4px;min-height:37px}.topic-number{width:22px;height:22px;font-size:9px}.topic-row small{display:none}.topic-detail h3{font-size:12px}.topic-detail p,.resource-row{font-size:8px}.resource-row{padding:6px 0}.material-tools{grid-template-columns:1fr 1fr;gap:5px}.material-tools .mock-button{display:none}.material-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.material-card img{height:50px}.material-card:nth-child(n+5){display:none}.material-creator{padding:6px}.creator-images img{width:38px;height:26px}.feature-tabs{gap:6px}.feature-tab{display:grid;justify-items:center;gap:5px;min-height:85px;padding:8px 3px;text-align:center;border-radius:12px}.tab-icon{width:33px;height:33px}.tab-icon svg{width:19px;height:19px}.tab-text strong{font-size:12px}.tab-text small{font-size:9px}.tab-arrow{display:none}.faq-grid{grid-template-columns:1fr}.faq h2{font-size:25px}.faq summary{font-size:13px}.site-footer{align-items:start}}
     @media(max-width:380px){.product-nav .nav-chip:nth-of-type(4){display:none}.student-next small{display:none}.material-creator p{display:none}.hero-actions .login{padding-inline:3px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+    .landing{position:relative;gap:clamp(14px,2vw,24px);padding-bottom:20px}
+    .landing-top-actions{position:absolute;z-index:3;top:clamp(18px,2vw,32px);right:clamp(18px,3.2vw,56px);display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+    .landing-top-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 14px;border:1px solid #b7d5fa;border-radius:11px;background:#fffffff2;color:#175da9;font-size:13px;font-weight:700;box-shadow:0 7px 18px #2b73c30d}
+    .landing-top-actions a:last-child{border-color:#82b8fb;background:#eaf5ff;color:#075bd4}.landing-top-actions a:hover{background:#ddebff}
+    .account-actions{margin-top:4px}.google-mark{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#fff;color:#4285f4;font-weight:900}.access-note{max-width:430px;margin:8px 0 0;color:#7185a8;font-size:11px;line-height:1.45}.access-note a{text-decoration:underline}.video-actions{margin-top:8px}.video-actions .video{min-height:42px;padding:8px 14px}
+    .product-screen{min-height:440px}.preview-panel{padding:17px 20px}.feature-tabs{gap:12px;margin-top:12px}.feature-tab{min-height:76px;padding:10px 14px;border-radius:15px;gap:11px}.tab-icon{width:44px;height:44px}.tab-icon svg{width:24px;height:24px}.tab-text strong{font-size:17px}.tab-text small{font-size:11px}.tab-arrow{width:27px;height:27px;font-size:18px}
+    @media(max-width:1200px){.product-screen{min-height:425px}.preview-panel{padding:14px}.feature-tab{min-height:70px;padding:9px}.tab-icon{width:40px;height:40px}.tab-icon svg{width:22px;height:22px}.tab-text strong{font-size:16px}.tab-text small{font-size:10px}.material-card img{height:48px}}
+    @media(max-width:950px){.landing-top-actions{position:static;justify-content:flex-start;order:-1}.landing{gap:18px}}
+    @media(max-width:620px){.product-screen{min-height:430px}.landing-top-actions{gap:7px}.landing-top-actions a{min-height:38px;padding:8px 11px;font-size:12px}.feature-tab{min-height:76px}}
   </style>
 </head>
 <body>
 <main class="landing">
+  <nav class="landing-top-actions" aria-label="Tablón de profesores"><a href="/profesor/anuncios">Tablón de profesores</a><a href="/profesor/anunciar">Anúnciate Gratis</a></nav>
   <section class="hero" aria-label="Presentación de Profesor Particular">
     <div class="hero-copy">
       <div class="brand"><img src="/assets/brand/profesor-simple-v2.png" alt=""><span>Profesor<br>Particular</span></div>
       <h1>Todo para <span>tus clases</span></h1>
       <p class="intro">Organiza a tus alumnos, prepara materiales y planifica cada clase desde un mismo lugar.</p>
-      <div class="board-actions"><a href="/profesor/anuncios">Tablón de profesores</a><a href="/profesor/anunciar">Anúnciate Gratis</a></div>
       <div class="hero-actions account-actions">
-        <a class="primary" id="registerLink" href="/profesor/register">Crear cuenta gratis <span aria-hidden="true">→</span></a>
-        <a class="login" href="/profesor/login">Iniciar sesión</a>
+        <a class="primary" id="googleEntry" href="/auth/google/login?next=%2Fprofesor-particular"><span class="google-mark" aria-hidden="true">G</span>Entrar con Google <span aria-hidden="true">→</span></a>
       </div>
+      <p class="access-note">Al continuar aceptas la <a href="/privacidad">Política de privacidad</a> y el <a href="/aviso-legal">Aviso legal</a>.</p>
       <div class="hero-actions video-actions"><button class="video" type="button" disabled aria-label="Ver cómo funciona, vídeo próximamente" title="Vídeo próximamente"><span class="play" aria-hidden="true">▶</span> Ver cómo funciona</button></div>
     </div>
     <div class="showcase">
@@ -107,7 +116,7 @@
     if(focus)tab.focus();
   }
   previewTabs.forEach((tab,index)=>{tab.addEventListener('click',()=>showPreview(tab));tab.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?previewTabs.length-1:(index+(event.key==='ArrowRight'?1:-1)+previewTabs.length)%previewTabs.length;showPreview(previewTabs[next],true)})});
-  fetch('/auth/profesor/signup-settings').then(response=>response.ok?response.json():null).then(settings=>{if(!settings)return;document.getElementById('priceAnswer').textContent=settings.plan==='premium'?`Sí. Las nuevas cuentas incluyen Premium durante ${settings.days} días y ${settings.credits} créditos iniciales de IA.`:`Sí. Las nuevas cuentas incluyen ${settings.days} días de acceso y ${settings.credits} créditos iniciales de IA.`;if(!settings.enabled){const link=document.getElementById('registerLink');link.href='/profesor/login';link.textContent='Iniciar sesión'}}).catch(()=>{});
+  fetch('/auth/profesor/signup-settings').then(response=>response.ok?response.json():null).then(settings=>{if(!settings)return;document.getElementById('priceAnswer').textContent=settings.plan==='premium'?`Sí. Las nuevas cuentas incluyen Premium durante ${settings.days} días y ${settings.credits} créditos iniciales de IA.`:`Sí. Las nuevas cuentas incluyen ${settings.days} días de acceso y ${settings.credits} créditos iniciales de IA.`}).catch(()=>{});
 </script>
 </body>
 </html>

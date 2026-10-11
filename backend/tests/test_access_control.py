@@ -149,7 +149,7 @@ def test_profesor_public_routes_and_landing_links(client):
     test_client, _ = client
     landing = test_client.get("/profesor")
     assert landing.status_code == 200
-    assert '/profesor/register' in landing.text
+    assert '/auth/google/login?next=%2Fprofesor-particular' in landing.text
     assert '/assets/landing/profesor-dashboard.png' in landing.text
     assert '<link rel="canonical" href="https://educame.tech/profesor">' in landing.text
     assert 'href="/profesor"' in test_client.get("/").text

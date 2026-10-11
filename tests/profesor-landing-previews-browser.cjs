@@ -20,12 +20,13 @@ const assert=require('node:assert/strict');
   });
   await page.goto('http://profesor.test/profesor');
   assert.equal(await page.getByRole('heading',{name:'Todo para tus clases'}).count(),1);
-  assert.equal(await page.getByRole('link',{name:/Crear cuenta gratis/}).getAttribute('href'),'/profesor/register');
+  assert.equal(await page.getByRole('link',{name:/Entrar con Google/}).getAttribute('href'),'/auth/google/login?next=%2Fprofesor-particular');
   assert.equal(await page.getByRole('link',{name:'Tablón de profesores'}).getAttribute('href'),'/profesor/anuncios');
   assert.equal(await page.getByRole('link',{name:'Anúnciate Gratis'}).getAttribute('href'),'/profesor/anunciar');
-  assert.equal(await page.getByRole('link',{name:'Iniciar sesión'}).getAttribute('href'),'/profesor/login');
-  const actionLayout=await page.evaluate(()=>{const board=document.querySelector('.board-actions').getBoundingClientRect(),account=document.querySelector('.account-actions').getBoundingClientRect(),boardLinks=[...document.querySelectorAll('.board-actions a')].map(element=>element.getBoundingClientRect()),accountLinks=[...document.querySelectorAll('.account-actions a')].map(element=>element.getBoundingClientRect());return {boardAbove:board.top<account.top,boardAligned:Math.abs(boardLinks[0].top-boardLinks[1].top)<2,accountAligned:Math.abs(accountLinks[0].top-accountLinks[1].top)<2}});
-  assert.deepEqual(actionLayout,{boardAbove:true,boardAligned:true,accountAligned:true});
+  assert.equal(await page.getByRole('link',{name:'Crear cuenta gratis'}).count(),0);
+  assert.equal(await page.getByRole('link',{name:'Iniciar sesión'}).count(),0);
+  const actionLayout=await page.evaluate(()=>{const top=document.querySelector('.landing-top-actions').getBoundingClientRect(),logo=document.querySelector('.brand').getBoundingClientRect(),links=[...document.querySelectorAll('.landing-top-actions a')].map(element=>element.getBoundingClientRect());return {aboveLogo:top.top<logo.top,rightAligned:top.right>innerWidth*.7,linksAligned:Math.abs(links[0].top-links[1].top)<2}});
+  assert.deepEqual(actionLayout,{aboveLogo:true,rightAligned:true,linksAligned:true});
   assert.equal(await page.getByRole('button',{name:/Ver cómo funciona/}).isDisabled(),true);
   await page.waitForFunction(()=>[...document.querySelectorAll('.material-card img')].every(image=>image.complete&&image.naturalWidth>0));
   assert.equal(await page.getByRole('tab',{name:/Alumnos/}).getAttribute('aria-selected'),'true');
@@ -35,10 +36,18 @@ const assert=require('node:assert/strict');
    assert.equal(await page.locator('#'+panel).isVisible(),true);
    assert.match(await page.locator('#'+panel).innerText(),new RegExp(text));
    assert.equal(await page.getByRole('tab',{name:new RegExp(tab)}).getAttribute('aria-selected'),'true');
+   assert.equal(await page.locator('.feature-tabs').evaluate(element=>element.getBoundingClientRect().bottom<=innerHeight),true,`${tab} controls fit without scrolling`);
   }
   await page.getByRole('tab',{name:/Materiales/}).click();
   await page.waitForTimeout(250);
   await page.screenshot({path:'tools/profesor-landing-new-materiales.png',fullPage:true});
+  for(const viewport of [{width:1366,height:768},{width:1280,height:720}]){
+   await page.setViewportSize(viewport);
+   for(const tab of ['Temario','Materiales']){
+    await page.getByRole('tab',{name:new RegExp(tab)}).click();
+    assert.equal(await page.locator('.feature-tabs').evaluate(element=>element.getBoundingClientRect().bottom<=innerHeight),true,`${tab} controls fit at ${viewport.width}x${viewport.height}`);
+   }
+  }
   for(const width of [900,390,320]){
    await page.setViewportSize({width,height:844});
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false,`horizontal overflow at ${width}px`);
@@ -51,6 +60,6 @@ const assert=require('node:assert/strict');
   await page.keyboard.press('ArrowRight');
   assert.equal(await page.getByRole('tab',{name:/Alumnos/}).getAttribute('aria-selected'),'true');
   assert.deepEqual(errors,[]);
-  console.log('PASS public landing previews, current links, disabled video, artwork and responsive layout');
+  console.log('PASS direct Google entry, top board links, compact previews, disabled video, artwork and responsive layout');
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exit(1)});
