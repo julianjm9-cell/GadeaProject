@@ -105,6 +105,30 @@
 
 .spanish-lesson .lesson-grid{align-items:start}.spanish-has-table .lesson-example{grid-column:1 / -1}
 
+/* Tema completo: cabecera limpia y apartados independientes para explicar en clase. */
+.temario-dialog>.row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center}
+.temario-dialog .temario-dialog-heading-meta{margin:0;padding:7px 12px;border:1px solid #d7e7fa;border-radius:999px;background:#edf6ff;color:#3267a8;font-size:11px;font-weight:750;line-height:1.2;white-space:nowrap}
+.temario-dialog .lesson-grid{align-items:start}
+.temario-dialog .temario-lesson>.lesson-accordion,.temario-dialog .lesson-grid>.lesson-accordion{margin:0;padding:0!important;border:1px solid #dce9f8;border-radius:15px;background:#fff;box-shadow:0 7px 20px #164f8808;overflow:hidden}
+.temario-dialog .lesson-accordion>summary{display:flex;align-items:center;gap:11px;min-height:68px;padding:13px 16px;list-style:none;cursor:pointer;color:#0d2b5f;transition:background .16s,border-color .16s}
+.temario-dialog .lesson-accordion>summary::-webkit-details-marker{display:none}
+.temario-dialog .lesson-accordion>summary:hover{background:#f6faff}
+.temario-dialog .lesson-accordion>summary>span:nth-child(2){display:grid;gap:2px;min-width:0}
+.temario-dialog .lesson-accordion>summary small{color:#708aad;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.temario-dialog .lesson-accordion>summary strong{color:#0d2b5f;font-size:16px;line-height:1.25}
+.temario-dialog .lesson-accordion-arrow{display:grid;place-items:center;width:28px;height:28px;margin-left:auto;border-radius:50%;background:#edf5ff;color:#1769ca;font-size:18px;font-weight:700;transition:transform .18s}
+.temario-dialog .lesson-accordion[open]>.lesson-accordion-arrow,.temario-dialog .lesson-accordion[open]>summary .lesson-accordion-arrow{transform:rotate(180deg)}
+.temario-dialog .lesson-accordion[open]>summary{background:#f7fbff;border-bottom:1px solid #e1ecf9}
+.temario-dialog .lesson-accordion-content{padding:17px 18px 19px}
+.temario-dialog .lesson-overview{background:linear-gradient(120deg,#eef6ff,#fff 72%)}
+.temario-dialog .lesson-overview>.lesson-accordion-content{display:grid;gap:14px}
+.temario-dialog .lesson-overview .lesson-objective{margin:0;color:#173b6c;font-size:14px;font-weight:700;line-height:1.55}
+.temario-dialog .lesson-overview .lesson-class-guide{margin:0}
+.temario-dialog .lesson-understand .lesson-lead{margin:0}
+.temario-dialog .lesson-error,.temario-dialog .lesson-transfer,.temario-dialog .lesson-example,.temario-dialog .temario-lesson-practice{background:#fff!important}
+.temario-dialog .lesson-example[open]{background:#f9fefb!important}.temario-dialog .lesson-error[open]{background:#fffaf6!important}.temario-dialog .lesson-transfer[open]{background:#fcfaff!important}.temario-dialog .temario-lesson-practice[open]{background:#f8fbff!important}
+@media(max-width:760px){.temario-dialog>.row{grid-template-columns:minmax(0,1fr) auto}.temario-dialog .temario-dialog-heading-meta{grid-column:1;padding:4px 9px;justify-self:start;font-size:9px}.temario-dialog>.row .close{grid-column:2;grid-row:1/3}.temario-dialog .lesson-accordion>summary{min-height:60px;padding:11px 12px}.temario-dialog .lesson-accordion>summary strong{font-size:14px}.temario-dialog .lesson-accordion-content{padding:14px}.temario-dialog .lesson-class-guide{grid-template-columns:1fr}}
+
 /* Prepared material is the fourth resource, with one compact action. */
 .temario-renewed .temario-prepared-resource{padding:9px 10px;margin-top:7px;border:1px solid #bfe8d7;border-radius:10px;background:#f0fcf6}
 .temario-prepared-copy{display:flex;align-items:center;gap:10px;flex:1;min-width:0;min-height:38px}
