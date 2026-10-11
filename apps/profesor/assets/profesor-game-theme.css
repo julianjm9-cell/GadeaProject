@@ -1,0 +1,151 @@
+/* Shared, responsive game artwork. Every prompt, card and control remains live HTML. */
+.activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"],[data-type="hangman"]),
+.editor-preview-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"],[data-type="hangman"]){
+  position:relative;isolation:isolate;overflow:hidden;border-color:#9ec9fb;
+  background:radial-gradient(circle at 16% 22%,#ffffffa0 0 5%,transparent 21%),
+    radial-gradient(circle at 85% 14%,#ffffff8c 0 2%,transparent 23%),
+    linear-gradient(145deg,#e8f6ff 0%,#c3e1ff 46%,#e5f1ff 100%);
+  box-shadow:inset 0 1px #fff,0 15px 34px #236cb21c;
+}
+.activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"])::before,
+.editor-preview-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"])::before{
+  content:"";position:absolute;inset:-52% auto auto -17%;width:65%;aspect-ratio:1;border:2px solid #ffffff75;
+  border-radius:50%;box-shadow:0 0 0 34px #ffffff20,0 0 0 74px #ffffff15;pointer-events:none;
+}
+.activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"])::after,
+.editor-preview-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"])::after{
+  content:"";position:absolute;right:-8%;bottom:-43%;width:45%;aspect-ratio:1;border:2px solid #ffffff80;
+  border-radius:50%;box-shadow:0 0 0 30px #ffffff24,0 0 0 67px #ffffff12;pointer-events:none;
+}
+.activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"])>* ,
+.editor-preview-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"])>*{position:relative;z-index:1}
+.activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .play-question-top,
+.editor-preview-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .play-question-top{gap:8px;margin-bottom:7px}
+.activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .play-number,
+.editor-preview-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .play-number{width:29px;height:29px;background:#ffffffd9;border:1px solid #b7d6f8;font-size:11px}
+.activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .play-kind,
+.editor-preview-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .play-kind{display:inline-flex;align-items:center;min-height:29px;padding:5px 12px;border:1px solid #b8d9ff;border-radius:999px;background:#ffffffc9;color:#09549f;font-size:10px;letter-spacing:.05em;text-transform:uppercase}
+.activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) h3,
+.editor-preview-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) h3{max-width:680px;margin:2px auto 14px;text-align:center;color:#102c5d;font-size:clamp(17px,2.3vw,23px);line-height:1.27}
+.activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .game-timer,
+.editor-preview-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .game-timer{gap:5px;padding:3px 7px;border:1px solid #b8d9ff;border-radius:999px;background:#ffffffc9}
+.activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .game-timer button,
+.editor-preview-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .game-timer button{min-height:25px;padding:3px 8px;border:0;border-radius:999px;background:#e9f4ff;color:#125da8;font-size:10px}
+.activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .game-timer output,
+.editor-preview-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .game-timer output{min-width:36px;color:#13467b;font-size:10px;font-weight:800}
+
+/* Flashcards: one centered paper card that adapts to long generated text. */
+.activity-play [data-type="flashcard"] .question-controls,.editor-preview-play [data-type="flashcard"] .question-controls{display:grid;justify-items:center}
+.activity-play [data-type="flashcard"] .flash-card,.editor-preview-play [data-type="flashcard"] .flash-card{
+  position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;
+  width:min(100%,570px);min-height:clamp(210px,35dvh,285px);padding:27px 36px;overflow:hidden;
+  border:1px solid #d0def2;border-radius:20px;background:linear-gradient(135deg,#fff,#f8fbff);
+  box-shadow:0 13px 0 -6px #e6effb,0 20px 0 -10px #d4e5f9,0 23px 30px #2968ac28;
+  color:#112c59;transform:translateY(0);transition:transform .18s,box-shadow .18s;
+}
+.activity-play [data-type="flashcard"] .flash-card:hover{transform:translateY(-3px);box-shadow:0 16px 0 -6px #e6effb,0 23px 0 -10px #d4e5f9,0 28px 34px #2968ac2a}
+.activity-play [data-type="flashcard"] .flash-card::before,.editor-preview-play [data-type="flashcard"] .flash-card::before{content:"";position:absolute;inset:-75px auto auto -70px;width:180px;height:180px;border-radius:50%;background:#e5f1ff9c;pointer-events:none}
+.activity-play [data-type="flashcard"] .flash-card::after,.editor-preview-play [data-type="flashcard"] .flash-card::after{content:"";position:absolute;inset:auto -70px -115px auto;width:190px;height:190px;border-radius:50%;background:#ddecff94;pointer-events:none}
+.activity-play [data-type="flashcard"] .flash-card>* ,.editor-preview-play [data-type="flashcard"] .flash-card>*{position:relative;z-index:1}
+.activity-play [data-type="flashcard"] .flash-card small,.editor-preview-play [data-type="flashcard"] .flash-card small{color:#356aa8;font-size:11px;font-weight:800;letter-spacing:.1em}
+.activity-play [data-type="flashcard"] .flash-card strong,.editor-preview-play [data-type="flashcard"] .flash-card strong{max-width:48ch;max-height:42dvh;overflow:auto;color:#142d58;font-size:clamp(18px,2.2vw,27px);font-weight:750;line-height:1.35;text-align:center;overflow-wrap:anywhere}
+.activity-play [data-type="flashcard"] .flash-card[aria-pressed="true"]{background:linear-gradient(135deg,#f8fff9,#fff);border-color:#a8ddc2}
+.activity-play [data-type="flashcard"] .play-flash-assess{justify-content:center;width:min(100%,570px);margin:18px auto 0}
+.activity-play [data-type="flashcard"] .play-flash-assess button{flex:1 1 140px;min-height:42px;border:1px solid #bdd9f5;border-radius:10px;color:#175ca7;font-size:12px}
+.activity-play [data-type="flashcard"] .play-flash-assess button.selected{background:#dff2ff;border-color:#3386dc;color:#0b4e9c}
+
+/* Memory: generated words remain readable on both sides of each tile. */
+.activity-play [data-type="memory"] .play-hint,.editor-preview-play [data-type="memory"] .play-hint{margin:0 0 10px;text-align:center;color:#315d8d;font-size:12px}
+.activity-play [data-type="memory"] .memory-board,.editor-preview-play [data-type="memory"] .memory-board{width:min(100%,740px);gap:clamp(6px,1vw,11px);padding:13px;border:1px solid #ffffffb8;border-radius:18px;background:#ffffff4f;box-shadow:inset 0 1px #fff}
+.activity-play [data-type="memory"] .memory-card,.editor-preview-play [data-type="memory"] .memory-card{position:relative;min-height:clamp(70px,12dvh,98px);padding:8px 11px;border:1px solid #74a5ee;border-radius:13px;background:linear-gradient(150deg,#4187f4,#155bcb 76%);box-shadow:0 6px 0 -3px #0c439a,0 10px 14px #1857a42b;color:#fff;font-size:clamp(11px,1.3vw,15px);font-weight:750;line-height:1.25;overflow-wrap:anywhere}
+.activity-play [data-type="memory"] .memory-card::before,.editor-preview-play [data-type="memory"] .memory-card::before{content:"";position:absolute;inset:5px;border:1px solid #ffffff65;border-radius:9px;pointer-events:none}
+.activity-play [data-type="memory"] .memory-card-mark,.editor-preview-play [data-type="memory"] .memory-card-mark{display:grid;place-items:center;width:42px;height:42px;border:1px solid #ffffff7a;border-radius:50%;background:#ffffff20;color:#fff;font-size:24px;line-height:1}
+.activity-play [data-type="memory"] .memory-card.revealed,.editor-preview-play [data-type="memory"] .memory-card.revealed{border-color:#6ca4e9;background:#fff;color:#163c72;box-shadow:0 5px 13px #1a5a9e20}
+.activity-play [data-type="memory"] .memory-card.matched,.editor-preview-play [data-type="memory"] .memory-card.matched{border-color:#6cc99c;background:#e6fbef;color:#0c6043;box-shadow:0 5px 13px #20795219}
+.activity-play [data-type="memory"] .play-progress{width:fit-content;margin:10px auto 0;padding:5px 12px;border-radius:999px;background:#ffffffc9;color:#27598e;font-size:11px;font-weight:750}
+
+/* Hangman: the drawing, word and keyboard share the same visual system. */
+.activity-play [data-type="hangman"] .hangman-game,.editor-preview-play [data-type="hangman"] .hangman-game{width:min(100%,780px);margin:auto;padding:14px;border:1px solid #ffffffb9;border-radius:18px;background:#ffffff67;box-shadow:inset 0 1px #fff}
+.activity-play [data-type="hangman"] .hangman-game:focus{outline:3px solid #3085e3;outline-offset:3px;border-radius:18px}
+.activity-play [data-type="hangman"] .hangman-stage,.editor-preview-play [data-type="hangman"] .hangman-stage{grid-template-columns:minmax(130px,190px) minmax(0,1fr);gap:18px;padding:14px;border-color:#c7def7;border-radius:13px;background:#fff}
+.activity-play [data-type="hangman"] .hangman-figure,.editor-preview-play [data-type="hangman"] .hangman-figure{min-height:138px;background:linear-gradient(155deg,#f2f8ff,#d9eaff);color:#20558e}
+.activity-play [data-type="hangman"] .hangman-figure svg,.editor-preview-play [data-type="hangman"] .hangman-figure svg{max-width:125px}
+.activity-play [data-type="hangman"] .hangman-word,.editor-preview-play [data-type="hangman"] .hangman-word{justify-content:center;gap:4px;margin:8px 0;color:#183d72}
+.activity-play [data-type="hangman"] .hangman-word .letter-slot,.editor-preview-play [data-type="hangman"] .hangman-word .letter-slot{min-width:clamp(19px,2.7vw,28px);padding:4px 2px;border-bottom:3px solid #3379d1;font-size:clamp(15px,2.2vw,23px)}
+.activity-play [data-type="hangman"] .hangman-stage p{margin:5px 0 0;text-align:center;font-size:12px;font-weight:700}
+.activity-play [data-type="hangman"] .hangman-keyboard,.editor-preview-play [data-type="hangman"] .hangman-keyboard{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;width:min(100%,570px);margin:12px auto 0}
+.activity-play [data-type="hangman"] .hangman-keyboard button,.editor-preview-play [data-type="hangman"] .hangman-keyboard button{width:100%;height:35px;min-height:35px;padding:0;border:1px solid #b8d1f1;border-radius:7px;background:#fff;color:#1b59a4;font-size:12px;font-weight:800}
+.activity-play [data-type="hangman"] .hangman-keyboard button:not(:disabled):hover{background:#e8f3ff;border-color:#629ee6}
+.activity-play [data-type="hangman"] .hangman-keyboard button:disabled{opacity:.8}
+
+/* The other games use the same live header, timer and quiet blue playfield. */
+.activity-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"])::before,
+.editor-preview-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"])::before{content:"";position:absolute;left:-18%;top:-65%;width:66%;aspect-ratio:1;border:2px solid #ffffff75;border-radius:50%;box-shadow:0 0 0 34px #ffffff20,0 0 0 74px #ffffff15;pointer-events:none}
+.activity-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"])>*,
+.editor-preview-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"])>*{position:relative;z-index:1}
+.activity-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"]) .play-number,
+.editor-preview-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"]) .play-number{width:29px;height:29px;background:#ffffffd9;border:1px solid #b7d6f8;font-size:11px}
+.activity-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"]) .play-kind,
+.editor-preview-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"]) .play-kind{display:inline-flex;align-items:center;min-height:29px;padding:5px 12px;border:1px solid #b8d9ff;border-radius:999px;background:#ffffffc9;color:#09549f;font-size:10px;letter-spacing:.05em;text-transform:uppercase}
+.activity-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"]) .game-timer,
+.editor-preview-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"]) .game-timer{gap:5px;padding:3px 7px;border:1px solid #b8d9ff;border-radius:999px;background:#ffffffc9}
+.activity-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"]) .game-timer button,
+.editor-preview-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"]) .game-timer button{min-height:25px;padding:3px 8px;border:0;border-radius:999px;background:#e9f4ff;color:#125da8;font-size:10px}
+.activity-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"]) .game-timer output,
+.editor-preview-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"]) .game-timer output{min-width:36px;color:#13467b;font-size:10px;font-weight:800}
+.activity-play .play-question:is([data-type="sentence"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"]) h3{text-align:center;margin:2px auto 14px;max-width:680px;color:#102c5d;font-size:clamp(17px,2.3vw,23px);line-height:1.27}
+.activity-play .play-question:is([data-type="sentence"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"]) .play-hint{text-align:center;color:#315d8d}
+
+/* Keep each exercise's own mechanics, with common paper pieces and focus cues. */
+.activity-play [data-type="sentence"] .play-order-list,.activity-play [data-type="timeline"] .play-order-list,.activity-play [data-type="dragdrop"] .question-controls{width:min(100%,780px);margin-inline:auto}
+.activity-play [data-type="sentence"] .order-row,.activity-play [data-type="timeline"] .order-row{border-color:#bfd8f4;box-shadow:0 3px 9px #20599912}
+.activity-play [data-type="sentence"] .order-row.selected,.activity-play [data-type="timeline"] .order-row.selected{box-shadow:0 0 0 2px #2584e8}
+.activity-play [data-type="timeline"] .play-order-list:before{background:#3486e5}
+.activity-play [data-type="timeline"] .order-row:before{background:#1675df;border-color:#eff8ff}
+.activity-play [data-type="error"] .error-fragments{justify-content:center;width:min(100%,760px);margin:10px auto 16px;padding:18px;border:1px solid #d2e3f8;border-radius:15px;background:#ffffffba}
+.activity-play [data-type="error"] .error-fragments button{border-color:#d6e4f5;border-radius:8px;box-shadow:0 2px 4px #1746790c;font-size:15px}
+.activity-play [data-type="error"] .question-controls>label{display:block;width:min(100%,500px);margin:auto;color:#295887;font-weight:700}
+.activity-play [data-type="error"] .question-controls>label input{margin-top:7px;background:#fff}
+.activity-play [data-type="dragdrop"] .drag-items,.activity-play [data-type="dragdrop"] .placement-bank{border-color:#9fc5ef;background:#ffffff8c}
+.activity-play [data-type="dragdrop"] .drag-item,.activity-play [data-type="dragdrop"] .placement-bank button{border:1px solid #bad7f3;box-shadow:0 3px 6px #15467715}
+.activity-play [data-type="dragdrop"] .play-drop-row,.activity-play [data-type="dragdrop"] .placement-bucket{border-color:#bfd8f4;box-shadow:0 3px 9px #20599912}
+.activity-play [data-type="pasapalabra"] .rosco-layout{width:min(100%,820px);margin:auto;gap:20px}
+.activity-play [data-type="pasapalabra"] .pasapalabra-wheel{max-width:310px;justify-self:center}
+.activity-play [data-type="pasapalabra"] .pasapalabra-wheel button{border:1px solid #accdf1;background:#fff;box-shadow:0 2px 5px #1b5b9e20}
+.activity-play [data-type="pasapalabra"] .pasapalabra-wheel button.active{border:3px solid #eaa63c;background:#fff8e7}
+.activity-play [data-type="pasapalabra"] .pasapalabra-wheel button.correct{background:#187a53;color:#fff;border-color:#187a53}
+.activity-play [data-type="pasapalabra"] .pasapalabra-wheel button.incorrect{background:#b54232;color:#fff;border-color:#b54232}
+.activity-play [data-type="pasapalabra"] .rosco-center{background:#fff;border:1px solid #c2d9f4;box-shadow:0 5px 14px #1d5a9c1c}
+.activity-play [data-type="pasapalabra"] .pasapalabra-card{border-color:#c2d9f4;box-shadow:0 6px 17px #1d5a9c17}
+.activity-play [data-type="wordsearch"] .puzzle-grid,.activity-play [data-type="crossword"] .puzzle-grid{padding:10px;border:1px solid #bdd8f6;border-radius:15px;background:#ffffffbd;box-shadow:0 6px 16px #1d5a9c15}
+.activity-play [data-type="wordsearch"] .puzzle-grid button{border-radius:6px}
+.activity-play [data-type="wordsearch"] .puzzle-grid{margin-inline:auto}
+.activity-play [data-type="wordsearch"] .puzzle-help{text-align:center;color:#315d8d}
+.activity-play [data-type="wordsearch"] .puzzle-word-list{width:fit-content;max-width:100%;margin:12px auto;padding:7px;border-radius:12px;background:#ffffffa8}
+.activity-play [data-type="crossword"] .puzzle-clues{padding:12px;border:1px solid #c2d9f4;border-radius:14px;background:#ffffffbd}
+.activity-play [data-type="crossword"] .cross-cell.active{outline:2px solid #2584e8}
+.activity-play .play-question:is([data-type="sentence"],[data-type="timeline"],[data-type="error"],[data-type="wordsearch"],[data-type="crossword"],[data-type="dragdrop"],[data-type="pasapalabra"]) :is(button,input):focus-visible{outline:3px solid #237fe6;outline-offset:2px}
+
+.editor-preview-play [data-type="flashcard"] .flash-card{min-height:170px;padding:16px}
+.editor-preview-play [data-type="flashcard"] .flash-card strong{font-size:18px}
+.editor-preview-play [data-type="hangman"] .hangman-stage{grid-template-columns:100px minmax(0,1fr);gap:8px;padding:8px}
+.editor-preview-play [data-type="hangman"] .hangman-figure{min-height:90px}
+.editor-preview-play [data-type="hangman"] .hangman-keyboard{grid-template-columns:repeat(9,minmax(0,1fr))}
+.editor-preview-play [data-type="hangman"] .hangman-keyboard button{height:27px;min-height:27px;font-size:10px}
+@media(max-width:700px){
+  .activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) h3{margin:5px auto 12px;font-size:17px}
+  .activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .play-question-top{padding-right:36px}
+  .activity-play .play-question:is([data-type="flashcard"],[data-type="memory"],[data-type="hangman"]) .game-timer{margin-left:0}
+  .activity-play [data-type="flashcard"] .flash-card{min-height:190px;padding:19px}
+  .activity-play [data-type="flashcard"] .flash-card strong{font-size:19px}
+  .activity-play [data-type="memory"] .memory-board{gap:5px;padding:8px}
+  .activity-play [data-type="memory"] .memory-card{min-height:70px;padding:5px;font-size:11px}
+  .activity-play [data-type="memory"] .memory-card-mark{width:29px;height:29px;font-size:17px}
+  .activity-play [data-type="hangman"] .hangman-game{padding:8px}
+  .activity-play [data-type="hangman"] .hangman-stage{grid-template-columns:1fr;gap:6px;padding:8px}
+  .activity-play [data-type="hangman"] .hangman-figure{min-height:80px;padding:3px}
+  .activity-play [data-type="hangman"] .hangman-figure svg{height:78px}
+  .activity-play [data-type="hangman"] .hangman-word{margin:3px 0}
+  .activity-play [data-type="hangman"] .hangman-keyboard{grid-template-columns:repeat(9,minmax(0,1fr));gap:4px}
+  .activity-play [data-type="hangman"] .hangman-keyboard button{height:31px;min-height:31px;font-size:11px}
+}

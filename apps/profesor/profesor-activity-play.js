@@ -161,7 +161,7 @@
     const matched = new Set();
     function draw() {
       root.style.setProperty('--memory-columns', cards.some(card => card.label.length > 40) ? 2 : cards.length <= 6 ? 3 : 4);
-      root.innerHTML = cards.map((card, n) => `<button type="button" class="memory-card ${matched.has(card.id) ? 'matched' : ''} ${opened.includes(n) ? 'revealed' : ''}" data-card="${n}" aria-label="${opened.includes(n) || matched.has(card.id) ? escape(card.label) : `Tarjeta ${n + 1}`}" ${matched.has(card.id) ? 'disabled' : ''}>${opened.includes(n) || matched.has(card.id) ? escape(card.label) : '<span aria-hidden="true">?</span>'}${matched.has(card.id) ? '<small>✓ Pareja</small>' : ''}</button>`).join('');
+      root.innerHTML = cards.map((card, n) => `<button type="button" class="memory-card ${matched.has(card.id) ? 'matched' : ''} ${opened.includes(n) ? 'revealed' : ''}" data-card="${n}" aria-label="${opened.includes(n) || matched.has(card.id) ? escape(card.label) : `Tarjeta ${n + 1}`}" ${matched.has(card.id) ? 'disabled' : ''}>${opened.includes(n) || matched.has(card.id) ? escape(card.label) : '<span class="memory-card-mark" aria-hidden="true">✦</span>'}${matched.has(card.id) ? '<small>✓ Pareja</small>' : ''}</button>`).join('');
       status.textContent = `${matched.size}/${pairs.length} parejas · ${moves} intentos`;
       root.querySelectorAll('[data-card]').forEach(button => button.onclick = () => {
         const n = Number(button.dataset.card);
@@ -455,7 +455,7 @@
     if (memory) {
       const count = Math.max(2, Math.min(12, options.length * 2));
       memory.style.setProperty('--memory-columns', count <= 6 ? 3 : 4);
-      memory.innerHTML = Array.from({ length: count }, (_, position) => `<button type="button" class="memory-card" aria-label="Tarjeta ${position + 1}"><span aria-hidden="true">?</span></button>`).join('');
+      memory.innerHTML = Array.from({ length: count }, (_, position) => `<button type="button" class="memory-card" aria-label="Tarjeta ${position + 1}"><span class="memory-card-mark" aria-hidden="true">✦</span></button>`).join('');
     }
     const puzzle = shell.querySelector('[id^="puzzle-"]');
     if (type === 'multigaps' && puzzle) {
@@ -484,7 +484,7 @@
       } catch { puzzle.innerHTML = '<p class="puzzle-help">Añade palabras que compartan letras para ver el crucigrama.</p>'; }
     }
     const hangman = shell.querySelector('.hangman-game');
-    if (hangman) hangman.innerHTML = `<div class="hangman-stage"><div class="hangman-figure"><svg viewBox="0 0 115 115" aria-hidden="true"></svg></div><div><div class="hangman-word">${'· '.repeat(Math.min(15, Math.max(3, String(question.answer || '').length)))}</div><p>Te quedan 7 intentos.</p></div></div><div class="hangman-keyboard">${'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('').map(letter => `<button type="button">${letter}</button>`).join('')}</div>`;
+    if (hangman) hangman.innerHTML = `<div class="hangman-stage"><div class="hangman-figure"><svg viewBox="0 0 115 115" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M15 105H95M30 105V10H75V25"/></svg></div><div><div class="hangman-word">${'· '.repeat(Math.min(15, Math.max(3, String(question.answer || '').length)))}</div><p>Te quedan 7 intentos.</p></div></div><div class="hangman-keyboard">${'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('').map(letter => `<button type="button">${letter}</button>`).join('')}</div>`;
     const image = shell.querySelector('[data-activity-image]');
     if (image && !question.image) image.replaceWith(Object.assign(document.createElement('div'), { className: 'material-image-slot', innerHTML: '<strong>Tu imagen irá aquí</strong><small>Añade una imagen en el editor.</small>' }));
     return shell.innerHTML;
@@ -495,7 +495,7 @@
   }
   function questionMarkup(question, index, pairChoices) {
     const type = question.type;
-    const heading = type === 'gaps' || type === 'multigaps' ? '' : `<h3 id="question-${index}">${index + 1}. ${escape(question.prompt)}</h3>`;
+    const heading = type === 'gaps' || type === 'multigaps' ? '' : `<h3 id="question-${index}">${type === 'flashcard' ? 'Lee la tarjeta y piensa la respuesta.' : `${index + 1}. ${escape(question.prompt)}`}</h3>`;
     const image = visualTypes.includes(type) ? `<div class="visual-image-box ${type === 'imagepoint' ? 'visual-answer-box' : ''}" id="visual-${index}" ${type === 'imagepoint' ? 'tabindex="0" role="button" aria-label="Marca el punto en la imagen; usa las flechas para ajustarlo"' : ''}><img data-activity-image="${index}" alt="${escape(question.image?.filename || 'Imagen del ejercicio')}"></div>` : '';
     let control = '';
     if (type === 'gaps') {
@@ -530,7 +530,7 @@
       control = choiceMarkup(question, index, options);
     }
     const review = openAnswerTypes.includes(type) && type !== 'flashcard' ? `<div id="review-${index}" hidden><label for="grade-${index}">Valoración del profesor</label><select id="grade-${index}"><option value="pending">Pendiente de revisar</option><option value="correct">Correcta</option><option value="incorrect">Necesita revisión</option><option value="partial">Parcialmente correcta</option></select></div>` : '';
-    return `<section class="block play-question" data-type="${type}" data-tone="${materialTone(type)}" data-question="${index}"><div class="play-question-top"><span class="play-number">${String(index + 1).padStart(2, '0')}</span><span class="play-kind">${escape(activityLabels[type])}</span>${['memory','pasapalabra','hangman','wordsearch'].includes(type) ? `<div class="game-timer"><button type="button" data-timer="${index}" aria-label="Iniciar cronómetro opcional">Cronómetro</button><output id="timer-${index}" aria-label="Tiempo de práctica">00:00</output></div>` : ''}</div>${heading}<div class="question-workspace">${type === 'reading' ? `<div class="reading-passage prewrap" tabindex="0">${escape(question.text)}<button type="button" data-highlight="${index}">Subrayar selección</button></div>` : ''}<div class="question-controls">${image}${type === 'visualquiz' ? `<button type="button" data-zoom="${index}">Ampliar imagen</button>` : ''}${control}</div></div>${question.hints?.length ? `<div class="play-hints"><button type="button" data-hint="${index}">Necesito una pista</button><ol id="hints-${index}"></ol></div>` : ''}<p id="feedback-${index}" class="play-feedback prewrap" role="status"></p>${review}</section>`;
+    return `<section class="block play-question" data-type="${type}" data-tone="${materialTone(type)}" data-question="${index}"><div class="play-question-top"><span class="play-number">${String(index + 1).padStart(2, '0')}</span><span class="play-kind">${escape(activityLabels[type])}</span>${['flashcard','memory','sentence','timeline','error','wordsearch','crossword','dragdrop','pasapalabra','hangman'].includes(type) ? `<div class="game-timer"><button type="button" data-timer="${index}" aria-label="Iniciar cronómetro opcional">Cronómetro</button><output id="timer-${index}" aria-label="Tiempo de práctica">00:00</output></div>` : ''}</div>${heading}<div class="question-workspace">${type === 'reading' ? `<div class="reading-passage prewrap" tabindex="0">${escape(question.text)}<button type="button" data-highlight="${index}">Subrayar selección</button></div>` : ''}<div class="question-controls">${image}${type === 'visualquiz' ? `<button type="button" data-zoom="${index}">Ampliar imagen</button>` : ''}${control}</div></div>${question.hints?.length ? `<div class="play-hints"><button type="button" data-hint="${index}">Necesito una pista</button><ol id="hints-${index}"></ol></div>` : ''}<p id="feedback-${index}" class="play-feedback prewrap" role="status"></p>${review}</section>`;
   }
 
   function mountHangman(question, index, isChecked) {
@@ -542,8 +542,8 @@
     const won = () => [...solution].filter(letter => /[A-ZÑ]/.test(letter)).every(letter => chosen.has(letter));
     const draw = () => {
       const failed = misses() >= 7, finished = won() || failed;
-      const errors = misses(), parts = ['<path d="M15 105H95M30 105V10H75V25"/>','<circle cx="75" cy="36" r="11"/>','<path d="M75 47V74"/>','<path d="M75 53L55 64"/>','<path d="M75 53L95 64"/>','<path d="M75 74L57 96"/>','<path d="M75 74L93 96"/>'];
-      root.innerHTML = `<div class="hangman-stage"><div class="hangman-figure" data-errors="${errors}" aria-label="${errors} de 7 fallos"><svg viewBox="0 0 115 115" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">${parts.slice(0, errors).join('')}</svg></div><div><div class="hangman-word" aria-live="polite">${[...solution].map(letter => `<span class="${/[A-ZÑ]/.test(letter) ? 'letter-slot' : ''}">${/[A-ZÑ]/.test(letter) ? chosen.has(letter) || finished ? escape(letter) : '·' : escape(letter)}</span>`).join('')}</div><p>${finished ? won() ? '✓ ¡Palabra descubierta!' : `↻ La respuesta era ${escape(question.answer)}.` : `Te quedan ${7 - errors} intentos. Usa también el teclado.`}</p></div></div><div class="hangman-keyboard">${letters.map(letter => `<button type="button" class="${chosen.has(letter) ? solution.includes(letter) ? 'answer-right' : 'answer-wrong' : ''}" data-hangman-letter="${letter}" ${chosen.has(letter) || finished ? 'disabled' : ''}>${letter}</button>`).join('')}</div>`;
+      const errors = misses(), parts = ['<circle cx="75" cy="36" r="11"/>','<path d="M75 47V74"/>','<path d="M75 53L55 64"/>','<path d="M75 53L95 64"/>','<path d="M75 74L57 96"/>','<path d="M75 74L93 96"/>','<path d="M71 33l2 2m6-2l-2 2"/>'];
+      root.innerHTML = `<div class="hangman-stage"><div class="hangman-figure" data-errors="${errors}" aria-label="${errors} de 7 fallos"><svg viewBox="0 0 115 115" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M15 105H95M30 105V10H75V25"/>${parts.slice(0, errors).join('')}</svg></div><div><div class="hangman-word" aria-live="polite">${[...solution].map(letter => `<span class="${/[A-ZÑ]/.test(letter) ? 'letter-slot' : ''}">${/[A-ZÑ]/.test(letter) ? chosen.has(letter) || finished ? escape(letter) : '·' : escape(letter)}</span>`).join('')}</div><p>${finished ? won() ? '✓ ¡Palabra descubierta!' : `↻ La respuesta era ${escape(question.answer)}.` : `Te quedan ${7 - errors} intentos. Usa también el teclado.`}</p></div></div><div class="hangman-keyboard">${letters.map(letter => `<button type="button" class="${chosen.has(letter) ? solution.includes(letter) ? 'answer-right' : 'answer-wrong' : ''}" data-hangman-letter="${letter}" ${chosen.has(letter) || finished ? 'disabled' : ''}>${letter}</button>`).join('')}</div>`;
       root.querySelectorAll('[data-hangman-letter]').forEach(button => button.onclick = () => {
         if (isChecked()) return;
         chosen.add(button.dataset.hangmanLetter);
@@ -760,7 +760,7 @@
       if (q.type === 'memory') mountMemory(q, index, () => checked);
       if (q.type === 'hangman') mountHangman(q, index, () => checked);
       const section = document.querySelector(`[data-question="${index}"]`);
-      if(!['quiz','boolean','visualquiz','pairs','classify','pasapalabra','memory','wordsearch','crossword','dragdrop','hangman','order','sentence','timeline'].includes(q.type)){
+      if(!['quiz','boolean','visualquiz','pairs','classify','flashcard','pasapalabra','memory','wordsearch','crossword','dragdrop','hangman','order','sentence','timeline'].includes(q.type)){
         const check=document.createElement('button');check.type='button';check.dataset.checkQuestion=index;check.textContent=openAnswerTypes.includes(q.type)&&q.type!=='error'&&!objectiveShort(q)?'Guardar respuesta':'Comprobar';
         check.onclick=()=>{if(q.type==='multigaps'){section.querySelectorAll('[data-multi-gap]').forEach((input,n)=>{if(input.value.trim()){const right=q.options[n].split('~').some(s=>accepts(input.value,s));markControl(input,right);recordAnswer(index,n,right,input.value.trim());}});}else if(q.type==='error'&&gradeQuestion(index)==='unanswered'){$('feedback-'+index).className='play-feedback is-incorrect';$('feedback-'+index).textContent='Selecciona el error de la oración y escribe su corrección.';}else confirmQuestion(index);};section.querySelector('.question-controls').append(check);
       }
@@ -798,7 +798,7 @@
           if (checked) return;
           const flipped = $('flip-' + index).getAttribute('aria-pressed') !== 'true';
           $('flip-' + index).setAttribute('aria-pressed', String(flipped));
-          $('flip-' + index).innerHTML = flipped ? `<small>Respuesta</small><strong>${escape(q.answer)}</strong>` : '<small>Toca para girar</small><strong>¿Recuerdas la respuesta?</strong>';
+          $('flip-' + index).innerHTML = flipped ? `<small>Respuesta</small><strong>${escape(q.answer)}</strong>` : `<small>Toca para girar</small><strong>${escape(q.prompt)}</strong>`;
           $('flash-assess-' + index).hidden = !flipped;
         };
       }
