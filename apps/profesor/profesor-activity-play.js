@@ -228,7 +228,7 @@
         if (!clue) return;
         clue.style.fontSize = '';
         let clueSize = parseFloat(getComputedStyle(clue).fontSize);
-        while (clue.scrollHeight > clue.clientHeight + 1 && clueSize > 8) {
+        while (clue.scrollHeight > clue.clientHeight + 1 && clueSize > 7) {
           clueSize -= .5;
           clue.style.fontSize = `${clueSize}px`;
         }
@@ -245,7 +245,7 @@
           return `<button type="button" style="${style}" class="${position === active ? 'active' : ''} ${status}" data-slot="${slot}" data-letter="${position}" aria-label="Letra ${letter}: ${state}">${letter}${outcomes[position] !== null ? `<small>${outcomes[position] ? '✓' : '×'}</small>` : ''}</button>`;
         }).join('');
         const clueLength = String(rows[active][1] || '').length;
-        root.innerHTML = `<div class="rosco-layout"><div class="pasapalabra-wheel" aria-label="Rosco de Pasapalabra">${slots}</div><div class="pasapalabra-card ${clueLength > 145 ? 'very-long-clue' : clueLength > 85 ? 'long-clue' : ''}"><span>${letterKey(rows[active][2]).startsWith(letterKey(rows[active][0])) ? 'Con la' : 'Contiene la'} ${escape(rows[active][0])}:</span><p>${rich(rows[active][1])}</p><label>Tu respuesta<input id="pasapalabra-input-${index}" value="${escape(values[active])}" autocomplete="off" maxlength="60" aria-label="Respuesta para la letra ${escape(rows[active][0])}"></label><button type="button" class="primary" data-answer>Comprobar</button>${completed === rows.length && outcomes.some(v => v === false) ? '<button type="button" data-review-rosco>Volver a los fallos</button>' : ''}</div></div><div class="pasapalabra-controls"><button type="button" data-prev aria-label="Letra anterior">‹ <span>Anterior</span></button><button type="button" data-next>› <span>Siguiente</span></button></div>`;
+        root.innerHTML = `<div class="rosco-layout"><div class="pasapalabra-wheel" aria-label="Rosco de Pasapalabra">${slots}</div><div class="pasapalabra-card ${clueLength > 145 ? 'very-long-clue' : clueLength > 85 ? 'long-clue' : ''}"><span>${letterKey(rows[active][2]).startsWith(letterKey(rows[active][0])) ? 'Con la' : 'Contiene la'} ${escape(rows[active][0])}:</span><p>${rich(rows[active][1])}</p><input id="pasapalabra-input-${index}" value="${escape(values[active])}" autocomplete="off" maxlength="60" aria-label="Respuesta para la letra ${escape(rows[active][0])}"><button type="button" class="primary" data-answer>Comprobar</button>${completed === rows.length && outcomes.some(v => v === false) ? '<button type="button" data-review-rosco>Volver a los fallos</button>' : ''}</div></div><div class="pasapalabra-controls"><button type="button" data-prev aria-label="Letra anterior">‹ <span>Anterior</span></button><button type="button" data-next>› <span>Siguiente</span></button></div>`;
         fitClue();
         const score = $('pasapalabra-score-' + index), position = $('pasapalabra-position-' + index);
         if (score) score.textContent = `${outcomes.filter(v => v === true).length} correctas · ${outcomes.filter(v => v === false).length} incorrectas · ${rows.length - completed} pendientes`;

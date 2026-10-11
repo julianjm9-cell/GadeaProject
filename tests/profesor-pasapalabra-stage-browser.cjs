@@ -23,6 +23,8 @@ const material = { id:'pasapalabra-stage-check',title:'Vocabulario',subject:'Len
     assert.equal(await page.locator('.pasapalabra-wheel .empty').first().innerText(),'');
     assert.equal(await page.locator('[data-pass]').count(),0);
     assert.equal(await page.locator('.pasapalabra-controls button').count(),2);
+    assert.equal(await page.locator('.pasapalabra-card').getByText('Tu respuesta').count(),0);
+    assert.equal(await page.locator('.pasapalabra-card input').getAttribute('aria-label'),'Respuesta para la letra A');
     assert.equal(await page.locator('.pasapalabra-intro').innerText(),'Completa el rosco de vocabulario.');
     const asset=await page.locator('#dialog').evaluate(async element=>{
       const background=getComputedStyle(element).backgroundImage;
@@ -42,6 +44,8 @@ const material = { id:'pasapalabra-stage-check',title:'Vocabulario',subject:'Len
     assert.ok(geometry.solutionCentered&&geometry.solutionBelow&&geometry.positionCentered&&geometry.positionAbove&&geometry.introGap>=14,`controls and prompt aligned: ${JSON.stringify(geometry)}`);
     assert.equal(await page.locator('.pasapalabra-card>p').evaluate(el=>el.scrollHeight<=el.clientHeight+1),true,'long clue fits inside fixed card');
     const firstCard=await page.locator('.pasapalabra-card').boundingBox();
+    assert.ok(firstCard.width>270&&firstCard.height>220,'clue card uses the larger rosco');
+    assert.equal(await page.locator('.pasapalabra-card>p').evaluate(el=>getComputedStyle(el).overflowY),'hidden','the clue has no internal scrollbar');
     await page.screenshot({path:'tmp/pasapalabra-stage-desktop.png'});
     await page.locator('[data-next]').click();
     assert.match(await page.locator('.pasapalabra-finish').innerText(),/2 \/ 18/);
@@ -54,6 +58,12 @@ const material = { id:'pasapalabra-stage-check',title:'Vocabulario',subject:'Len
     await page.locator('#pasapalabra-input-0').fill('árbol');
     await page.locator('[data-answer]').click();
     assert.equal(await page.locator('[data-letter="0"]').evaluate(el=>el.classList.contains('correct')),true);
+    await page.locator('#dialog .close').click();
+    await page.setViewportSize({width:1848,height:900});
+    await page.evaluate(value=>runActivity(value,''),material);
+    const wide=await page.evaluate(()=>{const rect=selector=>document.querySelector(selector).getBoundingClientRect(),card=rect('.pasapalabra-card'),controls=rect('.pasapalabra-controls'),solution=rect('.play-solution-link'),clue=document.querySelector('.pasapalabra-card>p');return {card:card.toJSON(),solutionBelow:solution.top>=controls.bottom,clueFits:clue.scrollHeight<=clue.clientHeight+1,dialogFits:document.querySelector('#dialog').scrollHeight<=document.querySelector('#dialog').clientHeight+1}});
+    assert.ok(wide.card.width>320&&wide.card.height>250&&wide.solutionBelow&&wide.clueFits&&wide.dialogFits,`large display fits without scrolling: ${JSON.stringify(wide)}`);
+    await page.screenshot({path:'tmp/pasapalabra-stage-wide.png'});
     await page.locator('#dialog .close').click();
     await page.setViewportSize({width:390,height:844});
     await page.evaluate(value=>runActivity(value,''),material);
