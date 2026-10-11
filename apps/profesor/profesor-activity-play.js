@@ -245,7 +245,7 @@
           return `<button type="button" style="${style}" class="${position === active ? 'active' : ''} ${status}" data-slot="${slot}" data-letter="${position}" aria-label="Letra ${letter}: ${state}">${letter}${outcomes[position] !== null ? `<small>${outcomes[position] ? '✓' : '×'}</small>` : ''}</button>`;
         }).join('');
         const clueLength = String(rows[active][1] || '').length;
-        root.innerHTML = `<div class="rosco-layout"><div class="pasapalabra-wheel" aria-label="Rosco de Pasapalabra">${slots}</div><div class="pasapalabra-card ${clueLength > 145 ? 'very-long-clue' : clueLength > 85 ? 'long-clue' : ''}"><span>${letterKey(rows[active][2]).startsWith(letterKey(rows[active][0])) ? 'Con la' : 'Contiene la'} ${escape(rows[active][0])}:</span><p>${rich(rows[active][1])}</p><label>Tu respuesta<input id="pasapalabra-input-${index}" value="${escape(values[active])}" autocomplete="off" maxlength="60" aria-label="Respuesta para la letra ${escape(rows[active][0])}"></label><button type="button" class="primary" data-answer>Comprobar</button>${completed === rows.length && outcomes.some(v => v === false) ? '<button type="button" data-review-rosco>Volver a los fallos</button>' : ''}</div></div><div class="pasapalabra-controls"><button type="button" data-prev aria-label="Letra anterior">‹ <span>Anterior</span></button><button type="button" data-pass>↠ <span>Pasar</span></button><button type="button" data-next>› <span>Siguiente</span></button></div>`;
+        root.innerHTML = `<div class="rosco-layout"><div class="pasapalabra-wheel" aria-label="Rosco de Pasapalabra">${slots}</div><div class="pasapalabra-card ${clueLength > 145 ? 'very-long-clue' : clueLength > 85 ? 'long-clue' : ''}"><span>${letterKey(rows[active][2]).startsWith(letterKey(rows[active][0])) ? 'Con la' : 'Contiene la'} ${escape(rows[active][0])}:</span><p>${rich(rows[active][1])}</p><label>Tu respuesta<input id="pasapalabra-input-${index}" value="${escape(values[active])}" autocomplete="off" maxlength="60" aria-label="Respuesta para la letra ${escape(rows[active][0])}"></label><button type="button" class="primary" data-answer>Comprobar</button>${completed === rows.length && outcomes.some(v => v === false) ? '<button type="button" data-review-rosco>Volver a los fallos</button>' : ''}</div></div><div class="pasapalabra-controls"><button type="button" data-prev aria-label="Letra anterior">‹ <span>Anterior</span></button><button type="button" data-next>› <span>Siguiente</span></button></div>`;
         fitClue();
         const score = $('pasapalabra-score-' + index), position = $('pasapalabra-position-' + index);
         if (score) score.textContent = `${outcomes.filter(v => v === true).length} correctas · ${outcomes.filter(v => v === false).length} incorrectas · ${rows.length - completed} pendientes`;
@@ -256,8 +256,7 @@
         root.querySelector('[data-answer]').onclick = saveAnswer;
         root.querySelector('[data-review-rosco]')?.addEventListener('click',()=>{active=Math.max(0,outcomes.findIndex(v=>v===false));focusInput=true;draw();});
         root.querySelector('[data-prev]').onclick = () => { if (isChecked()) return; active = (active - 1 + rows.length) % rows.length; focusInput = false; draw(); };
-        root.querySelector('[data-next]').onclick = () => { if (isChecked()) return; active = (active + 1) % rows.length; focusInput = false; draw(); };
-        root.querySelector('[data-pass]').onclick = () => { if (isChecked()) return; if (!values[active]) passed.add(active); const next = Array.from({length:rows.length}, (_, n) => (active + n + 1) % rows.length).find(n => !values[n]); active = next ?? (active + 1) % rows.length; focusInput = false; draw(); };
+        root.querySelector('[data-next]').onclick = () => { if (isChecked()) return; if (!values[active]) passed.add(active); active = (active + 1) % rows.length; focusInput = false; draw(); };
         if (focusInput) input.focus({ preventScroll: true });
       };
       const saveAnswer = () => {
@@ -524,7 +523,7 @@
   }
   function questionMarkup(question, index, pairChoices) {
     const type = question.type;
-    const heading = type === 'gaps' || type === 'multigaps' ? '' : type === 'pasapalabra' ? `<h3 id="question-${index}">Lee la definición y piensa la respuesta.</h3><p class="pasapalabra-intro">${escape(question.prompt)}</p>` : `<h3 id="question-${index}">${type === 'flashcard' ? 'Lee la tarjeta y piensa la respuesta.' : `${index + 1}. ${escape(question.prompt)}`}</h3>`;
+    const heading = type === 'gaps' || type === 'multigaps' ? '' : type === 'pasapalabra' ? `<h3 id="question-${index}" class="pasapalabra-intro">${escape(question.prompt)}</h3>` : `<h3 id="question-${index}">${type === 'flashcard' ? 'Lee la tarjeta y piensa la respuesta.' : `${index + 1}. ${escape(question.prompt)}`}</h3>`;
     const image = visualTypes.includes(type) ? `<div class="visual-image-box ${type === 'imagepoint' ? 'visual-answer-box' : ''}" id="visual-${index}" ${type === 'imagepoint' ? 'tabindex="0" role="button" aria-label="Marca el punto en la imagen; usa las flechas para ajustarlo"' : ''}><img data-activity-image="${index}" alt="${escape(question.image?.filename || 'Imagen del ejercicio')}"></div>` : '';
     let control = '';
     if (type === 'gaps') {
@@ -698,6 +697,13 @@
     const score = $('activityScore'), actions = score.nextElementSibling;
     score.before(footer); footer.append(score, actions);
     actions.prepend(toolbar);actions.querySelector('[data-action="close"]').hidden=true;
+    if (questions.length === 1 && questions[0].type === 'pasapalabra') {
+      const finish = actions.querySelector('[type="submit"]');
+      const finishStack = document.createElement('div');
+      finishStack.className = 'pasapalabra-finish';
+      finish.before(finishStack);
+      finishStack.append($('pasapalabra-position-0'), finish);
+    }
     let currentStep = 0;
     const summary=document.createElement('section');summary.className='practice-result';summary.hidden=true;content.append(summary);
     function showResult(){renderSummary();summary.hidden=false;visibleQuestions().forEach(section=>section.hidden=true);toolbar.hidden=true;$('showPracticeResult').hidden=true;content.scrollTop=0;}
