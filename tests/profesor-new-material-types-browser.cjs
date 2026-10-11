@@ -17,9 +17,12 @@ const path = require('node:path');
     assert.equal(await page.locator('[data-exercise="multigaps"]').count(), 1);
     assert.equal(await page.locator('[data-exercise="numeric"]').count(), 1);
     assert.match(await page.locator('[data-exercise="numeric"] small').innerText(), /resultado/i);
-    await page.locator('.playful-family summary').click();
-    assert.equal(await page.locator('[data-exercise="pasapalabra"]').count(), 1);
-    assert.equal(await page.locator('[data-exercise="hangman"]').count(), 1);
+    await page.locator('.advanced-family summary').click();
+    assert.match(await page.locator('.advanced-family summary').innerText(), /Ejercicios avanzados/);
+    assert.equal(await page.locator('.advanced-family [data-exercise="pasapalabra"]').count(), 1);
+    assert.equal(await page.locator('.advanced-family [data-exercise="hangman"]').count(), 1);
+    assert.equal(await page.locator('.playful-family [data-exercise="pasapalabra"], .playful-family [data-exercise="hangman"]').count(), 0);
+    assert.equal(await page.locator('[data-exercise="visualquiz"], [data-exercise="imagepoint"]').count(), 0);
     await page.locator('#dialog').getByRole('button', { name: 'Cerrar' }).click();
 
     const material = {

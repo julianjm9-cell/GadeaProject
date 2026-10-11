@@ -19,12 +19,13 @@ dialog.studio-renewed .workshop-extra-fields{display:grid;grid-template-columns:
 dialog.studio-renewed .catalog-board,dialog.studio-renewed .catalog-main,dialog.studio-renewed .catalog-families{display:grid;grid-template-columns:minmax(0,1fr);height:auto;min-height:0;gap:14px;margin:0;overflow:visible}
 dialog.studio-renewed details.exercise-family{display:block;border:1px solid #e0edfa;border-radius:16px;margin:0;padding:0;background:#ffffffed;overflow:hidden;height:auto;min-height:0}
 dialog.studio-renewed details.playful-family[open]{background:#fffdf3;border-color:#f6ebc3}
+dialog.studio-renewed details.advanced-family[open]{background:#fbf8ff;border-color:#e2d4ff}
 dialog.studio-renewed details.exercise-family>.family-heading{display:flex;align-items:center;gap:14px;min-height:70px;padding:12px 18px;margin:0;cursor:pointer;list-style:none;color:#0d2556}
 dialog.studio-renewed details.exercise-family>.family-heading::-webkit-details-marker{display:none}
 dialog.studio-renewed details.exercise-family>.family-heading::before,dialog.studio-renewed details.exercise-family>.family-heading::after{content:none}
 dialog.studio-renewed .family-number{display:grid;place-items:center;width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:#e4f3ff;color:#0067ed;font-size:23px;font-weight:800}
 dialog.studio-renewed .playful-family .family-number{background:#fff0cb;color:#e78908}
-dialog.studio-renewed .photo-manual .family-number{background:#f0e5ff;color:#8c30ed}
+dialog.studio-renewed .advanced-family .family-number{background:#f0e5ff;color:#8c30ed}
 dialog.studio-renewed .family-symbol .icon{width:27px;height:27px;color:#0473f3}
 dialog.studio-renewed .family-heading>strong{font-size:21px;line-height:1.25;flex:1}
 dialog.studio-renewed .family-selected{font-size:12px;color:#5477a7}

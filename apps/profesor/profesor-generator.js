@@ -36,7 +36,9 @@
    input.type='hidden';input.name=input.id='size-'+type;
    input.value=String(visualTypes.includes(type)?1:Math.max(minSize(type),Math.min(maxSize(type),Number(sizes[type])||defaults[type]||6)));
    form.querySelector('.studio-counts').append(input);
-   const tile=form.querySelector(`[data-exercise="${type}"]`),quantity=tile.querySelector('.tile-quantity');
+   const tile=form.querySelector(`[data-exercise="${type}"]`);
+   if(!tile)continue;
+   const quantity=tile.querySelector('.tile-quantity');
    const unit=document.createElement('span');unit.className='tile-unit';unit.textContent=unitLabels[type];
    quantity.setAttribute('aria-label',`Número de ${unitLabels[type]} de ${activityLabels[type]}`);
    quantity.querySelector('output').after(unit);
@@ -51,6 +53,7 @@
    const selectedTypes=Object.keys(activityLabels).filter(type=>Number($('count-'+type).value)>0);
    for(const type of Object.keys(activityLabels)){
     const tile=form.querySelector(`[data-exercise="${type}"]`),selected=selectedTypes.includes(type),size=Number($('size-'+type).value);
+    if(!tile)continue;
     tile.querySelector('output').textContent=selected?String(size):'0';
     tile.querySelectorAll('[data-step]').forEach(control=>control.setAttribute('aria-disabled',String(!selected||visualTypes.includes(type)||size<=(control.dataset.step==='-1'?minSize(type):0)||control.dataset.step==='1'&&size>=maxSize(type))));
     tile.querySelector('.tile-quantity').classList.toggle('fixed-size',visualTypes.includes(type));

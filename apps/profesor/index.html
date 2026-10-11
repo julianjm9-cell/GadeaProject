@@ -474,10 +474,11 @@ function workshopMarkup(owner,draft,st){
  const symbol={pairs:'link',gaps:'pencil',multigaps:'text',numeric:'grid',quiz:'list',short:'text',order:'list',classify:'grid',boolean:'check',reading:'book',problem:'file',flashcard:'cards',memory:'grid',sentence:'text',timeline:'timeline',error:'alert',wordsearch:'grid',crossword:'puzzle',dragdrop:'move',pasapalabra:'spark',hangman:'text',visualquiz:'image',imagepoint:'target'};
  const initialCourse=draft.course||st?.course||'',initialSubject=draft.subject||(st?.subjects||subjects)[0]||'';
  const tile=key=>{const n=Number(draft[key])||0,locked=visualTypes.includes(key)&&!isPremium(),art=materialArtworkFiles[key];return '<button type="button" class="exercise-tile'+(art?' has-illustration':'')+'" data-exercise="'+key+'" data-count="'+n+'" data-tone="'+materialTone(key)+'" aria-pressed="'+(n>0)+'"'+(locked?' disabled title="Disponible en Premium"':'')+'><span class="tile-check" aria-hidden="true">✓</span>'+(art?'<span class="exercise-visual" aria-hidden="true"><img src="'+activityArtworkUrl(key,initialCourse,initialSubject)+'" data-activity-art="'+key+'" alt="" loading="lazy" decoding="async"></span>':'<span class="studio-symbol">'+icon(symbol[key]||'file')+'</span>')+'<strong>'+esc(activityLabels[key])+'</strong><small>'+esc(activityDescriptions[key]||'Actividad interactiva')+'</small><span class="tile-quantity" aria-label="Cantidad de ejercicios"><span role="button" tabindex="0" data-step="-1" aria-label="Quitar ejercicio">−</span><output>'+n+'</output><span role="button" tabindex="0" data-step="1" aria-label="Añadir ejercicio">+</span></span></button>'};
- const family=(name,title,keys,index)=>'<details name="workshop-families" class="exercise-family '+name+'"'+(keys.some(k=>Number(draft[k])>0)?' open':'')+'><summary class="family-heading"><span class="family-number">'+index+'</span><span class="family-symbol">'+icon(index===1?'file':index===2?'spark':'image')+'</span><strong>'+title+'</strong><span class="family-selected"></span><span class="family-chevron" aria-hidden="true">⌄</span></summary><div class="exercise-tiles">'+keys.map(tile).join('')+'</div></details>';
+ const family=(name,title,keys,index)=>'<details name="workshop-families" class="exercise-family '+name+'"'+(keys.some(k=>Number(draft[k])>0)?' open':'')+'><summary class="family-heading"><span class="family-number">'+index+'</span><span class="family-symbol">'+icon(index===1?'file':'spark')+'</span><strong>'+title+'</strong><span class="family-selected"></span><span class="family-chevron" aria-hidden="true">⌄</span></summary><div class="exercise-tiles">'+keys.map(tile).join('')+'</div></details>';
+ const catalogTypes=Object.keys(activityLabels).filter(type=>!visualTypes.includes(type));
  return '<div class="studio-topline"><h2>Crear material</h2></div><div class="studio-fields workshop-all-fields"><div><label for="workshopStudent">Alumno (opcional)</label><select id="workshopStudent" name="studentId"><option value="">Material general</option>'+studentOptions(owner)+'</select></div><div><label for="workshopCourse">Curso</label><select id="workshopCourse" name="course" required>'+courseChoices(draft.course||st?.course||'')+'</select></div><div><label for="workshopSubject">Asignatura</label><select id="workshopSubject" name="subject">'+(st?.subjects||subjects).map(x=>'<option>'+esc(x)+'</option>').join('')+'</select></div><div><label for="workshopTopic">Contenido o tema</label><input id="workshopTopic" name="topic" list="workshopTopics" maxlength="180" required value="'+esc(draft.topic||'')+'" placeholder="Elige o escribe un tema…"><datalist id="workshopTopics"></datalist></div><div><label for="workshopTheme">Ambientación (opcional)</label><input id="workshopTheme" name="theme" maxlength="250" value="'+esc(draft.theme??st?.interests??'')+'" placeholder="Animales, espacio, deportes…"></div></div>'+
- '<div class="catalog-board"><div class="catalog-main"><div class="catalog-families">'+family('basic-family','Ejercicios básicos',Object.keys(activityLabels).filter(k=>!gameTypes.includes(k)),1)+family('playful-family','Para aprender jugando',gameTypes.filter(k=>!visualTypes.includes(k)),2)+family('photo-manual'+(!isPremium()?' premium-locked':''),(!isPremium()?'🔒 ':'')+'Actividades con fotografía · Premium',visualTypes,3)+'</div></div></div>'+
- '<div class="studio-counts" hidden>'+Object.keys(activityLabels).map(k=>'<input id="count-'+k+'" name="'+k+'" type="number" min="0" max="'+MAX_GENERATOR_ACTIVITIES+'" step="1" value="'+(Number(draft[k])||0)+'">').join('')+'</div><select id="workshopMode" name="mode" hidden><option value="manual">Manual</option>'+(demo?'':'<option value="ai">IA</option>')+'</select><p id="workshopStatus" role="status" aria-live="polite"></p><div class="studio-actions"><div class="workshop-selection-status" id="workshopSelection" role="status"></div><button type="button" id="workshopManual">Generar manual</button><button type="submit" id="workshopContinue" class="primary"'+(demo?' hidden':'')+'>✦ Generar con IA</button></div>';
+ '<div class="catalog-board"><div class="catalog-main"><div class="catalog-families">'+family('basic-family','Ejercicios básicos',catalogTypes.filter(type=>!gameTypes.includes(type)),1)+family('playful-family','Para aprender jugando',gameTypes.filter(type=>!visualTypes.includes(type)&&!advancedTypes.includes(type)),2)+family('advanced-family','Ejercicios avanzados',advancedTypes,3)+'</div></div></div>'+
+ '<div class="studio-counts" hidden>'+Object.keys(activityLabels).map(k=>'<input id="count-'+k+'" name="'+k+'" type="number" min="0" max="'+MAX_GENERATOR_ACTIVITIES+'" step="1" value="'+(visualTypes.includes(k)?0:(Number(draft[k])||0))+'">').join('')+'</div><select id="workshopMode" name="mode" hidden><option value="manual">Manual</option>'+(demo?'':'<option value="ai">IA</option>')+'</select><p id="workshopStatus" role="status" aria-live="polite"></p><div class="studio-actions"><div class="workshop-selection-status" id="workshopSelection" role="status"></div><button type="button" id="workshopManual">Generar manual</button><button type="submit" id="workshopContinue" class="primary"'+(demo?' hidden':'')+'>✦ Generar con IA</button></div>';
 }
 function setupWorkshop(owner,draft,st){
  const form=$('form'),dialog=$('dialog');
@@ -525,7 +526,6 @@ function setupWorkshop(owner,draft,st){
   });
  });
  for(const type of Object.keys(activityLabels))$('count-'+type).oninput=refresh;
- if(!isPremium())form.querySelector('.photo-manual summary').onclick=event=>{event.preventDefault();notify('Las actividades con fotografía están disponibles para cuentas Premium.')};
  $('workshopStudent').onchange=()=>{
   const pupil=student($('workshopStudent').value);
   if(pupil){workshopSchoolCourse=pupil.course;selectStudentCourse($('workshopCourse'),pupil.course);$('workshopTheme').value=pupil.interests||''}
@@ -581,6 +581,7 @@ const activityDescriptions={pairs:'Une conceptos y respuestas',gaps:'Completa un
 const openAnswerTypes=['short','reading','problem','error','flashcard'];
 const sequenceTypes=['order','sentence','timeline'];
 const gameTypes=['flashcard','memory','sentence','timeline','error','wordsearch','crossword','dragdrop','pasapalabra','hangman','visualquiz','imagepoint'];
+const advancedTypes=['pasapalabra','hangman'];
 const puzzleTypes=['wordsearch','crossword','dragdrop','pasapalabra','multigaps'];
 const visualTypes=['visualquiz','imagepoint'];
 const optionTypes=['quiz','classify','boolean','order','sentence','timeline','memory','wordsearch','crossword','dragdrop','pasapalabra','multigaps','visualquiz'];
@@ -1006,7 +1007,7 @@ init();
 </style>
 <link rel="stylesheet" href="./assets/profesor-final.css?v=20261011-1">
 <link rel="stylesheet" href="./assets/profesor-home.css?v=20261005-4">
-<link rel="stylesheet" href="./assets/profesor-studio.css?v=20261010-1">
+<link rel="stylesheet" href="./assets/profesor-studio.css?v=20261012-1">
 <link rel="stylesheet" href="./assets/profesor-temario.css?v=20261011-1">
 <link rel="stylesheet" href="./assets/profesor-game-theme.css?v=20261011-1">
 <link rel="stylesheet" href="./assets/profesor-pasapalabra-theme.css?v=20261012-1">
@@ -1015,7 +1016,7 @@ init();
 <script src="./profesor-uploaded-topics.js?v=20261008-1"></script>
 <link rel="stylesheet" href="./assets/profesor-uploaded-topics.css?v=20261008-1">
 <link rel="stylesheet" href="./assets/profesor-generator.css?v=20261010-1">
-<script src="./profesor-generator.js?v=20261010-2"></script>
+<script src="./profesor-generator.js?v=20261012-1"></script>
 <link rel="stylesheet" href="./assets/profesor-access.css?v=20261007-5">
 <style>
 #dialog.file-preview-dialog{width:min(1120px,96vw);max-width:1120px;max-height:94dvh;overflow:auto}
