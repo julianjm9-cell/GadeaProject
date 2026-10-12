@@ -623,7 +623,7 @@
       control = choiceMarkup(question, index, options);
     }
     const review = openAnswerTypes.includes(type) && type !== 'flashcard' ? `<div id="review-${index}" hidden><label for="grade-${index}">Valoración del profesor</label><select id="grade-${index}"><option value="pending">Pendiente de revisar</option><option value="correct">Correcta</option><option value="incorrect">Necesita revisión</option><option value="partial">Parcialmente correcta</option></select></div>` : '';
-    return `<section class="block play-question" data-type="${type}" data-tone="${materialTone(type)}" data-question="${index}"><div class="play-question-top"><span class="play-number">${String(index + 1).padStart(2, '0')}</span><span class="play-kind">${escape(activityLabels[type])}</span>${['flashcard','memory','sentence','timeline','error','wordsearch','crossword','dragdrop','pasapalabra','hangman'].includes(type) ? `<div class="game-timer"><button type="button" data-timer="${index}" aria-label="Iniciar cronómetro opcional">Cronómetro</button><output id="timer-${index}" aria-label="Tiempo de práctica">00:00</output></div>` : ''}</div>${heading}<div class="question-workspace">${type === 'reading' ? `<div class="reading-passage prewrap" tabindex="0">${escape(question.text)}<button type="button" data-highlight="${index}">Subrayar selección</button></div>` : ''}<div class="question-controls">${image}${type === 'visualquiz' ? `<button type="button" data-zoom="${index}">Ampliar imagen</button>` : ''}${control}</div></div>${type === 'pasapalabra' ? `<div class="pasapalabra-meta" role="status"><span id="pasapalabra-score-${index}"></span><span class="pasapalabra-meta-actions"></span><strong id="pasapalabra-position-${index}"></strong></div>` : ''}${question.hints?.length ? `<div class="play-hints"><button type="button" data-hint="${index}">Necesito una pista</button><ol id="hints-${index}"></ol></div>` : ''}<p id="feedback-${index}" class="play-feedback prewrap" role="status"></p>${review}</section>`;
+    return `<section class="block play-question" data-type="${type}" data-tone="${materialTone(type)}" data-question="${index}"><div class="play-question-top"><span class="play-number">${String(index + 1).padStart(2, '0')}</span><span class="play-kind">${escape(activityLabels[type])}</span>${['flashcard','memory','sentence','timeline','error','wordsearch','crossword','dragdrop','pasapalabra','hangman'].includes(type) ? `<div class="game-timer"><button type="button" data-timer="${index}" aria-label="Iniciar cronómetro opcional">Cronómetro</button><output id="timer-${index}" aria-label="Tiempo de práctica">00:00</output></div>` : ''}</div>${heading}<div class="question-workspace">${type === 'reading' ? `<div class="reading-passage prewrap" tabindex="0">${escape(question.text)}<button type="button" data-highlight="${index}">Subrayar selección</button></div>` : ''}<div class="question-controls">${image}${type === 'visualquiz' ? `<button type="button" data-zoom="${index}">Ampliar imagen</button>` : ''}${control}</div></div>${type === 'pasapalabra' ? `<div class="pasapalabra-meta" role="status"><div class="pasapalabra-score-group"><span id="pasapalabra-score-${index}"></span><span class="pasapalabra-meta-actions"></span></div><strong id="pasapalabra-position-${index}"></strong></div>` : ''}${question.hints?.length ? `<div class="play-hints"><button type="button" data-hint="${index}">Necesito una pista</button><ol id="hints-${index}"></ol></div>` : ''}<p id="feedback-${index}" class="play-feedback prewrap" role="status"></p>${review}</section>`;
   }
 
   function mountHangman(question, index, isChecked) {
@@ -753,7 +753,7 @@
       return false;
     });
     $('form').noValidate = true;
-    $('form').addEventListener('play:answer',event=>{logAnswer(event.detail);const {index,part,correct}=event.detail;if(correct!==null){const log=practice[index],parts=Object.values(log.parts).filter(p=>p.correct!==null),q=questions[index],reason=Number.isInteger(part)?q.itemExplanations?.[part]:'';$('feedback-'+index).className='play-feedback '+(correct?'is-correct':'is-incorrect');$('feedback-'+index).innerHTML=`${correct?'✓ Correcto.':'× Prueba de nuevo.'} ${parts.filter(p=>p.correct).length} aciertos · ${parts.filter(p=>!p.correct).length} por revisar.`+(reason?'<div>'+rich(reason)+'</div>':'');const dock=$('feedback-'+index).closest('.pasapalabra-solution-dock,.wordsearch-solution-dock');if(dock&&!dock.classList.contains('wordsearch-solution-dock')){$('feedback-'+index).hidden=false;dock.hidden=false;}if(!correct)document.querySelector(`[data-question="${index}"] [data-show-solution]`)?.removeAttribute('hidden');}},{signal});
+    $('form').addEventListener('play:answer',event=>{logAnswer(event.detail);const {index,part,correct}=event.detail;if(correct!==null){const log=practice[index],parts=Object.values(log.parts).filter(p=>p.correct!==null),q=questions[index],reason=Number.isInteger(part)?q.itemExplanations?.[part]:'';$('feedback-'+index).className='play-feedback '+(correct?'is-correct':'is-incorrect');$('feedback-'+index).innerHTML=`${correct?'✓ Correcto.':'× Prueba de nuevo.'} ${parts.filter(p=>p.correct).length} aciertos · ${parts.filter(p=>!p.correct).length} por revisar.`+(reason?'<div>'+rich(reason)+'</div>':'');if(!correct)document.querySelector(`[data-question="${index}"] [data-show-solution]`)?.removeAttribute('hidden');}},{signal});
     $('dialog').classList.add('activity-play');
     $('dialog').addEventListener('close', () => { if (!$('dialog').open) { $('dialog').classList.remove('activity-play'); $('form').noValidate = false; playerAbort?.abort(); } }, { signal });
     const toolbar = document.createElement('div'); toolbar.className = 'step-navigation';
@@ -765,13 +765,21 @@
     const score = $('activityScore'), actions = score.nextElementSibling;
     score.before(footer); footer.append(score, actions);
     actions.prepend(toolbar);actions.querySelector('[data-action="close"]').hidden=true;
-    const pasapalabraFeedbacks = questions.flatMap((question, index) => question.type === 'pasapalabra' ? [$('feedback-' + index)] : []);
-    const pasapalabraDock = pasapalabraFeedbacks.length ? document.createElement('div') : null;
-    if (pasapalabraDock) {
-      pasapalabraDock.className = 'pasapalabra-solution-dock';
-      pasapalabraDock.hidden = true;
-      pasapalabraFeedbacks.forEach(feedback => { feedback.hidden = true; pasapalabraDock.append(feedback); });
-      footer.append(pasapalabraDock);
+    const hasPasapalabra = questions.some(question => question.type === 'pasapalabra');
+    let pasapalabraSolutionModal = null;
+    let solutionTrigger = null;
+    if (hasPasapalabra) {
+      questions.forEach((question, index) => { if (question.type === 'pasapalabra') $('feedback-' + index).hidden = true; });
+      pasapalabraSolutionModal = document.createElement('dialog');
+      pasapalabraSolutionModal.className = 'pasapalabra-solution-popup';
+      pasapalabraSolutionModal.setAttribute('aria-labelledby', 'pasapalabra-solution-title');
+      pasapalabraSolutionModal.innerHTML = '<div class="pasapalabra-solution-shell"><header><div><span class="pasapalabra-solution-eyebrow">PASAPALABRA</span><h2 id="pasapalabra-solution-title">Solución del rosco</h2><p>Consulta las respuestas y vuelve al juego cuando quieras.</p></div><button type="button" class="pasapalabra-solution-close" aria-label="Cerrar solución">×</button></header><div class="pasapalabra-solution-body"></div><footer><button type="button" class="pasapalabra-solution-return">Volver al juego</button></footer></div>';
+      document.body.append(pasapalabraSolutionModal);
+      const closeSolution = () => pasapalabraSolutionModal.close();
+      pasapalabraSolutionModal.querySelectorAll('.pasapalabra-solution-close,.pasapalabra-solution-return').forEach(button => button.addEventListener('click', closeSolution));
+      pasapalabraSolutionModal.addEventListener('click', event => { if (event.target === pasapalabraSolutionModal) closeSolution(); });
+      pasapalabraSolutionModal.addEventListener('close', () => { if ($('dialog').open && solutionTrigger?.isConnected) solutionTrigger.focus({ preventScroll: true }); });
+      signal.addEventListener('abort', () => { if (pasapalabraSolutionModal.open) pasapalabraSolutionModal.close(); pasapalabraSolutionModal.remove(); }, { once: true });
     }
     if (questions.length === 1 && questions[0].type === 'wordsearch') {
       const dock = document.createElement('div');
@@ -806,7 +814,7 @@
       }
       readingTexts.add(key);
     });
-    function renderView() {summary.hidden=true;if($('showPracticeResult'))$('showPracticeResult').hidden=false; const sections=visibleQuestions();currentStep=Math.max(0,Math.min(currentStep,sections.length-1));sections.forEach((section,n)=>section.hidden=n!==currentStep);toolbar.hidden=sections.length===1&&sections[0].dataset.type==='pasapalabra';$('form').querySelectorAll('.reading-repeat').forEach(details=>details.open=true);$('stepPosition').textContent=`${currentStep+1} / ${sections.length}`;$('previousQuestion').disabled=currentStep===0;$('nextQuestion').hidden=currentStep===sections.length-1;$('form').querySelector('[type="submit"]').hidden=checked||currentStep!==sections.length-1;if(pasapalabraDock){const activeIndex=Number(sections[currentStep]?.dataset.question);pasapalabraFeedbacks.forEach(feedback=>feedback.hidden=Number(feedback.id.replace('feedback-',''))!==activeIndex||!feedback.textContent.trim());pasapalabraDock.hidden=!pasapalabraFeedbacks.some(feedback=>!feedback.hidden);}content.scrollTop=0; }
+    function renderView() {summary.hidden=true;if($('showPracticeResult'))$('showPracticeResult').hidden=false; const sections=visibleQuestions();currentStep=Math.max(0,Math.min(currentStep,sections.length-1));sections.forEach((section,n)=>section.hidden=n!==currentStep);toolbar.hidden=sections.length===1&&sections[0].dataset.type==='pasapalabra';$('form').querySelectorAll('.reading-repeat').forEach(details=>details.open=true);$('stepPosition').textContent=`${currentStep+1} / ${sections.length}`;$('previousQuestion').disabled=currentStep===0;$('nextQuestion').hidden=currentStep===sections.length-1;$('form').querySelector('[type="submit"]').hidden=checked||currentStep!==sections.length-1;content.scrollTop=0; }
     function showQuestion(index) { const section = document.querySelector(`[data-question="${index}"]`); currentStep = visibleQuestions().findIndex(item => item === section || item.dataset.question === section?.dataset.groupMember); renderView(); }
     $('previousQuestion').onclick = () => { currentStep--; renderView(); content.scrollTop = 0; };
     $('nextQuestion').onclick = () => {const section=visibleQuestions()[currentStep];questions.forEach((q,i)=>{const node=document.querySelector(`[data-question="${i}"]`);if(node===section||node.dataset.groupMember===section.dataset.question)confirmQuestion(i)});currentStep++;renderView();};
@@ -884,7 +892,26 @@
         const check=document.createElement('button');check.type='button';check.dataset.checkQuestion=index;check.textContent=openAnswerTypes.includes(q.type)&&q.type!=='error'&&!objectiveShort(q)?'Guardar respuesta':'Comprobar';
         check.onclick=()=>{if(q.type==='multigaps'){section.querySelectorAll('[data-multi-gap]').forEach((input,n)=>{if(input.value.trim()){const right=q.options[n].split('~').some(s=>accepts(input.value,s));markControl(input,right);recordAnswer(index,n,right,input.value.trim());}});}else if(q.type==='error'&&gradeQuestion(index)==='unanswered'){$('feedback-'+index).className='play-feedback is-incorrect';$('feedback-'+index).textContent='Selecciona el error de la oración y escribe su corrección.';}else confirmQuestion(index);};section.querySelector('.question-controls').append(check);
       }
-      const solution=document.createElement('button');solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';solution.onclick=()=>{practice[index].assisted=true;const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):sequenceTypes.includes(q.type)?expectedSequence(q).join(' → '):q.answer;$('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'')+itemReasons(q);const dock=$('feedback-'+index).closest('.pasapalabra-solution-dock,.wordsearch-solution-dock');if(dock){$('feedback-'+index).hidden=false;dock.hidden=false;}};(q.type==='pasapalabra'?section.querySelector('.pasapalabra-meta-actions'):q.type==='wordsearch'&&questions.length===1?footer:section).append(solution);
+      const solution=document.createElement('button');
+      solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';
+      solution.onclick=()=>{
+        practice[index].assisted=true;
+        if (q.type === 'pasapalabra' && pasapalabraSolutionModal) {
+          const rows=puzzleRows('pasapalabra',q.options);
+          pasapalabraSolutionModal.querySelector('.pasapalabra-solution-body').innerHTML=
+            '<ol class="pasapalabra-solution-list">'+rows.map(([letter,clue,answer])=>`<li><span class="pasapalabra-solution-letter">${escape(letter)}</span><div><strong>${escape(answer)}</strong><p>${rich(clue)}</p></div></li>`).join('')+'</ol>'+
+            (q.explanation?'<div class="pasapalabra-solution-explanation"><strong>Explicación</strong><p>'+rich(q.explanation)+'</p></div>':'')+itemReasons(q);
+          solutionTrigger=solution;
+          pasapalabraSolutionModal.showModal();
+          pasapalabraSolutionModal.querySelector('.pasapalabra-solution-close').focus();
+          return;
+        }
+        const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):sequenceTypes.includes(q.type)?expectedSequence(q).join(' → '):q.answer;
+        $('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'')+itemReasons(q);
+        const dock=$('feedback-'+index).closest('.wordsearch-solution-dock');
+        if(dock){$('feedback-'+index).hidden=false;dock.hidden=false;}
+      };
+      (q.type==='pasapalabra'?section.querySelector('.pasapalabra-meta-actions'):q.type==='wordsearch'&&questions.length===1?footer:section).append(solution);
       if (q.type === 'wordsearch') solution.addEventListener('click', () => section.querySelector('#puzzle-' + index)?.revealWordSearchSolution?.());
       if(!puzzleTypes.includes(q.type))section.addEventListener('click',()=>queueMicrotask(()=>{if(section.dataset.result==='incorrect'||section.dataset.result==='pending')solution.hidden=false;}),{signal});
       section.querySelectorAll('input:not([type="radio"]):not([type="hidden"])').forEach(input=>{
