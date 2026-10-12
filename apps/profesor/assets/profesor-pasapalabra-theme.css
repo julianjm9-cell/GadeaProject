@@ -2,7 +2,7 @@
 .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])){
   width:min(1500px,96vw);max-width:1500px;height:min(94dvh,900px);max-height:94dvh;
   padding:18px 24px 16px;border:1px solid #b8dcff;border-radius:24px;
-  background:#64acfb url('./games/pasapalabra-stage.png') center center/cover no-repeat;
+  background:#64acfb url('./games/pasapalabra-stage.png?v=20261012-2') center center/cover no-repeat;
   box-shadow:0 28px 80px #073b8d5c;color:#091f55;
 }
 .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])) #form{flex:1;min-height:0;gap:0}

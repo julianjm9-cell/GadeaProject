@@ -1,5 +1,5 @@
 /* Sopa de letras: artwork is only the backdrop; the board and controls are live HTML. */
-.activity-play:has(.play-question[data-type="wordsearch"]:not([hidden])){display:flex;flex-direction:column;width:min(1510px,97vw);max-width:1510px;height:min(94dvh,900px);max-height:94dvh;padding:15px 22px 12px;overflow:hidden;border:1px solid #9acaff;border-radius:25px;background:#76b8fb url('./games/wordsearch-stage.png') center/cover no-repeat;box-shadow:0 26px 80px #0a4f9957;color:#092456}
+.activity-play:has(.play-question[data-type="wordsearch"]:not([hidden])){display:flex;flex-direction:column;width:min(1510px,97vw);max-width:1510px;height:min(94dvh,900px);max-height:94dvh;padding:15px 22px 12px;overflow:hidden;border:1px solid #9acaff;border-radius:25px;background:#76b8fb url('./games/wordsearch-stage.png?v=20261012-2') center/cover no-repeat;box-shadow:0 26px 80px #0a4f9957;color:#092456}
 .activity-play:has(.play-question[data-type="wordsearch"]:not([hidden]))>.row{flex:none;min-height:35px}
 .activity-play:has(.play-question[data-type="wordsearch"]:not([hidden]))>.row .close{z-index:6;background:#fffffff0}
 .activity-play:has(.play-question[data-type="wordsearch"]:not([hidden])) #form{display:flex;flex:1;flex-direction:column;min-height:0;gap:0}
