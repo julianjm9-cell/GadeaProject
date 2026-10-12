@@ -719,6 +719,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-activity-play.css")
 @router.get("/assets/profesor-game-theme.css")
 @router.get("/assets/profesor-pasapalabra-theme.css")
+@router.get("/assets/profesor-hangman-theme.css")
 @router.get("/assets/profesor-generator.css")
 @router.get("/assets/profesor-access.css")
 @router.get("/assets/profesor-live.css")
@@ -737,6 +738,7 @@ def profesor_final_styles(request: Request):
 def profesor_game_illustration(filename: str):
     base_files = {
         "pasapalabra-stage.png",
+        "hangman-stage.png",
         "basic-boolean.webp",
         "basic-classify.webp",
         "basic-gaps.webp",
