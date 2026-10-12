@@ -154,6 +154,109 @@
   };
 
   const originalPuzzleGame = mountPuzzleGame;
+  function mountWordSearch(question, index, isChecked, report) {
+    const root = $('puzzle-' + index), answer = $('r-' + index);
+    const solutionDock = document.querySelector('.wordsearch-solution-dock');
+    const words = puzzleRows('wordsearch', question.options), board = buildWordSearch(words);
+    const found = new Set();
+    let start = null, selection = [], hintCell = null, message = 'Marca una palabra arrastrando o tocando su primera y última letra.';
+    let dragging = false, dragStart = null, moved = false, suppressClick = false, misses = 0, showSolution = false;
+    const cellIndex = (row, col) => row * board.size + col;
+    const placementPath = placement => placement.cells.map(([row, col]) => cellIndex(row, col));
+    const pathBetween = (from, to) => {
+      const [r1, c1, r2, c2] = [Math.floor(from / board.size), from % board.size, Math.floor(to / board.size), to % board.size];
+      const dr = Math.sign(r2 - r1), dc = Math.sign(c2 - c1), distance = Math.max(Math.abs(r2 - r1), Math.abs(c2 - c1));
+      if (r1 !== r2 && c1 !== c2 && Math.abs(r2 - r1) !== Math.abs(c2 - c1)) return [];
+      return Array.from({ length: distance + 1 }, (_, step) => cellIndex(r1 + dr * step, c1 + dc * step));
+    };
+    function update() {
+      answer.value = [...found].sort((a, b) => a - b).map(n => words[n]).join(', ');
+      report(index, { complete: found.size === words.length, correct: found.size === words.length, answer: answer.value,
+        review: () => board.placements.forEach((placement, n) => { if (!found.has(n)) placementPath(placement).forEach(cell => root.querySelector(`[data-cell="${cell}"]`)?.classList.add('solution')); }) });
+    }
+    function paintSelection() {
+      const marked = new Set(selection), discovered = new Set([...found].flatMap(n => placementPath(board.placements[n])));
+      const remaining = showSolution ? new Set(board.placements.flatMap((placement, n) => found.has(n) ? [] : placementPath(placement))) : new Set();
+      root.querySelectorAll('[data-cell]').forEach(button => {
+        const cell = Number(button.dataset.cell);
+        button.classList.toggle('selected', marked.has(cell));
+        button.classList.toggle('found', discovered.has(cell));
+        button.classList.toggle('solution', remaining.has(cell));
+        button.classList.toggle('hinted', cell === hintCell && !marked.has(cell) && !discovered.has(cell));
+        button.setAttribute('aria-pressed', String(marked.has(cell)));
+      });
+      root.querySelector('[data-wordsearch-check]').disabled = isChecked() || selection.length < 3;
+      root.querySelector('[data-wordsearch-clear]').disabled = isChecked() || (!selection.length && start === null);
+    }
+    function draw() {
+      root.innerHTML = `<div class="wordsearch-board"><div class="wordsearch-grid-wrap"><div class="puzzle-grid wordsearch-grid" role="group" aria-label="Sopa de letras de ${board.size} filas y ${board.size} columnas" style="--puzzle-size:${board.size}">${board.grid.flatMap((row, r) => row.map((letter, c) => `<button type="button" data-cell="${cellIndex(r,c)}" aria-label="Fila ${r+1}, columna ${c+1}, letra ${letter}" aria-pressed="false">${escape(letter)}</button>`)).join('')}</div></div><aside class="wordsearch-sidebar"><div class="wordsearch-progress"><span>Palabras encontradas</span><strong>${found.size}<small> / ${words.length}</small></strong><div role="progressbar" aria-label="Palabras encontradas" aria-valuemin="0" aria-valuemax="${words.length}" aria-valuenow="${found.size}"><span style="width:${found.size / words.length * 100}%"></span></div></div><div class="wordsearch-list"><h4>Palabras a encontrar</h4><ul>${words.map((word, n) => `<li class="${found.has(n) ? 'found' : ''}"><span aria-hidden="true">${found.has(n) ? '✓' : '⌕'}</span>${escape(word)}</li>`).join('')}</ul></div><p class="wordsearch-status" role="status">${escape(message)}</p><div class="wordsearch-actions"><button type="button" data-wordsearch-hint>Pista</button><button type="button" data-wordsearch-check class="primary">Comprobar</button><button type="button" data-wordsearch-clear>Borrar selección</button></div></aside></div>`;
+      if (solutionDock) root.querySelector('.wordsearch-sidebar').append(solutionDock);
+      root.querySelector('[data-wordsearch-check]').onclick = check;
+      root.querySelector('[data-wordsearch-clear]').onclick = () => { start = null; selection = []; message = 'Selecciona otra palabra.'; draw(); };
+      root.querySelector('[data-wordsearch-hint]').onclick = () => {
+        if (isChecked()) return;
+        const n = words.findIndex((_, i) => !found.has(i));
+        if (n < 0) return;
+        hintCell = placementPath(board.placements[n])[0];
+        message = `Pista: ${words[n]} empieza en la fila ${board.placements[n].row + 1}, columna ${board.placements[n].col + 1}.`;
+        recordAnswer(index, 'hint-' + n, null, 'pista', true);
+        draw();
+      };
+      root.querySelectorAll('[data-cell]').forEach(button => button.onclick = () => {
+        if (isChecked() || suppressClick) return;
+        const cell = Number(button.dataset.cell);
+        if (start === null || selection.length >= 3) { start = cell; selection = [cell]; message = 'Ahora toca la última letra, o arrastra hasta ella.'; }
+        else { selection = pathBetween(start, cell); start = null; message = selection.length >= 3 ? 'Pulsa Comprobar para confirmar la palabra.' : 'Marca una línea recta de al menos tres letras.'; }
+        root.querySelector('.wordsearch-status').textContent = message;
+        paintSelection();
+      });
+      paintSelection();
+      update();
+    }
+    function check() {
+      if (isChecked() || selection.length < 3) return;
+      const chosen = board.placements.findIndex((placement, n) => {
+        if (found.has(n)) return false;
+        const path = placementPath(placement);
+        return path.length === selection.length && (path.every((cell, i) => cell === selection[i]) || path.every((cell, i) => cell === selection[path.length - i - 1]));
+      });
+      if (chosen >= 0) { found.add(chosen); hintCell = null; recordAnswer(index, chosen, true, words[chosen]); message = found.size === words.length ? '¡Muy bien! Has encontrado todas las palabras.' : `¡Encontraste ${words[chosen]}! Sigue con las demás.`; }
+      else { recordAnswer(index, 'miss-' + ++misses, false, selection.join('-')); message = 'Esa selección no coincide con una palabra pendiente. Inténtalo de nuevo.'; }
+      start = null; selection = []; draw();
+    }
+    root.addEventListener('pointerdown', event => {
+      const button = event.target.closest('[data-cell]');
+      if (!button || isChecked()) return;
+      dragging = true; moved = false; dragStart = Number(button.dataset.cell);
+    });
+    root.addEventListener('pointermove', event => {
+      if (!dragging || isChecked()) return;
+      const button = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-cell]');
+      if (!button || !root.contains(button)) return;
+      const end = Number(button.dataset.cell);
+      if (end !== dragStart) moved = true;
+      if (!moved) return;
+      selection = pathBetween(dragStart, end);
+      start = null;
+      paintSelection();
+      event.preventDefault();
+    });
+    root.addEventListener('pointerup', event => {
+      if (!dragging) return;
+      dragging = false;
+      if (!moved) return;
+      const button = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-cell]');
+      if (button && root.contains(button)) selection = pathBetween(dragStart, Number(button.dataset.cell));
+      message = selection.length >= 3 ? 'Pulsa Comprobar para confirmar la palabra.' : 'Marca una línea recta de al menos tres letras.';
+      root.querySelector('.wordsearch-status').textContent = message;
+      paintSelection();
+      suppressClick = true;
+      setTimeout(() => { suppressClick = false; }, 0);
+    });
+    root.addEventListener('pointercancel', () => { dragging = false; moved = false; });
+    root.revealWordSearchSolution = () => { showSolution = true; paintSelection(); };
+    draw();
+  }
   mountMemory = function (q, index, isChecked) {
     const pairs = validateMemory(q.options), cards = shuffle(pairs.flatMap((pair, id) => pair.map(label => ({ id, label }))));
     const root = $('memory-' + index), answer = $('r-' + index), status = $('memory-status-' + index);
@@ -278,45 +381,7 @@
       if (typeof ResizeObserver !== 'undefined') new ResizeObserver(fitClue).observe(root);
       return;
     }
-    if (question.type === 'wordsearch') {
-      originalPuzzleGame(question, index, isChecked, report);
-      const root = $('puzzle-' + index);
-      const status = document.createElement('p');
-      status.className = 'play-progress';
-      status.setAttribute('role', 'status');
-      root.after(status);
-      let before = 0;
-      let misses=0;const foundWords=new Set();
-      let start = null, end = null, suppressClick = false;
-      root.addEventListener('pointerdown', event => { const button = event.target.closest('[data-cell]'); if (!button || isChecked()) return; start = Number(button.dataset.cell); end = start; });
-      root.addEventListener('pointermove', event => {
-        if (start === null || isChecked()) return;
-        const button = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-cell]');
-        if (!button || !root.contains(button)) return;
-        end = Number(button.dataset.cell);
-        const size = Math.sqrt(root.querySelectorAll('[data-cell]').length), ar = Math.floor(start / size), ac = start % size, br = Math.floor(end / size), bc = end % size;
-        const valid = ar === br || ac === bc || Math.abs(ar - br) === Math.abs(ac - bc), path = [];
-        if (valid) for (let n = 0; n <= Math.max(Math.abs(br - ar), Math.abs(bc - ac)); n++) path.push((ar + Math.sign(br - ar) * n) * size + ac + Math.sign(bc - ac) * n);
-        root.querySelectorAll('[data-cell]').forEach(cell => cell.classList.toggle('trail', path.includes(Number(cell.dataset.cell))));
-        event.preventDefault();
-      });
-      root.addEventListener('pointerup', () => {
-        if (start !== null && end !== start) { const first = start, last = end; root.querySelector(`[data-cell="${first}"]`)?.click(); root.querySelector(`[data-cell="${last}"]`)?.click(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); }
-        start = end = null;
-      });
-      root.addEventListener('pointercancel', () => { start = end = null; root.querySelectorAll('.trail').forEach(cell => cell.classList.remove('trail')); });
-      root.addEventListener('click', event => { if (suppressClick) { event.preventDefault(); event.stopImmediatePropagation(); } }, true);
-      root.querySelector('.puzzle-help').textContent = 'Arrastra desde la primera hasta la última letra, o pulsa ambos extremos.';
-      root.addEventListener('click', event => {
-        if (!event.target.closest('[data-cell]') || isChecked()) return;
-        const found = root.querySelectorAll('.puzzle-word-list .found').length;
-        if(found>before)root.querySelectorAll('.puzzle-word-list span').forEach((word,n)=>{if(word.classList.contains('found')&&!foundWords.has(n)){foundWords.add(n);recordAnswer(index,n,true,question.options[n]);}});
-        else if(!root.querySelector('.puzzle-grid .picked'))recordAnswer(index,'selection',null,'miss-'+(++misses),true);
-        status.textContent = found > before ? `¡Encontrada! ${found} de ${question.options.length} palabras.` : root.querySelector('.puzzle-grid .picked') ? 'Primera letra seleccionada: pulsa la última.' : 'Esa línea no forma una palabra pendiente. Prueba otra.';
-        before = found;
-      });
-      return;
-    }
+    if (question.type === 'wordsearch') return mountWordSearch(question, index, isChecked, report);
     if (question.type !== 'dragdrop') return originalPuzzleGame(question, index, isChecked, report);
     const rows = puzzleRows('dragdrop', question.options);
     const root = $('puzzle-' + index);
@@ -523,7 +588,7 @@
   }
   function questionMarkup(question, index, pairChoices) {
     const type = question.type;
-    const heading = type === 'gaps' || type === 'multigaps' ? '' : type === 'hangman' ? `<div class="hangman-heading"><h3 id="question-${index}">Adivina el concepto antes de quedarte sin intentos.</h3><p>Lee la pista y selecciona letras.</p></div>` : type === 'pasapalabra' ? `<h3 id="question-${index}" class="pasapalabra-intro">${escape(question.prompt)}</h3>` : `<h3 id="question-${index}">${type === 'flashcard' ? 'Lee la tarjeta y piensa la respuesta.' : `${index + 1}. ${escape(question.prompt)}`}</h3>`;
+    const heading = type === 'gaps' || type === 'multigaps' ? '' : type === 'hangman' ? `<div class="hangman-heading"><h3 id="question-${index}">Adivina el concepto antes de quedarte sin intentos.</h3><p>Lee la pista y selecciona letras.</p></div>` : type === 'pasapalabra' || type === 'wordsearch' ? `<h3 id="question-${index}" class="${type}-intro">${escape(question.prompt)}</h3>` : `<h3 id="question-${index}">${type === 'flashcard' ? 'Lee la tarjeta y piensa la respuesta.' : `${index + 1}. ${escape(question.prompt)}`}</h3>`;
     const image = visualTypes.includes(type) ? `<div class="visual-image-box ${type === 'imagepoint' ? 'visual-answer-box' : ''}" id="visual-${index}" ${type === 'imagepoint' ? 'tabindex="0" role="button" aria-label="Marca el punto en la imagen; usa las flechas para ajustarlo"' : ''}><img data-activity-image="${index}" alt="${escape(question.image?.filename || 'Imagen del ejercicio')}"></div>` : '';
     let control = '';
     if (type === 'gaps') {
@@ -688,7 +753,7 @@
       return false;
     });
     $('form').noValidate = true;
-    $('form').addEventListener('play:answer',event=>{logAnswer(event.detail);const {index,part,correct}=event.detail;if(correct!==null){const log=practice[index],parts=Object.values(log.parts).filter(p=>p.correct!==null),q=questions[index],reason=Number.isInteger(part)?q.itemExplanations?.[part]:'';$('feedback-'+index).className='play-feedback '+(correct?'is-correct':'is-incorrect');$('feedback-'+index).innerHTML=`${correct?'✓ Correcto.':'× Prueba de nuevo.'} ${parts.filter(p=>p.correct).length} aciertos · ${parts.filter(p=>!p.correct).length} por revisar.`+(reason?'<div>'+rich(reason)+'</div>':'');const dock=$('feedback-'+index).closest('.pasapalabra-solution-dock');if(dock){$('feedback-'+index).hidden=false;dock.hidden=false;}if(!correct)document.querySelector(`[data-question="${index}"] [data-show-solution]`)?.removeAttribute('hidden');}},{signal});
+    $('form').addEventListener('play:answer',event=>{logAnswer(event.detail);const {index,part,correct}=event.detail;if(correct!==null){const log=practice[index],parts=Object.values(log.parts).filter(p=>p.correct!==null),q=questions[index],reason=Number.isInteger(part)?q.itemExplanations?.[part]:'';$('feedback-'+index).className='play-feedback '+(correct?'is-correct':'is-incorrect');$('feedback-'+index).innerHTML=`${correct?'✓ Correcto.':'× Prueba de nuevo.'} ${parts.filter(p=>p.correct).length} aciertos · ${parts.filter(p=>!p.correct).length} por revisar.`+(reason?'<div>'+rich(reason)+'</div>':'');const dock=$('feedback-'+index).closest('.pasapalabra-solution-dock,.wordsearch-solution-dock');if(dock&&!dock.classList.contains('wordsearch-solution-dock')){$('feedback-'+index).hidden=false;dock.hidden=false;}if(!correct)document.querySelector(`[data-question="${index}"] [data-show-solution]`)?.removeAttribute('hidden');}},{signal});
     $('dialog').classList.add('activity-play');
     $('dialog').addEventListener('close', () => { if (!$('dialog').open) { $('dialog').classList.remove('activity-play'); $('form').noValidate = false; playerAbort?.abort(); } }, { signal });
     const toolbar = document.createElement('div'); toolbar.className = 'step-navigation';
@@ -707,6 +772,15 @@
       pasapalabraDock.hidden = true;
       pasapalabraFeedbacks.forEach(feedback => { feedback.hidden = true; pasapalabraDock.append(feedback); });
       footer.append(pasapalabraDock);
+    }
+    if (questions.length === 1 && questions[0].type === 'wordsearch') {
+      const dock = document.createElement('div');
+      dock.className = 'wordsearch-solution-dock';
+      dock.hidden = true;
+      const feedback = $('feedback-0');
+      feedback.hidden = true;
+      dock.append(feedback);
+      footer.append(dock);
     }
     if (questions.length === 1 && questions[0].type === 'pasapalabra') {
       const finish = actions.querySelector('[type="submit"]');
@@ -810,7 +884,8 @@
         const check=document.createElement('button');check.type='button';check.dataset.checkQuestion=index;check.textContent=openAnswerTypes.includes(q.type)&&q.type!=='error'&&!objectiveShort(q)?'Guardar respuesta':'Comprobar';
         check.onclick=()=>{if(q.type==='multigaps'){section.querySelectorAll('[data-multi-gap]').forEach((input,n)=>{if(input.value.trim()){const right=q.options[n].split('~').some(s=>accepts(input.value,s));markControl(input,right);recordAnswer(index,n,right,input.value.trim());}});}else if(q.type==='error'&&gradeQuestion(index)==='unanswered'){$('feedback-'+index).className='play-feedback is-incorrect';$('feedback-'+index).textContent='Selecciona el error de la oración y escribe su corrección.';}else confirmQuestion(index);};section.querySelector('.question-controls').append(check);
       }
-      const solution=document.createElement('button');solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';solution.onclick=()=>{practice[index].assisted=true;const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):sequenceTypes.includes(q.type)?expectedSequence(q).join(' → '):q.answer;$('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'')+itemReasons(q);const dock=$('feedback-'+index).closest('.pasapalabra-solution-dock');if(dock){$('feedback-'+index).hidden=false;dock.hidden=false;}};(q.type==='pasapalabra'?section.querySelector('.pasapalabra-meta-actions'):section).append(solution);
+      const solution=document.createElement('button');solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';solution.onclick=()=>{practice[index].assisted=true;const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):sequenceTypes.includes(q.type)?expectedSequence(q).join(' → '):q.answer;$('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'')+itemReasons(q);const dock=$('feedback-'+index).closest('.pasapalabra-solution-dock,.wordsearch-solution-dock');if(dock){$('feedback-'+index).hidden=false;dock.hidden=false;}};(q.type==='pasapalabra'?section.querySelector('.pasapalabra-meta-actions'):q.type==='wordsearch'&&questions.length===1?footer:section).append(solution);
+      if (q.type === 'wordsearch') solution.addEventListener('click', () => section.querySelector('#puzzle-' + index)?.revealWordSearchSolution?.());
       if(!puzzleTypes.includes(q.type))section.addEventListener('click',()=>queueMicrotask(()=>{if(section.dataset.result==='incorrect'||section.dataset.result==='pending')solution.hidden=false;}),{signal});
       section.querySelectorAll('input:not([type="radio"]):not([type="hidden"])').forEach(input=>{
         if(q.type==='multigaps'||q.type==='pasapalabra'||q.type==='crossword')return;
