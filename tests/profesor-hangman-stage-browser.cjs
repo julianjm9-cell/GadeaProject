@@ -18,10 +18,15 @@ const longMaterial={...material,activity:{...material.activity,questions:[{
     await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
     await page.evaluate(value=>runActivity(value,''),material);
     assert.equal(await page.locator('.hangman-clue p').innerText(),material.activity.questions[0].prompt);
+    assert.match(await page.locator('.hangman-heading h3').innerText(),/Adivina el concepto/);
     assert.equal(await page.locator('.play-question[data-type="hangman"]>h3').count(),0,'the clue is not duplicated above the board');
     assert.equal(await page.locator('.hangman-keyboard button').count(),27);
     assert.equal(await page.locator('.hangman-hearts span:not(.lost)').count(),7);
     assert.equal(await page.locator('.hangman-word .letter-slot').count(),6);
+    const wordLine=await page.locator('.hangman-word .letter-slot').evaluateAll(slots=>slots.map(slot=>slot.getBoundingClientRect().top));
+    assert.ok(wordLine.every(top=>Math.abs(top-wordLine[0])<2),'the word slots stay on one horizontal line');
+    await page.locator('[data-hangman-check]').click();
+    assert.match(await page.locator('.hangman-status').innerText(),/Aún faltan letras/);
     const asset=await page.locator('#dialog').evaluate(async element=>{
       const url=getComputedStyle(element).backgroundImage.match(/url\("?([^"\)]+)"?\)/)?.[1];
       if(!url)return false;const image=new Image();image.src=url;await image.decode();return image.naturalWidth===1672;
