@@ -79,6 +79,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/profesor/alumno": b"studentJoinGate",
         "/profesor-particular": b"LOGIN_TARGETS",  # Unauthenticated request must reach login.
         "/assets/landing/profesor-dashboard.png": b"\x89PNG\r\n\x1a\n",
+        "/assets/landing/profesor-clases-apoyo.png": b"\x89PNG\r\n\x1a\n",
     }
     for path, expected in checks.items():
         with urlopen(base + path, timeout=20) as response:
@@ -86,6 +87,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
             assert response.status == 200 and expected in data, f"Respuesta incorrecta: {path}"
             if path == "/":
                 assert b'href="/profesor"' in data, "Falta Profesor Particular en la portada"
+            if path in ("/profesor", "/profesor/clases-de-apoyo"):
+                assert b"/assets/landing/profesor-clases-apoyo.png" in data, "Falta la imagen de clases de apoyo"
             if path == "/profesor-particular":
                 assert "/login?next=/profesor-particular" in response.url, "La app no redirige al login"
         print(f"OK {path}")
