@@ -126,7 +126,8 @@ def test_simple_ad_can_be_published_and_edited(client):
     assert '<label for="location">Ubicación' in page
     assert '<label for="information">Información' in page
     assert '<label for="photo">Imagen' in page
-    assert 'id="contact_email"' in page and 'id="contact_phone"' in page
+    assert '<label for="contact">Contacto *' in page and 'id="contact"' in page
+    assert 'id="contact_email"' not in page and 'id="contact_phone"' not in page
     assert 'id="locationFilter"' not in page
 
     payload = {"title": "Apoyo en matemáticas", "course": "3.º ESO, 4.º ESO", "subject": "Matemáticas, Física y Química",

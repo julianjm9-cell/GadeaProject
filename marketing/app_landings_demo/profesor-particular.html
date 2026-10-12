@@ -50,6 +50,19 @@
     @media(max-width:620px){.product-screen{height:550px}.landing-top-actions{gap:7px}.landing-top-actions a{min-height:38px;padding:8px 11px;font-size:12px}.feature-tab{min-height:76px}.material-creator{display:none}}
   </style>
   <style>.discover{margin:23px 0 27px}.discover h2{margin:0 0 13px;font-size:26px;letter-spacing:-.04em}.discover-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.discover-grid a{display:block;min-width:0;padding:17px;border:1px solid #d8e8fa;border-radius:15px;background:#ffffffd9;color:#0b1b54;text-decoration:none;box-shadow:0 7px 17px #216bb90b}.discover-grid a:hover{border-color:#85b8f8;background:#fff}.discover-grid strong{display:block;font-size:15px}.discover-grid span{display:block;margin-top:5px;color:#6078a1;font-size:12px;line-height:1.5}@media(max-width:950px){.discover-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.discover-grid{grid-template-columns:1fr 1fr;gap:7px}.discover-grid a{padding:12px}.discover-grid strong{font-size:13px}.discover-grid span{font-size:11px}}</style>
+  <style>
+    .discover-grid a{display:grid;grid-template-columns:105px minmax(0,1fr);align-items:center;gap:12px;min-height:140px;padding:10px;overflow:hidden;transition:transform .18s,box-shadow .18s,border-color .18s}
+    .discover-grid a:hover{transform:translateY(-3px);box-shadow:0 13px 27px #216bb925}
+    .discover-grid a>img{display:block;width:105px;height:112px;object-fit:cover;border-radius:10px;background:#e6f4ff}
+    .discover-grid .discover-copy{display:block;min-width:0;margin:0}
+    .discover-grid .discover-copy strong{display:flex;align-items:flex-start;justify-content:space-between;gap:4px;color:#0b1b54;font-size:15px;line-height:1.25}
+    .discover-grid .discover-copy strong b{color:#0873ec;font-size:20px;line-height:1}
+    .discover-grid .discover-copy>span{display:block;margin-top:7px;color:#6078a1;font-size:12px;line-height:1.45}
+    .faq-grid{align-items:start}
+    @media(max-width:1200px){.discover-grid a{grid-template-columns:84px minmax(0,1fr)}.discover-grid a>img{width:84px;height:104px}}
+    @media(max-width:950px){.discover-grid a{grid-template-columns:110px minmax(0,1fr)}.discover-grid a>img{width:110px;height:102px}}
+    @media(max-width:620px){.discover-grid{grid-template-columns:1fr}.discover-grid a{grid-template-columns:100px minmax(0,1fr);min-height:112px;padding:8px}.discover-grid a>img{width:100px;height:94px}.discover-grid .discover-copy strong{font-size:14px}.discover-grid .discover-copy>span{font-size:12px}}
+  </style>
 </head>
 <body>
 <main class="landing">
@@ -104,7 +117,7 @@
       </div>
     </div>
   </section>
-  <section class="discover" aria-labelledby="discover-title"><h2 id="discover-title">Herramientas para clases particulares y de refuerzo</h2><div class="discover-grid"><a href="/profesor/materiales-para-clases"><strong>Materiales para clase →</strong><span>Fichas, ejercicios y archivos organizados por curso y asignatura.</span></a><a href="/profesor/juegos-interactivos"><strong>Juegos interactivos →</strong><span>Pasapalabra, sopa de letras, ahorcado y más actividades de repaso.</span></a><a href="/profesor/temario-clases"><strong>Temario de clases →</strong><span>Ideas, ejemplos y práctica para preparar cada tema.</span></a><a href="/profesor/clases-de-apoyo"><strong>Clases de apoyo →</strong><span>Planifica sesiones, trabaja objetivos y sigue a tus alumnos.</span></a></div></section>
+  <section class="discover" aria-labelledby="discover-title"><h2 id="discover-title">Herramientas para clases particulares y de refuerzo</h2><div class="discover-grid"><a href="/profesor/materiales-para-clases"><img src="/assets/games/mature-basic-quiz.webp" alt="" loading="lazy"><span class="discover-copy"><strong>Materiales para clase <b aria-hidden="true">↗</b></strong><span>Fichas, ejercicios y archivos por curso y asignatura.</span></span></a><a href="/profesor/juegos-interactivos"><img src="/assets/games/mature-pasapalabra.webp" alt="" loading="lazy"><span class="discover-copy"><strong>Juegos interactivos <b aria-hidden="true">↗</b></strong><span>Pasapalabra, sopa de letras y juegos de repaso.</span></span></a><a href="/profesor/temario-clases"><img src="/assets/games/mature-basic-reading.webp" alt="" loading="lazy"><span class="discover-copy"><strong>Temario de clases <b aria-hidden="true">↗</b></strong><span>Ideas, ejemplos y práctica para cada tema.</span></span></a><a href="/profesor/clases-de-apoyo"><img src="/assets/landing/profesor-dashboard.png" alt="" loading="lazy"><span class="discover-copy"><strong>Clases de apoyo <b aria-hidden="true">↗</b></strong><span>Planifica sesiones y sigue a tus alumnos.</span></span></a></div></section>
   <section class="faq" aria-labelledby="faq-title"><h2 id="faq-title">Preguntas frecuentes</h2><div class="faq-grid">
     <details><summary>¿Qué puedo hacer con Profesor Particular?</summary><p>Organiza tus alumnos, agenda sus clases, consulta el temario y prepara materiales para trabajar con ellos. Al entrar por primera vez, tu espacio empieza vacío y puedes personalizarlo.</p></details>
     <details><summary>¿Es gratis?</summary><p id="priceAnswer">Puedes entrar con Google sin pagar al principio. Los días de acceso, créditos de IA y plan inicial se muestran en tu cuenta.</p></details>
