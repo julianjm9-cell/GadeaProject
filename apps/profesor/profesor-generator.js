@@ -6,6 +6,10 @@
  const unitLabels={pairs:'parejas',gaps:'frases',multigaps:'huecos',numeric:'preguntas',quiz:'preguntas',short:'preguntas',order:'elementos',classify:'elementos',boolean:'preguntas',reading:'preguntas',problem:'problemas',flashcard:'tarjetas',memory:'parejas',sentence:'fragmentos',timeline:'eventos',error:'frases',wordsearch:'palabras',crossword:'palabras',dragdrop:'parejas',pasapalabra:'letras',hangman:'palabras',visualquiz:'imagen',imagepoint:'imagen'};
  const minSize=type=>['pasapalabra','wordsearch','crossword','dragdrop'].includes(type)?3:2;
  const maxSize=type=>limits[type]||12;
+ const temporaryAiLoad=error=>{
+  const status=Number(error?.status);
+  return status===429||status===504||status===503&&!/no hay una ia configurada|configura|clave|modelo/i.test(error.message||'');
+ };
  async function generateInBackground(body,status){
   let job=await api('/api/profesor/generation/start',body),networkFailures=0;
   const started=Date.now();
@@ -19,7 +23,7 @@
     if(status)status.textContent='Reconectando… El progreso está guardado.';
    }
   }
-  if(job.status!=='completed'||!job.result?.questions)throw Error(job.error||'El intento se interrumpió. Pulsa Generar con IA para recuperar el progreso guardado.');
+  if(job.status!=='completed'||!job.result?.questions)throw Object.assign(new Error(job.error||'El intento se interrumpió. Pulsa Generar con IA para recuperar el progreso guardado.'),{status:job.error_status});
   return job.result;
  }
  const originalMarkup=workshopMarkup;
@@ -128,6 +132,8 @@
   if(!Object.keys(prefill).length)try{const saved=JSON.parse(sessionStorage.getItem('profesor.generatorRetry')||'null');if(saved?.body&&saved.account===accountEmail)prefill=saved.body}catch{}
   const owner=Object.hasOwn(prefill,'studentId')?prefill.studentId:selected||'',draft=isPremium()?{...prefill}:{...prefill,visualquiz:0,imagepoint:0},st=student(owner);
   modal('Crear material',workshopMarkup(owner,draft,st),async form=>{
+   const retryNotice=$('workshopRetryNotice');
+   if(retryNotice)retryNotice.hidden=true;
    const c={studentId:form.get('studentId'),course:form.get('course').trim(),subject:form.get('subject'),topic:form.get('topic').trim(),theme:form.get('theme').trim(),duration:15,instructions:String(form.get('instructions')||'').trim(),extent:'standard',difficulty:'standard',activitySizes:{},qualityVersion:1};
    let total=0,totalQuestions=0;
    for(const type of Object.keys(activityLabels)){c[type]=Number(form.get(type));if(!Number.isInteger(c[type])||c[type]<0||c[type]>MAX_GENERATOR_ACTIVITIES)throw Error('Elige un único tipo de actividad.');if(visualTypes.includes(type)&&!isPremium()&&c[type])throw Error('Las fotografías requieren Premium.');total+=c[type];if(c[type]&&!visualTypes.includes(type)){const size=Number(form.get('size-'+type));if(!Number.isInteger(size)||size<(['pasapalabra','wordsearch','crossword','dragdrop'].includes(type)?3:2)||size>(limits[type]||12))throw Error('Revisa el número de preguntas o elementos de '+activityLabels[type]+'.');c.activitySizes[type]=size;}totalQuestions+=c[type]*(bundleTypes.has(type)?c.activitySizes[type]:1);}
@@ -152,11 +158,19 @@
      for(const type of Object.keys(activityLabels).filter(k=>!visualTypes.includes(k)))if(generated.filter(q=>q.type===type).length!==c[type]*(bundleTypes.has(type)?c.activitySizes[type]||0:1))throw Error('La IA devolvió una cantidad de preguntas distinta a la solicitada.');
      questions=generated.map(q=>({...q,id:uid()}));const lastGroup=Math.max(0,...questions.map(q=>q.activityGroup||0));let photoGroup=lastGroup;
      for(const q of blank.filter(q=>visualTypes.includes(q.type)))questions.push({...q,activityGroup:++photoGroup});generatorRetry=null;try{sessionStorage.removeItem('profesor.generatorRetry')}catch{}
+    }catch(error){
+     if(temporaryAiLoad(error)){
+      if(retryNotice)retryNotice.hidden=false;
+      return false;
+     }
+     throw error;
     }finally{workshopBusy=false;controls.forEach(([el,disabled])=>el.disabled=disabled);$('workshopStatus').textContent='';$('form').dispatchEvent(new Event('workshop:refresh'));}
    }
    const material={id:uid(),title:c.topic,subject:c.subject,studentId:c.studentId,kind:'Actividad interactiva',body:'',activity:{version:1,context:c,questions}};
    setTimeout(()=>editActivity(material),0);
   });setupWorkshop(owner,draft,st);
+  const retry=$('workshopRetryButton');
+  if(retry)retry.onclick=()=>{$('workshopContinue').click()};
  };
  const originalPreview=puzzlePreview;
  puzzlePreview=function(type,options){if(type!=='pasapalabra')return originalPreview(type,options);try{const rows=puzzleRows(type,options);return `<div class="rosco-preview"><div class="pasapalabra-wheel" aria-label="Vista previa del rosco">${rows.map(([letter],i)=>{const a=i/rows.length*Math.PI*2-Math.PI/2;return `<span style="left:${50+43*Math.cos(a)}%;top:${50+43*Math.sin(a)}%">${esc(letter)}</span>`}).join('')}<div class="rosco-center"><strong>${rows.length}</strong><span>letras</span></div></div><p class="generator-help">Una pista por letra · responde, pasa y vuelve a las pendientes</p><ol class="rosco-clue-preview">${rows.slice(0,3).map(([letter,clue])=>`<li><b>${esc(letter)}</b> ${esc(clue)}</li>`).join('')}</ol></div>`;}catch(error){return `<p>${esc(error.message)}</p>`;}};
@@ -236,8 +250,13 @@
      const next={...result[0],id:original.id,activityGroup:original.activityGroup};
      if(original.type==='reading'&&original.text&&next.text!==original.text)throw Error('El texto compartido debe conservarse.');
      if(original.type==='classify'&&JSON.stringify([...next.options].sort())!==JSON.stringify([...original.options].sort()))throw Error('Las categorías compartidas deben conservarse.');
-     previous=original;replaceQuestion(next);retry=null;undo.hidden=false;status.textContent='Pregunta mejorada. Las demás se conservan. Guarda el material para conservar el cambio.';
-    }catch(error){status.textContent=error.message}
+     previous=original;replaceQuestion(next);retry=null;undo.hidden=false;button.textContent='Regenerar con IA';status.textContent='Pregunta mejorada. Las demás se conservan. Guarda el material para conservar el cambio.';
+    }catch(error){
+     if(temporaryAiLoad(error)){
+      status.textContent='La IA está ocupada temporalmente. El intento se conserva y no se han descontado créditos. Espera un momento y pulsa Reintentar.';
+      button.textContent='Reintentar';
+     }else{status.textContent=error.message;button.textContent='Regenerar con IA'}
+    }
     finally{busy=false;controls.forEach(([el,disabled])=>el.disabled=disabled);$('dialog').removeEventListener('cancel',preventClose)}
    };
   });
