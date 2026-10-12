@@ -60,6 +60,7 @@ class AdInput(BaseModel):
     location: str = Field(default="", max_length=120)
     description: str = Field(default="", max_length=1600)
     price: str = Field(default="", max_length=80)
+    contact: str = Field(default="", max_length=255)
     contact_email: str = Field(default="", max_length=255)
     contact_phone: str = Field(default="", max_length=40)
     image_data: str = Field(default="", max_length=7_000_000)
@@ -139,6 +140,7 @@ def cleaned_input(payload: AdInput, previous: ProfesorAd | None = None) -> dict:
               else clean_line(payload.levels, 200))
     if len(name) < 2 or len(subjects) < 2 or new_format and len(course) < 2:
         raise HTTPException(422, "Escribe un título y selecciona al menos un curso y una materia.")
+    contact = clean_line(payload.contact, 255)
     email = clean_line(payload.contact_email, 255)
     if email and not re.fullmatch(r"[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+", email):
         raise HTTPException(422, "Revisa el correo de contacto.")
@@ -146,8 +148,10 @@ def cleaned_input(payload: AdInput, previous: ProfesorAd | None = None) -> dict:
     digits = re.sub(r"\D", "", phone)
     if phone and (not re.fullmatch(r"[+\d ()-]+", phone) or not 7 <= len(digits) <= 15):
         raise HTTPException(422, "Revisa el teléfono de contacto.")
-    if new_format and not email and not phone:
-        raise HTTPException(422, "Indica un correo o un teléfono de contacto.")
+    if new_format and not contact and not email and not phone:
+        raise HTTPException(422, "Indica una forma de contacto.")
+    if not contact:
+        contact = clean_line(" · ".join(part for part in (email, phone) if part), 255)
     modality = clean_line(payload.modality, 30)
     if modality not in {"", "online", "presencial", "ambas"}:
         raise HTTPException(422, "Selecciona una modalidad válida.")
@@ -160,6 +164,7 @@ def cleaned_input(payload: AdInput, previous: ProfesorAd | None = None) -> dict:
         "location": clean_line(payload.location, 120),
         "description": (payload.information if "information" in payload.model_fields_set else payload.description).strip()[:1600],
         "price": clean_line(payload.price, 80),
+        "contact": contact,
         "contact_email": email,
         "contact_phone": phone,
     }
@@ -200,6 +205,7 @@ def public_ad(ad: ProfesorAd) -> dict:
         "information": ad.description, "name": ad.name,
         "headline": ad.headline, "levels": ad.levels, "modality": ad.modality,
         "location": ad.location, "description": ad.description, "price": ad.price,
+        "contact": ad.contact or " · ".join(part for part in (ad.contact_email, ad.contact_phone) if part),
         "contact_email": ad.contact_email, "contact_phone": ad.contact_phone,
         "image_url": f"/api/profesor/ads/{ad.id}/image" if ad.image_name else None,
         "created_at": ad.created_at.isoformat(),

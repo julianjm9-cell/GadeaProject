@@ -162,6 +162,7 @@ class ProfesorAd(Base, TimestampMixin):
     location: Mapped[str] = mapped_column(String(120), default="", nullable=False)
     description: Mapped[str] = mapped_column(Text, default="", nullable=False)
     price: Mapped[str] = mapped_column(String(80), default="", nullable=False)
+    contact: Mapped[str] = mapped_column(String(255), default="", nullable=False)
     contact_email: Mapped[str] = mapped_column(String(255), default="", nullable=False)
     contact_phone: Mapped[str] = mapped_column(String(40), default="", nullable=False)
     image_name: Mapped[str | None] = mapped_column(String(80), nullable=True)

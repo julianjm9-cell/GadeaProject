@@ -142,6 +142,7 @@ def test_simple_ad_can_be_published_and_edited(client):
     assert (ad['title'], ad['course'], ad['subject'], ad['location'], ad['information']) == (
         payload['title'], payload['course'], payload['subject'], payload['location'], payload['information'])
     assert ad['contact_email'] == payload['contact_email'] and ad['contact_phone'] == ''
+    assert ad['contact'] == payload['contact_email']
     edited = web.post(f'/api/profesor/ads/manage/{ad_id}', headers={'X-Ad-Key': key},
                       json={**payload, 'title': 'Refuerzo de álgebra', 'course': '4.º ESO, 1.º Bachillerato',
                             'location': 'Getafe', 'information': 'Clases presenciales'})
@@ -150,6 +151,27 @@ def test_simple_ad_can_be_published_and_edited(client):
     assert edited.json()['ad']['course'] == '4.º ESO, 1.º Bachillerato'
     assert edited.json()['ad']['location'] == 'Getafe'
     assert edited.json()['ad']['information'] == 'Clases presenciales'
+
+
+def test_ad_contact_accepts_free_text_and_remains_editable(client):
+    web, _ = client
+    payload = {
+        "title": "Clases de lengua", "course": "3.º ESO", "subject": "Lengua",
+        "contact": "Instagram: @clasesconmaria", "consent": True,
+        "terms_accepted": True, "consent_version": CONSENT_VERSION,
+    }
+    assert web.post('/api/profesor/ads', json={**payload, 'contact': '   '}).status_code == 422
+    created = web.post('/api/profesor/ads', json=payload)
+    assert created.status_code == 201, created.text
+    ad_id, key = created.json()['ad']['id'], created.json()['manage_key']
+    assert created.json()['ad']['contact'] == payload['contact']
+    assert created.json()['ad']['contact_email'] == created.json()['ad']['contact_phone'] == ''
+    assert web.get(f'/api/profesor/ads/{ad_id}').json()['ad']['contact'] == payload['contact']
+    edited = web.post(f'/api/profesor/ads/manage/{ad_id}', headers={'X-Ad-Key': key},
+                      json={**payload, 'contact': 'Telegram: @maria_clases'})
+    assert edited.status_code == 200, edited.text
+    assert edited.json()['ad']['contact'] == 'Telegram: @maria_clases'
+    assert web.get(f'/api/profesor/ads/manage/{ad_id}', headers={'X-Ad-Key': key}).json()['ad']['contact'] == 'Telegram: @maria_clases'
 
 
 def test_publication_management_and_public_visibility(client):
