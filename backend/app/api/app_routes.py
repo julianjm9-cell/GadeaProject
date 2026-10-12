@@ -113,6 +113,7 @@ def static_html(filename: str, fallback: Path) -> Response:
     }
     if filename == "profesor-particular.html":
         # Both /profesor/demo and /profesor-particular use the same root asset routes.
+        headers["X-Robots-Tag"] = "noindex, nofollow"
         html = response_path.read_text(encoding="utf-8")
         html = html.replace('src="./assets/', 'src="/assets/').replace('href="./assets/', 'href="/assets/')
         html = html.replace('src="./profesor-', 'src="/profesor-').replace('src="./temario-', 'src="/temario-')
@@ -123,12 +124,15 @@ def static_html(filename: str, fallback: Path) -> Response:
     )
 
 
-def marketing_file(filename: str, media_type: str | None = None) -> FileResponse:
+def marketing_path(filename: str) -> Path:
     static_path = STATIC_DIR / "marketing" / filename
     fallback = PROJECT_ROOT / "marketing" / "app_landings_demo" / filename
-    path = static_path if static_path.exists() else fallback
+    return static_path if static_path.exists() else fallback
+
+
+def marketing_file(filename: str, media_type: str | None = None) -> FileResponse:
     return FileResponse(
-        path,
+        marketing_path(filename),
         media_type=media_type,
         headers={
             "Cache-Control": "public, max-age=300",
@@ -545,7 +549,12 @@ def sitemap_xml():
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         '  <url><loc>https://educame.tech/</loc></url>\n'
         '  <url><loc>https://educame.tech/profesor</loc></url>\n'
+        '  <url><loc>https://educame.tech/profesor/materiales-para-clases</loc></url>\n'
+        '  <url><loc>https://educame.tech/profesor/juegos-interactivos</loc></url>\n'
+        '  <url><loc>https://educame.tech/profesor/temario-clases</loc></url>\n'
+        '  <url><loc>https://educame.tech/profesor/clases-de-apoyo</loc></url>\n'
         '  <url><loc>https://educame.tech/profesor/anuncios</loc></url>\n'
+        '  <url><loc>https://educame.tech/profesor/anunciar</loc></url>\n'
         '</urlset>\n'
     )
     return Response(xml, media_type="application/xml")
@@ -876,10 +885,63 @@ def profesor_landing():
     return marketing_file("profesor-particular.html", "text/html")
 
 
+@router.get("/profesor/seo.css")
+def profesor_seo_styles():
+    return marketing_file("profesor-seo.css", "text/css")
+
+
+@router.get("/profesor/materiales-para-clases")
+def profesor_materiales_landing():
+    return marketing_file("profesor-materiales-para-clases.html", "text/html")
+
+
+@router.get("/profesor/juegos-interactivos")
+def profesor_juegos_landing():
+    return marketing_file("profesor-juegos-interactivos.html", "text/html")
+
+
+@router.get("/profesor/temario-clases")
+def profesor_temario_landing():
+    return marketing_file("profesor-temario-clases.html", "text/html")
+
+
+@router.get("/profesor/clases-de-apoyo")
+def profesor_apoyo_landing():
+    return marketing_file("profesor-clases-de-apoyo.html", "text/html")
+
+
 @router.get("/profesor/anunciar")
 @router.get("/profesor/anuncios")
 @router.get("/profesor/anuncios/{ad_id}")
-def profesor_ads_page():
+def profesor_ads_page(request: Request):
+    if request.url.path == "/profesor/anunciar":
+        html = marketing_path("profesor-anuncios.html").read_text(encoding="utf-8")
+        html = html.replace(
+            "Tablón de profesores particulares por asignatura | Profesor Particular",
+            "Anúnciate gratis y encuentra alumnos | Profesor Particular",
+            1,
+        ).replace(
+            "Busca profesores particulares para clases de apoyo y refuerzo. Filtra los anuncios por asignatura y consulta curso, ubicación y forma de contacto.",
+            "Publica gratis tu anuncio de clases particulares para que nuevos alumnos te encuentren por asignatura, curso y ubicación. Sin crear una cuenta.",
+            1,
+        ).replace(
+            "Tablón de profesores particulares | Profesor Particular",
+            "Anúnciate gratis para encontrar alumnos | Profesor Particular",
+            1,
+        ).replace(
+            "Encuentra profesores de apoyo por asignatura y consulta sus anuncios.",
+            "Publica gratis un anuncio de clases particulares por asignatura, curso y ubicación.",
+            1,
+        ).replace(
+            "https://educame.tech/profesor/anuncios",
+            "https://educame.tech/profesor/anunciar",
+            2,
+        ).replace(
+            '<h1 id="pageTitle">Encuentra a tu próximo profesor</h1>',
+            '<h1 id="pageTitle">Anúnciate gratis para encontrar alumnos</h1>',
+            1,
+        )
+        return HTMLResponse(html, headers={"Cache-Control": "public, max-age=300"})
     return marketing_file("profesor-anuncios.html", "text/html")
 
 
