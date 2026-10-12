@@ -237,7 +237,7 @@
         const completed = values.filter(Boolean).length;
         const slots = alphabet.map((letter, slot) => {
           const angle = slot / alphabet.length * Math.PI * 2 - Math.PI / 2;
-          const style = `--x:${50 + 45 * Math.cos(angle)}%;--y:${50 + 45 * Math.sin(angle)}%`;
+          const style = `--x:${50 + 46 * Math.cos(angle)}%;--y:${50 + 46 * Math.sin(angle)}%`;
           const position = rowForSlot[slot];
           if (position < 0) return `<button type="button" style="${style}" class="empty" data-slot="${slot}" aria-label="Letra ${letter} sin actividad" disabled></button>`;
           const status = outcomes[position] === true ? 'correct' : outcomes[position] === false ? 'incorrect' : passed.has(position) ? 'passed' : '';
@@ -687,7 +687,7 @@
       return false;
     });
     $('form').noValidate = true;
-    $('form').addEventListener('play:answer',event=>{logAnswer(event.detail);const {index,part,correct}=event.detail;if(correct!==null){const log=practice[index],parts=Object.values(log.parts).filter(p=>p.correct!==null),q=questions[index],reason=Number.isInteger(part)?q.itemExplanations?.[part]:'';$('feedback-'+index).className='play-feedback '+(correct?'is-correct':'is-incorrect');$('feedback-'+index).innerHTML=`${correct?'✓ Correcto.':'× Prueba de nuevo.'} ${parts.filter(p=>p.correct).length} aciertos · ${parts.filter(p=>!p.correct).length} por revisar.`+(reason?'<div>'+rich(reason)+'</div>':'');if(!correct)document.querySelector(`[data-question="${index}"] [data-show-solution]`)?.removeAttribute('hidden');}},{signal});
+    $('form').addEventListener('play:answer',event=>{logAnswer(event.detail);const {index,part,correct}=event.detail;if(correct!==null){const log=practice[index],parts=Object.values(log.parts).filter(p=>p.correct!==null),q=questions[index],reason=Number.isInteger(part)?q.itemExplanations?.[part]:'';$('feedback-'+index).className='play-feedback '+(correct?'is-correct':'is-incorrect');$('feedback-'+index).innerHTML=`${correct?'✓ Correcto.':'× Prueba de nuevo.'} ${parts.filter(p=>p.correct).length} aciertos · ${parts.filter(p=>!p.correct).length} por revisar.`+(reason?'<div>'+rich(reason)+'</div>':'');const dock=$('feedback-'+index).closest('.pasapalabra-solution-dock');if(dock){$('feedback-'+index).hidden=false;dock.hidden=false;}if(!correct)document.querySelector(`[data-question="${index}"] [data-show-solution]`)?.removeAttribute('hidden');}},{signal});
     $('dialog').classList.add('activity-play');
     $('dialog').addEventListener('close', () => { if (!$('dialog').open) { $('dialog').classList.remove('activity-play'); $('form').noValidate = false; playerAbort?.abort(); } }, { signal });
     const toolbar = document.createElement('div'); toolbar.className = 'step-navigation';
@@ -699,6 +699,14 @@
     const score = $('activityScore'), actions = score.nextElementSibling;
     score.before(footer); footer.append(score, actions);
     actions.prepend(toolbar);actions.querySelector('[data-action="close"]').hidden=true;
+    const pasapalabraFeedbacks = questions.flatMap((question, index) => question.type === 'pasapalabra' ? [$('feedback-' + index)] : []);
+    const pasapalabraDock = pasapalabraFeedbacks.length ? document.createElement('div') : null;
+    if (pasapalabraDock) {
+      pasapalabraDock.className = 'pasapalabra-solution-dock';
+      pasapalabraDock.hidden = true;
+      pasapalabraFeedbacks.forEach(feedback => { feedback.hidden = true; pasapalabraDock.append(feedback); });
+      footer.append(pasapalabraDock);
+    }
     if (questions.length === 1 && questions[0].type === 'pasapalabra') {
       const finish = actions.querySelector('[type="submit"]');
       const finishStack = document.createElement('div');
@@ -723,7 +731,7 @@
       }
       readingTexts.add(key);
     });
-    function renderView() {summary.hidden=true;if($('showPracticeResult'))$('showPracticeResult').hidden=false; const sections=visibleQuestions();currentStep=Math.max(0,Math.min(currentStep,sections.length-1));sections.forEach((section,n)=>section.hidden=n!==currentStep);toolbar.hidden=sections.length===1&&sections[0].dataset.type==='pasapalabra';$('form').querySelectorAll('.reading-repeat').forEach(details=>details.open=true);$('stepPosition').textContent=`${currentStep+1} / ${sections.length}`;$('previousQuestion').disabled=currentStep===0;$('nextQuestion').hidden=currentStep===sections.length-1;$('form').querySelector('[type="submit"]').hidden=checked||currentStep!==sections.length-1;content.scrollTop=0; }
+    function renderView() {summary.hidden=true;if($('showPracticeResult'))$('showPracticeResult').hidden=false; const sections=visibleQuestions();currentStep=Math.max(0,Math.min(currentStep,sections.length-1));sections.forEach((section,n)=>section.hidden=n!==currentStep);toolbar.hidden=sections.length===1&&sections[0].dataset.type==='pasapalabra';$('form').querySelectorAll('.reading-repeat').forEach(details=>details.open=true);$('stepPosition').textContent=`${currentStep+1} / ${sections.length}`;$('previousQuestion').disabled=currentStep===0;$('nextQuestion').hidden=currentStep===sections.length-1;$('form').querySelector('[type="submit"]').hidden=checked||currentStep!==sections.length-1;if(pasapalabraDock){const activeIndex=Number(sections[currentStep]?.dataset.question);pasapalabraFeedbacks.forEach(feedback=>feedback.hidden=Number(feedback.id.replace('feedback-',''))!==activeIndex||!feedback.textContent.trim());pasapalabraDock.hidden=!pasapalabraFeedbacks.some(feedback=>!feedback.hidden);}content.scrollTop=0; }
     function showQuestion(index) { const section = document.querySelector(`[data-question="${index}"]`); currentStep = visibleQuestions().findIndex(item => item === section || item.dataset.question === section?.dataset.groupMember); renderView(); }
     $('previousQuestion').onclick = () => { currentStep--; renderView(); content.scrollTop = 0; };
     $('nextQuestion').onclick = () => {const section=visibleQuestions()[currentStep];questions.forEach((q,i)=>{const node=document.querySelector(`[data-question="${i}"]`);if(node===section||node.dataset.groupMember===section.dataset.question)confirmQuestion(i)});currentStep++;renderView();};
@@ -801,7 +809,7 @@
         const check=document.createElement('button');check.type='button';check.dataset.checkQuestion=index;check.textContent=openAnswerTypes.includes(q.type)&&q.type!=='error'&&!objectiveShort(q)?'Guardar respuesta':'Comprobar';
         check.onclick=()=>{if(q.type==='multigaps'){section.querySelectorAll('[data-multi-gap]').forEach((input,n)=>{if(input.value.trim()){const right=q.options[n].split('~').some(s=>accepts(input.value,s));markControl(input,right);recordAnswer(index,n,right,input.value.trim());}});}else if(q.type==='error'&&gradeQuestion(index)==='unanswered'){$('feedback-'+index).className='play-feedback is-incorrect';$('feedback-'+index).textContent='Selecciona el error de la oración y escribe su corrección.';}else confirmQuestion(index);};section.querySelector('.question-controls').append(check);
       }
-      const solution=document.createElement('button');solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';solution.onclick=()=>{practice[index].assisted=true;const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):sequenceTypes.includes(q.type)?expectedSequence(q).join(' → '):q.answer;$('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'')+itemReasons(q);};(q.type==='pasapalabra'?section.querySelector('.pasapalabra-meta-actions'):section).append(solution);
+      const solution=document.createElement('button');solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';solution.onclick=()=>{practice[index].assisted=true;const model=q.type==='memory'?validateMemory(q.options).map(pair=>pair.join(' → ')).join('\n'):q.type==='wordsearch'?buildWordSearch(puzzleRows(q.type,q.options)).placements.map(p=>p.word+': fila '+(p.row+1)+', columna '+(p.col+1)+' → fila '+(p.endRow+1)+', columna '+(p.endCol+1)).join('\n'):puzzleTypes.includes(q.type)?puzzleSolution(q):sequenceTypes.includes(q.type)?expectedSequence(q).join(' → '):q.answer;$('feedback-'+index).innerHTML='<strong>Solución orientativa</strong><div>'+rich(model)+'</div>'+(q.explanation?'<div>'+rich(q.explanation)+'</div>':'')+itemReasons(q);const dock=$('feedback-'+index).closest('.pasapalabra-solution-dock');if(dock){$('feedback-'+index).hidden=false;dock.hidden=false;}};(q.type==='pasapalabra'?section.querySelector('.pasapalabra-meta-actions'):section).append(solution);
       if(!puzzleTypes.includes(q.type))section.addEventListener('click',()=>queueMicrotask(()=>{if(section.dataset.result==='incorrect'||section.dataset.result==='pending')solution.hidden=false;}),{signal});
       section.querySelectorAll('input:not([type="radio"]):not([type="hidden"])').forEach(input=>{
         if(q.type==='multigaps'||q.type==='pasapalabra'||q.type==='crossword')return;

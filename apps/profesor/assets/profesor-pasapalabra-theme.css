@@ -7,12 +7,12 @@
 }
 .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])) #form{flex:1;min-height:0;gap:0}
 .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])) .play-content{flex:1;min-height:0;overflow:hidden;padding:0}
-.activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])) .play-footer{flex:none;border:0;padding:0;background:transparent}
+.activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])) .play-footer{position:relative;flex:none;min-height:78px;border:0;padding:0;background:transparent}
 .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])) .play-footer .actions{align-items:center}
 .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])) .play-footer .step-navigation{padding:3px 9px;border-radius:999px;background:#ffffffde;color:#0b4faa}
 .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden]))>.row .close{background:#fffffff0}
 .activity-play .play-question[data-type="pasapalabra"]{
-  display:flex;flex-direction:column;flex:1;min-height:0;overflow:visible!important;
+  position:relative;display:flex;flex-direction:column;flex:1;min-height:0;overflow:visible!important;
   margin:0;padding:0!important;border:0!important;border-radius:0;
   background:none!important;box-shadow:none!important;
 }
@@ -22,14 +22,14 @@
 .activity-play .play-question[data-type="pasapalabra"] .play-number{position:absolute;left:0;top:3px;background:#fff;border-color:#9fd2ff;color:#0957bd}
 .activity-play .play-question[data-type="pasapalabra"] .play-kind{justify-content:center;min-width:190px;background:#c4e1ffb8;border:0;border-radius:999px;color:#082966;font-size:14px;font-weight:900;letter-spacing:.01em}
 .activity-play .play-question[data-type="pasapalabra"] .game-timer{position:absolute;right:46px;top:1px;background:#ffffffec;border-color:#9fd2ff}
-.activity-play .play-question[data-type="pasapalabra"] h3.pasapalabra-intro{max-width:calc(100% - 90px);margin:11px auto 17px;color:#081b4a;font-size:clamp(17px,1.55vw,24px);font-weight:800;text-align:center;line-height:1.28;letter-spacing:-.015em;text-shadow:0 1px #ffffff91}
+.activity-play .play-question[data-type="pasapalabra"] h3.pasapalabra-intro{box-sizing:border-box;width:fit-content;max-width:calc(100% - 90px);margin:11px auto 20px;padding:7px 18px;border:1px solid #c7e4ff;border-radius:16px;background:#ffffffe8;box-shadow:0 7px 20px #06408d18;color:#081b4a;font-size:clamp(17px,1.55vw,24px);font-weight:800;text-align:center;line-height:1.28;letter-spacing:-.015em;text-shadow:none}
 .activity-play .play-question[data-type="pasapalabra"] .question-workspace,
 .activity-play .play-question[data-type="pasapalabra"] .question-controls{display:flex;flex-direction:column;flex:1;min-height:0}
-.activity-play .play-question[data-type="pasapalabra"] [id^="puzzle-"]{display:flex;flex-direction:column;flex:1;min-height:0;align-items:center;justify-content:space-between}
-.activity-play [data-type="pasapalabra"] .rosco-layout{position:relative;display:block;flex:none;width:min(59dvh,540px);max-width:100%;aspect-ratio:1;margin:0 auto;align-self:center}
+.activity-play .play-question[data-type="pasapalabra"] [id^="puzzle-"]{display:flex;flex-direction:column;flex:1;min-height:0;align-items:center;justify-content:flex-start;gap:30px}
+.activity-play [data-type="pasapalabra"] .rosco-layout{position:relative;display:block;flex:none;width:min(59dvh,480px);max-width:100%;aspect-ratio:1;margin:0 auto;align-self:center;transition:width .18s ease}
 .activity-play [data-type="pasapalabra"] .pasapalabra-wheel{position:absolute;inset:0;width:100%;max-width:none;aspect-ratio:1;margin:0}
 .activity-play [data-type="pasapalabra"] .pasapalabra-wheel button{
-  width:clamp(29px,3.2vw,45px);height:clamp(29px,3.2vw,45px);min-height:0;
+  width:clamp(27px,8%,45px);height:auto;aspect-ratio:1;min-height:0;
   border:2px solid #fff;border-radius:50%;background:linear-gradient(145deg,#174d91,#092864);
   box-shadow:0 4px 10px #083a7c45;color:#fff;font-size:clamp(13px,1.25vw,19px);font-weight:900;
 }
@@ -43,7 +43,7 @@
 .activity-play [data-type="pasapalabra"] .pasapalabra-card{
   position:absolute;left:50%;top:50%;z-index:2;transform:translate(-50%,-50%);
   display:flex;flex-direction:column;align-items:center;justify-content:flex-start;box-sizing:border-box;overflow:hidden;
-  width:61%;height:50%;min-height:0;max-height:none;margin:0;padding:10px 15px;
+  width:63%;height:50%;min-height:0;max-height:none;margin:0;padding:10px 15px;
   border:1px solid #e7f4ff;border-radius:24px;
   background:linear-gradient(150deg,#ffffffef,#eaf5ffef);box-shadow:0 15px 30px #06408d30;
   text-align:center;
@@ -65,7 +65,13 @@
 .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])) .pasapalabra-finish{display:flex;flex-direction:column;align-items:center;gap:4px}
 .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])) .pasapalabra-finish>strong{min-width:100%;padding:3px 10px;border:1px solid #8bbbff;border-radius:999px;background:#ffffffeb;color:#113977;font-size:13px;text-align:center}
 .activity-play .pasapalabra-finish:has(>button[hidden]){display:none}
-.activity-play [data-type="pasapalabra"] .play-feedback:not(:empty){max-width:650px;margin:2px auto;padding:5px 10px;font-size:11px}
+.activity-play .pasapalabra-solution-dock{position:absolute;left:50%;bottom:0;z-index:3;transform:translateX(-50%);width:min(55vw,820px);height:76px}
+.activity-play .pasapalabra-solution-dock[hidden]{display:none}
+.activity-play .pasapalabra-solution-dock .play-feedback{box-sizing:border-box;width:100%;height:100%;max-width:none;overflow:auto;margin:0;padding:9px 13px;border:1px solid #9dd7b8;border-radius:13px;background:#effcf4f2;box-shadow:0 8px 24px #06408d24;color:#075c36;font-size:10px;line-height:1.4;text-align:left;overscroll-behavior:contain}
+@media(max-height:820px) and (min-width:701px){
+  .activity-play [data-type="pasapalabra"] .rosco-layout{width:min(51dvh,395px)}
+  .activity-play [data-type="pasapalabra"] .pasapalabra-card{width:64%;height:52%}
+}
 @media(max-width:700px){
   .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])){width:98vw;height:95dvh;padding:10px 9px 7px;border-radius:15px;background-position:center}
   .activity-play .play-question[data-type="pasapalabra"] .play-question-top{min-height:54px;padding:0 60px}
@@ -74,16 +80,17 @@
   .activity-play .play-question[data-type="pasapalabra"] .game-timer{right:30px;top:29px;padding:2px 4px}
   .activity-play .play-question[data-type="pasapalabra"] .game-timer button{padding:2px 5px;font-size:9px}
   .activity-play .play-question[data-type="pasapalabra"] .game-timer output{font-size:9px;min-width:30px}
-  .activity-play .play-question[data-type="pasapalabra"] h3.pasapalabra-intro{max-width:calc(100% - 18px);margin:12px auto 22px;font-size:13px;line-height:1.25}
-  .activity-play [data-type="pasapalabra"] .rosco-layout{width:min(94vw,46dvh)}
+  .activity-play .play-question[data-type="pasapalabra"] h3.pasapalabra-intro{max-width:calc(100% - 18px);margin:8px auto 14px;padding:6px 10px;border-radius:11px;font-size:13px;line-height:1.25}
+  .activity-play [data-type="pasapalabra"] .rosco-layout{width:min(86vw,41.5dvh)}
   .activity-play [data-type="pasapalabra"] .pasapalabra-wheel button{width:clamp(20px,5.2vw,30px);height:clamp(20px,5.2vw,30px);font-size:11px;border-width:1px}
-  .activity-play [data-type="pasapalabra"] .pasapalabra-card{width:61%;height:50%;padding:5px 7px;border-radius:13px}
+  .activity-play [data-type="pasapalabra"] .pasapalabra-card{width:66%;height:52%;padding:5px 7px;border-radius:13px}
   .activity-play [data-type="pasapalabra"] .pasapalabra-card>span{font-size:clamp(10px,3vw,12px)}
   .activity-play [data-type="pasapalabra"] .pasapalabra-card>p{margin:2px 0 3px;font-size:clamp(10px,2.8vw,11px);line-height:1.17}
   .activity-play [data-type="pasapalabra"] .pasapalabra-card.long-clue>p{font-size:10px}
   .activity-play [data-type="pasapalabra"] .pasapalabra-card.very-long-clue>p{font-size:9px}
   .activity-play [data-type="pasapalabra"] .pasapalabra-card input{height:22px;font-size:11px}
   .activity-play [data-type="pasapalabra"] .pasapalabra-card [data-answer]{min-height:22px;margin-top:2px;padding:2px 8px;font-size:10px}
+  .activity-play .play-question[data-type="pasapalabra"] [id^="puzzle-"]{gap:16px}
   .activity-play [data-type="pasapalabra"] .pasapalabra-controls{gap:5px}
   .activity-play [data-type="pasapalabra"] .pasapalabra-controls button{min-width:0;flex:1;min-height:35px;padding:4px;font-size:13px}
   .activity-play [data-type="pasapalabra"] .pasapalabra-meta{font-size:9px;gap:4px}
@@ -92,4 +99,6 @@
   .activity-play [data-type="pasapalabra"] .play-solution-link{padding:3px 4px;font-size:9px}
   .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])) .pasapalabra-finish>strong{padding:3px 6px;font-size:10px}
   .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])) .play-footer .step-navigation{font-size:10px}
+  .activity-play .pasapalabra-solution-dock{left:0;width:calc(100% - 105px);height:67px;transform:none}
+  .activity-play .pasapalabra-solution-dock .play-feedback{padding:6px 8px;font-size:8px}
 }

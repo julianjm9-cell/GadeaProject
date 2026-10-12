@@ -29,7 +29,7 @@ const assert=require('node:assert/strict'),{pathToFileURL}=require('node:url'),p
  assert.match(await page.locator('[data-letter="0"]').getAttribute('class'),/incorrect/);
  await page.locator('#pasapalabra-input-2').fill('biblioteca');await page.locator('#pasapalabra-input-2').press('Enter');
  assert.match(await page.locator('[data-letter="1"]').getAttribute('class'),/correct/);
- await page.locator('[data-pass]').click();assert.match(await page.locator('[data-letter="2"]').getAttribute('class'),/passed/);
+ await page.locator('[data-next]').click();assert.match(await page.locator('[data-letter="2"]').getAttribute('class'),/passed/);
  await page.locator('[data-letter="2"]').click();await page.locator('#pasapalabra-input-2').fill('clorofila');await page.locator('#pasapalabra-input-2').press('Enter');
  await page.locator('[data-letter="0"]').click();await page.locator('#pasapalabra-input-2').fill('abeja');await page.locator('#pasapalabra-input-2').press('Enter');
  assert.match(await page.locator('[data-letter="0"]').getAttribute('class'),/correct/);
