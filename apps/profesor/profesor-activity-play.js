@@ -160,7 +160,7 @@
     const words = puzzleRows('wordsearch', question.options), board = buildWordSearch(words);
     const found = new Set();
     let start = null, selection = [], hintCell = null, message = 'Marca una palabra arrastrando o tocando su primera y última letra.';
-    let dragging = false, dragStart = null, moved = false, suppressClick = false, misses = 0, showSolution = false;
+    let dragging = false, dragStart = null, moved = false, misses = 0, showSolution = false;
     const cellIndex = (row, col) => row * board.size + col;
     const placementPath = placement => placement.cells.map(([row, col]) => cellIndex(row, col));
     const pathBetween = (from, to) => {
@@ -188,12 +188,38 @@
       root.querySelector('[data-wordsearch-check]').disabled = isChecked() || selection.length < 3;
       root.querySelector('[data-wordsearch-clear]').disabled = isChecked() || (!selection.length && start === null);
     }
+    function setSelection(cell) {
+      if (start === null || selection.length >= 3) {
+        start = cell;
+        selection = [cell];
+        message = 'Ahora toca la última letra, o arrastra hasta ella.';
+      } else {
+        selection = pathBetween(start, cell);
+        start = null;
+        message = selection.length >= 3 ? 'Pulsa Comprobar para confirmar la palabra.' : 'Marca una línea recta de al menos tres letras.';
+      }
+      root.querySelector('.wordsearch-status').textContent = message;
+      paintSelection();
+    }
     function draw() {
       root.innerHTML = `<div class="wordsearch-board"><div class="wordsearch-grid-wrap"><div class="puzzle-grid wordsearch-grid" role="group" aria-label="Sopa de letras de ${board.size} filas y ${board.size} columnas" style="--puzzle-size:${board.size}">${board.grid.flatMap((row, r) => row.map((letter, c) => `<button type="button" data-cell="${cellIndex(r,c)}" aria-label="Fila ${r+1}, columna ${c+1}, letra ${letter}" aria-pressed="false">${escape(letter)}</button>`)).join('')}</div></div><aside class="wordsearch-sidebar"><div class="wordsearch-progress"><span>Palabras encontradas</span><strong>${found.size}<small> / ${words.length}</small></strong><div role="progressbar" aria-label="Palabras encontradas" aria-valuemin="0" aria-valuemax="${words.length}" aria-valuenow="${found.size}"><span style="width:${found.size / words.length * 100}%"></span></div></div><div class="wordsearch-list"><h4>Palabras a encontrar</h4><ul>${words.map((word, n) => `<li class="${found.has(n) ? 'found' : ''}"><span aria-hidden="true">${found.has(n) ? '✓' : '⌕'}</span>${escape(word)}</li>`).join('')}</ul></div><p class="wordsearch-status" role="status">${escape(message)}</p><div class="wordsearch-actions"><button type="button" data-wordsearch-hint>Pista</button><button type="button" data-wordsearch-check class="primary">Comprobar</button><button type="button" data-wordsearch-clear>Borrar selección</button></div></aside></div>`;
       if (solutionDock) root.querySelector('.wordsearch-sidebar').append(solutionDock);
-      root.querySelector('[data-wordsearch-check]').onclick = check;
-      root.querySelector('[data-wordsearch-clear]').onclick = () => { start = null; selection = []; message = 'Selecciona otra palabra.'; draw(); };
-      root.querySelector('[data-wordsearch-hint]').onclick = () => {
+      const bindAction = (selector, action) => {
+        const button = root.querySelector(selector);
+        let handledTouch = false;
+        button.addEventListener('pointerup', event => {
+          if (event.pointerType !== 'touch' || button.disabled) return;
+          handledTouch = true;
+          action();
+        });
+        button.addEventListener('click', () => {
+          if (handledTouch) { handledTouch = false; return; }
+          action();
+        });
+      };
+      bindAction('[data-wordsearch-check]', check);
+      bindAction('[data-wordsearch-clear]', () => { start = null; selection = []; message = 'Selecciona otra palabra.'; draw(); });
+      bindAction('[data-wordsearch-hint]', () => {
         if (isChecked()) return;
         const n = words.findIndex((_, i) => !found.has(i));
         if (n < 0) return;
@@ -201,14 +227,6 @@
         message = `Pista: ${words[n]} empieza en la fila ${board.placements[n].row + 1}, columna ${board.placements[n].col + 1}.`;
         recordAnswer(index, 'hint-' + n, null, 'pista', true);
         draw();
-      };
-      root.querySelectorAll('[data-cell]').forEach(button => button.onclick = () => {
-        if (isChecked() || suppressClick) return;
-        const cell = Number(button.dataset.cell);
-        if (start === null || selection.length >= 3) { start = cell; selection = [cell]; message = 'Ahora toca la última letra, o arrastra hasta ella.'; }
-        else { selection = pathBetween(start, cell); start = null; message = selection.length >= 3 ? 'Pulsa Comprobar para confirmar la palabra.' : 'Marca una línea recta de al menos tres letras.'; }
-        root.querySelector('.wordsearch-status').textContent = message;
-        paintSelection();
       });
       paintSelection();
       update();
@@ -224,10 +242,19 @@
       else { recordAnswer(index, 'miss-' + ++misses, false, selection.join('-')); message = 'Esa selección no coincide con una palabra pendiente. Inténtalo de nuevo.'; }
       start = null; selection = []; draw();
     }
+    root.addEventListener('click', event => {
+      const button = event.target.closest('[data-cell]');
+      if (button && event.detail === 0 && !isChecked()) setSelection(Number(button.dataset.cell));
+    });
     root.addEventListener('pointerdown', event => {
       const button = event.target.closest('[data-cell]');
       if (!button || isChecked()) return;
-      dragging = true; moved = false; dragStart = Number(button.dataset.cell);
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      dragging = true; moved = false;
+      const cell = Number(button.dataset.cell);
+      dragStart = start === null || selection.length >= 3 ? cell : start;
+      setSelection(cell);
+      if (event.pointerType === 'mouse') root.setPointerCapture(event.pointerId);
     });
     root.addEventListener('pointermove', event => {
       if (!dragging || isChecked()) return;
@@ -239,21 +266,21 @@
       selection = pathBetween(dragStart, end);
       start = null;
       paintSelection();
-      event.preventDefault();
     });
     root.addEventListener('pointerup', event => {
       if (!dragging) return;
       dragging = false;
+      if (event.pointerType === 'mouse' && root.hasPointerCapture(event.pointerId)) root.releasePointerCapture(event.pointerId);
       if (!moved) return;
       const button = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-cell]');
       if (button && root.contains(button)) selection = pathBetween(dragStart, Number(button.dataset.cell));
       message = selection.length >= 3 ? 'Pulsa Comprobar para confirmar la palabra.' : 'Marca una línea recta de al menos tres letras.';
       root.querySelector('.wordsearch-status').textContent = message;
       paintSelection();
-      suppressClick = true;
-      setTimeout(() => { suppressClick = false; }, 0);
     });
-    root.addEventListener('pointercancel', () => { dragging = false; moved = false; });
+    root.addEventListener('pointercancel', () => {
+      dragging = false; moved = false;
+    });
     root.revealWordSearchSolution = () => { showSolution = true; paintSelection(); };
     draw();
   }

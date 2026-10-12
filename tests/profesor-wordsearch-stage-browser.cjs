@@ -29,7 +29,11 @@ const material={id:'wordsearch-stage-check',title:'Biología',subject:'Biología
     assert.ok(dimensions.horizontal<=2&&dimensions.contentOverflow<=2&&dimensions.grid.bottom<=dimensions.board.bottom&&dimensions.board.bottom<=dimensions.footer.top,JSON.stringify(dimensions));
     await page.screenshot({path:'tmp/wordsearch-stage-desktop.png'});
     const cells=await page.evaluate(words=>buildWordSearch(puzzleRows('wordsearch',words)).placements[0].cells.map(([r,c])=>r*10+c),material.activity.questions[0].options);
-    await page.locator(`[data-cell="${cells[0]}"]`).click();
+    const firstCell=await page.locator(`[data-cell="${cells[0]}"]`).boundingBox();
+    await page.mouse.move(firstCell.x+firstCell.width/2,firstCell.y+firstCell.height/2);
+    await page.mouse.down();
+    assert.equal(await page.locator('.wordsearch-grid button.selected').count(),1,'the first letter responds on pointer down');
+    await page.mouse.up();
     await page.locator(`[data-cell="${cells.at(-1)}"]`).click();
     assert.equal(await page.locator('.wordsearch-grid button.selected').count(),cells.length);
     await page.locator('[data-wordsearch-check]').click();
@@ -70,6 +74,33 @@ const material={id:'wordsearch-stage-check',title:'Biología',subject:'Biología
     assert.ok(longLayout.horizontal<=2&&longLayout.contentOverflow<=2&&longLayout.grid.bottom<=longLayout.board.bottom&&longLayout.board.bottom<=longLayout.footer.top,`long words: ${JSON.stringify(longLayout)}`);
     await page.screenshot({path:'tmp/wordsearch-stage-long.png'});
     await page.locator('#dialog .close').click();
+    const touchContext=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1});
+    const touchPage=await touchContext.newPage();
+    await touchPage.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
+    await touchPage.evaluate(value=>runActivity(value,''),material);
+    const touchCells=await touchPage.evaluate(words=>buildWordSearch(puzzleRows('wordsearch',words)).placements[0].cells.map(([r,c])=>r*10+c),material.activity.questions[0].options);
+    await touchPage.locator(`[data-cell="${touchCells[0]}"]`).tap();
+    await touchPage.locator(`[data-cell="${touchCells.at(-1)}"]`).tap();
+    assert.equal(await touchPage.locator('.wordsearch-grid button.selected').count(),touchCells.length,'touching first and last letters selects a word');
+    await touchPage.locator('[data-wordsearch-check]').tap();
+    assert.match(await touchPage.locator('.wordsearch-progress strong').innerText(),/1\s*\/\s*5/);
+    const swipeCells=await touchPage.evaluate(words=>buildWordSearch(puzzleRows('wordsearch',words)).placements[1].cells.map(([r,c])=>r*10+c),material.activity.questions[0].options);
+    const swipeStart=await touchPage.locator(`[data-cell="${swipeCells[0]}"]`).boundingBox();
+    const swipeEnd=await touchPage.locator(`[data-cell="${swipeCells.at(-1)}"]`).boundingBox();
+    const from={x:swipeStart.x+swipeStart.width/2,y:swipeStart.y+swipeStart.height/2};
+    const to={x:swipeEnd.x+swipeEnd.width/2,y:swipeEnd.y+swipeEnd.height/2};
+    const session=await touchContext.newCDPSession(touchPage);
+    await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...from,id:1}]});
+    for(let step=1;step<=swipeCells.length+2;step++){
+      const fraction=step/(swipeCells.length+2);
+      await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:from.x+(to.x-from.x)*fraction,y:from.y+(to.y-from.y)*fraction,id:1}]});
+    }
+    await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    await touchPage.waitForTimeout(100);
+    assert.equal(await touchPage.locator('.wordsearch-grid button.selected').count(),swipeCells.length,'touch dragging selects the full word');
+    await touchPage.locator('[data-wordsearch-check]').tap();
+    assert.match(await touchPage.locator('.wordsearch-progress strong').innerText(),/2\s*\/\s*5/);
+    await touchContext.close();
     assert.deepEqual(errors,[]);
     console.log('PASS wordsearch stage, selection, hint, solution and responsive layout');
   }finally{await browser.close()}
