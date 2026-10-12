@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import current_user
 from app.config import get_settings
 from app.database.session import get_db
-from app.models import ClientState, ProfesorStudentAccess, User
+from app.models import ClientState, ProfesorMaterialSession, ProfesorStudentAccess, User
 from app.security.passwords import hash_password, verify_password
 from app.services.licenses import check_access, profesor_account_plan
 
@@ -36,6 +36,10 @@ class Credentials(BaseModel):
 class StudentLogin(BaseModel):
     username: str = Field(min_length=1, max_length=80)
     password: str = Field(min_length=1, max_length=72)
+
+
+class StudentCode(BaseModel):
+    code: str = Field(min_length=1, max_length=24)
 
 
 class ActiveUpdate(BaseModel):
@@ -92,6 +96,35 @@ def visible_password(access: ProfesorStudentAccess) -> str | None:
         return None
 
 
+CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+
+def new_session_code() -> str:
+    return "".join(secrets.choice(CODE_ALPHABET) for _ in range(10))
+
+
+def normalized_code(raw: str) -> str:
+    return re.sub(r"[\s-]", "", raw).upper()
+
+
+def session_code_hash(code: str) -> str:
+    return hashlib.sha256(b"profesor-session-code-v1:" + get_settings().jwt_secret.encode("utf-8") + normalized_code(code).encode("ascii")).hexdigest()
+
+
+def session_code_cipher() -> Fernet:
+    secret = get_settings().jwt_secret.encode("utf-8")
+    return Fernet(base64.urlsafe_b64encode(hashlib.sha256(b"profesor-session-code-cipher-v1:" + secret).digest()))
+
+
+def visible_session_code(session: ProfesorMaterialSession) -> str | None:
+    if not session.join_code_encrypted or session.status not in {"pending", "in_progress"}:
+        return None
+    try:
+        return session_code_cipher().decrypt(session.join_code_encrypted.encode("ascii")).decode("ascii")
+    except (InvalidToken, ValueError, UnicodeError):
+        return None
+
+
 def meet_url(raw: str) -> str:
     value = raw.strip()
     try:
@@ -112,6 +145,16 @@ def list_accesses(response: Response, user: User = Depends(current_user), db: Se
     students = teacher_students(db, user)
     rows = db.scalars(select(ProfesorStudentAccess).where(ProfesorStudentAccess.teacher_user_id == user.id).order_by(ProfesorStudentAccess.created_at)).all()
     return {"ok": True, "google_meet_connected": bool(user.meet_refresh_token), "google_meet_configured": bool(get_settings().google_client_id and get_settings().google_client_secret), "accesses": [public_access(row, students[row.student_id]) for row in rows if row.student_id in students]}
+
+
+@router.get("/api/profesor/session-students")
+def list_session_students(response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    teacher_premium(db, user)
+    response.headers["Cache-Control"] = "private, no-store"
+    students = teacher_students(db, user)
+    rows = db.scalars(select(ProfesorStudentAccess).where(ProfesorStudentAccess.teacher_user_id == user.id)).all()
+    return {"accesses": [{"id": str(row.id), "student_id": row.student_id, "name": str(students[row.student_id].get("name") or "Alumno"),
+                          "active": row.is_active, "meet_uri": row.meet_uri or ""} for row in rows if row.student_id in students]}
 
 
 @router.post("/api/profesor/access")
@@ -216,11 +259,17 @@ def active_student(request: Request, db: Session) -> tuple[ProfesorStudentAccess
     token = request.cookies.get("profesor_student_access") or ""
     try:
         claims = jwt.decode(token, get_settings().jwt_secret, algorithms=[get_settings().jwt_algorithm])
-        if claims.get("type") != "profesor_student":
+        if claims.get("type") not in {"profesor_student", "profesor_student_session"}:
             raise ValueError()
         access = db.get(ProfesorStudentAccess, UUID(str(claims["sub"])))
         if not access or not access.is_active or access.session_version != claims.get("sv"):
             raise ValueError()
+        if claims.get("type") == "profesor_student_session":
+            session_id = UUID(str(claims["sid"]))
+            live = db.get(ProfesorMaterialSession, session_id)
+            if not live or live.access_id != access.id or live.status == "cancelled" or not live.join_code_hash or live.join_code_hash != claims.get("jch"):
+                raise ValueError()
+            request.state.profesor_session_id = session_id
     except (JWTError, KeyError, ValueError) as exc:
         raise HTTPException(401, "Acceso de alumno no válido. Inicia sesión de nuevo.") from exc
     teacher = db.get(User, access.teacher_user_id)
@@ -231,6 +280,33 @@ def active_student(request: Request, db: Session) -> tuple[ProfesorStudentAccess
     if not student:
         raise HTTPException(403, "Este alumno ya no está en la cuenta del profesor.")
     return access, teacher, student
+
+
+@router.post("/auth/profesor/student-join")
+def student_join(payload: StudentCode, request: Request, response: Response, db: Session = Depends(get_db)):
+    from app.api.auth import rate_limit_key
+
+    rate_limit_key("profesor-code-ip:" + str(request.client.host if request.client else "unknown"), limit=60)
+    code = normalized_code(payload.code)
+    if len(code) != 10 or any(letter not in CODE_ALPHABET for letter in code):
+        raise HTTPException(401, "Código no válido o sesión cerrada.")
+    rate_limit_key("profesor-code:" + code, limit=30)
+    live = db.scalar(select(ProfesorMaterialSession).where(ProfesorMaterialSession.join_code_hash == session_code_hash(code)))
+    if not live or live.status not in {"pending", "in_progress"}:
+        raise HTTPException(401, "Código no válido o sesión cerrada.")
+    access = db.get(ProfesorStudentAccess, live.access_id)
+    teacher = db.get(User, live.teacher_user_id)
+    if not access or not access.is_active or not teacher or access.teacher_user_id != teacher.id or access.student_id not in teacher_students(db, teacher):
+        raise HTTPException(401, "Código no válido o sesión cerrada.")
+    teacher_premium(db, teacher)
+    now = datetime.now(timezone.utc)
+    settings = get_settings()
+    token = jwt.encode({"sub": str(access.id), "sid": str(live.id), "jch": live.join_code_hash, "type": "profesor_student_session", "sv": access.session_version, "iat": int(now.timestamp()), "exp": int((now + timedelta(hours=12)).timestamp())}, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+    response.set_cookie("profesor_student_access", token, httponly=True, secure=settings.cookie_secure, samesite="lax", max_age=43200, path="/")
+    response.delete_cookie("diplomator_access")
+    response.delete_cookie("diplomator_refresh")
+    response.headers["Cache-Control"] = "no-store"
+    return {"ok": True, "next": "/profesor/alumno"}
 
 
 @router.post("/auth/profesor/student-login")

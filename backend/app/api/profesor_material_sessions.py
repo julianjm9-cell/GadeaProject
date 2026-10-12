@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import case, select
@@ -19,8 +19,9 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import current_user
 from app.database.session import get_db
 from app.models import ClientState, Document, ProfesorMaterialSession, ProfesorStudentAccess, User
-from app.api.profesor_access import active_student, owned_access, teacher_premium, teacher_students
+from app.api.profesor_access import active_student, new_session_code, owned_access, session_code_cipher, session_code_hash, teacher_premium, teacher_students, visible_session_code
 from app.api.app_routes import LOCAL_DOCUMENT_DIR
+from app.security.passwords import hash_password
 
 router = APIRouter(tags=["profesor-material-sessions"])
 CHOICE = {"quiz", "boolean", "classify", "visualquiz", "pairs"}
@@ -30,7 +31,8 @@ SUPPORTED = CHOICE | SEQUENCE | OPEN | {"gaps", "multigaps", "numeric", "flashca
 
 
 class SendMaterial(BaseModel):
-    access_id: UUID
+    access_id: UUID | None = None
+    student_id: str | None = Field(default=None, min_length=1, max_length=120)
     material_id: str = Field(min_length=1, max_length=120)
 
 
@@ -354,7 +356,9 @@ def grade(q: dict, value: object, part: int | None = None) -> str:
     return "correct" if norm(value) in [norm(q.get("answer")), *[norm(a) for a in q.get("alternatives", [])]] else "incorrect"
 
 
-def student_session(db: Session, access: ProfesorStudentAccess, session_id: UUID, *, lock: bool = False) -> ProfesorMaterialSession:
+def student_session(db: Session, access: ProfesorStudentAccess, session_id: UUID, *, request: Request | None = None, lock: bool = False) -> ProfesorMaterialSession:
+    if request is not None and getattr(request.state, "profesor_session_id", session_id) != session_id:
+        raise HTTPException(404, "Material no encontrado en tu espacio.")
     query = select(ProfesorMaterialSession).where(ProfesorMaterialSession.id == session_id, ProfesorMaterialSession.access_id == access.id)
     row = db.scalar(query.with_for_update() if lock else query)
     if not row:
@@ -376,15 +380,27 @@ def public_session(row: ProfesorMaterialSession, *, teacher: bool = False) -> di
     completed = row.status == "completed"
     return {"id": str(row.id), "title": row.title, "subject": row.subject, "status": row.status, "revision": row.revision,
             "created_at": row.created_at.isoformat(), "updated_at": row.updated_at.isoformat(), "questions": [safe_question(q, questions, completed or teacher, n in progress.get("reveals", []), progress.get("responses", {}).get(str(n))) for n, q in enumerate(questions)],
-            "progress": progress}
+            "progress": progress, **({"join_code": visible_session_code(row)} if teacher else {})}
 
 
 @router.post("/api/profesor/material-sessions")
-def send_material(payload: SendMaterial, user: User = Depends(current_user), db: Session = Depends(get_db)):
+def send_material(payload: SendMaterial, response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
     teacher_premium(db, user)
-    access = owned_access(db, user, payload.access_id)
+    response.headers["Cache-Control"] = "private, no-store"
+    students = teacher_students(db, user)
+    if payload.access_id:
+        access = owned_access(db, user, payload.access_id)
+    elif payload.student_id and payload.student_id in students:
+        access = db.scalar(select(ProfesorStudentAccess).where(ProfesorStudentAccess.teacher_user_id == user.id, ProfesorStudentAccess.student_id == payload.student_id))
+        if not access:
+            access = ProfesorStudentAccess(teacher_user_id=user.id, student_id=payload.student_id,
+                username="session-" + secrets.token_hex(16), password_hash=hash_password(secrets.token_urlsafe(32)), is_active=True)
+            db.add(access)
+            db.flush()
+    else:
+        raise HTTPException(404, "Alumno no encontrado en tu cuenta.")
     if not access.is_active:
-        raise HTTPException(409, "Activa el acceso del alumno antes de enviarle un material.")
+        raise HTTPException(409, "El acceso de este alumno está pausado.")
     state = db.scalar(select(ClientState).where(ClientState.user_id == user.id, ClientState.organization_id == user.organization_id))
     app = (state.data or {}).get("__apps", {}).get("profesor_particular", {}) if state else {}
     material = next((item for item in app.get("library", []) if isinstance(item, dict) and str(item.get("id")) == payload.material_id), None)
@@ -395,7 +411,7 @@ def send_material(payload: SendMaterial, user: User = Depends(current_user), db:
         raise HTTPException(422, "Revisa los ejercicios antes de enviarlos.")
     if any(isinstance(q.get("image"), dict) and q["image"].get("local") for q in questions):
         raise HTTPException(422, "Este material usa una imagen local. Guárdala en la cuenta antes de enviarlo al alumno.")
-    student = teacher_students(db, user)[access.student_id]
+    student = students[access.student_id]
     if student.get("subjects") and material.get("subject") not in student["subjects"]:
         raise HTTPException(422, "El alumno no tiene esta asignatura en su ficha.")
     if len(json.dumps(questions, ensure_ascii=False)) > 120_000:
@@ -405,22 +421,28 @@ def send_material(payload: SendMaterial, user: User = Depends(current_user), db:
         prepared = [prepare(question, seed + n) for n, question in enumerate(questions)]
     except (KeyError, IndexError, TypeError, ValueError, AttributeError) as exc:
         raise HTTPException(422, "Este material contiene un ejercicio incompleto. Revísalo antes de enviarlo.") from exc
+    code = new_session_code()
+    while db.scalar(select(ProfesorMaterialSession.id).where(ProfesorMaterialSession.join_code_hash == session_code_hash(code))):
+        code = new_session_code()
     row = ProfesorMaterialSession(teacher_user_id=user.id, access_id=access.id, material_id=payload.material_id,
                                   title=str(material.get("title") or "Material")[:180], subject=str(material.get("subject") or "")[:100],
-                                  material_snapshot={"questions": prepared}, progress={"current_index": 0, "responses": {}, "grades": {}, "parts": {}, "last_seen": None})
+                                  material_snapshot={"questions": prepared}, progress={"current_index": 0, "responses": {}, "grades": {}, "parts": {}, "last_seen": None},
+                                  join_code_hash=session_code_hash(code), join_code_encrypted=session_code_cipher().encrypt(code.encode("ascii")).decode("ascii"))
     db.add(row); db.commit(); db.refresh(row)
     return {"ok": True, "session": public_session(row, teacher=True)}
 
 
 @router.get("/api/profesor/material-sessions")
-def teacher_sessions(user: User = Depends(current_user), db: Session = Depends(get_db)):
+def teacher_sessions(response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
     teacher_premium(db, user)
+    response.headers["Cache-Control"] = "private, no-store"
     rows_ = db.scalars(select(ProfesorMaterialSession).where(ProfesorMaterialSession.teacher_user_id == user.id).order_by(ProfesorMaterialSession.created_at.desc()).limit(100)).all()
     valid = teacher_students(db, user)
     accesses = {a.id: a for a in db.scalars(select(ProfesorStudentAccess).where(ProfesorStudentAccess.teacher_user_id == user.id)).all()}
     return {"sessions": [{"id": str(row.id), "title": row.title, "subject": row.subject, "status": row.status,
+                          "student_id": accesses[row.access_id].student_id,
                           "student_name": valid.get(accesses[row.access_id].student_id, {}).get("name", "Alumno") if row.access_id in accesses else "Alumno",
-                          "created_at": row.created_at.isoformat()} for row in rows_ if row.access_id in accesses and accesses[row.access_id].student_id in valid]}
+                          "created_at": row.created_at.isoformat(), "join_code": visible_session_code(row)} for row in rows_ if row.access_id in accesses and accesses[row.access_id].student_id in valid]}
 
 
 @router.get("/api/profesor/access/{access_id}/material-sessions")
@@ -440,8 +462,9 @@ def teacher_student_live_sessions(access_id: UUID, user: User = Depends(current_
 
 
 @router.get("/api/profesor/material-sessions/{session_id}")
-def teacher_watch(session_id: UUID, user: User = Depends(current_user), db: Session = Depends(get_db)):
+def teacher_watch(session_id: UUID, response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
     teacher_premium(db, user)
+    response.headers["Cache-Control"] = "private, no-store"
     row = teacher_session(db, user, session_id)
     access = owned_access(db, user, row.access_id)
     info = public_session(row, teacher=True)
@@ -472,7 +495,10 @@ def teacher_review(session_id: UUID, payload: ReviewGrade, user: User = Depends(
 @router.get("/api/profesor/student-material-sessions")
 def student_sessions(request: Request, db: Session = Depends(get_db)):
     access, _, _ = active_student(request, db)
-    rows_ = db.scalars(select(ProfesorMaterialSession).where(ProfesorMaterialSession.access_id == access.id, ProfesorMaterialSession.status.in_(("pending", "in_progress", "completed"))).order_by(case((ProfesorMaterialSession.status == "in_progress", 0), (ProfesorMaterialSession.status == "pending", 1), else_=2), ProfesorMaterialSession.created_at.desc()).limit(50)).all()
+    query = select(ProfesorMaterialSession).where(ProfesorMaterialSession.access_id == access.id, ProfesorMaterialSession.status.in_(("pending", "in_progress", "completed")))
+    if scoped_id := getattr(request.state, "profesor_session_id", None):
+        query = query.where(ProfesorMaterialSession.id == scoped_id)
+    rows_ = db.scalars(query.order_by(case((ProfesorMaterialSession.status == "in_progress", 0), (ProfesorMaterialSession.status == "pending", 1), else_=2), ProfesorMaterialSession.created_at.desc()).limit(50)).all()
     return {"sessions": [{"id": str(row.id), "title": row.title, "subject": row.subject, "status": row.status,
                           "count": len(row.material_snapshot["questions"]), "created_at": row.created_at.isoformat()} for row in rows_]}
 
@@ -480,7 +506,7 @@ def student_sessions(request: Request, db: Session = Depends(get_db)):
 @router.get("/api/profesor/student-material-sessions/{session_id}")
 def student_material(session_id: UUID, request: Request, db: Session = Depends(get_db)):
     access, _, _ = active_student(request, db)
-    row = student_session(db, access, session_id)
+    row = student_session(db, access, session_id, request=request)
     if row.status == "cancelled":
         raise HTTPException(410, "El profesor retiró este material.")
     return {"session": public_session(row)}
@@ -489,7 +515,7 @@ def student_material(session_id: UUID, request: Request, db: Session = Depends(g
 @router.post("/api/profesor/student-material-sessions/{session_id}/move")
 def student_move(session_id: UUID, payload: StudentMove, request: Request, db: Session = Depends(get_db)):
     access, _, _ = active_student(request, db)
-    row = student_session(db, access, session_id, lock=True)
+    row = student_session(db, access, session_id, request=request, lock=True)
     if row.status in {"cancelled", "completed"}:
         raise HTTPException(409, "Esta sesión ya está cerrada.")
     questions = row.material_snapshot["questions"]
@@ -564,7 +590,7 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
 @router.get("/api/profesor/student-material-sessions/{session_id}/images/{image_id}")
 def student_material_image(session_id: UUID, image_id: UUID, request: Request, db: Session = Depends(get_db)):
     access, teacher, _ = active_student(request, db)
-    row = student_session(db, access, session_id)
+    row = student_session(db, access, session_id, request=request)
     if row.status == "cancelled" or not any(str((q.get("image") or {}).get("id")) == str(image_id) for q in row.material_snapshot["questions"]):
         raise HTTPException(404, "Imagen no encontrada.")
     document = db.get(Document, image_id)

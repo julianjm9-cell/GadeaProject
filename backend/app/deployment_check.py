@@ -15,6 +15,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         assert connection.execute(text("SELECT 1")).scalar() == 1, "PostgreSQL no responde"
         connection.execute(text("SELECT id, password_encrypted FROM profesor_student_accesses LIMIT 0"))
         connection.execute(text("SELECT id FROM profesor_material_sessions LIMIT 0"))
+        connection.execute(text("SELECT join_code_hash, join_code_encrypted FROM profesor_material_sessions LIMIT 0"))
         connection.execute(text("SELECT id FROM profesor_ads LIMIT 0"))
         connection.execute(text("SELECT id FROM profesor_ad_reports LIMIT 0"))
         connection.execute(text("SELECT id, request_id, status FROM profesor_generation_jobs LIMIT 0"))
@@ -69,7 +70,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/games/basic-pairs.webp": b"WEBP",
         "/assets/games/mature-basic-pairs.webp": b"WEBP",
         "/assets/games/uploaded-material.webp": b"WEBP",
-        "/profesor/alumno": b"Material pendiente",
+        "/profesor/alumno": b"studentJoinGate",
         "/profesor-particular": b"LOGIN_TARGETS",  # Unauthenticated request must reach login.
         "/assets/landing/profesor-dashboard.png": b"\x89PNG\r\n\x1a\n",
     }

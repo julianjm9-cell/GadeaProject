@@ -145,6 +145,8 @@ class ProfesorMaterialSession(Base, TimestampMixin):
     progress: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False, index=True)
     revision: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    join_code_hash: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True, index=True)
+    join_code_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class ProfesorAd(Base, TimestampMixin):

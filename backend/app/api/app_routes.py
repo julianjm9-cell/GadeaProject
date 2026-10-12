@@ -966,7 +966,10 @@ def profesor_particular_page(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/profesor/alumno")
 def profesor_student_portal():
-    return static_html("profesor-alumno.html", PROJECT_ROOT / "backend" / "app" / "static" / "profesor-alumno.html")
+    response = static_html("profesor-alumno.html", PROJECT_ROOT / "backend" / "app" / "static" / "profesor-alumno.html")
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
 
 
 @router.get("/api/apps")

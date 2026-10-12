@@ -54,18 +54,29 @@
     .student-footer{grid-column:1/-1;color:#7490b4;font-size:12px;text-align:center}
     .student-footer a{color:#376ea9}
     .student-inbox-empty{padding:15px;border-radius:12px;background:#f2f8ff;color:#617fa9;line-height:1.5}
+    .student-join-gate{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:linear-gradient(140deg,#d8ecff,#f7fbff 48%,#cee7ff)}
+    .student-join-card{width:min(100%,470px);padding:clamp(24px,5vw,42px);border:1px solid #bfdfff;border-radius:25px;background:#fff;box-shadow:0 25px 70px #0c4f9b2b;text-align:center}
+    .student-join-card img{width:65px;height:65px;object-fit:contain}
+    .student-join-card h1{margin:16px 0 7px;font-size:clamp(26px,6vw,36px);line-height:1.1}
+    .student-join-card p{color:#526f9c;line-height:1.55}
+    .student-join-card label{display:block;margin:25px 0 8px;text-align:left;font-weight:800}
+    .student-join-card input{width:100%;min-height:60px;padding:10px 15px;border:2px solid #9dcaff;border-radius:12px;color:#092b6e;font-family:inherit;font-size:25px;font-weight:900;line-height:1.2;letter-spacing:.13em;text-align:center;text-transform:uppercase}
+    .student-join-card button{width:100%;min-height:54px;margin-top:14px;border:0;border-radius:12px;background:#086df0;color:#fff;font-weight:850}
+    .student-join-card .join-error{min-height:25px;margin:9px 0 0;color:#ad3434;font-size:14px}
+    .student-join-card a{color:#1769c5}
     @media(max-width:1100px){.student-topbar{gap:15px}.student-call{margin-left:0}.student-call strong{font-size:16px}.student-meet-status{padding:7px 10px;font-size:12px}.student-layout{grid-template-columns:minmax(245px,300px) minmax(0,1fr)}}
     @media(max-width:850px){.student-topbar{flex-wrap:wrap}.student-call{order:3;width:100%}.student-head-actions{margin-left:auto}.student-layout{grid-template-columns:1fr;min-height:0;padding-top:18px}.student-sidebar{padding:18px}.student-welcome{min-height:240px}.student-call-icon{width:38px;height:38px;font-size:20px}}
     @media(max-width:560px){.student-brand img{width:45px;height:45px}.student-brand strong{font-size:17px}.student-account-name{display:none}.student-meet-action{padding:8px 11px;font-size:12px}.student-meet-action span{display:none}.student-account-avatar{width:39px;height:39px}.student-layout{gap:13px;padding:14px}.student-sidebar-heading{margin-bottom:10px}.student-sidebar h1{font-size:21px}.student-call{gap:9px}.student-call strong{font-size:14px}}
   </style>
 </head>
 <body class="student-portal">
+  <div id="studentJoinGate" class="student-join-gate" hidden><form id="studentJoinForm" class="student-join-card"><img src="/assets/brand/profesor-simple-v2.png" alt=""><h1>Entra en tu clase</h1><p>Escribe el código que te ha dado tu profesor. No necesitas crear una cuenta.</p><label for="studentJoinCode">Código de la sesión</label><input id="studentJoinCode" name="code" inputmode="text" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" maxlength="14" placeholder="XXXXXXXXXX" required><button type="submit">Entrar en la sesión</button><p id="studentJoinError" class="join-error" role="alert"></p><a href="/profesor">Volver a Profesor Particular</a></form></div>
   <header class="student-topbar">
     <a class="student-brand" href="/profesor/alumno"><img src="/assets/brand/profesor-simple-v2.png" alt=""><strong>Profesor<br>Particular</strong></a>
     <div class="student-call" aria-live="polite"><span class="student-call-icon" aria-hidden="true">▣</span><strong>Tu videollamada</strong><span class="student-meet-status" id="meetStatus">Comprobando enlace</span></div>
     <div class="student-head-actions">
       <a id="meetAction" class="student-meet-action" href="#" target="_blank" rel="noopener noreferrer" hidden>▣ <span>Abrir Google Meet</span> ↗</a>
-      <details class="student-account"><summary><span class="student-account-avatar" id="studentInitials">A</span><span class="student-account-name" id="studentName">Alumno</span>⌄</summary><div class="student-account-panel"><small id="studentCourse">Mi cuenta</small><button id="refresh" type="button">Actualizar enlace</button><button id="logout" type="button">Cerrar sesión</button></div></details>
+      <details class="student-account"><summary><span class="student-account-avatar" id="studentInitials">A</span><span class="student-account-name" id="studentName">Alumno</span>⌄</summary><div class="student-account-panel"><small id="studentCourse">Mi sesión</small><button id="refresh" type="button">Actualizar enlace</button><button id="logout" type="button">Salir de la sesión</button></div></details>
     </div>
   </header>
   <main class="student-layout">
@@ -79,12 +90,17 @@
   <script>
     const $=id=>document.getElementById(id);
     let lastLink=null;
+    window.profesorRequireJoin=()=>{$('studentJoinGate').hidden=false;$('studentJoinCode').focus()};
     async function load(){
       try{
         const response=await fetch('/auth/profesor/student-me',{credentials:'same-origin',cache:'no-store'});
-        if(response.status===401||response.status===403){location.replace('/profesor/login?expired=1');return}
+        if(response.status===401||response.status===403){window.profesorRequireJoin();return}
         if(!response.ok)throw Error('No se pudo cargar tu espacio.');
         const data=await response.json();
+        $('studentJoinGate').hidden=true;
+        const wasReady=window.profesorStudentReady;
+        window.profesorStudentReady=true;
+        if(!wasReady)document.dispatchEvent(new Event('profesor-student-ready'));
         const name=String(data.student.name||'Alumno');
         $('studentName').textContent=name.split(' ')[0];
         $('studentInitials').textContent=name.split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase();
@@ -97,14 +113,15 @@
           if(link)$('meetAction').href=link;
           lastLink=link;
         }
-      }catch(error){$('meetStatus').textContent='Sin conexión';$('meetStatus').className='student-meet-status error'}
+      }catch(error){$('meetStatus').textContent='Sin conexión';$('meetStatus').className='student-meet-status error';if(!window.profesorStudentReady)window.profesorRequireJoin()}
     }
+    $('studentJoinForm').addEventListener('submit',async event=>{event.preventDefault();const button=event.target.querySelector('button[type="submit"]');button.disabled=true;$('studentJoinError').textContent='';try{const response=await fetch('/auth/profesor/student-join',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:$('studentJoinCode').value})});const data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.detail||'No se pudo entrar en la sesión.');$('studentJoinCode').value='';await load()}catch(error){$('studentJoinError').textContent=error.message}finally{button.disabled=false}});
     $('refresh').onclick=load;
-    $('logout').onclick=async()=>{await fetch('/auth/profesor/student-logout',{method:'POST',credentials:'same-origin'});location.replace('/profesor/login')};
+    $('logout').onclick=async()=>{await fetch('/auth/profesor/student-logout',{method:'POST',credentials:'same-origin'});location.replace('/profesor/alumno')};
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
     setInterval(()=>{if(!document.hidden)load()},20000);
     load();
   </script>
-  <script src="/profesor-live.js?v=20261010-1"></script>
+  <script src="/profesor-live.js?v=20261012-code-1"></script>
 </body>
 </html>

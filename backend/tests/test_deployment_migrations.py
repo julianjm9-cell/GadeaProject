@@ -30,3 +30,21 @@ def test_migration_handles_runtime_created_schema(monkeypatch, filename, columns
     assert operations.add_column.call_count == (0 if existing else len(columns))
     assert operations.create_index.call_count == (0 if existing else 1)
     assert operations.create_foreign_key.call_count == (1 if fk and not existing else 0)
+
+
+@pytest.mark.parametrize("existing", [False, True])
+def test_student_session_code_migration_handles_runtime_created_columns(monkeypatch, existing):
+    path = Path(__file__).parents[1] / "alembic" / "versions" / "0015_profesor_session_codes.py"
+    spec = importlib.util.spec_from_file_location("session_code_migration", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    operations = Mock()
+    inspector = SimpleNamespace(
+        get_columns=lambda table: [{"name": "join_code_hash"}, {"name": "join_code_encrypted"}] if existing else [],
+        get_indexes=lambda table: [{"name": "ix_profesor_material_sessions_join_code_hash"}] if existing else [],
+    )
+    monkeypatch.setattr(module, "op", operations)
+    monkeypatch.setattr(module.sa, "inspect", lambda bind: inspector)
+    module.upgrade()
+    assert operations.add_column.call_count == (0 if existing else 2)
+    assert operations.create_index.call_count == (0 if existing else 1)

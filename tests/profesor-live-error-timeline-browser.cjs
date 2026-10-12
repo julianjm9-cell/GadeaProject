@@ -9,6 +9,7 @@ const path=require('node:path');
     page.on('pageerror',error=>errors.push(error.message));
     await page.setContent('<div id="studentWelcome"></div><div id="studentMaterialList"></div><section id="studentMaterials" hidden></section>');
     await page.evaluate(()=>{
+      window.profesorStudentReady=true;
       const session={id:'test',title:'Práctica',subject:'Historia',status:'in_progress',revision:1,questions:[
         {type:'timeline',prompt:'Ordena los acontecimientos.',options:['1945-05-08 – Rendición de Alemania','1945-09-02 – Rendición de Japón'],hints:[]},
         {type:'error',prompt:'Corrige: “Tú trajistes el libro.”',hints:[]}
