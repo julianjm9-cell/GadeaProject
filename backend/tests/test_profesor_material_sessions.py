@@ -25,8 +25,13 @@ def prepare_teacher(client):
     login(web)
     saved = {"version": 2, "students": [{"id": "old", "name": "Nombre antiguo", "notes": "Dato privado"}],
              "library": [{"id": "m1", "title": "Sumas", "subject": "Matemáticas", "activity": {"questions": material_questions()}}]}
-    assert web.post("/api/state?app=profesor_particular", json=saved).status_code == 200
-    state = web.get("/api/state?app=profesor_particular").json()
+    stored = web.post("/api/state?app=profesor_particular", json=saved)
+    assert stored.status_code == 200
+    assert stored.headers["cache-control"] == "private, no-store"
+    state_response = web.get("/api/state?app=profesor_particular")
+    assert state_response.headers["cache-control"] == "private, no-store"
+    assert state_response.headers["x-robots-tag"] == "noindex, nofollow"
+    state = state_response.json()
     assert "students" not in state and "Nombre antiguo" not in str(state)
     return web, factory
 

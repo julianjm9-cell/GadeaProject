@@ -40,6 +40,6 @@ Restaurar aislado de internet. Conservar antes las solicitudes de supresión y d
 
 ## Alcance pendiente
 
-Estas medidas se centran en el tablón. La aplicación docente requiere revisar por separado el papel responsable/encargado respecto a alumnos, contrato del artículo 28 RGPD cuando corresponda, tratamiento de menores, proveedores IA y transferencias. Revisión jurídica final de textos y operación recomendada; una exención no sustituye obligaciones.
+Estas medidas se centran en el tablón. La aplicación docente ya no incorpora fichas ni cuentas de alumnos; las sesiones de juegos son temporales y se documentan en [Profesor Particular: comprobaciones de privacidad](TEACHER_PRIVACY_OPERATIONS.md). Siguen pendientes la verificación real de contratos, proveedores, transferencias y copias externas, así como una revisión jurídica final de textos y operación.
 
 Fuentes: [RGPD](https://eur-lex.europa.eu/eli/reg/2016/679/oj), [LSSI](https://www.boe.es/buscar/act.php?id=BOE-A-2002-13758), [DSA](https://eur-lex.europa.eu/eli/reg/2022/2065), [AEPD cookies](https://www.aepd.es/guias/guia-cookies.pdf).

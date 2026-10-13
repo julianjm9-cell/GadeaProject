@@ -59,6 +59,7 @@ docker compose --profile proxy up -d --no-build --wait --wait-timeout 180
 
 printf '\n[5/5] Comprobando base de datos, app, landing, login y dashboard…\n'
 docker compose exec -T backend python -m app.deployment_check
+docker compose exec -T ocr-worker python -c 'from app.api.profesor_access import purge_expired_sessions; from app.database.session import SessionLocal; db=SessionLocal(); count=purge_expired_sessions(db); db.close(); print(f"OK limpieza de sesiones temporales: {count} vencidas")'
 docker compose exec -T reverse-proxy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 docker compose ps
 # Disable the former automatic backup cleanup. Backups are now managed manually.

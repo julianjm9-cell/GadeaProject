@@ -21,7 +21,7 @@ app = FastAPI(title=settings.app_name)
 async def protect_ads(request, call_next):
     path = request.url.path
     protected = path.startswith(("/api/profesor/ads", "/api/profesor/ad-", "/profesor/anunc", "/admin/profesor-ads"))
-    private_session = path.startswith(("/api/profesor/material-sessions", "/api/profesor/student-material-sessions", "/auth/profesor/student-"))
+    private_data = path in {"/api/state", "/auth/me", "/api/profile"} or path.startswith(("/api/profesor/", "/auth/profesor/student-"))
     if protected and request.method in {"POST", "PUT", "PATCH"}:
         body = bytearray()
         async for chunk in request.stream():
@@ -39,7 +39,7 @@ async def protect_ads(request, call_next):
             response.headers["X-Robots-Tag"] = "noindex, nofollow"
         if path.startswith("/profesor/anunc"):
             response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'"
-    if private_session:
+    if private_data:
         response.headers["Cache-Control"] = "private, no-store"
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["X-Robots-Tag"] = "noindex, nofollow"

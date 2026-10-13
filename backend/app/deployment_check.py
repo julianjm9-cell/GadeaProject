@@ -92,6 +92,10 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
                 assert b'href="/profesor"' in data, "Falta Profesor Particular en la portada"
             if path in ("/profesor", "/profesor/clases-de-apoyo"):
                 assert b"/assets/landing/profesor-clases-apoyo.png" in data, "Falta la imagen de clases de apoyo"
+            if path == "/profesor":
+                assert b'preview-juegos' in data and b'<h2>Mis alumnos</h2>' not in data, "La portada anuncia fichas de alumnos retiradas"
+            if path == "/profesor/clases-de-apoyo":
+                assert b'perfil del alumno' not in data, "La página anuncia perfiles de alumnos retirados"
             if path == "/profesor-particular":
                 assert "/login?next=/profesor-particular" in response.url, "La app no redirige al login"
         print(f"OK {path}")
@@ -102,6 +106,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         urlopen(base + "/api/state?app=profesor_particular", timeout=20)
     except HTTPError as exc:
         assert exc.code == 401, "El estado privado debe requerir autenticación"
+        assert exc.headers.get("Cache-Control") == "private, no-store", "El estado privado permite caché"
+        assert exc.headers.get("X-Robots-Tag") == "noindex, nofollow", "El estado privado permite indexación"
     else:
         raise AssertionError("El estado privado no debe ser público")
     with urlopen(admin + "/", timeout=20) as response:

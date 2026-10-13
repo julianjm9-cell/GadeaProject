@@ -229,7 +229,7 @@ def test_deployment_smoke_check_routes(client, monkeypatch):
             return BytesIO((Path(__file__).parents[2] / "admin" / "index.html").read_bytes())
         response = test_client.get(url.replace("http://127.0.0.1:8000", ""))
         if response.status_code >= 400:
-            raise HTTPError(url, response.status_code, "HTTP error", None, None)
+            raise HTTPError(url, response.status_code, "HTTP error", response.headers, None)
         result = BytesIO(response.content)
         result.status = response.status_code
         result.url = str(response.url)
