@@ -192,7 +192,7 @@
  puzzlePreview=function(type,options){if(type!=='pasapalabra')return originalPreview(type,options);try{const rows=puzzleRows(type,options);return `<div class="rosco-preview"><div class="pasapalabra-wheel" aria-label="Vista previa del rosco">${rows.map(([letter],i)=>{const a=i/rows.length*Math.PI*2-Math.PI/2;return `<span style="left:${50+43*Math.cos(a)}%;top:${50+43*Math.sin(a)}%">${esc(letter)}</span>`}).join('')}<div class="rosco-center"><strong>${rows.length}</strong><span>letras</span></div></div><p class="generator-help">Una pista por letra · responde, pasa y vuelve a las pendientes</p><ol class="rosco-clue-preview">${rows.slice(0,3).map(([letter,clue])=>`<li><b>${esc(letter)}</b> ${esc(clue)}</li>`).join('')}</ol></div>`;}catch(error){return `<p>${esc(error.message)}</p>`;}};
  const originalEdit=editActivity;
  const originalNavigation=setupEditorNavigation;
- setupEditorNavigation=function(material){$('form').editorMaterial=material;originalNavigation(material)};
+ setupEditorNavigation=function(material){$('form').editorMaterial=material;return originalNavigation(material)};
  const originalCollect=collectEditorMaterial;
  collectEditorMaterial=function(material,fields){
   material.activity.questions.forEach((q,i)=>Object.assign(q,readQuestionFeedback(i,q,true)));
