@@ -32,7 +32,7 @@ def prepare_teacher(client):
     assert state_response.headers["cache-control"] == "private, no-store"
     assert state_response.headers["x-robots-tag"] == "noindex, nofollow"
     state = state_response.json()
-    assert "students" not in state and "Nombre antiguo" not in str(state)
+    assert state["students"] == saved["students"]
     return web, factory
 
 
@@ -57,6 +57,8 @@ def test_codes_are_unique_scoped_and_do_not_require_pupil_accounts(client):
         assert pupil.get("/auth/profesor/student-me").json()["student"]["name"] == "Participante"
         listed = pupil.get("/api/profesor/student-material-sessions")
         assert [item["id"] for item in listed.json()["sessions"]] == [first_session["id"]]
+        assert "Nombre antiguo" not in listed.text and "Dato privado" not in listed.text
+        assert pupil.get("/api/state?app=profesor_particular").status_code == 401
         assert listed.headers["cache-control"] == "private, no-store"
         assert pupil.get(f"/api/profesor/student-material-sessions/{second_session['id']}").status_code == 404
         assert pupil.post(f"/api/profesor/student-material-sessions/{second_session['id']}/move", json={"action": "start"}).status_code == 404

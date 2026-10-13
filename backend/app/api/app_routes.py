@@ -181,19 +181,6 @@ def set_app_state_data(row: ClientState, app_key: str, payload: dict) -> None:
     row.data = {"__apps": apps}
 
 
-def anonymous_profesor_state(payload: dict) -> dict:
-    """Keep teaching resources while discarding named pupil records and their history."""
-    if not isinstance(payload, dict):
-        return {}
-    blocked = {"students", "sessions", "assignments", "activityAttempts", "bundles", "tasks", "selectedStudent", "studentProgress"}
-    clean = {key: value for key, value in payload.items() if key not in blocked}
-    library = clean.get("library")
-    if isinstance(library, list):
-        clean["library"] = [{key: value for key, value in item.items() if key not in {"studentId", "student_id"}}
-                            for item in library if isinstance(item, dict) and not item.get("studentId") and not item.get("student_id")]
-    return clean
-
-
 def setting_value(db: Session, key: str) -> str:
     row = db.get(AppSetting, key)
     return (row.value if row else "").strip()
@@ -1586,10 +1573,9 @@ def get_state(request: Request, user: User = Depends(current_user), license_obj:
     saved = app_state_data(row, app_key)
     if app_key != "profesor_particular":
         return saved
-    result = anonymous_profesor_state(saved)
-    if result != saved:
-        set_app_state_data(row, app_key, result)
-        db.commit()
+    # Teacher profiles and planning belong to this private, authenticated state.
+    # Code-based game sessions remain separate and never expose these records.
+    result = dict(saved)
     profile = result.get("teacherProfile")
     result["teacherProfile"] = {**(profile if isinstance(profile, dict) else {}), "plan": profesor_account_plan(license_obj)}
     return result
@@ -1674,7 +1660,7 @@ def set_gamification_equipment(payload: dict, request: Request, user: User = Dep
 def save_state(payload: dict, request: Request, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
     app_key = request_app_key(request)
     if app_key == "profesor_particular":
-        payload = anonymous_profesor_state(payload)
+        payload = dict(payload)
         profile = payload.get("teacherProfile")
         payload["teacherProfile"] = {**(profile if isinstance(profile, dict) else {}), "plan": profesor_account_plan(license_obj)}
     row = state_row(db, user)

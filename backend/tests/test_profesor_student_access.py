@@ -33,37 +33,35 @@ def test_named_student_account_endpoints_are_gone(client):
     assert "/auth/profesor/student-login" not in paths
 
 
-def test_old_pupil_records_are_removed_from_saved_teacher_state(client):
+def test_teacher_profiles_and_planning_round_trip_remain_private(client):
     web, factory = client
     _, teacher_id = seed_user(factory, product_codes=("PROFESOR_PARTICULAR",))
     assert login(web).status_code == 200
-    with factory() as db:
-        row = db.query(ClientState).filter(ClientState.user_id == UUID(teacher_id)).one_or_none()
-        if row is None:
-            from app.models import User
-            user = db.get(User, UUID(teacher_id))
-            row = ClientState(user_id=user.id, organization_id=user.organization_id)
-            db.add(row)
-        row.data = {"__apps": {"profesor_particular": {
-            "students": [{"id": "s1", "name": "Nombre antiguo"}],
-            "sessions": [{"studentId": "s1", "notes": "Notas antiguas"}],
-            "assignments": [{"studentId": "s1"}],
-            "activityAttempts": [{"studentId": "s1", "answer": "respuesta"}],
-            "library": [
-                {"id": "private", "studentId": "s1", "title": "Ficha privada"},
-                {"id": "shared", "title": "Material común"},
-            ],
-        }}}
-        db.commit()
-    result = web.get("/api/state?app=profesor_particular")
+    payload = {
+        "version": 2,
+        "students": [{"id": "s1", "name": "Alumno de prueba", "notes": "Revisar signos", "subjects": ["Lengua"]}],
+        "sessions": [{"id": "c1", "studentId": "s1", "notes": "Preparar clase"}],
+        "tasks": [{"id": "t1", "studentId": "s1", "title": "Preparar material", "done": False}],
+        "assignments": [{"studentId": "s1"}],
+        "library": [{"id": "private", "studentId": "s1", "title": "Ficha privada"},
+                    {"id": "shared", "title": "Material común"}],
+    }
+    endpoint = "/api/state?app=profesor_particular"
+    assert web.post(endpoint, json=payload).status_code == 200
+    result = web.get(endpoint)
     assert result.status_code == 200
-    assert result.json()["library"] == [{"id": "shared", "title": "Material común"}]
-    for key in ("students", "sessions", "assignments", "activityAttempts"):
-        assert key not in result.json()
+    for key, value in payload.items():
+        assert result.json()[key] == value
+    assert result.headers["Cache-Control"] == "private, no-store"
     with factory() as db:
         saved = db.query(ClientState).filter(ClientState.user_id == UUID(teacher_id)).one()
-        assert "students" not in saved.data["__apps"]["profesor_particular"]
-        assert saved.data["__apps"]["profesor_particular"]["library"] == [{"id": "shared", "title": "Material común"}]
+        assert saved.data["__apps"]["profesor_particular"]["students"] == payload["students"]
+        assert saved.data["__apps"]["profesor_particular"]["tasks"] == payload["tasks"]
+    seed_user(factory, email="other@example.com", product_codes=("PROFESOR_PARTICULAR",))
+    assert login(web, email="other@example.com").status_code == 200
+    assert "students" not in web.get(endpoint).json()
+    with TestClient(app) as visitor:
+        assert visitor.get(endpoint).status_code == 401
 
 
 def test_teacher_downgrade_revokes_anonymous_game_session(client):

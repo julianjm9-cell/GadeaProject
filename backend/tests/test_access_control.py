@@ -94,7 +94,7 @@ def test_profesor_product_login_and_state_isolation(client):
     teacher_data = {"version": 1, "students": [{"id": "student-a", "name": "Alumno A"}], "uploadedTopics": [{"id": "tema-propio", "title": "Mi unidad", "course": "3.º ESO", "subject": "Matemáticas", "uploadedDocuments": True, "documents": [{"id": "archivo-a", "filename": "apuntes.pdf", "size": 1024}]}]}
     assert test_client.post("/api/state?app=profesor_particular", json=teacher_data).status_code == 200
     assert test_client.post("/api/state?app=eso_adultos", json={"done": {"topic": True}}).status_code == 200
-    assert test_client.get("/api/state?app=profesor-particular").json() == {"version": 1, "uploadedTopics": teacher_data["uploadedTopics"], "teacherProfile": {"plan": "normal"}}
+    assert test_client.get("/api/state?app=profesor-particular").json() == {**teacher_data, "teacherProfile": {"plan": "normal"}}
     assert test_client.get("/api/state?app=eso_adultos").json() == {"done": {"topic": True}}
     seed_user(db_factory, email="profesor2@example.com", product_codes=("PROFESOR_PARTICULAR",))
     assert login(test_client, email="profesor2@example.com").status_code == 200
