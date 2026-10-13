@@ -7,7 +7,12 @@ html:has(body.app-shell-view){scrollbar-gutter:stable}
   height:auto;
   padding-top:calc(var(--teacher-header-top) + var(--teacher-header-height) + 22px);
   overflow:visible;
-  background:#d6eaff url("./profesor-study-room.png") center/cover fixed no-repeat;
+  background-color:#d6eaff;
+  background-image:linear-gradient(#d3dee98f,#d3dee98f),url("./profesor-study-room.png");
+  background-position:center;
+  background-size:cover;
+  background-attachment:fixed;
+  background-repeat:no-repeat;
 }
 .app-shell-view .home-nav{
   position:fixed;
@@ -35,6 +40,19 @@ html:has(body.app-shell-view){scrollbar-gutter:stable}
 .app-shell-view .home-nav .home-brand-group{gap:22px}
 .app-shell-view .home-nav .home-account{gap:12px}
 .app-shell-view .workspace-page .workspace-content{height:auto;max-width:1480px;min-height:0;margin:0 auto;padding:12px 28px 45px;overflow:visible}
+.app-shell-view .material-page-head{
+  padding:22px 24px;
+  margin:0 0 20px;
+  border:1px solid #ffffffed;
+  border-radius:22px;
+  background:#fffffff0;
+  box-shadow:0 12px 35px #1b47731c;
+  backdrop-filter:blur(12px);
+}
+.app-shell-view .material-page-head>.material-hub-toolbar{align-items:center}
+.app-shell-view .material-page-head .material-search,
+.app-shell-view .material-page-head .material-hub-toolbar select{height:45px;min-height:45px;margin:0}
+.app-shell-view .material-page-head .material-search input{margin:0;height:43px;min-height:0}
 /* The original dashboard keeps pupils on the left, calendar and tasks on the right. */
 .home-view .home-content,
 .home-view .home-content:has(.home-calendar-grid.month){
@@ -121,6 +139,10 @@ html:has(body.app-shell-view){scrollbar-gutter:stable}
   .app-shell-view .home-nav .home-primary-nav{position:fixed;inset:auto 0 0;z-index:45;width:100%;height:63px;justify-content:center;gap:4px;padding:5px 8px;background:#fffffff8}
   .app-shell-view .home-nav .home-primary-nav button{min-height:49px;padding:5px 6px;font-size:11px}
   .app-shell-view .workspace-page .workspace-content{padding:6px 12px 86px}
+  .app-shell-view .material-page-head{padding:16px;border-radius:18px;margin-bottom:16px}
+  .app-shell-view .material-page-head .material-search,
+  .app-shell-view .material-page-head .material-hub-toolbar select{height:40px;min-height:40px}
+  .app-shell-view .material-page-head .material-search input{height:38px}
   .home-view .home-content,.home-view .home-content:has(.home-calendar-grid.month){grid-template-columns:1fr;gap:14px;height:auto;min-height:0;padding:8px 12px 84px}
   .home-view .home-roster,.home-view .home-panel{padding:15px;border-radius:18px}
   .home-view .home-student-card[data-card-color]{height:216px;min-height:216px;padding:14px;grid-template-rows:76px 53px 38px;gap:8px 11px}
