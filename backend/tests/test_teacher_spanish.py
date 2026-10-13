@@ -64,13 +64,12 @@ def test_support_spanish_level_is_enforced(client, monkeypatch):
     assert len(calls) == 1
 
 
-def test_spanish_level_state_and_pdf_permissions(client, monkeypatch):
+def test_pupil_state_is_discarded_and_pdf_permissions(client, monkeypatch):
     web, factory, _ = setup(client, monkeypatch)
     pupil = dict(id='ele',name='Ana',course='3.º ESO',subjects=['Matemáticas','Español'],spanishLevel='B2',progress={},materialIds=[])
     assert web.post('/api/state?app=profesor_particular',json={'students':[pupil],'library':[]}).status_code == 200
     state = web.get('/api/state?app=profesor_particular').json()
-    assert state['students'][0]['spanishLevel'] == 'B2'
-    assert state['students'][0]['course'] == '3.º ESO'
+    assert 'students' not in state
     topic = spanish_topics()[0]
     url = '/api/profesor/temario/export-pdf?app=profesor_particular'
     assert web.post(url,json={'topic_id':topic['id'],'resource':'scheme'}).status_code == 200

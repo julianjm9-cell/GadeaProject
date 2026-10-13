@@ -13,9 +13,10 @@ from app.database.session import engine
 def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://admin") -> None:
     with engine.connect() as connection:
         assert connection.execute(text("SELECT 1")).scalar() == 1, "PostgreSQL no responde"
-        connection.execute(text("SELECT id, password_encrypted FROM profesor_student_accesses LIMIT 0"))
+        assert connection.execute(text("SELECT COUNT(*) FROM profesor_student_accesses")).scalar() == 0, "Persisten cuentas de alumnos retiradas"
         connection.execute(text("SELECT id FROM profesor_material_sessions LIMIT 0"))
-        connection.execute(text("SELECT join_code_hash, join_code_encrypted FROM profesor_material_sessions LIMIT 0"))
+        connection.execute(text("SELECT join_code_hash, join_code_encrypted, expires_at FROM profesor_material_sessions LIMIT 0"))
+        assert connection.execute(text("SELECT COUNT(*) FROM profesor_material_sessions WHERE access_id IS NOT NULL")).scalar() == 0, "Persisten sesiones asociadas a alumnos"
         connection.execute(text("SELECT id FROM profesor_ads LIMIT 0"))
         connection.execute(text("SELECT id FROM profesor_ad_reports LIMIT 0"))
         connection.execute(text("SELECT id, request_id, status, attempt_count, failure_category FROM profesor_generation_jobs LIMIT 0"))

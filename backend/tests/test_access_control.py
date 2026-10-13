@@ -94,7 +94,7 @@ def test_profesor_product_login_and_state_isolation(client):
     teacher_data = {"version": 1, "students": [{"id": "student-a", "name": "Alumno A"}], "uploadedTopics": [{"id": "tema-propio", "title": "Mi unidad", "course": "3.º ESO", "subject": "Matemáticas", "uploadedDocuments": True, "documents": [{"id": "archivo-a", "filename": "apuntes.pdf", "size": 1024}]}]}
     assert test_client.post("/api/state?app=profesor_particular", json=teacher_data).status_code == 200
     assert test_client.post("/api/state?app=eso_adultos", json={"done": {"topic": True}}).status_code == 200
-    assert test_client.get("/api/state?app=profesor-particular").json() == {**teacher_data, "teacherProfile": {"plan": "normal"}}
+    assert test_client.get("/api/state?app=profesor-particular").json() == {"version": 1, "uploadedTopics": teacher_data["uploadedTopics"], "teacherProfile": {"plan": "normal"}}
     assert test_client.get("/api/state?app=eso_adultos").json() == {"done": {"topic": True}}
     seed_user(db_factory, email="profesor2@example.com", product_codes=("PROFESOR_PARTICULAR",))
     assert login(test_client, email="profesor2@example.com").status_code == 200
@@ -842,8 +842,14 @@ def test_admin_can_delete_user_and_private_documents(client, monkeypatch, tmp_pa
     document_path = user_dir / "material.txt"
     document_path.write_text("material privado", encoding="utf-8")
     with db_factory() as db:
-        from app.models import Document
+        from app.models import Document, ProfesorMaterialSession
         db.add(Document(organization_id=UUID(org_id), user_id=UUID(user_id), filename="material.txt", storage_path=str(document_path)))
+        db.add(ProfesorMaterialSession(
+            teacher_user_id=UUID(user_id), access_id=None, material_id="shared", title="Repaso",
+            subject="Lengua", material_snapshot={"questions": []},
+            progress={"responses": {"0": "respuesta de prueba"}},
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
+        ))
         db.commit()
     token = login(test_client, email="admin-delete@example.com").json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
@@ -855,6 +861,7 @@ def test_admin_can_delete_user_and_private_documents(client, monkeypatch, tmp_pa
         assert db.get(User, UUID(user_id)) is None
         assert db.query(License).filter_by(user_id=UUID(user_id)).count() == 0
         assert db.query(Document).filter_by(user_id=UUID(user_id)).count() == 0
+        assert db.query(ProfesorMaterialSession).filter_by(teacher_user_id=UUID(user_id)).count() == 0
 
 
 def test_credit_limit_is_scoped_to_each_user(client):

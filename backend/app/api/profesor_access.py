@@ -1,57 +1,32 @@
-"""Isolated Premium student accounts and their single-purpose Meet portal."""
+"""Anonymous, single-session access to shared teacher materials."""
 from __future__ import annotations
 
-import re
-import secrets
 import base64
 import hashlib
+import re
+import secrets
 from datetime import datetime, timedelta, timezone
-from urllib.parse import urlparse
 from uuid import UUID
 
-import httpx
 from cryptography.fernet import Fernet, InvalidToken
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from jose import JWTError, jwt
 from pydantic import BaseModel, Field
-from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
-from app.auth.dependencies import current_user
 from app.config import get_settings
 from app.database.session import get_db
-from app.models import ClientState, ProfesorMaterialSession, ProfesorStudentAccess, User
-from app.security.passwords import hash_password, verify_password
+from app.models import ProfesorMaterialSession, User
 from app.services.licenses import check_access, profesor_account_plan
 
 router = APIRouter(tags=["profesor-student-access"])
-
-
-class Credentials(BaseModel):
-    student_id: str = Field(min_length=1, max_length=120)
-    username: str = Field(min_length=4, max_length=80)
-
-
-class StudentLogin(BaseModel):
-    username: str = Field(min_length=1, max_length=80)
-    password: str = Field(min_length=1, max_length=72)
+CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+SESSION_LIFETIME = timedelta(hours=24)
 
 
 class StudentCode(BaseModel):
     code: str = Field(min_length=1, max_length=24)
-
-
-class ActiveUpdate(BaseModel):
-    active: bool
-
-
-class MeetLink(BaseModel):
-    url: str = Field(min_length=1, max_length=500)
-
-
-class CreateMeet(BaseModel):
-    replace: bool = False
 
 
 def teacher_premium(db: Session, user: User) -> None:
@@ -59,44 +34,7 @@ def teacher_premium(db: Session, user: User) -> None:
     if not decision.ok or not decision.license:
         raise HTTPException(403, "Esta cuenta no tiene acceso a Profesor Particular.")
     if profesor_account_plan(decision.license) != "premium":
-        raise HTTPException(403, "Accesos Alumnos requiere una cuenta Premium.")
-
-
-def teacher_students(db: Session, user: User) -> dict[str, dict]:
-    row = db.scalar(select(ClientState).where(ClientState.user_id == user.id, ClientState.organization_id == user.organization_id))
-    data = row.data if row and isinstance(row.data, dict) else {}
-    app = data.get("__apps", {}).get("profesor_particular", {})
-    return {str(s.get("id")): s for s in app.get("students", []) if isinstance(s, dict) and s.get("id")}
-
-
-def owned_access(db: Session, user: User, access_id: UUID, *, for_update: bool = False) -> ProfesorStudentAccess:
-    query = select(ProfesorStudentAccess).where(ProfesorStudentAccess.id == access_id, ProfesorStudentAccess.teacher_user_id == user.id)
-    access = db.scalar(query.with_for_update() if for_update else query)
-    if not access or access.student_id not in teacher_students(db, user):
-        raise HTTPException(404, "Acceso no encontrado.")
-    return access
-
-
-def public_access(access: ProfesorStudentAccess, student: dict) -> dict:
-    return {"id": str(access.id), "student_id": access.student_id, "name": str(student.get("name") or "Alumno"), "username": access.username, "password": visible_password(access), "active": access.is_active, "meet_uri": access.meet_uri or "", "created_at": access.created_at.isoformat()}
-
-
-def password_cipher() -> Fernet:
-    secret = get_settings().jwt_secret.encode("utf-8")
-    key = base64.urlsafe_b64encode(hashlib.sha256(b"profesor-student-password-v1:" + secret).digest())
-    return Fernet(key)
-
-
-def visible_password(access: ProfesorStudentAccess) -> str | None:
-    if not access.password_encrypted:
-        return None
-    try:
-        return password_cipher().decrypt(access.password_encrypted.encode("ascii")).decode("utf-8")
-    except (InvalidToken, ValueError, UnicodeError):
-        return None
-
-
-CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        raise HTTPException(403, "Las sesiones en directo requieren una cuenta Premium.")
 
 
 def new_session_code() -> str:
@@ -108,16 +46,39 @@ def normalized_code(raw: str) -> str:
 
 
 def session_code_hash(code: str) -> str:
-    return hashlib.sha256(b"profesor-session-code-v1:" + get_settings().jwt_secret.encode("utf-8") + normalized_code(code).encode("ascii")).hexdigest()
+    secret = get_settings().jwt_secret.encode("utf-8")
+    return hashlib.sha256(b"profesor-session-code-v1:" + secret + normalized_code(code).encode("ascii")).hexdigest()
 
 
 def session_code_cipher() -> Fernet:
     secret = get_settings().jwt_secret.encode("utf-8")
-    return Fernet(base64.urlsafe_b64encode(hashlib.sha256(b"profesor-session-code-cipher-v1:" + secret).digest()))
+    key = base64.urlsafe_b64encode(hashlib.sha256(b"profesor-session-code-cipher-v1:" + secret).digest())
+    return Fernet(key)
+
+
+def aware(value: datetime) -> datetime:
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
+def session_is_expired(session: ProfesorMaterialSession) -> bool:
+    return not session.expires_at or aware(session.expires_at) <= datetime.now(timezone.utc)
+
+
+def expire_stale_sessions(db: Session, teacher_user_id: UUID | None = None) -> None:
+    query = update(ProfesorMaterialSession).where(
+        ProfesorMaterialSession.status.in_(("pending", "in_progress")),
+        ProfesorMaterialSession.expires_at <= datetime.now(timezone.utc),
+    )
+    if teacher_user_id:
+        query = query.where(ProfesorMaterialSession.teacher_user_id == teacher_user_id)
+    result = db.execute(query.values(status="expired", join_code_hash=None, join_code_encrypted=None,
+                                     revision=ProfesorMaterialSession.revision + 1))
+    if result.rowcount:
+        db.commit()
 
 
 def visible_session_code(session: ProfesorMaterialSession) -> str | None:
-    if not session.join_code_encrypted or session.status not in {"pending", "in_progress"}:
+    if not session.join_code_encrypted or session.status not in {"pending", "in_progress"} or session_is_expired(session):
         return None
     try:
         return session_code_cipher().decrypt(session.join_code_encrypted.encode("ascii")).decode("ascii")
@@ -125,161 +86,25 @@ def visible_session_code(session: ProfesorMaterialSession) -> str | None:
         return None
 
 
-def meet_url(raw: str) -> str:
-    value = raw.strip()
-    try:
-        parts = urlparse(value)
-        valid_host = parts.hostname == "meet.google.com" and parts.port in (None, 443)
-    except ValueError:
-        valid_host = False
-        parts = urlparse("")
-    if parts.scheme != "https" or not valid_host or parts.username or parts.password or not re.fullmatch(r"/[a-z]{3}-[a-z]{4}-[a-z]{3}/?", parts.path):
-        raise HTTPException(422, "Pega un enlace válido de Google Meet.")
-    return f"https://meet.google.com{parts.path.rstrip('/')}"
-
-
-@router.get("/api/profesor/access")
-def list_accesses(response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    teacher_premium(db, user)
-    response.headers["Cache-Control"] = "private, no-store"
-    students = teacher_students(db, user)
-    rows = db.scalars(select(ProfesorStudentAccess).where(ProfesorStudentAccess.teacher_user_id == user.id).order_by(ProfesorStudentAccess.created_at)).all()
-    return {"ok": True, "google_meet_connected": bool(user.meet_refresh_token), "google_meet_configured": bool(get_settings().google_client_id and get_settings().google_client_secret), "accesses": [public_access(row, students[row.student_id]) for row in rows if row.student_id in students]}
-
-
-@router.get("/api/profesor/session-students")
-def list_session_students(response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    teacher_premium(db, user)
-    response.headers["Cache-Control"] = "private, no-store"
-    students = teacher_students(db, user)
-    rows = db.scalars(select(ProfesorStudentAccess).where(ProfesorStudentAccess.teacher_user_id == user.id)).all()
-    return {"accesses": [{"id": str(row.id), "student_id": row.student_id, "name": str(students[row.student_id].get("name") or "Alumno"),
-                          "active": row.is_active, "meet_uri": row.meet_uri or ""} for row in rows if row.student_id in students]}
-
-
-@router.post("/api/profesor/access")
-def create_access(payload: Credentials, response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    teacher_premium(db, user)
-    response.headers["Cache-Control"] = "private, no-store"
-    students = teacher_students(db, user)
-    if payload.student_id not in students:
-        raise HTTPException(404, "Alumno no encontrado en tu cuenta.")
-    username = payload.username.strip().lower()
-    if not re.fullmatch(r"[a-z0-9][a-z0-9._-]{3,79}", username):
-        raise HTTPException(422, "El usuario debe tener 4–80 letras minúsculas, números, puntos, guiones o guiones bajos.")
-    if db.scalar(select(ProfesorStudentAccess.id).where(ProfesorStudentAccess.teacher_user_id == user.id, ProfesorStudentAccess.student_id == payload.student_id)):
-        raise HTTPException(409, "Este alumno ya tiene acceso. Puedes restablecer su contraseña.")
-    password = secrets.token_urlsafe(15)
-    access = ProfesorStudentAccess(teacher_user_id=user.id, student_id=payload.student_id, username=username, password_hash=hash_password(password), password_encrypted=password_cipher().encrypt(password.encode("utf-8")).decode("ascii"))
-    db.add(access)
-    try:
-        db.commit()
-    except IntegrityError as exc:
-        db.rollback()
-        raise HTTPException(409, "Ese nombre de usuario ya existe.") from exc
-    db.refresh(access)
-    return {"ok": True, "access": public_access(access, students[payload.student_id]), "password": password}
-
-
-@router.post("/api/profesor/access/{access_id}/reset-password")
-def reset_password(access_id: UUID, response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    teacher_premium(db, user)
-    response.headers["Cache-Control"] = "private, no-store"
-    access = owned_access(db, user, access_id)
-    password = secrets.token_urlsafe(15)
-    access.password_hash = hash_password(password)
-    access.password_encrypted = password_cipher().encrypt(password.encode("utf-8")).decode("ascii")
-    access.session_version += 1
-    db.commit()
-    return {"ok": True, "password": password}
-
-
-@router.post("/api/profesor/access/{access_id}/active")
-def set_active(access_id: UUID, payload: ActiveUpdate, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    teacher_premium(db, user)
-    access = owned_access(db, user, access_id)
-    access.is_active = payload.active
-    access.session_version += 1
-    db.commit()
-    return {"ok": True, "active": access.is_active}
-
-
-@router.post("/api/profesor/access/{access_id}/meet-link")
-def set_meet_link(access_id: UUID, payload: MeetLink, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    teacher_premium(db, user)
-    access = owned_access(db, user, access_id)
-    access.meet_uri = meet_url(payload.url)
-    access.meet_space = None
-    db.commit()
-    return {"ok": True, "meet_uri": access.meet_uri}
-
-
-@router.post("/api/profesor/access/{access_id}/meet-clear")
-def clear_meet_link(access_id: UUID, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    teacher_premium(db, user)
-    access = owned_access(db, user, access_id)
-    access.meet_uri = None
-    access.meet_space = None
-    db.commit()
-    return {"ok": True}
-
-
-async def google_meet_space(refresh_token: str) -> tuple[str, str]:
-    settings = get_settings()
-    async with httpx.AsyncClient(timeout=25) as client:
-        token = await client.post("https://oauth2.googleapis.com/token", data={"client_id": settings.google_client_id, "client_secret": settings.google_client_secret, "refresh_token": refresh_token, "grant_type": "refresh_token"})
-        if token.status_code != 200 or not token.json().get("access_token"):
-            raise HTTPException(502, "No se pudo renovar la conexión con Google. Vuelve a conectar Meet.")
-        response = await client.post("https://meet.googleapis.com/v2/spaces", headers={"Authorization": "Bearer " + token.json()["access_token"]}, json={})
-        if response.status_code not in (200, 201):
-            raise HTTPException(502, "Google Meet no pudo crear la sala. Comprueba que la API de Meet esté habilitada o pega un enlace manual.")
-        body = response.json()
-        return meet_url(str(body.get("meetingUri") or "")), str(body.get("name") or "")[:255]
-
-
-@router.post("/api/profesor/access/{access_id}/meet-create")
-async def create_meet(access_id: UUID, payload: CreateMeet, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    teacher_premium(db, user)
-    access = owned_access(db, user, access_id, for_update=True)
-    if access.meet_uri and not payload.replace:
-        return {"ok": True, "meet_uri": access.meet_uri, "existing": True}
-    if not user.meet_refresh_token:
-        raise HTTPException(409, "Conecta Google Meet primero o pega un enlace manual.")
-    try:
-        uri, space = await google_meet_space(user.meet_refresh_token)
-    except httpx.HTTPError as exc:
-        raise HTTPException(502, "No se pudo conectar con Google Meet.") from exc
-    access.meet_uri = uri
-    access.meet_space = space
-    db.commit()
-    return {"ok": True, "meet_uri": uri, "existing": False}
-
-
-def active_student(request: Request, db: Session) -> tuple[ProfesorStudentAccess, User, dict]:
+def active_student(request: Request, db: Session) -> tuple[ProfesorMaterialSession, User]:
     token = request.cookies.get("profesor_student_access") or ""
     try:
         claims = jwt.decode(token, get_settings().jwt_secret, algorithms=[get_settings().jwt_algorithm])
-        if claims.get("type") not in {"profesor_student", "profesor_student_session"}:
+        if claims.get("type") != "profesor_anonymous_session":
             raise ValueError()
-        access = db.get(ProfesorStudentAccess, UUID(str(claims["sub"])))
-        if not access or not access.is_active or access.session_version != claims.get("sv"):
+        session = db.get(ProfesorMaterialSession, UUID(str(claims["sid"])))
+        if (not session or session.access_id is not None or session.status in {"cancelled", "expired"}
+                or session_is_expired(session) or not session.join_code_hash
+                or session.join_code_hash != claims.get("jch")):
             raise ValueError()
-        if claims.get("type") == "profesor_student_session":
-            session_id = UUID(str(claims["sid"]))
-            live = db.get(ProfesorMaterialSession, session_id)
-            if not live or live.access_id != access.id or live.status == "cancelled" or not live.join_code_hash or live.join_code_hash != claims.get("jch"):
-                raise ValueError()
-            request.state.profesor_session_id = session_id
     except (JWTError, KeyError, ValueError) as exc:
-        raise HTTPException(401, "Acceso de alumno no válido. Inicia sesión de nuevo.") from exc
-    teacher = db.get(User, access.teacher_user_id)
+        raise HTTPException(401, "Sesión cerrada o caducada. Pide un código nuevo al profesor.") from exc
+    teacher = db.get(User, session.teacher_user_id)
     if not teacher:
-        raise HTTPException(401, "Acceso no disponible.")
+        raise HTTPException(401, "Sesión no disponible.")
     teacher_premium(db, teacher)
-    student = teacher_students(db, teacher).get(access.student_id)
-    if not student:
-        raise HTTPException(403, "Este alumno ya no está en la cuenta del profesor.")
-    return access, teacher, student
+    request.state.profesor_session_id = session.id
+    return session, teacher
 
 
 @router.post("/auth/profesor/student-join")
@@ -291,51 +116,34 @@ def student_join(payload: StudentCode, request: Request, response: Response, db:
     if len(code) != 10 or any(letter not in CODE_ALPHABET for letter in code):
         raise HTTPException(401, "Código no válido o sesión cerrada.")
     rate_limit_key("profesor-code:" + code, limit=30)
-    live = db.scalar(select(ProfesorMaterialSession).where(ProfesorMaterialSession.join_code_hash == session_code_hash(code)))
-    if not live or live.status not in {"pending", "in_progress"}:
+    session = db.scalar(select(ProfesorMaterialSession).where(ProfesorMaterialSession.join_code_hash == session_code_hash(code)))
+    if not session or session.access_id is not None or session.status not in {"pending", "in_progress"} or session_is_expired(session):
         raise HTTPException(401, "Código no válido o sesión cerrada.")
-    access = db.get(ProfesorStudentAccess, live.access_id)
-    teacher = db.get(User, live.teacher_user_id)
-    if not access or not access.is_active or not teacher or access.teacher_user_id != teacher.id or access.student_id not in teacher_students(db, teacher):
+    teacher = db.get(User, session.teacher_user_id)
+    if not teacher:
         raise HTTPException(401, "Código no válido o sesión cerrada.")
     teacher_premium(db, teacher)
     now = datetime.now(timezone.utc)
+    seconds = max(1, min(43200, int((aware(session.expires_at) - now).total_seconds())))
     settings = get_settings()
-    token = jwt.encode({"sub": str(access.id), "sid": str(live.id), "jch": live.join_code_hash, "type": "profesor_student_session", "sv": access.session_version, "iat": int(now.timestamp()), "exp": int((now + timedelta(hours=12)).timestamp())}, settings.jwt_secret, algorithm=settings.jwt_algorithm)
-    response.set_cookie("profesor_student_access", token, httponly=True, secure=settings.cookie_secure, samesite="lax", max_age=43200, path="/")
+    token = jwt.encode({"sid": str(session.id), "jch": session.join_code_hash,
+                        "type": "profesor_anonymous_session", "iat": int(now.timestamp()),
+                        "exp": int((now + timedelta(seconds=seconds)).timestamp())},
+                       settings.jwt_secret, algorithm=settings.jwt_algorithm)
+    response.set_cookie("profesor_student_access", token, httponly=True, secure=settings.cookie_secure,
+                        samesite="lax", max_age=seconds, path="/")
     response.delete_cookie("diplomator_access")
     response.delete_cookie("diplomator_refresh")
     response.headers["Cache-Control"] = "no-store"
     return {"ok": True, "next": "/profesor/alumno"}
 
 
-@router.post("/auth/profesor/student-login")
-def student_login(payload: StudentLogin, request: Request, response: Response, db: Session = Depends(get_db)):
-    from app.api.auth import rate_limit_key
-
-    username = payload.username.strip().lower()
-    rate_limit_key("profesor-student-ip:" + str(request.client.host if request.client else "unknown"), limit=30)
-    rate_limit_key("profesor-student:" + username, limit=8)
-    access = db.scalar(select(ProfesorStudentAccess).where(ProfesorStudentAccess.username == username))
-    if not access or not access.is_active or not verify_password(payload.password, access.password_hash):
-        raise HTTPException(401, "Usuario o contraseña incorrectos.")
-    teacher = db.get(User, access.teacher_user_id)
-    if not teacher or not teacher_students(db, teacher).get(access.student_id):
-        raise HTTPException(401, "Acceso no disponible.")
-    teacher_premium(db, teacher)
-    now = datetime.now(timezone.utc)
-    settings = get_settings()
-    token = jwt.encode({"sub": str(access.id), "type": "profesor_student", "sv": access.session_version, "iat": int(now.timestamp()), "exp": int((now + timedelta(hours=12)).timestamp())}, settings.jwt_secret, algorithm=settings.jwt_algorithm)
-    response.set_cookie("profesor_student_access", token, httponly=True, secure=settings.cookie_secure, samesite="lax", max_age=43200, path="/")
-    response.delete_cookie("diplomator_access")
-    response.delete_cookie("diplomator_refresh")
-    return {"ok": True, "next": "/profesor/alumno"}
-
-
 @router.get("/auth/profesor/student-me")
-def student_me(request: Request, db: Session = Depends(get_db)):
-    access, teacher, student = active_student(request, db)
-    return {"ok": True, "student": {"name": str(student.get("name") or "Alumno"), "course": str(student.get("course") or "")}, "teacher": {"name": teacher.full_name or "Tu profesor"}, "meet_uri": access.meet_uri or ""}
+def student_me(request: Request, response: Response, db: Session = Depends(get_db)):
+    _, teacher = active_student(request, db)
+    response.headers["Cache-Control"] = "no-store"
+    return {"ok": True, "student": {"name": "Participante", "course": ""},
+            "teacher": {"name": teacher.full_name or "Tu profesor"}, "meet_uri": ""}
 
 
 @router.post("/auth/profesor/student-logout")

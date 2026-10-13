@@ -19,7 +19,7 @@ import httpx
 from app.auth.dependencies import require_superadmin
 from app.config import get_settings
 from app.database.session import get_db
-from app.models import AppSetting, AuditLog, ClientState, Conversation, Document, GamificationAchievement, GamificationEquippedItem, GamificationOwnedItem, GamificationProfile, GamificationRewardEvent, License, Message, Organization, UsageRecord, User
+from app.models import AppSetting, AuditLog, ClientState, Conversation, Document, GamificationAchievement, GamificationEquippedItem, GamificationOwnedItem, GamificationProfile, GamificationRewardEvent, License, Message, OcrJob, Organization, ProfesorGenerationJob, ProfesorMaterialSession, ProfesorStudentAccess, UsageRecord, User
 from app.schemas.core import LicenseCreate, LicenseOut, LicensePatch, OrganizationCreate, OrganizationOut, OrganizationPatch, UserAccessPatch, UserCreate, UserOut, UserPatch
 from app.security.passwords import hash_password
 from app.services.ai_config import (
@@ -692,13 +692,17 @@ def delete_user(user_id: UUID, actor: User = Depends(require_superadmin), db: Se
     if profile_ids:
         for model in (GamificationRewardEvent, GamificationAchievement, GamificationOwnedItem, GamificationEquippedItem):
             db.execute(delete(model).where(model.profile_id.in_(profile_ids)))
+    for model, field in ((ProfesorMaterialSession, ProfesorMaterialSession.teacher_user_id),
+                         (ProfesorStudentAccess, ProfesorStudentAccess.teacher_user_id),
+                         (ProfesorGenerationJob, ProfesorGenerationJob.user_id),
+                         (OcrJob, OcrJob.user_id)):
+        db.execute(delete(model).where(field == user_id))
     for model in (Message, Conversation, Document, GamificationProfile, ClientState, UsageRecord, License):
         db.execute(delete(model).where(model.user_id == user_id))
     db.execute(update(AuditLog).where(AuditLog.actor_user_id == user_id).values(actor_user_id=None))
     organization_id = user.organization_id
-    email = user.email
     db.delete(user)
-    audit(db, actor=actor, organization_id=organization_id, action="user_deleted", entity_type="user", entity_id=str(user_id), metadata={"email": email})
+    audit(db, actor=actor, organization_id=organization_id, action="user_deleted", entity_type="user", entity_id=str(user_id), metadata={})
     db.commit()
     from app.api.app_routes import LOCAL_DOCUMENT_DIR
     document_root = LOCAL_DOCUMENT_DIR.resolve()

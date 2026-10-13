@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -6,148 +7,89 @@ from test_access_control import client, login, seed_user
 from test_profesor_student_access import premium
 
 from app.main import app
+from app.models import ProfesorMaterialSession
 
 
 def material_questions():
     return [
         {"id": "q1", "type": "quiz", "prompt": "¿Cuánto es 2 + 2?", "options": ["3", "4", "5"], "answer": "4", "explanation": "Suma dos y dos."},
-        {"id": "q2", "type": "pasapalabra", "prompt": "Rosco de matemáticas", "options": ["A | Número después de cero | uno", "B | Dos más uno | tres", "C | Cinco menos uno | cuatro"], "answer": "Completado"},
+        {"id": "q2", "type": "pasapalabra", "prompt": "Rosco", "options": ["A | Número después de cero | uno", "B | Dos más uno | tres"], "answer": "Completado"},
         {"id": "q3", "type": "short", "prompt": "Explica tu razonamiento", "answer": "Sumé dos unidades dos veces."},
     ]
 
 
-def test_student_joins_with_unique_session_code_and_teacher_watches_live(client):
+def prepare_teacher(client):
     web, factory = client
     _, teacher_id = seed_user(factory, product_codes=("PROFESOR_PARTICULAR",))
     premium(factory, teacher_id)
     login(web)
-    saved = {"students": [{"id": "s1", "name": "María", "subjects": ["Matemáticas"]},
-                          {"id": "s2", "name": "Lucas", "subjects": ["Matemáticas"]}],
+    saved = {"version": 2, "students": [{"id": "old", "name": "Nombre antiguo", "notes": "Dato privado"}],
              "library": [{"id": "m1", "title": "Sumas", "subject": "Matemáticas", "activity": {"questions": material_questions()}}]}
     assert web.post("/api/state?app=profesor_particular", json=saved).status_code == 200
-    first = web.post("/api/profesor/material-sessions", json={"student_id": "s1", "material_id": "m1"})
-    second = web.post("/api/profesor/material-sessions", json={"student_id": "s2", "material_id": "m1"})
-    another_for_first_student = web.post("/api/profesor/material-sessions", json={"student_id": "s1", "material_id": "m1"})
-    assert first.status_code == second.status_code == 200
-    assert another_for_first_student.status_code == 200
-    first_session, second_session = first.json()["session"], second.json()["session"]
-    third_session = another_for_first_student.json()["session"]
-    assert first_session["join_code"] and len(first_session["join_code"]) == 10
-    assert first_session["join_code"] != second_session["join_code"]
-    assert web.get("/api/profesor/material-sessions").json()["sessions"][0]["student_id"] == "s1"
-    assert "password" not in web.get("/api/profesor/session-students").text
-    assert web.get("/profesor/alumno").status_code == 200
+    state = web.get("/api/state?app=profesor_particular").json()
+    assert "students" not in state and "Nombre antiguo" not in str(state)
+    return web, factory
 
+
+def test_codes_are_unique_scoped_and_do_not_require_pupil_accounts(client):
+    web, _ = prepare_teacher(client)
+    first = web.post("/api/profesor/material-sessions", json={"material_id": "m1"})
+    second = web.post("/api/profesor/material-sessions", json={"material_id": "m1"})
+    assert first.status_code == second.status_code == 200
+    first_session, second_session = first.json()["session"], second.json()["session"]
+    assert first_session["join_code"] != second_session["join_code"]
+    assert len(first_session["join_code"]) == 10
+    assert "student_name" not in first_session
+    assert web.post("/api/profesor/material-sessions", json={"student_id": "old", "material_id": "m1"}).status_code == 422
     with TestClient(app) as pupil:
         assert pupil.post("/auth/profesor/student-join", json={"code": "WRONGCODE"}).status_code == 401
-        joined = pupil.post("/auth/profesor/student-join", json={"code": first_session["join_code"].lower()})
-        assert joined.status_code == 200
-        assert joined.headers["cache-control"] == "no-store"
-        assert pupil.get("/auth/profesor/student-me").json()["student"]["name"] == "María"
+        assert pupil.post("/auth/profesor/student-join", json={"code": first_session["join_code"].lower()}).status_code == 200
+        assert pupil.get("/auth/profesor/student-me").json()["student"]["name"] == "Participante"
         assert [item["id"] for item in pupil.get("/api/profesor/student-material-sessions").json()["sessions"]] == [first_session["id"]]
         assert pupil.get(f"/api/profesor/student-material-sessions/{second_session['id']}").status_code == 404
-        assert pupil.get(f"/api/profesor/student-material-sessions/{third_session['id']}").status_code == 404
         assert pupil.post(f"/api/profesor/student-material-sessions/{second_session['id']}/move", json={"action": "start"}).status_code == 404
-        assert pupil.post(f"/api/profesor/student-material-sessions/{third_session['id']}/move", json={"action": "start"}).status_code == 404
         assert pupil.post(f"/api/profesor/student-material-sessions/{first_session['id']}/move", json={"action": "start"}).status_code == 200
         assert pupil.post(f"/api/profesor/student-material-sessions/{first_session['id']}/move", json={"action": "draft", "value": "4"}).status_code == 200
         watched = web.get(f"/api/profesor/material-sessions/{first_session['id']}").json()["session"]
         assert watched["progress"]["responses"]["0"] == "4"
-        assert watched["join_code"] == first_session["join_code"]
         assert "join_code" not in pupil.get(f"/api/profesor/student-material-sessions/{first_session['id']}").text
         assert web.post(f"/api/profesor/material-sessions/{first_session['id']}/cancel").status_code == 200
         assert pupil.get("/auth/profesor/student-me").status_code == 401
         assert pupil.post("/auth/profesor/student-join", json={"code": first_session["join_code"]}).status_code == 401
 
 
-def test_material_delivery_live_progress_and_private_answers(client):
-    web, factory = client
-    _, teacher_id = seed_user(factory, product_codes=("PROFESOR_PARTICULAR",))
-    premium(factory, teacher_id)
-    login(web)
-    saved = {"version": 2, "students": [{"id": "s1", "name": "María", "course": "A1", "subjects": ["Matemáticas"]}],
-             "library": [{"id": "m1", "title": "Sumas", "subject": "Matemáticas", "activity": {"version": 1, "questions": material_questions()}}]}
-    assert web.post("/api/state?app=profesor_particular", json=saved).status_code == 200
-    access = web.post("/api/profesor/access", json={"student_id": "s1", "username": "maria.live"}).json()
-    sent = web.post("/api/profesor/material-sessions", json={"access_id": access["access"]["id"], "material_id": "m1"})
-    assert sent.status_code == 200, sent.text
-    session_id = sent.json()["session"]["id"]
-    assert web.get(f"/api/profesor/material-sessions/{session_id}").json()["session"]["status"] == "pending"
-    assert web.get(f"/api/profesor/access/{access['access']['id']}/material-sessions").json()["sessions"][0]["id"] == session_id
-
+def test_live_answers_are_private_and_can_be_deleted(client):
+    web, factory = prepare_teacher(client)
+    session = web.post("/api/profesor/material-sessions", json={"material_id": "m1"}).json()["session"]
     with TestClient(app) as pupil:
-        assert pupil.post("/auth/profesor/student-login", json={"username": "maria.live", "password": access["password"]}).status_code == 200
-        listed = pupil.get("/api/profesor/student-material-sessions").json()["sessions"]
-        assert listed[0]["id"] == session_id and listed[0]["status"] == "pending"
-        material = pupil.get(f"/api/profesor/student-material-sessions/{session_id}").json()["session"]
+        assert pupil.post("/auth/profesor/student-join", json={"code": session["join_code"]}).status_code == 200
+        material = pupil.get(f"/api/profesor/student-material-sessions/{session['id']}").json()["session"]
         assert material["questions"][0]["options"] == ["3", "4", "5"]
-        assert "answer" not in str(material) and "Suma dos y dos" not in str(material)
-        assert material["questions"][1]["entries"][0] == {"letter": "A", "clue": "Número después de cero"}
-        assert "'solutions'" not in str(material) and "'solution'" not in str(material)
-        assert pupil.get("/api/state?app=profesor_particular").status_code == 401
-        started = pupil.post(f"/api/profesor/student-material-sessions/{session_id}/move", json={"action": "start"})
-        assert started.status_code == 200
-        assert pupil.post(f"/api/profesor/student-material-sessions/{session_id}/move", json={"action": "focus", "question_index": 1, "part": 0}).status_code == 200
-        assert web.get(f"/api/profesor/material-sessions/{session_id}").json()["session"]["progress"]["focus"]["part"] == 0
-        draft = pupil.post(f"/api/profesor/student-material-sessions/{session_id}/move", json={"action": "draft", "question_index": 0, "value": "3"})
-        assert draft.status_code == 200
-        watching = web.get(f"/api/profesor/material-sessions/{session_id}").json()["session"]
-        assert watching["progress"]["responses"]["0"] == "3"
-        wrong = pupil.post(f"/api/profesor/student-material-sessions/{session_id}/move", json={"action": "check", "question_index": 0, "value": "3"})
-        assert wrong.json()["feedback"] == "incorrect"
-        right = pupil.post(f"/api/profesor/student-material-sessions/{session_id}/move", json={"action": "check", "question_index": 0, "value": "4"})
-        assert right.json()["feedback"] == "correct"
-        rosco = pupil.post(f"/api/profesor/student-material-sessions/{session_id}/move", json={"action": "check", "question_index": 1, "part": 0, "value": ["uno", "", ""]})
-        assert rosco.json()["feedback"] == "correct"
-        assert "answer" not in str(pupil.get(f"/api/profesor/student-material-sessions/{session_id}").json())
-        pupil.post(f"/api/profesor/student-material-sessions/{session_id}/move", json={"action": "draft", "question_index": 2, "value": "Lo pensé paso a paso."})
-        finished = pupil.post(f"/api/profesor/student-material-sessions/{session_id}/move", json={"action": "finish"})
-        assert finished.status_code == 200 and finished.json()["status"] == "completed"
-        assert pupil.get("/api/profesor/student-material-sessions").json()["sessions"][0]["status"] == "completed"
-        result = pupil.get(f"/api/profesor/student-material-sessions/{session_id}").json()["session"]
-        assert result["progress"]["grades"]["0"] == "correct"
-        assert result["progress"]["grades"]["2"] == "pending"
-        assert result["questions"][0]["solution"] == "4"
-        assert pupil.post(f"/api/profesor/student-material-sessions/{session_id}/move", json={"action": "draft", "question_index": 0, "value": "5"}).status_code == 409
+        assert "Suma dos y dos" not in str(material)
+        assert pupil.post(f"/api/profesor/student-material-sessions/{session['id']}/move", json={"action": "start"}).status_code == 200
+        assert pupil.post(f"/api/profesor/student-material-sessions/{session['id']}/move", json={"action": "check", "value": "4"}).json()["feedback"] == "correct"
+        assert pupil.post(f"/api/profesor/student-material-sessions/{session['id']}/move", json={"action": "finish"}).status_code == 200
+        assert pupil.get(f"/api/profesor/student-material-sessions/{session['id']}").json()["session"]["questions"][0]["solution"] == "4"
+        assert web.post(f"/api/profesor/material-sessions/{session['id']}/delete").status_code == 200
+        assert pupil.get("/auth/profesor/student-me").status_code == 401
+        assert pupil.post("/auth/profesor/student-join", json={"code": session["join_code"]}).status_code == 401
+    with factory() as db:
+        assert db.get(ProfesorMaterialSession, UUID(session["id"])) is None
 
-    review = web.post(f"/api/profesor/material-sessions/{session_id}/review", json={"question_index": 2, "grade": "correct"})
-    assert review.status_code == 200
-    assert review.json()["session"]["progress"]["grades"]["2"] == "correct"
-    assert web.get(f"/api/profesor/access/{access['access']['id']}/material-sessions").json()["sessions"] == []
-    next_id = web.post("/api/profesor/material-sessions", json={"access_id": access["access"]["id"], "material_id": "m1"}).json()["session"]["id"]
+
+def test_expired_codes_and_cookies_cannot_reopen_a_session(client):
+    web, factory = prepare_teacher(client)
+    session = web.post("/api/profesor/material-sessions", json={"material_id": "m1"}).json()["session"]
     with TestClient(app) as pupil:
-        pupil.post("/auth/profesor/student-login", json={"username": "maria.live", "password": access["password"]})
-        visible = pupil.get("/api/profesor/student-material-sessions").json()["sessions"]
-        assert [(item["id"], item["status"]) for item in visible] == [(next_id, "pending"), (session_id, "completed")]
-
-
-def test_material_isolation_and_one_active_session(client):
-    web, factory = client
-    _, teacher_id = seed_user(factory, product_codes=("PROFESOR_PARTICULAR",))
-    premium(factory, teacher_id)
-    login(web)
-    web.post("/api/state?app=profesor_particular", json={"students": [{"id": "s1", "name": "Uno", "subjects": ["Matemáticas"]}, {"id": "s2", "name": "Dos", "subjects": ["Matemáticas"]}], "library": [{"id": "m1", "title": "Sumas", "subject": "Matemáticas", "activity": {"questions": material_questions()}}]})
-    a1 = web.post("/api/profesor/access", json={"student_id": "s1", "username": "one.live"}).json()
-    a2 = web.post("/api/profesor/access", json={"student_id": "s2", "username": "two.live"}).json()
-    first = web.post("/api/profesor/material-sessions", json={"access_id": a1["access"]["id"], "material_id": "m1"}).json()["session"]["id"]
-    second = web.post("/api/profesor/material-sessions", json={"access_id": a1["access"]["id"], "material_id": "m1"}).json()["session"]["id"]
-    own_sessions = web.get(f"/api/profesor/access/{a1['access']['id']}/material-sessions").json()["sessions"]
-    assert {item["id"] for item in own_sessions} == {first, second}
-    assert web.get(f"/api/profesor/access/{a2['access']['id']}/material-sessions").json()["sessions"] == []
-    with TestClient(app) as other:
-        other.post("/auth/profesor/student-login", json={"username": "two.live", "password": a2["password"]})
-        assert other.get(f"/api/profesor/student-material-sessions/{first}").status_code == 404
-        assert other.post(f"/api/profesor/student-material-sessions/{first}/move", json={"action": "start"}).status_code == 404
-    with TestClient(app) as pupil:
-        pupil.post("/auth/profesor/student-login", json={"username": "one.live", "password": a1["password"]})
-        assert pupil.post(f"/api/profesor/student-material-sessions/{first}/move", json={"action": "start"}).status_code == 200
-        assert pupil.post(f"/api/profesor/student-material-sessions/{second}/move", json={"action": "start"}).status_code == 409
-        assert web.post(f"/api/profesor/material-sessions/{first}/cancel").status_code == 200
-        assert pupil.get(f"/api/profesor/student-material-sessions/{first}").status_code == 410
-        assert [item["id"] for item in pupil.get("/api/profesor/student-material-sessions").json()["sessions"]] == [second]
-        assert pupil.post(f"/api/profesor/student-material-sessions/{second}/move", json={"action": "start"}).status_code == 200
-    assert [item["id"] for item in web.get(f"/api/profesor/access/{a1['access']['id']}/material-sessions").json()["sessions"]] == [second]
-
+        assert pupil.post("/auth/profesor/student-join", json={"code": session["join_code"]}).status_code == 200
+        with factory() as db:
+            row = db.get(ProfesorMaterialSession, UUID(session["id"]))
+            row.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+            db.commit()
+        assert pupil.get("/auth/profesor/student-me").status_code == 401
+        assert pupil.post("/auth/profesor/student-join", json={"code": session["join_code"]}).status_code == 401
+    listed = web.get("/api/profesor/material-sessions").json()["sessions"][0]
+    assert listed["status"] == "expired" and listed["join_code"] is None
 
 def test_game_grading_does_not_send_hidden_keys():
     from app.api.profesor_material_sessions import grade, prepare, safe_question
