@@ -1219,15 +1219,17 @@ def test_app_ai_models_are_isolated_and_used_by_requests(client, monkeypatch):
     sent = []
     class FakeResponse:
         status_code = 200
+        def __init__(self, content="Respuesta"):
+            self.content = content
         def json(self):
-            return {"text": "Audio", "choices": [{"message": {"content": "Respuesta"}}], "usage": {"prompt_tokens": 1, "completion_tokens": 1}}
+            return {"text": "Audio", "choices": [{"message": {"content": self.content}}], "usage": {"prompt_tokens": 1, "completion_tokens": 1}}
     class FakeClient:
         def __init__(self, **kwargs): pass
         async def __aenter__(self): return self
         async def __aexit__(self, *args): pass
         async def post(self, url, **kwargs):
             sent.append((url, kwargs))
-            return FakeResponse()
+            return FakeResponse('{"points":[{"title":"A","text":"Idea relevante"}]}') if kwargs.get("json", {}).get("model") == "test-dip-points" else FakeResponse()
     monkeypatch.setattr(app_routes.httpx, "AsyncClient", FakeClient)
     assert test_client.post("/api/chat?app=eso_adultos", json={"model": "client-cannot-override", "messages": []}).status_code == 200
     assert sent[-1][1]["json"]["model"] == "test-eso-chat"
