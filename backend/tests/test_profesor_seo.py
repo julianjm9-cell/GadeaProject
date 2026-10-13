@@ -10,7 +10,7 @@ PUBLIC_PAGES = (
     "/profesor/materiales-para-clases",
     "/profesor/juegos-interactivos",
     "/profesor/temario-clases",
-    "/profesor/clases-de-apoyo",
+    "/profesor/accesos-alumnos",
     "/profesor/anuncios",
     "/profesor/anunciar",
 )
@@ -23,6 +23,7 @@ class PageMetadata(HTMLParser):
         self.description = ""
         self.canonical = ""
         self.headings: list[str] = []
+        self.images: list[str] = []
         self._capture: str | None = None
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
@@ -33,6 +34,8 @@ class PageMetadata(HTMLParser):
             self.description = attributes.get("content") or ""
         if tag == "link" and attributes.get("rel") == "canonical":
             self.canonical = attributes.get("href") or ""
+        if tag == "img" and (attributes.get("src") or "").startswith("/assets/"):
+            self.images.append(attributes["src"])
 
     def handle_endtag(self, tag: str) -> None:
         if self._capture == tag:
@@ -63,4 +66,21 @@ def test_public_profesor_pages_have_distinct_search_metadata(client):
         descriptions.add(page.description)
     sitemap = web.get("/sitemap.xml").text
     assert all("https://educame.tech" + path in sitemap for path in PUBLIC_PAGES)
+    assert "/profesor/clases-de-apoyo" not in sitemap
+    old_page = web.get("/profesor/clases-de-apoyo", follow_redirects=False)
+    assert old_page.status_code == 308
+    assert old_page.headers["location"] == "/profesor/accesos-alumnos"
     assert web.get("/profesor/demo").headers["x-robots-tag"] == "noindex, nofollow"
+
+
+def test_profesor_explainer_images_exist(client):
+    web, _ = client
+    images = set()
+    for path in PUBLIC_PAGES[1:5]:
+        page = PageMetadata()
+        page.feed(web.get(path).text)
+        images.update(page.images)
+    for image in images:
+        response = web.get(image)
+        assert response.status_code == 200, image
+        assert response.headers["content-type"].startswith("image/"), image

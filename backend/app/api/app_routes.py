@@ -565,7 +565,7 @@ def sitemap_xml():
         '  <url><loc>https://educame.tech/profesor/materiales-para-clases</loc></url>\n'
         '  <url><loc>https://educame.tech/profesor/juegos-interactivos</loc></url>\n'
         '  <url><loc>https://educame.tech/profesor/temario-clases</loc></url>\n'
-        '  <url><loc>https://educame.tech/profesor/clases-de-apoyo</loc></url>\n'
+        '  <url><loc>https://educame.tech/profesor/accesos-alumnos</loc></url>\n'
         '  <url><loc>https://educame.tech/profesor/anuncios</loc></url>\n'
         '  <url><loc>https://educame.tech/profesor/anunciar</loc></url>\n'
         '</urlset>\n'
@@ -760,6 +760,7 @@ def profesor_final_styles(request: Request):
 @router.get("/assets/games/{filename}")
 def profesor_game_illustration(filename: str):
     base_files = {
+        "access-session.svg",
         "pasapalabra-stage.png",
         "wordsearch-stage.png",
         "hangman-stage.png",
@@ -794,7 +795,8 @@ def profesor_game_illustration(filename: str):
     path = local_path if local_path.exists() else static_path
     if not path.exists():
         raise HTTPException(status_code=404, detail="Ilustración de actividad no encontrada.")
-    return FileResponse(path, media_type="image/png" if filename.endswith(".png") else "image/webp", headers={"Cache-Control": "public, max-age=86400"})
+    media_type = "image/svg+xml" if filename.endswith(".svg") else "image/png" if filename.endswith(".png") else "image/webp"
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/assets/vendor/katex/{filename:path}")
@@ -920,9 +922,14 @@ def profesor_temario_landing():
     return marketing_file("profesor-temario-clases.html", "text/html")
 
 
+@router.get("/profesor/accesos-alumnos")
+def profesor_accesos_landing():
+    return marketing_file("profesor-accesos-alumnos.html", "text/html")
+
+
 @router.get("/profesor/clases-de-apoyo")
-def profesor_apoyo_landing():
-    return marketing_file("profesor-clases-de-apoyo.html", "text/html")
+def profesor_apoyo_redirect():
+    return RedirectResponse("/profesor/accesos-alumnos", status_code=308)
 
 
 @router.get("/profesor/anunciar")

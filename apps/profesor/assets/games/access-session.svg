@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" role="img" aria-labelledby="title desc">
+  <title id="title">Accesos de alumnos con código</title>
+  <desc id="desc">Dos tarjetas muestran un código de juego y el progreso de una sesión.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#bfeaff"/><stop offset="1" stop-color="#dcd4ff"/></linearGradient>
+    <linearGradient id="panel" x2="0" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#eef7ff"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="13" flood-color="#07549e" flood-opacity=".18"/></filter>
+  </defs>
+  <rect width="640" height="420" rx="28" fill="url(#bg)"/>
+  <circle cx="560" cy="68" r="93" fill="#fff" opacity=".25"/><circle cx="45" cy="390" r="140" fill="#50b4ff" opacity=".22"/>
+  <rect x="66" y="63" width="270" height="294" rx="26" fill="url(#panel)" stroke="#a9d6ff" filter="url(#shadow)"/>
+  <circle cx="201" cy="118" r="29" fill="#e3f2ff"/><path d="M201 101v34M184 118h34" stroke="#0d6eeb" stroke-width="7" stroke-linecap="round"/>
+  <text x="201" y="177" text-anchor="middle" fill="#496b9f" font-family="Arial,sans-serif" font-size="18" font-weight="700">TU CÓDIGO</text>
+  <rect x="91" y="198" width="220" height="69" rx="15" fill="#e8f4ff" stroke="#a8d3ff"/>
+  <text x="201" y="242" text-anchor="middle" fill="#075fd2" font-family="Arial,sans-serif" font-size="23" font-weight="800" letter-spacing="1">AB7K2Q9MTR</text>
+  <rect x="110" y="290" width="182" height="42" rx="12" fill="#0871ed"/>
+  <text x="201" y="318" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="17" font-weight="700">Entrar al juego</text>
+  <rect x="342" y="102" width="231" height="225" rx="22" fill="#fff" stroke="#b7d9ff" filter="url(#shadow)"/>
+  <text x="365" y="141" fill="#112458" font-family="Arial,sans-serif" font-size="19" font-weight="800">En directo</text>
+  <circle cx="547" cy="135" r="7" fill="#19c786"/>
+  <g font-family="Arial,sans-serif" font-size="16" fill="#315485">
+    <rect x="360" y="158" width="195" height="41" rx="11" fill="#edf6ff"/><circle cx="378" cy="179" r="7" fill="#0871ed"/><text x="395" y="185">Acceso 1</text><text x="510" y="185" font-weight="700">4/6</text>
+    <rect x="360" y="208" width="195" height="41" rx="11" fill="#edf6ff"/><circle cx="378" cy="229" r="7" fill="#8b5cf6"/><text x="395" y="235">Acceso 2</text><text x="510" y="235" font-weight="700">3/6</text>
+    <rect x="360" y="258" width="195" height="41" rx="11" fill="#edf6ff"/><circle cx="378" cy="279" r="7" fill="#16b976"/><text x="395" y="285">Acceso 3</text><text x="510" y="285" font-weight="700">5/6</text>
+  </g>
+</svg>

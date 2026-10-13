@@ -42,10 +42,10 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/api/profesor/ad-policy": b"2026-10-09.3",
         "/profesor": b"/auth/google/login?next=%2Fprofesor-particular",
         "/profesor/seo.css": b".site-header",
-        "/profesor/materiales-para-clases": b"Materiales para clases particulares",
-        "/profesor/juegos-interactivos": b"Pasapalabra interactivo",
-        "/profesor/temario-clases": b"Un temario para preparar",
-        "/profesor/clases-de-apoyo": b"Herramientas para clases de apoyo",
+        "/profesor/materiales-para-clases": b"Materiales para clase, sin empezar de cero",
+        "/profesor/juegos-interactivos": b"Juegos interactivos que",
+        "/profesor/temario-clases": b"El temario de tu",
+        "/profesor/accesos-alumnos": b"Accesos Alumnos",
         "/profesor/anunciar": b"Publica tu anuncio gratis",
         "/profesor/anuncios": "Tablón de profesores".encode("utf-8"),
         "/sitemap.xml": b"/profesor/juegos-interactivos",
@@ -86,6 +86,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/games/flashcards.webp": b"WEBP",
         "/assets/games/basic-pairs.webp": b"WEBP",
         "/assets/games/mature-basic-pairs.webp": b"WEBP",
+        "/assets/games/access-session.svg": b"<svg",
         "/assets/games/uploaded-material.webp": b"WEBP",
         "/profesor/alumno": b"studentJoinGate",
         "/profesor-particular": b"LOGIN_TARGETS",  # Unauthenticated request must reach login.
@@ -98,11 +99,10 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
             assert response.status == 200 and expected in data, f"Respuesta incorrecta: {path}"
             if path == "/":
                 assert b'href="/profesor"' in data, "Falta Profesor Particular en la portada"
-            if path in ("/profesor", "/profesor/clases-de-apoyo"):
-                assert b"/assets/landing/profesor-clases-apoyo.png" in data, "Falta la imagen de clases de apoyo"
             if path == "/profesor":
+                assert b"/assets/games/access-session.svg" in data, "Falta la ilustracion de accesos"
                 assert b'preview-juegos' in data and b'<h2>Mis alumnos</h2>' not in data, "La portada anuncia fichas de alumnos retiradas"
-            if path == "/profesor/clases-de-apoyo":
+            if path == "/profesor/accesos-alumnos":
                 assert b'perfil del alumno' not in data, "La página anuncia perfiles de alumnos retirados"
             if path == "/profesor-particular":
                 assert "/login?next=/profesor-particular" in response.url, "La app no redirige al login"
