@@ -4,15 +4,15 @@ Las sesiones con código no piden identidad al participante. El código y la ses
 
 El código no garantiza anonimato legal: el profesor puede saber a quién se lo entregó fuera de la aplicación, y un campo de respuesta libre puede contener información personal. Evitar datos de menores en el material y en respuestas libres. La política pública explica esta limitación.
 
-## Después de desplegar la migración 0018
+## Después de desplegar las migraciones 0018 y 0019
 
 El despliegue crea y verifica una copia de PostgreSQL **antes** de migrar. Esa copia puede contener las fichas y credenciales antiguas que la migración elimina de la base activa. Debe mantenerse restringida para una eventual recuperación y no reutilizarse en una restauración pública sin volver a aplicar la limpieza.
 
-Comprobar en el servidor que no quedan cuentas ni sesiones identificadas y que el proceso de limpieza sigue activo:
+La migración 0019 limpia el estado antiguo de todos los profesores, elimina la tabla de credenciales de alumnos y retira la columna que vinculaba las sesiones a esas cuentas. Comprobar que ya no existen y que el proceso de limpieza sigue activo:
 
 ```bash
 cd /opt/educa-suite
-docker compose exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT COUNT(*) FROM profesor_student_accesses; SELECT COUNT(*) FROM profesor_material_sessions WHERE access_id IS NOT NULL; SELECT COUNT(*) FROM profesor_material_sessions WHERE expires_at <= NOW();"'
+docker compose exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT to_regclass('\''public.profesor_student_accesses'\'') AS retired_table; SELECT COUNT(*) FROM profesor_material_sessions WHERE expires_at <= NOW();"'
 docker compose ps ocr-worker
 ```
 

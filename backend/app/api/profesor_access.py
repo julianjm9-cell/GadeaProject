@@ -94,7 +94,7 @@ def active_student(request: Request, db: Session) -> tuple[ProfesorMaterialSessi
         if claims.get("type") != "profesor_anonymous_session":
             raise ValueError()
         session = db.get(ProfesorMaterialSession, UUID(str(claims["sid"])))
-        if (not session or session.access_id is not None or session.status in {"cancelled", "expired"}
+        if (not session or session.status in {"cancelled", "expired"}
                 or session_is_expired(session) or not session.join_code_hash
                 or session.join_code_hash != claims.get("jch")):
             raise ValueError()
@@ -118,7 +118,7 @@ def student_join(payload: StudentCode, request: Request, response: Response, db:
         raise HTTPException(401, "Código no válido o sesión cerrada.")
     rate_limit_key("profesor-code:" + code, limit=30)
     session = db.scalar(select(ProfesorMaterialSession).where(ProfesorMaterialSession.join_code_hash == session_code_hash(code)))
-    if not session or session.access_id is not None or session.status not in {"pending", "in_progress"} or session_is_expired(session):
+    if not session or session.status not in {"pending", "in_progress"} or session_is_expired(session):
         raise HTTPException(401, "Código no válido o sesión cerrada.")
     teacher = db.get(User, session.teacher_user_id)
     if not teacher:

@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy import text
 
 from app.database.session import engine
-from app.models import ProfesorStudentAccess, ProfesorMaterialSession, ProfesorAd, ProfesorAdReport, ProfesorGenerationJob
+from app.models import ProfesorMaterialSession, ProfesorAd, ProfesorAdReport, ProfesorGenerationJob
 
 
 def ensure_runtime_schema() -> None:
@@ -24,18 +24,12 @@ def ensure_runtime_schema() -> None:
     with engine.begin() as conn:
         for statement in statements:
             conn.execute(text(statement))
-        ProfesorStudentAccess.__table__.create(bind=conn, checkfirst=True)
-        conn.execute(text("ALTER TABLE profesor_student_accesses ADD COLUMN IF NOT EXISTS password_encrypted TEXT"))
         ProfesorMaterialSession.__table__.create(bind=conn, checkfirst=True)
         conn.execute(text("ALTER TABLE profesor_material_sessions ADD COLUMN IF NOT EXISTS join_code_hash VARCHAR(64)"))
         conn.execute(text("ALTER TABLE profesor_material_sessions ADD COLUMN IF NOT EXISTS join_code_encrypted TEXT"))
         conn.execute(text("ALTER TABLE profesor_material_sessions ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP WITH TIME ZONE"))
         conn.execute(text("UPDATE profesor_material_sessions SET expires_at = NOW() + INTERVAL '24 hours' WHERE expires_at IS NULL"))
         conn.execute(text("ALTER TABLE profesor_material_sessions ALTER COLUMN expires_at SET NOT NULL"))
-        conn.execute(text("ALTER TABLE profesor_material_sessions ALTER COLUMN access_id DROP NOT NULL"))
-        # The retired pupil-account flow must not leave readable sessions or credentials.
-        conn.execute(text("DELETE FROM profesor_material_sessions WHERE access_id IS NOT NULL"))
-        conn.execute(text("DELETE FROM profesor_student_accesses"))
         conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_profesor_material_sessions_join_code_hash ON profesor_material_sessions (join_code_hash)"))
         ProfesorAd.__table__.create(bind=conn, checkfirst=True)
         ProfesorAdReport.__table__.create(bind=conn, checkfirst=True)

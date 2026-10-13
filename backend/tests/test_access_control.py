@@ -150,7 +150,8 @@ def test_profesor_public_routes_and_landing_links(client):
     landing = test_client.get("/profesor")
     assert landing.status_code == 200
     assert '/auth/google/login?next=%2Fprofesor-particular' in landing.text
-    assert '/assets/landing/profesor-dashboard.png' in landing.text
+    assert 'id="preview-juegos"' in landing.text
+    assert '<h2>Mis alumnos</h2>' not in landing.text
     assert '<link rel="canonical" href="https://educame.tech/profesor">' in landing.text
     assert 'href="/profesor"' in test_client.get("/").text
     assert test_client.get("/profesor-info", follow_redirects=False).headers["location"] == "/profesor"
@@ -845,7 +846,7 @@ def test_admin_can_delete_user_and_private_documents(client, monkeypatch, tmp_pa
         from app.models import Document, ProfesorMaterialSession
         db.add(Document(organization_id=UUID(org_id), user_id=UUID(user_id), filename="material.txt", storage_path=str(document_path)))
         db.add(ProfesorMaterialSession(
-            teacher_user_id=UUID(user_id), access_id=None, material_id="shared", title="Repaso",
+            teacher_user_id=UUID(user_id), material_id="shared", title="Repaso",
             subject="Lengua", material_snapshot={"questions": []},
             progress={"responses": {"0": "respuesta de prueba"}},
             expires_at=datetime.now(timezone.utc) + timedelta(hours=24),

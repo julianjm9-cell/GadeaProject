@@ -113,31 +113,11 @@ class ClientState(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
 
 
-class ProfesorStudentAccess(Base, TimestampMixin):
-    __tablename__ = "profesor_student_accesses"
-    __table_args__ = (
-        UniqueConstraint("teacher_user_id", "student_id", name="uq_profesor_access_teacher_student"),
-        UniqueConstraint("username", name="uq_profesor_access_username"),
-    )
-
-    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
-    teacher_user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
-    student_id: Mapped[str] = mapped_column(String(120), nullable=False)
-    username: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    password_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    session_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
-    meet_uri: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    meet_space: Mapped[str | None] = mapped_column(String(255), nullable=True)
-
-
 class ProfesorMaterialSession(Base, TimestampMixin):
     __tablename__ = "profesor_material_sessions"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
     teacher_user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
-    access_id: Mapped[uuid.UUID | None] = mapped_column(Uuid(as_uuid=True), ForeignKey("profesor_student_accesses.id"), nullable=True, index=True)
     material_id: Mapped[str] = mapped_column(String(120), nullable=False)
     title: Mapped[str] = mapped_column(String(180), nullable=False)
     subject: Mapped[str] = mapped_column(String(100), nullable=False)

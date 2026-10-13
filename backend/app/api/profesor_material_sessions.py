@@ -357,7 +357,7 @@ def grade(q: dict, value: object, part: int | None = None) -> str:
 def student_session(db: Session, live: ProfesorMaterialSession, session_id: UUID, *, lock: bool = False) -> ProfesorMaterialSession:
     if live.id != session_id:
         raise HTTPException(404, "Material no encontrado en tu espacio.")
-    query = select(ProfesorMaterialSession).where(ProfesorMaterialSession.id == session_id, ProfesorMaterialSession.access_id.is_(None))
+    query = select(ProfesorMaterialSession).where(ProfesorMaterialSession.id == session_id)
     row = db.scalar(query.with_for_update() if lock else query)
     if not row:
         raise HTTPException(404, "Material no encontrado en tu espacio.")
@@ -408,7 +408,7 @@ def send_material(payload: SendMaterial, response: Response, user: User = Depend
     code = new_session_code()
     while db.scalar(select(ProfesorMaterialSession.id).where(ProfesorMaterialSession.join_code_hash == session_code_hash(code))):
         code = new_session_code()
-    row = ProfesorMaterialSession(teacher_user_id=user.id, access_id=None, material_id=payload.material_id,
+    row = ProfesorMaterialSession(teacher_user_id=user.id, material_id=payload.material_id,
                                   title=str(material.get("title") or "Material")[:180], subject=str(material.get("subject") or "")[:100],
                                   material_snapshot={"questions": prepared}, progress={"current_index": 0, "responses": {}, "grades": {}, "parts": {}, "last_seen": None},
                                   join_code_hash=session_code_hash(code), join_code_encrypted=session_code_cipher().encrypt(code.encode("ascii")).decode("ascii"),
@@ -422,8 +422,9 @@ def teacher_sessions(response: Response, user: User = Depends(current_user), db:
     teacher_premium(db, user)
     response.headers["Cache-Control"] = "private, no-store"
     purge_expired_sessions(db, user.id)
-    rows_ = db.scalars(select(ProfesorMaterialSession).where(ProfesorMaterialSession.teacher_user_id == user.id,
-                    ProfesorMaterialSession.access_id.is_(None)).order_by(ProfesorMaterialSession.created_at.desc()).limit(100)).all()
+    rows_ = db.scalars(select(ProfesorMaterialSession).where(
+        ProfesorMaterialSession.teacher_user_id == user.id,
+    ).order_by(ProfesorMaterialSession.created_at.desc()).limit(100)).all()
     return {"sessions": [{"id": str(row.id), "title": row.title, "subject": row.subject, "status": row.status,
                           "created_at": row.created_at.isoformat(), "expires_at": row.expires_at.isoformat(),
                           "join_code": visible_session_code(row)} for row in rows_]}
@@ -435,8 +436,6 @@ def teacher_watch(session_id: UUID, response: Response, user: User = Depends(cur
     response.headers["Cache-Control"] = "private, no-store"
     purge_expired_sessions(db, user.id)
     row = teacher_session(db, user, session_id)
-    if row.access_id is not None:
-        raise HTTPException(404, "Sesión no encontrada.")
     return {"session": public_session(row, teacher=True)}
 
 
@@ -444,8 +443,6 @@ def teacher_watch(session_id: UUID, response: Response, user: User = Depends(cur
 def teacher_cancel(session_id: UUID, user: User = Depends(current_user), db: Session = Depends(get_db)):
     teacher_premium(db, user)
     row = teacher_session(db, user, session_id, lock=True)
-    if row.access_id is not None:
-        raise HTTPException(404, "Sesión no encontrada.")
     if row.status not in {"completed", "cancelled"}:
         row.status = "cancelled"; row.join_code_hash = None; row.join_code_encrypted = None; row.revision += 1; db.commit()
     return {"ok": True}
@@ -455,8 +452,6 @@ def teacher_cancel(session_id: UUID, user: User = Depends(current_user), db: Ses
 def teacher_delete_session(session_id: UUID, user: User = Depends(current_user), db: Session = Depends(get_db)):
     teacher_premium(db, user)
     row = teacher_session(db, user, session_id, lock=True)
-    if row.access_id is not None:
-        raise HTTPException(404, "Sesión no encontrada.")
     db.delete(row)
     db.commit()
     return {"ok": True}
@@ -466,7 +461,7 @@ def teacher_delete_session(session_id: UUID, user: User = Depends(current_user),
 def teacher_review(session_id: UUID, payload: ReviewGrade, user: User = Depends(current_user), db: Session = Depends(get_db)):
     teacher_premium(db, user)
     row = teacher_session(db, user, session_id, lock=True)
-    if row.access_id is not None or session_is_expired(row):
+    if session_is_expired(row):
         raise HTTPException(404, "Sesión no encontrada.")
     if row.status != "completed" or payload.question_index >= len(row.material_snapshot["questions"]) or row.material_snapshot["questions"][payload.question_index]["type"] not in OPEN:
         raise HTTPException(409, "Esta respuesta no está pendiente de revisión.")

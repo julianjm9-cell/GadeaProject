@@ -19,7 +19,7 @@ import httpx
 from app.auth.dependencies import require_superadmin
 from app.config import get_settings
 from app.database.session import get_db
-from app.models import AppSetting, AuditLog, ClientState, Conversation, Document, GamificationAchievement, GamificationEquippedItem, GamificationOwnedItem, GamificationProfile, GamificationRewardEvent, License, Message, OcrJob, Organization, ProfesorGenerationJob, ProfesorMaterialSession, ProfesorStudentAccess, UsageRecord, User
+from app.models import AppSetting, AuditLog, ClientState, Conversation, Document, GamificationAchievement, GamificationEquippedItem, GamificationOwnedItem, GamificationProfile, GamificationRewardEvent, License, Message, OcrJob, Organization, ProfesorGenerationJob, ProfesorMaterialSession, UsageRecord, User
 from app.schemas.core import LicenseCreate, LicenseOut, LicensePatch, OrganizationCreate, OrganizationOut, OrganizationPatch, UserAccessPatch, UserCreate, UserOut, UserPatch
 from app.security.passwords import hash_password
 from app.services.ai_config import (
@@ -693,7 +693,6 @@ def delete_user(user_id: UUID, actor: User = Depends(require_superadmin), db: Se
         for model in (GamificationRewardEvent, GamificationAchievement, GamificationOwnedItem, GamificationEquippedItem):
             db.execute(delete(model).where(model.profile_id.in_(profile_ids)))
     for model, field in ((ProfesorMaterialSession, ProfesorMaterialSession.teacher_user_id),
-                         (ProfesorStudentAccess, ProfesorStudentAccess.teacher_user_id),
                          (ProfesorGenerationJob, ProfesorGenerationJob.user_id),
                          (OcrJob, OcrJob.user_id)):
         db.execute(delete(model).where(field == user_id))

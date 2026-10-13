@@ -5,18 +5,26 @@ import json
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
-from sqlalchemy import text
+from sqlalchemy import inspect, select, text
 
 from app.database.session import engine
+from app.models import ClientState
+from app.api.app_routes import anonymous_profesor_state
 
 
 def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://admin") -> None:
     with engine.connect() as connection:
         assert connection.execute(text("SELECT 1")).scalar() == 1, "PostgreSQL no responde"
-        assert connection.execute(text("SELECT COUNT(*) FROM profesor_student_accesses")).scalar() == 0, "Persisten cuentas de alumnos retiradas"
+        inspector = inspect(connection)
+        assert not inspector.has_table("profesor_student_accesses"), "Persiste la tabla de cuentas de alumnos retirada"
         connection.execute(text("SELECT id FROM profesor_material_sessions LIMIT 0"))
         connection.execute(text("SELECT join_code_hash, join_code_encrypted, expires_at FROM profesor_material_sessions LIMIT 0"))
-        assert connection.execute(text("SELECT COUNT(*) FROM profesor_material_sessions WHERE access_id IS NOT NULL")).scalar() == 0, "Persisten sesiones asociadas a alumnos"
+        assert "access_id" not in {column["name"] for column in inspector.get_columns("profesor_material_sessions")}, "Persiste la vinculación a cuentas de alumnos"
+        for data in connection.execute(select(ClientState.data)).scalars():
+            apps = data.get("__apps") if isinstance(data, dict) else None
+            teacher_state = apps.get("profesor_particular") if isinstance(apps, dict) else None
+            if teacher_state is not None:
+                assert teacher_state == anonymous_profesor_state(teacher_state), "Persiste estado antiguo de alumnos"
         connection.execute(text("SELECT id FROM profesor_ads LIMIT 0"))
         connection.execute(text("SELECT id FROM profesor_ad_reports LIMIT 0"))
         connection.execute(text("SELECT id, request_id, status, attempt_count, failure_category FROM profesor_generation_jobs LIMIT 0"))
