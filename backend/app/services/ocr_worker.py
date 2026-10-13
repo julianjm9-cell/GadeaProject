@@ -2,6 +2,7 @@
 import json
 import subprocess
 import sys
+import threading
 import time
 from datetime import timedelta
 from sqlalchemy import select
@@ -9,6 +10,7 @@ from app.database.session import SessionLocal
 from app.models import User, UsageRecord
 from app.models.core import utcnow
 from app.models.ocr import OcrJob
+from app.api.profesor_access import purge_expired_sessions
 from app.services.licenses import check_access
 from app.services.ocr_storage import job_dir, model_config
 
@@ -57,11 +59,22 @@ def run_one():
     return True
 
 
+def run_session_cleanup_forever():
+    while True:
+        try:
+            with SessionLocal() as db:
+                purge_expired_sessions(db)
+        except Exception:
+            print("Session cleanup: temporal database failure", flush=True)
+        time.sleep(300)
+
+
 if __name__ == "__main__":
+    threading.Thread(target=run_session_cleanup_forever, name="session-cleanup", daemon=True).start()
     while True:
         try:
             if not run_one():
                 time.sleep(3)
         except Exception:
-            print("OCR worker: temporal database failure", flush=True)
+            print("Background worker: temporal database failure", flush=True)
             time.sleep(10)

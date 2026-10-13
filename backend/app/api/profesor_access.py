@@ -12,7 +12,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from jose import JWTError, jwt
 from pydantic import BaseModel, Field
-from sqlalchemy import select, update
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -64,17 +64,18 @@ def session_is_expired(session: ProfesorMaterialSession) -> bool:
     return not session.expires_at or aware(session.expires_at) <= datetime.now(timezone.utc)
 
 
-def expire_stale_sessions(db: Session, teacher_user_id: UUID | None = None) -> None:
-    query = update(ProfesorMaterialSession).where(
-        ProfesorMaterialSession.status.in_(("pending", "in_progress")),
-        ProfesorMaterialSession.expires_at <= datetime.now(timezone.utc),
+def purge_expired_sessions(db: Session, teacher_user_id: UUID | None = None, *, now: datetime | None = None) -> int:
+    """Erase the material snapshot and responses when its temporary code expires."""
+    query = delete(ProfesorMaterialSession).where(
+        ProfesorMaterialSession.expires_at <= (now or datetime.now(timezone.utc)),
     )
     if teacher_user_id:
         query = query.where(ProfesorMaterialSession.teacher_user_id == teacher_user_id)
-    result = db.execute(query.values(status="expired", join_code_hash=None, join_code_encrypted=None,
-                                     revision=ProfesorMaterialSession.revision + 1))
-    if result.rowcount:
+    result = db.execute(query)
+    count = result.rowcount or 0
+    if count:
         db.commit()
+    return count
 
 
 def visible_session_code(session: ProfesorMaterialSession) -> str | None:

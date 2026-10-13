@@ -36,6 +36,9 @@ def test_codes_are_unique_scoped_and_do_not_require_pupil_accounts(client):
     first = web.post("/api/profesor/material-sessions", json={"material_id": "m1"})
     second = web.post("/api/profesor/material-sessions", json={"material_id": "m1"})
     assert first.status_code == second.status_code == 200
+    assert first.headers["cache-control"] == "private, no-store"
+    assert first.headers["referrer-policy"] == "no-referrer"
+    assert first.headers["x-robots-tag"] == "noindex, nofollow"
     first_session, second_session = first.json()["session"], second.json()["session"]
     assert first_session["join_code"] != second_session["join_code"]
     assert len(first_session["join_code"]) == 10
@@ -43,9 +46,13 @@ def test_codes_are_unique_scoped_and_do_not_require_pupil_accounts(client):
     assert web.post("/api/profesor/material-sessions", json={"student_id": "old", "material_id": "m1"}).status_code == 422
     with TestClient(app) as pupil:
         assert pupil.post("/auth/profesor/student-join", json={"code": "WRONGCODE"}).status_code == 401
-        assert pupil.post("/auth/profesor/student-join", json={"code": first_session["join_code"].lower()}).status_code == 200
+        joined = pupil.post("/auth/profesor/student-join", json={"code": first_session["join_code"].lower()})
+        assert joined.status_code == 200
+        assert joined.headers["cache-control"] == "private, no-store"
         assert pupil.get("/auth/profesor/student-me").json()["student"]["name"] == "Participante"
-        assert [item["id"] for item in pupil.get("/api/profesor/student-material-sessions").json()["sessions"]] == [first_session["id"]]
+        listed = pupil.get("/api/profesor/student-material-sessions")
+        assert [item["id"] for item in listed.json()["sessions"]] == [first_session["id"]]
+        assert listed.headers["cache-control"] == "private, no-store"
         assert pupil.get(f"/api/profesor/student-material-sessions/{second_session['id']}").status_code == 404
         assert pupil.post(f"/api/profesor/student-material-sessions/{second_session['id']}/move", json={"action": "start"}).status_code == 404
         assert pupil.post(f"/api/profesor/student-material-sessions/{first_session['id']}/move", json={"action": "start"}).status_code == 200
@@ -88,8 +95,28 @@ def test_expired_codes_and_cookies_cannot_reopen_a_session(client):
             db.commit()
         assert pupil.get("/auth/profesor/student-me").status_code == 401
         assert pupil.post("/auth/profesor/student-join", json={"code": session["join_code"]}).status_code == 401
-    listed = web.get("/api/profesor/material-sessions").json()["sessions"][0]
-    assert listed["status"] == "expired" and listed["join_code"] is None
+    assert web.get("/api/profesor/material-sessions").json()["sessions"] == []
+    with factory() as db:
+        assert db.get(ProfesorMaterialSession, UUID(session["id"])) is None
+
+
+def test_periodic_cleanup_removes_completed_responses_too(client):
+    from app.api.profesor_access import purge_expired_sessions
+
+    web, factory = prepare_teacher(client)
+    expired = web.post("/api/profesor/material-sessions", json={"material_id": "m1"}).json()["session"]
+    current = web.post("/api/profesor/material-sessions", json={"material_id": "m1"}).json()["session"]
+    with factory() as db:
+        row = db.get(ProfesorMaterialSession, UUID(expired["id"]))
+        row.status = "completed"
+        row.progress = {"responses": {"0": "texto que debe desaparecer"}}
+        row.expires_at = datetime.now(timezone.utc) - timedelta(minutes=1)
+        db.commit()
+    with factory() as db:
+        assert purge_expired_sessions(db) == 1
+        assert db.get(ProfesorMaterialSession, UUID(expired["id"])) is None
+        assert db.get(ProfesorMaterialSession, UUID(current["id"])) is not None
+
 
 def test_game_grading_does_not_send_hidden_keys():
     from app.api.profesor_material_sessions import grade, prepare, safe_question

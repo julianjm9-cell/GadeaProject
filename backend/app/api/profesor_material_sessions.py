@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import current_user
 from app.database.session import get_db
 from app.models import ClientState, Document, ProfesorMaterialSession, User
-from app.api.profesor_access import SESSION_LIFETIME, active_student, expire_stale_sessions, new_session_code, session_code_cipher, session_code_hash, session_is_expired, teacher_premium, visible_session_code
+from app.api.profesor_access import SESSION_LIFETIME, active_student, new_session_code, purge_expired_sessions, session_code_cipher, session_code_hash, session_is_expired, teacher_premium, visible_session_code
 from app.api.app_routes import LOCAL_DOCUMENT_DIR
 
 router = APIRouter(tags=["profesor-material-sessions"])
@@ -421,7 +421,7 @@ def send_material(payload: SendMaterial, response: Response, user: User = Depend
 def teacher_sessions(response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
     teacher_premium(db, user)
     response.headers["Cache-Control"] = "private, no-store"
-    expire_stale_sessions(db, user.id)
+    purge_expired_sessions(db, user.id)
     rows_ = db.scalars(select(ProfesorMaterialSession).where(ProfesorMaterialSession.teacher_user_id == user.id,
                     ProfesorMaterialSession.access_id.is_(None)).order_by(ProfesorMaterialSession.created_at.desc()).limit(100)).all()
     return {"sessions": [{"id": str(row.id), "title": row.title, "subject": row.subject, "status": row.status,
@@ -433,7 +433,7 @@ def teacher_sessions(response: Response, user: User = Depends(current_user), db:
 def teacher_watch(session_id: UUID, response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
     teacher_premium(db, user)
     response.headers["Cache-Control"] = "private, no-store"
-    expire_stale_sessions(db, user.id)
+    purge_expired_sessions(db, user.id)
     row = teacher_session(db, user, session_id)
     if row.access_id is not None:
         raise HTTPException(404, "Sesión no encontrada.")
