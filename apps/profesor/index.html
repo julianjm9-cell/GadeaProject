@@ -166,7 +166,7 @@ body{background:radial-gradient(ellipse at 78% 0,#e4f0ff90,transparent 50%),line
 <script src="./profesor-temario-depth.js?v=20261003-3"></script>
 <script src="./profesor-spanish.js?v=20261005-1"></script>
 <script src="./profesor-temario-revision.js?v=20261007-2"></script>
-<script src="./profesor-access.js?v=20261013-anonymous-1"></script>
+<script src="./profesor-access.js?v=20261013-anonymous-3"></script>
 <script>
 'use strict';
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -259,7 +259,24 @@ function materialHubView(){
  const extraFilters=publicMode?`<select id="libraryCourse" aria-label="Filtrar curso"><option value="">Todos los cursos</option>${courses.map(x=>`<option value="${esc(x)}" ${materialCourse===x?'selected':''}>${esc(x)}</option>`).join('')}</select><select id="libraryType" aria-label="Filtrar tipo de actividad"><option value="">Todos los tipos</option>${types.map(type=>`<option value="${esc(type)}" ${materialType===type?'selected':''}>${esc(activityLabels[type]||type)}</option>`).join('')}</select>`:'';
  return `<div class="material-page-head"><div class="material-page-title"><h1>Materiales <span class="material-count">${source.length}</span></h1><div class="material-scope-switch" role="group" aria-label="Visibilidad de materiales"><button type="button" data-action="materialMode" data-id="mine" class="${publicMode?'':'active'}" aria-pressed="${!publicMode}">Privados</button><button type="button" data-action="materialMode" data-id="public" class="${publicMode?'active':''}" aria-pressed="${publicMode}">Públicos</button></div></div><div class="actions">${button('+ Añadir archivo','newMaterial')}${button(icon('spark')+' Crear material','workshop','','primary')}</div></div><div class="material-hub-toolbar ${publicMode?'public-library-toolbar':''}"><label class="material-search">${icon('search')}<input id="librarySearch" type="search" value="${esc(materialQuery)}" placeholder="${publicMode?'Buscar por tema, curso o asignatura…':'Buscar material…'}" aria-label="Buscar material"></label><select id="librarySubject" aria-label="Filtrar asignatura"><option value="">Todas las asignaturas</option>${filters.map(x=>`<option ${materialSubject===x?'selected':''}>${esc(x)}</option>`).join('')}</select>${extraFilters}</div><div id="libraryResults" class="material-hub-grid">${materialHubCards()}</div><div id="libraryPager" class="student-pager material-hub-pager">${materialHubPager()}</div>`
 }
-  function anonymousHomeView(){return `<div class="home-page">${teacherHeader()}<div class="workspace-content"><div class="topline"><div><div class="eyebrow">PROFESOR PARTICULAR</div><h1>Todo para tus clases</h1><p>Prepara el temario, crea materiales y comparte juegos con un código, sin cuentas de alumnos.</p></div></div><div class="material-hub-grid"><section class="card"><h2>Temario</h2><p>Consulta explicaciones y recursos por curso y asignatura.</p>${button('Abrir temario','nav','Temario','primary')}</section><section class="card"><h2>Materiales</h2><p>Crea y organiza ejercicios para tus clases.</p>${button('Ver materiales','nav','Biblioteca','primary')}</section><section class="card"><h2>Sesiones de juegos</h2><p>Comparte un código de 24 horas y observa la actividad en directo.</p>${button('Abrir sesiones','nav','Accesos','primary')}</section></div></div></div>`}
+function anonymousHomeView(){
+ const materials=state.library.filter(item=>item.activity?.questions?.length);
+ const recent=materials.slice(-3).reverse();
+ return `<div class="home-page home-studio">${teacherHeader()}<div class="studio-home-content">
+  <section class="studio-home-primary" aria-labelledby="studioHomeTitle">
+   <div class="studio-home-intro"><span class="studio-home-eyebrow">PROFESOR PARTICULAR</span><h1 id="studioHomeTitle">Todo para tus clases</h1><p>Consulta el temario, prepara materiales y comparte actividades interactivas desde un solo lugar.</p></div>
+   <div class="studio-home-links">
+    <article class="studio-home-link"><span class="studio-home-link-icon blue" aria-hidden="true">01</span><div><h2>Temario</h2><p>Todos los cursos y asignaturas, listos para preparar la próxima explicación.</p></div>${button('Abrir temario','nav','Temario','primary')}</article>
+    <article class="studio-home-link"><span class="studio-home-link-icon violet" aria-hidden="true">02</span><div><h2>Materiales</h2><p>Crea ejercicios o encuentra recursos en tu biblioteca.</p></div>${button('Ver materiales','nav','Biblioteca','primary')}</article>
+    <article class="studio-home-link"><span class="studio-home-link-icon amber" aria-hidden="true">03</span><div><h2>Sesiones de juegos</h2><p>Comparte un código y sigue la partida en directo.</p></div>${button('Abrir sesiones','nav','Accesos','primary')}</article>
+   </div>
+  </section>
+  <aside class="studio-home-side">
+   <section class="studio-home-panel"><div class="studio-home-panel-top"><span class="studio-home-panel-icon" aria-hidden="true">✦</span><h2>Tu biblioteca</h2></div><p class="studio-home-panel-lead">${materials.length?materials.length+' materiales interactivos listos para usar':'Tus materiales aparecerán aquí cuando crees el primero.'}</p>${recent.length?`<ul class="studio-home-recent">${recent.map(item=>`<li><strong>${esc(item.title)}</strong><span>${esc(item.subject)}</span></li>`).join('')}</ul>`:'<div class="studio-home-empty" aria-hidden="true">✎</div>'}<div class="studio-home-panel-actions">${button('Crear material','workshop','','primary')}${button('Abrir biblioteca','nav','Biblioteca')}</div></section>
+   <section class="studio-home-panel studio-home-session"><div class="studio-home-panel-top"><span class="studio-home-panel-icon" aria-hidden="true">↗</span><h2>Juega en directo</h2></div><p>Elige un material, genera un código y compártelo. Cada sesión dura 24 horas.</p>${button('Ver sesiones','nav','Accesos','primary')}</section>
+  </aside>
+ </div></div>`;
+}
   function render(){if(!ready)return;normalizeTeacherState();if(!['Inicio','Temario','Biblioteca','Accesos'].includes(view))view='Inicio';selected=null;activeClass=null;document.body.classList.toggle('home-view',view==='Inicio');document.body.classList.toggle('app-shell-view',true);document.body.classList.toggle('class-mode',false);updateChrome();$('nav').innerHTML=['Inicio','Temario','Biblioteca','Accesos'].map(v=>button(icon(navIcons[v]||'file')+'<span>'+v+'</span>','nav',v,view===v?'active':'')).join('');syncRoute();let html='';
   if(view==='Inicio'){html=anonymousHomeView()}
  else if(view==='Cobros'){html=heading('Clases y cobros','Tarifas, pagos y bonos, sin perder el hilo.')+billingView()}
@@ -1028,6 +1045,7 @@ init();
 <link rel="stylesheet" href="./assets/profesor-generator.css?v=20261010-1">
 <script src="./profesor-generator.js?v=20261013-2"></script>
 <link rel="stylesheet" href="./assets/profesor-access.css?v=20261012-code-1">
+<link rel="stylesheet" href="./assets/profesor-dashboard.css?v=20261013-2">
 <style>
 #dialog.file-preview-dialog{width:min(1120px,96vw);max-width:1120px;max-height:94dvh;overflow:auto}
 .attachment-preview{margin:16px 0;border:1px solid #dce8f7;border-radius:14px;background:#f7faff;overflow:auto;min-width:0}
