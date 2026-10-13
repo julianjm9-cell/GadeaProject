@@ -5,10 +5,11 @@ from datetime import datetime, timedelta, timezone
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
-from app.auth.dependencies import current_user, current_license
+from app.auth.dependencies import current_user, current_license, require_superadmin
+from app.config import get_settings
 from app.database.session import get_db
 from app.models import ProfesorGenerationJob, User, License
 from app.services.licenses import check_access
@@ -34,6 +35,21 @@ def stale(job):
     if stamp and stamp.tzinfo is None:
         stamp = stamp.replace(tzinfo=timezone.utc)
     return not stamp or stamp < now() - timedelta(minutes=10)
+
+
+def reserve_capacity(db: Session, request_id: str, kind: str):
+    """Serialize admissions across backend processes before counting live jobs."""
+    if db.get_bind().dialect.name == 'postgresql':
+        db.execute(text('SELECT pg_advisory_xact_lock(73511824219)'))
+    active = db.scalar(select(func.count()).select_from(ProfesorGenerationJob).where(
+        ProfesorGenerationJob.status.in_(('queued', 'running')),
+        ProfesorGenerationJob.updated_at >= now() - timedelta(minutes=10),
+    )) or 0
+    limit = get_settings().profesor_generation_max_concurrent
+    if active >= limit:
+        logger.info('teacher_generation_admission request=%s type=%s decision=busy active=%s limit=%s', request_id, kind, active, limit)
+        raise HTTPException(503, 'Hay muchas generaciones en curso. Este intento se conserva y no se han descontado créditos. Espera unos segundos y pulsa Reintentar.', headers={'Retry-After': '15'})
+    logger.info('teacher_generation_admission request=%s type=%s decision=accepted active=%s limit=%s', request_id, kind, active, limit)
 
 
 async def run_job(bind, job_id, lease):
@@ -69,10 +85,11 @@ async def run_job(bind, job_id, lease):
             job.status = 'failed'
             job.error_status = exc.status_code if isinstance(exc, HTTPException) else 500
             job.error = str(exc.detail) if isinstance(exc, HTTPException) else 'La generación se interrumpió. Puedes recuperar el progreso guardado. Código de incidencia: ' + job.request_id[:8] + '.'
-            logger.warning('teacher_generation_job_failed request=%s type=%s error=%s status=%s', job.request_id, next((k for k in TYPES if job.payload.get(k) == 1), 'unknown'), type(exc).__name__, job.error_status)
+            job.failure_category = getattr(exc, 'generation_failure_category', 'load' if job.error_status in (429, 503, 504) else 'content' if job.error_status == 502 else 'other')
+            logger.warning('teacher_generation_job_failed request=%s type=%s error=%s category=%s status=%s completed=%s total=%s attempt=%s', job.request_id, next((k for k in TYPES if job.payload.get(k) == 1), 'unknown'), type(exc).__name__, job.failure_category, job.error_status, job.completed, job.total, job.attempt_count)
         job.finished_at = now()
         db.commit()
-        logger.info('teacher_generation_job_finished request=%s status=%s completed=%s total=%s seconds=%.2f', job.request_id, job.status, job.completed, job.total, (now()-started).total_seconds())
+        logger.info('teacher_generation_job_finished request=%s type=%s status=%s completed=%s total=%s attempts=%s seconds=%.2f', job.request_id, next((k for k in TYPES if job.payload.get(k) == 1), 'unknown'), job.status, job.completed, job.total, job.attempt_count, (now()-started).total_seconds())
 
 
 @router.post('/api/profesor/generation/start')
@@ -98,6 +115,7 @@ def start_job(payload: dict, background_tasks: BackgroundTasks, user: User = Dep
     if active and not stale(active):
         raise HTTPException(409, 'Ya hay una generación en curso. Recupera ese intento antes de crear otro material.')
     ensure_credit_balance(db, user, license_obj, 1)
+    reserve_capacity(db, request_id, next((kind for kind in TYPES if context[kind]), 'unknown'))
     if active:
         active.status, active.lease = 'failed', str(uuid4())
         active.error = 'El servidor se reinició. Puedes recuperar este material con sus datos originales.'
@@ -106,6 +124,8 @@ def start_job(payload: dict, background_tasks: BackgroundTasks, user: User = Dep
                                     request_id=request_id, payload=safe_payload, total=generation_units(context))
         db.add(job)
     job.status, job.lease, job.error, job.error_status, job.updated_at = 'running', str(uuid4()), '', 0, now()
+    job.failure_category = ''
+    job.attempt_count = (job.attempt_count or 0) + 1
     db.commit()
     background_tasks.add_task(run_job, db.get_bind(), job.id, job.lease)
     return public_job(job)
@@ -123,3 +143,40 @@ def get_job(request_id: UUID, user: User = Depends(current_user), license_obj: L
     if job.status in ('queued', 'running') and stale(job):
         value.update(status='interrupted', error='El servidor se reinició. Pulsa Generar con IA para recuperar el progreso.')
     return value
+
+
+@router.get('/admin/profesor/generation-health')
+def generation_health(_: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    """Recent generation outcomes without prompts, student data, or API keys."""
+    since = now() - timedelta(days=7)
+    rows = db.execute(select(
+        ProfesorGenerationJob.payload, ProfesorGenerationJob.status,
+        ProfesorGenerationJob.error_status, ProfesorGenerationJob.completed,
+        ProfesorGenerationJob.total, ProfesorGenerationJob.attempt_count,
+        ProfesorGenerationJob.updated_at, ProfesorGenerationJob.failure_category,
+    ).where(ProfesorGenerationJob.created_at >= since)).all()
+    statuses, failures, failure_categories, activities = {}, {}, {}, {}
+    partial_failures = recovered = attempts = active = 0
+    for payload, status, error_status, completed, total, attempt_count, updated_at, failure_category in rows:
+        statuses[status] = statuses.get(status, 0) + 1
+        kind = next((name for name in TYPES if payload.get(name) == 1), 'unknown')
+        entry = activities.setdefault(kind, {'total': 0, 'completed': 0, 'failed': 0})
+        entry['total'] += 1
+        if status in ('completed', 'failed'):
+            entry[status] += 1
+        if status == 'failed':
+            key = str(error_status or 500)
+            failures[key] = failures.get(key, 0) + 1
+            category = failure_category or 'unknown'
+            failure_categories[category] = failure_categories.get(category, 0) + 1
+            partial_failures += int(bool(completed and completed < total))
+        if status == 'completed' and (attempt_count or 0) > 1:
+            recovered += 1
+        attempts += attempt_count or 0
+        if status in ('queued', 'running') and updated_at and (updated_at if updated_at.tzinfo else updated_at.replace(tzinfo=timezone.utc)) >= now() - timedelta(minutes=10):
+            active += 1
+    return {'period_days': 7, 'total': len(rows), 'statuses': statuses, 'failures_by_http_status': failures,
+            'failures_by_category': failure_categories,
+            'by_activity': activities, 'attempts': attempts, 'recovered_after_retry': recovered,
+            'failed_with_saved_progress': partial_failures, 'active': active,
+            'concurrency_limit': get_settings().profesor_generation_max_concurrent}

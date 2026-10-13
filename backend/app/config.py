@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     max_output_tokens: int = 3200
     max_vocab: int = 3
     profile_chars: int = 420
+    profesor_generation_max_concurrent: int = Field(default=3, ge=1, le=20)
 
     google_client_id: str = ""
     google_client_secret: str = ""

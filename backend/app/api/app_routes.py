@@ -1865,6 +1865,7 @@ async def _generate_teacher_material(payload, user, license_obj, db, progress=No
                         content = ''
                         response = None
                         provider_draft = None
+                        attempt_started = time.monotonic()
                         try:
                             response = await generation_post(client, request_url, headers=headers, json=request_body)
                             if not native_gemini and response.status_code == 400 and response_format['type'] == 'json_schema':
@@ -1918,12 +1919,21 @@ async def _generate_teacher_material(payload, user, license_obj, db, progress=No
                             else:
                                 check_material_quality(questions + result, context)
                             used_model = candidate_model
-                            logger.info("teacher_generator_batch_success request=%s provider=%s model=%s batch=%s reserve=%s", request_id, candidate_provider, candidate_model, batch_index + 1, candidate_provider != provider or candidate_model != model)
+                            logger.info("teacher_generator_batch_success request=%s type=%s provider=%s model=%s batch=%s attempt=%s accepted=%s target=%s reserve=%s seconds=%.2f", request_id, draft.kind if draft else 'legacy', candidate_provider, candidate_model, batch_index + 1, attempt + 1, draft.completed if draft else len(result), draft.target if draft else batch.get('batchQuestionCount', len(result)), candidate_provider != provider or candidate_model != model, time.monotonic() - attempt_started)
                             break
                         except (ValueError, KeyError, TypeError, IndexError, HTTPException, httpx.RequestError) as exc:
                             last_error = exc
+                            if isinstance(exc, httpx.RequestError):
+                                failure_category = 'network'
+                            elif response is not None and response.status_code in (408, 429, 500, 502, 503, 504):
+                                failure_category = 'load'
+                            elif response is not None and response.status_code >= 400 and provider_draft is None:
+                                failure_category = 'provider'
+                            else:
+                                failure_category = 'content'
+                            setattr(exc, 'generation_failure_category', failure_category)
                             safe_reason = re.sub(r'«[^»]*»', '«…»', str(exc.detail) if isinstance(exc, HTTPException) else str(exc))[:240]
-                            logger.warning("teacher_generator_batch_failure request=%s provider=%s model=%s type=%s batch=%s attempt=%s error=%s cause=%s validation=%s status=%s provider_status=%s reason=%s", request_id, candidate_provider, candidate_model, draft.kind if draft else 'legacy', batch_index + 1, attempt + 1, type(exc).__name__, type(exc.__cause__).__name__ if exc.__cause__ else None, getattr(exc, 'validation_code', 'provider' if response is not None and response.status_code >= 400 else 'content'), exc.status_code if isinstance(exc, HTTPException) else None, response.status_code if response is not None else None, safe_reason)
+                            logger.warning("teacher_generator_batch_failure request=%s provider=%s model=%s type=%s batch=%s attempt=%s accepted=%s target=%s error=%s cause=%s validation=%s status=%s provider_status=%s seconds=%.2f reason=%s", request_id, candidate_provider, candidate_model, draft.kind if draft else 'legacy', batch_index + 1, attempt + 1, draft.completed if draft else 0, draft.target if draft else batch.get('batchQuestionCount', 0), type(exc).__name__, type(exc.__cause__).__name__ if exc.__cause__ else None, getattr(exc, 'validation_code', 'provider' if response is not None and response.status_code >= 400 else 'content'), exc.status_code if isinstance(exc, HTTPException) else None, response.status_code if response is not None else None, time.monotonic() - attempt_started, safe_reason)
                             result = None
                             if isinstance(exc, HTTPException) and exc.status_code == 502 and content:
                                 schema_rejected = True  # Retry the playable core as plain JSON.
@@ -1941,7 +1951,9 @@ async def _generate_teacher_material(payload, user, license_obj, db, progress=No
                         raise last_error
                     if isinstance(last_error, httpx.RequestError):
                         raise last_error
-                    raise HTTPException(502, "Respuesta del proveedor no válida. No se han descontado créditos.") from last_error
+                    error = HTTPException(502, "Respuesta del proveedor no válida. No se han descontado créditos.")
+                    error.generation_failure_category = getattr(last_error, 'generation_failure_category', 'content')
+                    raise error from last_error
                 if group is not None:
                     if batch.get('roscoLetters'):
                         rosco_parts[group_key] = rosco_parts.get(group_key, []) + result
@@ -1964,14 +1976,23 @@ async def _generate_teacher_material(payload, user, license_obj, db, progress=No
     except (HTTPException, httpx.RequestError) as exc:
         if completed_batches > checkpoint_start or any(d.get('questions') or d.get('elements') for d in drafts.values()):
             checkpoint()
+        category = getattr(exc, 'generation_failure_category', 'network' if isinstance(exc, httpx.RequestError) else 'load' if exc.status_code in (429, 503, 504) else 'content')
         if isinstance(exc, httpx.TimeoutException):
-            raise HTTPException(504, "La IA ha tardado demasiado. El progreso válido está guardado y no se han descontado créditos.") from exc
+            error = HTTPException(504, "La IA ha tardado demasiado. El progreso válido está guardado y no se han descontado créditos.")
+            error.generation_failure_category = category
+            raise error from exc
         if isinstance(exc, httpx.RequestError):
-            raise HTTPException(502, "No se pudo conectar con la IA. El progreso válido está guardado y no se han descontado créditos.") from exc
+            error = HTTPException(502, "No se pudo conectar con la IA. El progreso válido está guardado y no se han descontado créditos.")
+            error.generation_failure_category = category
+            raise error from exc
         if completed_batches and exc.status_code >= 500:
-            raise HTTPException(exc.status_code, str(exc.detail) + ' Las actividades completadas están guardadas: puedes reintentar sin empezar de cero. Código de incidencia: ' + request_id[:8] + '.') from exc
+            error = HTTPException(exc.status_code, str(exc.detail) + ' Las actividades completadas están guardadas: puedes reintentar sin empezar de cero. Código de incidencia: ' + request_id[:8] + '.')
+            error.generation_failure_category = category
+            raise error from exc
         if exc.status_code >= 500:
-            raise HTTPException(exc.status_code, str(exc.detail) + ' Código de incidencia: ' + request_id[:8] + '.') from exc
+            error = HTTPException(exc.status_code, str(exc.detail) + ' Código de incidencia: ' + request_id[:8] + '.')
+            error.generation_failure_category = category
+            raise error from exc
         raise
     from app.services.teacher_generator import TYPES, BUNDLE_TYPES
     for kind in TYPES:

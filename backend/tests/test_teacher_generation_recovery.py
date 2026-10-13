@@ -203,6 +203,7 @@ def test_background_job_is_idempotent_and_private(client, monkeypatch):
     assert len(status['result']['questions'])==2
     result=web.post('/api/profesor/generation/start?app=profesor_particular',json=body)
     assert result.json()['status']=='completed' and len(calls)==1
+    with factory() as db: assert db.scalar(select(ProfesorGenerationJob)).attempt_count==1
     seed_user(factory,email='second@example.com',product_codes=('PROFESOR_PARTICULAR',));login(web,email='second@example.com')
     assert web.get('/api/profesor/generation/'+body['request_id']+'?app=profesor_particular').status_code==404
     with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord))==1
@@ -229,6 +230,7 @@ def test_interrupted_job_can_resume_and_old_worker_cannot_overwrite(client,monke
     assert response.status_code==200,response.text
     with factory() as db:
         assert db.get(ProfesorGenerationJob,old_id).status=='completed'
+        assert db.get(ProfesorGenerationJob,old_id).attempt_count==1
         assert db.scalar(select(func.count()).select_from(UsageRecord))==1
 
 
@@ -250,12 +252,69 @@ def test_failed_background_job_preserves_partial_progress_without_charging(clien
     url='/api/profesor/generation/'+body['request_id']+'?app=profesor_particular'
     status=web.get(url).json()
     assert status['status']=='failed' and status['completed']==1 and status['total']==2
-    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord))==0
+    with factory() as db:
+        assert db.scalar(select(func.count()).select_from(UsageRecord))==0
+        assert db.scalar(select(ProfesorGenerationJob)).failure_category=='content'
     recovered=True
     assert web.post('/api/profesor/generation/start?app=profesor_particular',json=body).status_code==200
     status=web.get(url).json()
     assert status['status']=='completed' and len(status['result']['questions'])==2
-    with factory() as db: assert db.scalar(select(func.count()).select_from(UsageRecord))==1
+    with factory() as db:
+        assert db.scalar(select(func.count()).select_from(UsageRecord))==1
+        assert db.scalar(select(ProfesorGenerationJob)).attempt_count==2
+        assert db.scalar(select(ProfesorGenerationJob)).failure_category==''
+
+
+def test_global_capacity_rejects_new_job_without_charging(client, monkeypatch):
+    from types import SimpleNamespace
+    web,factory=client
+    monkeypatch.setattr(teacher_generation_jobs,'get_settings',lambda: SimpleNamespace(profesor_generation_max_concurrent=3))
+    for index in range(3):
+        email=f'active{index}@example.com'
+        _,user_id=seed_user(factory,email=email,product_codes=('PROFESOR_PARTICULAR',))
+        with factory() as db:
+            user=db.get(User,UUID(user_id))
+            license_obj=db.scalar(select(License).where(License.user_id==user.id))
+            db.add(ProfesorGenerationJob(user_id=user.id,organization_id=user.organization_id,license_id=license_obj.id,
+                                        request_id=str(uuid4()),payload={'gaps':1},status='running',lease='active',
+                                        total=2,updated_at=datetime.now(timezone.utc)))
+            db.commit()
+    seed_user(factory,email='waiting@example.com',product_codes=('PROFESOR_PARTICULAR',))
+    login(web,email='waiting@example.com')
+    body=payload('gaps',2)
+    response=web.post('/api/profesor/generation/start?app=profesor_particular',json=body)
+    assert response.status_code==503 and response.headers['retry-after']=='15'
+    assert 'Reintentar' in response.json()['detail']
+    with factory() as db:
+        assert db.scalar(select(func.count()).select_from(ProfesorGenerationJob))==3
+        assert db.scalar(select(func.count()).select_from(UsageRecord))==0
+
+
+def test_generation_health_is_admin_only_and_omits_prompts(client):
+    web,factory=client
+    _,user_id=seed_user(factory,email='normal@example.com',product_codes=('PROFESOR_PARTICULAR',))
+    login(web,email='normal@example.com')
+    assert web.get('/admin/profesor/generation-health').status_code==403
+    with factory() as db:
+        user=db.get(User,UUID(user_id))
+        license_obj=db.scalar(select(License).where(License.user_id==user.id))
+        for status,attempts,completed,error_status in [('completed',2,2,0),('failed',1,1,502)]:
+            db.add(ProfesorGenerationJob(user_id=user.id,organization_id=user.organization_id,license_id=license_obj.id,
+                                        request_id=str(uuid4()),payload={'gaps':1,'topic':'Contenido privado'},
+                                        status=status,lease='done',total=2,completed=completed,
+                                        attempt_count=attempts,error_status=error_status,
+                                        failure_category='content' if status=='failed' else ''))
+        db.commit()
+    seed_user(factory,email='admin@example.com',role='superadmin',product_codes=('PROFESOR_PARTICULAR',))
+    login(web,email='admin@example.com')
+    response=web.get('/admin/profesor/generation-health')
+    assert response.status_code==200
+    report=response.json()
+    assert report['total']==2 and report['recovered_after_retry']==1
+    assert report['failed_with_saved_progress']==1 and report['failures_by_http_status']=={'502':1}
+    assert report['failures_by_category']=={'content':1}
+    assert report['by_activity']['gaps']=={'total':2,'completed':1,'failed':1}
+    assert 'Contenido privado' not in response.text
 
 
 def test_background_regeneration_returns_one_replacement_and_correct_progress(client,monkeypatch):
@@ -306,3 +365,19 @@ def test_job_migration_is_idempotent_and_preserves_existing_tables(client):
             migration['upgrade']();migration['upgrade']()
         assert set(inspect(bind).get_table_names())==old_tables|{'profesor_generation_jobs'}
         assert db.scalar(select(func.count()).select_from(User))==1
+
+
+def test_attempt_counter_migration_is_idempotent(client):
+    import runpy
+    from sqlalchemy import inspect
+    from alembic.migration import MigrationContext
+    from alembic.operations import Operations
+    _,factory=client
+    migration=runpy.run_path('alembic/versions/0017_teacher_generation_attempts.py')
+    with factory() as db:
+        bind=db.connection()
+        with Operations.context(MigrationContext.configure(bind)):
+            migration['downgrade']()
+            assert not {'attempt_count','failure_category'} & {column['name'] for column in inspect(bind).get_columns('profesor_generation_jobs')}
+            migration['upgrade']();migration['upgrade']()
+        assert {'attempt_count','failure_category'} <= {column['name'] for column in inspect(bind).get_columns('profesor_generation_jobs')}

@@ -41,8 +41,15 @@ controles no sustituyen una verificación documental de todos los hechos generad
   No se cambian claves ni modelos configurados automáticamente.
 - Solo hay un trabajo activo por cuenta. Un trabajo sin actividad durante diez minutos
   puede retomarse; ese plazo no elimina datos ni materiales.
+- Se admiten como máximo tres trabajos activos entre todas las cuentas por defecto.
+  La admisión se serializa en PostgreSQL para que dos peticiones simultáneas no
+  superen el límite. `PROFESOR_GENERATION_MAX_CONCURRENT` permite ajustarlo entre
+  1 y 20. Si está lleno, la API devuelve 503 y `Retry-After: 15` sin iniciar
+  trabajo ni cobrar; el formulario ofrece Reintentar.
 - El formulario conserva en la sesión del navegador los campos y el identificador de
   reintento, vinculados a la cuenta. Al recargar y volver a Crear material se recuperan.
+- Los errores 502 de contenido y los cortes de red también muestran el progreso
+  conservado y ofrecen recuperar el mismo intento.
 - Se cobra un crédito únicamente después de validar el material completo. El bloqueo
   breve de la cuenta y la comprobación final impiden un segundo cargo por el mismo intento.
   Un fallo o interrupción conserva el progreso y no cobra. La regeneración individual
@@ -51,11 +58,18 @@ controles no sustituyen una verificación documental de todos los hechos generad
 La tabla nueva `profesor_generation_jobs` se añade mediante la migración 0014 sin modificar
 materiales existentes. Los trabajos interrumpidos se retoman al reintentar con el mismo
 identificador; no se relanzan solos tras un reinicio del servidor.
+La migración 0017 añade el contador de intentos y la categoría del último fallo a esta
+tabla sin borrar registros.
 
 ## Diagnóstico y pruebas
 
 Los registros incluyen identificador, proveedor/modelo, tipo, lote, intento, HTTP del
-proveedor y motivo concreto de validación. No registran claves ni respuestas completas.
+proveedor, motivo concreto de validación, elementos aceptados y duración de cada intento.
+No registran claves ni respuestas completas. Una cuenta superadministradora puede consultar
+`GET /admin/profesor/generation-health`: resume los últimos siete días por actividad y
+estado, errores HTTP y sus categorías (contenido, carga, proveedor, conexión), trabajos
+recuperados tras reintento y fallos con progreso guardado.
+No incluye en la respuesta enunciados, instrucciones ni datos de alumnos.
 
 La prueba real del 10/10/2026 con Groq `openai/gpt-oss-120b` completó los 21 tipos. El caso
 3.º ESO / Lengua / Sintaxis / Pasapalabra de 18 letras también completó tres ejecuciones

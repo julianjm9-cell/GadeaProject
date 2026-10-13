@@ -6,24 +6,37 @@
  const unitLabels={pairs:'parejas',gaps:'frases',multigaps:'huecos',numeric:'preguntas',quiz:'preguntas',short:'preguntas',order:'elementos',classify:'elementos',boolean:'preguntas',reading:'preguntas',problem:'problemas',flashcard:'tarjetas',memory:'parejas',sentence:'fragmentos',timeline:'eventos',error:'frases',wordsearch:'palabras',crossword:'palabras',dragdrop:'parejas',pasapalabra:'letras',hangman:'palabras',visualquiz:'imagen',imagepoint:'imagen'};
  const minSize=type=>['pasapalabra','wordsearch','crossword','dragdrop'].includes(type)?3:2;
  const maxSize=type=>limits[type]||12;
- const temporaryAiLoad=error=>{
+ const recoverableGenerationError=error=>{
   const status=Number(error?.status);
-  return status===429||status===504||status===503&&!/no hay una ia configurada|configura|clave|modelo/i.test(error.message||'');
+  if(status===503&&/no hay una ia configurada|configura|clave|modelo/i.test(error?.message||''))return false;
+  return error?.recoverable===true||[429,500,502,503,504].includes(status);
  };
+ function showGenerationRetry(notice,error){
+  if(!notice)return;
+  const status=Number(error?.status),busy=[429,503,504].includes(status);
+  const completed=Number(error?.completed)||0,total=Number(error?.total)||0;
+  notice.querySelector('strong').textContent=busy?'La IA está ocupada temporalmente':'La generación se ha interrumpido';
+  const progress=completed&&total?`${completed} de ${total} elementos válidos están guardados. `:'';
+  const billing=status?' Si el material sigue incompleto, no se han descontado créditos.':' Se consultará el mismo intento sin crear otro material.';
+  notice.querySelector('p').textContent=progress+(busy?'Espera unos segundos y reintenta. ':'Puedes reintentar con los mismos datos. ')+(error?.message||'')+billing;
+  notice.hidden=false;
+ }
  async function generateInBackground(body,status){
-  let job=await api('/api/profesor/generation/start',body),networkFailures=0;
+  let job;
+  try{job=await api('/api/profesor/generation/start',body)}catch(error){if(!error?.status)error.recoverable=true;throw error}
+  let networkFailures=0;
   const started=Date.now();
   while(job.status==='running'||job.status==='queued'){
    if(status)status.textContent=job.completed?`${job.completed} de ${job.total} elementos preparados. Comprobando los restantes…`:'Preparando el contenido y comprobando las respuestas…';
-   if(Date.now()-started>25*60*1000)throw Error('El material sigue en proceso. El progreso está guardado; pulsa Generar con IA para recuperarlo.');
+   if(Date.now()-started>25*60*1000)throw Object.assign(new Error('El material sigue en proceso. Pulsa Reintentar para consultar el mismo intento.'),{recoverable:true,completed:job.completed,total:job.total});
    await new Promise(resolve=>setTimeout(resolve,1500));
    try{job=await api('/api/profesor/generation/'+encodeURIComponent(body.request_id));networkFailures=0}
    catch(error){
-    if(++networkFailures>=6)throw Error('No se pudo consultar el progreso. La generación continúa en el servidor; vuelve a este material para recuperarla. '+error.message);
+    if(++networkFailures>=6)throw Object.assign(new Error('No se pudo consultar el progreso. La generación puede continuar en el servidor; pulsa Reintentar para recuperarla.'),{recoverable:true,completed:job.completed,total:job.total});
     if(status)status.textContent='Reconectando… El progreso está guardado.';
    }
   }
-  if(job.status!=='completed'||!job.result?.questions)throw Object.assign(new Error(job.error||'El intento se interrumpió. Pulsa Generar con IA para recuperar el progreso guardado.'),{status:job.error_status});
+  if(job.status!=='completed'||!job.result?.questions)throw Object.assign(new Error(job.error||'El intento se interrumpió. Pulsa Reintentar para recuperar el progreso guardado.'),{status:job.error_status,completed:job.completed,total:job.total,recoverable:job.status==='interrupted'});
   return job.result;
  }
  const originalMarkup=workshopMarkup;
@@ -151,7 +164,7 @@
      const fingerprint=JSON.stringify({...c,focus});
      try{const saved=JSON.parse(sessionStorage.getItem('profesor.generatorRetry')||'null');if(saved?.fingerprint===fingerprint&&(!saved.account||saved.account===accountEmail))generatorRetry=saved;}catch{}
      if(!generatorRetry||generatorRetry.fingerprint!==fingerprint)generatorRetry={fingerprint,id:crypto.randomUUID()};
-     generatorRetry.body={...c,focus};generatorRetry.account=accountEmail;
+     generatorRetry.body={...c,focus};generatorRetry.account=accountEmail;generatorRetry.recoverable=true;
      try{sessionStorage.setItem('profesor.generatorRetry',JSON.stringify(generatorRetry));}catch{}
      const response=await generateInBackground({...c,visualquiz:0,imagepoint:0,focus,request_id:generatorRetry.id},$('workshopStatus'));
      const generated=validateActivityQuestions(response.questions);
@@ -159,16 +172,19 @@
      questions=generated.map(q=>({...q,id:uid()}));const lastGroup=Math.max(0,...questions.map(q=>q.activityGroup||0));let photoGroup=lastGroup;
      for(const q of blank.filter(q=>visualTypes.includes(q.type)))questions.push({...q,activityGroup:++photoGroup});generatorRetry=null;try{sessionStorage.removeItem('profesor.generatorRetry')}catch{}
     }catch(error){
-     if(temporaryAiLoad(error)){
-      if(retryNotice)retryNotice.hidden=false;
+     if(recoverableGenerationError(error)){
+      if(generatorRetry){generatorRetry.recoverable=true;try{sessionStorage.setItem('profesor.generatorRetry',JSON.stringify(generatorRetry))}catch{}}
+      showGenerationRetry(retryNotice,error);
       return false;
      }
+     generatorRetry=null;try{sessionStorage.removeItem('profesor.generatorRetry')}catch{}
      throw error;
     }finally{workshopBusy=false;controls.forEach(([el,disabled])=>el.disabled=disabled);$('workshopStatus').textContent='';$('form').dispatchEvent(new Event('workshop:refresh'));}
    }
    const material={id:uid(),title:c.topic,subject:c.subject,studentId:c.studentId,kind:'Actividad interactiva',body:'',activity:{version:1,context:c,questions}};
    setTimeout(()=>editActivity(material),0);
   });setupWorkshop(owner,draft,st);
+  try{const saved=JSON.parse(sessionStorage.getItem('profesor.generatorRetry')||'null');if(saved?.recoverable&&saved.body&&saved.account===accountEmail)showGenerationRetry($('workshopRetryNotice'),{message:'Tienes un intento anterior. Pulsa Reintentar para continuarlo.'})}catch{}
   const retry=$('workshopRetryButton');
   if(retry)retry.onclick=()=>{$('workshopContinue').click()};
  };
@@ -252,8 +268,8 @@
      if(original.type==='classify'&&JSON.stringify([...next.options].sort())!==JSON.stringify([...original.options].sort()))throw Error('Las categorías compartidas deben conservarse.');
      previous=original;replaceQuestion(next);retry=null;undo.hidden=false;button.textContent='Regenerar con IA';status.textContent='Pregunta mejorada. Las demás se conservan. Guarda el material para conservar el cambio.';
     }catch(error){
-     if(temporaryAiLoad(error)){
-      status.textContent='La IA está ocupada temporalmente. El intento se conserva y no se han descontado créditos. Espera un momento y pulsa Reintentar.';
+     if(recoverableGenerationError(error)){
+      status.textContent=`${Number(error.completed)||0} de ${Number(error.total)||1} elementos preparados. ${error.message} El intento se conserva y no se han descontado créditos. Pulsa Reintentar.`;
       button.textContent='Reintentar';
      }else{status.textContent=error.message;button.textContent='Regenerar con IA'}
     }
