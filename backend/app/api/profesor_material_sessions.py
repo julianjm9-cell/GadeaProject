@@ -60,6 +60,11 @@ def clean_word(value: str) -> str:
     return "".join(ch for ch in unicodedata.normalize("NFD", value.upper()) if unicodedata.category(ch) != "Mn")
 
 
+def clean_hangman(value: str) -> str:
+    """Ignore accents while keeping N and Ñ as different playable letters."""
+    return clean_word(value.upper().replace("Ñ", "\x01")).replace("\x01", "Ñ")
+
+
 def rows(question: dict) -> list[list[str]]:
     return [[part.strip() for part in str(value).split("|")] for value in question.get("options", [])]
 
@@ -203,7 +208,7 @@ def safe_question(q: dict, all_questions: list[dict], completed: bool, revealed:
     elif kind == "multigaps":
         out["count"] = len(q.get("options", []))
     elif kind == "pasapalabra":
-        out["entries"] = [{"letter": parts[0], "clue": parts[1]} for parts in rows(q)]
+        out["entries"] = [{"letter": parts[0], "clue": parts[1], "mode": "starts_with" if clean_word(parts[2]).startswith(clean_word(parts[0])) else "contains"} for parts in rows(q)]
     elif kind == "dragdrop":
         pairs = rows(q)
         out["items"] = [pair[0] for pair in pairs]
@@ -218,8 +223,8 @@ def safe_question(q: dict, all_questions: list[dict], completed: bool, revealed:
         out["entries"] = q["_board"]["entries"]
     elif kind == "hangman":
         out["length"] = len(q.get("answer", ""))
-        solution = clean_word(q.get("answer", ""))
-        chosen = {clean_word(str(letter)) for letter in response if isinstance(letter, str) and len(letter) == 1} if isinstance(response, list) else set()
+        solution = clean_hangman(q.get("answer", ""))
+        chosen = {clean_hangman(str(letter)) for letter in response if isinstance(letter, str) and len(letter) == 1} if isinstance(response, list) else set()
         out["mask"] = "".join(c if c in chosen or not c.isalpha() else "_" for c in solution)
         out["errors"] = sum(letter not in solution for letter in chosen)
     if kind in {"visualquiz", "imagepoint"} and q.get("image"):
@@ -276,8 +281,8 @@ def grade(q: dict, value: object, part: int | None = None) -> str:
     if kind == "hangman":
         if not isinstance(value, list):
             return "unanswered"
-        letters = {clean_word(str(letter)) for letter in value if isinstance(letter, str) and len(letter) == 1}
-        solution = clean_word(q["answer"])
+        letters = {clean_hangman(str(letter)) for letter in value if isinstance(letter, str) and len(letter) == 1}
+        solution = clean_hangman(q["answer"])
         wrong = sum(letter not in solution for letter in letters)
         return "incorrect" if wrong >= 7 else "correct" if all(letter in letters for letter in solution if letter.isalpha()) else "unanswered"
     if kind == "pasapalabra":
@@ -315,8 +320,20 @@ def grade(q: dict, value: object, part: int | None = None) -> str:
             if part >= len(positions) or part >= len(value) or not isinstance(value[part], list):
                 return "incorrect"
             candidate = value[part]
-            expected = positions[part]
-            return "correct" if candidate == expected or candidate == expected[::-1] else "incorrect"
+            grid = q["_board"]["grid"]
+            word = q["_board"]["words"][part]
+            if len(candidate) != len(word) or len(candidate) < 2:
+                return "incorrect"
+            if any(not isinstance(cell, list) or len(cell) != 2 or any(type(n) is not int for n in cell) for cell in candidate):
+                return "incorrect"
+            r0, c0 = candidate[0]
+            dr, dc = candidate[1][0]-r0, candidate[1][1]-c0
+            if (dr == dc == 0) or abs(dr) > 1 or abs(dc) > 1:
+                return "incorrect"
+            if any(cell != [r0+i*dr, c0+i*dc] or not (0 <= cell[0] < len(grid) and 0 <= cell[1] < len(grid[cell[0]])) for i, cell in enumerate(candidate)):
+                return "incorrect"
+            selected = "".join(grid[r][c] for r, c in candidate)
+            return "correct" if selected == word or selected[::-1] == word else "incorrect"
         if len(value) < len(positions) or any(not item for item in value):
             return "unanswered"
         return "correct" if all(grade(q, value, i) == "correct" for i in range(len(positions))) else "incorrect"
@@ -550,8 +567,8 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
     row.progress = progress; row.revision += 1; db.commit(); db.refresh(row)
     extra = {}
     if questions[payload.question_index]["type"] == "hangman" and isinstance(payload.value, list):
-        solution = clean_word(questions[payload.question_index]["answer"])
-        chosen = {clean_word(str(v)) for v in payload.value if isinstance(v, str) and len(v) == 1}
+        solution = clean_hangman(questions[payload.question_index]["answer"])
+        chosen = {clean_hangman(str(v)) for v in payload.value if isinstance(v, str) and len(v) == 1}
         extra = {"mask": "".join(c if c in chosen or not c.isalpha() else "_" for c in solution), "errors": sum(c not in solution for c in chosen)}
     return {"ok": True, "revision": row.revision, "status": row.status, "feedback": feedback, "extra": extra,
             "session": public_session(row) if payload.action in {"finish", "start"} or (payload.action == "check" and questions[payload.question_index]["type"] == "timeline") else None}

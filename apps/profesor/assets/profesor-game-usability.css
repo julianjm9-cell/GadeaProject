@@ -1,0 +1,71 @@
+/* Shared advanced games: readable content, stable controls and visible focus. */
+.live-player:has([data-live-type="pasapalabra"]),.live-player:has([data-live-type="hangman"]),.live-player:has([data-live-type="wordsearch"]){background-color:#b8deff;background-size:cover;background-position:center;border-radius:24px;color:#102858}
+.live-player:has([data-live-type="pasapalabra"]){background-image:url('./games/pasapalabra-stage.png')}
+.live-player:has([data-live-type="hangman"]){background-image:url('./games/hangman-stage.png')}
+.live-player:has([data-live-type="wordsearch"]){background-image:url('./games/wordsearch-stage.png')}
+.live-player:has(:is([data-live-type="pasapalabra"],[data-live-type="hangman"],[data-live-type="wordsearch"])) .live-player-head{padding:14px;border-radius:16px;background:#ffffffed}
+.live-question:is([data-live-type="pasapalabra"],[data-live-type="hangman"],[data-live-type="wordsearch"]){background:#ffffffd9;min-width:0}
+.live-question:is([data-live-type="pasapalabra"],[data-live-type="hangman"],[data-live-type="wordsearch"])>h3{width:fit-content;max-width:100%;margin:16px auto;padding:10px 16px;background:#fff;border-radius:14px;color:#102858;text-align:center;overflow-wrap:anywhere}
+.live-pasapalabra-stage{position:relative;width:min(100%,550px);margin:auto}
+.live-pasapalabra-stage .live-advanced-rosco{width:100%;margin:0;aspect-ratio:1;border:0;background:none}
+.live-advanced-rosco :is(button,.live-empty-letter){position:absolute;display:grid;place-items:center;width:9.2%;height:9.2%;min-height:0;padding:0;border:2px solid white;border-radius:50%;transform:translate(-50%,-50%);background:#143f7d;color:#fff;font-size:clamp(13px,2.3vw,23px);font-weight:800;box-shadow:0 2px 6px #12345c25}
+.live-advanced-rosco .live-empty-letter{background:#9bb2c6;border-color:#dbe8f3;box-shadow:inset 0 2px 7px #213d6033}
+.live-advanced-rosco button.active{outline:4px solid #32e4ff;outline-offset:2px;background:#165bb3}
+.live-advanced-rosco button.correct{background:#16764c;color:#fff;border-color:#fff}
+.live-advanced-rosco button.incorrect{background:#aa3941;color:#fff;border-color:#fff}
+.live-pasapalabra-stage .live-clue{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);box-sizing:border-box;width:58%;height:49%;display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:22px;background:#f6fbff;text-align:center}
+.live-pasapalabra-stage .live-clue>strong{display:block;width:auto;height:auto;background:none;color:#0865d8;font-size:18px;line-height:1.2}
+.live-pasapalabra-stage .live-clue>p{flex:1;min-height:0;overflow:auto;margin:0;color:#102858;font-size:16px;font-weight:600;line-height:1.4;overflow-wrap:anywhere}
+.live-pasapalabra-stage .live-clue input{width:100%;box-sizing:border-box;min-height:44px;flex:none}
+.live-pasapalabra-stage .live-clue button{min-height:44px;flex:none;align-self:center;border:0;border-radius:10px;background:#096aec;color:#fff;padding:8px 16px;font-weight:750}
+.live-letter-navigation{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:20px}
+.live-letter-navigation button,.live-wordsearch-sidebar>button{min-height:44px;padding:9px 14px;border:1px solid #a9caf4;border-radius:12px;background:#fff;color:#085dc4;font-weight:750}
+.live-letter-navigation span{font-weight:750;white-space:nowrap}
+.live-game-summary{text-align:center;margin:4px 0;color:#173c6c;font-weight:650}
+.live-question:is([data-live-type="pasapalabra"],[data-live-type="wordsearch"]){container-type:inline-size}
+@container(max-width:450px){
+ .live-pasapalabra-stage{display:flex;flex-direction:column;gap:16px}
+ .live-pasapalabra-stage .live-clue{position:static;transform:none;width:100%;height:auto;min-height:240px}
+ .live-pasapalabra-stage .live-clue>p{min-height:70px;max-height:180px}
+}
+@container(max-width:600px){.live-wordsearch-board{grid-template-columns:1fr}.live-wordsearch-sidebar .live-words{display:flex;flex-wrap:wrap}.live-wordsearch-sidebar .live-words button{flex:1 1 100px}}
+.live-hangman-board{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr);gap:16px;align-items:center;padding:16px;border-radius:20px;background:#ffffffeb}
+.live-hangman-figure{grid-column:1;grid-row:1/4;align-self:stretch;display:grid;place-items:center;padding:12px;border-radius:16px;background:#e8f3ff}
+.live-hangman-figure svg{width:100%;max-width:190px;max-height:260px;color:#244d7b}
+.live-hangman-clue{grid-column:2;min-width:0;padding:14px;border-radius:14px;background:#edf6ff}
+.live-hangman-clue strong{color:#0869dc}.live-hangman-clue p{margin:7px 0 0;font-size:18px;line-height:1.45;color:#102858;overflow-wrap:anywhere}
+.live-hangman-lives{grid-column:2;display:flex;flex-wrap:wrap;align-items:center;gap:10px;color:#17345f}
+.live-hangman-lives>span{font-size:23px;color:#0869ed;letter-spacing:3px}.live-hangman-lives i{font-style:normal;color:#8294ad}
+.live-hangman-word{grid-column:2;display:flex;flex-wrap:wrap;justify-content:center;gap:7px;padding:14px;border-radius:14px;background:#edf6ff}
+.live-hangman-word>span{display:grid;place-items:center;min-width:25px;height:38px;border-bottom:3px solid #183d78;font-size:24px;font-weight:800;color:#102858}.live-hangman-word .word-space{border:0;width:12px;min-width:12px}
+.live-hangman-board .live-letters{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
+.live-hangman-board .live-letters button{width:46px;height:46px;border:1px solid #a9caf4;border-radius:11px;background:white;color:#102858;font-size:20px;font-weight:750}
+.live-hangman-board .live-letters button.correct{background:#e1f5e9;color:#17663e;border-color:#72b891}.live-hangman-board .live-letters button.incorrect{background:#dbe1eb;color:#495973;text-decoration:line-through}
+.live-hangman-help{grid-column:1/-1;text-align:center;margin:0;font-weight:650;color:#173c6c}
+.live-wordsearch-board{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,.45fr);gap:20px;align-items:start}
+.live-wordsearch-board .live-word-grid{width:100%;margin:0;display:grid;grid-template-columns:repeat(var(--size),minmax(0,1fr));gap:3px;touch-action:none;user-select:none}
+.live-wordsearch-board .live-word-grid button{width:100%;height:auto;min-width:0;min-height:0;aspect-ratio:1;padding:0;border:1px solid #d1e5fa;border-radius:7px;background:#f8fcff;color:#102858;font-size:clamp(11px,2vw,23px);font-weight:750}
+.live-wordsearch-board .live-word-grid button.found{background:#c4efda;color:#125537;border-color:#4daa7a}.live-wordsearch-board .live-word-grid button.picked{background:#1267d8;color:#fff}.live-wordsearch-board .live-word-grid button.hinted{outline:3px solid #d49200;outline-offset:-3px;background:#fff0b5}
+.live-wordsearch-sidebar{display:grid;gap:12px;min-width:0;padding:16px;background:#fffffff2;border-radius:16px}
+.live-wordsearch-sidebar p{margin:0;color:#254568;line-height:1.5}.live-wordsearch-sidebar .live-words{display:grid;gap:7px}
+.live-wordsearch-sidebar .live-words button{min-height:44px;padding:8px;border:1px solid #b9d5f3;border-radius:12px;background:#eef6ff;text-align:left;overflow-wrap:anywhere;color:#143461;font-weight:700}
+.live-wordsearch-sidebar .live-words button.correct{background:#d9f4e5;color:#17603c;text-decoration:line-through}.live-wordsearch-sidebar .live-words button.active{border:2px solid #1165d4}
+.live-wordsearch-status{min-height:3em;font-weight:650}
+.activity-play [data-type="pasapalabra"] .pasapalabra-card>p,.activity-play [data-type="pasapalabra"] .pasapalabra-card:is(.long-clue,.very-long-clue)>p{font-size:16px;min-height:0;overflow:auto;line-height:1.35}
+.activity-play :is(button,input,[tabindex]):focus-visible,.live-player :is(button,input,[tabindex]):focus-visible{outline:3px solid #f1a800;outline-offset:3px}
+.flashcard-copy-long{font-weight:600;text-align:left;line-height:1.5}
+@media(max-width:700px){
+ .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])) .play-content{overflow:auto}
+ .activity-play .play-question[data-type="pasapalabra"],.activity-play .play-question[data-type="pasapalabra"] .question-workspace,.activity-play .play-question[data-type="pasapalabra"] .question-controls,.activity-play .play-question[data-type="pasapalabra"] [id^="puzzle-"]{flex:none}
+ .activity-play .play-question[data-type="pasapalabra"]{gap:10px;padding-bottom:12px!important}
+ .activity-play [data-type="pasapalabra"] .pasapalabra-meta{font-size:11px;min-height:70px;margin-top:10px}
+ .activity-play [data-type="pasapalabra"] .pasapalabra-controls button,.activity-play [data-type="pasapalabra"] .play-solution-link{min-height:44px;font-size:13px}
+ .live-player{padding:12px}.live-question:is([data-live-type="pasapalabra"],[data-live-type="hangman"],[data-live-type="wordsearch"]){padding:12px}
+ .live-pasapalabra-stage{display:flex;flex-direction:column;gap:16px}.live-pasapalabra-stage .live-clue{position:static;transform:none;width:100%;height:auto;min-height:240px}.live-pasapalabra-stage .live-clue>p{min-height:70px;max-height:180px}
+ .live-hangman-board{grid-template-columns:90px minmax(0,1fr);padding:12px;gap:12px}.live-hangman-figure{grid-row:1/3;padding:4px}.live-hangman-clue p{font-size:16px}.live-hangman-lives{grid-column:1/-1;justify-content:center}.live-hangman-word{grid-column:1/-1}.live-hangman-board .live-letters button{width:44px;height:44px}
+ .live-wordsearch-board{grid-template-columns:1fr}.live-wordsearch-sidebar .live-words{display:flex;flex-wrap:wrap}.live-wordsearch-sidebar .live-words button{flex:1 1 100px}.live-wordsearch-sidebar{padding:12px}
+ .activity-play [data-type="pasapalabra"] .rosco-layout{display:flex;flex-direction:column;gap:14px;width:min(100%,300px);aspect-ratio:auto}
+ .activity-play [data-type="pasapalabra"] .pasapalabra-wheel{position:relative;width:100%;aspect-ratio:1;flex:none}
+ .activity-play [data-type="pasapalabra"] .pasapalabra-card{position:static;transform:none;width:100%;height:240px;flex:none;padding:14px}
+ .activity-play [data-type="pasapalabra"] .pasapalabra-card>span{font-size:17px}.activity-play [data-type="pasapalabra"] .pasapalabra-card input,.activity-play [data-type="pasapalabra"] .pasapalabra-card [data-answer]{min-height:44px;font-size:16px}
+}

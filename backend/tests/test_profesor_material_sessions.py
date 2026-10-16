@@ -125,6 +125,36 @@ def test_periodic_cleanup_removes_completed_responses_too(client):
         assert db.get(ProfesorMaterialSession, UUID(current["id"])) is not None
 
 
+def test_pasapalabra_clue_mode_without_disclosing_answers():
+    from app.api.profesor_material_sessions import safe_question
+    q = {'id': 'p', 'type': 'pasapalabra', 'prompt': 'Rosco', 'options': ['A | Animal doméstico | gato', 'B | Medio de transporte | barco'], 'answer': 'Completado'}
+    safe = safe_question(q, [q], False)
+    assert [entry['mode'] for entry in safe['entries']] == ['contains', 'starts_with']
+    assert 'gato' not in str(safe) and 'barco' not in str(safe)
+
+
+def test_hangman_distinguishes_enye_preserves_punctuation_and_hides_answer():
+    from app.api.profesor_material_sessions import grade, safe_question
+    q = {'id': 'h', 'type': 'hangman', 'prompt': 'Una persona pequeña', 'answer': 'NIÑO-2'}
+    safe = safe_question(q, [q], False, response=['N', 'I', 'O'])
+    assert safe['mask'] == 'NI_O-2' and safe['errors'] == 0
+    assert 'answer' not in safe and 'solution' not in safe
+    assert grade(q, ['N', 'I', 'O']) == 'unanswered'
+    assert grade(q, ['N', 'I', 'Ñ', 'O']) == 'correct'
+    assert safe_question(q, [q], False, response=['N', 'X'])['errors'] == 1
+
+
+def test_wordsearch_accepts_alternative_occurrences_and_rejects_invalid_paths():
+    from app.api.profesor_material_sessions import grade
+    q = {'type': 'wordsearch', '_board': {'grid': [list('CASA'), list('CASA'), list('XXXX'), list('XXXX')], 'words': ['CASA'], 'positions': [[[0, c] for c in range(4)]]}}
+    alternative = [[1, c] for c in range(4)]
+    assert grade(q, [alternative], 0) == 'correct'
+    assert grade(q, [alternative[::-1]], 0) == 'correct'
+    assert grade(q, [alternative]) == 'correct'
+    for invalid in [[[0, 0], [0, 1], [1, 2], [1, 3]], [[0, 0]] * 4, [[-1, c] for c in range(4)], [[True, c] for c in range(4)], [[4, c] for c in range(4)], [[0, 0], [0, 1]]]:
+        assert grade(q, [invalid], 0) == 'incorrect'
+
+
 def test_game_grading_does_not_send_hidden_keys():
     from app.api.profesor_material_sessions import grade, prepare, safe_question
     pasapalabra = prepare({"id": "p", "type": "pasapalabra", "prompt": "Rosco", "options": ["A | Pista | Azul", "B | Pista | Barco"], "answer": "Completado"}, 1)

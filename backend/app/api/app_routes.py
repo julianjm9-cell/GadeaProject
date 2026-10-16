@@ -735,6 +735,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-game-theme.css")
 @router.get("/assets/profesor-pasapalabra-theme.css")
 @router.get("/assets/profesor-flashcard-theme.css")
+@router.get("/assets/profesor-game-usability.css")
 @router.get("/assets/profesor-timeline-theme.css")
 @router.get("/assets/profesor-sentence-theme.css")
 @router.get("/assets/profesor-memory-theme.css")

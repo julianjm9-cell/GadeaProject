@@ -158,7 +158,7 @@
     const root = $('puzzle-' + index), answer = $('r-' + index);
     const solutionDock = document.querySelector('.wordsearch-solution-dock');
     const words = puzzleRows('wordsearch', question.options), board = buildWordSearch(words);
-    const found = new Set();
+    const found = new Set(), foundPaths = new Map();
     let start = null, selection = [], hintCell = null, message = 'Marca una palabra arrastrando o tocando su primera y última letra.';
     let dragging = false, dragStart = null, moved = false, misses = 0, showSolution = false;
     const cellIndex = (row, col) => row * board.size + col;
@@ -175,7 +175,7 @@
         review: () => board.placements.forEach((placement, n) => { if (!found.has(n)) placementPath(placement).forEach(cell => root.querySelector(`[data-cell="${cell}"]`)?.classList.add('solution')); }) });
     }
     function paintSelection() {
-      const marked = new Set(selection), discovered = new Set([...found].flatMap(n => placementPath(board.placements[n])));
+      const marked = new Set(selection), discovered = new Set([...found].flatMap(n => foundPaths.get(n) || placementPath(board.placements[n])));
       const remaining = showSolution ? new Set(board.placements.flatMap((placement, n) => found.has(n) ? [] : placementPath(placement))) : new Set();
       root.querySelectorAll('[data-cell]').forEach(button => {
         const cell = Number(button.dataset.cell);
@@ -202,7 +202,7 @@
       paintSelection();
     }
     function draw() {
-      root.innerHTML = `<div class="wordsearch-board"><div class="wordsearch-grid-wrap"><div class="puzzle-grid wordsearch-grid" role="group" aria-label="Sopa de letras de ${board.size} filas y ${board.size} columnas" style="--puzzle-size:${board.size}">${board.grid.flatMap((row, r) => row.map((letter, c) => `<button type="button" data-cell="${cellIndex(r,c)}" aria-label="Fila ${r+1}, columna ${c+1}, letra ${letter}" aria-pressed="false">${escape(letter)}</button>`)).join('')}</div></div><aside class="wordsearch-sidebar"><div class="wordsearch-progress"><span>Palabras encontradas</span><strong>${found.size}<small> / ${words.length}</small></strong><div role="progressbar" aria-label="Palabras encontradas" aria-valuemin="0" aria-valuemax="${words.length}" aria-valuenow="${found.size}"><span style="width:${found.size / words.length * 100}%"></span></div></div><div class="wordsearch-list"><h4>Palabras a encontrar</h4><ul>${words.map((word, n) => `<li class="${found.has(n) ? 'found' : ''}"><span aria-hidden="true">${found.has(n) ? '✓' : '⌕'}</span>${escape(word)}</li>`).join('')}</ul></div><p class="wordsearch-status" role="status">${escape(message)}</p><div class="wordsearch-actions"><button type="button" data-wordsearch-hint>Pista</button><button type="button" data-wordsearch-check class="primary">Comprobar</button><button type="button" data-wordsearch-clear>Borrar selección</button></div></aside></div>`;
+      root.innerHTML = `<div class="wordsearch-board"><div class="wordsearch-grid-wrap"><div class="puzzle-grid wordsearch-grid" role="group" aria-label="Sopa de letras de ${board.size} filas y ${board.size} columnas" style="--puzzle-size:${board.size}">${board.grid.flatMap((row, r) => row.map((letter, c) => `<button type="button" data-cell="${cellIndex(r,c)}" tabindex="${r===0&&c===0?0:-1}" aria-label="Fila ${r+1}, columna ${c+1}, letra ${letter}" aria-pressed="false">${escape(letter)}</button>`)).join('')}</div></div><aside class="wordsearch-sidebar"><div class="wordsearch-progress"><span>Palabras encontradas</span><strong>${found.size}<small> / ${words.length}</small></strong><div role="progressbar" aria-label="Palabras encontradas" aria-valuemin="0" aria-valuemax="${words.length}" aria-valuenow="${found.size}"><span style="width:${found.size / words.length * 100}%"></span></div></div><div class="wordsearch-list"><h4>Palabras a encontrar</h4><ul>${words.map((word, n) => `<li class="${found.has(n) ? 'found' : ''}"><span aria-hidden="true">${found.has(n) ? '✓' : '⌕'}</span>${escape(word)}</li>`).join('')}</ul></div><p class="wordsearch-status" role="status">${escape(message)}</p><div class="wordsearch-actions"><button type="button" data-wordsearch-hint ${found.size===words.length?'disabled':''}>Pista</button><button type="button" data-wordsearch-check class="primary">Comprobar</button><button type="button" data-wordsearch-clear>Borrar selección</button></div></aside></div>`;
       if (solutionDock) root.querySelector('.wordsearch-sidebar').append(solutionDock);
       const bindAction = (selector, action) => {
         const button = root.querySelector(selector);
@@ -233,15 +233,21 @@
     }
     function check() {
       if (isChecked() || selection.length < 3) return;
-      const chosen = board.placements.findIndex((placement, n) => {
-        if (found.has(n)) return false;
-        const path = placementPath(placement);
-        return path.length === selection.length && (path.every((cell, i) => cell === selection[i]) || path.every((cell, i) => cell === selection[path.length - i - 1]));
-      });
-      if (chosen >= 0) { found.add(chosen); hintCell = null; recordAnswer(index, chosen, true, words[chosen]); message = found.size === words.length ? '¡Muy bien! Has encontrado todas las palabras.' : `¡Encontraste ${words[chosen]}! Sigue con las demás.`; }
+      const text=selection.map(cell=>board.grid[Math.floor(cell/board.size)][cell%board.size]).join('');
+      const chosen=words.findIndex((word,n)=>!found.has(n)&&(word===text||word===[...text].reverse().join('')));
+      if (chosen >= 0) { foundPaths.set(chosen,[...selection]); found.add(chosen); hintCell = null; recordAnswer(index, chosen, true, words[chosen]); message = found.size === words.length ? '¡Muy bien! Has encontrado todas las palabras.' : `¡Encontraste ${words[chosen]}! Sigue con las demás.`; }
       else { recordAnswer(index, 'miss-' + ++misses, false, selection.join('-')); message = 'Esa selección no coincide con una palabra pendiente. Inténtalo de nuevo.'; }
       start = null; selection = []; draw();
     }
+    root.addEventListener('keydown',event=>{
+      const cell=event.target.closest('[data-cell]');
+      if(!cell||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+      event.preventDefault();const n=Number(cell.dataset.cell),r=Math.floor(n/board.size),c=n%board.size;
+      const row=Math.max(0,Math.min(board.size-1,r+(event.key==='ArrowDown'?1:event.key==='ArrowUp'?-1:0)));
+      const col=Math.max(0,Math.min(board.size-1,c+(event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:0)));
+      root.querySelectorAll('[data-cell]').forEach(button=>button.tabIndex=Number(button.dataset.cell)===cellIndex(row,col)?0:-1);
+      root.querySelector(`[data-cell="${cellIndex(row,col)}"]`)?.focus({preventScroll:true});
+    });
     root.addEventListener('click', event => {
       const button = event.target.closest('[data-cell]');
       if (button && event.detail === 0 && !isChecked()) setSelection(Number(button.dataset.cell));
@@ -289,11 +295,12 @@
     const root = $('memory-' + index), answer = $('r-' + index), status = $('memory-status-' + index);
     let opened = [], moves = 0, busy = false;
     const matched = new Set();
-    function draw() {
+    root.tabIndex=-1;
+    function draw(focusPosition=null) {
       root.style.setProperty('--memory-columns', cards.length === 4 ? 2 : cards.length <= 6 ? 3 : 4);
       root.classList.toggle('memory-long-text', cards.some(card => card.label.length > 70));
       root.innerHTML = cards.map((card, n) => `<button type="button" class="memory-card ${matched.has(card.id) ? 'matched' : ''} ${opened.includes(n) ? 'revealed' : ''}" data-card="${n}" aria-label="${opened.includes(n) || matched.has(card.id) ? escape(card.label) : `Tarjeta ${n + 1}`}" aria-pressed="${opened.includes(n) || matched.has(card.id)}" ${matched.has(card.id) || busy || isChecked() ? 'disabled' : ''}><span class="memory-card-content">${opened.includes(n) || matched.has(card.id) ? escape(card.label) : '<span class="memory-card-mark" aria-hidden="true">✦</span>'}</span>${matched.has(card.id) ? '<small>✓ Pareja</small>' : ''}</button>`).join('');
-      status.textContent = `${matched.size}/${pairs.length} parejas · ${moves} intentos${matched.size === pairs.length ? ' · ¡Completado!' : busy ? ' · Prueba otra pareja' : ''}`;
+      status.textContent = `${matched.size}/${pairs.length} parejas · ${moves} ${moves===1?'intento':'intentos'}${matched.size === pairs.length ? ' · ¡Completado!' : busy ? ' · Prueba otra pareja' : ''}`;
       const progress = root.parentElement.querySelector('progress');
       if (progress) { progress.max = pairs.length; progress.value = matched.size; }
       root.querySelectorAll('[data-card]').forEach(button => button.onclick = () => {
@@ -303,11 +310,12 @@
         if (opened.length === 2) {
           moves++;
           if (cards[opened[0]].id === cards[opened[1]].id) { recordAnswer(index,cards[n].id,true,'matched');matched.add(cards[n].id); opened = []; if (matched.size === pairs.length) { answer.value = 'Completado'; answer.dispatchEvent(new Event('input', { bubbles: true })); } }
-          else { opened.forEach(pos=>recordAnswer(index,cards[pos].id,false,'miss-'+moves));busy = true; setTimeout(() => { if (!root.isConnected) return; opened = []; busy = false; draw(); }, 950); }
+          else { opened.forEach(pos=>recordAnswer(index,cards[pos].id,false,'miss-'+moves));busy = true; setTimeout(() => { if (!root.isConnected) return; const restore=document.activeElement===root;opened = []; busy = false; draw(restore?n:null); }, 950); }
         }
-        draw();
+        draw(n);
         if(busy)root.querySelectorAll('.memory-card.revealed').forEach(card=>{card.classList.add('answer-wrong');card.insertAdjacentHTML('beforeend','<small>× Otra pareja</small>')});
       });
+      if(focusPosition!==null){const target=root.querySelector(`[data-card="${focusPosition}"]:not(:disabled)`)||root.querySelector('[data-card]:not(:disabled)');(target||root).focus({preventScroll:true});}
     }
     draw();
   };
@@ -360,8 +368,9 @@
         const clue = root.querySelector('.pasapalabra-card>p');
         if (!clue) return;
         clue.style.fontSize = '';
+        clue.tabIndex=0;clue.setAttribute('aria-label','Pista');
         let clueSize = parseFloat(getComputedStyle(clue).fontSize);
-        while (clue.scrollHeight > clue.clientHeight + 1 && clueSize > 7) {
+        while (clue.scrollHeight > clue.clientHeight + 1 && clueSize > 14) {
           clueSize -= .5;
           clue.style.fontSize = `${clueSize}px`;
         }
@@ -388,8 +397,8 @@
         input.onkeydown = event => { if (event.key === 'Enter') { event.preventDefault(); saveAnswer(); } };
         root.querySelector('[data-answer]').onclick = saveAnswer;
         root.querySelector('[data-review-rosco]')?.addEventListener('click',()=>{active=Math.max(0,outcomes.findIndex(v=>v===false));focusInput=true;draw();});
-        root.querySelector('[data-prev]').onclick = () => { if (isChecked()) return; active = (active - 1 + rows.length) % rows.length; focusInput = false; draw(); };
-        root.querySelector('[data-next]').onclick = () => { if (isChecked()) return; if (!values[active]) passed.add(active); active = (active + 1) % rows.length; focusInput = false; draw(); };
+        root.querySelector('[data-prev]').onclick = () => { if (isChecked()) return; active = (active - 1 + rows.length) % rows.length; focusInput = true; draw(); };
+        root.querySelector('[data-next]').onclick = () => { if (isChecked()) return; if (!values[active]) passed.add(active); active = (active + 1) % rows.length; focusInput = true; draw(); };
         if (focusInput) input.focus({ preventScroll: true });
       };
       const saveAnswer = () => {
@@ -672,8 +681,8 @@
     const draw = () => {
       const failed = misses() >= 7, finished = won() || failed;
       const errors = misses(), parts = ['<circle cx="75" cy="36" r="11"/>','<path d="M75 47V74"/>','<path d="M75 53L55 64"/>','<path d="M75 53L95 64"/>','<path d="M75 74L57 96"/>','<path d="M75 74L93 96"/>','<path d="M71 33l2 2m6-2l-2 2"/>'];
-      const wordMarkup = solution.split(/(\s+|-)/).filter(Boolean).map(segment => /^\s+$/.test(segment) ? '<span class="word-gap" aria-hidden="true">&nbsp;</span>' : segment === '-' ? '<span class="word-separator">-</span>' : `<span class="hangman-word-group">${[...segment].map(letter => `<span class="letter-slot">${chosen.has(letter) || finished ? escape(letter) : '&nbsp;'}</span>`).join('')}</span>`).join('');
-      root.innerHTML = `<div class="hangman-board"><div class="hangman-figure" data-errors="${errors}" aria-label="${errors} de 7 fallos"><svg viewBox="0 0 115 115" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 105H95M30 105V10H75V25"/>${parts.slice(0, errors).join('')}</svg></div><div class="hangman-clue"><span class="hangman-clue-mark" aria-hidden="true">💡</span><div><strong>Pista:</strong><p>${rich(question.prompt)}</p></div></div><div class="hangman-attempts" role="status" aria-label="${7-errors} de 7 intentos restantes"><strong>Intentos restantes</strong><div class="hangman-hearts" aria-hidden="true">${Array.from({length:7},(_,heart)=>`<span class="${heart>=7-errors?'lost':''}">♥</span>`).join('')}</div><small>${7-errors} de 7</small></div><div class="hangman-word-panel"><div class="hangman-word ${solution.length > 26 ? 'very-long-word' : solution.length > 16 ? 'long-word' : ''}" aria-live="polite">${wordMarkup}</div></div><div class="hangman-keyboard" aria-label="Letras disponibles">${letters.map(letter => `<button type="button" class="${chosen.has(letter) ? solution.includes(letter) ? 'answer-right' : 'answer-wrong' : ''}" data-hangman-letter="${letter}" aria-label="Letra ${letter}" ${chosen.has(letter) || finished ? 'disabled' : ''}>${letter}</button>`).join('')}</div></div><div class="hangman-bottom"><button type="button" data-hangman-reset ${won()?'disabled':''}>↻ Reiniciar</button><button type="button" class="primary" data-hangman-check>✓ Comprobar</button><p class="hangman-status" role="status">${finished ? won() ? '✓ ¡Palabra descubierta!' : `La respuesta era ${escape(question.answer)}.` : ''}</p></div>`;
+      const wordMarkup = solution.split(/(\s+|-)/).filter(Boolean).map(segment => /^\s+$/.test(segment) ? '<span class="word-gap" aria-hidden="true">&nbsp;</span>' : segment === '-' ? '<span class="word-separator">-</span>' : `<span class="hangman-word-group">${[...segment].map(letter => `<span class="letter-slot">${chosen.has(letter) || !/[A-ZÑ]/.test(letter) || finished ? escape(letter) : '&nbsp;'}</span>`).join('')}</span>`).join('');
+      root.innerHTML = `<div class="hangman-board"><div class="hangman-figure" data-errors="${errors}" aria-label="${errors} de 7 fallos"><svg viewBox="0 0 115 115" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 105H95M30 105V10H75V25"/>${parts.slice(0, errors).join('')}</svg></div><div class="hangman-clue"><span class="hangman-clue-mark" aria-hidden="true">💡</span><div><strong>Pista:</strong><p>${rich(question.prompt)}</p></div></div><div class="hangman-attempts" role="status" aria-label="${7-errors} de 7 intentos restantes"><strong>Intentos restantes</strong><div class="hangman-hearts" aria-hidden="true">${Array.from({length:7},(_,heart)=>`<span class="${heart>=7-errors?'lost':''}">♥</span>`).join('')}</div><small>${7-errors} de 7</small></div><div class="hangman-word-panel"><div class="hangman-word ${solution.length > 26 ? 'very-long-word' : solution.length > 16 ? 'long-word' : ''}" aria-live="polite">${wordMarkup}</div></div><div class="hangman-keyboard" aria-label="Letras disponibles">${letters.map(letter => `<button type="button" class="${chosen.has(letter) ? solution.includes(letter) ? 'answer-right' : 'answer-wrong' : ''}" data-hangman-letter="${letter}" aria-label="Letra ${letter}" ${chosen.has(letter) || finished ? 'disabled' : ''}>${letter}</button>`).join('')}</div></div><div class="hangman-bottom"><button type="button" data-hangman-reset ${won()?'disabled':''}>↻ Reiniciar</button><button type="button" class="primary" data-hangman-check>¿Cómo voy?</button><p class="hangman-status" role="status">${finished ? won() ? '✓ ¡Palabra descubierta!' : `La respuesta era ${escape(question.answer)}.` : ''}</p></div>`;
       root.querySelector('[data-hangman-reset]').onclick=()=>{if(isChecked()||won())return;chosen.clear();answer.value='';const feedback=$('feedback-'+index);feedback.textContent='';feedback.className='play-feedback prewrap';root.closest('.play-question')?.removeAttribute('data-result');draw();root.focus({preventScroll:true});};
       root.querySelector('[data-hangman-check]').onclick=()=>{const status=root.querySelector('.hangman-status');if(finished){status.textContent=won()?'✓ ¡Palabra descubierta!':`La respuesta era ${question.answer}.`;return;}status.textContent=`Aún faltan letras. Te quedan ${7-errors} intentos.`;};
       root.querySelectorAll('[data-hangman-letter]').forEach(button => button.onclick = () => {
@@ -688,7 +697,7 @@
     };
     root.tabIndex = 0;
     root.setAttribute('aria-label', 'Ahorcado. Escribe una letra con el teclado.');
-    root.addEventListener('keydown', event => { const key = letterKey(event.key); if (!isChecked() && key.length === 1 && letters.includes(key)) { event.preventDefault(); root.querySelector(`[data-hangman-letter="${key}"]:not(:disabled)`)?.click(); root.focus({ preventScroll: true }); } });
+    root.addEventListener('keydown', event => { const key = letterKey(event.key); if (!event.ctrlKey && !event.metaKey && !event.altKey && !event.repeat && !isChecked() && key.length === 1 && letters.includes(key)) { event.preventDefault(); root.querySelector(`[data-hangman-letter="${key}"]:not(:disabled)`)?.click(); root.focus({ preventScroll: true }); } });
     draw();
   }
 
@@ -733,6 +742,7 @@
       const box=$('feedback-'+index),q=questions[index];box.className='play-feedback '+(grade==='correct'?'is-correct':grade==='pending'?'is-pending':'is-incorrect');
       const selected=String(new FormData($('form')).get('r-'+index)||''),reason=q.optionFeedback?.find(row=>row.option===selected)?.explanation;
       box.innerHTML=grade==='correct'?'✓ ¡Correcto!'+(reason||q.explanation?'<div>'+rich(reason||q.explanation)+'</div>':''):grade==='pending'?'◷ Respuesta guardada. La revisa el profesor.'+(q.rubric?'<div>'+rich(q.rubric)+'</div>':''):'× Revisa tu respuesta. Puedes volver a intentarlo o consultar la solución.'+(reason?'<div>'+rich(reason)+'</div>':'');
+      if(q.type==='flashcard')box.textContent={correct:'✓ Valoración guardada: la sabías.',partial:'◷ Valoración guardada: con ayuda.',incorrect:'↻ Guardada para repasar. Puedes volver a girar la tarjeta.'}[grade]||'Valoración guardada.';
       if(grade==='correct'&&sequenceTypes.includes(q.type)&&q.itemExplanations?.length)box.innerHTML+=itemReasons(q);
       document.querySelector(`[data-question="${index}"]`).dataset.result=grade;
     }

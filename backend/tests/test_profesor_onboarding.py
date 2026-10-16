@@ -39,7 +39,7 @@ def test_signup_has_no_personal_content_and_public_assets_work(client):
     for path in ['/assets/landing/profesor-materiales.png','/assets/landing/profesor-dashboard.png','/assets/landing/profesor-mobile.png']:
         response=web.get(path)
         assert response.status_code == 200 and response.content.startswith(b'\x89PNG')
-    for path in ['/assets/games/pasapalabra-stage.png', '/assets/games/wordsearch-stage.png', '/assets/games/memory-stage.png', '/assets/games/flashcard-stage.png', '/assets/games/sentence-stage.png', '/assets/games/timeline-stage.png']:
+    for path in ['/assets/games/hangman-stage.png', '/assets/games/pasapalabra-stage.png', '/assets/games/wordsearch-stage.png', '/assets/games/memory-stage.png', '/assets/games/flashcard-stage.png', '/assets/games/sentence-stage.png', '/assets/games/timeline-stage.png']:
         response=web.get(path)
         assert response.status_code == 200 and response.content.startswith(b'\x89PNG')
     assert web.get('/assets/profesor-wordsearch-theme.css').status_code == 200
@@ -84,6 +84,16 @@ def test_sentence_board_is_served_for_personal_and_shared_players(client):
     assert css.status_code==200 and 'sentence-stage.png' in css.text
     for path in ['/profesor/demo','/profesor/alumno']:
         assert 'profesor-sentence-board.js' in web.get(path).text
+
+
+def test_advanced_usability_styles_are_available_for_both_players(client):
+    web, _ = client
+    css = web.get('/assets/profesor-game-usability.css')
+    assert css.status_code == 200
+    for background in ['pasapalabra-stage.png', 'hangman-stage.png', 'wordsearch-stage.png']:
+        assert background in css.text
+    for path in ['/profesor/demo', '/profesor/alumno']:
+        assert 'profesor-game-usability.css' in web.get(path).text
 
 
 def test_timeline_theme_is_served_to_both_players(client):
