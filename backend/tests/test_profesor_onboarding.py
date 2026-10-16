@@ -39,7 +39,7 @@ def test_signup_has_no_personal_content_and_public_assets_work(client):
     for path in ['/assets/landing/profesor-materiales.png','/assets/landing/profesor-dashboard.png','/assets/landing/profesor-mobile.png']:
         response=web.get(path)
         assert response.status_code == 200 and response.content.startswith(b'\x89PNG')
-    for path in ['/assets/games/pasapalabra-stage.png', '/assets/games/wordsearch-stage.png', '/assets/games/memory-stage.png', '/assets/games/flashcard-stage.png']:
+    for path in ['/assets/games/pasapalabra-stage.png', '/assets/games/wordsearch-stage.png', '/assets/games/memory-stage.png', '/assets/games/flashcard-stage.png', '/assets/games/sentence-stage.png']:
         response=web.get(path)
         assert response.status_code == 200 and response.content.startswith(b'\x89PNG')
     assert web.get('/assets/profesor-wordsearch-theme.css').status_code == 200
@@ -75,3 +75,12 @@ def test_new_google_teacher_gets_the_same_premium_plan(client):
         db.commit()
         plans = [license_obj.plan for license_obj in db.query(License).filter(License.product_code == 'PROFESOR_PARTICULAR')]
         assert plans == ['PROFESOR_PREMIUM']
+
+
+def test_sentence_board_is_served_for_personal_and_shared_players(client):
+    web,_=client
+    assert 'profesorSentenceBoard' in web.get('/profesor-sentence-board.js').text
+    css=web.get('/assets/profesor-sentence-theme.css')
+    assert css.status_code==200 and 'sentence-stage.png' in css.text
+    for path in ['/profesor/demo','/profesor/alumno']:
+        assert 'profesor-sentence-board.js' in web.get(path).text

@@ -510,7 +510,7 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
     elif payload.action in {"draft", "check", "next", "finish"}:
         if payload.value is not None:
             responses = dict(progress.get("responses", {})); responses[str(payload.question_index)] = payload.value; progress["responses"] = responses
-            if payload.action == "draft" and questions[payload.question_index]["type"] in {"timeline", "error"}:
+            if payload.action == "draft" and questions[payload.question_index]["type"] in {"timeline", "error", "sentence"}:
                 grades = dict(progress.get("grades", {})); grades.pop(str(payload.question_index), None); progress["grades"] = grades
                 if questions[payload.question_index]["type"] == "timeline":
                     parts = dict(progress.get("parts", {})); parts.pop(str(payload.question_index), None); progress["parts"] = parts

@@ -248,3 +248,26 @@ def test_flashcard_reveal_and_self_assessment_survive_reload(client, monkeypatch
         finished = pupil.post(path + '/move', json={'action': 'finish'}).json()['session']
         assert finished['status'] == 'completed'
         assert finished['progress']['grades']['0'] == 'correct'
+
+
+def test_sentence_draft_preserves_duplicates_and_clears_previous_grade(client, monkeypatch):
+    import sys
+    pieces=['I','like','tea','and','I','like','coffee.']
+    monkeypatch.setattr(sys.modules[__name__], 'material_questions', lambda: [
+        {'id':'sentence','type':'sentence','prompt':'Ordena la frase.',
+         'options':pieces,'answer':' → '.join(pieces)}
+    ])
+    web,_=prepare_teacher(client)
+    session=web.post('/api/profesor/material-sessions',json={'material_id':'m1'}).json()['session']
+    with TestClient(app) as pupil:
+        assert pupil.post('/auth/profesor/student-join',json={'code':session['join_code']}).status_code==200
+        path=f"/api/profesor/student-material-sessions/{session['id']}"
+        pupil.post(path+'/move',json={'action':'start'})
+        assert pupil.post(path+'/move',json={'action':'check','value':pieces}).json()['feedback']=='correct'
+        changed=['I','like']
+        assert pupil.post(path+'/move',json={'action':'draft','value':changed}).status_code==200
+        reloaded=pupil.get(path).json()['session']
+        assert reloaded['progress']['responses']['0']==changed
+        assert '0' not in reloaded['progress'].get('grades',{})
+        assert pupil.post(path+'/move',json={'action':'check','value':pieces}).json()['feedback']=='correct'
+        assert pupil.get(path).json()['session']['progress']['responses']['0'].count('I')==2

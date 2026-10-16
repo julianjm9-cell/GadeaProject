@@ -14,10 +14,9 @@ const path=require('node:path');
   ];
   await page.evaluate(qs=>runActivity({id:'repair',title:'Revisión',subject:'Matemáticas',activity:{questions:qs}},state.students[0].id),questions);
   const desired=['Para obtener','multiplica numerador','así conservas'];
-  for(let target=0;target<desired.length;target++){
-    let rows=await page.locator('#order-0 [data-sequence-row]').allInnerTexts();
-    let current=rows.findIndex(text=>text.includes(desired[target]));
-    while(current>target){await page.locator(`#order-0 [data-sequence-row="${current}"] [data-move="-1"]`).click();current--;}
+  assert.equal(await page.locator('#order-0 [data-confirm-order]').isEnabled(),false);
+  for(const fragment of desired){
+    await page.getByRole('button',{name:new RegExp('^Añadir '+fragment)}).click();
   }
   await page.locator('#order-0 [data-confirm-order]').click();
   assert.match(await page.locator('#feedback-0').innerText(),/Correcto/);
