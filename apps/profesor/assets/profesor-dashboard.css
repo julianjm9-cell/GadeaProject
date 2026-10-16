@@ -22,6 +22,11 @@ html:has(body.app-shell-view){scrollbar-gutter:stable}
   background-attachment:fixed;
   background-repeat:no-repeat;
 }
+html.teacher-plain-background .app-shell-view .home-page,
+html.teacher-plain-background .app-shell-view .workspace-page{
+  background-color:#f5faff;
+  background-image:radial-gradient(circle at 18% 20%,#e8f6ff 0,transparent 31%),linear-gradient(180deg,#f8fbff,#f1f8ff);
+}
 .app-shell-view .home-nav{
   position:fixed;
   top:var(--teacher-header-top);
