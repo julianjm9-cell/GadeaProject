@@ -16,7 +16,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         inspector = inspect(connection)
         assert not inspector.has_table("profesor_student_accesses"), "Persiste la tabla de cuentas de alumnos retirada"
         connection.execute(text("SELECT profesor_revision FROM client_states LIMIT 0"))
-        connection.execute(text("SELECT id, revision, payload_zlib FROM profesor_state_snapshots LIMIT 0"))
+        connection.execute(text("SELECT id, revision, backup_day, payload_zlib FROM profesor_state_snapshots LIMIT 0"))
+        assert connection.execute(text("SELECT COUNT(*) FROM (SELECT user_id FROM profesor_state_snapshots GROUP BY user_id HAVING COUNT(*) > 5) excess")).scalar() == 0, "Hay cuentas con más de cinco copias"
         connection.execute(text("SELECT id FROM profesor_material_sessions LIMIT 0"))
         connection.execute(text("SELECT join_code_hash, join_code_encrypted, expires_at FROM profesor_material_sessions LIMIT 0"))
         assert "access_id" not in {column["name"] for column in inspector.get_columns("profesor_material_sessions")}, "Persiste la vinculación a cuentas de alumnos"

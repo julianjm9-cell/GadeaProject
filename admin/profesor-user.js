@@ -8,7 +8,7 @@ const names = {profesor_login:'Inicio de sesión',profesor_activity:'Apertura de
   user_updated:'Datos de cuenta actualizados',user_access_updated:'Acceso o plan actualizado',license_updated:'Licencia actualizada',
   profesor_account_viewed:'Consulta de la ficha',profesor_catalog_viewed:'Consulta del catálogo',
   completed:'Completada',failed:'Fallida',queued:'En cola',running:'En curso',pending:'Pendiente',active:'Activo',inactive:'Inactivo',
-  save:'Guardado',restore:'Recuperación',account_change:'Cambio de cuenta',baseline:'Versión inicial',initial:'Versión inicial',
+  save:'Guardado',restore:'Recuperación',account_change:'Cambio de cuenta',baseline:'Versión inicial',initial:'Versión inicial',daily:'Copia diaria',before_restore:'Antes de recuperar',before_clear:'Antes de vaciar',
   administration:'Administración',support:'Soporte',security:'Seguridad',
   pasapalabra:'Pasapalabra',hangman:'Ahorcado',wordsearch:'Sopa de letras',flashcard:'Flashcards',memory:'Memory',sentence:'Construye la frase',
   timeline:'Línea temporal',error:'Encuentra el error',crossword:'Crucigrama',dragdrop:'Arrastrar y soltar',pairs:'Relacionar parejas',gaps:'Completar frases',

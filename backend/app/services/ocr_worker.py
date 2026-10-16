@@ -72,8 +72,27 @@ def run_session_cleanup_forever():
         time.sleep(300)
 
 
+def run_teacher_backups_forever():
+    from app.services.profesor_state_history import next_midnight, run_daily_backups, trim_backup_history
+    trimmed = False
+    while True:
+        try:
+            if not trimmed:
+                trim_backup_history(SessionLocal)
+                trimmed = True
+            count = run_daily_backups(SessionLocal)
+            if count:
+                print(f"Teacher daily backups: {count} accounts processed", flush=True)
+            # Recompute in UTC so the Madrid clock changes still trigger at 00:00.
+            time.sleep(min(300, max(1, (next_midnight() - utcnow()).total_seconds())))
+        except Exception:
+            print("Teacher daily backups: failure, retrying in 30 seconds", flush=True)
+            time.sleep(30)
+
+
 if __name__ == "__main__":
     threading.Thread(target=run_session_cleanup_forever, name="session-cleanup", daemon=True).start()
+    threading.Thread(target=run_teacher_backups_forever, name="teacher-daily-backups", daemon=True).start()
     while True:
         try:
             if not run_one():

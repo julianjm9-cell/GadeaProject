@@ -5,6 +5,7 @@ import hashlib
 import json
 import sys
 import zlib
+from uuid import UUID
 
 from sqlalchemy import inspect, text
 
@@ -32,7 +33,27 @@ def fingerprints(connection) -> dict[str, dict]:
 
 
 def versioned_save_preserved(connection, row_id: str, before: dict, after: dict) -> bool:
-    if after["revision"] <= before["revision"] or not inspect(connection).has_table("profesor_state_snapshots"):
+    if after["revision"] <= before["revision"]:
+        return False
+    if inspect(connection).has_table("audit_logs"):
+        rows = connection.execute(text("""SELECT metadata FROM audit_logs
+            WHERE action = 'profesor_state_saved' AND entity_type = 'client_state' AND entity_id = :id"""), {"id": str(UUID(row_id))})
+        receipts = {}
+        for row in rows:
+            item = json.loads(row[0]) if isinstance(row[0], str) else row[0]
+            if isinstance(item, dict) and isinstance(item.get("revision"), int):
+                receipts[item["revision"]] = item
+        revision, current_digest = before["revision"], before["digest"]
+        while revision < after["revision"]:
+            receipt = receipts.get(revision + 1)
+            if not receipt or receipt.get("previous_revision") != revision or receipt.get("previous_digest") != current_digest:
+                break
+            revision += 1
+            current_digest = receipt.get("digest")
+        if revision == after["revision"] and current_digest == after["digest"]:
+            return True
+    # Compatibility with writes from the old backend during this deployment.
+    if not inspect(connection).has_table("profesor_state_snapshots"):
         return False
     rows = connection.execute(text("""SELECT s.revision, s.payload_zlib FROM profesor_state_snapshots s
         JOIN client_states c ON c.user_id = s.user_id AND c.organization_id = s.organization_id
@@ -50,8 +71,8 @@ def verify(before: dict, after: dict, connection=None) -> None:
         current = after.get(key)
         if current and current["digest"] == previous["digest"]:
             continue
-        # Real users can save while deployment runs. Accept only a versioned save
-        # whose before AND after snapshots prove that the previous data survives.
+        # Real users can save during deployment. Require a continuous chain of
+        # trusted save receipts (or the old backend's matching full snapshots).
         if connection is not None and current and versioned_save_preserved(connection, key, previous, current):
             continue
         changed += 1

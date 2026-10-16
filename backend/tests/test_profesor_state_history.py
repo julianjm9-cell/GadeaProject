@@ -2,6 +2,7 @@ import importlib.util
 from copy import deepcopy
 from pathlib import Path
 from uuid import UUID
+from datetime import date, datetime, timezone
 
 import pytest
 import sqlalchemy as sa
@@ -11,7 +12,7 @@ from fastapi.testclient import TestClient
 
 from test_access_control import client, login, seed_user
 from app.main import app
-from app.models import ClientState, Organization, ProfesorStateSnapshot
+from app.models import AuditLog, ClientState, Organization, ProfesorStateSnapshot
 from app.services import profesor_state_history as history
 from app.state_preservation_check import fingerprints, verify
 
@@ -39,6 +40,13 @@ def save(web, data):
     return web.post(URL, json=data, headers={"If-Match": version})
 
 
+def backup(factory, user_id, day=1):
+    with factory() as db:
+        row = db.scalar(sa.select(ClientState).where(ClientState.user_id == UUID(user_id)))
+        history.checkpoint(db, row, "daily", backup_day=date(2026, 1, day), now=datetime(2026, 1, day, tzinfo=timezone.utc))
+        db.commit()
+
+
 def test_stale_tab_and_old_client_cannot_overwrite_data(client):
     web, factory, _ = setup(client)
     before = web.get(URL).headers["etag"]
@@ -51,12 +59,13 @@ def test_stale_tab_and_old_client_cannot_overwrite_data(client):
     assert missing.status_code == 428
     assert web.get(URL).json()["students"][0]["notes"] == "Antes"
     with factory() as db:
-        assert db.scalar(sa.select(sa.func.count()).select_from(ProfesorStateSnapshot)) == 1
+        assert db.scalar(sa.select(sa.func.count()).select_from(ProfesorStateSnapshot)) == 0
 
 
 def test_history_and_restoration_preserve_the_pre_restore_version(client):
-    web, _, _ = setup(client)
+    web, factory, user_id = setup(client)
     assert save(web, content()).status_code == 200
+    backup(factory, user_id)
     assert save(web, content("Después")).status_code == 200
     listed = web.get(HISTORY)
     assert listed.status_code == 200
@@ -79,8 +88,9 @@ def test_history_and_restoration_preserve_the_pre_restore_version(client):
 
 
 def test_history_is_owned_by_teacher_and_never_exposed_to_participants(client):
-    web, factory, _ = setup(client)
+    web, factory, user_id = setup(client)
     save(web, content())
+    backup(factory, user_id)
     version = web.get(HISTORY).json()["versions"][0]
     with TestClient(app) as visitor:
         assert visitor.get(HISTORY).status_code == 401
@@ -114,6 +124,7 @@ def test_retention_is_bounded_and_no_op_does_not_fill_history(client):
     for index in range(history.HISTORY_LIMIT + 3):
         response = save(web, content(str(index)))
         assert response.status_code == 200, response.text
+        backup(factory, user_id, index + 1)
     version = web.get(URL).headers["etag"]
     assert save(web, content(str(history.HISTORY_LIMIT + 2))).headers["etag"] == version
     versions = web.get(HISTORY).json()["versions"]
@@ -127,6 +138,7 @@ def test_retention_is_bounded_and_no_op_does_not_fill_history(client):
 def test_plan_and_identity_changes_preserve_all_private_data_and_server_plan(client):
     web, factory, user_id = setup(client)
     assert save(web, content()).status_code == 200
+    backup(factory, user_id)
     saved = web.get(URL).json()
     version = web.get(HISTORY).json()["versions"][0]
     seed_user(factory, role="superadmin", email="admin@example.com")
@@ -163,7 +175,7 @@ def test_compare_and_swap_rejects_stale_service_state_without_partial_snapshot(c
             history.save_version(stale_db, stale, content("Perdida"), old_revision)
         assert exc.value.status_code == 409
     assert web.get(URL).json()["students"][0]["notes"] == "Nueva"
-    assert [v["revision"] for v in web.get(HISTORY).json()["versions"]] == [2, 1]
+    assert web.get(HISTORY).json()["versions"] == []
 
 
 def test_history_migration_creates_baseline_idempotently_without_changing_state(client):
@@ -195,8 +207,8 @@ def test_deployment_fingerprints_detect_missing_or_modified_teachers_but_ignore_
         verify(original, {})
     with pytest.raises(RuntimeError):
         verify(original, {key: {"digest": "different", "revision": value["revision"]} for key, value in original.items()})
-    # A legitimate save during deployment is accepted only when both versions
-    # are recoverable. An unversioned migration changing content is still blocked.
+    # Lightweight receipts prove legitimate writes without a full copy per edit.
+    # An unversioned migration changing content is still blocked.
     assert save(web, content("Edición durante despliegue")).status_code == 200
     with factory.kw["bind"].connect() as connection:
         verify(original, fingerprints(connection), connection)
@@ -214,9 +226,11 @@ def test_deployment_fingerprints_detect_missing_or_modified_teachers_but_ignore_
 def test_deleting_account_removes_private_history(client):
     web, factory, user_id = setup(client)
     assert save(web, content()).status_code == 200
+    backup(factory, user_id)
     seed_user(factory, role="superadmin", email="admin@example.com")
     assert login(web, email="admin@example.com").status_code == 200
     assert web.delete(f"/admin/users/{user_id}").status_code == 200
     with factory() as db:
         assert db.scalar(sa.select(ProfesorStateSnapshot.id).where(ProfesorStateSnapshot.user_id == UUID(user_id))) is None
         assert db.scalar(sa.select(ClientState.id).where(ClientState.user_id == UUID(user_id))) is None
+        assert db.scalar(sa.select(AuditLog.id).where(AuditLog.action == "profesor_state_saved")) is None

@@ -3,21 +3,36 @@
 ## Qué queda protegido
 
 Las fichas y notas, calendario, tareas, biblioteca, temas personales y demás datos
-del escritorio se guardan con un número de revisión. Cada guardado confirmado y
-su versión recuperable se escriben en la misma transacción. No hay un instante
-en el que se confirme un cambio sin su versión en el historial.
+del escritorio se guardan al momento con un número de revisión. La protección
+contra sobrescrituras entre pestañas sigue actuando en cada guardado. El historial
+de recuperación conserva copias diarias, no una copia completa por cada edición.
 
-Se conservan las 50 versiones más recientes por usuario, comprimidas en
+Se conservan como máximo cinco copias por usuario, comprimidas en
 `profesor_state_snapshots`. La revisión actual se guarda en
 `client_states.profesor_revision`. Las otras aplicaciones conservan su estado.
 El historial se elimina al borrar la cuenta.
+
+La tarea `teacher-daily-backups` del worker programa una copia cada día a las
+00:00 en `Europe/Madrid`, con sus cambios de horario de verano e invierno. No depende
+de que el profesor tenga la aplicación abierta. Su marcador de ejecución está en
+`app_settings.profesor_history_last_daily_backup`. Cada cuenta se procesa en una
+transacción corta con bloqueo del escritorio y unicidad por cuenta/fecha. Si se
+interrumpe una tanda, al volver el servicio se completan las cuentas pendientes sin
+duplicar las ya copiadas. Los días pasados sin servicio no se rellenan con copias
+ficticias. La fecha mostrada es la de captura real, no una medianoche inventada.
+
+El límite total de cinco incluye las copias excepcionales de protección antes de
+recuperar, vaciar expresamente el escritorio o cambiar administrativamente el acceso.
+Cuando no hay cambios también puede haber una copia por día: su revisión coincide,
+pero las fechas de copia son distintas. La migración 0021 conserva solo las cinco
+copias existentes más recientes y programa la siguiente ejecución para medianoche.
 
 ## Recuperación por el profesor
 
 Menú del perfil → **Historial y recuperación** → elegir **Recuperar** y confirmar.
 La lista muestra fecha y número de alumnos, clases, tareas y materiales.
 La recuperación crea una revisión nueva: la versión sustituida también sigue en
-el historial, hasta alcanzar el límite de 50. El tipo de cuenta vigente lo decide
+el historial, dentro del límite de cinco. El tipo de cuenta vigente lo decide
 la licencia; recuperar una versión no concede Premium ni elimina Premium.
 
 El historial contiene los datos y referencias a adjuntos del escritorio. No es
@@ -65,8 +80,12 @@ Si un escritorio existente cambia o desaparece, detiene la actualización antes
 de sustituir los servicios. El control detecta la alteración; no revierte por sí
 solo una migración ni restaura una copia sobre trabajo más reciente.
 
-Un guardado del usuario durante el despliegue se acepta si sus revisiones y las
-versiones conservadas acreditan tanto el contenido anterior como el nuevo. En la
+Un guardado del usuario durante el despliegue se acepta si una cadena continua de
+justificantes acredita sus revisiones y las huellas del contenido anterior y nuevo.
+Se conservan hasta 50 justificantes ligeros por escritorio: solo números y hashes,
+sin contenido privado recuperable. El control también admite las antiguas copias
+completas durante el despliegue de transición. Un hueco en la cadena o una alteración
+sin un guardado legítimo detiene la actualización. En la
 primera actualización, si el backend anterior aún no utiliza revisiones, una
 edición simultánea también puede detener la comprobación. Reintentar fuera del
 horario de uso; no forzar el paso ni restaurar una copia global por ese motivo.

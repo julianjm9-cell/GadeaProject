@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.models import AuditLog, ClientState, License, ProfesorGenerationJob, ProfesorMaterialSession, ProfesorStateSnapshot, UsageRecord, User
 from app.models.core import utcnow
 from app.services.audit import audit
-from app.services.profesor_state_history import COLLECTIONS, counts, teacher_data
+from app.services.profesor_state_history import COLLECTIONS, HISTORY_LIMIT, counts, teacher_data
 
 ACTIVITY_ACTIONS = ("profesor_login", "profesor_activity")
 ADMIN_ACTIONS = ("profesor_account_viewed", "profesor_catalog_viewed")
@@ -92,7 +92,7 @@ def account_diagnostics(db: Session, user: User) -> dict:
     snapshots = db.execute(select(ProfesorStateSnapshot.revision, ProfesorStateSnapshot.reason,
         ProfesorStateSnapshot.created_at, ProfesorStateSnapshot.counts).where(
         ProfesorStateSnapshot.user_id == user.id, ProfesorStateSnapshot.organization_id == user.organization_id)
-        .order_by(ProfesorStateSnapshot.revision.desc()).limit(50)).all()
+        .order_by(ProfesorStateSnapshot.created_at.desc(), ProfesorStateSnapshot.revision.desc(), ProfesorStateSnapshot.id.desc()).limit(HISTORY_LIMIT)).all()
     licenses = select(License.id).where(License.organization_id == user.organization_id,
         License.product_code == "PROFESOR_PARTICULAR", (License.user_id == user.id) | License.user_id.is_(None))
     license_ids = [str(value) for value in db.scalars(licenses)]

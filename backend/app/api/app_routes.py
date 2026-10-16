@@ -1719,8 +1719,9 @@ def profesor_state_versions(user: User = Depends(current_user), license_obj: Lic
     snapshots = db.execute(select(ProfesorStateSnapshot.id, ProfesorStateSnapshot.revision,
         ProfesorStateSnapshot.reason, ProfesorStateSnapshot.counts, ProfesorStateSnapshot.created_at).where(
         ProfesorStateSnapshot.user_id == user.id, ProfesorStateSnapshot.organization_id == user.organization_id,
-    ).order_by(ProfesorStateSnapshot.revision.desc()).limit(state_history.HISTORY_LIMIT)).all()
+    ).order_by(ProfesorStateSnapshot.created_at.desc(), ProfesorStateSnapshot.revision.desc(), ProfesorStateSnapshot.id.desc()).limit(state_history.HISTORY_LIMIT)).all()
     return {"revision": row.profesor_revision, "limit": state_history.HISTORY_LIMIT,
+        "schedule": "daily", "time_zone": "Europe/Madrid", "next_backup_at": state_history.next_midnight().isoformat(),
         "versions": [{"id": str(item.id), "revision": item.revision, "reason": item.reason,
             "counts": item.counts, "created_at": item.created_at.isoformat() + ("Z" if item.created_at.tzinfo is None else "")} for item in snapshots]}
 

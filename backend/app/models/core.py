@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, LargeBinary, Numeric, String, Text, UniqueConstraint, Uuid
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Index, Integer, LargeBinary, Numeric, String, Text, UniqueConstraint, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
@@ -91,6 +91,7 @@ class UsageRecord(Base):
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
+    __table_args__ = (Index("ix_audit_entity_action_created", "entity_type", "entity_id", "action", "created_at"),)
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
     actor_user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id"), nullable=True)
@@ -116,12 +117,13 @@ class ClientState(Base):
 
 class ProfesorStateSnapshot(Base):
     __tablename__ = "profesor_state_snapshots"
-    __table_args__ = (UniqueConstraint("user_id", "revision", name="uq_profesor_snapshot_revision"),)
+    __table_args__ = (UniqueConstraint("user_id", "backup_day", name="uq_profesor_snapshot_day"),)
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
     organization_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("organizations.id"), nullable=False, index=True)
     user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    backup_day: Mapped[date | None] = mapped_column(Date, nullable=True)
     reason: Mapped[str] = mapped_column(String(40), nullable=False)
     counts: Mapped[dict] = mapped_column(JSON, nullable=False)
     payload_zlib: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)

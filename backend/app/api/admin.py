@@ -749,6 +749,8 @@ def delete_user(user_id: UUID, actor: User = Depends(require_superadmin), db: Se
     user = get_or_404(db, User, user_id)
     if user.id == actor.id or user.role != "user":
         raise HTTPException(status_code=403, detail="Solo se pueden eliminar cuentas de usuario.")
+    state_ids = [str(value) for value in db.scalars(select(ClientState.id).where(ClientState.user_id == user_id))]
+    db.execute(delete(AuditLog).where(AuditLog.action == "profesor_state_saved", AuditLog.entity_type == "client_state", AuditLog.entity_id.in_(state_ids)))
     profile_ids = list(db.scalars(select(GamificationProfile.id).where(GamificationProfile.user_id == user_id)))
     if profile_ids:
         for model in (GamificationRewardEvent, GamificationAchievement, GamificationOwnedItem, GamificationEquippedItem):

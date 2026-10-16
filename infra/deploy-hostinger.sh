@@ -60,6 +60,7 @@ printf '\n[4/5] Actualizando los servicios…\n'
 docker compose --profile proxy up -d --no-build --wait --wait-timeout 180
 
 printf '\n[5/5] Comprobando base de datos, app, landing, login y dashboard…\n'
+docker compose exec -T ocr-worker python -c 'from app.services.profesor_state_history import trim_backup_history; from app.database.session import SessionLocal; trim_backup_history(SessionLocal); print("OK historial: máximo cinco copias por cuenta")'
 docker compose exec -T backend python -m app.deployment_check
 docker compose exec -T ocr-worker python -c 'from app.api.profesor_access import purge_expired_sessions; from app.database.session import SessionLocal; db=SessionLocal(); count=purge_expired_sessions(db); db.close(); print(f"OK limpieza de sesiones temporales: {count} vencidas")'
 docker compose exec -T reverse-proxy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
