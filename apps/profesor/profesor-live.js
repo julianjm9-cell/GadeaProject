@@ -94,6 +94,39 @@
 
   // Teacher flow: the current personal play mode remains unchanged.
   if(!studentRoot){
+    let closeMaterialPicker=null;
+    function pickSessionMaterial(){
+      const materials=state.library.filter(item=>item.activity?.questions?.length);
+      if(!materials.length){notify('Primero crea un material interactivo.');return}
+      const courseOf=m=>m.activity?.context?.course||student(m.studentId)?.course||m.course||'';
+      const choices=(values,label)=>`<option value="">${label}</option>${[...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es')).map(value=>`<option value="${escape(value)}">${escape(value)}</option>`).join('')}`;
+      const types=[...new Set(materials.flatMap(m=>m.activity.questions.map(q=>q.type)).filter(Boolean))];
+      const dialog=$('dialog');
+      modal('Elige un material para la sesión',`<p class="session-material-intro">Elige una tarjeta para continuar y crear un código válido durante 24 horas. Solo aparecen tus materiales interactivos.</p><div class="session-material-filters"><div><label for="sessionMaterialSearch">Buscar material</label><input id="sessionMaterialSearch" type="search" placeholder="Título o contenido del material" autocomplete="off"></div><div><label for="sessionMaterialSubject">Asignatura</label><select id="sessionMaterialSubject">${choices(materials.map(m=>m.subject),'Todas las asignaturas')}</select></div><div><label for="sessionMaterialCourse">Curso</label><select id="sessionMaterialCourse">${choices(materials.map(courseOf),'Todos los cursos')}</select></div><div><label for="sessionMaterialType">Tipo de ejercicio</label><select id="sessionMaterialType"><option value="">Todos los tipos</option>${types.sort((a,b)=>(activityLabels[a]||a).localeCompare(activityLabels[b]||b,'es')).map(type=>`<option value="${escape(type)}">${escape(activityLabels[type]||type)}</option>`).join('')}</select></div></div><div class="session-material-summary" id="sessionMaterialCount" role="status" aria-live="polite"></div><div id="sessionMaterialCards" class="material-hub-grid session-material-grid"></div><div class="session-material-footer"><button type="button" data-action="close">Cancelar</button><div class="session-material-pages"><button type="button" id="sessionMaterialPrevious" aria-label="Página anterior de materiales">‹ Anterior</button><span id="sessionMaterialPage"></span><button type="button" id="sessionMaterialNext" aria-label="Página siguiente de materiales">Siguiente ›</button></div></div>`,()=>false);
+      dialog.classList.add('session-material-picker');
+      let page=0;
+      const root=$('sessionMaterialCards'),form=$('form'),search=$('sessionMaterialSearch'),subject=$('sessionMaterialSubject'),course=$('sessionMaterialCourse'),type=$('sessionMaterialType'),previous=$('sessionMaterialPrevious'),next=$('sessionMaterialNext');
+      function paint(){
+        const query=search.value.trim().toLocaleLowerCase('es');
+        const filtered=materials.filter(m=>(!subject.value||m.subject===subject.value)&&(!course.value||courseOf(m)===course.value)&&(!type.value||m.activity.questions.some(q=>q.type===type.value))&&(!query||[m.title,m.subject,courseOf(m),m.body,...m.activity.questions.map(q=>q.prompt)].join(' ').toLocaleLowerCase('es').includes(query)));
+        const pages=Math.max(1,Math.ceil(filtered.length/12));page=Math.min(page,pages-1);
+        root.innerHTML=filtered.slice(page*12,page*12+12).map(m=>materialHubCard(m,false,false,true)).join('')||'<div class="session-material-empty"><strong>No hay materiales con esos filtros</strong><p>Prueba otra búsqueda o cambia la asignatura, el curso o el tipo de ejercicio.</p></div>';
+        $('sessionMaterialCount').textContent=`${filtered.length} ${filtered.length===1?'material disponible':'materiales disponibles'}`;
+        $('sessionMaterialPage').textContent=`${page+1} / ${pages}`;
+        previous.disabled=page===0;next.disabled=page===pages-1;
+        root.scrollTop=0;paintMaterialCards(root);
+      }
+      const filter=()=>{page=0;paint()};
+      const back=()=>{if(page>0){page--;paint()}};
+      const forward=()=>{page++;paint()};
+      const preventSubmit=event=>{event.preventDefault();event.stopImmediatePropagation()};
+      form.addEventListener('submit',preventSubmit,true);
+      search.addEventListener('input',filter);[subject,course,type].forEach(field=>field.addEventListener('change',filter));
+      previous.addEventListener('click',back);next.addEventListener('click',forward);
+      const cleanup=()=>{dialog.classList.remove('session-material-picker');dialog.removeEventListener('close',cleanup);form.removeEventListener('submit',preventSubmit,true);search.removeEventListener('input',filter);[subject,course,type].forEach(field=>field.removeEventListener('change',filter));previous.removeEventListener('click',back);next.removeEventListener('click',forward);closeMaterialPicker=null};
+      closeMaterialPicker=cleanup;dialog.addEventListener('close',cleanup,{once:true});
+      paint();if(matchMedia('(pointer:fine)').matches)search.focus();
+    }
     async function sendMaterial(material){
       if(typeof demo!=='undefined'&&demo)throw Error('Inicia sesión con una cuenta Premium para mandar materiales.');
        if(!isPremium())throw Error('Las sesiones con código requieren Premium.');
@@ -125,9 +158,12 @@
       try{
         if(button.dataset.action==='sendLiveMaterial'){const material=state.library.find(item=>item.id===button.dataset.id);if(material)await sendMaterial(material)}
         if(button.dataset.liveTeacher==='create-anonymous'){
-          const materials=state.library.filter(item=>item.activity?.questions?.length);
-          if(!materials.length){notify('Primero crea un material interactivo.');return}
-          modal('Crear sesión',`<p>Elige un material. El código durará 24 horas y no se pedirá el nombre al participante.</p><label for="anonymousMaterial">Material</label><select id="anonymousMaterial" name="material_id">${materials.map(item=>`<option value="${escape(item.id)}">${escape(item.title)} · ${escape(item.subject)}</option>`).join('')}</select>${submit('Continuar')}`,form=>{const material=materials.find(item=>item.id===String(form.get('material_id')));if(material)setTimeout(()=>sendMaterial(material),0)});
+          pickSessionMaterial();
+        }
+        if(button.dataset.liveTeacher==='choose-material'&&$('dialog').classList.contains('session-material-picker')){
+          const material=state.library.find(item=>item.id===button.dataset.id&&item.activity?.questions?.length);
+          if(!material){notify('El material ya no está disponible. Vuelve a abrir el selector.');return}
+          closeMaterialPicker?.();$('dialog').close();await sendMaterial(material);
         }
         if(button.dataset.action==='liveSessionList')await listSessions();
         if(button.dataset.liveTeacher==='watch'){$('dialog').close();setTimeout(()=>watchSession(button.dataset.id).catch(error=>notify(error.message)),0)}
