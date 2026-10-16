@@ -15,6 +15,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         assert connection.execute(text("SELECT 1")).scalar() == 1, "PostgreSQL no responde"
         inspector = inspect(connection)
         assert not inspector.has_table("profesor_student_accesses"), "Persiste la tabla de cuentas de alumnos retirada"
+        connection.execute(text("SELECT profesor_revision FROM client_states LIMIT 0"))
+        connection.execute(text("SELECT id, revision, payload_zlib FROM profesor_state_snapshots LIMIT 0"))
         connection.execute(text("SELECT id FROM profesor_material_sessions LIMIT 0"))
         connection.execute(text("SELECT join_code_hash, join_code_encrypted, expires_at FROM profesor_material_sessions LIMIT 0"))
         assert "access_id" not in {column["name"] for column in inspector.get_columns("profesor_material_sessions")}, "Persiste la vinculación a cuentas de alumnos"
@@ -60,6 +62,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/profesor-uploaded-topics.js": b"uploadedTopicDetail",
         "/profesor-activity-play.js": b"runActivity",
         "/profesor-access.js": b"accessView",
+        "/profesor-state-history.js": b"openStateHistory",
         "/profesor-live.js": b"studentMaterials",
         "/profesor-generator.js": b"/api/profesor/generation/start",
         "/assets/profesor-home.css": b".home-roster",

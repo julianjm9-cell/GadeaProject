@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy import text
 
 from app.database.session import engine
-from app.models import ProfesorMaterialSession, ProfesorAd, ProfesorAdReport, ProfesorGenerationJob
+from app.models import ProfesorMaterialSession, ProfesorAd, ProfesorAdReport, ProfesorGenerationJob, ProfesorStateSnapshot
 
 
 def ensure_runtime_schema() -> None:
@@ -24,6 +24,8 @@ def ensure_runtime_schema() -> None:
     with engine.begin() as conn:
         for statement in statements:
             conn.execute(text(statement))
+        conn.execute(text("ALTER TABLE client_states ADD COLUMN IF NOT EXISTS profesor_revision INTEGER NOT NULL DEFAULT 0"))
+        ProfesorStateSnapshot.__table__.create(bind=conn, checkfirst=True)
         ProfesorMaterialSession.__table__.create(bind=conn, checkfirst=True)
         conn.execute(text("ALTER TABLE profesor_material_sessions ADD COLUMN IF NOT EXISTS join_code_hash VARCHAR(64)"))
         conn.execute(text("ALTER TABLE profesor_material_sessions ADD COLUMN IF NOT EXISTS join_code_encrypted TEXT"))

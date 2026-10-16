@@ -10,6 +10,14 @@ Si prefieres subir el ZIP de entrega, descomprímelo **dentro de la carpeta de l
 
 El script construye primero la imagen, espera a PostgreSQL, guarda una copia verificada de la base de datos y del `.env` en `backups/`, ejecuta las migraciones, actualiza los contenedores y comprueba las rutas públicas, el acceso privado, el dashboard y la configuración de Caddy. Un error detiene el proceso: no continúa con los pasos siguientes ni anuncia éxito.
 
+También compara el contenido de los escritorios de Profesor Particular antes y
+después de migrar. Una alteración detiene el despliegue y conserva la copia previa
+para revisarla; no restaura automáticamente datos encima del trabajo actual.
+La migración 0020 añade el historial recuperable por cuenta. Tras actualizar,
+recarga las pestañas de Profesor Particular para activar el guardado con revisión.
+Las pestañas antiguas no pueden sobrescribir datos existentes sin esa protección.
+Consulta `docs/profesor-historial-recuperacion.md`.
+
 No ejecuta `bootstrap`, no cambia contraseñas, no elimina volúmenes y no sobrescribe `.env`. Los usuarios, licencias y contenidos existentes se conservan. Las claves de IA y OAuth siguen siendo las configuradas en el servidor. Este es un procedimiento de actualización, no de instalación inicial.
 
 Los documentos se conservan en el volumen `educa_suite_documents`. Si el backend está en marcha, el script también guarda sus documentos en `documents.tar`; al incorporar por primera vez un volumen vacío, recupera ahí los archivos existentes antes de actualizar el contenedor.

@@ -6,9 +6,9 @@ El código no garantiza anonimato legal: el profesor puede saber a quién se lo 
 
 ## Después de desplegar las migraciones 0018 y 0019
 
-El despliegue crea y verifica una copia de PostgreSQL **antes** de migrar. Esa copia puede contener las fichas y credenciales antiguas que la migración elimina de la base activa. Debe mantenerse restringida para una eventual recuperación y no reutilizarse en una restauración pública sin volver a aplicar la limpieza.
+El despliegue crea y verifica una copia de PostgreSQL **antes** de migrar. Esa copia debe mantenerse restringida para una eventual recuperación. Las fichas privadas del profesor forman parte del producto actual y deben conservarse; las credenciales retiradas de alumnos no deben reactivarse al restaurar.
 
-La migración 0019 limpia el estado antiguo de todos los profesores, elimina la tabla de credenciales de alumnos y retira la columna que vinculaba las sesiones a esas cuentas. Comprobar que ya no existen y que el proceso de limpieza sigue activo:
+La migración 0019 pendiente conserva las fichas, agenda, notas y tareas del profesor; elimina la tabla de credenciales de alumnos y retira la columna que vinculaba los juegos a esas cuentas. Algunas versiones anteriores de esa migración sí borraban fichas; no repetir ese borrado. La migración 0020 incorpora el historial recuperable del escritorio. Comprobar que ya no existen y que el proceso de limpieza sigue activo:
 
 ```bash
 cd /opt/educa-suite
@@ -18,6 +18,6 @@ docker compose ps ocr-worker
 
 Revisar las carpetas de `backups/` y las instantáneas externas de Hostinger. Registrar qué copias anteriores a la migración contienen datos antiguos, quién puede acceder a ellas y hasta cuándo son necesarias para recuperar el servicio. Al acabar ese plazo, retirar solo las copias verificadas como prescindibles, salvo una obligación o reclamación concreta documentada. Las copias del proveedor requieren gestión en su panel o con su soporte; el código no las elimina. No habilitar limpieza indiscriminada de copias sin verificar el plan de restauración.
 
-Ante una restauración, aislar la base, ejecutar de nuevo migraciones y limpieza, y comprobar los recuentos antes de exponer el servicio. Las solicitudes de supresión recibidas después de la fecha de la copia deben reaplicarse.
+Ante una restauración, aislar la base, verificar las migraciones pendientes, retirar solo credenciales antiguas y juegos temporales caducados, y comprobar los recuentos antes de exponer el servicio. Las solicitudes de supresión recibidas después de la fecha de la copia deben reaplicarse.
 
 Fuentes: [AEPD, protección de datos por defecto](https://www.aepd.es/derechos-y-deberes/cumple-tus-deberes/medidas-de-cumplimiento/proteccion-de-datos-por-defecto) y [RGPD, artículos 5 y 17](https://eur-lex.europa.eu/eli/reg/2016/679/2016-05-04/spa).

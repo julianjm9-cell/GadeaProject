@@ -26,7 +26,8 @@ from app.auth.dependencies import current_license, current_user
 from app.api.auth import rate_limit_key
 from app.config import get_settings
 from app.database.session import get_db
-from app.models import AppSetting, ClientState, Conversation, Document, License, Message, UsageRecord, User
+from app.models import AppSetting, ClientState, Conversation, Document, License, Message, ProfesorStateSnapshot, UsageRecord, User
+from app.services import profesor_state_history as state_history
 from app.security.tokens import decode_token
 from app.security.passwords import verify_password
 from app.services.ai_config import (
@@ -309,8 +310,11 @@ def image_data_url_from_payload(payload: dict) -> tuple[str, str]:
     return f"data:{mime_type};base64,{image_b64}", mime_type
 
 
-def state_row(db: Session, user: User) -> ClientState:
-    row = db.scalar(select(ClientState).where(ClientState.organization_id == user.organization_id, ClientState.user_id == user.id))
+def state_row(db: Session, user: User, *, for_update: bool = False) -> ClientState:
+    query = select(ClientState).where(ClientState.organization_id == user.organization_id, ClientState.user_id == user.id)
+    if for_update:
+        query = query.with_for_update().execution_options(populate_existing=True)
+    row = db.scalar(query)
     if row:
         return row
     row = ClientState(organization_id=user.organization_id, user_id=user.id, data={})
@@ -319,7 +323,7 @@ def state_row(db: Session, user: User) -> ClientState:
         db.flush()
     except IntegrityError:
         db.rollback()
-        row = db.scalar(select(ClientState).where(ClientState.organization_id == user.organization_id, ClientState.user_id == user.id))
+        row = db.scalar(query)
         if row:
             return row
         raise
@@ -709,6 +713,7 @@ def profesor_temario_catalogue():
 @router.get("/profesor-generator.js")
 @router.get("/profesor-rich-text.js")
 @router.get("/profesor-access.js")
+@router.get("/profesor-state-history.js")
 @router.get("/profesor-live.js")
 @router.get("/profesor-uploaded-topics.js")
 def profesor_support_script(request: Request):
@@ -1567,12 +1572,13 @@ async def upload_drive_document(
 
 
 @router.get("/api/state")
-def get_state(request: Request, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+def get_state(request: Request, response: Response, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
     app_key = request_app_key(request)
     row = state_row(db, user)
     saved = app_state_data(row, app_key)
     if app_key != "profesor_particular":
         return saved
+    response.headers["ETag"] = state_history.etag(row.profesor_revision)
     # Teacher profiles and planning belong to this private, authenticated state.
     # Code-based game sessions remain separate and never expose these records.
     result = dict(saved)
@@ -1657,14 +1663,17 @@ def set_gamification_equipment(payload: dict, request: Request, user: User = Dep
 
 
 @router.post("/api/state")
-def save_state(payload: dict, request: Request, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+def save_state(payload: dict, request: Request, response: Response, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
     app_key = request_app_key(request)
     if app_key == "profesor_particular":
         payload = dict(payload)
         profile = payload.get("teacherProfile")
         payload["teacherProfile"] = {**(profile if isinstance(profile, dict) else {}), "plan": profesor_account_plan(license_obj)}
-    row = state_row(db, user)
+    row = state_row(db, user, for_update=True)
     if app_key == "profesor_particular":
+        expected = state_history.check_revision(row, request.headers.get("if-match"))
+        state_history.validate_transition(app_state_data(row, app_key), payload,
+            confirm_empty=request.headers.get("x-confirm-empty-state") == "true")
         previous_topics = app_state_data(row, app_key).get("personalTopics", [])
         personal = payload.get("personalTopics", previous_topics)
         if profesor_account_plan(license_obj) != "premium" and personal != previous_topics:
@@ -1687,9 +1696,54 @@ def save_state(payload: dict, request: Request, user: User = Depends(current_use
                 raise HTTPException(422, str(exc)) from exc
         if personal or "personalTopics" in payload:
             payload["personalTopics"] = clean
-    set_app_state_data(row, app_key, payload)
+    if app_key == "profesor_particular":
+        if payload == app_state_data(row, app_key):
+            response.headers["ETag"] = state_history.etag(expected)
+            return {"ok": True, "revision": expected}
+        revision = state_history.save_version(db, row, payload, expected)
+        response.headers["ETag"] = state_history.etag(revision)
+    else:
+        set_app_state_data(row, app_key, payload)
     db.commit()
-    return {"ok": True}
+    return {"ok": True, **({"revision": revision} if app_key == "profesor_particular" else {})}
+
+
+@router.get("/api/profesor/state-history")
+def profesor_state_versions(user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    if license_obj.product_code != "PROFESOR_PARTICULAR":
+        raise HTTPException(403, "El historial requiere acceso a Profesor Particular.")
+    row = state_row(db, user)
+    snapshots = db.execute(select(ProfesorStateSnapshot.id, ProfesorStateSnapshot.revision,
+        ProfesorStateSnapshot.reason, ProfesorStateSnapshot.counts, ProfesorStateSnapshot.created_at).where(
+        ProfesorStateSnapshot.user_id == user.id, ProfesorStateSnapshot.organization_id == user.organization_id,
+    ).order_by(ProfesorStateSnapshot.revision.desc()).limit(state_history.HISTORY_LIMIT)).all()
+    return {"revision": row.profesor_revision, "limit": state_history.HISTORY_LIMIT,
+        "versions": [{"id": str(item.id), "revision": item.revision, "reason": item.reason,
+            "counts": item.counts, "created_at": item.created_at.isoformat() + ("Z" if item.created_at.tzinfo is None else "")} for item in snapshots]}
+
+
+@router.post("/api/profesor/state-history/{snapshot_id}/restore")
+def restore_profesor_state(snapshot_id: UUID, request: Request, response: Response,
+        user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    if license_obj.product_code != "PROFESOR_PARTICULAR":
+        raise HTTPException(403, "El historial requiere acceso a Profesor Particular.")
+    row = state_row(db, user, for_update=True)
+    expected = state_history.check_revision(row, request.headers.get("if-match"))
+    snapshot = db.scalar(select(ProfesorStateSnapshot).where(ProfesorStateSnapshot.id == snapshot_id,
+        ProfesorStateSnapshot.user_id == user.id, ProfesorStateSnapshot.organization_id == user.organization_id))
+    if not snapshot:
+        raise HTTPException(404, "Esta versión no está disponible en tu historial.")
+    payload = state_history.unpack(snapshot)
+    state_history.validate_transition({}, payload, confirm_empty=True)
+    profile = payload.get("teacherProfile")
+    payload["teacherProfile"] = {**(profile if isinstance(profile, dict) else {}), "plan": profesor_account_plan(license_obj)}
+    revision = state_history.save_version(db, row, payload, expected, reason="restore")
+    audit(db, actor=user, organization_id=user.organization_id, action="profesor_state_restored",
+        entity_type="client_state", entity_id=str(row.id),
+        metadata={"snapshot_id": str(snapshot_id), "previous_revision": expected, "revision": revision})
+    db.commit()
+    response.headers["ETag"] = state_history.etag(revision)
+    return {"ok": True, "revision": revision, "state": payload}
 
 
 @router.post("/api/profesor/generate")

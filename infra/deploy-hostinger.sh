@@ -47,12 +47,14 @@ if [[ -n "$(docker compose ps -q backend)" ]]; then
 fi
 
 printf '\n[3/5] Aplicando migraciones…\n'
+docker compose run --rm --no-deps -T backend python -m app.state_preservation_check capture > "$BACKUP_DIR/teacher-state-fingerprints.json"
 if [[ -f "$BACKUP_DIR/documents.tar" ]]; then
   # On first deployment of the persistent volume, recover existing container files.
   # A populated volume is already current and must not be overwritten by a backup.
   docker compose run --rm --no-deps -T backend python -c 'import pathlib,sys,tarfile; root=pathlib.Path("/app/data/documents"); empty=not root.exists() or not any(root.iterdir()); tarfile.open(fileobj=sys.stdin.buffer,mode="r|").extractall(path="/app/data",filter="data") if empty else sys.stdin.buffer.read()' < "$BACKUP_DIR/documents.tar"
 fi
 docker compose run --rm --no-deps backend alembic upgrade head
+docker compose run --rm --no-deps -T backend python -m app.state_preservation_check verify < "$BACKUP_DIR/teacher-state-fingerprints.json"
 
 printf '\n[4/5] Actualizando los servicios…\n'
 docker compose --profile proxy up -d --no-build --wait --wait-timeout 180

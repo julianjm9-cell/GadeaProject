@@ -19,7 +19,8 @@ import httpx
 from app.auth.dependencies import require_superadmin
 from app.config import get_settings
 from app.database.session import get_db
-from app.models import AppSetting, AuditLog, ClientState, Conversation, Document, GamificationAchievement, GamificationEquippedItem, GamificationOwnedItem, GamificationProfile, GamificationRewardEvent, License, Message, OcrJob, Organization, ProfesorGenerationJob, ProfesorMaterialSession, UsageRecord, User
+from app.models import AppSetting, AuditLog, ClientState, Conversation, Document, GamificationAchievement, GamificationEquippedItem, GamificationOwnedItem, GamificationProfile, GamificationRewardEvent, License, Message, OcrJob, Organization, ProfesorGenerationJob, ProfesorMaterialSession, ProfesorStateSnapshot, UsageRecord, User
+from app.services.profesor_state_history import checkpoint
 from app.schemas.core import LicenseCreate, LicenseOut, LicensePatch, OrganizationCreate, OrganizationOut, OrganizationPatch, UserAccessPatch, UserCreate, UserOut, UserPatch
 from app.security.passwords import hash_password
 from app.services.ai_config import (
@@ -581,6 +582,11 @@ def patch_user_access(user_id: UUID, product_code: str, payload: UserAccessPatch
     product_code = product_code.strip().upper()
     if product_code not in PRODUCT_CODES:
         raise HTTPException(status_code=400, detail="Aplicacion no valida.")
+    if product_code == "PROFESOR_PARTICULAR":
+        state = db.scalar(select(ClientState).where(ClientState.user_id == user.id,
+            ClientState.organization_id == user.organization_id).with_for_update())
+        if state:
+            checkpoint(db, state, "account_change")
     current = license_for_user(db, user, product_code)
     personal = db.scalar(
         select(License).where(
@@ -671,6 +677,11 @@ def get_user(user_id: UUID, _: User = Depends(require_superadmin), db: Session =
 def patch_user(user_id: UUID, payload: UserPatch, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
     user = get_or_404(db, User, user_id)
     updates = payload.model_dump(exclude_unset=True)
+    if updates.get("organization_id") and updates["organization_id"] != user.organization_id:
+        saved = db.scalar(select(ClientState).where(ClientState.user_id == user.id).with_for_update())
+        document = db.scalar(select(Document.id).where(Document.user_id == user.id).limit(1))
+        if (saved and saved.data) or document:
+            raise HTTPException(409, "Esta cuenta tiene información guardada. Cambiar su organización requiere un traslado de datos; modifica el plan o los datos de acceso conservando la organización actual.")
     if "email" in updates and updates["email"]:
         updates["email"] = updates["email"].lower()
     if "password" in updates and updates["password"]:
@@ -696,7 +707,7 @@ def delete_user(user_id: UUID, actor: User = Depends(require_superadmin), db: Se
                          (ProfesorGenerationJob, ProfesorGenerationJob.user_id),
                          (OcrJob, OcrJob.user_id)):
         db.execute(delete(model).where(field == user_id))
-    for model in (Message, Conversation, Document, GamificationProfile, ClientState, UsageRecord, License):
+    for model in (Message, Conversation, Document, GamificationProfile, ProfesorStateSnapshot, ClientState, UsageRecord, License):
         db.execute(delete(model).where(model.user_id == user_id))
     db.execute(update(AuditLog).where(AuditLog.actor_user_id == user_id).values(actor_user_id=None))
     organization_id = user.organization_id

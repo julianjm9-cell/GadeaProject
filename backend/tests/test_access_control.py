@@ -129,7 +129,8 @@ def test_profesor_plan_is_controlled_by_server_license(client):
     assert upgraded.status_code == 200
     assert upgraded.json()["access"]["plan"] == "PROFESOR_PREMIUM"
     assert test_client.get(state_url, headers=teacher_headers).json()["teacherProfile"]["plan"] == "premium"
-    assert test_client.post(state_url, headers=teacher_headers, json={"version": 2, "teacherProfile": {"plan": "normal"}}).status_code == 200
+    current_etag = test_client.get(state_url, headers=teacher_headers).headers["etag"]
+    assert test_client.post(state_url, headers={**teacher_headers, "If-Match": current_etag}, json={"version": 2, "teacherProfile": {"plan": "normal"}}).status_code == 200
     assert test_client.get(state_url, headers=teacher_headers).json()["teacherProfile"]["plan"] == "premium"
 
     downgraded = test_client.patch(access_url, headers=admin_headers, json={"usage_limit": 300, "plan": "PROFESOR_FREE"})

@@ -1,4 +1,12 @@
 /* Shared shell: the header has identical geometry in every teacher section. */
+.state-history-dialog{width:min(760px,94vw);max-width:760px;border:1px solid #dbe9fa;border-radius:22px;background:#fbfdff;box-shadow:0 24px 80px #12386b40}
+.state-history-intro{margin:0 0 18px;color:#536f97;line-height:1.6}
+.state-history-list{display:grid;gap:10px;max-height:52dvh;overflow:auto;padding:2px}
+.state-history-version{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px;border:1px solid #dce9f8;border-radius:14px;background:#fff}
+.state-history-version>div{display:grid;gap:5px;min-width:0}.state-history-version strong{color:#112859;font-size:15px}.state-history-version span,.state-history-version small{color:#617ba1;font-size:12px;line-height:1.5}
+.state-history-current{flex:none;background:#e3f5ec;color:#16754e!important;border-radius:999px;padding:6px 10px;font-weight:700}
+.state-history-warning{padding:12px;border-radius:12px;background:#fff2d9;color:#81590b;margin:0 0 16px}
+.save-feedback{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px}.save-feedback[hidden]{display:none}
 html:has(body.app-shell-view){scrollbar-gutter:stable}
 .app-shell-view{--teacher-header-height:78px;--teacher-header-top:18px;--teacher-shell-width:1540px}
 .app-shell-view .home-page,

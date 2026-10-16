@@ -1,4 +1,4 @@
-"""The final privacy migration must remove legacy pupil storage for every teacher."""
+"""Pending upgrades retire login credentials without deleting private planning."""
 import importlib.util
 from pathlib import Path
 
@@ -7,7 +7,7 @@ from alembic.migration import MigrationContext
 from alembic.operations import Operations
 
 
-def test_retired_pupil_schema_and_saved_state_are_removed():
+def test_retired_credentials_removed_but_private_teacher_state_preserved():
     engine = sa.create_engine("sqlite+pysqlite:///:memory:")
     metadata = sa.MetaData()
     states = sa.Table("client_states", metadata,
@@ -38,7 +38,11 @@ def test_retired_pupil_schema_and_saved_state_are_removed():
         assert "access_id" not in {column["name"] for column in inspector.get_columns("profesor_material_sessions")}
         assert connection.execute(sa.text("SELECT id FROM profesor_material_sessions")).scalars().all() == [2]
         first = connection.execute(sa.select(states.c.data).where(states.c.id == 1)).scalar_one()
-        assert first["__apps"]["profesor_particular"] == {"library": [{"id": "shared", "title": "Común"}]}
+        assert first["__apps"]["profesor_particular"] == {
+            "students": [{"name": "Nombre antiguo"}],
+            "activityAttempts": [{"answer": "Respuesta antigua"}],
+            "library": [{"id": "private", "studentId": "old"}, {"id": "shared", "title": "Común"}],
+        }
         assert first["__apps"]["diplomator"] == {"keep": True}
         second = connection.execute(sa.select(states.c.data).where(states.c.id == 2)).scalar_one()
         assert second["__apps"]["profesor_particular"]["library"] == [{"id": "m2"}]
