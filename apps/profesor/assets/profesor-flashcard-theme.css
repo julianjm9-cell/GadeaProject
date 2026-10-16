@@ -1,0 +1,58 @@
+/* Flashcards: the artwork is a backdrop, never the interactive card content. */
+.activity-play:has(.play-question[data-type="flashcard"]:not([hidden])){display:flex;flex-direction:column;width:min(1450px,97vw);height:min(94dvh,940px);max-height:94dvh;padding:14px 24px;border:1px solid #cae6ff;border-radius:26px;background:#e0efff url('./games/flashcard-stage.png') center/cover no-repeat;color:#0b2258;overflow:hidden}
+.activity-play:has(.play-question[data-type="flashcard"]:not([hidden]))>.row{flex:none;min-height:32px}
+.activity-play:has(.play-question[data-type="flashcard"]:not([hidden])) #form{display:flex;flex:1;flex-direction:column;min-height:0;gap:0}
+.activity-play:has(.play-question[data-type="flashcard"]:not([hidden])) .play-content{display:flex;flex:1;flex-direction:column;min-height:0;padding:0;overflow:auto}
+.activity-play .play-question[data-type="flashcard"]{display:flex;flex:1;flex-direction:column;min-height:0;margin:0;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;overflow:visible}
+.activity-play .play-question[data-type="flashcard"]::before,.activity-play .play-question[data-type="flashcard"]::after{display:none}
+.activity-play [data-type="flashcard"] .play-question-top{position:relative;display:flex;justify-content:center;flex:none;min-height:42px;margin:0 0 16px;padding:0 150px}
+.activity-play [data-type="flashcard"] .play-kind{min-width:205px;justify-content:center;border:1px solid #fff;border-radius:999px;background:#f6fbffdf;color:#133b76;font-size:17px;font-weight:900}
+.activity-play [data-type="flashcard"] .play-number{position:absolute;left:0;top:0;background:#fff}
+.activity-play [data-type="flashcard"] .game-timer{position:absolute;right:35px;top:0;background:#fffffff0;border-radius:999px}
+.activity-play [data-type="flashcard"] .question-workspace,.activity-play [data-type="flashcard"] .question-controls{display:flex;flex:1;flex-direction:column;min-height:0;align-items:stretch}
+:is(.activity-play,.live-player) .flashcard-study{display:flex;flex:1;flex-direction:column;gap:25px;width:min(100%,820px);min-height:0;margin:0 auto;padding:8px 12px 0}
+:is(.activity-play,.live-player) .flashcard-study .flash-card{position:relative;display:grid;flex:1;grid-template-rows:auto minmax(0,1fr) auto;align-items:center;justify-items:center;gap:18px;isolation:isolate;width:100%;height:100%;min-height:210px;margin:0;padding:24px 38px;border:3px solid #fff;border-radius:27px;background:linear-gradient(135deg,#fff,#f8fbff);box-shadow:0 12px 0 -5px #f2f7ff,0 24px 0 -12px #d2e4fd,0 26px 36px #255d9c25;overflow:hidden;color:#0a2059;font:inherit;text-align:center;cursor:pointer;transition:background .2s,border-color .2s,box-shadow .2s}
+:is(.activity-play,.live-player) .flashcard-study .flash-card::before{content:"";position:absolute;z-index:-1;inset:-95px auto auto -80px;width:250px;height:250px;border-radius:50%;background:#e9f3ff90;pointer-events:none}
+:is(.activity-play,.live-player) .flashcard-study .flash-card::after{content:"";position:absolute;z-index:-1;inset:auto -90px -130px auto;width:300px;height:300px;border-radius:50%;background:#e5efffb0;pointer-events:none}
+:is(.activity-play,.live-player) .flashcard-study .flash-card:hover{transform:none;border-color:#d1e8ff}
+:is(.activity-play,.live-player) .flashcard-study .flash-card[aria-pressed="true"]{border-color:#b3ddf9;background:linear-gradient(135deg,#fff,#f0f8ff)}
+:is(.activity-play,.live-player) .flashcard-study .flash-card:focus-visible{outline:3px solid #0a60cf;outline-offset:5px}
+:is(.activity-play,.live-player) .flashcard-study .flash-card:disabled{opacity:1;cursor:default}
+:is(.activity-play,.live-player) .flashcard-study .flashcard-face-label{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:100px;padding:6px 17px;border:1px solid #d5e6fc;border-radius:999px;background:#edf5ff;color:#1b62b3;font-size:12px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+:is(.activity-play,.live-player) .flashcard-study .flash-card .flashcard-copy{position:relative;display:block;align-content:center;align-self:stretch;min-width:0;min-height:0;width:100%;max-width:42ch;max-height:none;margin:0;padding:4px;overflow:auto;overflow-wrap:anywhere;white-space:pre-wrap;color:#0b2058;font-size:clamp(20px,3.7dvh,38px);font-weight:800;line-height:1.32;text-align:center}
+:is(.activity-play,.live-player) .flashcard-study .flash-card .flashcard-copy-long{max-width:100%;font-size:clamp(16px,2.5dvh,25px);line-height:1.35}
+:is(.activity-play,.live-player) .flashcard-study .flashcard-turn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding-top:14px;border-top:1px solid #e3edfc;color:#3e6399;font-size:14px;font-weight:700}
+.flashcard-turn>span{font-size:24px;line-height:1}
+:is(.activity-play,.live-player) .flashcard-assess-slot{flex:none;min-height:92px}
+:is(.activity-play,.live-player) .flashcard-help{margin:0 0 9px;padding:5px 10px;border-radius:10px;background:#ffffffc9;color:#294d7f;font-size:13px;line-height:1.3;text-align:center}
+:is(.activity-play,.live-player) .flashcard-study .play-flash-assess{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%;margin:0}
+:is(.activity-play,.live-player) .flashcard-study .play-flash-assess[hidden]{display:none!important}
+:is(.activity-play,.live-player) .flashcard-study .play-flash-assess button{min-width:0;min-height:45px;padding:9px 12px;border:1px solid #c4dcf7;border-radius:13px;background:#fff;box-shadow:0 4px 12px #28629d13;color:#1559a8;font:inherit;font-size:14px;font-weight:800;cursor:pointer}
+:is(.activity-play,.live-player) .flashcard-study .play-flash-assess button.selected{border:2px solid #0875eb;background:#e2f1ff;color:#074c9d}
+:is(.activity-play,.live-player) .flashcard-study .play-flash-assess button[data-flash="correct"].selected,:is(.activity-play,.live-player) .flashcard-study .play-flash-assess button[data-value="correct"].selected{border-color:#37a774;background:#e8f9ef;color:#15623f}
+:is(.activity-play,.live-player) .flashcard-study .play-flash-assess button:focus-visible{outline:3px solid #0758be;outline-offset:3px}
+.activity-play [data-type="flashcard"]>.play-feedback{flex:none;min-height:22px;margin:2px 0 0;padding:3px 12px;text-align:center;font-size:12px}
+.activity-play:has(.play-question[data-type="flashcard"]:not([hidden])) .play-footer{flex:none;min-height:45px;margin:6px 0 0;padding:4px 0 0;border:0;background:transparent}
+.live-player:has([data-live-type="flashcard"]){padding:20px;border:1px solid #c5e2ff;border-radius:25px;background:#e0efff url('./games/flashcard-stage.png') center/cover no-repeat}
+.live-question[data-live-type="flashcard"]{padding:12px 0 0;border:0;background:none;box-shadow:none}
+.live-question[data-live-type="flashcard"] .live-controls{display:flex;flex-direction:column}
+.live-question[data-live-type="flashcard"] .flashcard-study{height:clamp(430px,65dvh,640px);flex:none}
+.live-question[data-live-type="flashcard"] .flash-card{height:auto}
+.live-question[data-live-type="flashcard"] .live-observed-answer,.live-question[data-live-type="flashcard"] .live-feedback,.live-question[data-live-type="flashcard"] .live-solution{padding:10px 14px;border:1px solid #deebf9;border-radius:12px;background:#fffffff0;overflow-wrap:anywhere}
+@media(max-width:700px){
+ .activity-play:has(.play-question[data-type="flashcard"]:not([hidden])){width:98vw;height:96dvh;max-height:96dvh;padding:10px}
+ .activity-play [data-type="flashcard"] .play-question-top{min-height:77px;margin:0 0 10px;padding:0 0 40px}
+ .activity-play [data-type="flashcard"] .game-timer{top:41px;right:0}
+ :is(.activity-play,.live-player) .flashcard-study{padding:6px;gap:23px}
+ :is(.activity-play,.live-player) .flashcard-study .flash-card{min-height:210px;gap:12px;padding:18px 16px;border-radius:22px}
+ :is(.activity-play,.live-player) .flashcard-study .flash-card .flashcard-copy{font-size:clamp(19px,3dvh,26px)}
+ :is(.activity-play,.live-player) .flashcard-study .flash-card .flashcard-copy-long{max-width:100%;font-size:16px}
+ :is(.activity-play,.live-player) .flashcard-study .play-flash-assess{gap:5px}
+ :is(.activity-play,.live-player) .flashcard-study .play-flash-assess button{font-size:12px;padding:8px 4px}
+ :is(.activity-play,.live-player) .flashcard-assess-slot{min-height:110px}
+ :is(.activity-play,.live-player) .flashcard-help{font-size:12px}
+ .live-player:has([data-live-type="flashcard"]){padding:12px}
+ .live-question[data-live-type="flashcard"] .flashcard-study{height:560px}
+}
+@media(max-height:600px) and (min-width:701px){.activity-play [data-type="flashcard"] .flashcard-study{flex:none;height:430px}}
+@media(prefers-reduced-motion:reduce){:is(.activity-play,.live-player) .flashcard-study .flash-card{transition:none}}

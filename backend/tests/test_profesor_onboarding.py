@@ -39,13 +39,16 @@ def test_signup_has_no_personal_content_and_public_assets_work(client):
     for path in ['/assets/landing/profesor-materiales.png','/assets/landing/profesor-dashboard.png','/assets/landing/profesor-mobile.png']:
         response=web.get(path)
         assert response.status_code == 200 and response.content.startswith(b'\x89PNG')
-    for path in ['/assets/games/pasapalabra-stage.png', '/assets/games/wordsearch-stage.png', '/assets/games/memory-stage.png']:
+    for path in ['/assets/games/pasapalabra-stage.png', '/assets/games/wordsearch-stage.png', '/assets/games/memory-stage.png', '/assets/games/flashcard-stage.png']:
         response=web.get(path)
         assert response.status_code == 200 and response.content.startswith(b'\x89PNG')
     assert web.get('/assets/profesor-wordsearch-theme.css').status_code == 200
     memory_theme = web.get('/assets/profesor-memory-theme.css')
     assert memory_theme.status_code == 200 and 'memory-stage.png' in memory_theme.text
     assert '/assets/profesor-memory-theme.css' in web.get('/profesor/alumno').text
+    flashcard_theme=web.get('/assets/profesor-flashcard-theme.css')
+    assert flashcard_theme.status_code == 200 and 'flashcard-stage.png' in flashcard_theme.text
+    assert '/assets/profesor-flashcard-theme.css' in web.get('/profesor/alumno').text
 
 
 def test_signup_plan_changes_only_future_teacher_accounts(client, monkeypatch):

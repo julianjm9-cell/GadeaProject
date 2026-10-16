@@ -74,6 +74,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/profesor-game-theme.css": b"memory-card-mark",
         "/assets/profesor-pasapalabra-theme.css": b"pasapalabra-stage.png",
         "/assets/games/pasapalabra-stage.png": b"\x89PNG\r\n\x1a\n",
+        "/assets/profesor-flashcard-theme.css": b"flashcard-stage.png",
+        "/assets/games/flashcard-stage.png": b"\x89PNG\r\n\x1a\n",
         "/assets/profesor-memory-theme.css": b"memory-stage.png",
         "/assets/games/memory-stage.png": b"\x89PNG\r\n\x1a\n",
         "/assets/profesor-wordsearch-theme.css": b"wordsearch-stage.png",

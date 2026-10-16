@@ -733,6 +733,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-activity-play.css")
 @router.get("/assets/profesor-game-theme.css")
 @router.get("/assets/profesor-pasapalabra-theme.css")
+@router.get("/assets/profesor-flashcard-theme.css")
 @router.get("/assets/profesor-memory-theme.css")
 @router.get("/assets/profesor-wordsearch-theme.css")
 @router.get("/assets/profesor-hangman-theme.css")
@@ -770,6 +771,7 @@ def profesor_game_illustration(filename: str):
         "wordsearch-stage.png",
         "hangman-stage.png",
         "memory-stage.png",
+        "flashcard-stage.png",
         "basic-boolean.webp",
         "basic-classify.webp",
         "basic-gaps.webp",

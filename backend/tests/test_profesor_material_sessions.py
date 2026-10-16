@@ -216,3 +216,35 @@ def test_every_generated_activity_type_can_be_prepared_for_a_student():
             assert all("answer" not in entry for entry in public["entries"])
     assert grade(prepare({**base, "type": "numeric", "answer": "1.5"}, 1), "3/2") == "correct"
     assert grade(prepare({**base, "type": "imagepoint", "target": {"x": 50, "y": 50}}, 1), [51, 49]) == "correct"
+
+
+def test_flashcard_reveal_and_self_assessment_survive_reload(client, monkeypatch):
+    """Turning a card reveals content; it must not submit an assessment."""
+    import sys
+    monkeypatch.setattr(sys.modules[__name__], 'material_questions', lambda: [
+        {'id': 'flash', 'type': 'flashcard', 'prompt': 'Capital de Francia',
+         'answer': 'París', 'options': []}
+    ])
+    web, _ = prepare_teacher(client)
+    session = web.post('/api/profesor/material-sessions', json={'material_id': 'm1'}).json()['session']
+    with TestClient(app) as pupil:
+        assert pupil.post('/auth/profesor/student-join', json={'code': session['join_code']}).status_code == 200
+        path = f"/api/profesor/student-material-sessions/{session['id']}"
+        assert pupil.post(path + '/move', json={'action': 'start'}).status_code == 200
+        before = pupil.get(path).json()['session']
+        assert 'revealed_answer' not in before['questions'][0]
+        assert 'París' not in str(before)
+        assert pupil.post(path + '/move', json={'action': 'check', 'value': 'correct'}).status_code == 409
+        revealed = pupil.post(path + '/move', json={'action': 'reveal'})
+        assert revealed.status_code == 200 and revealed.json()['feedback'] == 'París'
+        after = pupil.get(path).json()['session']
+        assert after['questions'][0]['revealed_answer'] == 'París'
+        assert not after['progress'].get('grades', {}).get('0')
+        for value in ['partial', 'correct']:
+            assert pupil.post(path + '/move', json={'action': 'check', 'value': value}).status_code == 200
+            saved = pupil.get(path).json()['session']
+            assert saved['progress']['responses']['0'] == value
+            assert saved['progress']['grades']['0'] == value
+        finished = pupil.post(path + '/move', json={'action': 'finish'}).json()['session']
+        assert finished['status'] == 'completed'
+        assert finished['progress']['grades']['0'] == 'correct'
