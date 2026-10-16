@@ -290,9 +290,12 @@
     let opened = [], moves = 0, busy = false;
     const matched = new Set();
     function draw() {
-      root.style.setProperty('--memory-columns', cards.some(card => card.label.length > 40) ? 2 : cards.length <= 6 ? 3 : 4);
-      root.innerHTML = cards.map((card, n) => `<button type="button" class="memory-card ${matched.has(card.id) ? 'matched' : ''} ${opened.includes(n) ? 'revealed' : ''}" data-card="${n}" aria-label="${opened.includes(n) || matched.has(card.id) ? escape(card.label) : `Tarjeta ${n + 1}`}" ${matched.has(card.id) ? 'disabled' : ''}>${opened.includes(n) || matched.has(card.id) ? escape(card.label) : '<span class="memory-card-mark" aria-hidden="true">✦</span>'}${matched.has(card.id) ? '<small>✓ Pareja</small>' : ''}</button>`).join('');
-      status.textContent = `${matched.size}/${pairs.length} parejas · ${moves} intentos`;
+      root.style.setProperty('--memory-columns', cards.length === 4 ? 2 : cards.length <= 6 ? 3 : 4);
+      root.classList.toggle('memory-long-text', cards.some(card => card.label.length > 70));
+      root.innerHTML = cards.map((card, n) => `<button type="button" class="memory-card ${matched.has(card.id) ? 'matched' : ''} ${opened.includes(n) ? 'revealed' : ''}" data-card="${n}" aria-label="${opened.includes(n) || matched.has(card.id) ? escape(card.label) : `Tarjeta ${n + 1}`}" aria-pressed="${opened.includes(n) || matched.has(card.id)}" ${matched.has(card.id) || busy || isChecked() ? 'disabled' : ''}><span class="memory-card-content">${opened.includes(n) || matched.has(card.id) ? escape(card.label) : '<span class="memory-card-mark" aria-hidden="true">✦</span>'}</span>${matched.has(card.id) ? '<small>✓ Pareja</small>' : ''}</button>`).join('');
+      status.textContent = `${matched.size}/${pairs.length} parejas · ${moves} intentos${matched.size === pairs.length ? ' · ¡Completado!' : busy ? ' · Prueba otra pareja' : ''}`;
+      const progress = root.parentElement.querySelector('progress');
+      if (progress) { progress.max = pairs.length; progress.value = matched.size; }
       root.querySelectorAll('[data-card]').forEach(button => button.onclick = () => {
         const n = Number(button.dataset.card);
         if (busy || isChecked() || opened.includes(n) || matched.has(cards[n].id)) return;
@@ -615,7 +618,7 @@
   }
   function questionMarkup(question, index, pairChoices) {
     const type = question.type;
-    const heading = type === 'gaps' || type === 'multigaps' ? '' : type === 'hangman' ? `<div class="hangman-heading"><h3 id="question-${index}">Adivina el concepto antes de quedarte sin intentos.</h3><p>Lee la pista y selecciona letras.</p></div>` : type === 'pasapalabra' || type === 'wordsearch' ? `<h3 id="question-${index}" class="${type}-intro">${escape(question.prompt)}</h3>` : `<h3 id="question-${index}">${type === 'flashcard' ? 'Lee la tarjeta y piensa la respuesta.' : `${index + 1}. ${escape(question.prompt)}`}</h3>`;
+    const heading = type === 'gaps' || type === 'multigaps' ? '' : type === 'hangman' ? `<div class="hangman-heading"><h3 id="question-${index}">Adivina el concepto antes de quedarte sin intentos.</h3><p>Lee la pista y selecciona letras.</p></div>` : ['pasapalabra','wordsearch','memory'].includes(type) ? `<h3 id="question-${index}" class="${type}-intro">${escape(question.prompt)}</h3>` : `<h3 id="question-${index}">${type === 'flashcard' ? 'Lee la tarjeta y piensa la respuesta.' : `${index + 1}. ${escape(question.prompt)}`}</h3>`;
     const image = visualTypes.includes(type) ? `<div class="visual-image-box ${type === 'imagepoint' ? 'visual-answer-box' : ''}" id="visual-${index}" ${type === 'imagepoint' ? 'tabindex="0" role="button" aria-label="Marca el punto en la imagen; usa las flechas para ajustarlo"' : ''}><img data-activity-image="${index}" alt="${escape(question.image?.filename || 'Imagen del ejercicio')}"></div>` : '';
     let control = '';
     if (type === 'gaps') {
@@ -632,7 +635,7 @@
     } else if (puzzleTypes.includes(type)) {
       control = `<div id="puzzle-${index}"></div><input id="r-${index}" name="r-${index}" type="hidden">`;
     } else if (type === 'memory') {
-      control = `<p class="play-hint">Destapa dos tarjetas y encuentra cada pareja.</p><div id="memory-${index}" class="memory-board"></div><input id="r-${index}" name="r-${index}" type="hidden"><p id="memory-status-${index}" class="play-progress" role="status"></p>`;
+      control = `<div class="memory-stage"><div class="memory-toolbar"><span>Destapa dos tarjetas y encuentra su pareja.</span><p id="memory-status-${index}" class="play-progress" role="status"></p></div><progress class="memory-progress" max="1" value="0" aria-label="Parejas encontradas"></progress><div id="memory-${index}" class="memory-board" role="group" aria-label="Tarjetas de Memory"></div></div><input id="r-${index}" name="r-${index}" type="hidden">`;
     } else if (type === 'flashcard') {
       control = `<button type="button" id="flip-${index}" class="flash-card" aria-pressed="false"><small>Toca para girar</small><strong>${escape(question.prompt)}</strong></button><div class="play-flash-assess" id="flash-assess-${index}" hidden><button type="button" data-flash="correct" data-index="${index}">✓ La sabía</button><button type="button" data-flash="partial" data-index="${index}">◷ Con ayuda</button><button type="button" data-flash="incorrect" data-index="${index}">↻ Repasar</button></div><input id="r-${index}" name="r-${index}" type="hidden">`;
     } else if (sequenceTypes.includes(type)) {
@@ -792,7 +795,7 @@
     const score = $('activityScore'), actions = score.nextElementSibling;
     score.before(footer); footer.append(score, actions);
     actions.prepend(toolbar);actions.querySelector('[data-action="close"]').hidden=true;
-    const hasPasapalabra = questions.some(question => question.type === 'pasapalabra');
+    const hasPasapalabra = questions.some(question => ['pasapalabra','memory'].includes(question.type));
     let pasapalabraSolutionModal = null;
     let solutionTrigger = null;
     if (hasPasapalabra) {
@@ -923,7 +926,14 @@
       solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';
       solution.onclick=()=>{
         practice[index].assisted=true;
-        if (q.type === 'pasapalabra' && pasapalabraSolutionModal) {
+        if (['pasapalabra','memory'].includes(q.type) && pasapalabraSolutionModal) {
+          const isMemory = q.type === 'memory';
+          pasapalabraSolutionModal.querySelector('.pasapalabra-solution-eyebrow').textContent = isMemory ? 'MEMORY' : 'PASAPALABRA';
+          pasapalabraSolutionModal.querySelector('h2').textContent = isMemory ? 'Todas las parejas' : 'Solución del rosco';
+          if (isMemory) {
+            pasapalabraSolutionModal.querySelector('.pasapalabra-solution-body').innerHTML = '<ol class="memory-solutions">' + validateMemory(q.options).map(pair => '<li><strong>'+rich(pair[0])+'</strong><span>↔</span><strong>'+rich(pair[1])+'</strong></li>').join('') + '</ol>' + (q.explanation ? '<p>'+rich(q.explanation)+'</p>' : '');
+            solutionTrigger=solution;pasapalabraSolutionModal.showModal();pasapalabraSolutionModal.querySelector('.pasapalabra-solution-close').focus();return;
+          }
           const rows=puzzleRows('pasapalabra',q.options);
           pasapalabraSolutionModal.querySelector('.pasapalabra-solution-body').innerHTML=
             '<ol class="pasapalabra-solution-list">'+rows.map(([letter,clue,answer])=>`<li><span class="pasapalabra-solution-letter">${escape(letter)}</span><div><strong>${escape(answer)}</strong><p>${rich(clue)}</p></div></li>`).join('')+'</ol>'+

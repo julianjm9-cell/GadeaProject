@@ -611,7 +611,7 @@ const activityDescriptions={pairs:'Une conceptos y respuestas',gaps:'Completa un
 const openAnswerTypes=['short','reading','problem','error','flashcard'];
 const sequenceTypes=['order','sentence','timeline'];
 const gameTypes=['flashcard','memory','sentence','timeline','error','wordsearch','crossword','dragdrop','pasapalabra','hangman','visualquiz','imagepoint'];
-const advancedTypes=['pasapalabra','hangman','wordsearch'];
+const advancedTypes=['pasapalabra','hangman','wordsearch','memory'];
 const puzzleTypes=['wordsearch','crossword','dragdrop','pasapalabra','multigaps'];
 const visualTypes=['visualquiz','imagepoint'];
 const optionTypes=['quiz','classify','boolean','order','sentence','timeline','memory','wordsearch','crossword','dragdrop','pasapalabra','multigaps','visualquiz'];
@@ -749,8 +749,8 @@ function reviewAttempt(id){const a=state.activityAttempts.find(x=>x.id===id);if(
 
 init();
 </script>
-<script src="./profesor-activity-play.js?v=20261012-7"></script>
-<script src="./profesor-live.js?v=20261016-picker-2"></script>
+<script src="./profesor-activity-play.js?v=20261016-memory-1"></script>
+<script src="./profesor-live.js?v=20261016-memory-3"></script>
 <link rel="stylesheet" href="./assets/profesor-activity-play.css?v=20261008-2">
 <link rel="stylesheet" href="./assets/profesor-live.css?v=20261007-4">
 <style>
@@ -1049,6 +1049,7 @@ init();
 <link rel="stylesheet" href="./assets/profesor-pasapalabra-theme.css?v=20261012-4">
 <link rel="stylesheet" href="./assets/profesor-hangman-theme.css?v=20261012-3">
 <link rel="stylesheet" href="./assets/profesor-wordsearch-theme.css?v=20261012-2">
+<link rel="stylesheet" href="./assets/profesor-memory-theme.css?v=20261016-3">
 <script src="./profesor-support.js?v=20261008-1"></script>
 <script src="./profesor-uploaded-topics.js?v=20261008-1"></script>
 <link rel="stylesheet" href="./assets/profesor-uploaded-topics.css?v=20261008-1">

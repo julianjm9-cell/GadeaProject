@@ -12,7 +12,7 @@
   const sequence = new Set(['order','sentence','timeline']);
   const open = new Set(['short','reading','problem','error']);
   const studentRoot = document.getElementById('studentMaterials');
-  let active = null, activeWord = 0, activeLetter = 0, pickedCell = null, firstCard = null, saving = Promise.resolve(), draftTimer = null, lastList = '', watcher = null, reviewIndex = null, teacherReviewIndex = null, watchedSession = null;
+  let memoryBusy = false, memoryOpen = [], active = null, activeWord = 0, activeLetter = 0, pickedCell = null, firstCard = null, saving = Promise.resolve(), draftTimer = null, lastList = '', watcher = null, reviewIndex = null, teacherReviewIndex = null, watchedSession = null;
   const val = (session, n) => session.progress?.responses?.[String(n)];
   const grade = (session, n) => session.progress?.grades?.[String(n)];
   const partGrade = (session, n, part) => session.progress?.parts?.[String(n)]?.[String(part)];
@@ -47,7 +47,7 @@
       controls=`<p class="live-hint">Elige un destino para cada pieza.</p><div class="live-stack">${(q.items||[]).map((item,i)=>`<label class="live-assign"><strong>${escape(item)}</strong><select data-live-field="part" data-part="${i}" ${disabled}><option value="">Elige destino…</option>${(q.targets||[]).map(target=>`<option value="${escape(target)}" ${values[i]===target?'selected':''}>${escape(target)}</option>`).join('')}</select><small class="${partGrade(session,n,i)||''}">${partGrade(session,n,i)==='correct'?'✓':partGrade(session,n,i)==='incorrect'?'×':''}</small></label>`).join('')}</div>`;
     } else if(kind==='memory') {
       const matched=Array.isArray(response)?response:[], tokens=new Set(matched.flat()), selected=teacher&&session.progress?.focus?.question_index===n?session.progress.focus.token:firstCard;
-      controls=`<p class="live-hint">Destapa dos tarjetas y encuentra las parejas.</p><div class="live-memory">${(q.cards||[]).map((card,i)=>`<button type="button" data-live-action="card" data-value="${escape(card.token)}" class="${tokens.has(card.token)?'matched':selected===card.token?'flipped':''}" ${locked||tokens.has(card.token)?'disabled':''}>${tokens.has(card.token)||selected===card.token?escape(card.label):'?'}${tokens.has(card.token)?'<small>✓</small>':''}</button>`).join('')}</div><p>${matched.length} de ${(q.cards||[]).length/2} parejas encontradas</p>`;
+      controls=`<div class="memory-stage"><div class="memory-toolbar"><span>Destapa dos tarjetas y encuentra su pareja.</span><p role="status">${matched.length}/${(q.cards||[]).length/2} parejas encontradas</p></div><progress class="memory-progress" value="${matched.length}" max="${(q.cards||[]).length/2}" aria-label="Parejas encontradas"></progress><div class="live-memory memory-board" style="--memory-columns:${q.cards?.length===4?2:q.cards?.length<=6?3:4}">${(q.cards||[]).map((card,i)=>{const revealed=tokens.has(card.token)||selected===card.token||memoryOpen.includes(card.token);return `<button type="button" data-live-action="card" data-value="${escape(card.token)}" aria-label="${revealed?escape(card.label):'Tarjeta '+(i+1)}" aria-pressed="${revealed}" class="memory-card ${tokens.has(card.token)?'matched':revealed?'revealed':''}" ${locked||tokens.has(card.token)||memoryBusy?'disabled':''}><span class="memory-card-content">${revealed?escape(card.label):'<span class="memory-card-mark" aria-hidden="true">✦</span>'}</span>${tokens.has(card.token)?'<small>✓ Pareja</small>':''}</button>`}).join('')}</div></div>`;
     } else if(kind==='wordsearch') {
       const found=Array.isArray(response)?response:[], size=q.grid?.length||0, paths=new Set(found.flatMap(path=>Array.isArray(path)?path.map(cell=>cell.join('-')):[])),focused=session.progress?.focus?.question_index===n?session.progress.focus.part:null,word=teacher&&focused!=null?focused:activeWord;
       controls=`<p class="live-hint">Elige una palabra y marca su primera y última letra.</p><div class="live-words">${(q.words||[]).map((item,i)=>`<button type="button" data-live-action="word" data-index="${i}" class="${i===word?'active':''} ${partGrade(session,n,i)||''}" ${locked?'disabled':''}>${escape(item)}</button>`).join('')}</div><div class="live-word-grid" style="--size:${size}">${(q.grid||[]).flatMap((row,r)=>row.map((letter,c)=>`<button type="button" data-live-action="cell" data-row="${r}" data-col="${c}" class="${paths.has(r+'-'+c)?'found':''} ${pickedCell?.[0]===r&&pickedCell?.[1]===c?'picked':''}" ${locked?'disabled':''} aria-label="Fila ${r+1}, columna ${c+1}: ${escape(letter)}">${escape(letter)}</button>`)).join('')}</div>`;
@@ -211,7 +211,7 @@
   });
   studentRoot.addEventListener('keydown',event=>{if(event.key==='Enter'&&event.target.matches('input[data-live-field]')){event.preventDefault();const part=event.target.dataset.part;const check=part!=null?studentRoot.querySelector(`[data-live-action="check-part"][data-part="${part}"]`):studentRoot.querySelector('[data-live-action="check"]');check?.click()}});
   studentRoot.addEventListener('click',async event=>{
-    const button=event.target.closest('[data-live-action]');if(!button||!active||button.disabled)return;
+    const button=event.target.closest('[data-live-action]');if(!button||!active||button.disabled||memoryBusy)return;
     const action=button.dataset.liveAction,index=current(),q=active.questions[index];
     try{
       if(action==='start'){await send('start',0,null);renderActive();return}
@@ -224,7 +224,27 @@
       if(action==='letter'){activeLetter=Number(button.dataset.index);active.progress.focus={question_index:index,part:activeLetter};renderActive();await send('focus',index,null,activeLetter);return}
       if(action==='pass'){activeLetter=(activeLetter+1)%q.entries.length;active.progress.focus={question_index:index,part:activeLetter};renderActive();await send('focus',index,null,activeLetter);return}
       if(action==='check-part'){await flush();await checkPart(index,Number(button.dataset.part),val(active,index));if(q.type==='pasapalabra'){activeLetter=(activeLetter+1)%q.entries.length;active.progress.focus={question_index:index,part:activeLetter};await send('focus',index,null,activeLetter)}renderActive();return}
-      if(action==='card'){const token=button.dataset.value;if(!firstCard){firstCard=token;active.progress.focus={question_index:index,token};renderActive();await send('focus',index,token);return}if(firstCard===token){firstCard=null;active.progress.focus={question_index:index,token:null};renderActive();await send('focus',index,null);return}const values=Array.isArray(val(active,index))?[...val(active,index)]:[],pair=[firstCard,token];firstCard=null;active.progress.focus={question_index:index,token:null};values.push(pair);setValue(index,values);const result=await send('check',index,values,values.length-1);if(result.feedback!=='correct'){values.pop();setValue(index,values);await send('draft',index,values)}await send('focus',index,null);renderActive();return}
+      if(action==='card'){
+        const token=button.dataset.value;
+        const previous=Array.isArray(val(active,index))?[...val(active,index)]:[];
+        memoryBusy=true;
+        try {
+          if(!firstCard){firstCard=token;active.progress.focus={question_index:index,token};renderActive();await send('focus',index,token);return}
+          if(firstCard===token){firstCard=null;active.progress.focus={question_index:index,token:null};await send('focus',index,null);return}
+          const values=Array.isArray(val(active,index))?[...val(active,index)]:[],pair=[firstCard,token];
+          memoryOpen=pair;renderActive();
+          setValue(index,[...values,pair]);
+          const result=await send('check',index,[...values,pair],values.length);
+          if(result.feedback!=='correct'){
+            // Keep both faces visible before hiding a mismatch; block extra flips meanwhile.
+            await new Promise(resolve=>setTimeout(resolve,950));
+            setValue(index,values);await send('draft',index,values);
+          }
+          firstCard=null;active.progress.focus={question_index:index,token:null};await send('focus',index,null);
+        } catch(error) { setValue(index,previous);firstCard=null;active.progress.focus={question_index:index,token:null};throw error; }
+        finally { memoryBusy=false;memoryOpen=[];renderActive(); }
+        return;
+      }
       if(action==='word'){activeWord=Number(button.dataset.index);pickedCell=null;active.progress.focus={question_index:index,part:activeWord};renderActive();await send('focus',index,null,activeWord);return}
       if(action==='cell'){const r=Number(button.dataset.row),c=Number(button.dataset.col);if(!pickedCell){pickedCell=[r,c];renderActive();return}const [startR,startC]=pickedCell,pieces=Math.max(Math.abs(r-startR),Math.abs(c-startC)),dr=Math.sign(r-startR),dc=Math.sign(c-startC);pickedCell=null;if(!(startR===r||startC===c||Math.abs(r-startR)===Math.abs(c-startC)))return;const cells=Array.from({length:pieces+1},(_,i)=>[startR+i*dr,startC+i*dc]),values=Array.isArray(val(active,index))?[...val(active,index)]:[];values[activeWord]=cells;await checkPart(index,activeWord,values);return}
       if(action==='guess'){const values=Array.isArray(val(active,index))?[...val(active,index)]:[];values.push(button.dataset.value);setValue(index,values);await send('check',index,values);renderActive();return}
