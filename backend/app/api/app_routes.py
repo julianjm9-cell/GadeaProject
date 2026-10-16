@@ -1579,6 +1579,9 @@ def get_state(request: Request, response: Response, user: User = Depends(current
     if app_key != "profesor_particular":
         return saved
     response.headers["ETag"] = state_history.etag(row.profesor_revision)
+    from app.services.profesor_admin import record_activity
+    record_activity(db, user)
+    db.commit()
     # Teacher profiles and planning belong to this private, authenticated state.
     # Code-based game sessions remain separate and never expose these records.
     result = dict(saved)

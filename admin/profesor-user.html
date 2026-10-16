@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; object-src 'none'; form-action 'none'">
+  <title>Ficha del profesor · Administración</title>
+  <link rel="stylesheet" href="profesor-user.css?v=20261016-1">
+  <script src="profesor-user.js?v=20261016-1" defer></script>
+</head>
+<body>
+  <main>
+    <header class="topbar"><a href="./">← Dashboard</a><span>Profesor Particular <b>Administración</b></span><span class="readonly">Solo lectura</span></header>
+    <section class="hero">
+      <div class="identity"><div id="avatar" class="avatar" aria-hidden="true">P</div><div><p class="eyebrow">FICHA DEL PROFESOR</p><h1 id="name">Cargando cuenta…</h1><p id="email" class="muted"></p></div></div>
+      <div class="controls"><label for="purpose">Motivo de consulta</label><div class="inline"><select id="purpose"><option value="administration">Administración del servicio</option><option value="support">Soporte de la cuenta</option><option value="security">Investigación de seguridad</option></select><button id="refresh" type="button">Actualizar</button></div><small>La consulta queda registrada con tu usuario y su fecha.</small></div>
+    </section>
+    <div id="notice" role="status" class="notice">Consultando información…</div>
+    <div id="content" hidden>
+      <section id="metrics" class="metrics" aria-label="Uso actual"></section>
+      <nav class="tabs" aria-label="Secciones de la ficha">
+        <button type="button" data-panel="overview" aria-pressed="true">Resumen y conexiones</button>
+        <button type="button" data-panel="materials" aria-pressed="false">Materiales</button>
+        <button type="button" data-panel="ai" aria-pressed="false">Generaciones de IA</button>
+        <button type="button" data-panel="history" aria-pressed="false">Historial técnico</button>
+      </nav>
+      <section id="overview" class="panel"><div class="columns"><article class="card"><h2>Cuenta y acceso</h2><dl id="account"></dl></article><article class="card"><h2>Conexiones registradas</h2><dl id="activity"></dl><p class="hint">El registro comienza con esta actualización. «Sin registro» no significa que nunca haya utilizado la app. El inicio de sesión corresponde a la cuenta compartida entre aplicaciones; la apertura registra el escritorio de Profesor Particular. Las aperturas se agrupan cada 30 minutos y no indican presencia en directo.</p></article></div><article class="card"><h2>Actividad reciente</h2><div id="events"></div></article></section>
+      <section id="materials" class="panel" hidden><article class="card"><div class="section-head"><div><h2>Catálogo de materiales guardados</h2><p class="muted">Metadatos para administración y soporte. No se muestran los ejercicios ni datos de alumnos.</p></div><span id="materialTotal" class="pill"></span></div><div class="filters"><div><label for="search">Buscar material</label><input id="search" type="search" maxlength="180" placeholder="Título, curso o tipo de ejercicio"></div><div><label for="subject">Asignatura</label><select id="subject"><option value="">Todas las asignaturas</option></select></div><div><label for="kind">Formato</label><select id="kind"><option value="">Todos los formatos</option></select></div></div><div id="materialRows"></div><div class="pagination"><button type="button" id="previous">← Anterior</button><span id="pageLabel"></span><button type="button" id="next">Siguiente →</button></div><p class="hint">Son los materiales que conserva actualmente la cuenta, no un total histórico de creaciones. Las fechas antiguas que no se guardaron figuran como «Sin registro».</p></article></section>
+      <section id="ai" class="panel" hidden><article class="card"><h2>Generaciones conservadas</h2><p id="generationSummary" class="hint"></p><div id="generations"></div><p class="hint">Últimos 50 trabajos conservados. Los códigos permiten localizar una incidencia sin consultar las peticiones ni las respuestas privadas.</p></article><article class="card"><h2>Consumos de IA recientes</h2><div id="usage"></div><p class="hint">Últimos 50 registros de consumo de Profesor Particular. Los tokens son unidades de texto; no equivalen al número de créditos.</p></article></section>
+      <section id="history" class="panel" hidden><article class="card"><h2>Versiones de recuperación</h2><p class="hint">Hasta 50 versiones conservadas. Esta vista permite comprobar fechas y recuentos; la recuperación sigue estando en la cuenta del profesor.</p><div id="versions"></div></article><article class="card"><h2>Cambios y consultas administrativas</h2><p class="hint">Últimos 50 eventos disponibles. Las consultas de esta ficha se conservan hasta 180 días.</p><div id="changes"></div></article></section>
+    </div>
+    <footer>Información restringida a la administración del servicio. <a href="/privacidad">Política de privacidad</a></footer>
+  </main>
+</body>
+</html>

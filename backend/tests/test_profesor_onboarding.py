@@ -8,7 +8,7 @@ def test_profile_and_password_changes_preserve_teacher_data(client):
     assert web.post('/auth/change-password', json={'current_password':'temporal123','new_password':'NuevaClave123'}).status_code == 401
     seed_user(factory, product_codes=('PROFESOR_PARTICULAR',))
     assert login(web).status_code == 200
-    data = {'version':2,'students':[{'id':'discarded','name':'Alumno'}],'library':[{'id':'kept-material'}]}
+    data = {'version':2,'students':[{'id':'kept-student','name':'Alumno'}],'library':[{'id':'kept-material'}]}
     assert web.post('/api/state?app=profesor_particular', json=data).status_code == 200
     assert web.post('/api/profile?app=profesor_particular', json={'name':'Nombre nuevo'}).status_code == 200
     assert web.post('/auth/change-password', json={'current_password':'wrong','new_password':'NuevaClave123'}).status_code == 400
@@ -19,7 +19,7 @@ def test_profile_and_password_changes_preserve_teacher_data(client):
     assert login(web,password='NuevaClave123').status_code == 200
     assert web.get('/auth/me').json()['user']['full_name'] == 'Nombre nuevo'
     saved=web.get('/api/state?app=profesor_particular').json()
-    assert 'students' not in saved
+    assert saved['students'] == data['students']
     assert saved['library'] == data['library']
 
 

@@ -21,7 +21,7 @@ app = FastAPI(title=settings.app_name)
 async def protect_ads(request, call_next):
     path = request.url.path
     protected = path.startswith(("/api/profesor/ads", "/api/profesor/ad-", "/profesor/anunc", "/admin/profesor-ads"))
-    private_data = path in {"/api/state", "/auth/me", "/api/profile"} or path.startswith(("/api/profesor/", "/auth/profesor/student-"))
+    private_data = path in {"/api/state", "/auth/me", "/api/profile"} or path.startswith(("/api/profesor/", "/auth/profesor/student-", "/admin/"))
     if protected and request.method in {"POST", "PUT", "PATCH"}:
         body = bytearray()
         async for chunk in request.stream():

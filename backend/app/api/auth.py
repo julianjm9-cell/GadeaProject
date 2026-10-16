@@ -68,7 +68,11 @@ def public_user(user: User) -> dict:
     }
 
 
-def issue_login_response(user: User, response: Response) -> TokenResponse:
+def issue_login_response(user: User, response: Response, *, db: Session, method: str = "password") -> TokenResponse:
+    from app.services.profesor_admin import record_activity
+    if license_for_user(db, user, "PROFESOR_PARTICULAR"):
+        record_activity(db, user, login_method=method)
+        db.commit()
     settings = get_settings()
     access = create_token(user.id, "access", timedelta(minutes=settings.access_token_minutes))
     refresh = create_token(user.id, "refresh", timedelta(days=settings.refresh_token_days))
@@ -285,7 +289,7 @@ def register_eso(payload: EsoRegisterRequest, request: Request, response: Respon
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Este correo ya tiene cuenta. Inicia sesión para acceder a ESO.")
-    return issue_login_response(user, response)
+    return issue_login_response(user, response, db=db)
 
 
 @router.get("/profesor/signup-settings")
@@ -321,7 +325,7 @@ def register_profesor(payload: EsoRegisterRequest, request: Request, response: R
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Este correo ya tiene cuenta. Inicia sesión para acceder a Profesor Particular.")
-    return issue_login_response(user, response)
+    return issue_login_response(user, response, db=db)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -353,7 +357,7 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
         audit(db, actor=user, organization_id=user.organization_id, action="access_blocked", entity_type="user", entity_id=str(user.id), metadata={"reason": decision.message})
         db.commit()
         raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=decision.message)
-    return issue_login_response(user, response)
+    return issue_login_response(user, response, db=db)
 
 
 @router.get("/google/login")
@@ -495,7 +499,7 @@ async def google_callback(request: Request, response: Response, code: str | None
         return RedirectResponse("/login?" + urlencode({"google_error": "access", "next": target}))
     db.commit()
     login_response = RedirectResponse(clean_next_path(str(payload.get("next") or "/apps")))
-    issue_login_response(user, login_response)
+    issue_login_response(user, login_response, db=db, method="google")
     login_response.delete_cookie("diplomator_google_state")
     return login_response
 

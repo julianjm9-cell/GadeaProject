@@ -96,6 +96,6 @@ def current_license(request: Request, user: User = Depends(current_user), db: Se
 
 
 def require_superadmin(user: User = Depends(current_user)) -> User:
-    if user.role != "superadmin":
+    if user.role != "superadmin" or not user.is_active or user.organization.status != "active":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Requiere superadmin.")
     return user

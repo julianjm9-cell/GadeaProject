@@ -64,6 +64,9 @@ def run_session_cleanup_forever():
         try:
             with SessionLocal() as db:
                 purge_expired_sessions(db)
+                from app.services.profesor_admin import prune_diagnostics
+                prune_diagnostics(db)
+                db.commit()
         except Exception:
             print("Session cleanup: temporal database failure", flush=True)
         time.sleep(300)

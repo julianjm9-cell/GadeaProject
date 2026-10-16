@@ -9,8 +9,9 @@ from datetime import datetime, timezone
 from io import BytesIO
 from xml.etree import ElementTree as ET
 from uuid import UUID
+from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
@@ -576,6 +577,55 @@ def list_accounts(_: User = Depends(require_superadmin), db: Session = Depends(g
     return {"ok": True, "accounts": rows}
 
 
+def profesor_diagnostic_target(db: Session, user_id: UUID) -> User:
+    user = get_or_404(db, User, user_id)
+    if not license_for_user(db, user, "PROFESOR_PARTICULAR"):
+        raise HTTPException(404, "Esta cuenta no tiene acceso a Profesor Particular.")
+    return user
+
+
+@router.get("/profesor-users/{user_id}")
+def profesor_user_details(user_id: UUID, response: Response,
+        purpose: Literal["administration", "support", "security"] = "administration",
+        actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    from app.services.profesor_admin import account_diagnostics, prune_diagnostics
+    user = profesor_diagnostic_target(db, user_id)
+    prune_diagnostics(db)
+    audit(db, actor=actor, organization_id=user.organization_id, action="profesor_account_viewed",
+          entity_type="user", entity_id=str(user.id), metadata={"purpose": purpose})
+    db.flush()
+    result = account_diagnostics(db, user)
+    result["account"] = {"id": str(user.id), "full_name": user.full_name, "email": user.email,
+        "created_at": user.created_at.isoformat(), "is_active": user.is_active,
+        "google_linked": bool(user.google_sub), "drive_connected": bool(user.drive_refresh_token),
+        "meet_connected": bool(user.meet_refresh_token), "access": access_payload(db, user, "PROFESOR_PARTICULAR")}
+    db.commit()
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.get("/profesor-users/{user_id}/materials")
+def profesor_user_materials(user_id: UUID, response: Response,
+        page: int = Query(1, ge=1, le=100000), q: str = Query("", max_length=180),
+        subject: str = Query("", max_length=100), kind: str = Query("", max_length=80),
+        purpose: Literal["administration", "support", "security"] = "administration",
+        actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    from app.services.profesor_admin import collections_for, material_metadata
+    user = profesor_diagnostic_target(db, user_id)
+    _, _, library = collections_for(db, user)
+    materials = [material_metadata(item) for item in reversed(library)]
+    subjects = sorted({m["subject"] for m in materials if m["subject"]})
+    kinds = sorted({m["kind"] for m in materials if m["kind"]})
+    selected = [m for m in materials if (not subject or m["subject"] == subject) and (not kind or m["kind"] == kind)
+        and (not q or q.casefold() in f'{m["title"]} {m["subject"]} {m["course"]} {" ".join(m["types"])}'.casefold())]
+    audit(db, actor=actor, organization_id=user.organization_id, action="profesor_catalog_viewed",
+          entity_type="user", entity_id=str(user.id), metadata={"purpose": purpose, "page": page})
+    db.commit()
+    response.headers["Cache-Control"] = "private, no-store"
+    return {"materials": selected[(page-1)*25:page*25], "total": len(selected), "page": page,
+            "page_size": 25, "subjects": subjects, "kinds": kinds}
+
+
 @router.patch("/users/{user_id}/access/{product_code}")
 def patch_user_access(user_id: UUID, product_code: str, payload: UserAccessPatch, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
     user = get_or_404(db, User, user_id)
@@ -709,6 +759,9 @@ def delete_user(user_id: UUID, actor: User = Depends(require_superadmin), db: Se
         db.execute(delete(model).where(field == user_id))
     for model in (Message, Conversation, Document, GamificationProfile, ProfesorStateSnapshot, ClientState, UsageRecord, License):
         db.execute(delete(model).where(model.user_id == user_id))
+    from app.services.profesor_admin import ACTIVITY_ACTIONS, ADMIN_ACTIONS
+    db.execute(delete(AuditLog).where(AuditLog.entity_type == "user", AuditLog.entity_id == str(user_id),
+        AuditLog.action.in_(ACTIVITY_ACTIONS + ADMIN_ACTIONS)))
     db.execute(update(AuditLog).where(AuditLog.actor_user_id == user_id).values(actor_user_id=None))
     organization_id = user.organization_id
     db.delete(user)

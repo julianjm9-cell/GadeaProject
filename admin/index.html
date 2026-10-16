@@ -353,7 +353,7 @@ function renderApp(){
   $('appUsersTable').innerHTML=table(['Usuario','Acceso',...(product.code==='PROFESOR_PARTICULAR'?['Tipo de cuenta']:[]),...(product.code==='OCR_FACTURAS'?['Rol']:[]),'Disponibles','Gastados',''],visible.map(account=>{
     const access=account.accesses.find(item=>item.product_code===product.code);
     return [
-      `<td><strong>${esc(account.full_name||account.email)}</strong><br><span class="muted">${esc(account.email)}</span></td>`,
+      `<td>${product.code==='PROFESOR_PARTICULAR'?`<a href="profesor-user.html?user=${encodeURIComponent(account.id)}" target="_blank" rel="noopener noreferrer" style="color:var(--main);text-decoration:underline;text-underline-offset:3px"><strong>${esc(account.full_name||account.email)}</strong> ↗</a>`:`<strong>${esc(account.full_name||account.email)}</strong>`}<br><span class="muted">${esc(account.email)}</span></td>`,
       `<td>${badge(access.effective_status==='active'?'active':'inactive')}</td>`,
       ...(product.code==='PROFESOR_PARTICULAR'?[`<td>${access.plan==='PROFESOR_PREMIUM'?'Premium':'Normal'}</td>`]:[]),
       ...(product.code==='OCR_FACTURAS'?[`<td>${access.access_role==='admin'?'Administrador':'Usuario'}</td>`]:[]),
