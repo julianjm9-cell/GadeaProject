@@ -622,7 +622,7 @@
   }
   function questionMarkup(question, index, pairChoices) {
     const type = question.type;
-    const heading = ['gaps','multigaps','flashcard'].includes(type) ? '' : type === 'hangman' ? `<div class="hangman-heading"><h3 id="question-${index}">Adivina el concepto antes de quedarte sin intentos.</h3><p>Lee la pista y selecciona letras.</p></div>` : ['pasapalabra','wordsearch','memory','sentence'].includes(type) ? `<h3 id="question-${index}" class="${type}-intro">${escape(question.prompt)}</h3>` : `<h3 id="question-${index}">${type === 'flashcard' ? 'Lee la tarjeta y piensa la respuesta.' : `${index + 1}. ${escape(question.prompt)}`}</h3>`;
+    const heading = ['gaps','multigaps','flashcard'].includes(type) ? '' : type === 'hangman' ? `<div class="hangman-heading"><h3 id="question-${index}">Adivina el concepto antes de quedarte sin intentos.</h3><p>Lee la pista y selecciona letras.</p></div>` : ['pasapalabra','wordsearch','memory','sentence','timeline'].includes(type) ? `<h3 id="question-${index}" class="${type}-intro">${escape(question.prompt)}</h3>` : `<h3 id="question-${index}">${type === 'flashcard' ? 'Lee la tarjeta y piensa la respuesta.' : `${index + 1}. ${escape(question.prompt)}`}</h3>`;
     const image = visualTypes.includes(type) ? `<div class="visual-image-box ${type === 'imagepoint' ? 'visual-answer-box' : ''}" id="visual-${index}" ${type === 'imagepoint' ? 'tabindex="0" role="button" aria-label="Marca el punto en la imagen; usa las flechas para ajustarlo"' : ''}><img data-activity-image="${index}" alt="${escape(question.image?.filename || 'Imagen del ejercicio')}"></div>` : '';
     let control = '';
     if (type === 'gaps') {
@@ -642,7 +642,7 @@
       control = `<div class="memory-stage"><div class="memory-toolbar"><span>Destapa dos tarjetas y encuentra su pareja.</span><p id="memory-status-${index}" class="play-progress" role="status"></p></div><progress class="memory-progress" max="1" value="0" aria-label="Parejas encontradas"></progress><div id="memory-${index}" class="memory-board" role="group" aria-label="Tarjetas de Memory"></div></div><input id="r-${index}" name="r-${index}" type="hidden">`;
     } else if (type === 'flashcard') {
       control = `<div class="flashcard-study"><button type="button" id="flip-${index}" class="flash-card" aria-pressed="false" aria-describedby="flash-help-${index}">${flashcardFace(question.prompt,false)}</button><div class="flashcard-assess-slot"><p id="flash-help-${index}" class="flashcard-help">Piensa la respuesta y gira la tarjeta para comprobarla.</p><div class="play-flash-assess" id="flash-assess-${index}" role="group" aria-label="Valora tu respuesta" hidden><button type="button" data-flash="correct" data-index="${index}" aria-pressed="false">✓ La sabía</button><button type="button" data-flash="partial" data-index="${index}" aria-pressed="false">◷ Con ayuda</button><button type="button" data-flash="incorrect" data-index="${index}" aria-pressed="false">↻ Repasar</button></div></div></div><input id="r-${index}" name="r-${index}" type="hidden">`;
-    } else if (type === 'sentence') {
+    } else if (['sentence','timeline'].includes(type)) {
       control = `<div id="order-${index}" class="sentence-game"></div><input type="hidden" id="r-${index}" name="r-${index}">`;
     } else if (sequenceTypes.includes(type)) {
       control = `<p class="play-hint">Arrastra para ordenar. También puedes tocar una fila y luego otra, o usar las flechas.${type === 'timeline' && question.options.some(value => /\b(?:1\d{3}|20\d{2})\b/.test(value)) ? ' Las fechas se mostrarán al comprobar.' : ''}</p><div id="order-${index}" class="play-order-list"></div><input type="hidden" id="r-${index}" name="r-${index}">`;
@@ -802,7 +802,7 @@
     const score = $('activityScore'), actions = score.nextElementSibling;
     score.before(footer); footer.append(score, actions);
     actions.prepend(toolbar);actions.querySelector('[data-action="close"]').hidden=true;
-    const hasPasapalabra = questions.some(question => ['pasapalabra','memory','sentence'].includes(question.type));
+    const hasPasapalabra = questions.some(question => ['pasapalabra','memory','sentence','timeline'].includes(question.type));
     let pasapalabraSolutionModal = null;
     let solutionTrigger = null;
     if (hasPasapalabra) {
@@ -881,11 +881,12 @@
       if (studentId) save();
     }
     function renderSequence(index, focusPosition = null) {
-      if (questions[index].type === 'sentence') {
+      if (['sentence','timeline'].includes(questions[index].type)) {
         if (!sentenceBanks[index]) { sentenceBanks[index]=[...sequences[index]]; sequences[index]=[]; }
         const root=$('order-'+index);
         window.profesorSentenceBoard(root, {
-          options:sentenceBanks[index],values:sequences[index],locked:checked,
+          options:sentenceBanks[index],values:sequences[index],locked:checked,kind:questions[index].type,
+          label:questions[index].type==='timeline'?(value,revealed)=>timelineLabel(value,revealed):null,
           reviewed:checked||confirmedSequences.has(index),expected:expectedSequence(questions[index]),
           onChange(values){
             sequences[index]=values;$('r-'+index).value=values.join(' → ');
@@ -948,11 +949,11 @@
       solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';
       solution.onclick=()=>{
         practice[index].assisted=true;
-        if (['pasapalabra','memory','sentence'].includes(q.type) && pasapalabraSolutionModal) {
-          if(q.type==='sentence'){
-            pasapalabraSolutionModal.querySelector('.pasapalabra-solution-eyebrow').textContent='CONSTRUYE LA FRASE';
-            pasapalabraSolutionModal.querySelector('h2').textContent='La frase en orden';
-            pasapalabraSolutionModal.querySelector('.pasapalabra-solution-body').innerHTML='<p class="sentence-solution-text">'+rich(expectedSequence(q).join(' '))+'</p>'+(q.explanation?'<p>'+rich(q.explanation)+'</p>':'')+itemReasons(q);
+        if (['pasapalabra','memory','sentence','timeline'].includes(q.type) && pasapalabraSolutionModal) {
+          if(['sentence','timeline'].includes(q.type)){
+            pasapalabraSolutionModal.querySelector('.pasapalabra-solution-eyebrow').textContent=q.type==='timeline'?'LÍNEA TEMPORAL':'CONSTRUYE LA FRASE';
+            pasapalabraSolutionModal.querySelector('h2').textContent=q.type==='timeline'?'Los acontecimientos en orden':'La frase en orden';
+            pasapalabraSolutionModal.querySelector('.pasapalabra-solution-body').innerHTML=(q.type==='timeline'?'<ol class="timeline-solution-list">'+expectedSequence(q).map(value=>'<li>'+rich(value)+'</li>').join('')+'</ol>':'<p class="sentence-solution-text">'+rich(expectedSequence(q).join(' '))+'</p>')+(q.explanation?'<p>'+rich(q.explanation)+'</p>':'')+itemReasons(q);
             solutionTrigger=solution;pasapalabraSolutionModal.showModal();pasapalabraSolutionModal.querySelector('.pasapalabra-solution-close').focus();return;
           }
           const isMemory = q.type === 'memory';

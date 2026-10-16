@@ -27,13 +27,12 @@ const path=require('node:path');
     await play({type:'timeline',prompt:'Ordena estos acontecimientos.',answer:'1901, 1910, 1920',options:['1910 – Primera edición','1901 – Fundación','1920 – Ampliación']});
     const timeline=page.locator('#order-0');
     assert.doesNotMatch(await timeline.innerText(),/1901|1910|1920/);
-    for(const [target,label] of ['Fundación','Primera edición','Ampliación'].entries()){
-      let position=await timeline.locator('.order-row').evaluateAll((rows,name)=>rows.findIndex(row=>row.textContent.includes(name)),label);
-      while(position>target){await timeline.locator(`[data-pos="${position}"][data-move="-1"]`).click();position--}
+    for(const label of ['Fundación','Primera edición','Ampliación']){
+      await page.getByRole('button',{name:'Añadir '+label,exact:true}).click();
     }
     await timeline.locator('[data-confirm-order]').click();
     assert.match(await timeline.innerText(),/1901|1910|1920/);
-    assert.equal(await timeline.locator('.order-row.answer-right').count(),3);
+    assert.equal(await timeline.locator('.sentence-slot.answer-right').count(),3);
     await page.locator('[data-action="close"]:visible').last().click();
 
     await page.evaluate(()=>{const original=Math.random;Math.random=()=>.5;try{runActivity({id:'ui-memory',title:'Memory',subject:'Lengua',activity:{questions:[{type:'memory',prompt:'Empareja.',answer:'Completado',options:['Gato | Cat','Perro | Dog']}]}},'')}finally{Math.random=original}});

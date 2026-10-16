@@ -37,7 +37,7 @@
     } else if(kind==='multigaps') {
       const parts=q.prompt.split('___'), answers=Array.isArray(response)?response:[];
       controls=`<div class="live-gap">${parts.map((text,i)=>`${rich(text)}${i<q.count?`<input data-live-field="part" data-part="${i}" value="${escape(answers[i]||'')}" aria-label="Hueco ${i+1}" ${disabled}>${locked?'':`<button type="button" data-live-action="check-part" data-part="${i}" aria-label="Comprobar hueco ${i+1}">✓</button>`}<small class="live-mini-result ${partGrade(session,n,i)||''}">${partGrade(session,n,i)==='correct'?'✓':partGrade(session,n,i)==='incorrect'?'×':''}</small>`:''}`).join('')}</div>`;
-    } else if(kind==='sentence') {
+    } else if((kind==='sentence'||kind==='timeline')) {
       controls=`<div id="live-sentence-${n}" class="sentence-game"></div>`;
     } else if(sequence.has(kind)) {
       const steps=Array.isArray(response)?response:q.options||[];
@@ -79,16 +79,17 @@
     const partial=['pasapalabra','multigaps','crossword','dragdrop','memory','wordsearch'].includes(kind);
     const feedback=result&&!(kind==='hangman'&&result==='unanswered')?`<p class="live-feedback ${result}" role="status">${result==='correct'?'✓ Correcto':result==='pending'?'◷ Guardado para revisión':result==='partial'?'◷ Parcialmente correcto':result==='unanswered'?'Sin responder':'× Puedes volver a intentarlo'}</p>`:'';
     const review=teacher&&session.status==='completed'&&open.has(kind)&&(kind!=='error'||result==='pending')?`<div class="live-grade-actions"><b>Valorar respuesta:</b>${[['correct','Correcta'],['partial','Parcial'],['incorrect','Revisar']].map(([value,label])=>`<button type="button" data-live-teacher="grade" data-id="${escape(session.id)}" data-index="${n}" data-grade="${value}" class="${result===value?'active':''}">${label}</button>`).join('')}</div>`:'';
-    return `<article class="live-question" data-live-type="${escape(kind)}"><div class="live-kind"><span>${String(n+1).padStart(2,'0')}</span>${escape(labels[kind]||'Ejercicio')}</div>${kind==='flashcard'&&!teacher?'':`<h3>${rich(q.prompt)}</h3>`}${kind==='reading'&&q.text?`<div class="live-reading">${rich(q.text)}</div>`:''}${kind==='visualquiz'?image(session,q,teacher):''}<div class="live-controls">${controls}</div>${!teacher&&q.hints?.length?`${kind==='pasapalabra'?'':'<button type="button" class="live-hint-button" data-live-action="hint">Necesito una pista</button>'}<div class="live-hint-box" id="liveHintBox"></div>`:''}${feedback}${!locked&&!partial&&!choice.has(kind)&&kind!=='flashcard'&&kind!=='hangman'&&kind!=='sentence'?'<button type="button" data-live-action="check" class="live-check">Comprobar respuesta</button>':''}${teacher?`<p class="live-observed-answer"><b>Respuesta del alumno:</b> ${escape(summaryValue(response))}</p>`:''}${session.status==='completed'&&q.solution?`<div class="live-solution"><b>Solución:</b> ${rich(q.solutions?.join(' · ')||q.solution)}</div>`:''}${review}</article>`;
+    return `<article class="live-question" data-live-type="${escape(kind)}"><div class="live-kind"><span>${String(n+1).padStart(2,'0')}</span>${escape(labels[kind]||'Ejercicio')}</div>${kind==='flashcard'&&!teacher?'':`<h3>${rich(q.prompt)}</h3>`}${kind==='reading'&&q.text?`<div class="live-reading">${rich(q.text)}</div>`:''}${kind==='visualquiz'?image(session,q,teacher):''}<div class="live-controls">${controls}</div>${!teacher&&q.hints?.length?`${kind==='pasapalabra'?'':'<button type="button" class="live-hint-button" data-live-action="hint">Necesito una pista</button>'}<div class="live-hint-box" id="liveHintBox"></div>`:''}${feedback}${!locked&&!partial&&!choice.has(kind)&&kind!=='flashcard'&&kind!=='hangman'&&kind!=='sentence'&&kind!=='timeline'?'<button type="button" data-live-action="check" class="live-check">Comprobar respuesta</button>':''}${teacher?`<p class="live-observed-answer"><b>Respuesta del alumno:</b> ${escape(summaryValue(response))}</p>`:''}${session.status==='completed'&&q.solution?`<div class="live-solution"><b>Solución:</b> ${rich(q.solutions?.join(' · ')||q.solution)}</div>`:''}${review}</article>`;
   }
   function mountSentence(session, root, teacher=false){
-    root.querySelectorAll('.live-question[data-live-type="sentence"]').forEach(article=>{
+    root.querySelectorAll('.live-question:is([data-live-type="sentence"],[data-live-type="timeline"])').forEach(article=>{
       const board=article.querySelector('.sentence-game'),index=Number(board.id.split('-').at(-1));
       const q=session.questions[index];
       window.profesorSentenceBoard(board,{
+        kind:q.type,label:q.type==='timeline'?(value,revealed)=>timelineLabel(value,revealed):null,partResults:session.progress?.parts?.[String(index)],
         options:q.options||[],values:Array.isArray(val(session,index))?val(session,index):[],
         locked:teacher||session.status==='completed',reviewed:!!grade(session,index),result:grade(session,index),
-        onChange(values){setValue(index,values);delete active.progress.grades?.[String(index)];send('draft',index,values).catch(error=>alert(error.message));},
+        onChange(values){setValue(index,values);delete active.progress.grades?.[String(index)];if(q.type==='timeline')delete active.progress.parts?.[String(index)];send('draft',index,values).catch(error=>alert(error.message));},
         async onCheck(values){await saving.catch(()=>{});try{await send('check',index,values);renderActive();}catch(error){alert(error.message)}}
       });
     });

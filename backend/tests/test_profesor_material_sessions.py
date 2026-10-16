@@ -271,3 +271,27 @@ def test_sentence_draft_preserves_duplicates_and_clears_previous_grade(client, m
         assert '0' not in reloaded['progress'].get('grades',{})
         assert pupil.post(path+'/move',json={'action':'check','value':pieces}).json()['feedback']=='correct'
         assert pupil.get(path).json()['session']['progress']['responses']['0'].count('I')==2
+
+
+def test_timeline_partial_order_and_reset_clear_saved_feedback(client, monkeypatch):
+    import sys
+    events=['1901 – Fundación','1910 – Primera edición','1920 – Ampliación']
+    monkeypatch.setattr(sys.modules[__name__], 'material_questions', lambda: [
+        {'id':'timeline','type':'timeline','prompt':'Ordena los acontecimientos.',
+         'options':events,'answer':' → '.join(events)}
+    ])
+    web,_=prepare_teacher(client)
+    session=web.post('/api/profesor/material-sessions',json={'material_id':'m1'}).json()['session']
+    with TestClient(app) as pupil:
+        assert pupil.post('/auth/profesor/student-join',json={'code':session['join_code']}).status_code==200
+        path=f"/api/profesor/student-material-sessions/{session['id']}"
+        pupil.post(path+'/move',json={'action':'start'})
+        assert pupil.post(path+'/move',json={'action':'draft','value':events[:1]}).status_code==200
+        assert pupil.get(path).json()['session']['progress']['responses']['0']==events[:1]
+        result=pupil.post(path+'/move',json={'action':'check','value':events}).json()
+        assert result['feedback']=='correct'
+        assert result['session']['progress']['parts']['0']=={'0':'correct','1':'correct','2':'correct'}
+        assert pupil.post(path+'/move',json={'action':'draft','value':[]}).status_code==200
+        reset=pupil.get(path).json()['session']['progress']
+        assert reset['responses']['0']==[]
+        assert '0' not in reset.get('grades',{}) and '0' not in reset.get('parts',{})
