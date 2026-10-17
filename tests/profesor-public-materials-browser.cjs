@@ -22,7 +22,7 @@ const path=require('node:path');
   assert.deepEqual(publicActions,privateActions,'action buttons stay in place when switching library scope');
   assert.equal(await page.locator('.material-page-head .material-count').textContent(),'351');
   assert.equal(await page.locator('.public-material-card').count(),12);
-  assert.equal(await page.locator('.public-library-toolbar select').count(),3);
+  assert.equal(await page.locator('.public-library-toolbar select').count(),4);
   assert.equal(await page.locator('#libraryCourse option').count(),19);
   assert.equal(await page.locator('#librarySubject option').count()>6,true);
   assert.equal(await page.locator('#libraryType option').count()>5,true);
@@ -44,10 +44,14 @@ const path=require('node:path');
   assert.equal(await page.evaluate(type=>filteredMaterials().every(material=>material.activity.questions.some(question=>question.type===type)),selectedType),true);
   await page.locator('#libraryType').selectOption('');
 
+  await page.locator('#libraryFormat').selectOption('single');
+  assert.equal(await page.locator('.material-count').textContent(),'2106');
+  assert.equal(await page.locator('.public-material-card .material-card-foot>small').allInnerTexts().then(values=>values.every(value=>value.trim()==='1')),true);
+
   const firstTitle=await page.locator('.public-material-card h3').first().innerText();
   await page.locator('.public-material-card').first().getByRole('button',{name:'Probar'}).click();
   await page.locator('#dialog.activity-play[open]').waitFor();
-  assert.equal(await page.locator('.play-question:visible').count(),1);
+  assert.equal(await page.locator('.play-question').count(),1,'a loose activity opens without the rest of its pack');
   await page.locator('#dialog .close').click();
   const before=await page.evaluate(()=>state.library.length);
   await page.locator('.public-material-card').first().getByRole('button',{name:'Guardar copia'}).click();
