@@ -36,7 +36,7 @@
     if(status)status.textContent='Reconectando… El progreso está guardado.';
    }
   }
-  if(job.status!=='completed'||!job.result?.questions)throw Object.assign(new Error(job.error||'El intento se interrumpió. Pulsa Reintentar para recuperar el progreso guardado.'),{status:job.error_status,completed:job.completed,total:job.total,recoverable:job.status==='interrupted'});
+  if(job.status!=='completed'||!job.result?.questions)throw Object.assign(new Error(job.error||'El intento se interrumpió. Pulsa Reintentar para recuperar el progreso guardado.'),{status:job.error_status,code:job.error_code,completed:job.completed,total:job.total,recoverable:job.status==='interrupted'});
   return job.result;
  }
  const originalMarkup=workshopMarkup;
@@ -76,6 +76,11 @@
     tile.querySelector('.tile-quantity').classList.toggle('fixed-size',visualTypes.includes(type));
    }
    const type=selectedTypes[0],size=type?Number($('size-'+type).value):0;
+   const advanced=advancedTypes.includes(type),remaining=advancedAiRemaining();
+   $('workshopContinue').textContent='✦ Generar con IA'+(advanced?(isPremium()?' · sin límite diario':remaining?' · 1 disponible hoy':' · cupo agotado hoy'):'');
+   $('workshopContinue').title=advanced?'El cupo diario se comparte entre todos los juegos avanzados. La creación manual es libre.':'';
+   const badge=form.querySelector('.advanced-family .advanced-plan-allowance');
+   if(badge)badge.textContent=isPremium()?'IA sin límite diario':`${remaining}/1 ${remaining===1?'disponible':'disponibles'} con IA hoy`;
    $('workshopSelection').textContent=selectedTypes.length===1?`Una actividad de ${activityLabels[type]} · ${size} ${unitLabels[type]}`:'Selecciona una actividad';
    const invalid=workshopBusy||selectedTypes.length!==1||size<1;
    $('workshopSelection').classList.toggle('error',selectedTypes.length>1);
@@ -84,7 +89,10 @@
   form.addEventListener('click',()=>setTimeout(()=>{if(!controller.signal.aborted&&form.isConnected&&$('dialog').open&&$('form')===form)refreshSizes()},0),{signal:controller.signal,capture:true});
   form.addEventListener('change',()=>queueMicrotask(refreshSizes),{signal:controller.signal});
   form.addEventListener('workshop:refresh',refreshSizes,{signal:controller.signal});
+  const family=form.querySelector('.advanced-family .family-heading');
+  if(family){const badge=document.createElement('span');badge.className='advanced-plan-allowance';family.querySelector('strong').after(badge)}
   $('dialog').addEventListener('close',()=>controller.abort(),{once:true});refreshSizes();
+  refreshProfesorLimits().catch(()=>{});
  };
  // Larger texts use the same contract in the editor, player and PDF export.
  const oldPuzzleRows=puzzleRows;
@@ -167,11 +175,13 @@
      generatorRetry.body={...c,focus};generatorRetry.account=accountEmail;generatorRetry.recoverable=true;
      try{sessionStorage.setItem('profesor.generatorRetry',JSON.stringify(generatorRetry));}catch{}
      const response=await generateInBackground({...c,visualquiz:0,imagepoint:0,focus,request_id:generatorRetry.id},$('workshopStatus'));
+     await refreshProfesorLimits().catch(()=>{});
      const generated=validateActivityQuestions(response.questions);
      for(const type of Object.keys(activityLabels).filter(k=>!visualTypes.includes(k)))if(generated.filter(q=>q.type===type).length!==c[type]*(bundleTypes.has(type)?c.activitySizes[type]||0:1))throw Error('La IA devolvió una cantidad de preguntas distinta a la solicitada.');
      questions=generated.map(q=>({...q,id:uid()}));const lastGroup=Math.max(0,...questions.map(q=>q.activityGroup||0));let photoGroup=lastGroup;
      for(const q of blank.filter(q=>visualTypes.includes(q.type)))questions.push({...q,activityGroup:++photoGroup});generatorRetry=null;try{sessionStorage.removeItem('profesor.generatorRetry')}catch{}
     }catch(error){
+     if(error.code==='advanced_daily_limit'){generatorRetry=null;try{sessionStorage.removeItem('profesor.generatorRetry')}catch{}await refreshProfesorLimits().catch(()=>{});openPremiumInfo(error.message);return false;}
      if(recoverableGenerationError(error)){
       if(generatorRetry){generatorRetry.recoverable=true;try{sessionStorage.setItem('profesor.generatorRetry',JSON.stringify(generatorRetry))}catch{}}
       showGenerationRetry(retryNotice,error);
@@ -262,6 +272,7 @@
     busy=true;controls.forEach(([el])=>el.disabled=true);status.textContent='Mejorando esta pregunta y comprobando su solución…';
     try{
      const response=await generateInBackground(body,status),result=validateActivityQuestions(response.questions);
+     await refreshProfesorLimits().catch(()=>{});
      if(result.length!==1||result[0].type!==original.type)throw Error('La IA no devolvió una única pregunta del mismo tipo.');
      const next={...result[0],id:original.id,activityGroup:original.activityGroup};
      if(original.type==='reading'&&original.text&&next.text!==original.text)throw Error('El texto compartido debe conservarse.');
@@ -271,7 +282,7 @@
      if(recoverableGenerationError(error)){
       status.textContent=`${Number(error.completed)||0} de ${Number(error.total)||1} elementos preparados. ${error.message} El intento se conserva y no se han descontado créditos. Pulsa Reintentar.`;
       button.textContent='Reintentar';
-     }else{status.textContent=error.message;button.textContent='Regenerar con IA'}
+     }else{status.textContent=error.message;button.textContent='Regenerar con IA';if(error.code==='advanced_daily_limit')openPremiumInfo(error.message)}
     }
     finally{busy=false;controls.forEach(([el,disabled])=>el.disabled=disabled);$('dialog').removeEventListener('cancel',preventClose)}
    };

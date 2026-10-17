@@ -28,6 +28,7 @@ from app.config import get_settings
 from app.database.session import get_db
 from app.models import AppSetting, ClientState, Conversation, Document, License, Message, ProfesorStateSnapshot, UsageRecord, User
 from app.services import profesor_state_history as state_history
+from app.services import profesor_entitlements as entitlements
 from app.security.tokens import decode_token
 from app.security.passwords import verify_password
 from app.services.ai_config import (
@@ -1687,6 +1688,7 @@ def save_state(payload: dict, request: Request, response: Response, user: User =
         expected = state_history.check_revision(row, request.headers.get("if-match"))
         state_history.validate_transition(app_state_data(row, app_key), payload,
             confirm_empty=request.headers.get("x-confirm-empty-state") == "true")
+        entitlements.validate_students(app_state_data(row, app_key), payload, license_obj)
         previous_topics = app_state_data(row, app_key).get("personalTopics", [])
         personal = payload.get("personalTopics", previous_topics)
         if profesor_account_plan(license_obj) != "premium" and personal != previous_topics:
@@ -1760,6 +1762,13 @@ def restore_profesor_state(snapshot_id: UUID, request: Request, response: Respon
     return {"ok": True, "revision": revision, "state": payload}
 
 
+@router.get("/api/profesor/entitlements")
+def profesor_plan_limits(user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
+    if license_obj.product_code != "PROFESOR_PARTICULAR":
+        raise HTTPException(403, "Esta función requiere acceso a Profesor Particular.")
+    return entitlements.limits(db, user, license_obj)
+
+
 @router.post("/api/profesor/generate")
 async def generate_teacher_material(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
     return await generate_teacher_material_impl(payload, user, license_obj, db)
@@ -1767,11 +1776,24 @@ async def generate_teacher_material(payload: dict, user: User = Depends(current_
 
 async def generate_teacher_material_impl(payload, user, license_obj, db, progress=None):
     from app.services.teacher_generation_contract import GenerationAlreadyCompleted
+    def release_reservation():
+        try:
+            request_id = str(UUID(str(payload.get('request_id', ''))))
+        except (ValueError, TypeError):
+            return
+        entitlements.release(db, user, request_id)
+        db.commit()
     try:
-        return await _generate_teacher_material(payload, user, license_obj, db, progress)
+        result = await _generate_teacher_material(payload, user, license_obj, db, progress)
     except GenerationAlreadyCompleted as completed:
         db.rollback()
-        return completed.result
+        result = completed.result
+    except Exception:
+        db.rollback()
+        release_reservation()
+        raise
+    release_reservation()
+    return result
 
 
 async def _generate_teacher_material(payload, user, license_obj, db, progress=None):
@@ -1804,6 +1826,8 @@ async def _generate_teacher_material(payload, user, license_obj, db, progress=No
         if saved.get("complete", True):
             return {"ok": True, "questions": saved["questions"], "credits": 1, "reused": True}
     ensure_credit_balance(db, user, license_obj, 1)
+    entitlements.reserve(db, user, license_obj, context, request_id)
+    db.commit()
     candidates = []
     primary_error = None
     try:
@@ -2094,6 +2118,7 @@ async def _generate_teacher_material(payload, user, license_obj, db, progress=No
     db.scalar(select(User).where(User.id == user.id).with_for_update())
     existing_record()
     ensure_credit_balance(db, user, license_obj, 1)
+    entitlements.complete(db, user, license_obj, context, request_id)
     record_usage(db, user, used_model, input_tokens, output_tokens, "PROFESOR_PARTICULAR", 1)
     final_content = json.dumps({"context": context, "questions": questions, "complete": True, "batch_version": max(2, batch_version)}, ensure_ascii=False)
     if message is not None:

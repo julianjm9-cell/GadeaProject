@@ -13,6 +13,7 @@ from app.config import get_settings
 from app.database.session import get_db
 from app.models import ProfesorGenerationJob, User, License
 from app.services.licenses import check_access
+from app.services import profesor_entitlements as entitlements
 from app.services.teacher_generator import generator_context, TYPES
 from app.services.teacher_generation_contract import generation_units
 
@@ -27,7 +28,8 @@ def now():
 def public_job(job):
     return {'request_id': job.request_id, 'status': job.status, 'completed': job.completed,
             'total': job.total, 'result': job.result if job.status == 'completed' else None,
-            'error': job.error, 'error_status': job.error_status}
+            'error': job.error, 'error_status': job.error_status,
+            'error_code': job.failure_category if job.failure_category == 'advanced_daily_limit' else ''}
 
 
 def stale(job):
@@ -82,10 +84,14 @@ async def run_job(bind, job_id, lease):
             job = db.get(ProfesorGenerationJob, job_id)
             if not job or job.lease != lease:
                 return
+            if user:
+                entitlements.release(db, user, job.request_id)
             job.status = 'failed'
             job.error_status = exc.status_code if isinstance(exc, HTTPException) else 500
-            job.error = str(exc.detail) if isinstance(exc, HTTPException) else 'La generación se interrumpió. Puedes recuperar el progreso guardado. Código de incidencia: ' + job.request_id[:8] + '.'
+            job.error = (exc.detail.get('message', '') if isinstance(exc.detail, dict) else str(exc.detail)) if isinstance(exc, HTTPException) else 'La generación se interrumpió. Puedes recuperar el progreso guardado. Código de incidencia: ' + job.request_id[:8] + '.'
             job.failure_category = getattr(exc, 'generation_failure_category', 'load' if job.error_status in (429, 503, 504) else 'content' if job.error_status == 502 else 'other')
+            if isinstance(exc, HTTPException) and isinstance(exc.detail, dict) and exc.detail.get('code') == 'advanced_daily_limit':
+                job.failure_category = 'advanced_daily_limit'
             logger.warning('teacher_generation_job_failed request=%s type=%s error=%s category=%s status=%s completed=%s total=%s attempt=%s', job.request_id, next((k for k in TYPES if job.payload.get(k) == 1), 'unknown'), type(exc).__name__, job.failure_category, job.error_status, job.completed, job.total, job.attempt_count)
         job.finished_at = now()
         db.commit()
@@ -116,6 +122,7 @@ def start_job(payload: dict, background_tasks: BackgroundTasks, user: User = Dep
         raise HTTPException(409, 'Ya hay una generación en curso. Recupera ese intento antes de crear otro material.')
     ensure_credit_balance(db, user, license_obj, 1)
     reserve_capacity(db, request_id, next((kind for kind in TYPES if context[kind]), 'unknown'))
+    entitlements.reserve(db, user, license_obj, context, request_id)
     if active:
         active.status, active.lease = 'failed', str(uuid4())
         active.error = 'El servidor se reinició. Puedes recuperar este material con sus datos originales.'

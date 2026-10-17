@@ -158,8 +158,8 @@
       paint();if(matchMedia('(pointer:fine)').matches)search.focus();
     }
     async function sendMaterial(material){
+      if(!isPremium()){openPremiumInfo('Las sesiones de juegos con código se activan con Premium.');return;}
       if(typeof demo!=='undefined'&&demo)throw Error('Inicia sesión con una cuenta Premium para mandar materiales.');
-       if(!isPremium())throw Error('Las sesiones con código requieren Premium.');
       await saveQueue;
       if(saveFailed)throw Error('Guarda el material antes de enviarlo.');
        modal('Crear sesión · '+material.title,`<p>Generaremos un código único, válido durante 24 horas. Compártelo junto con <b>educame.tech/profesor/alumno</b>. El participante no necesita cuenta ni nombre.</p>${submit('Crear sesión y código')}`,async()=>{
@@ -186,6 +186,7 @@
     document.addEventListener('click',async event=>{
       const button=event.target.closest('[data-action="sendLiveMaterial"],[data-action="liveSessionList"],[data-live-teacher]');if(!button)return;
       event.preventDefault();button.closest('details')?.removeAttribute('open');
+      if(!isPremium()){openPremiumInfo('Las sesiones de juegos con código se activan con Premium.');return;}
       try{
         if(button.dataset.action==='sendLiveMaterial'){const material=state.library.find(item=>item.id===button.dataset.id);if(material)await sendMaterial(material)}
         if(button.dataset.liveTeacher==='create-anonymous'){
