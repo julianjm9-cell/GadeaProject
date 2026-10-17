@@ -2,6 +2,8 @@
 
 Se incorporan al catálogo de ejercicios avanzados, la biblioteca, el editor manual, la generación con IA, el jugador individual, las sesiones con código y la exportación PDF. Se reutilizan los fondos raster ilustrados existentes. No hay cambios de esquema ni migraciones de datos.
 
+El generador presenta dos familias: «Juegos básicos» (once tipos) y «Juegos avanzados» (trece). Los tres nuevos tienen miniaturas propias `mystery.webp`, `intruder.webp` y `bingo.webp`, más sus versiones `mature-`. Primaria usa el arte infantil; ESO, Bachillerato y cualquier curso de Inglés usan el adolescente. Biblioteca, generador y selector de materiales de sesiones comparten esta selección. Las miniaturas se muestran completas, sin recortar el dibujo. Las seis imágenes nuevas están optimizadas a WebP de 720 × 355; referencias y prompts de generación se conservan en [el registro de imágenes](assets/profesor-mini-games-thumbnails.json).
+
 | Tipo | Contenido | Interacción |
 | --- | --- | --- |
 | `mystery` — ¿Quién soy? | Tres pistas distintas, respuesta de hasta 100 caracteres y alternativas opcionales | Empieza con una pista; permite descubrir las siguientes y comprobar la respuesta. Acierto con una, dos o tres pistas: 30, 20 o 10 puntos. |

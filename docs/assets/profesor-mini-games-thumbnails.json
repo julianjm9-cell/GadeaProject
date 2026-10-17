@@ -1,0 +1,36 @@
+{
+  "tool": "Built-in image_gen",
+  "date": "2026-10-17",
+  "outputDirectory": "apps/profesor/assets/games",
+  "format": "WebP, 720 x 355, quality 88",
+  "styleReferences": [
+    "flashcards.webp (child)",
+    "mature-flashcards.webp (adolescent)"
+  ],
+  "assets": [
+    {
+      "asset": "mystery.webp",
+      "prompt": "Use case: stylized-concept. Asset type: wide 2:1 activity thumbnail for the game ¿Quién soy? in a Spanish teacher app, primary-school CHILD version. Generate one polished raster illustration, full-bleed horizontal 2:1 composition. Match the visual family of the supplied style reference: charming chunky softly rounded 3D educational objects, white edging, soft cast shadows, pastel sky-blue and lavender background, a few small yellow sparkles, bright blue accents. Main focal object is a large sky-blue mystery medallion with a crisp white question mark. Beside it are exactly three small rounded clue cards, clearly showing a paw print, cat whiskers, and a little house; a cute cat silhouette peeks behind the mystery medallion without being the main subject. A small magnifying glass suggests deduction. Keep objects large, readable at 220px wide, arranged through the middle 70% of the frame with safe margins; no essential detail along outer edges. No words, titles, brand names, people, UI controls, letters or watermarks. This is a decorative illustration thumbnail, not a screenshot."
+    },
+    {
+      "asset": "mature-mystery.webp",
+      "prompt": "Use case: stylized-concept. Asset type: full-bleed wide 2:1 thumbnail for ¿Quién soy?, adolescent edition for secondary-school and language students. Use the supplied mature flashcards image ONLY as style reference, not as an edit target. Create a beautiful polished educational illustration in the same refined blue/periwinkle/lavender family, softly dimensional papery surfaces, clean light, elegant shadows and subtle academic objects. Main focal point: a large deep-blue mystery medallion with a white question mark, beside three neat clue cards showing a classical column, a tiny owl emblem and a rolled philosophical manuscript. Suggest deduction with a delicate magnifying glass. A pale classical bust partly silhouetted behind the medallion adds an academic mystery. No cute characters, faces with big eyes, nursery style or childish toys. Middle-focused horizontal composition, objects clearly recognizable at 220px width, safe margins, restrained gold highlights. No words, titles, letters, numbers, logos, watermarks, UI or screenshot. Cohesive with the reference's mature school illustration style."
+    },
+    {
+      "asset": "intruder.webp",
+      "prompt": "Use case: stylized-concept. Asset type: wide 2:1 activity thumbnail, Elimina al intruso, CHILD primary-school version. Supplied image is ONLY a style reference. Generate one polished full-bleed horizontal illustration matching its charming chunky 3D educational objects, softly rounded white cards, sky-blue/lavender pastel backdrop, bright blue accents and small yellow sparkles. Main composition: four big rounded square cards in a single gently fanned row, each contains one clear object. Three are fruits (red apple, yellow pear, orange), the fourth a vivid blue pencil, clearly the odd one out. A blue magnifying glass is positioned near the pencil card, and that card has a tasteful warm yellow glow. Objects large, friendly, recognizable at thumbnail scale; centered safe composition, middle 70 percent, generous margins. No labels, text, words, letters, logos, numbers, watermarks, checkmarks or crosses. Decorative game cover art, not a screenshot."
+    },
+    {
+      "asset": "mature-intruder.webp",
+      "prompt": "Use case: stylized-concept. Asset type: full-bleed wide 2:1 activity cover thumbnail for Elimina al intruso, ADOLESCENT secondary-school edition. The supplied image is a style reference only. Match its refined educational blue/periwinkle/lavender art direction: slightly dimensional paper and ceramic illustration, elegant shadows, crisp silhouettes, restrained gold details, scholarly stationery background, never infantile. In the center arrange four clean ivory rounded cards in a fanned horizontal row. First three cards show blue geometric solids: cube, sphere, pyramid. Fourth card shows a natural green leaf, clearly outside the solids category; a delicate gold-and-blue magnifier emphasizes that leaf. Add very subtle fine geometric construction lines and softly blurred books near the edges. Four large easily recognized objects, safe margins for cropping, strong readability at 220px wide. No people, cute faces, fruits, toys, written text, letters, numbers, branding, watermarks, checkmarks or crosses. This is beautiful game artwork, not interface screenshot."
+    },
+    {
+      "asset": "bingo.webp",
+      "prompt": "Use case: stylized-concept. Asset type: full-bleed horizontal 2:1 game thumbnail for Bingo de conceptos, primary-school CHILD version. Supplied image is a style reference only. Match the existing educational thumbnail family: playful polished chunky 3D illustration, rounded white pieces, blue/lavender pastel background, fresh blue and yellow details, soft shadows, bright inviting light. Main object is a large slightly tilted square 3-by-3 bingo board with EXACTLY NINE rounded cells. Each cell contains one simple colorful school-themed icon: apple, leaf, planet, book, pencil, atom, lightbulb, star, little globe. Exactly three cells in one horizontal row have a translucent blue highlight and small green check badges, clearly showing a completed line; other icons remain visible. Add a few tasteful yellow celebration sparkles and two colorful counters beside the board. Board mostly on left/center with a large friendly blue check medal near right, safe margins, easily recognizable tiny. No text, words, letters, numbers, logos, watermarks or UI screenshot. A beautiful concept-bingo activity cover."
+    },
+    {
+      "asset": "mature-bingo.webp",
+      "prompt": "Use case: stylized-concept. Asset type: full-bleed horizontal 2:1 thumbnail for Bingo de conceptos, ADOLESCENT edition for secondary school and language learners. Supplied mature illustration is a STYLE REFERENCE ONLY. Match its refined blue/periwinkle/lavender educational papercraft illustration, ivory cards, subtle paper texture, elegant dimensional shadows, restrained gold details. Focal object: one slightly tilted sophisticated 3-by-3 board with EXACTLY NINE rounded ivory cells, containing fine academic icons: DNA helix, classical column, leaf, atom, open book, planet, microscope, globe, geometry compass. Middle horizontal row has subtle blue filled cells and three small crisp check badges, showing a completed line. Small blue-and-gold completion seal beside the board, a couple of quiet stationery objects and books at edges. Calm confident academic visual rather than childish cartoon; no human characters, faces, nursery toys or cartoon fruit. Large readable composition with safe margins for a thumbnail, most detail in central 75%. No text, letters, numbers, logos, watermarks, titles or interface screenshot."
+    }
+  ]
+}

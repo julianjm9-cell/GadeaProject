@@ -118,23 +118,23 @@ dialog.material-studio:not(.studio-renewed) #editorPrevious[hidden],dialog.mater
 
 /* Cada actividad se reconoce de un vistazo con las ilustraciones del catálogo. */
 dialog.studio-renewed details.basic-family[open]>.exercise-tiles,
-dialog.studio-renewed details.playful-family[open]>.exercise-tiles{grid-template-columns:repeat(6,minmax(0,1fr))}
+dialog.studio-renewed details.advanced-family[open]>.exercise-tiles{grid-template-columns:repeat(6,minmax(0,1fr))}
 dialog.studio-renewed .exercise-tile.has-illustration,
 dialog.studio-renewed .exercise-tile.has-illustration[aria-pressed="true"]{height:150px;min-height:150px;justify-content:flex-start;gap:3px;padding:6px;overflow:hidden}
 dialog.studio-renewed .exercise-tile.has-illustration .exercise-visual{display:block;width:100%;height:88px;min-height:88px;overflow:hidden;border-radius:9px;background:#edf7ff}
-dialog.studio-renewed .exercise-tile.has-illustration .exercise-visual img{display:block;width:100%;height:100%;object-fit:cover}
+dialog.studio-renewed .exercise-tile.has-illustration .exercise-visual img{display:block;width:100%;height:100%;object-fit:contain}
 dialog.studio-renewed .exercise-tile.has-illustration>strong{min-height:18px;display:flex;align-items:center;justify-content:center}
 dialog.studio-renewed .exercise-tile.has-illustration .tile-check,
 dialog.studio-renewed .exercise-tile.has-illustration[aria-pressed="true"] .tile-check{top:10px;right:10px;box-shadow:0 1px 6px #17315d38}
 dialog.studio-renewed .exercise-tile.has-illustration:hover .exercise-visual img{transform:scale(1.025)}
 dialog.studio-renewed .exercise-tile.has-illustration .exercise-visual img{transition:transform .16s ease}
-@media(max-width:1250px){dialog.studio-renewed details.basic-family[open]>.exercise-tiles,dialog.studio-renewed details.playful-family[open]>.exercise-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:650px){dialog.studio-renewed details.basic-family[open]>.exercise-tiles,dialog.studio-renewed details.playful-family[open]>.exercise-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}dialog.studio-renewed .exercise-tile.has-illustration,dialog.studio-renewed .exercise-tile.has-illustration[aria-pressed="true"]{height:122px;min-height:122px}dialog.studio-renewed .exercise-tile.has-illustration .exercise-visual{height:62px;min-height:62px}}
+@media(max-width:1250px){dialog.studio-renewed details.basic-family[open]>.exercise-tiles,dialog.studio-renewed details.advanced-family[open]>.exercise-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:650px){dialog.studio-renewed details.basic-family[open]>.exercise-tiles,dialog.studio-renewed details.advanced-family[open]>.exercise-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}dialog.studio-renewed .exercise-tile.has-illustration,dialog.studio-renewed .exercise-tile.has-illustration[aria-pressed="true"]{height:122px;min-height:122px}dialog.studio-renewed .exercise-tile.has-illustration .exercise-visual{height:62px;min-height:62px}}
 
 /* Biblioteca visual: cada material conserva la portada de su único tipo. */
 .material-hub-card{display:flex;flex-direction:column;min-height:252px!important;aspect-ratio:auto;padding:0!important;gap:0;overflow:visible;background:#fff!important;border-radius:14px}
 .material-hub-card .material-art{display:block;width:100%;height:112px;min-height:112px;border-radius:13px 13px 0 0;overflow:hidden;background:#edf6ff}
-.material-hub-card .material-art img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .18s ease}
+.material-hub-card .material-art img{display:block;width:100%;height:100%;object-fit:contain;transition:transform .18s ease}
 .material-hub-card:hover .material-art img{transform:scale(1.02)}
 .material-hub-card .material-card-copy{display:block;flex:1;padding:11px 14px 8px}
 .material-hub-card .material-card-copy .material-kind{padding:4px 7px;font-size:10px}
