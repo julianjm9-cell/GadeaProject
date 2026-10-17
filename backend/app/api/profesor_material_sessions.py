@@ -308,8 +308,10 @@ def grade(q: dict, value: object, part: int | None = None) -> str:
             return "unanswered"
         answers = q["_board"]["words"]
         if part is not None:
+            if part >= len(value) or not str(value[part]).strip() or '_' in str(value[part]):
+                return "unanswered"
             return "correct" if part < len(answers) and part < len(value) and clean_word(str(value[part])) == answers[part] else "incorrect"
-        if len(value) < len(answers) or any(not str(v).strip() for v in value):
+        if len(value) < len(answers) or any(not str(v).strip() or '_' in str(v) for v in value):
             return "unanswered"
         return "correct" if all(clean_word(str(v)) == a for v, a in zip(value, answers)) else "incorrect"
     if kind == "wordsearch":
@@ -342,6 +344,8 @@ def grade(q: dict, value: object, part: int | None = None) -> str:
             return "unanswered"
         expected = [parts[1] for parts in rows(q)]
         if part is not None:
+            if part >= len(value) or not norm(value[part]):
+                return "unanswered"
             return "correct" if part < len(expected) and part < len(value) and norm(value[part]) == norm(expected[part]) else "incorrect"
         if len(value) < len(expected) or any(not norm(v) for v in value):
             return "unanswered"
@@ -527,9 +531,9 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
     elif payload.action in {"draft", "check", "next", "finish"}:
         if payload.value is not None:
             responses = dict(progress.get("responses", {})); responses[str(payload.question_index)] = payload.value; progress["responses"] = responses
-            if payload.action == "draft" and questions[payload.question_index]["type"] in {"timeline", "error", "sentence"}:
+            if payload.action == "draft" and questions[payload.question_index]["type"] in {"timeline", "error", "sentence", "crossword", "dragdrop"}:
                 grades = dict(progress.get("grades", {})); grades.pop(str(payload.question_index), None); progress["grades"] = grades
-                if questions[payload.question_index]["type"] == "timeline":
+                if questions[payload.question_index]["type"] in {"timeline", "crossword", "dragdrop"}:
                     parts = dict(progress.get("parts", {})); parts.pop(str(payload.question_index), None); progress["parts"] = parts
         if payload.current_index is not None:
             progress["current_index"] = payload.current_index
@@ -545,6 +549,11 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
                     expected = expected_sequence(q)
                     parts[str(payload.question_index)] = {str(i): "correct" if i < len(expected) and item == expected[i] else "incorrect" for i, item in enumerate(payload.value)}
                     progress["parts"] = parts
+                if q["type"] in {"crossword", "dragdrop"} and isinstance(payload.value, list):
+                    parts = dict(progress.get("parts", {}))
+                    count = len(q["_board"]["words"]) if q["type"] == "crossword" else len(rows(q))
+                    parts[str(payload.question_index)] = {str(i): grade(q, payload.value, i) for i in range(count)}
+                    progress["parts"] = parts
             else:
                 parts = dict(progress.get("parts", {})); question_parts = dict(parts.get(str(payload.question_index), {})); question_parts[str(payload.part)] = feedback; parts[str(payload.question_index)] = question_parts; progress["parts"] = parts
         if payload.action == "finish":
@@ -552,6 +561,9 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
             progress["grades"] = grades; row.status = "completed"
             parts = dict(progress.get("parts", {}))
             for n, q in enumerate(questions):
+                if q["type"] in {"crossword", "dragdrop"}:
+                    count = len(q["_board"]["words"]) if q["type"] == "crossword" else len(rows(q))
+                    parts[str(n)] = {str(i): grade(q, progress.get("responses", {}).get(str(n)), i) for i in range(count)}
                 if q["type"] == "timeline" and isinstance(progress.get("responses", {}).get(str(n)), list):
                     expected = expected_sequence(q)
                     parts[str(n)] = {str(i): "correct" if i < len(expected) and item == expected[i] else "incorrect" for i, item in enumerate(progress["responses"][str(n)])}
@@ -571,7 +583,7 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
         chosen = {clean_hangman(str(v)) for v in payload.value if isinstance(v, str) and len(v) == 1}
         extra = {"mask": "".join(c if c in chosen or not c.isalpha() else "_" for c in solution), "errors": sum(c not in solution for c in chosen)}
     return {"ok": True, "revision": row.revision, "status": row.status, "feedback": feedback, "extra": extra,
-            "session": public_session(row) if payload.action in {"finish", "start"} or (payload.action == "check" and questions[payload.question_index]["type"] == "timeline") else None}
+            "session": public_session(row) if payload.action in {"finish", "start"} or (payload.action == "check" and questions[payload.question_index]["type"] in {"timeline", "crossword", "dragdrop"}) else None}
 
 
 @router.get("/api/profesor/student-material-sessions/{session_id}/images/{image_id}")

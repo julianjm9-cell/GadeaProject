@@ -1,0 +1,80 @@
+/* Three illustrated studios, one accessible interaction language. */
+.activity-play:has(.play-question:is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]):not([hidden])){display:flex;flex-direction:column;width:min(1450px,97vw);height:min(94dvh,940px);max-height:94dvh;padding:14px 24px;border:1px solid #cae6ff;border-radius:26px;background:#dcefff url('./games/sentence-stage.png') center/cover no-repeat;color:#102756;overflow:hidden}
+.activity-play:has(.play-question[data-type="crossword"]:not([hidden])){background-image:url('./games/memory-stage.png')}
+.activity-play:has(.play-question[data-type="dragdrop"]:not([hidden])){background-image:url('./games/timeline-stage.png')}
+.activity-play:has(.play-question:is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]):not([hidden]))>.row{flex:none;min-height:32px}
+.activity-play:has(.play-question:is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]):not([hidden])) #form{display:flex;flex:1;flex-direction:column;min-height:0;gap:0}
+.activity-play:has(.play-question:is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]):not([hidden])) .play-content{display:flex;flex:1;flex-direction:column;min-height:0;padding:0;overflow:auto;scrollbar-gutter:stable}
+.activity-play .play-question:is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]){display:flex;flex:1;flex-direction:column;min-height:0;margin:0;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;overflow:visible}
+.activity-play .play-question:is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"])::before,.activity-play .play-question:is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"])::after{display:none}
+.activity-play :is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]) .play-question-top{position:relative;display:flex;justify-content:center;flex:none;min-height:42px;margin:0;padding:0 150px}
+.activity-play :is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]) .play-kind{min-width:230px;justify-content:center;border:1px solid #fff;border-radius:999px;background:#f6fbfff2;color:#133b76;font-size:16px;font-weight:900}
+.activity-play :is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]) .play-number{position:absolute;left:0;top:0;background:white}
+.activity-play :is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]) .game-timer{position:absolute;right:35px;top:0;background:#fffffff0;border-radius:999px}
+.activity-play :is(.error-intro,.crossword-intro,.dragdrop-intro){flex:none;width:fit-content;max-width:95%;margin:9px auto 13px;padding:11px 24px;border:1px solid white;border-radius:19px;background:#fffffff2;color:#102756;font-size:clamp(19px,2.1vw,29px);line-height:1.3;text-align:center;overflow-wrap:anywhere}
+.activity-play :is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]) :is(.question-workspace,.question-controls){display:block;flex:none;min-width:0;min-height:0}
+.activity-play :is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"])>.play-feedback{flex:none;margin:5px 0;padding:6px 12px;border-radius:12px;background:#ffffffde;font-size:14px}
+.activity-play :is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"])>.play-feedback:empty{display:none}
+.activity-play :is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"])>.play-solution-link{flex:none;align-self:flex-start;margin:7px 0 0;padding:8px 14px;border:1px solid #b8d6fa;border-radius:11px;background:#fff;color:#0761c5;font-weight:800}
+.activity-play:has(.play-question:is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]):not([hidden])) .play-footer{flex:none;margin-top:9px;padding:5px 0 0;border:0;background:transparent}
+.puzzle-studio,.puzzle-studio *{box-sizing:border-box}
+.puzzle-studio{width:min(1140px,100%);min-width:0;margin:0 auto;padding:20px;border:1px solid #ffffff;border-radius:26px;background:#fafdfff2;box-shadow:0 12px 35px #2c69a51c;color:#102756}
+.puzzle-studio button,.puzzle-studio input{font-family:inherit}
+.puzzle-studio button{white-space:normal;overflow-wrap:anywhere}
+.puzzle-guide{display:flex;align-items:center;gap:13px;margin-bottom:18px;text-align:left}
+.puzzle-guide>span{display:grid;place-items:center;flex:none;width:52px;height:52px;border:1px solid #d1e6ff;border-radius:17px;background:linear-gradient(140deg,#fff,#e0f1ff);font-size:29px;box-shadow:0 4px 12px #2b71b618}
+.puzzle-guide strong{font-size:19px;color:#153c75}.puzzle-guide p{margin:3px 0 0;color:#496b93;font-size:14px;line-height:1.5}
+.puzzle-board-actions{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:18px;padding-top:15px;border-top:1px solid #d7e6f6}
+.puzzle-board-actions>span{flex:1 1 230px;min-width:0;font-size:14px;line-height:1.5;color:#46668a;overflow-wrap:anywhere}.puzzle-board-actions>div{display:flex;flex-wrap:wrap;gap:9px}
+.puzzle-studio button{min-height:44px;padding:10px 15px;border:1px solid #c5ddfa;border-radius:13px;background:white;color:#1353a3;font-size:15px;font-weight:750;cursor:pointer;box-shadow:0 3px 7px #2369ac0b}
+.puzzle-studio button:hover:not(:disabled){border-color:#5aa6ff;background:#eff7ff}.puzzle-studio button:disabled{cursor:default}
+.puzzle-studio button.puzzle-check{background:#0868f9;color:white;border-color:#0868f9;min-width:145px}.puzzle-studio button.puzzle-check:hover:not(:disabled){background:#0056d5}
+.puzzle-studio :is(button,input):focus-visible{outline:3px solid #178fff;outline-offset:3px}
+.puzzle-studio .answer-right{background:#e5f8ed!important;border-color:#29a86a!important;color:#11653d!important}.puzzle-studio .answer-wrong{background:#fff0f0!important;border-color:#e16b70!important;color:#9c2639!important}
+.error-studio{max-width:1000px;min-height:320px;padding:25px 30px}
+.error-sentence{display:flex;justify-content:center;align-items:baseline;flex-wrap:wrap;gap:5px 8px;min-height:120px;padding:22px 14px;border:1px solid #d9e9fa;border-radius:20px;background:#f0f8ff;font-size:clamp(21px,2.4vw,30px);line-height:1.8;overflow-wrap:anywhere}
+.error-sentence button{min-width:0;max-width:100%;min-height:44px;padding:3px 7px;border:0;border-bottom:2px dashed #91bde9;border-radius:8px;background:transparent;color:#102756;font-size:inherit;font-weight:700;line-height:1.5;box-shadow:none}
+.error-inline{display:inline-flex;align-items:center;position:relative;max-width:100%;min-width:0}
+.puzzle-studio .error-inline input{display:block;width:calc(var(--answer-ch,10)*1ch);max-width:100%;min-width:0;height:49px;padding:4px 27px 4px 10px;border:2px solid #4c9bfa;border-radius:10px;background:#fff;color:#102756;font-size:inherit;font-weight:750;line-height:1.2;text-align:center}
+.error-inline-result{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:19px;font-weight:900;pointer-events:none;color:#215b7f}
+.error-selection-tools{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;min-height:60px;margin-top:12px;color:#567193;font-size:13px;overflow-wrap:anywhere}.error-selection-tools>div{display:flex;flex-wrap:wrap;gap:7px}.error-selection-tools button{min-height:36px;padding:6px 10px;font-size:12px}
+.crossword-workbench{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(240px,1fr);align-items:start;gap:20px}
+.crossword-paper{min-width:0;padding:13px;border:1px solid #d8e5f8;border-radius:19px;background:#e8f1ff}
+.crossword-scroll{max-width:100%;overflow:auto;padding:4px;scrollbar-gutter:stable;overscroll-behavior:contain}
+.studio-cross-grid{--cross-size:clamp(32px,3.2vw,43px);display:grid;grid-template-columns:repeat(var(--columns),var(--cross-size));grid-auto-rows:var(--cross-size);gap:3px;width:max-content;margin:auto}
+.studio-cross-cell{position:relative;display:block!important;min-width:0;margin:0!important;padding:0!important;border:1px solid #b9d2ef;border-radius:6px;background:white;box-shadow:0 2px 3px #184d8410}
+.studio-cross-cell small{position:absolute;z-index:1;top:0;left:3px;font-size:9px;font-weight:800;line-height:1.2;color:#4a6c99;pointer-events:none}
+.puzzle-studio .studio-cross-cell input{display:block;width:100%;height:100%;min-width:0;margin:0;padding:7px 1px 1px;border:0;border-radius:5px;background:transparent;color:#102756;font-size:clamp(17px,2vw,23px);font-weight:800;line-height:1;text-align:center}
+.studio-cross-cell.is-active{background:#dbedff;border-color:#4c9efb}.studio-cross-blank{border-radius:6px;background:#cddff3aa}
+.crossword-scroll-help{margin:8px 0 0;font-size:11px;color:#55739b;text-align:center}
+.crossword-notebook{min-width:0;display:flex;flex-direction:column;gap:12px}.crossword-active{display:flex;flex-direction:column;gap:7px;padding:15px;border:1px solid #bdd9ff;border-radius:17px;background:#e9f3ff;color:#123568}.crossword-active small{font-size:10px;letter-spacing:.07em;font-weight:850}.crossword-active strong{font-size:18px;line-height:1.4;overflow-wrap:anywhere}.crossword-active>span{font-size:12px;color:#58759a}
+.studio-cross-clues{display:flex;flex-direction:column;gap:7px;max-height:330px;overflow:auto;padding:3px}
+.studio-cross-clues button{display:flex;align-items:flex-start;gap:10px;min-width:0;text-align:left}.studio-cross-clues button>b{flex:none;min-width:28px;font-size:13px}.studio-cross-clues button>span{flex:1;min-width:0;font-size:14px;line-height:1.4}.studio-cross-clues small{display:block;margin-top:3px;font-size:11px;font-weight:500;color:#6080a4}.studio-cross-clues em{font-style:normal}.studio-cross-clues [aria-pressed="true"]{border:2px solid #2585f3;background:#eff7ff}
+.matching-workbench{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);align-items:start;gap:20px}
+.match-bank{min-width:0;padding:18px;border:1px solid #d7e4f5;border-radius:20px;background:#eff6ff}.match-bank h4{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 13px;font-size:16px}.match-bank h4 small{display:grid;place-items:center;min-width:27px;height:27px;border-radius:50%;background:#d6e9ff;color:#165db2}
+.match-pieces,.match-destinations{display:flex;flex-direction:column;gap:10px;min-width:0}.puzzle-studio .match-piece{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:51px;padding:13px 15px;border:1px solid #bdd7fb;border-radius:14px;background:#fff;color:#153b73;text-align:left;cursor:grab}.match-piece>span{min-width:0;overflow-wrap:anywhere}.match-piece>b{flex:none;color:#4a88d3}.match-piece.is-selected{outline:3px solid #2499ff;outline-offset:1px;background:#e0f1ff}
+.match-empty{margin:0;padding:30px 10px;text-align:center;color:#53759e;font-size:14px}
+.match-bucket{min-width:0;padding:9px;border:2px dashed #b7d3f3;border-radius:18px;background:#f7fbff;transition:background .15s,border-color .15s}.match-bucket.drag-over{border-color:#0876f5;background:#dbeeff}.puzzle-studio .match-bucket>button{display:flex;flex-direction:column;align-items:flex-start;gap:5px;width:100%;min-height:61px;padding:9px 10px;border:0;background:transparent;box-shadow:none;text-align:left}.match-bucket>button strong{font-size:16px;color:#163f77}.match-bucket>button small{font-size:11px;font-weight:500;color:#6582a5}.match-bucket>div{display:flex;flex-direction:column;gap:7px}
+.puzzle-studio .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.puzzle-studio .puzzle-guide p{min-height:0;margin:3px 0 0}
+.studio-cross-clues>button{flex:none;height:auto;overflow:visible}
+.crossword-scroll{scrollbar-gutter:auto}
+.activity-play :is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]) .question-controls{width:100%;max-width:none}
+.match-pieces{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(min-width:701px) and (max-height:850px){
+ .puzzle-studio{padding:15px}.puzzle-guide{margin-bottom:12px}.puzzle-guide>span{width:42px;height:42px;font-size:24px}.puzzle-guide strong{font-size:17px}.puzzle-board-actions{margin-top:12px;padding-top:10px}.crossword-active{padding:10px;gap:5px}.crossword-active strong{font-size:16px}.studio-cross-clues button{padding:8px 10px}.studio-cross-clues{gap:6px;max-height:250px}.error-studio{padding:20px}
+}
+.puzzle-solution-list{display:grid;gap:10px;padding-left:25px;color:#173c70}.puzzle-solution-list li{padding:12px 15px;border:1px solid #d2e5fb;border-radius:12px;background:#f1f8ff;overflow-wrap:anywhere;line-height:1.6}
+.live-player:has([data-live-type="error"]),.live-player:has([data-live-type="crossword"]),.live-player:has([data-live-type="dragdrop"]){padding:20px;border:1px solid #c5e2ff;border-radius:25px;background:#dcefff url('./games/sentence-stage.png') center/cover no-repeat}
+.live-player:has([data-live-type="crossword"]){background-image:url('./games/memory-stage.png')}.live-player:has([data-live-type="dragdrop"]){background-image:url('./games/timeline-stage.png')}
+.live-question:is([data-live-type="error"],[data-live-type="crossword"],[data-live-type="dragdrop"]){min-width:0;padding:0;border:0;background:none;box-shadow:none}.live-question:is([data-live-type="error"],[data-live-type="crossword"],[data-live-type="dragdrop"])>h3{width:fit-content;max-width:100%;margin:12px auto;padding:12px 20px;border-radius:17px;background:#fffffff2;color:#102756;text-align:center;overflow-wrap:anywhere}
+.live-question:is([data-live-type="error"],[data-live-type="crossword"],[data-live-type="dragdrop"]) :is(.live-feedback,.live-observed-answer,.live-solution){padding:10px 14px;border-radius:12px;background:#fffffff0;overflow-wrap:anywhere}
+@media(max-width:700px){
+ .activity-play:has(.play-question:is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]):not([hidden])){width:98vw;height:96dvh;max-height:96dvh;padding:10px}
+ .activity-play :is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]) .play-question-top{min-height:77px;padding:0 0 40px}.activity-play :is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]) .play-kind{min-width:210px;font-size:13px}.activity-play :is([data-type="error"],[data-type="crossword"],[data-type="dragdrop"]) .game-timer{top:41px;right:0}
+ .activity-play :is(.error-intro,.crossword-intro,.dragdrop-intro){padding:10px 14px;font-size:18px}.puzzle-studio,.error-studio{padding:15px;border-radius:20px}.puzzle-guide{gap:10px}.puzzle-guide>span{width:42px;height:42px;font-size:24px}.puzzle-guide strong{font-size:16px}.puzzle-guide p{font-size:12px}
+ .crossword-workbench,.matching-workbench{grid-template-columns:minmax(0,1fr);gap:13px}.crossword-active strong{font-size:16px}.studio-cross-clues{max-height:220px}.studio-cross-grid{--cross-size:34px}.error-sentence{padding:16px 8px;font-size:22px}.error-selection-tools{font-size:12px}.puzzle-board-actions{gap:10px}.puzzle-board-actions>span{flex-basis:100%}.puzzle-board-actions>div{width:100%}.puzzle-board-actions .puzzle-check{flex:1}.puzzle-studio button{font-size:14px}.match-bank{padding:13px}.live-player:has(.puzzle-studio){padding:11px}
+ .crossword-notebook{display:contents}.crossword-active{grid-row:1}.crossword-paper{grid-row:2}.studio-cross-clues{grid-row:3}.crossword-scroll{max-height:48dvh}
+ .puzzle-studio .error-sentence button{font-size:inherit}.match-pieces{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.match-pieces .match-piece{padding:11px 10px}.match-empty{grid-column:1/-1}
+}
+@media(prefers-reduced-motion:reduce){.match-bucket{transition:none}}

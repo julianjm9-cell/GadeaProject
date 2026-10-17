@@ -82,44 +82,36 @@
   }
 
   function mountCrossword(question, index, isChecked, report) {
-    const root = $('puzzle-' + index), rows = puzzleRows('crossword', question.options);
-    const words = rows.map(([word]) => puzzleWord(word)), board = buildCrossword(words);
-    const entries = rows.map(([word, clue], n) => {
-      const key = puzzleWord(word), vertical = key === board.anchor;
-      const placed = board.placed.find(p => p.word === key);
-      const cells = [...key].map((_, k) => vertical ? `${k}-${board.left}` : `${placed.row}-${board.left - placed.col + k}`);
-      return { key, clue, cells, vertical, number: n + 1 };
-    });
-    let active = 0;
-    const starts = new Map(); entries.forEach(e => starts.set(e.cells[0], [...(starts.get(e.cells[0]) || []), e.number]));
-    root.innerHTML = `<p class="play-hint">Elige una pista. Escribe seguido; usa las flechas para cambiar de casilla.</p><div class="crossword-layout"><div class="puzzle-grid" style="--puzzle-size:${board.width}">${board.grid.flatMap((row, r) => row.map((letter, c) => letter ? `<label class="cross-cell"><small>${(starts.get(`${r}-${c}`) || []).join('/')}</small><input data-puzzle-cell="${r}-${c}" maxlength="1" autocomplete="off" aria-label="Fila ${r + 1}, columna ${c + 1}"></label>` : '<span class="blank"></span>')).join('')}</div><div class="puzzle-clues">${entries.map((e, n) => `<button type="button" data-clue="${n}">${e.number}. ${e.vertical ? '↓' : '→'} ${escape(e.clue)} <small>(${e.key.length})</small></button>`).join('')}<button type="button" data-letter-hint>Revelar una letra</button><p class="play-progress" role="status"></p></div></div>`;
-    const cells = [...root.querySelectorAll('[data-puzzle-cell]')];
-    const cell = key => root.querySelector(`[data-puzzle-cell="${key}"]`);
-    let hinted = 0;
+    const root=$('puzzle-'+index),rows=puzzleRows('crossword',question.options),words=rows.map(([word])=>puzzleWord(word)),layout=buildCrossword(words);
+    const entries=rows.map(([word,clue],n)=>{const key=puzzleWord(word),vertical=key===layout.anchor,placed=layout.placed.find(p=>p.word===key);return {number:n+1,clue,length:key.length,row:vertical?0:placed.row,col:vertical?layout.left:layout.left-placed.col,direction:vertical?'down':'across'};});
     const helped=new Set();
-    function activate(n, focus = true) { active = n; cells.forEach(input => input.parentElement.classList.toggle('active', entries[n].cells.includes(input.dataset.puzzleCell))); root.querySelectorAll('[data-clue]').forEach(button => button.classList.toggle('selected', Number(button.dataset.clue) === n)); if (focus) cell(entries[n].cells[0]).focus({ preventScroll: true }); }
-    function update() {
-      entries.forEach((entry,n)=>{const value=entry.cells.map(key=>cell(key).value).join(''),clue=root.querySelector(`[data-clue="${n}"]`);clue.querySelector('[data-clue-result]')?.remove();if(value.length===entry.key.length){const right=value===entry.key;markControl(clue,right);clue.insertAdjacentHTML('beforeend',`<b data-clue-result aria-label="${right?'Correcta':'Incorrecta'}"> ${right?'✓':'×'}</b>`);recordAnswer(index,n,right,value,helped.has(n));}else{clue.classList.remove('answer-right','answer-wrong');clue.removeAttribute('aria-invalid');}});
-      const correct = cells.every(input => { const [r, c] = input.dataset.puzzleCell.split('-').map(Number); return input.value === board.grid[r][c]; });
-      $('r-' + index).value = cells.map(input => input.value || '_').join('');
-      root.querySelector('[role="status"]').textContent = `${cells.filter(input => input.value).length}/${cells.length} casillas · ${hinted} letras de ayuda`;
-      report(index, { complete: cells.every(input => input.value), correct, answer: $('r-' + index).value, review: () => cells.forEach(input => { const [r,c] = input.dataset.puzzleCell.split('-').map(Number); input.classList.add(input.value === board.grid[r][c] ? 'answer-right' : 'answer-wrong'); input.title = `Solución: ${board.grid[r][c]}`; }) });
-    }
-    cells.forEach(input => {
-      input.onfocus = () => { input.select(); if (!entries[active].cells.includes(input.dataset.puzzleCell)) activate(entries.findIndex(e => e.cells.includes(input.dataset.puzzleCell)), false); };
-      input.oninput = () => { input.value = letterKey(input.value).replace(/[^A-ZÑ]/g, '').slice(-1); update(); const sequence = entries[active].cells, position = sequence.indexOf(input.dataset.puzzleCell); if (input.value && sequence[position + 1]) cell(sequence[position + 1]).focus({ preventScroll: true }); };
-      input.onkeydown = event => {
-        if (isChecked()) return;
-        const [r, c] = input.dataset.puzzleCell.split('-').map(Number);
-        const deltas = { ArrowLeft: [0,-1], ArrowRight: [0,1], ArrowUp: [-1,0], ArrowDown: [1,0] };
-        if (deltas[event.key]) { event.preventDefault(); const [dr, dc] = deltas[event.key]; cell(`${r + dr}-${c + dc}`)?.focus({ preventScroll: true }); }
-        if (event.key === 'Backspace' && !input.value) { const sequence = entries[active].cells, previous = sequence[sequence.indexOf(input.dataset.puzzleCell) - 1]; if (previous) cell(previous).focus({ preventScroll: true }); }
-      };
-      input.onpaste = event => { if (isChecked()) return; event.preventDefault(); const sequence = entries[active].cells, start = sequence.indexOf(input.dataset.puzzleCell); [...letterKey(event.clipboardData.getData('text')).replace(/[^A-ZÑ]/g, '')].forEach((letter, offset) => { if (sequence[start + offset]) cell(sequence[start + offset]).value = letter; }); update(); };
+    const review=values=>Object.fromEntries(values.map((value,n)=>[n,value&&!value.includes('_')?(value===words[n]?'correct':'incorrect'):'unanswered']));
+    const update=values=>{
+      const complete=values.length===words.length&&values.every(value=>value&&!value.includes('_'));
+      $('r-'+index).value=values.join(' | ');
+      report(index,{complete,correct:complete&&values.every((value,n)=>value===words[n]),answer:$('r-'+index).value,review:()=>board.review(review(values))});
+    };
+    const board=window.profesorCrosswordBoard(root,{
+      grid:layout.grid.map(row=>row.map(Boolean)),entries,
+      onChange(values){root.closest('.play-question').removeAttribute('data-result');$('feedback-'+index).textContent='';update(values);},
+      onCheck(values){if(isChecked())return;const results=review(values);board.review(results);values.forEach((value,n)=>{if(value&&!value.includes('_'))recordAnswer(index,n,results[n]==='correct',value,helped.has(n));});update(values);},
+      onHint(n,value){if(isChecked())return;const position=[...words[n]].findIndex((letter,i)=>letter!==value?.[i]);if(position<0)return;helped.add(n);recordAnswer(index,'hint-'+n,null,'revealed',true);return {position,letter:words[n][position]};}
     });
-    root.querySelectorAll('[data-clue]').forEach(button => button.onclick = () => activate(Number(button.dataset.clue)));
-    root.querySelector('[data-letter-hint]').onclick = () => { if (isChecked()) return; const entry = entries[active], position = entry.cells.findIndex((key, n) => cell(key).value !== entry.key[n]); if (position >= 0) {helped.add(active);recordAnswer(index,'hint-'+active,null,'revealed',true);cell(entry.cells[position]).value = entry.key[position]; hinted++; update(); } };
-    activate(0, false); update();
+    update(board.values());
+  }
+  function mountMatching(question,index,isChecked,report){
+    const rows=puzzleRows('dragdrop',question.options),targets=[...new Set(rows.map(row=>row[1]))],expected=rows.map(row=>row[1]);
+    const review=values=>Object.fromEntries(values.map((value,n)=>[n,!value?'unanswered':value===expected[n]?'correct':'incorrect']));
+    const update=values=>{
+      $('r-'+index).value=values.join(' | ');
+      report(index,{complete:values.every(Boolean),correct:values.every((value,n)=>value===expected[n]),answer:$('r-'+index).value,review:()=>board.review(review(values))});
+    };
+    const board=window.profesorMatchingBoard($('puzzle-'+index),{
+      items:rows.map(row=>row[0]),targets,single:targets.length===rows.length,
+      onChange(values){$('puzzle-'+index).closest('.play-question').removeAttribute('data-result');$('feedback-'+index).textContent='';update(values);},
+      onCheck(values){if(isChecked())return;const grades=review(values);board.review(grades);values.forEach((value,n)=>{if(value)recordAnswer(index,n,grades[n]==='correct',value);});update(values);}
+    });
+    update(board.values());
   }
   const baseValidate = validateActivityQuestions;
   validateActivityQuestions = function (questions, requireImages = true) {
@@ -321,17 +313,7 @@
   };
   mountPuzzleGame = function (question, index, isChecked, report) {
     if (question.type === 'crossword') return mountCrossword(question, index, isChecked, report);
-    if (question.type === 'dragdrop' && new Set(question.options.map(value => value.split('|')[1].trim())).size < question.options.length) {
-      const root = $('puzzle-' + index), rows = puzzleRows('dragdrop', question.options), targets = [...new Set(rows.map(row => row[1]))];
-      const board = placementBoard(root, rows.map(row => row[0]), targets, isChecked, assignments => {
-        const values = assignments.map(n => n === null ? '' : targets[n]);
-        $('r-' + index).value = values.join(' | ');
-        board.review(rows.map(row=>row[1]));
-        values.forEach((value,n)=>{if(value)recordAnswer(index,n,value===rows[n][1],value)});
-        report(index, { complete: values.every(Boolean), correct: values.every((value, n) => value === rows[n][1]), answer: $('r-' + index).value, review: () => board.review(rows.map(row => row[1])) });
-      });
-      return;
-    }
+    if (question.type === 'dragdrop') return mountMatching(question,index,isChecked,report);
     if (question.type === 'multigaps') {
       const root = $('puzzle-' + index), answer = $('r-' + index), solutions = puzzleRows('multigaps', question.options);
       const parts = displayGapPrompt(question).split('___');
@@ -421,50 +403,7 @@
       return;
     }
     if (question.type === 'wordsearch') return mountWordSearch(question, index, isChecked, report);
-    if (question.type !== 'dragdrop') return originalPuzzleGame(question, index, isChecked, report);
-    const rows = puzzleRows('dragdrop', question.options);
-    const root = $('puzzle-' + index);
-    const answer = $('r-' + index);
-    const assignments = Array(rows.length).fill(null);
-    let selected = null;
-    const displayOrder = shuffle(rows.map((_, n) => n));
-
-    function update() {
-      const complete = assignments.every(value => value !== null);
-      answer.value = assignments.map((source, target) => `${rows[target][1]}: ${source === null ? '—' : rows[source][0]}`).join(' · ');
-      report(index, { complete, correct: complete && assignments.every((source, target) => source === target), answer: answer.value, review: () => root.querySelectorAll('[data-target]').forEach((button, target) => { const right = assignments[target] === target; button.classList.add(right ? 'answer-right' : 'answer-wrong'); button.textContent = `${right ? '✓' : '↻'} ${button.textContent}`; }) });
-      $('drag-status-' + index).textContent = `${assignments.filter(value => value !== null).length} de ${rows.length} colocados`;
-      root.querySelectorAll('[data-target]').forEach((button,target)=>{if(assignments[target]!==null){const right=assignments[target]===target;markControl(button,right);button.textContent=(right?'✓ ':'× ')+rows[assignments[target]][0];recordAnswer(index,target,right,String(assignments[target]));}});
-    }
-    function place(source, target) {
-      if (isChecked() || source === null || !Number.isInteger(source) || source < 0 || source >= rows.length) return;
-      const previous = assignments.indexOf(source);
-      if (previous !== -1) assignments[previous] = null;
-      assignments[target] = source;
-      selected = null;
-      draw();
-      root.querySelector(`[data-target="${target}"]`)?.focus();
-    }
-    function draw() {
-      root.innerHTML = `<p class="play-hint">Arrastra una pieza a su destino. En móvil o con teclado, toca la pieza y después el destino.</p>
-        <div class="drag-items" aria-label="Piezas disponibles">${displayOrder.map(n => `<button type="button" class="drag-item ${selected === n ? 'selected' : ''} ${assignments.includes(n) ? 'assigned' : ''}" data-item="${n}" draggable="true" aria-pressed="${selected === n}">${escape(rows[n][0])}</button>`).join('')}</div>
-        <div class="drag-targets">${rows.map(([, target], n) => `<div class="play-drop-row"><span>${escape(target)}</span><button type="button" class="drag-target ${assignments[n] !== null ? 'filled' : ''}" data-target="${n}" aria-label="Destino ${escape(target)}; ${assignments[n] === null ? 'vacío' : escape(rows[assignments[n]][0])}">${assignments[n] === null ? 'Suelta o toca aquí' : escape(rows[assignments[n]][0])}</button>${assignments[n] === null ? '' : `<button type="button" class="play-remove" data-clear="${n}" aria-label="Quitar ${escape(rows[assignments[n]][0])}">×</button>`}</div>`).join('')}</div>
-        <p class="play-progress" id="drag-status-${index}" role="status"></p>`;
-      root.querySelectorAll('[data-item]').forEach(button => {
-        button.onclick = () => { if (isChecked()) return; selected = selected === Number(button.dataset.item) ? null : Number(button.dataset.item); draw(); root.querySelector(`[data-item="${button.dataset.item}"]`)?.focus(); };
-        button.ondragstart = event => { if (isChecked()) { event.preventDefault(); return; } event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', button.dataset.item); };
-      });
-      root.querySelectorAll('[data-target]').forEach(button => {
-        const target = Number(button.dataset.target);
-        button.onclick = () => place(selected, target);
-        button.ondragover = event => { if (!isChecked()) { event.preventDefault(); button.classList.add('drag-over'); } };
-        button.ondragleave = () => button.classList.remove('drag-over');
-        button.ondrop = event => { event.preventDefault(); button.classList.remove('drag-over'); const value = event.dataTransfer.getData('text/plain'); if (value !== '') place(Number(value), target); };
-      });
-      root.querySelectorAll('[data-clear]').forEach(button => button.onclick = () => { if (isChecked()) return; assignments[Number(button.dataset.clear)] = null; draw(); });
-      update();
-    }
-    draw();
+    return originalPuzzleGame(question,index,isChecked,report);
   };
 
   const originalEditorPreview = editorExercisePreview;
@@ -631,7 +570,7 @@
   }
   function questionMarkup(question, index, pairChoices) {
     const type = question.type;
-    const heading = ['gaps','multigaps','flashcard'].includes(type) ? '' : type === 'hangman' ? `<div class="hangman-heading"><h3 id="question-${index}">Adivina el concepto antes de quedarte sin intentos.</h3><p>Lee la pista y selecciona letras.</p></div>` : ['pasapalabra','wordsearch','memory','sentence','timeline'].includes(type) ? `<h3 id="question-${index}" class="${type}-intro">${escape(question.prompt)}</h3>` : `<h3 id="question-${index}">${type === 'flashcard' ? 'Lee la tarjeta y piensa la respuesta.' : `${index + 1}. ${escape(question.prompt)}`}</h3>`;
+    const heading = ['gaps','multigaps','flashcard'].includes(type) ? '' : type === 'hangman' ? `<div class="hangman-heading"><h3 id="question-${index}">Adivina el concepto antes de quedarte sin intentos.</h3><p>Lee la pista y selecciona letras.</p></div>` : ['pasapalabra','wordsearch','memory','sentence','timeline','error','crossword','dragdrop'].includes(type) ? `<h3 id="question-${index}" class="${type}-intro">${escape(type==='error'?'Encuentra el error y corrígelo en la frase.':question.prompt)}</h3>` : `<h3 id="question-${index}">${type === 'flashcard' ? 'Lee la tarjeta y piensa la respuesta.' : `${index + 1}. ${escape(question.prompt)}`}</h3>`;
     const image = visualTypes.includes(type) ? `<div class="visual-image-box ${type === 'imagepoint' ? 'visual-answer-box' : ''}" id="visual-${index}" ${type === 'imagepoint' ? 'tabindex="0" role="button" aria-label="Marca el punto en la imagen; usa las flechas para ajustarlo"' : ''}><img data-activity-image="${index}" alt="${escape(question.image?.filename || 'Imagen del ejercicio')}"></div>` : '';
     let control = '';
     if (type === 'gaps') {
@@ -658,7 +597,7 @@
     } else if (type === 'problem') {
       control = `<div class="problem-steps">${['Datos importantes','Planteamiento','Cálculos','Respuesta y comprobación'].map((label, n) => `<label><span>${n + 1}</span>${label}<textarea data-problem-step="${index}" maxlength="700" rows="2" ${n === 3 ? 'required' : ''} aria-label="${label}"></textarea></label>`).join('')}</div><input type="hidden" id="r-${index}" name="r-${index}">`;
     } else if (type === 'error') {
-      control = `<p class="play-hint">Toca la palabra errónea de la oración y escribe cómo debería aparecer.</p><div class="error-fragments" role="group" aria-label="Selecciona la palabra o fragmento erróneo de la oración">${errorExample(question.prompt).split(/\s+/).filter(Boolean).map((part, n) => `<button type="button" data-error-word="${n}" aria-pressed="false">${escape(part)}</button>`).join('')}</div><label>Tu corrección<input id="r-${index}" name="r-${index}" autocomplete="off" maxlength="200" required placeholder="Escribe aquí la forma correcta"></label>`;
+      control = `<div id="error-${index}"></div><input id="r-${index}" name="r-${index}" type="hidden">`;
     } else if (openAnswerTypes.includes(type)) {
       control = `<textarea id="r-${index}" name="r-${index}" maxlength="${type === 'short' ? 800 : 3000}" rows="${type === 'short' ? 2 : 4}" required placeholder="${objectiveShort(question)?'Escribe la palabra o expresión solicitada…':'Escribe tu respuesta con tus propias palabras…'}" aria-label="Respuesta del ejercicio ${index + 1}"></textarea>`;
     } else if (type === 'pairs' && pairChoices.length < 2) {
@@ -711,6 +650,7 @@
     const sequences = {};
     const sentenceBanks = {};
     const games = {};
+    const errorBoards = {};
     const flashGrades = {};
     const practice = questions.map(() => ({parts:{},assisted:false}));
     function logAnswer({index,part=0,correct,value,assisted=false}) {
@@ -725,7 +665,7 @@
       if(puzzleTypes.includes(q.type))return !games[index]?.complete?'unanswered':games[index].correct?'correct':'incorrect';
       if(q.type==='memory')return value?'correct':'unanswered';
       if(q.type==='error') {
-        const selected = [...document.querySelectorAll(`[data-question="${index}"] [data-error-word][aria-pressed="true"]`)].map(button => button.textContent).join(' ');
+        const selected = errorBoards[index]?.value().selected || '';
         if (!selected || !String(value).trim()) return 'unanswered';
         if (!q.errorSegment || !q.correctedSegment) return 'pending';
         return errorValue(selected) === errorValue(q.errorSegment) && errorValue(value) === errorValue(q.correctedSegment) ? 'correct' : 'incorrect';
@@ -754,7 +694,7 @@
       document.querySelector(`[data-question="${index}"]`)?.querySelectorAll('.play-choice').forEach(label=>{const input=label.querySelector('input');label.classList.remove('answer-right','answer-wrong');label.querySelector('.choice-result')?.remove();if(input.checked){const right=grade==='correct';markControl(label,right);label.insertAdjacentHTML('beforeend',`<b class="choice-result" aria-label="${right?'Correcta':'Incorrecta'}">${right?'✓':'×'}</b>`);}});
       if(sequenceTypes.includes(q.type))document.querySelectorAll(`#order-${index} [data-sequence-row]`).forEach((row,n)=>markControl(row,sequences[index][n]===expectedSequence(q)[n]));
       if(sequenceTypes.includes(q.type))renderSequence(index);
-      if(q.type==='error')document.querySelectorAll(`[data-question="${index}"] [data-error-word][aria-pressed="true"]`).forEach(button=>markControl(button,grade==='correct'));
+      if(q.type==='error')errorBoards[index]?.review(grade);
     }
     const touchedSequences = new Set(), confirmedSequences = new Set(), groupReviews = [];
     let checked = false;
@@ -780,6 +720,7 @@
         feedback.classList.add(grades[index] === 'correct' ? 'is-correct' : grades[index] === 'pending' ? 'is-pending' : 'is-incorrect');
         document.querySelector(`[data-question="${index}"]`).dataset.result = grades[index];
         games[index]?.review?.();
+        if(q.type==='error')errorBoards[index]?.review(grades[index]);
         document.querySelector(`[data-question="${index}"]`).querySelectorAll('.play-choice').forEach(label => { const input = label.querySelector('input');label.classList.remove('answer-right','answer-wrong');label.querySelector('.choice-result')?.remove(); if (input.value === q.answer || input.checked) { const right = input.value === q.answer; label.classList.add(right ? 'answer-right' : 'answer-wrong'); label.insertAdjacentHTML('beforeend', `<b class="choice-result" aria-label="${right ? 'Opción correcta' : 'Opción incorrecta'}">${right ? '✓' : '×'}</b>`); } });
         if (q.type === 'imagepoint') $('visual-' + index).insertAdjacentHTML('beforeend', `<span class="visual-solution-zone" style="left:${q.target.x}%;top:${q.target.y}%;width:${q.target.width || 20}%;height:${q.target.height || 20}%" aria-label="Zona correcta">✓</span>`);
         document.querySelector(`[data-question="${index}"]`).querySelectorAll('input,textarea,button').forEach(control => control.disabled = true);
@@ -812,7 +753,7 @@
     const score = $('activityScore'), actions = score.nextElementSibling;
     score.before(footer); footer.append(score, actions);
     actions.prepend(toolbar);actions.querySelector('[data-action="close"]').hidden=true;
-    const hasPasapalabra = questions.some(question => ['pasapalabra','memory','sentence','timeline'].includes(question.type));
+    const hasPasapalabra = questions.some(question => ['pasapalabra','memory','sentence','timeline','error','crossword','dragdrop'].includes(question.type));
     let pasapalabraSolutionModal = null;
     let solutionTrigger = null;
     if (hasPasapalabra) {
@@ -951,7 +892,7 @@
       if (q.type === 'memory') mountMemory(q, index, () => checked);
       if (q.type === 'hangman') mountHangman(q, index, () => checked);
       const section = document.querySelector(`[data-question="${index}"]`);
-      if(!['quiz','boolean','visualquiz','pairs','classify','flashcard','pasapalabra','memory','wordsearch','crossword','dragdrop','hangman','order','sentence','timeline'].includes(q.type)){
+      if(!['quiz','boolean','visualquiz','pairs','classify','flashcard','pasapalabra','memory','wordsearch','crossword','dragdrop','hangman','order','sentence','timeline','error'].includes(q.type)){
         const check=document.createElement('button');check.type='button';check.dataset.checkQuestion=index;check.textContent=openAnswerTypes.includes(q.type)&&q.type!=='error'&&!objectiveShort(q)?'Guardar respuesta':'Comprobar';
         check.onclick=()=>{if(q.type==='multigaps'){section.querySelectorAll('[data-multi-gap]').forEach((input,n)=>{if(input.value.trim()){const right=q.options[n].split('~').some(s=>accepts(input.value,s));markControl(input,right);recordAnswer(index,n,right,input.value.trim());}});}else if(q.type==='error'&&gradeQuestion(index)==='unanswered'){$('feedback-'+index).className='play-feedback is-incorrect';$('feedback-'+index).textContent='Selecciona el error de la oración y escribe su corrección.';}else confirmQuestion(index);};section.querySelector('.question-controls').append(check);
       }
@@ -959,7 +900,14 @@
       solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';
       solution.onclick=()=>{
         practice[index].assisted=true;
-        if (['pasapalabra','memory','sentence','timeline'].includes(q.type) && pasapalabraSolutionModal) {
+        if (['pasapalabra','memory','sentence','timeline','error','crossword','dragdrop'].includes(q.type) && pasapalabraSolutionModal) {
+          if(['error','crossword','dragdrop'].includes(q.type)){
+            const rows=q.type==='error'?[[q.errorSegment||'Fragmento',q.correctedSegment||q.answer]]:puzzleRows(q.type,q.options);
+            pasapalabraSolutionModal.querySelector('.pasapalabra-solution-eyebrow').textContent=activityLabels[q.type].toUpperCase();
+            pasapalabraSolutionModal.querySelector('h2').textContent='Solución del ejercicio';
+            pasapalabraSolutionModal.querySelector('.pasapalabra-solution-body').innerHTML='<ol class="puzzle-solution-list">'+rows.map(row=>'<li><strong>'+rich(row[0])+'</strong> → '+rich(row[1])+'</li>').join('')+'</ol>'+(q.explanation?'<p>'+rich(q.explanation)+'</p>':'')+itemReasons(q);
+            solutionTrigger=solution;pasapalabraSolutionModal.showModal();pasapalabraSolutionModal.querySelector('.pasapalabra-solution-close').focus();return;
+          }
           if(['sentence','timeline'].includes(q.type)){
             pasapalabraSolutionModal.querySelector('.pasapalabra-solution-eyebrow').textContent=q.type==='timeline'?'LÍNEA TEMPORAL':'CONSTRUYE LA FRASE';
             pasapalabraSolutionModal.querySelector('h2').textContent=q.type==='timeline'?'Los acontecimientos en orden':'La frase en orden';
@@ -1012,7 +960,13 @@
       }
       if (q.type === 'gaps') $('r-' + index).style.setProperty('--gap-width', `${Math.min(280, Math.max(85, q.answer.length * 10 + 35))}px`);
       if (q.type === 'problem') section.querySelectorAll('[data-problem-step]').forEach(input => input.oninput = () => { const inputs = [...section.querySelectorAll('[data-problem-step]')]; $('r-' + index).value = inputs[3].value.trim() ? inputs.map((control, n) => `${['Datos','Planteamiento','Cálculos','Respuesta'][n]}: ${control.value}`).join('\n') : ''; });
-      if (q.type === 'error') section.querySelectorAll('[data-error-word]').forEach(button => button.onclick = () => { if (checked) return; button.setAttribute('aria-pressed', String(button.getAttribute('aria-pressed') !== 'true'));button.classList.remove('answer-right','answer-wrong');section.removeAttribute('data-result');$('feedback-'+index).textContent=''; });
+      if(q.type==='error'){
+        errorBoards[index]=window.profesorErrorBoard($('error-'+index),{
+          text:errorExample(q.prompt),
+          onChange(value){if(checked)return;$('r-'+index).value=value.correction;section.removeAttribute('data-result');$('feedback-'+index).textContent='';updateProgress();},
+          onCheck(){if(!checked)confirmQuestion(index);}
+        });
+      }
       let hintsUsed = 0;
       section.querySelector('[data-hint]')?.addEventListener('click', event => { if (checked || hintsUsed >= q.hints.length) return;practice[index].assisted=true;$('hints-' + index).insertAdjacentHTML('beforeend', `<li>${rich(q.hints[hintsUsed++])}</li>`); event.currentTarget.disabled = hintsUsed === q.hints.length; });
       section.querySelector('[data-zoom]')?.addEventListener('click', event => { const image = $('visual-' + index); image.classList.toggle('zoomed'); event.currentTarget.textContent = image.classList.contains('zoomed') ? 'Reducir imagen' : 'Ampliar imagen'; });

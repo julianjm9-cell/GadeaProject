@@ -102,3 +102,21 @@ def test_timeline_theme_is_served_to_both_players(client):
     assert css.status_code==200 and 'timeline-stage.png' in css.text
     for path in ['/profesor/demo','/profesor/alumno']:
         assert 'profesor-timeline-theme.css' in web.get(path).text
+
+
+def test_shared_puzzle_boards_and_raster_backgrounds_are_served(client):
+    web, _ = client
+    script = web.get('/profesor-puzzle-boards.js')
+    assert script.status_code == 200
+    for component in ['profesorErrorBoard', 'profesorCrosswordBoard', 'profesorMatchingBoard']:
+        assert component in script.text
+    css = web.get('/assets/profesor-puzzle-theme.css')
+    assert css.status_code == 200
+    for name in ['sentence-stage.png', 'memory-stage.png', 'timeline-stage.png']:
+        assert name in css.text
+        response = web.get('/assets/games/' + name)
+        assert response.status_code == 200 and response.headers['content-type'].startswith('image/')
+    for path in ['/profesor/demo', '/profesor/alumno']:
+        page = web.get(path).text
+        assert 'profesor-puzzle-boards.js' in page and 'profesor-puzzle-theme.css' in page
+        assert page.index('profesor-puzzle-boards.js') < page.index('profesor-live.js')

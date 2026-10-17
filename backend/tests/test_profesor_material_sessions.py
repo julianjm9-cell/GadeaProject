@@ -325,3 +325,56 @@ def test_timeline_partial_order_and_reset_clear_saved_feedback(client, monkeypat
         reset=pupil.get(path).json()['session']['progress']
         assert reset['responses']['0']==[]
         assert '0' not in reset.get('grades',{}) and '0' not in reset.get('parts',{})
+
+
+def test_crossword_and_matching_check_all_and_edit_survive_reload(client, monkeypatch):
+    import sys
+    questions = [
+        {'id':'cross','type':'crossword','prompt':'Completa el tablero.',
+         'options':['CASA | Lugar donde vives','SACO | Bolsa grande'],'answer':'Completado'},
+        {'id':'match','type':'dragdrop','prompt':'Clasifica los animales.',
+         'options':['Gato | Mamífero','Perro | Mamífero','Águila | Ave'],'answer':'Completado'},
+    ]
+    monkeypatch.setattr(sys.modules[__name__], 'material_questions', lambda: questions)
+    web, _ = prepare_teacher(client)
+    session = web.post('/api/profesor/material-sessions', json={'material_id':'m1'}).json()['session']
+    with TestClient(app) as pupil:
+        pupil.post('/auth/profesor/student-join', json={'code':session['join_code']})
+        path = f"/api/profesor/student-material-sessions/{session['id']}"
+        pupil.post(path+'/move', json={'action':'start'})
+        initial = pupil.get(path).json()['session']
+        assert 'CASA' not in str(initial['questions'][0]) and 'SACO' not in str(initial['questions'][0])
+        for index, partial, expected in [(0, ['CA_A','XXXX'], ['CASA','SACO']), (1, ['Mamífero','','Mamífero'], ['Mamífero','Mamífero','Ave'])]:
+            result = pupil.post(path+'/move', json={'action':'check','question_index':index,'value':partial}).json()['session']
+            assert result['progress']['parts'][str(index)] == ({'0':'unanswered','1':'incorrect'} if index==0 else {'0':'correct','1':'unanswered','2':'incorrect'})
+            result = pupil.post(path+'/move', json={'action':'check','question_index':index,'value':expected}).json()['session']
+            assert result['progress']['grades'][str(index)] == 'correct'
+            assert all(value=='correct' for value in result['progress']['parts'][str(index)].values())
+            pupil.post(path+'/move', json={'action':'draft','question_index':index,'value':partial})
+            saved = pupil.get(path).json()['session']['progress']
+            assert saved['responses'][str(index)] == partial
+            assert str(index) not in saved['grades'] and str(index) not in saved['parts']
+            pupil.post(path+'/move', json={'action':'check','question_index':index,'value':expected})
+        finished = pupil.post(path+'/move', json={'action':'finish'}).json()['session']
+        assert finished['progress']['grades'] == {'0':'correct','1':'correct'}
+
+
+def test_inline_error_selection_position_persists_without_revealing_answer(client, monkeypatch):
+    import sys
+    monkeypatch.setattr(sys.modules[__name__], 'material_questions', lambda: [
+        {'id':'error','type':'error','prompt':'Corrige: Tú trajistes el libro.',
+         'errorSegment':'trajistes','correctedSegment':'trajiste','answer':'Tú trajiste el libro.'}
+    ])
+    web, _ = prepare_teacher(client)
+    session = web.post('/api/profesor/material-sessions', json={'material_id':'m1'}).json()['session']
+    with TestClient(app) as pupil:
+        pupil.post('/auth/profesor/student-join', json={'code':session['join_code']})
+        path = f"/api/profesor/student-material-sessions/{session['id']}"
+        pupil.post(path+'/move', json={'action':'start'})
+        assert 'correctedSegment' not in pupil.get(path).text
+        value = {'selected':'trajistes','correction':'trajiste','selection':[1,1]}
+        pupil.post(path+'/move', json={'action':'draft','value':value})
+        assert pupil.get(path).json()['session']['progress']['responses']['0'] == value
+        assert pupil.post(path+'/move', json={'action':'check','value':value}).json()['feedback'] == 'correct'
+        wrong = {**value, 'correction':'trajistes'}
+        assert pupil.post(path+'/move', json={'action':'check','value':wrong}).json()['feedback'] == 'incorrect'
