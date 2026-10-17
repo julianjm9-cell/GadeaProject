@@ -198,6 +198,7 @@ function teacherBackgroundButton(){
  return `<button data-action="toggleBackground" title="Cambiar a ${teacherBackgroundLabels[next]}" aria-label="${teacherBackgroundLabels[teacherBackgroundMode]}. Cambiar a ${teacherBackgroundLabels[next]}">${teacherBackgroundButtonLabel()}</button>`;
 }
 function applyTeacherBackground(){
+ document.documentElement.classList.toggle('teacher-study-theme',teacherBackgroundMode==='study');
  document.documentElement.classList.toggle('teacher-plain-background',teacherBackgroundMode==='plain');
  document.documentElement.classList.toggle('teacher-academy-theme',teacherBackgroundMode==='academy');
  document.querySelectorAll('[data-action="toggleBackground"]').forEach(b=>{
@@ -1141,6 +1142,6 @@ init();
 .attachment-table{max-width:100%;overflow:auto;margin:16px 0}.attachment-table table{width:100%;border-collapse:collapse}.attachment-table td{border:1px solid #dce8f7;padding:8px;vertical-align:top}.attachment-table td p{margin:0}
 @media(max-width:620px){.attachment-document{padding:14px}#dialog.file-preview-dialog{padding:16px}.attachment-row{margin-top:10px}.attachment-pdf{height:60dvh}}
 </style>
-<link rel="stylesheet" href="./assets/profesor-academy-theme.css?v=20261018-1">
+<link rel="stylesheet" href="./assets/profesor-appearance.css?v=20261018-4">
 <script src="./profesor-state-history.js?v=20261016-daily-1"></script></body>
 </html>

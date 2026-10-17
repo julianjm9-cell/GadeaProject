@@ -115,7 +115,7 @@ def test_deployed_profesor_assets_are_routed(client, monkeypatch, tmp_path):
     web, _ = client
     filenames = ["temario-presentation.js", "profesor-rich-text.js", "profesor-temario.js", "profesor-temario-depth.js", "profesor-temario-revision.js", "profesor-spanish.js", "profesor-activity-play.js",
                  "profesor-final.css", "profesor-home.css", "profesor-studio.css", "profesor-temario.css",
-                 "profesor-activity-play.css", "profesor-academy-theme.css"]
+                 "profesor-activity-play.css", "profesor-academy-theme.css", "profesor-appearance.css"]
     # Simulate Docker: only static copies exist, not the repository's apps directory.
     static = tmp_path / "static"
     (static / "assets").mkdir(parents=True)

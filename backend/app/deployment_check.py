@@ -95,6 +95,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/profesor-access.css": b"access-page",
         "/assets/profesor-dashboard.css": b"profesor-study-room.png",
         "/assets/profesor-academy-theme.css": b"teacher-academy-theme",
+        "/assets/profesor-appearance.css": b"teacher-study-theme",
         "/assets/profesor-academy-room.webp": b"WEBP",
         "/assets/profesor-academy-paper.webp": b"WEBP",
         "/assets/profesor-study-room.png": b"\x89PNG\r\n\x1a\n",

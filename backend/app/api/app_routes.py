@@ -750,6 +750,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-access.css")
 @router.get("/assets/profesor-dashboard.css")
 @router.get("/assets/profesor-academy-theme.css")
+@router.get("/assets/profesor-appearance.css")
 @router.get("/assets/profesor-live.css")
 @router.get("/assets/profesor-uploaded-topics.css")
 def profesor_final_styles(request: Request):
