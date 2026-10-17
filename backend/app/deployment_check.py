@@ -78,6 +78,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/games/flashcard-stage.png": b"\x89PNG\r\n\x1a\n",
         "/profesor-sentence-board.js": b"profesorSentenceBoard",
         "/profesor-puzzle-boards.js": b"profesorErrorBoard",
+        "/profesor-mini-games.js": b"profesorMiniGame",
+        "/assets/profesor-mini-games.css": b"bingo-workbench",
         "/assets/profesor-puzzle-theme.css": b"studio-cross-grid",
         "/assets/profesor-sentence-theme.css": b"sentence-stage.png",
         "/assets/games/sentence-stage.png": b"\x89PNG\r\n\x1a\n",

@@ -98,7 +98,7 @@ def test_invalid_verbal_clue_does_not_poison_previously_accepted_rosco_clues():
 
 @pytest.mark.parametrize('kind', TYPES)
 def test_each_type_has_only_its_own_wire_contract(kind):
-    context=batch(kind,3); request=GenerationDraft(context).request_context()
+    context=batch(kind,9 if kind=='bingo' else 3); request=GenerationDraft(context).request_context()
     schema=wire_schema(request)['properties']['questions']['items']
     assert schema['properties']['type']['enum']==[kind]
     assert set(schema['required'])==set(schema['properties'])

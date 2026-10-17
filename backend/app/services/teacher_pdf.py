@@ -163,7 +163,7 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
               "order":"Ordenar", "classify":"Clasificar", "boolean":"Verdadero o falso", "reading":"Comprensión",
               "problem":"Problemas", "flashcard":"Tarjeta", "memory":"Memory", "sentence":"Construye la frase",
               "timeline":"Línea temporal", "error":"Encuentra el error", "wordsearch":"Sopa de letras",
-              "crossword":"Crucigrama", "dragdrop":"Asociar", "pasapalabra":"Pasapalabra", "hangman":"Ahorcado", "visualquiz":"Quiz visual", "imagepoint":"Señalar imagen"}
+              "crossword":"Crucigrama", "dragdrop":"Asociar", "pasapalabra":"Pasapalabra", "hangman":"Ahorcado", "visualquiz":"Quiz visual", "imagepoint":"Señalar imagen", "mystery":"¿Quién soy?", "intruder":"Elimina al intruso", "bingo":"Bingo de conceptos"}
     seen_readings = set()
     for index, q in enumerate(questions, 1):
         if not isinstance(q, dict) or q.get("type") not in labels:
@@ -212,9 +212,27 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
             section.append(Paragraph('Unidad: ' + _text(q['unit'], 30), styles['TeacherSmall']))
         if not solutions and kind in ('gaps', 'multigaps') and q.get('wordBank'):
             section.append(Paragraph('Banco de palabras: ' + ' / '.join(_text(word, 100) for word in sorted(_lines(q['wordBank'], 12))), styles['TeacherSmall']))
-        if kind in ("quiz", "visualquiz", "boolean", "classify"):
+        if kind in ("quiz", "visualquiz", "boolean", "classify", "intruder"):
             for letter, option in zip("ABCDEFGH", options):
                 section.append(Paragraph(f"{letter}. {_text(option, 300)}", styles["TeacherBody"]))
+        elif kind == 'mystery':
+            for number, clue in enumerate(options, 1):
+                section.append(Paragraph(f'Pista {number}: ' + _text(clue, 300), styles['TeacherBody']))
+            if not solutions:
+                section.append(Paragraph('Respuesta: __________________________________', styles['TeacherBody']))
+        elif kind == 'bingo':
+            from random import Random
+            pairs = [option.split('|', 1) for option in options]
+            labels = [pair[0].strip() for pair in pairs]
+            Random(str(q.get('id', 'bingo'))).shuffle(labels)
+            if len(labels) == 9:
+                table = Table([[Paragraph(_text(labels[r*3+c], 80), styles['TeacherBody']) for c in range(3)] for r in range(3)], colWidths=[52*mm]*3)
+                table.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'MIDDLE'),('BOX',(0,0),(-1,-1),.8,PALE),('INNERGRID',(0,0),(-1,-1),.6,PALE),('BACKGROUND',(0,0),(-1,-1),colors.HexColor('#eff7ff')),('LEFTPADDING',(0,0),(-1,-1),9),('RIGHTPADDING',(0,0),(-1,-1),9),('TOPPADDING',(0,0),(-1,-1),13),('BOTTOMPADDING',(0,0),(-1,-1),13)]))
+                section.append(table)
+            section.append(Paragraph('Lee cada definición y marca su concepto en el cartón.', styles['TeacherSmall']))
+            for number, pair in enumerate(pairs, 1):
+                if len(pair) == 2:
+                    section.append(Paragraph(f'{number}. ' + _text(pair[1].strip(), 140), styles['TeacherBody']))
         elif kind == "wordsearch":
             section.append(_grid_flowable(_wordsearch(options), True))
             section.append(Paragraph("Palabras: " + ", ".join(_text(o, 100) for o in options), styles["TeacherSmall"]))
@@ -261,7 +279,7 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
             if kind == "imagepoint":
                 target = q.get("target") or {}
                 answer = f"Zona marcada por el profesor ({target.get('x', '?')} %, {target.get('y', '?')} %)"
-            elif kind in ("wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps"):
+            elif kind in ("wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps", "bingo"):
                 answer = "; ".join(options)
             section.extend(text_blocks("Solución: " + str(answer), styles["TeacherAnswer"], 162*mm, 2500))
             if q.get('explanation'):
@@ -280,7 +298,7 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
                         section.extend(text_blocks(label + ': ' + reason[:300], styles['TeacherSmall'], 172*mm, 600))
             if q.get('rubric'):
                 section.append(Paragraph('Criterios de revisión: ' + _text(q['rubric'], 1000), styles['TeacherSmall']))
-        elif kind not in ("quiz", "visualquiz", "boolean", "classify", "wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps", "hangman"):
+        elif kind not in ("quiz", "visualquiz", "boolean", "classify", "wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps", "hangman", "mystery", "intruder", "bingo"):
             section.append(Paragraph("________________________________________________________________________", styles["TeacherSmall"]))
         section.append(Spacer(1, 2*mm))
 

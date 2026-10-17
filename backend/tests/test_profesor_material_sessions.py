@@ -229,6 +229,9 @@ def test_every_generated_activity_type_can_be_prepared_for_a_student():
         "hangman": {"answer": "CASA", "options": []},
         "imagepoint": {"answer": "Zona marcada", "options": [], "target": {"x": 50, "y": 50}},
         "flashcard": {"answer": "Reverso", "options": []},
+        "mystery": {"answer": "Gato", "options": ["Es un animal", "Es un felino doméstico", "Suele maullar"]},
+        "intruder": {"answer": "Piedra", "options": ["Gato", "Perro", "Piedra"]},
+        "bingo": {"answer": "Completado", "options": [f"Concepto {i} | Definición número {i}" for i in range(9)]},
     }
     for kind in SUPPORTED:
         source = {**base, **overrides.get(kind, {}), "type": kind}

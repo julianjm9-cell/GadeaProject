@@ -24,7 +24,7 @@ def feedback_fields(question, kind, options):
         extra['optionFeedback'] = [dict(option=row['option'], explanation=row['explanation'].strip()) for row in rows]
     if 'itemExplanations' in question:
         values = question['itemExplanations']
-        if kind not in ('multigaps', 'pasapalabra', 'crossword', 'memory', 'dragdrop', 'wordsearch', 'order', 'sentence', 'timeline') or not isinstance(values, list) or len(values) != len(options) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in values):
+        if kind not in ('multigaps', 'pasapalabra', 'crossword', 'memory', 'dragdrop', 'wordsearch', 'order', 'sentence', 'timeline', 'bingo') or not isinstance(values, list) or len(values) != len(options) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in values):
             raise ValueError('Añade una explicación breve por elemento, en el mismo orden que options.')
         extra['itemExplanations'] = [v.strip() for v in values]
     if 'calculation' in question:
@@ -225,7 +225,7 @@ def regeneration_context(payload, build_context, types, limits):
     if not isinstance(changes, str) or len(changes) > 1500:
         raise ValueError('Describe la mejora en hasta 1500 caracteres.')
     size = len(options) if kind in limits else 2
-    minimum = 3 if kind in ('wordsearch', 'crossword', 'dragdrop', 'pasapalabra') else 2
+    minimum = 9 if kind == 'bingo' else 3 if kind in ('wordsearch', 'crossword', 'dragdrop', 'pasapalabra') else 2
     size = max(minimum, min(limits.get(kind, 12), size))
     base = {**payload, **{key: 0 for key in types}, kind: 1, 'activitySizes': {kind: size}}
     base.pop('regenerate', None)

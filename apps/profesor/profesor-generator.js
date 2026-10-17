@@ -1,10 +1,10 @@
 /* Activity size, teacher instructions and complete game previews. */
 (() => {
- const bundleTypes=new Set(['pairs','gaps','quiz','short','classify','boolean','reading','problem','flashcard','error','numeric','hangman']);
- const limits={multigaps:20,pasapalabra:27,crossword:7,wordsearch:8,memory:8,dragdrop:8,order:8,sentence:8,timeline:8};
- const defaults={pasapalabra:18,multigaps:10,reading:4,problem:3,hangman:3};
- const unitLabels={pairs:'parejas',gaps:'frases',multigaps:'huecos',numeric:'preguntas',quiz:'preguntas',short:'preguntas',order:'elementos',classify:'elementos',boolean:'preguntas',reading:'preguntas',problem:'problemas',flashcard:'tarjetas',memory:'parejas',sentence:'fragmentos',timeline:'eventos',error:'frases',wordsearch:'palabras',crossword:'palabras',dragdrop:'parejas',pasapalabra:'letras',hangman:'palabras',visualquiz:'imagen',imagepoint:'imagen'};
- const minSize=type=>['pasapalabra','wordsearch','crossword','dragdrop'].includes(type)?3:2;
+ const bundleTypes=new Set(['pairs','gaps','quiz','short','classify','boolean','reading','problem','flashcard','error','numeric','hangman','mystery','intruder']);
+ const limits={multigaps:20,pasapalabra:27,crossword:7,wordsearch:8,memory:8,dragdrop:8,order:8,sentence:8,timeline:8,bingo:9};
+ const defaults={pasapalabra:18,multigaps:10,reading:4,problem:3,hangman:3,mystery:3,intruder:5,bingo:9};
+ const unitLabels={pairs:'parejas',gaps:'frases',multigaps:'huecos',numeric:'preguntas',quiz:'preguntas',short:'preguntas',order:'elementos',classify:'elementos',boolean:'preguntas',reading:'preguntas',problem:'problemas',flashcard:'tarjetas',memory:'parejas',sentence:'fragmentos',timeline:'eventos',error:'frases',wordsearch:'palabras',crossword:'palabras',dragdrop:'parejas',pasapalabra:'letras',hangman:'palabras',visualquiz:'imagen',imagepoint:'imagen',mystery:'misterios',intruder:'rondas',bingo:'conceptos'};
+ const minSize=type=>type==='bingo'?9:['pasapalabra','wordsearch','crossword','dragdrop'].includes(type)?3:2;
  const maxSize=type=>limits[type]||12;
  const recoverableGenerationError=error=>{
   const status=Number(error?.status);
@@ -111,13 +111,15 @@
    if(!Array.isArray(q.options)||q.options.some(v=>typeof v!=='string'))throw Error('Opciones no válidas.');
    q.options=q.options.map(v=>v.trim()).filter(Boolean);
    if(optionTypes.includes(q.type)){
-    const max=limits[q.type]||5;
+    const max=q.type==='mystery'?3:limits[q.type]||5;
     if(q.options.length<2||q.options.length>max||q.options.some(v=>v.length>300)||q.type!=='multigaps'&&new Set(q.options.map(v=>v.toLocaleLowerCase())).size!==q.options.length)throw Error(`Revisa las opciones del ejercicio ${number}.`);
     if(sequenceTypes.includes(q.type))q.answer=q.options.join(' → ');
     else if(q.type==='memory'){validateMemory(q.options);q.answer='Completado';}
     else if(puzzleTypes.includes(q.type)){puzzleRows(q.type,q.options);q.answer=q.type==='multigaps'?q.options.join(' | '):'Completado';}
+    else if(q.type==='mystery'){window.profesorMiniGames.validate(q);}
     else if(!q.options.includes(q.answer))throw Error(`La solución del ejercicio ${number} debe coincidir con una opción.`);
    }
+   if(['mystery','intruder','bingo'].includes(q.type))window.profesorMiniGames.validate(q);
    if(q.type==='multigaps'&&gaps!==q.options.length)throw Error('Añade una solución por cada hueco.');
    if(q.type==='boolean'&&(q.options.length!==2||!q.options.includes('Verdadero')||!q.options.includes('Falso')))throw Error('Verdadero / Falso requiere esas dos opciones.');
    if(q.type==='reading'&&!q.text.trim())throw Error('Añade el texto de lectura.');
@@ -162,7 +164,7 @@
    if(!c.topic||selectedTypes.length!==MAX_GENERATOR_TYPES||total<1||total>MAX_GENERATOR_ACTIVITIES||totalQuestions>80)throw Error('Indica el tema y selecciona un único tipo de actividad.');
    let group=0;
    const blank=[];
-   for(const type of Object.keys(activityLabels))for(let n=0;n<c[type];n++){group++;for(let i=0;i<(bundleTypes.has(type)?c.activitySizes[type]:1);i++)blank.push({id:uid(),type,activityGroup:group,prompt:'',answer:'',text:'',options:type==='boolean'?['Verdadero','Falso']:optionTypes.includes(type)?Array(['quiz','classify'].includes(type)?3:c.activitySizes[type]||3).fill(''):[]});}
+   for(const type of Object.keys(activityLabels))for(let n=0;n<c[type];n++){group++;for(let i=0;i<(bundleTypes.has(type)?c.activitySizes[type]:1);i++)blank.push({id:uid(),type,activityGroup:group,prompt:'',answer:'',text:'',options:type==='boolean'?['Verdadero','Falso']:optionTypes.includes(type)?Array(type==='mystery'?3:type==='intruder'?4:['quiz','classify'].includes(type)?3:c.activitySizes[type]||3).fill(''):[]});}
    let questions=blank;
    if(form.get('mode')==='ai'){
     workshopBusy=true;const controls=[...$('form').querySelectorAll('input,textarea,select,button')].map(el=>[el,el.disabled]);controls.forEach(([el])=>el.disabled=true);

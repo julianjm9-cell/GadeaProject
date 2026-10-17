@@ -23,10 +23,10 @@ from app.api.profesor_access import SESSION_LIFETIME, active_student, new_sessio
 from app.api.app_routes import LOCAL_DOCUMENT_DIR
 
 router = APIRouter(tags=["profesor-material-sessions"])
-CHOICE = {"quiz", "boolean", "classify", "visualquiz", "pairs"}
+CHOICE = {"quiz", "boolean", "classify", "visualquiz", "pairs", "intruder"}
 SEQUENCE = {"order", "sentence", "timeline"}
 OPEN = {"short", "reading", "problem", "error"}
-SUPPORTED = CHOICE | SEQUENCE | OPEN | {"gaps", "multigaps", "numeric", "flashcard", "memory", "dragdrop", "pasapalabra", "hangman", "wordsearch", "crossword", "imagepoint"}
+SUPPORTED = CHOICE | SEQUENCE | OPEN | {"gaps", "multigaps", "numeric", "flashcard", "memory", "dragdrop", "pasapalabra", "hangman", "wordsearch", "crossword", "imagepoint", "mystery", "bingo"}
 
 
 class SendMaterial(BaseModel):
@@ -168,6 +168,17 @@ def crossword_board(question: dict) -> dict:
 def prepare(question: dict, seed: int) -> dict:
     q = dict(question)
     kind = q.get("type")
+    from app.services.teacher_mini_games import validate_mini_game
+    validate_mini_game(kind, q.get('answer'), q.get('options'))
+    if kind == 'bingo':
+        cards, clues = [], []
+        for concept, clue in rows(q):
+            token = secrets.token_urlsafe(12)
+            cards.append({'token': token, 'label': concept})
+            clues.append({'token': secrets.token_urlsafe(12), 'clue': clue, 'answer': token})
+        random.Random(seed).shuffle(cards)
+        random.Random(seed + 1).shuffle(clues)
+        q['_bingo'] = {'cards': cards, 'clues': clues}
     if kind == "wordsearch":
         q["_board"] = wordsearch_board(q, seed)
     elif kind == "crossword":
@@ -187,7 +198,7 @@ def prepare(question: dict, seed: int) -> dict:
     return q
 
 
-def safe_question(q: dict, all_questions: list[dict], completed: bool, revealed: bool = False, response: object = None) -> dict:
+def safe_question(q: dict, all_questions: list[dict], completed: bool, revealed: bool = False, response: object = None, verified: bool = False) -> dict:
     kind = q["type"]
     out = {key: q[key] for key in ("id", "type", "prompt", "text", "unit", "wordBank") if key in q}
     if kind in {"gaps", "multigaps"}:
@@ -202,6 +213,14 @@ def safe_question(q: dict, all_questions: list[dict], completed: bool, revealed:
         out["options"] = list(dict.fromkeys(other.get("answer", "") for other in all_questions if other.get("type") == "pairs")) if kind == "pairs" else q.get("options", [])
         if kind == "pairs" and len(out["options"]) < 2:
             out["options"] = []
+        if kind == 'intruder':
+            out['options'] = list(out['options'])
+            random.Random(str(q.get('id'))).shuffle(out['options'])
+    elif kind == 'mystery':
+        out['options'] = q['options']
+    elif kind == 'bingo':
+        out['cards'] = q['_bingo']['cards']
+        out['clues'] = [{key: clue[key] for key in ('token', 'clue')} for clue in q['_bingo']['clues']]
     elif kind in SEQUENCE:
         out["options"] = q.get("options", [])[:]
         random.Random(str(q.get("id"))).shuffle(out["options"])
@@ -239,10 +258,16 @@ def safe_question(q: dict, all_questions: list[dict], completed: bool, revealed:
             out["solutions"] = q["options"]
         elif kind == "dragdrop":
             out["solutions"] = [parts[1] for parts in rows(q)]
+        elif kind == 'bingo':
+            out['solutions'] = [concept + ': ' + clue for concept, clue in rows(q)]
+        if kind in ('mystery', 'intruder', 'bingo'):
+            out['explanation'] = q.get('explanation', '')
         elif kind == "imagepoint":
             out["target"] = q.get("target")
     elif kind == "flashcard" and revealed:
         out["revealed_answer"] = q.get("answer", "")
+    if verified and kind in {'mystery', 'intruder'}:
+        out['explanation'] = q.get('explanation', '')
     return out
 
 
@@ -250,6 +275,23 @@ def grade(q: dict, value: object, part: int | None = None) -> str:
     kind = q["type"]
     if value is None or value == "":
         return "unanswered"
+    if kind == 'mystery':
+        answer = value.get('answer') if isinstance(value, dict) else value
+        if not isinstance(answer, str) or not answer.strip():
+            return 'unanswered'
+        key = lambda text: clean_hangman(norm(text).strip('.!?¡¿ '))
+        return 'correct' if key(answer) in [key(q['answer']), *[key(item) for item in q.get('alternatives', [])]] else 'incorrect'
+    if kind == 'bingo':
+        if not isinstance(value, list):
+            return 'unanswered'
+        clues = q['_bingo']['clues']
+        if part is not None:
+            if part >= len(clues) or part >= len(value) or not isinstance(value[part], str) or not value[part]:
+                return 'unanswered'
+            return 'correct' if value[part] == clues[part]['answer'] else 'incorrect'
+        if len(value) != len(clues) or any(not isinstance(item, str) or not item for item in value):
+            return 'unanswered'
+        return 'correct' if all(grade(q, value, i) == 'correct' for i in range(len(clues))) else 'incorrect'
     if kind == "error":
         if not isinstance(value, dict):
             return "pending" if str(value).strip() else "unanswered"  # Older sessions used plain text.
@@ -401,7 +443,7 @@ def public_session(row: ProfesorMaterialSession, *, teacher: bool = False) -> di
     completed = row.status == "completed"
     return {"id": str(row.id), "title": row.title, "subject": row.subject, "status": "expired" if session_is_expired(row) else row.status, "revision": row.revision,
             "expires_at": row.expires_at.isoformat(),
-            "created_at": row.created_at.isoformat(), "updated_at": row.updated_at.isoformat(), "questions": [safe_question(q, questions, completed or teacher, n in progress.get("reveals", []), progress.get("responses", {}).get(str(n))) for n, q in enumerate(questions)],
+            "created_at": row.created_at.isoformat(), "updated_at": row.updated_at.isoformat(), "questions": [safe_question(q, questions, completed or teacher, n in progress.get("reveals", []), progress.get("responses", {}).get(str(n)), progress.get('grades', {}).get(str(n)) == 'correct') for n, q in enumerate(questions)],
             "progress": progress, **({"join_code": visible_session_code(row)} if teacher else {})}
 
 
@@ -530,8 +572,15 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
                              "token": payload.value[:100] if isinstance(payload.value, str) else None}
     elif payload.action in {"draft", "check", "next", "finish"}:
         if payload.value is not None:
+            if questions[payload.question_index]['type'] == 'bingo':
+                previous = progress.get('responses', {}).get(str(payload.question_index), [])
+                previous = previous if isinstance(previous, list) else []
+                current = payload.value if isinstance(payload.value, list) else []
+                parts = dict(progress.get('parts', {}))
+                parts[str(payload.question_index)] = {key: result for key, result in parts.get(str(payload.question_index), {}).items() if int(key) < len(current) and int(key) < len(previous) and current[int(key)] == previous[int(key)]}
+                progress['parts'] = parts
             responses = dict(progress.get("responses", {})); responses[str(payload.question_index)] = payload.value; progress["responses"] = responses
-            if payload.action == "draft" and questions[payload.question_index]["type"] in {"timeline", "error", "sentence", "crossword", "dragdrop"}:
+            if payload.action == "draft" and questions[payload.question_index]["type"] in {"timeline", "error", "sentence", "crossword", "dragdrop", "mystery", "intruder", "bingo"}:
                 grades = dict(progress.get("grades", {})); grades.pop(str(payload.question_index), None); progress["grades"] = grades
                 if questions[payload.question_index]["type"] in {"timeline", "crossword", "dragdrop"}:
                     parts = dict(progress.get("parts", {})); parts.pop(str(payload.question_index), None); progress["parts"] = parts
@@ -561,6 +610,8 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
             progress["grades"] = grades; row.status = "completed"
             parts = dict(progress.get("parts", {}))
             for n, q in enumerate(questions):
+                if q['type'] == 'bingo':
+                    parts[str(n)] = {str(i): grade(q, progress.get('responses', {}).get(str(n)), i) for i in range(len(q['_bingo']['clues']))}
                 if q["type"] in {"crossword", "dragdrop"}:
                     count = len(q["_board"]["words"]) if q["type"] == "crossword" else len(rows(q))
                     parts[str(n)] = {str(i): grade(q, progress.get("responses", {}).get(str(n)), i) for i in range(count)}
@@ -582,6 +633,8 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
         solution = clean_hangman(questions[payload.question_index]["answer"])
         chosen = {clean_hangman(str(v)) for v in payload.value if isinstance(v, str) and len(v) == 1}
         extra = {"mask": "".join(c if c in chosen or not c.isalpha() else "_" for c in solution), "errors": sum(c not in solution for c in chosen)}
+    if payload.action == 'check' and questions[payload.question_index]['type'] in {'mystery', 'intruder'} and feedback == 'correct':
+        extra = {'explanation': questions[payload.question_index].get('explanation', '')}
     return {"ok": True, "revision": row.revision, "status": row.status, "feedback": feedback, "extra": extra,
             "session": public_session(row) if payload.action in {"finish", "start"} or (payload.action == "check" and questions[payload.question_index]["type"] in {"timeline", "crossword", "dragdrop"}) else None}
 

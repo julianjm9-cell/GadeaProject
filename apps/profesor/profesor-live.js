@@ -7,7 +7,7 @@
   const timelineLabel = (value,reveal) => reveal?String(value):String(value)
     .replace(/\b(?:1\d{3}|20\d{2})-\d{1,2}-\d{1,2}\b|\b\d{1,2}[/.]\d{1,2}[/.](?:1\d{3}|20\d{2})\b|\b\d{1,2}\s+(?:de\s+)?(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s+(?:de\s+)?(?:1\d{3}|20\d{2})\b|\b(?:1\d{3}|20\d{2})\b/gi,'fecha oculta')
     .replace(/\bfecha oculta\s*[–—:-]\s*/gi,'').trim()||'Fecha oculta';
-  const labels = {pairs:'Relacionar',gaps:'Completar',multigaps:'Texto con huecos',numeric:'Respuesta numérica',quiz:'Elegir respuesta',short:'Respuesta breve',order:'Ordenar',classify:'Clasificar',boolean:'Verdadero / Falso',reading:'Comprensión',problem:'Problemas',flashcard:'Flashcards',memory:'Memory',sentence:'Construye la frase',timeline:'Línea temporal',error:'Encuentra el error',wordsearch:'Sopa de letras',crossword:'Crucigrama',dragdrop:'Arrastrar y soltar',pasapalabra:'Pasapalabra',hangman:'Ahorcado',visualquiz:'Quiz visual',imagepoint:'Señalar imagen'};
+  const labels = {pairs:'Relacionar',gaps:'Completar',multigaps:'Texto con huecos',numeric:'Respuesta numérica',quiz:'Elegir respuesta',short:'Respuesta breve',order:'Ordenar',classify:'Clasificar',boolean:'Verdadero / Falso',reading:'Comprensión',problem:'Problemas',flashcard:'Flashcards',memory:'Memory',sentence:'Construye la frase',timeline:'Línea temporal',error:'Encuentra el error',wordsearch:'Sopa de letras',crossword:'Crucigrama',dragdrop:'Arrastrar y soltar',pasapalabra:'Pasapalabra',hangman:'Ahorcado',visualquiz:'Quiz visual',imagepoint:'Señalar imagen',mystery:'¿Quién soy?',intruder:'Elimina al intruso',bingo:'Bingo de conceptos'};
   const choice = new Set(['pairs','quiz','boolean','classify','visualquiz']);
   const sequence = new Set(['order','sentence','timeline']);
   const open = new Set(['short','reading','problem','error']);
@@ -30,17 +30,20 @@
   const partGrade = (session, n, part) => session.progress?.parts?.[String(n)]?.[String(part)];
   const option = (label, selected, action, value, disabled) => `<button type="button" class="live-option ${selected?'selected':''}" data-live-action="${action}" data-value="${escape(value)}" ${disabled?'disabled':''}>${label}</button>`;
   const image = (session, q, teacher) => q.image ? `<img class="live-image" src="${teacher?'/api/profesor/materials/'+encodeURIComponent(q.image.id)+'/preview?app=profesor_particular':'/api/profesor/student-material-sessions/'+encodeURIComponent(session.id)+'/images/'+encodeURIComponent(q.image.id)}" alt="${escape(q.image.filename)}">` : '';
-  function summaryValue(value) {
+  function summaryValue(value, question) {
+    if(question?.type==='bingo'&&Array.isArray(value))return (question.clues||[]).map((clue,index)=>clue.clue+': '+((question.cards||[]).find(card=>card.token===value[index])?.label||'Sin responder')).join(' · ');
     if (value == null || value === '') return 'Aún sin responder';
     if (Array.isArray(value)) return value.map(item => Array.isArray(item) ? item.join(' → ') : typeof item === 'object' ? JSON.stringify(item) : String(item)).join(' · ') || 'Aún sin responder';
-    if (typeof value === 'object') return [value.selected ? `Error: ${value.selected}` : '', value.correction ? `Corrección: ${value.correction}` : ''].filter(Boolean).join(' · ') || 'Aún sin responder';
+    if (typeof value === 'object') return value.answer!==undefined?(String(value.answer||'Aún sin responder')+' · '+Math.max(1,Math.min(3,Number(value.cluesUsed)||1))+' pistas abiertas'):[value.selected ? `Error: ${value.selected}` : '', value.correction ? `Corrección: ${value.correction}` : ''].filter(Boolean).join(' · ') || 'Aún sin responder';
     return String(value);
   }
   function questionMarkup(session, n, teacher = false) {
     const q = session.questions[n], response = val(session,n), result=grade(session,n), locked = teacher || session.status==='completed';
     const disabled=locked?'disabled':'', kind=q.type;
     let controls='';
-    if(choice.has(kind)) {
+    if(['mystery','intruder','bingo'].includes(kind)){
+      controls=`<div id="live-mini-${n}" data-mini-kind="${kind}"></div>`;
+    } else if(choice.has(kind)) {
       controls=`<div class="live-options">${(q.options||[]).map((item,i)=>option(`<b>${String.fromCharCode(65+i)}</b><span>${escape(item)}</span>`,response===item,'choice',item,locked)).join('')}</div>`;
       if(!q.options?.length)controls=`<input class="live-text" data-live-field="text" value="${escape(response||'')}" placeholder="Escribe la respuesta" ${disabled}>`;
     } else if(kind==='gaps') {
@@ -89,9 +92,35 @@
     const partial=['pasapalabra','multigaps','crossword','dragdrop','memory','wordsearch'].includes(kind);
     const feedback=result&&!(kind==='hangman'&&result==='unanswered')?`<p class="live-feedback ${result}" role="status">${kind==='flashcard'?'Valoración guardada: '+({correct:'La sabía',partial:'Con ayuda',incorrect:'Repasar'}[result]||'Sin valorar'):result==='correct'?'✓ Correcto':result==='pending'?'◷ Guardado para revisión':result==='partial'?'◷ Parcialmente correcto':result==='unanswered'?(['crossword','dragdrop'].includes(kind)?'Completa las casillas o piezas que faltan.':'Sin responder'):'× Puedes volver a intentarlo'}</p>`:'';
     const review=teacher&&session.status==='completed'&&open.has(kind)&&(kind!=='error'||result==='pending')?`<div class="live-grade-actions"><b>Valorar respuesta:</b>${[['correct','Correcta'],['partial','Parcial'],['incorrect','Revisar']].map(([value,label])=>`<button type="button" data-live-teacher="grade" data-id="${escape(session.id)}" data-index="${n}" data-grade="${value}" class="${result===value?'active':''}">${label}</button>`).join('')}</div>`:'';
-    return `<article class="live-question" data-live-type="${escape(kind)}"><div class="live-kind"><span>${String(n+1).padStart(2,'0')}</span>${escape(labels[kind]||'Ejercicio')}</div>${(kind==='flashcard'&&!teacher)||kind==='hangman'?'':`<h3>${rich(kind==='error'?'Encuentra el error y corrígelo en la frase.':q.prompt)}</h3>`}${kind==='reading'&&q.text?`<div class="live-reading">${rich(q.text)}</div>`:''}${kind==='visualquiz'?image(session,q,teacher):''}<div class="live-controls">${controls}</div>${!teacher&&q.hints?.length?`${kind==='pasapalabra'?'':'<button type="button" class="live-hint-button" data-live-action="hint">Necesito una pista</button>'}<div class="live-hint-box" id="liveHintBox"></div>`:''}${feedback}${!locked&&!partial&&!choice.has(kind)&&kind!=='flashcard'&&kind!=='hangman'&&kind!=='sentence'&&kind!=='timeline'&&kind!=='error'?'<button type="button" data-live-action="check" class="live-check">Comprobar respuesta</button>':''}${teacher?`<p class="live-observed-answer"><b>Respuesta del alumno:</b> ${escape(summaryValue(response))}</p>`:''}${session.status==='completed'&&q.solution?`<div class="live-solution"><b>Solución:</b> ${rich(q.solutions?.join(' · ')||q.solution)}</div>`:''}${review}</article>`;
+    return `<article class="live-question" data-live-type="${escape(kind)}"><div class="live-kind"><span>${String(n+1).padStart(2,'0')}</span>${escape(labels[kind]||'Ejercicio')}</div>${(kind==='flashcard'&&!teacher)||kind==='hangman'?'':`<h3>${rich(kind==='error'?'Encuentra el error y corrígelo en la frase.':q.prompt)}</h3>`}${kind==='reading'&&q.text?`<div class="live-reading">${rich(q.text)}</div>`:''}${kind==='visualquiz'?image(session,q,teacher):''}<div class="live-controls">${controls}</div>${!teacher&&q.hints?.length?`${kind==='pasapalabra'?'':'<button type="button" class="live-hint-button" data-live-action="hint">Necesito una pista</button>'}<div class="live-hint-box" id="liveHintBox"></div>`:''}${feedback}${!locked&&!partial&&!choice.has(kind)&&kind!=='flashcard'&&kind!=='hangman'&&kind!=='sentence'&&kind!=='timeline'&&kind!=='error'&&!['mystery','intruder','bingo'].includes(kind)?'<button type="button" data-live-action="check" class="live-check">Comprobar respuesta</button>':''}${teacher?`<p class="live-observed-answer"><b>Respuesta del alumno:</b> ${escape(summaryValue(response,q))}</p>`:''}${session.status==='completed'&&q.solution?`<div class="live-solution"><b>Solución:</b> ${rich(q.solutions?.join(' · ')||q.solution)}</div>`:''}${review}</article>`;
   }
   function mountSentence(session, root, teacher=false){
+    root.querySelectorAll('[data-mini-kind]').forEach(board=>{
+      const index=Number(board.id.split('-').at(-1)),q=session.questions[index],locked=teacher||session.status==='completed';
+      window.profesorMiniGame(board,{
+        kind:q.type,options:q.options,cards:q.cards,clues:q.clues,value:val(session,index),result:grade(session,index),
+        parts:session.progress?.parts?.[String(index)],explanation:q.explanation,seed:session.id+':'+index,locked,
+        focus:session.progress?.focus?.question_index===index?session.progress.focus.part:0,
+        onChange(value){
+          if(locked)return;
+          const previous=val(active,index);
+          delete active.progress.grades?.[String(index)];
+          if(q.type==='bingo'){
+            const parts=active.progress.parts?.[String(index)]||{};
+            Object.keys(parts).forEach(key=>{if(value[key]!==previous?.[key])delete parts[key];});
+          }
+          board.closest('.live-question')?.querySelector('.live-feedback')?.remove();
+          draft(index,value);
+        },
+        async onCheck(value,part){
+          if(locked)return;
+          await flush();
+          const response=await send('check',index,value,part);
+          return {result:response.feedback,parts:active.progress.parts?.[String(index)],explanation:response.extra?.explanation||''};
+        },
+        onFocus(part){if(!locked){flush().then(()=>send('focus',index,null,part)).catch(error=>{const status=board.querySelector('[role="status"]');if(status)status.textContent=error.message;});}}
+      });
+    });
     root.querySelectorAll('[data-shared-puzzle]').forEach(board=>{
       const index=Number(board.id.split('-').at(-1)),q=session.questions[index],locked=teacher||session.status==='completed';
       const config={

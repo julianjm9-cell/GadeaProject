@@ -10,7 +10,7 @@ import unicodedata
 from fastapi import HTTPException
 
 
-BOARDS = {'wordsearch', 'crossword', 'memory', 'dragdrop', 'pasapalabra'}
+BOARDS = {'wordsearch', 'crossword', 'memory', 'dragdrop', 'pasapalabra', 'bingo'}
 SEQUENCES = {'order', 'sentence', 'timeline'}
 LETTER_ORDER = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'
 
@@ -81,8 +81,8 @@ def wire_schema(context):
     properties = {'type': {'type': 'string', 'enum': [kind]}, 'prompt': string, 'explanation': string}
     if kind == 'pasapalabra':
         properties['roscoEntries'] = array(obj({'clue': string, 'answer': string}), size)
-    elif kind in ('memory', 'dragdrop', 'crossword'):
-        fields = ('left', 'right') if kind == 'memory' else ('element', 'target') if kind == 'dragdrop' else ('word', 'clue')
+    elif kind in ('memory', 'dragdrop', 'crossword', 'bingo'):
+        fields = ('concept', 'clue') if kind == 'bingo' else ('left', 'right') if kind == 'memory' else ('element', 'target') if kind == 'dragdrop' else ('word', 'clue')
         properties['entries'] = array(obj({field: string for field in fields}), size)
     elif kind == 'wordsearch':
         properties['words'] = array(string, size)
@@ -93,8 +93,10 @@ def wire_schema(context):
         properties['clozeGaps'] = array(obj({'fragment': string, 'answer': string, 'infinitive': string, 'explanation': string}), size)
     else:
         properties['answer'] = string
-        if kind in ('quiz', 'classify'):
-            properties['options'] = {**array(string), 'minItems': 2, 'maxItems': 5}
+        if kind in ('quiz', 'classify', 'intruder'):
+            properties['options'] = {**array(string), 'minItems': 3 if kind == 'intruder' else 2, 'maxItems': 5}
+        if kind == 'mystery':
+            properties['options'] = array(string, 3)
         if kind == 'boolean':
             properties['answer'] = {'type': 'string', 'enum': ['Verdadero', 'Falso']}
         if kind == 'reading':
@@ -145,8 +147,8 @@ def normalize_question(source, kind, context):
         q['options'] = q['items']
     if kind == 'wordsearch' and 'words' in q:
         q['options'] = q['words']
-    if kind in ('memory', 'dragdrop', 'crossword') and isinstance(q.get('entries'), list):
-        fields = ('left', 'right') if kind == 'memory' else ('element', 'target') if kind == 'dragdrop' else ('word', 'clue')
+    if kind in ('memory', 'dragdrop', 'crossword', 'bingo') and isinstance(q.get('entries'), list):
+        fields = ('concept', 'clue') if kind == 'bingo' else ('left', 'right') if kind == 'memory' else ('element', 'target') if kind == 'dragdrop' else ('word', 'clue')
         q['options'] = [' | '.join(str(row.get(field, '')).strip() for field in fields) if isinstance(row, dict) else row for row in q['entries']]
     # Optional display metadata never discards playable content. Academic
     # assertions in explanation and numeric calculation remain strictly checked.
@@ -294,8 +296,11 @@ class GenerationDraft:
                                             raise ValueError('word: el crucigrama requiere palabras de 3 a 12 letras.')
                                         if re.search(r'(?<!\w)' + re.escape(text_key(pair[0])) + r'(?!\w)', text_key(pair[1])):
                                             raise ValueError('clue: la pista revela la palabra del crucigrama.')
+                                    if self.kind == 'bingo':
+                                        from app.services.teacher_mini_games import validate_bingo_pair
+                                        validate_bingo_pair(*pair)
                                     value = ' | '.join(pair)
-                                sides = (0, 1) if self.kind == 'memory' else (0,)
+                                sides = (0, 1) if self.kind in ('memory', 'bingo') else (0,)
                                 if any(text_key(value.split('|')[side]) == text_key(old.split('|')[side]) for old in self.elements for side in sides):
                                     raise ValueError('duplicate: el elemento o su pareja ya están aceptados.')
                             self.elements.append(value)
