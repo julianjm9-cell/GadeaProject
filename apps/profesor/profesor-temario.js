@@ -506,8 +506,8 @@ openTemarioLesson = function (topic) {
       <details class="lesson-card lesson-accordion lesson-transfer"><summary><span class="lesson-card-icon">↗</span><span><small>Un paso más</small><strong>Llévalo a otro caso</strong></span><span class="lesson-accordion-arrow" aria-hidden="true">⌄</span></summary><div class="lesson-accordion-content"><p>${temarioRichText(content.transfer)}</p></div></details>
     </div>
     <details class="temario-extra"><summary>Guía para explicar este tema</summary><div><h4>Objetivo</h4><p>${temarioRichText(content.objective)}</p><h4>Conceptos para comprobar</h4><ul>${content.concepts.map(concept => `<li>${temarioRichText(concept)}</li>`).join('')}</ul><h4>Error frecuente</h4><p>${temarioRichText(content.commonErrors[0])}</p></div></details>
-    <section class="lesson-prepared-callout"><div><small>Actividad incluida</small><h3>${esc(topic.title)} · práctica guiada</h3><p>${temarioRichText(content.preparedMaterial.summary)}</p></div><button type="button" class="primary" data-topic-material="try" data-id="${esc(topic.id)}">Abrir material preparado</button></section>
-    <div class="temario-lesson-footer"><button type="button" data-topic-material="save" data-id="${esc(topic.id)}">Guardar material preparado</button><button type="button" data-temario-action="use" data-id="${esc(topic.id)}">Crear otro material</button>${button('Cerrar', 'close')}</div>
+    <section class="lesson-prepared-callout"><img class="lesson-games-image" src="./assets/games/games-overview.webp" alt="Juegos y actividades interactivas" loading="lazy" decoding="async"><div class="lesson-prepared-copy"><small>Actividad incluida</small><h3>${esc(topic.title)} · práctica guiada</h3><p>${temarioRichText(content.preparedMaterial.summary)}</p></div><div class="lesson-prepared-actions"><button type="button" class="primary" data-topic-material="try" data-id="${esc(topic.id)}">Abrir material preparado</button><button type="button" data-temario-action="use" data-id="${esc(topic.id)}">Crear material del tema</button></div></section>
+    <div class="temario-lesson-footer"><button type="button" data-topic-material="save" data-id="${esc(topic.id)}">Guardar material preparado</button>${button('Cerrar', 'close')}</div>
   </div>`, () => {});
   const dialog = $('dialog');
   dialog.classList.add('temario-dialog');
@@ -519,26 +519,11 @@ openTemarioLesson = function (topic) {
 };
 
 function temarioUseInMaterial(topic) {
-  if ($('dialog').open) $('dialog').close();
-  const pupils = state.students.filter(pupil => pupil.subjects.includes(temarioSubject) && (temarioSubject!=='Español'||spanishLevel(pupil)===temarioCourse));
-  modal('Usar en material', `<p>El curso, la asignatura y el tema ya están preparados. Elige para quién será el material.</p><label for="temarioOwner">¿Para quién?</label><select id="temarioOwner" name="studentId"><option value="">Material general</option>${pupils.map(pupil => `<option value="${esc(pupil.id)}">${esc(pupil.name)}</option>`).join('')}</select>${submit('Continuar a Materiales')}`, form => {
-    const pupil = student(form.get('studentId'));
-    const subject = temarioSubject;
-    const course = pupil ? studentSubjectCourse(pupil,subject) : temarioCourse;
-    selected = null; view = 'Biblioteca'; render();
-    setTimeout(() => {
-      openWorkshop({course, subject, topic: topic.title, theme: pupil?.interests || ''});
-      if (pupil) {
-        const selector = $('workshopStudent');
-        selector.value = pupil.id;
-        selector.dispatchEvent(new Event('change', {bubbles: true}));
-        $('workshopCourse').value = course;
-        $('workshopSubject').value = subject;
-        $('workshopTopic').value = topic.title;
-        $('workshopTopic').dispatchEvent(new Event('input', {bubbles: true}));
-      }
-    }, 0);
-  });
+  const course=temarioCourse,subject=temarioSubject,dialog=$('dialog');
+  const launch=()=>{selected=null;view='Biblioteca';materialLibraryMode='mine';render();openWorkshop({studentId:'',course,subject,topic:topic.title,theme:''});};
+  // Finish the old dialog's close handlers before attaching the creator's own handlers.
+  if(dialog.open){dialog.addEventListener('close',()=>setTimeout(launch,0),{once:true});dialog.close();}
+  else launch();
 }
 
 document.addEventListener('click', event => {

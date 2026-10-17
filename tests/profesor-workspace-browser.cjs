@@ -83,7 +83,7 @@ const path=require('node:path');
   await page.locator('.home-primary-nav').getByRole('button',{name:'Material',exact:true}).click();
   await page.getByLabel('Buscar material').fill('Mis apuntes');
   assert.equal(await page.getByRole('heading',{name:'Mis apuntes',exact:true}).count(),1);
-  await page.locator('.home-primary-nav').getByRole('button',{name:'Inicio',exact:true}).click();
+  await page.locator('.home-brand').click();
   await page.screenshot({path:'tools/profesor-v3-desktop.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});
   await page.screenshot({path:'tools/profesor-v3-mobile.png',fullPage:true});

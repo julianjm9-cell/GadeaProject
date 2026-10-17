@@ -162,7 +162,7 @@ body{background:radial-gradient(ellipse at 78% 0,#e4f0ff90,transparent 50%),line
 <script src="./assets/vendor/katex/katex.min.js"></script>
 <script src="./profesor-rich-text.js?v=20261006-1"></script>
 <script src="./temario-presentation.js?v=20261006-3"></script>
-<script src="./profesor-temario.js?v=20261011-1"></script>
+<script src="./profesor-temario.js?v=20261017-material-3"></script>
 <script src="./profesor-temario-depth.js?v=20261003-3"></script>
 <script src="./profesor-spanish.js?v=20261005-1"></script>
 <script src="./profesor-temario-revision.js?v=20261007-2"></script>
@@ -250,7 +250,7 @@ function openPremiumInfo(reason=''){
  dialog.innerHTML=`<div class="premium-info-head"><span class="premium-label">✦ Premium</span><button type="button" class="close" aria-label="Cerrar información Premium">×</button></div><h2 id="premiumInfoTitle">Más posibilidades para tus clases</h2>${reason?`<p class="premium-info-reason">${esc(reason)}</p>`:''}<ul><li>Sesiones de juegos con código y seguimiento en directo.</li><li>Alumnos sin límite de cuenta.</li><li>Juegos avanzados con IA sin límite diario.</li></ul><p>El acceso Premium es gratuito. Para activarlo, contacta conmigo por correo o WhatsApp.</p><div class="premium-contact-actions"><a class="button primary" href="mailto:educamesuite@gmail.com?subject=Acceso%20Premium%20Profesor%20Particular">Contactar por correo</a><a class="button" href="https://wa.me/34663533412?text=Hola%2C%20quiero%20activar%20Premium%20en%20Profesor%20Particular" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a></div>`;
  document.body.append(dialog);dialog.querySelector('.close').onclick=()=>dialog.close();dialog.addEventListener('close',()=>dialog.remove(),{once:true});dialog.showModal();
 }
-function teacherHeader(){const active=mainArea(),first=esc(accountName.split(' ')[0]||'Profesor');return `<header class="home-nav"><div class="home-brand-group"><a class="home-brand" href="#inicio" aria-label="Profesor Particular, inicio"><img src="./assets/brand/profesor-simple-v2.png" alt=""><span>Profesor<br>Particular</span></a><button class="home-start ${active==='Inicio'?'active':''}" data-action="nav" data-id="Inicio" aria-label="Inicio" ${active==='Inicio'?'aria-current="page"':''}>${icon('home')}</button></div><nav class="home-primary-nav" aria-label="Principal">${button('Temario','nav','Temario',active==='Temario'?'active':'')}${button('Material','nav','Biblioteca',active==='Material'?'active':'')}${button('<span class="nav-premium-label">✦ Premium</span><span>Sesiones de juegos</span>','nav','Accesos',(active==='Accesos'?'active ':'')+'premium-section-link')}</nav><div class="home-account"><button type="button" class="account-plan ${isPremium()?'premium':''}" data-action="premiumInfo" aria-label="Tipo de cuenta: ${isPremium()?'Premium':'Normal'}">${isPremium()?'✦ Premium':'✦ Ver Premium'}</button><details class="account-dropdown"><summary class="profile-trigger" aria-label="Mi cuenta"><span class="avatar">${first[0]}</span><strong class="profile-name">${first}</strong>${icon('chevron')}</summary><div class="account-dropdown-menu">${button('Cambiar nombre visible','profile')}${button('Cambiar contraseña','password')}${button('Historial y recuperación','stateHistory')}<a href="/privacidad" target="_blank" rel="noopener noreferrer">Política de privacidad</a>${button(hideTeacherBackground?'Mostrar fondo':'Quitar fondo','toggleBackground')}${demo?'<a href="/profesor/login">Entrar con mi cuenta</a>':button('Cerrar sesión','logout')}</div></details></div></header>`}
+function teacherHeader(){const active=mainArea(),first=esc(accountName.split(' ')[0]||'Profesor');return `<header class="home-nav"><div class="home-brand-group"><a class="home-brand" href="#inicio" data-action="nav" data-id="Inicio" aria-label="Profesor Particular, inicio" ${active==='Inicio'?'aria-current="page"':''}><img src="./assets/brand/profesor-simple-v2.png" alt=""><span>Profesor<br>Particular</span></a></div><nav class="home-primary-nav" aria-label="Principal">${button('Temario','nav','Temario',active==='Temario'?'active':'')}${button('Material','nav','Biblioteca',active==='Material'?'active':'')}${button('<span class="nav-premium-label">✦ Premium</span><span>Sesiones de juegos</span>','nav','Accesos',(active==='Accesos'?'active ':'')+'premium-section-link')}</nav><div class="home-account"><button type="button" class="account-plan ${isPremium()?'premium':''}" data-action="premiumInfo" aria-label="Tipo de cuenta: ${isPremium()?'Premium':'Normal'}">${isPremium()?'✦ Premium':'✦ Ver Premium'}</button><details class="account-dropdown"><summary class="profile-trigger" aria-label="Mi cuenta"><span class="avatar">${first[0]}</span><strong class="profile-name">${first}</strong>${icon('chevron')}</summary><div class="account-dropdown-menu">${button('Cambiar nombre visible','profile')}${button('Cambiar contraseña','password')}${button('Historial y recuperación','stateHistory')}<a href="/privacidad" target="_blank" rel="noopener noreferrer">Política de privacidad</a>${button(hideTeacherBackground?'Mostrar fondo':'Quitar fondo','toggleBackground')}${demo?'<a href="/profesor/login">Entrar con mi cuenta</a>':button('Cerrar sesión','logout')}</div></details></div></header>`}
 function wrapWorkspace(){const main=$('main'),body=main.innerHTML;if(view==='Inicio'&&!selected&&!activeClass){const header=main.querySelector('.home-nav');if(header)header.outerHTML=teacherHeader();polishTeacherView();return}main.innerHTML=`<div class="workspace-page">${teacherHeader()}<div class="workspace-content">${body}</div></div>`;polishTeacherView()}
 function polishTeacherView(){
  document.querySelectorAll('.home-student-card').forEach(card=>{const tags=card.querySelector('.subject-tags'),name=card.querySelector('h2');if(tags){tags.tabIndex=0;tags.setAttribute('aria-label','Asignaturas del alumno');tags.title=tags.textContent}if(name)name.title=name.textContent});
@@ -385,7 +385,7 @@ async function askAI(s,sub,goal,kind){if(demo)throw Error('La IA requiere entrar
 function proposal(text,accept){modal('Propuesta IA · pendiente de validar',`<p>Revisa y edita el contenido antes de guardarlo. El progreso del alumno no cambia.</p><label for="proposal">Contenido propuesto</label><textarea id="proposal" style="min-height:320px" required>${esc(text)}</textarea>${submit('Validar y guardar')}`,accept)}
 document.addEventListener('click',async e=>{const b=e.target.closest('[data-action]');if(!b||b.disabled)return;if(b.closest('form'))e.preventDefault();const a=b.dataset.action,id=b.dataset.id;try{
  if(a==='close'){if(workshopBusy)return;$('dialog').close();return}
- if(a==='nav'){selected=null;view=id;if(id==='Inicio')homeMobilePanel='students';render();if(id==='Accesos')refreshAccesses();$('searchResults').innerHTML='';$('globalSearch').value=''}
+ if(a==='nav'){e.preventDefault();selected=null;view=id;if(id==='Inicio')homeMobilePanel='students';render();if(id==='Accesos')refreshAccesses();$('searchResults').innerHTML='';$('globalSearch').value=''}
  if(a==='student'){selected=id;tab='Inicio';subject=student(id).subjects[0];studentOverviewPanel='notes';render()}
  if(a==='tab'){tab=id;render()}
  if(a==='studentSubject'){subject=id;render()}
@@ -794,9 +794,9 @@ init();
 <script src="./profesor-mini-games.js?v=20261017-2"></script>
 <script src="./profesor-sentence-board.js?v=20261016-timeline-2"></script>
 <script src="./profesor-activity-play.js?v=20261017-mini-2"></script>
-<script src="./profesor-live.js?v=20261017-mini-3"></script>
+<script src="./profesor-live.js?v=20261017-watch-2"></script>
 <link rel="stylesheet" href="./assets/profesor-activity-play.css?v=20261008-2">
-<link rel="stylesheet" href="./assets/profesor-live.css?v=20261007-4">
+<link rel="stylesheet" href="./assets/profesor-live.css?v=20261017-watch-2">
 <style>
 .material-hub-card[data-tone="practice"],.activity-edit-block[data-tone="practice"],.activity-play .block[data-tone="practice"],.material-live-preview .preview-exercise[data-tone="practice"]{--activity-bg:#eef6ff;--activity-ink:#1e64b5;--activity-line:#c9e1ff}
 .material-hub-card[data-tone="organize"],.activity-edit-block[data-tone="organize"],.activity-play .block[data-tone="organize"],.material-live-preview .preview-exercise[data-tone="organize"]{--activity-bg:#fff7e9;--activity-ink:#9a661e;--activity-line:#f3dfbb}
@@ -1086,9 +1086,9 @@ init();
 @media(max-width:620px){.temario-heading{height:46px}.temario-heading h1{font-size:24px}.temario-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.temario-toolbar .temario-search{grid-column:1/-1}.temario-topic{grid-template-columns:37px minmax(0,1fr) 27px;min-height:70px}.temario-topic-meta{display:none}.temario-topic-index{width:36px;height:36px}.temario-topic-arrow{width:26px;height:26px}.temario-resources{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style>
 <link rel="stylesheet" href="./assets/profesor-final.css?v=20261017-public-format-1">
-<link rel="stylesheet" href="./assets/profesor-home.css?v=20261005-4">
+<link rel="stylesheet" href="./assets/profesor-home.css?v=20261017-logo-1">
 <link rel="stylesheet" href="./assets/profesor-studio.css?v=20261017-artwork-1">
-<link rel="stylesheet" href="./assets/profesor-temario.css?v=20261011-1">
+<link rel="stylesheet" href="./assets/profesor-temario.css?v=20261017-material-1">
 <link rel="stylesheet" href="./assets/profesor-game-theme.css?v=20261011-1">
 <link rel="stylesheet" href="./assets/profesor-pasapalabra-theme.css?v=20261012-4">
 <link rel="stylesheet" href="./assets/profesor-hangman-theme.css?v=20261012-3">

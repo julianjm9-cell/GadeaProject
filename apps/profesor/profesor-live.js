@@ -31,10 +31,26 @@
   const option = (label, selected, action, value, disabled) => `<button type="button" class="live-option ${selected?'selected':''}" data-live-action="${action}" data-value="${escape(value)}" ${disabled?'disabled':''}>${label}</button>`;
   const image = (session, q, teacher) => q.image ? `<img class="live-image" src="${teacher?'/api/profesor/materials/'+encodeURIComponent(q.image.id)+'/preview?app=profesor_particular':'/api/profesor/student-material-sessions/'+encodeURIComponent(session.id)+'/images/'+encodeURIComponent(q.image.id)}" alt="${escape(q.image.filename)}">` : '';
   function summaryValue(value, question) {
-    if(question?.type==='bingo'&&Array.isArray(value))return (question.clues||[]).map((clue,index)=>clue.clue+': '+((question.cards||[]).find(card=>card.token===value[index])?.label||'Sin responder')).join(' · ');
-    if (value == null || value === '') return 'Aún sin responder';
-    if (Array.isArray(value)) return value.map(item => Array.isArray(item) ? item.join(' → ') : typeof item === 'object' ? JSON.stringify(item) : String(item)).join(' · ') || 'Aún sin responder';
-    if (typeof value === 'object') return value.answer!==undefined?(String(value.answer||'Aún sin responder')+' · '+Math.max(1,Math.min(3,Number(value.cluesUsed)||1))+' pistas abiertas'):[value.selected ? `Error: ${value.selected}` : '', value.correction ? `Corrección: ${value.correction}` : ''].filter(Boolean).join(' · ') || 'Aún sin responder';
+    const empty='Aún sin responder',kind=question?.type;
+    if(value==null||value===''||(Array.isArray(value)&&!value.length))return empty;
+    if(kind==='memory'&&Array.isArray(value)){
+      const cards=new Map((question.cards||[]).map(card=>[card.token,card.label]));
+      return value.map((pair,index)=>Array.isArray(pair)&&pair.length===2&&pair.every(token=>cards.has(token))?pair.map(token=>cards.get(token)).join(' ↔ '):'Pareja '+(index+1)+' encontrada').join(' · ');
+    }
+    if(kind==='bingo'&&Array.isArray(value))return (question.clues||[]).map((clue,index)=>clue.clue+': '+((question.cards||[]).find(card=>card.token===value[index])?.label||'Sin responder')).join(' · ');
+    if(kind==='wordsearch'&&Array.isArray(value)){
+      const words=(question.words||[]).filter((word,index)=>Array.isArray(value[index])&&value[index].length);
+      return words.length?'Palabras marcadas: '+words.join(' · '):empty;
+    }
+    if(kind==='dragdrop'&&Array.isArray(value))return (question.items||[]).map((item,index)=>item+' → '+(value[index]||'Sin colocar')).join(' · ');
+    if(kind==='pasapalabra'&&Array.isArray(value))return (question.entries||[]).map((entry,index)=>entry.letter+': '+(value[index]||'Sin responder')).join(' · ');
+    if(kind==='crossword'&&Array.isArray(value))return (question.entries||[]).map((entry,index)=>(entry.number||index+1)+': '+(value[index]||'Sin responder')).join(' · ');
+    if(kind==='multigaps'&&Array.isArray(value))return value.map((answer,index)=>'Hueco '+(index+1)+': '+(answer||'Sin responder')).join(' · ');
+    if(kind==='imagepoint'&&Array.isArray(value))return 'Zona marcada en la imagen';
+    if(kind==='hangman'&&Array.isArray(value))return 'Letras elegidas: '+value.filter(letter=>typeof letter==='string'&&letter.length===1).join(', ');
+    if(kind==='flashcard')return {correct:'La sabía',partial:'Con ayuda',incorrect:'Repasar'}[value]||'Sin valorar';
+    if(Array.isArray(value))return value.filter(item=>typeof item==='string'||typeof item==='number').join(' → ')||empty;
+    if(typeof value==='object')return value.answer!==undefined?(String(value.answer||empty)+' · '+Math.max(1,Math.min(3,Number(value.cluesUsed)||1))+' pistas abiertas'):[value.selected?'Error: '+value.selected:'',value.correction?'Corrección: '+value.correction:''].filter(Boolean).join(' · ')||empty;
     return String(value);
   }
   function questionMarkup(session, n, teacher = false) {
@@ -214,11 +230,11 @@
       teacherReviewIndex=null;watchedSession=result.session;
        modal('Seguir material',`${result.session.join_code?`<div class="live-join-code"><span><b>Código de la sesión</b><small>Se introduce en educame.tech/profesor/alumno</small></span><strong>${escape(result.session.join_code)}</strong><button type="button" data-live-teacher="copy-code" data-code="${escape(result.session.join_code)}">Copiar código</button></div>`:''}<div id="liveWatch">${sessionMarkup(result.session,true)}</div><div class="live-teacher-actions"><button type="button" data-live-teacher="refresh" data-id="${escape(id)}">Actualizar</button>${result.session.status==='pending'||result.session.status==='in_progress'?`<button type="button" data-live-teacher="cancel" data-id="${escape(id)}">Cerrar sesión</button>`:''}<button type="button" data-live-teacher="delete" data-id="${escape(id)}">Borrar sesión y respuestas</button></div>`,()=>false);
       mountSentence(result.session,$('liveWatch'),true);
-      const dialog=$('dialog');dialog.classList.add('live-watch-dialog');let revision=result.session.revision;
+      const dialog=$('dialog');dialog.classList.add('live-watch-dialog');const joinCode=dialog.querySelector('.live-join-code');if(joinCode)dialog.querySelector(':scope > .row').insertBefore(joinCode,dialog.querySelector(':scope > .row .close'));let revision=result.session.revision;
       let connected=result.session.status==='in_progress'&&Boolean(result.session.progress?.last_seen)&&Date.now()-Date.parse(result.session.progress.last_seen)<18000;
       clearInterval(watcher);
       watcher=setInterval(async()=>{if(!dialog.open||!$('liveWatch')){clearInterval(watcher);return}try{const next=(await api('/api/profesor/material-sessions/'+encodeURIComponent(id))).session;const nextConnected=next.status==='in_progress'&&Boolean(next.progress?.last_seen)&&Date.now()-Date.parse(next.progress.last_seen)<18000;if(next.revision!==revision||nextConnected!==connected){revision=next.revision;connected=nextConnected;watchedSession=next;$('liveWatch').innerHTML=sessionMarkup(next,true);mountSentence(next,$('liveWatch'),true);if(!next.join_code)dialog.querySelector('.live-join-code')?.remove();const actions=dialog.querySelector('.live-teacher-actions');if(actions)actions.querySelector('[data-live-teacher="cancel"]')?.remove();if(next.status==='pending'||next.status==='in_progress')actions?.insertAdjacentHTML('beforeend',`<button type="button" data-live-teacher="cancel" data-id="${escape(id)}">Retirar material</button>`);}}catch(error){if($('liveWatch'))$('liveWatch').insertAdjacentHTML('beforeend',`<p class="live-error">${escape(error.message)}</p>`);clearInterval(watcher)}},1200);
-      dialog.addEventListener('close',()=>{clearInterval(watcher);dialog.classList.remove('live-watch-dialog')},{once:true});
+      dialog.addEventListener('close',()=>{clearInterval(watcher);dialog.classList.remove('live-watch-dialog');joinCode?.remove()},{once:true});
     }
     document.addEventListener('click',async event=>{
       const button=event.target.closest('[data-action="sendLiveMaterial"],[data-action="liveSessionList"],[data-live-teacher]');if(!button)return;

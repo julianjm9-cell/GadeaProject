@@ -803,6 +803,7 @@ def profesor_game_illustration(filename: str):
         "mystery.webp",
         "intruder.webp",
         "bingo.webp",
+        "games-overview.webp",
         "pasapalabra.webp",
         "sentence.webp",
         "timeline.webp",

@@ -105,6 +105,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/games/mature-intruder.webp": b"WEBP",
         "/assets/games/bingo.webp": b"WEBP",
         "/assets/games/mature-bingo.webp": b"WEBP",
+        "/assets/games/games-overview.webp": b"WEBP",
         "/assets/games/access-session.svg": b"<svg",
         "/assets/games/uploaded-material.webp": b"WEBP",
         "/profesor/alumno": b"studentJoinGate",

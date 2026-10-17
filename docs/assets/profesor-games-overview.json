@@ -1,0 +1,7 @@
+{
+  "tool": "Built-in image_gen",
+  "date": "2026-10-17",
+  "asset": "apps/profesor/assets/games/games-overview.webp",
+  "format": "WebP, 720 x 355, quality 88",
+  "prompt": "Use case: stylized-concept. Asset type: generic interactive educational games illustration for a Spanish teacher app's lesson material callout. Generate one beautiful horizontal 2:1 raster illustration, full bleed, matching the supplied mature flashcards image only as a STYLE REFERENCE. Cohesive refined sky-blue/periwinkle/lavender palette, soft dimensional paper and ceramic textures, clean ivory surfaces, gentle shadows and small restrained golden accents. Main objects grouped clearly in the center: a miniature circle of blue letter tokens around a question mark, two flipped matching cards showing a leaf, a small crossword-style grid of blank square tiles with a few blue and mint tiles, and a tiny pencil. This should immediately read as a collection of different educational games, appealing to both children and teenagers, polished friendly but not babyish. Pastel background with ample breathing room, large easily recognized shapes suitable as a compact illustration. Do not include people, labels, readable words, letter strings, numbers, logos, watermarks, headings or user-interface screenshots. Keep all important objects inside safe margins."
+}

@@ -1,0 +1,11 @@
+# Seguimiento, navegación y materiales del temario
+
+El seguimiento del profesor traduce los identificadores internos de Memory a las palabras de cada pareja. Los resúmenes de otros tableros utilizan palabras, letras o conceptos; la sopa de letras muestra las palabras marcadas en lugar de coordenadas y las flashcards muestran su valoración en español. Esto cambia la presentación, no el protocolo de respuestas ni la corrección del servidor.
+
+La ventana de seguimiento ocupa hasta 1.600 px de ancho y el espacio disponible en pantallas menores. El código comparte la fila del encabezado en escritorio; se compactan metadatos repetidos y las tarjetas de Memory. El caso de seis parejas se comprobó completo, sin scroll del diálogo, a 1.280 × 720. En móvil y con contenido extenso se mantiene desplazamiento vertical accesible, sin desbordamiento horizontal. El juego sigue siendo de solo lectura para el profesor.
+
+El logotipo usa la acción de navegación a Inicio y sustituye el botón de la casita. Mantiene un enlace accesible por teclado y el encabezado común a todas las pestañas.
+
+El detalle completo del tema reúne las acciones de juegos en el bloque de material preparado, con una ilustración raster genérica (`apps/profesor/assets/games/games-overview.webp`). «Abrir material preparado» conserva el material existente; debajo, «Crear material del tema» lleva directamente a Material y abre el creador con curso, asignatura y tema originales. El alumno sigue siendo opcional dentro del creador. Se espera a que terminen los manejadores de cierre de la lección antes de abrir el nuevo diálogo, evitando que eliminen los estilos del creador. El botón duplicado del pie de la lección desaparece; guardar el material preparado y cerrar siguen disponibles.
+
+Pruebas: 27 pruebas de servidor de sesiones, juegos y entrega de recursos; diez pruebas JavaScript, incluidas traducción de respuestas y transición entre diálogos. Revisión de navegación desde biblioteca y alumno, tema de Matemáticas de ESO y tema de Español B2, seguimiento de Memory, escritorio y móvil de 390 × 844. No hay migraciones ni modificaciones de datos de producción. Prompt y procedencia de la imagen en [el registro del recurso](assets/profesor-games-overview.json).

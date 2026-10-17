@@ -64,7 +64,7 @@ const path=require('node:path');
   assert.equal(await page.locator('#profileHeadline').inputValue(),'Matemáticas para Primaria y ESO');
   assert.equal(await page.locator('#profileDuration').inputValue(),'45');
   await page.getByRole('button',{name:'Cerrar',exact:true}).click();
-  await page.locator('.home-primary-nav').getByRole('button',{name:'Inicio'}).click();
+  await page.locator('.home-brand').click();
   await page.getByRole('button',{name:'+ Clase',exact:true}).click();
   assert.equal(await page.locator('#duration').inputValue(),'45');
   await page.getByRole('button',{name:'Cerrar',exact:true}).click();

@@ -100,3 +100,5 @@
 .home-account button.account-plan{cursor:pointer;min-height:36px}
 
 .subject-spanish{background:#fff0df!important;color:#975015!important}
+
+.home-brand:focus-visible{outline:3px solid #1482ff;outline-offset:5px;border-radius:10px}

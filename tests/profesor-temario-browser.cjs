@@ -94,11 +94,9 @@ const path=require('node:path');
   assert.equal(await page.locator('.support-entry').evaluate(el=>getComputedStyle(el).justifyContent),'flex-start');
 
   await page.getByRole('button',{name:'+ Crear otro material'}).click();
-  assert.equal(await page.locator('#temarioOwner option').count()>1,true);
-  await page.locator('#temarioOwner').selectOption('lucia');
-  await page.getByRole('button',{name:'Continuar a Materiales'}).click();
+  assert.equal(await page.locator('#temarioOwner').count(),0,'opens the creator directly');
   await page.locator('#workshopCourse').waitFor();
-  assert.equal(await page.locator('#workshopStudent').inputValue(),'lucia');
+  assert.equal(await page.locator('#workshopStudent').inputValue(),'');
   assert.match(await page.locator('#workshopCourse').inputValue(),/^3[.º\s]*ESO$/);
   assert.equal(await page.locator('#workshopSubject').inputValue(),'Matemáticas');
   assert.equal(await page.locator('#workshopTopic').inputValue(),'Ecuaciones');

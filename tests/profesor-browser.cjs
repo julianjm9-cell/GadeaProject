@@ -55,7 +55,7 @@ const path=require('node:path');
   await page.locator('.home-primary-nav').getByRole('button',{name:'Alumnos'}).click();
   await page.getByRole('heading',{name:'Alumno prueba',exact:true}).waitFor();
   await page.setViewportSize({width:390,height:844});
-  await page.locator('.home-primary-nav').getByRole('button',{name:'Inicio'}).click();
+  await page.locator('.home-brand').click();
   await page.screenshot({path:'tools/profesor-home-mobile.png',fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false);
   assert.deepEqual(errors,[]);

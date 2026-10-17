@@ -28,7 +28,7 @@ const assert = require('node:assert/strict');
   await page.goto('http://127.0.0.1:8770/apps/e25/index.html');
   await page.waitForTimeout(250);
   await page.locator('[data-home-duration="15"]').click();
-  await page.locator('.home-start').click();
+  await page.locator('.home-brand').click();
   assert.equal(await page.evaluate(()=>state.activeSession?.stepKeys.length),1,'La sesión de 15 minutos debe tener un paso verificable');
   await page.evaluate(()=>{ const step=sessionSteps()[0]; openSessionStep(step.module,step.tab,step.topic); openLesson(0); });
   await page.locator('#modelEvidenceAnswer').fill('El texto explica que el aula de informática ofrece acceso gratuito, tiene un horario concreto y exige inscripción porque las plazas son limitadas.');
