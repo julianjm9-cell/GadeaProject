@@ -187,3 +187,52 @@ html.teacher-plain-background .app-shell-view .workspace-page{
   .home-view .home-mobile-tabs{margin:0 12px 8px;width:auto;max-width:none}
   .access-page .access-empty{min-height:230px;margin:6px auto;padding:35px 20px}
 }
+
+/* Student details use the same solid, quiet cards as the other workspace pages. */
+.workspace-page:has(.student-detail-header) .workspace-context-link .quiet{
+  min-height:34px;
+  padding:6px 11px;
+  border:1px solid #dce9fa;
+  border-radius:10px;
+  background:#fff;
+  box-shadow:0 5px 16px #1b477314;
+}
+.workspace-page:has(.student-detail-header) .student-detail-header{
+  min-width:0;
+  padding:18px 22px;
+  border:1px solid #e0ebfa;
+  border-radius:20px;
+  background:#fffffff5;
+  box-shadow:0 12px 35px #1b47731c;
+}
+.workspace-page:has(.student-detail-header) .student-section-nav{
+  padding:6px;
+  border:1px solid #e0ebfa;
+  border-radius:15px;
+  background:#fffffff5;
+  box-shadow:0 8px 24px #1b477315;
+}
+.workspace-page:has(.student-detail-header) .student-section-nav>button{
+  border-radius:10px;
+}
+.workspace-page:has(.student-detail-header) .student-overview-stat{
+  border-color:#dce9f8;
+  background:#ecf5ff;
+  box-shadow:0 8px 22px #1b477316;
+}
+.workspace-page:has(.student-detail-header) .student-overview-stat.next{background:#eaf9f2;border-color:#d6eee2}
+.workspace-page:has(.student-detail-header) .student-overview-stat.interests{background:#fff7e7;border-color:#f4e4c4}
+.workspace-page:has(.student-detail-header) .student-overview-stat.reinforce{background:#fff0f2;border-color:#f4dbe0}
+.workspace-page:has(.student-detail-header) .student-overview-panel,
+.workspace-page:has(.student-detail-header) .student-overview-mobile-tabs{
+  border:1px solid #e0ebfa;
+  border-radius:16px;
+  background:#fffffff5;
+  box-shadow:0 12px 30px #1b477318;
+}
+.workspace-page:has(.student-detail-header) .student-overview-mobile-tabs{padding:5px}
+@media(max-width:760px){
+  .workspace-page:has(.student-detail-header) .student-detail-header{padding:12px 13px;border-radius:15px}
+  .workspace-page:has(.student-detail-header) .student-section-nav{padding:4px;border-radius:12px}
+  .workspace-page:has(.student-detail-header) .student-overview-mobile-tabs{border-radius:11px}
+}
