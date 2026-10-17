@@ -1,0 +1,15 @@
+{
+  "mode": "Built-in image_gen",
+  "created": "2026-10-18",
+  "purpose": "Fondo 2 · Academia. Optional presentation-only theme; no embedded UI.",
+  "assets": [
+    {
+      "path": "apps/profesor/assets/profesor-academy-room.webp",
+      "prompt": "Use case: stylized-concept\nAsset type: production background artwork for an educational teacher web application, wide 16:9 landscape, image only.\nPrimary request: a beautiful welcoming educational role-playing academy, a sunlit classical library of knowledge with tall stone arches and soft pale blue vaulted architecture, ivory marble, antique navy books with subtle gold details, an elegant brass globe, open book and quill, gentle ivy. Premium illustrated 3D storybook rendering, polished and sophisticated, appropriate for both teachers and teenage learners. Inspired by scholarly adventure game menus without drawing the menu.\nComposition: symmetrical wide room, calm large open central 70 percent with softly atmospheric distant arches and cream blue surfaces where real HTML panels will overlay. Decorative books, globe, plants confined to left and right margins and low foreground edges. Clear depth, restrained detail, no strong light beams through the center. Full bleed background.\nLighting and color: diffuse morning daylight, subdued warm ivory and parchment with rich midnight navy accents and restrained antique gold; soft low contrast overall to keep interface readable. Beautiful materials but no sparkling particles.\nConstraints: absolutely no text, no letters, no logo, no UI, no cards, no buttons, no panels, no progress bars, no people, no characters, no watermark. Do not include pretend interface elements. Render actual environmental artwork only."
+    },
+    {
+      "path": "apps/profesor/assets/profesor-academy-paper.webp",
+      "prompt": "Use case: stylized-concept\nAsset type: seamless extremely subtle ivory paper surface texture for readable HTML cards in an educational academy role-playing theme. A close-up of smooth high quality uncoated ivory paper, softly warm white, very faint fine organic fibers, flat uniform diffuse lighting. The entire image is nearly plain cream with a delicate tactile grain, low contrast, no dark speckles, no aging, no stains. Edge-to-edge same surface, seamless repeatable texture.\nConstraints: no objects, no edges, no borders, no symbols, no patterns, no text, no letters, no vignette, no gradient, no highlights, no watermark. Must remain perfectly clean behind small navy text. Square image."
+    }
+  ]
+}

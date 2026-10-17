@@ -115,7 +115,7 @@ def test_deployed_profesor_assets_are_routed(client, monkeypatch, tmp_path):
     web, _ = client
     filenames = ["temario-presentation.js", "profesor-rich-text.js", "profesor-temario.js", "profesor-temario-depth.js", "profesor-temario-revision.js", "profesor-spanish.js", "profesor-activity-play.js",
                  "profesor-final.css", "profesor-home.css", "profesor-studio.css", "profesor-temario.css",
-                 "profesor-activity-play.css"]
+                 "profesor-activity-play.css", "profesor-academy-theme.css"]
     # Simulate Docker: only static copies exist, not the repository's apps directory.
     static = tmp_path / "static"
     (static / "assets").mkdir(parents=True)
@@ -131,3 +131,21 @@ def test_deployed_profesor_assets_are_routed(client, monkeypatch, tmp_path):
         assert response.status_code == 200, name
         assert response.headers["content-type"].startswith("text/")
         assert response.content
+
+
+def test_academy_backgrounds_are_available_in_docker(client, monkeypatch, tmp_path):
+    web, _ = client
+    static = tmp_path / "static"
+    (static / "assets").mkdir(parents=True)
+    root = Path(__file__).resolve().parents[2] / "apps" / "profesor" / "assets"
+    files = ["profesor-academy-room.webp", "profesor-academy-paper.webp"]
+    for name in files:
+        (static / "assets" / name).write_bytes((root / name).read_bytes())
+    monkeypatch.setattr(app_routes, "PROJECT_ROOT", tmp_path / "missing")
+    monkeypatch.setattr(app_routes, "STATIC_DIR", static)
+    for name in files:
+        response = web.get("/assets/" + name)
+        assert response.status_code == 200, name
+        assert response.headers["content-type"] == "image/webp"
+        assert response.content[:4] == b"RIFF"
+        assert response.content[8:12] == b"WEBP"

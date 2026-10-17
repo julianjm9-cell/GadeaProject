@@ -1,0 +1,171 @@
+/* Fondo 2: Academia. Opt-in skin only; layout and game stages keep their rules. */
+html.teacher-academy-theme {
+  --ink:#172d45;
+  --muted:#5f6c78;
+  --primary:#214b70;
+  --line:#dfd2b9;
+  --soft:#f3ecde;
+  --shadow:0 8px 24px #282b3412;
+  --academy-navy:#173c5b;
+  --academy-gold:#b48a4b;
+  --academy-edge:#d8c5a4;
+  --academy-paper:linear-gradient(#fffcf5e8,#fffaf0ed),url('./profesor-academy-paper.webp');
+  --academy-shadow:0 10px 28px #192b3e1a,inset 0 0 0 3px #fffdf680;
+}
+html.teacher-academy-theme body.app-shell-view {background:#e8e4db;color:var(--ink)}
+html.teacher-academy-theme .app-shell-view :is(.home-page,.workspace-page) {
+  background-color:#e8e4db;
+  background-image:linear-gradient(#f2eee62b,#f2eee62b),url('./profesor-academy-room.webp');
+}
+html.teacher-academy-theme .app-shell-view .home-nav {
+  background:var(--academy-paper);
+  border-color:var(--academy-edge);
+  box-shadow:0 8px 28px #162e4230,inset 0 0 0 3px #fffaf0;
+}
+html.teacher-academy-theme .app-shell-view .home-brand {color:#142d47}
+html.teacher-academy-theme .home-nav .home-primary-nav {background:transparent;border-color:transparent}
+html.teacher-academy-theme .home-nav .home-primary-nav button {color:#3c5062}
+html.teacher-academy-theme .home-nav .home-primary-nav button:hover {background:#eee3ce;color:#173c5b}
+html.teacher-academy-theme .home-nav .home-primary-nav button.active {
+  background:linear-gradient(145deg,#285373,#163750);
+  color:#fff9e9;
+  box-shadow:inset 0 -3px #cfac73,0 3px 8px #173c5b1f;
+}
+html.teacher-academy-theme .home-account .profile-trigger {color:#17354f}
+html.teacher-academy-theme .home-account .avatar {
+  background:#e5ebec;color:#173c5b;box-shadow:inset 0 0 0 1px #c9b58f;
+}
+html.teacher-academy-theme .home-account .account-plan,
+html.teacher-academy-theme .nav-premium-label {
+  border-color:#d6b77f;background:#fff1cf;color:#775015;
+}
+html.teacher-academy-theme .account-dropdown-menu,
+html.teacher-academy-theme .material-card-menu>div {
+  background:#fffcf5;border-color:var(--academy-edge);box-shadow:0 14px 32px #1c304a29;
+}
+html.teacher-academy-theme .account-dropdown-menu :is(button,a) {color:#234764}
+html.teacher-academy-theme .account-dropdown-menu :is(button,a):hover {background:#f0e7d6}
+html.teacher-academy-theme [data-action='toggleBackground'] {border-top:1px solid #e8dcc7;border-radius:0}
+html.teacher-academy-theme :is(.home-page,.workspace-page) :is(h1,.home-panel-title h2,#homeRosterTitle,.temario-detail-heading h2) {
+  font-family:Georgia,'Times New Roman',serif;
+  color:#172f46;
+  letter-spacing:-.02em;
+}
+/* The paper surfaces are real HTML cards; no illustrated controls cover content. */
+html.teacher-academy-theme .app-shell-view :is(
+  .home-roster,.home-panel,.material-page-head,.temario-controls,.temario-detail,
+  .student-detail-header,.student-section-nav,.student-overview-panel,
+  .student-overview-mobile-tabs,.workspace-student-head,.access-card,.access-empty,
+  .card,.state-history-version
+) {
+  background:var(--academy-paper);
+  background-size:auto,512px 512px;
+  border-color:var(--academy-edge);
+  box-shadow:var(--academy-shadow);
+}
+html.teacher-academy-theme .home-view .home-student-card[data-card-color] {
+  background:linear-gradient(115deg,#fffef9,#fbf4e7);
+  border-color:#e0cfb0;
+  box-shadow:0 4px 12px #3e32230a,inset 0 0 0 3px #fffdfa;
+}
+html.teacher-academy-theme .home-view .home-empty {
+  background:#fffdf8bf;border-color:#e5d9c4;color:#516477;
+}
+html.teacher-academy-theme .home-view .home-empty>.icon,
+html.teacher-academy-theme .access-empty:before {
+  color:#365e7d;background:linear-gradient(140deg,#f8ebcd,#eee0c3);
+  box-shadow:inset 0 0 0 1px #e0c99d,0 4px 12px #8f72351a;
+}
+html.teacher-academy-theme .home-view .home-panel-title>.icon {color:#3b607c}
+html.teacher-academy-theme .home-view :is(.home-add-student,.home-agenda-switch button.active),
+html.teacher-academy-theme .app-shell-view :is(.home-page,.workspace-page) button.primary,
+html.teacher-academy-theme #dialog:not(.live-watch-dialog):not(.activity-play) .primary {
+  background:linear-gradient(145deg,#2b5777,#173a58);
+  border-color:#214b70;
+  color:#fffaf0;
+  box-shadow:inset 0 0 0 1px #ffffff12,0 3px 8px #173c5b1a;
+}
+html.teacher-academy-theme .app-shell-view :is(.home-page,.workspace-page) button.primary:hover,
+html.teacher-academy-theme #dialog:not(.live-watch-dialog):not(.activity-play) .primary:hover {
+  background:#12314d;color:#fffaf0;border-color:#a5824b;
+}
+html.teacher-academy-theme :is(.material-scope-switch,.public-format-toggle,.home-agenda-switch,.calendar-scale,.student-section-nav,.student-overview-mobile-tabs) {
+  background:#f2eadb;border-color:#ded0b7;
+}
+html.teacher-academy-theme :is(.material-scope-switch,.public-format-toggle,.calendar-scale,.student-section-nav,.student-overview-mobile-tabs) :is(button.active,button[aria-checked='true']) {
+  background:#fffdf8;color:#244e70;box-shadow:0 2px 6px #6d512b15,inset 0 -2px #bc9657;
+}
+html.teacher-academy-theme .home-calendar-day {border-color:#e6dccb;background:#fffdf8}
+html.teacher-academy-theme .home-calendar-day.today {border-color:#a88b57;background:#f5ebd6}
+html.teacher-academy-theme .home-calendar-labels {color:#536579}
+html.teacher-academy-theme .app-shell-view :is(.material-search,.material-hub-toolbar select,.temario-controls input,.temario-controls select,.student-active-subject select) {
+  background:#fffefb;border-color:#d7c6a9;color:#233f56;
+}
+html.teacher-academy-theme .app-shell-view .material-search input {background:transparent;color:#233f56}
+html.teacher-academy-theme .app-shell-view .material-hub-card {
+  background:var(--academy-paper)!important;
+  border-right-color:#d7c6a9;border-bottom-color:#d7c6a9;border-left-color:#d7c6a9;
+  box-shadow:0 6px 18px #25344b15;
+}
+html.teacher-academy-theme .material-hub-card :is(h3,.material-card-foot) {color:#1d3d59}
+html.teacher-academy-theme .material-card-description {color:#53687a!important}
+html.teacher-academy-theme .material-card-menu summary,
+html.teacher-academy-theme .material-card-foot .material-open {
+  background:#fffdf7;border-color:#d7c6a9;color:#2b5373;
+}
+html.teacher-academy-theme .temario-renewed .temario-controls label {color:#4d6071}
+html.teacher-academy-theme .temario-renewed .temario-topic {
+  background:var(--academy-paper);border-color:#d7c6a9;
+  box-shadow:inset 0 0 0 2px #fffdfa88;
+}
+html.teacher-academy-theme .temario-renewed .temario-topic.active {
+  border-color:#a17d43;background:linear-gradient(115deg,#fff7e3,#f4ead3);
+  box-shadow:inset 3px 0 #a17d43,inset 0 0 0 2px #fffdf488;
+}
+html.teacher-academy-theme .temario-renewed .temario-topic-index {
+  color:#244869;background:linear-gradient(145deg,#f8e4b5,#eed2a0);
+  box-shadow:inset 0 0 0 1px #d9b77d,0 2px 4px #9e7b3520;
+}
+html.teacher-academy-theme .temario-renewed .temario-topic:nth-child(3n+2) .temario-topic-index {color:#665176;background:#e8e1ec;box-shadow:inset 0 0 0 1px #cfc1d9}
+html.teacher-academy-theme .temario-renewed .temario-topic:nth-child(3n+3) .temario-topic-index {color:#3b6455;background:#e1eadb;box-shadow:inset 0 0 0 1px #c3d3b9}
+html.teacher-academy-theme .temario-renewed :is(.temario-topic-copy strong,.temario-detail h2,.temario-detail h3) {color:#203c54}
+html.teacher-academy-theme .temario-renewed :is(.temario-topic-copy small,.temario-detail p) {color:#586b78}
+html.teacher-academy-theme :is(.temario-heading-count,.temario-base-count,.temario-topic-arrow) {background:#eee5d5;color:#496177}
+html.teacher-academy-theme .temario-renewed :is(.temario-detail-heading,.temario-orientation,.temario-resource) {border-color:#e3d8c5}
+html.teacher-academy-theme .temario-renewed .temario-resource>button:first-child {color:#294f6c}
+html.teacher-academy-theme .temario-renewed .temario-prepared {background:#edf4e9;border-color:#cbdcc0}
+html.teacher-academy-theme .workspace-context-link .quiet {background:#fffdf5;border-color:#dccbab;color:#345671}
+/* Secondary windows follow the theme; advanced games retain their own stage art. */
+html.teacher-academy-theme #dialog:not(.live-watch-dialog):not(.activity-play),
+html.teacher-academy-theme .state-history-dialog,
+html.teacher-academy-theme .premium-info-dialog {
+  background:var(--academy-paper);border-color:var(--academy-edge);color:#1e3c55;
+}
+html.teacher-academy-theme #dialog::backdrop {background:#172f4966}
+html.teacher-academy-theme #dialog:not(.live-watch-dialog):not(.activity-play) :is(input,textarea,select) {
+  border-color:#d7c6a9;background:#fffefa;color:#223e56;
+}
+html.teacher-academy-theme #dialog.studio-renewed .exercise-family {
+  border-color:#dfd1b8;background:#fffdf8;
+}
+html.teacher-academy-theme #dialog.studio-renewed .advanced-family[open] {background:#f4eff8;border-color:#d8cce5}
+html.teacher-academy-theme #dialog.studio-renewed .playful-family[open] {background:#fcf5e6;border-color:#e4cea2}
+html.teacher-academy-theme #dialog.studio-renewed .exercise-tile {background:#fffef9;border-color:#dfd0b6}
+html.teacher-academy-theme #dialog.studio-renewed .exercise-tile[aria-pressed='true'] {
+  background:#eaf0f3;border-color:#3d6582;box-shadow:inset 0 0 0 1px #3d658225;
+}
+html.teacher-academy-theme #dialog.studio-renewed .exercise-tile[aria-pressed='true'] .tile-check {background:#305777;border-color:#305777}
+html.teacher-academy-theme #dialog .session-material-empty {background:#fffdf5;border-color:#dacbab;color:#4a6175}
+html.teacher-academy-theme #dialog.temario-dialog :is(.lesson-card,.lesson-resource-card,.lesson-class-guide>div) {background:#fffdf7;border-color:#e0d4bd}
+html.teacher-academy-theme #dialog.temario-dialog .lesson-prepared-callout {background:linear-gradient(130deg,#edf5e9,#f5f4e9);border-color:#c4d6bc}
+html.teacher-academy-theme :is(button,a,input,select,textarea,summary):focus-visible {outline:3px solid #2e6c9f;outline-offset:3px}
+@media(max-width:760px) {
+  html.teacher-academy-theme .home-nav .home-primary-nav {
+    background:var(--academy-paper);border-color:var(--academy-edge);
+  }
+  html.teacher-academy-theme .home-mobile-tabs {background:#f8f1e3;border-color:#d7c6a9}
+  html.teacher-academy-theme .home-mobile-tabs button.active {background:#234b69;color:#fff9ec;box-shadow:inset 0 -2px #c6a268}
+}
+@media print {
+  html.teacher-academy-theme .app-shell-view :is(.home-page,.workspace-page) {background:#fff}
+}

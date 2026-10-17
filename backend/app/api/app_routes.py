@@ -749,6 +749,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-generator.css")
 @router.get("/assets/profesor-access.css")
 @router.get("/assets/profesor-dashboard.css")
+@router.get("/assets/profesor-academy-theme.css")
 @router.get("/assets/profesor-live.css")
 @router.get("/assets/profesor-uploaded-topics.css")
 def profesor_final_styles(request: Request):
@@ -762,14 +763,17 @@ def profesor_final_styles(request: Request):
 
 
 @router.get("/assets/profesor-study-room.png")
-def profesor_study_room():
-    filename = "profesor-study-room.png"
+@router.get("/assets/profesor-academy-room.webp")
+@router.get("/assets/profesor-academy-paper.webp")
+def profesor_study_room(request: Request):
+    filename = request.url.path.rsplit("/", 1)[-1]
     local_path = PROJECT_ROOT / "apps" / "profesor" / "assets" / filename
     static_path = STATIC_DIR / "assets" / filename
     path = local_path if local_path.exists() else static_path
     if not path.exists():
         raise HTTPException(status_code=404, detail="Fondo de Profesor Particular no encontrado.")
-    return FileResponse(path, media_type="image/png", headers={"Cache-Control": "public, max-age=86400"})
+    media_type = "image/webp" if filename.endswith(".webp") else "image/png"
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/assets/games/{filename}")
