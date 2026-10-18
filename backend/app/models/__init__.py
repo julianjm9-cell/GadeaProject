@@ -27,6 +27,8 @@ __all__ = [
     "AuthSession",
     "AccountToken",
     "ProfesorEditorDraft",
+    "ProfesorNotification",
+    "ProfesorNotificationRecipient",
     "ProfesorGenerationJob",
     "ProviderCall",
     "OcrJob",
@@ -53,3 +55,4 @@ __all__ = [
 
 from app.models.ocr import OcrJob
 from app.models.teacher_generation import ProfesorGenerationJob, ProviderCall
+from app.models.profesor_notifications import ProfesorNotification, ProfesorNotificationRecipient

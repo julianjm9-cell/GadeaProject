@@ -193,6 +193,7 @@
         <div class="nav-label">Gestion</div>
         <button data-view="ai" onclick="setView('ai')"><span class="nav-icon">IA</span>Modelos de IA</button>
         <button data-view="ads" onclick="setView('ads')"><span class="nav-icon">AN</span>Anuncios</button>
+        <button data-view="notifications" onclick="setView('notifications')"><span class="nav-icon">AV</span>Notificaciones</button>
       </div>
       <div class="nav-group">
         <div class="nav-label">Apps</div>
@@ -214,6 +215,14 @@
       <div class="grid five" id="globalMetrics"></div><section class="overview-note" aria-label="Estado operativo"><div class="row"><strong>Operación y preparación comercial</strong><button type="button" onclick="loadOperations()">Actualizar estado</button></div><div id="operationsStatus" role="status">Consultando procesos, copias y consumo de IA…</div></section>
     </section>
 
+    <section id="view-notifications" class="card screen-card" hidden>
+      <div class="head"><div><h2>Avisos a profesores</h2><p class="muted">Un mensaje en la campana de cada cuenta, sin enviar correos.</p></div><button type="button" onclick="adminNotifications.load()">Actualizar</button></div>
+      <div class="card" style="max-width:800px"><h3>Nuevo aviso</h3><p id="notificationAudience" class="muted" style="margin:12px 0">Consultando destinatarios…</p>
+        <form id="notificationForm" class="form-grid"><div><label for="notificationTitle">Título</label><input id="notificationTitle" required maxlength="120" placeholder="Por ejemplo: Nuevos juegos disponibles"></div><div><label for="notificationBody">Mensaje</label><textarea id="notificationBody" required maxlength="3000" placeholder="Escribe un aviso claro para tus usuarios."></textarea></div><button class="primary" type="submit">Revisar aviso</button></form>
+        <section id="notificationReview" hidden style="margin-top:20px;padding:18px;background:var(--soft);border:1px solid var(--line);border-radius:14px"><span class="section-kicker">Así lo verá el usuario</span><h3 id="notificationPreviewTitle" style="overflow-wrap:anywhere"></h3><p id="notificationPreviewBody" style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;margin:12px 0"></p><button type="button" class="primary" id="notificationSend">Enviar a todas las cuentas</button></section>
+        <p id="notificationStatus" role="status" style="margin-top:14px;line-height:1.6"></p>
+      </div><h3 style="margin-top:24px">Últimos 20 envíos</h3><div id="notificationHistory" style="max-width:800px"></div>
+    </section>
     <section id="view-app" class="card screen-card" hidden>
       <div class="head">
         <div><h2 id="appTitle">App</h2></div>
@@ -305,8 +314,8 @@ function setLoginState(on){$('authScreen').hidden=!!on;$('adminPage').hidden=!on
 async function login(event){event.preventDefault();try{const res=await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier:$('email').value.trim(),password:$('password').value})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'No se pudo entrar.');token=data.access_token;localStorage.setItem('educa_admin_token',token);setLoginState(true);await loadAll();toast('Panel cargado.')}catch(e){toast(e.message)}}
 function logout(){token='';localStorage.removeItem('educa_admin_token');setLoginState(false);toast('Sesion cerrada.')}
 async function loadAll(){if(!token){setLoginState(false);return}try{const [o,u,ac,a,h,ad]=await Promise.all([api('/admin/organizations'),api('/admin/users'),api('/admin/accounts'),api('/admin/ai-settings').catch(()=>null),api('/admin/hazlotu-access'),api('/admin/profesor-ads').catch(()=>({ads:[]}))]);orgs=o;users=u;accounts=ac.accounts||[];ai=a;hazlotuAccess=h;ads=ad.ads||[];setLoginState(true);renderAll()}catch(e){setLoginState(false);toast(e.message)}}
-function setView(next){view=next;if(PRODUCTS.some(p=>p.key===next)){if(currentApp!==next)$('appUserSearch').value='';currentApp=next;closeUserEditor();toggleCreateUser(false)}document.body.dataset.app=PRODUCTS.some(p=>p.key===next)?next:'';document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.view===next));renderAll()}
-function renderAll(){$('view-overview').hidden=view!=='overview';$('view-app').hidden=!PRODUCTS.some(p=>p.key===view);$('view-ai').hidden=view!=='ai';$('view-hazlotu').hidden=view!=='hazlotu';$('view-ads').hidden=view!=='ads';$('hazlotuAccessStatus').textContent=hazlotuAccess?.configured?'Contraseña configurada. La web está protegida.':'Sin contraseña configurada. La web permanece cerrada.';renderOverview();if(!$('view-app').hidden)renderApp();if(!$('view-ai').hidden)renderAI();if(view==='ads')renderAds()}
+function setView(next){view=next;if(next==='notifications')window.adminNotifications.load();if(PRODUCTS.some(p=>p.key===next)){if(currentApp!==next)$('appUserSearch').value='';currentApp=next;closeUserEditor();toggleCreateUser(false)}document.body.dataset.app=PRODUCTS.some(p=>p.key===next)?next:'';document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.view===next));renderAll()}
+function renderAll(){$('view-notifications').hidden=view!=='notifications';$('view-overview').hidden=view!=='overview';$('view-app').hidden=!PRODUCTS.some(p=>p.key===view);$('view-ai').hidden=view!=='ai';$('view-hazlotu').hidden=view!=='hazlotu';$('view-ads').hidden=view!=='ads';$('hazlotuAccessStatus').textContent=hazlotuAccess?.configured?'Contraseña configurada. La web está protegida.':'Sin contraseña configurada. La web permanece cerrada.';renderOverview();if(!$('view-app').hidden)renderApp();if(!$('view-ai').hidden)renderAI();if(view==='ads')renderAds()}
 function renderAds(){$('adsTable').innerHTML=table(['Anuncio','Asignaturas','Estado','Denuncias','Acciones'],ads.map(a=>[`${a.image_url?`<img src="${esc(a.image_url)}" alt="" style="width:42px;height:42px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px">`:''}<strong>${esc(a.name)}</strong><br><small>${esc(a.location||'')}</small>`,esc(a.subjects),badge(a.status),String(a.reports||0),`<button type="button" onclick="viewAdReports('${esc(a.id)}')">Denuncias</button> <button type="button" class="${a.status==='removed'?'':'danger'}" onclick="changeAdStatus('${esc(a.id)}','${a.status==='removed'?'active':'removed'}')">${a.status==='removed'?'Restaurar':'Retirar'}</button> <button type="button" onclick="deleteAdForPrivacy('${esc(a.id)}')">Supresión verificada</button>`]))}
 async function loadAds(){try{ads=(await api('/admin/profesor-ads')).ads||[];renderAds();toast('Anuncios actualizados.')}catch(e){toast(e.message)}}
 async function deleteAdForPrivacy(id){const reason=prompt('Motivo de supresión. Registra la solicitud y verificación en el registro restringido de derechos.');if(!reason||!confirm('¿Has verificado la legitimidad de la solicitud? Se borrarán el anuncio, imagen y avisos.'))return;try{await api(`/admin/profesor-ads/${id}/delete`,{method:'POST',body:JSON.stringify({reason,verified:true})});await loadAds();$('adReports').hidden=true}catch(e){toast(e.message)}}
@@ -498,5 +507,6 @@ async function loadOperations(){
 }
 setLoginState(false);if(token)loadAll();
 </script>
+<script src="notifications.js?v=20261018-2"></script>
 </body>
 </html>

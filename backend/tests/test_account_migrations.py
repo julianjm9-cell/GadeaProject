@@ -15,10 +15,10 @@ def test_account_and_recovery_migrations_keep_existing_identity_and_private_stat
         connection.execute(sa.text("INSERT INTO client_states VALUES ('same-state','{\"library\":[{\"id\":\"kept\"}]}')"))
         connection.execute(sa.text('CREATE TABLE profesor_generation_jobs (id CHAR(32) PRIMARY KEY)'))
         directory=Path(__file__).resolve().parents[1]/'alembic'/'versions'
-        for filename in ('0022_revocable_accounts.py','0023_teacher_editor_recovery.py'):
+        for filename in ('0022_revocable_accounts.py','0023_teacher_editor_recovery.py','0024_profesor_notifications.py'):
             module=runpy.run_path(str(directory/filename))
             with Operations.context(MigrationContext.configure(connection)):
                 module['upgrade']();module['upgrade']()
         assert connection.execute(sa.text('SELECT id,email,password_hash,requires_email_verification FROM users')).one()==('same-user','kept@example.com','unchanged-hash',0)
         assert connection.execute(sa.text('SELECT data FROM client_states')).scalar_one()=='{"library":[{"id":"kept"}]}'
-        assert {'auth_sessions','account_tokens','profesor_editor_drafts','profesor_provider_calls'}<=set(sa.inspect(connection).get_table_names())
+        assert {'auth_sessions','account_tokens','profesor_editor_drafts','profesor_provider_calls','profesor_notifications','profesor_notification_recipients'}<=set(sa.inspect(connection).get_table_names())

@@ -28,6 +28,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         connection.execute(text("SELECT email_verified_at, requires_email_verification FROM users LIMIT 0"))
         connection.execute(text("SELECT id, expires_at FROM profesor_editor_drafts LIMIT 0"))
         connection.execute(text("SELECT id, estimated_usd FROM profesor_provider_calls LIMIT 0"))
+        connection.execute(text("SELECT id, send_key FROM profesor_notifications LIMIT 0"))
+        connection.execute(text("SELECT notification_id, user_id, read_at, dismissed_at FROM profesor_notification_recipients LIMIT 0"))
     checks = {
         "/ocr-facturas": b'href="/facturas/login"',
         "/facturas": b"LOGIN_TARGETS",
@@ -62,6 +64,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/profesor/login": b"/profesor-particular",
         "/cuenta": b"accountForm",
         "/profesor-editor-recovery.js": b"editorDrafts.v1",
+        "/profesor-notifications.js": b"data-teacher-notifications",
+        "/assets/profesor-notifications.css": b"teacher-notifications-dialog",
         "/profesor/demo": b"globalSearch",
         "/profesor-temario.js": b"PROFESOR_TEMARIO",
         "/profesor-temario-depth.js": b"deepDive",
@@ -162,6 +166,9 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
     with urlopen(admin + "/", timeout=20) as response:
         page = response.read()
         assert b"PROFESOR_PARTICULAR" in page and b"aiAppPicker" in page and b"view-ads" in page, "El dashboard no incluye anuncios y modelos"
+        assert b"view-notifications" in page, "Falta el apartado de avisos del dashboard"
+    with urlopen(admin + "/notifications.js", timeout=20) as response:
+        assert b"/admin/profesor-notifications" in response.read(), "Falta el editor de notificaciones"
     print("OK PostgreSQL, registro, autenticación y dashboard")
 
 

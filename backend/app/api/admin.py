@@ -765,8 +765,8 @@ def delete_user(user_id: UUID, actor: User = Depends(require_superadmin), db: Se
     if user.id == actor.id or user.role != "user":
         raise HTTPException(status_code=403, detail="Solo se pueden eliminar cuentas de usuario.")
     from app.models import AuthSession, AccountToken
-    from app.models import ProfesorEditorDraft, ProviderCall
-    for model in (AuthSession, AccountToken, ProfesorEditorDraft, ProviderCall):
+    from app.models import ProfesorEditorDraft, ProviderCall, ProfesorNotificationRecipient
+    for model in (AuthSession, AccountToken, ProfesorEditorDraft, ProviderCall, ProfesorNotificationRecipient):
         db.execute(delete(model).where(model.user_id == user_id))
     state_ids = [str(value) for value in db.scalars(select(ClientState.id).where(ClientState.user_id == user_id))]
     db.execute(delete(AuditLog).where(AuditLog.action == "profesor_state_saved", AuditLog.entity_type == "client_state", AuditLog.entity_id.in_(state_ids)))
