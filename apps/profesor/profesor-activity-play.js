@@ -461,6 +461,28 @@
     const dialog = $('dialog'), form = $('form');
     dialog.classList.add('material-editor-dialog');
     const previewAbort = new AbortController();
+    let previewFrame = 0;
+    const fitEditorPreview = () => {
+      const preview = $('editorPreview');
+      const frame = preview?.querySelector('.editor-preview-frame');
+      const canvas = frame?.querySelector('.editor-preview-play');
+      if (!canvas || !frame.clientWidth) return;
+      // Measure before scaling: transforms must not feed back into the next fit.
+      const width = Math.max(canvas.offsetWidth, canvas.scrollWidth);
+      const height = Math.max(canvas.offsetHeight, canvas.scrollHeight);
+      if (!width || !height) return;
+      const availableHeight = Math.min(360, window.innerHeight * .5);
+      const scale = Math.min(1, frame.clientWidth / width, availableHeight / height);
+      canvas.style.transform = `scale(${scale})`;
+      canvas.style.left = `${Math.max(0, (frame.clientWidth - width * scale) / 2)}px`;
+      frame.style.height = `${Math.ceil(height * scale)}px`;
+    };
+    const schedulePreviewFit = () => {
+      cancelAnimationFrame(previewFrame);
+      previewFrame = requestAnimationFrame(fitEditorPreview);
+    };
+    const previewResize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedulePreviewFit);
+    window.addEventListener('resize', schedulePreviewFit, { signal: previewAbort.signal });
     const renderEditorPreview = () => {
       const index = Number(dialog.dataset.editorStep || 0);
       const original = source.activity.questions[index];
@@ -475,18 +497,23 @@
       const editorImage = $('image-preview-' + index)?.querySelector('img');
       if (editorImage && !question.image) question.image = { filename: 'Imagen del ejercicio' };
       const preview = $('editorPreview');
-      preview.innerHTML = `<div class="activity-play editor-preview-play">${playableEditorPreview(question, index)}</div>`;
+      previewResize?.disconnect();
+      preview.innerHTML = `<div class="editor-preview-frame" inert><div class="activity-play editor-preview-play">${playableEditorPreview(question, index)}</div></div>`;
       preview.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
       preview.querySelectorAll('[name],[required]').forEach(node => { node.removeAttribute('name'); node.removeAttribute('required'); });
       preview.querySelectorAll('button,input,textarea,select,[tabindex]').forEach(node => node.setAttribute('tabindex', '-1'));
+      previewResize?.observe(preview);
+      previewResize?.observe(preview.querySelector('.editor-preview-play'));
+      schedulePreviewFit();
       Promise.resolve(paintActivityImages(source.activity.questions, preview)).then(() => {
         const target = preview.querySelector('[data-activity-image]');
         if (target && editorImage?.src && preview.isConnected) target.src = editorImage.src;
+        schedulePreviewFit();
       });
     };
     form.addEventListener('input', renderEditorPreview, { signal: previewAbort.signal });
     form.addEventListener('editor:step', renderEditorPreview, { signal: previewAbort.signal });
-    dialog.addEventListener('close', () => { previewAbort.abort(); dialog.classList.remove('material-editor-dialog'); }, { once: true });
+    dialog.addEventListener('close', () => { previewAbort.abort(); previewResize?.disconnect(); cancelAnimationFrame(previewFrame); dialog.classList.remove('material-editor-dialog'); }, { once: true });
     renderEditorPreview();
     const hints = {
       pairs: 'Cada tarjeta relaciona este enunciado con su respuesta. Crea al menos dos tarjetas para que haya opciones entre las que elegir.',
