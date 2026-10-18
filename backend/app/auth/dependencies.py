@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.database.session import get_db
 from app.models import License, Organization, User
 from app.models.core import utcnow
-from app.security.tokens import decode_token
+from app.security.sessions import authenticated_session
 from app.services.licenses import LicenseDecision, check_access
 
 
@@ -33,12 +33,9 @@ def current_user(
 ) -> User:
     raw = _token_from_request(request, token)
     try:
-        user_id = decode_token(raw, "access")
+        user, _ = authenticated_session(db, raw)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sesion no valida.") from exc
-    user = db.get(User, user_id)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sesion no valida.")
     return user
 
 
@@ -51,7 +48,9 @@ def current_organization(user: User = Depends(current_user), db: Session = Depen
 
 def product_code_from_request(request: Request) -> str:
     raw = str(request.headers.get("x-client-app") or request.query_params.get("app") or "").strip().lower()
-    if raw in {"profesor_particular", "profesor-particular"} or request.url.path.startswith("/profesor-particular"):
+    if request.scope.get('path','').startswith('/api/profesor/') and raw and raw not in {'profesor_particular','profesor-particular'}:
+        raise HTTPException(403,"Esta ruta pertenece a Profesor Particular.")
+    if raw in {"profesor_particular", "profesor-particular"} or request.scope.get('path','').startswith(("/profesor-particular", "/api/profesor/")):
         return "PROFESOR_PARTICULAR"
     if raw in {"cambridge", "cambridgetrainer", "cambridge-trainer"} or request.url.path.startswith("/cambridge"):
         return "CAMBRIDGE"

@@ -66,6 +66,13 @@ def run_session_cleanup_forever():
                 purge_expired_sessions(db)
                 from app.services.profesor_admin import prune_diagnostics
                 prune_diagnostics(db)
+                from app.models import ProfesorEditorDraft, AccountToken, AuthSession
+                from sqlalchemy import delete
+                db.execute(delete(ProfesorEditorDraft).where(ProfesorEditorDraft.expires_at < utcnow()))
+                for model in (AccountToken, AuthSession):
+                    db.execute(delete(model).where(model.expires_at < utcnow() - timedelta(days=1)))
+                from app.models import ProviderCall
+                db.execute(delete(ProviderCall).where(ProviderCall.created_at < utcnow() - timedelta(days=90)))
                 db.commit()
         except Exception:
             print("Session cleanup: temporal database failure", flush=True)
@@ -77,6 +84,9 @@ def run_teacher_backups_forever():
     trimmed = False
     while True:
         try:
+            from app.services.operation_health import heartbeat
+            with SessionLocal() as db:
+                heartbeat(db,'backups')
             if not trimmed:
                 trim_backup_history(SessionLocal)
                 trimmed = True
@@ -93,8 +103,17 @@ def run_teacher_backups_forever():
 if __name__ == "__main__":
     threading.Thread(target=run_session_cleanup_forever, name="session-cleanup", daemon=True).start()
     threading.Thread(target=run_teacher_backups_forever, name="teacher-daily-backups", daemon=True).start()
+    last_heartbeat=0
     while True:
         try:
+            if time.monotonic()-last_heartbeat>60:
+                from app.services.operation_health import heartbeat, signals
+                with SessionLocal() as db:
+                    heartbeat(db,'worker')
+                    health=signals(db)
+                    if health['alerts']:
+                        print('Operational alerts: '+','.join(row['code'] for row in health['alerts']),flush=True)
+                last_heartbeat=time.monotonic()
             if not run_one():
                 time.sleep(3)
         except Exception:

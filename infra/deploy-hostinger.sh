@@ -17,6 +17,11 @@ if [[ ! -f .env ]]; then
   printf 'Falta .env. Este comando actualiza una instalación existente; conserva el .env de tu servidor.\n' >&2
   exit 1
 fi
+command -v python3 >/dev/null
+python3 infra/prepare-security-env.py .env
+if [[ -n "${ENV_FILE:-}" && "$ENV_FILE" != .env ]]; then
+  python3 infra/prepare-security-env.py "$ENV_FILE"
+fi
 docker compose --profile proxy config --quiet
 
 printf '\n[1/5] Construyendo la nueva imagen (la app actual sigue funcionando)…\n'
@@ -58,6 +63,7 @@ docker compose run --rm --no-deps -T backend python -m app.state_preservation_ch
 
 printf '\n[4/5] Actualizando los servicios…\n'
 docker compose --profile proxy up -d --no-build --wait --wait-timeout 180
+docker compose exec -T backend python -m app.security.encrypted_fields
 
 printf '\n[5/5] Comprobando base de datos, app, landing, login y dashboard…\n'
 docker compose exec -T ocr-worker python -c 'from app.services.profesor_state_history import trim_backup_history; from app.database.session import SessionLocal; trim_backup_history(SessionLocal); print("OK historial: máximo cinco copias por cuenta")'

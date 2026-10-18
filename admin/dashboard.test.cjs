@@ -29,8 +29,9 @@ function loadDashboard() {
 test('the overview does not duplicate app or user controls', () => {
   const { run, element } = loadDashboard();
   run(`accounts=[{id:'u1',is_active:true,accesses:[{product_code:'ESO_ADULTOS',effective_status:'active',used_credits:4}]}];ai={capabilities:[{configured:true}]};renderOverview()`);
-  assert.match(element('globalMetrics').innerHTML, /Créditos gastados/);
-  assert.match(element('globalMetrics').innerHTML, />4</);
+  assert.match(element('globalMetrics').innerHTML, /ESO Adultos/);
+  assert.match(element('globalMetrics').innerHTML, /1 usuario/);
+  assert.match(element('globalMetrics').innerHTML, /Modelos de IA/);
   assert.doesNotMatch(fs.readFileSync(require('node:path').join(__dirname, 'index.html'), 'utf8'), /id="view-users"|id="appCards"|id="recentUsage"|id="alerts"/);
 });
 
@@ -61,12 +62,9 @@ test('editing an ESO student grants credits only to ESO', async () => {
   const { run, element } = loadDashboard();
   run(`currentApp='eso';users=[{id:'u1',email:'alumno@example.com',full_name:'Alumno',is_active:true}];accounts=[{id:'u1',email:'alumno@example.com',full_name:'Alumno',is_active:true,accesses:[{product_code:'ESO_ADULTOS',status:'active',effective_status:'active',total_credits:20,used_credits:5,available_credits:15,expires_at:'2027-01-01T00:00:00Z'},{product_code:'DIPLOMATOR',status:'active',effective_status:'active',total_credits:40,used_credits:10,available_credits:30}]}];renderApp();openUser('u1')`);
   assert.match(element('appUsersTable').innerHTML, /alumno@example.com/);
-  assert.equal(element('creditAvailablePreview').textContent, '15');
-  element('editAddCredits').value = '8';
-  run('updateCreditPreview()');
-  assert.equal(element('creditTotalPreview').textContent, '28');
-  assert.equal(element('creditUsedPreview').textContent, '5');
-  assert.equal(element('creditAvailablePreview').textContent, '23');
+  assert.equal(element('editAvailable').value, 15);
+  assert.equal(element('editUsed').value, 5);
+  element('editAvailable').value = '23';
   run(`globalThis.calls=[];api=async(path,options)=>{calls.push({path,body:JSON.parse(options.body)});return {ok:true}};loadAll=async()=>{}`);
   await run('saveSelectedUser({preventDefault(){}})');
   const calls = run('calls');

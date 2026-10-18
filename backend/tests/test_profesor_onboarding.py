@@ -1,4 +1,4 @@
-from test_access_control import client, seed_user, login
+from test_access_control import client, seed_user, login, register_and_verify
 from app.api import auth as auth_api
 from app.models import License
 
@@ -25,12 +25,12 @@ def test_profile_and_password_changes_preserve_teacher_data(client):
 
 def test_signup_has_no_personal_content_and_public_assets_work(client):
     web,_=client
-    result=web.post('/auth/profesor/register',json={'email':'new-teacher@example.com','full_name':'Nuevo profesor','password':'Prueba12345'})
+    result=register_and_verify(web,'/auth/profesor/register',{'email':'new-teacher@example.com','full_name':'Nuevo profesor','password':'Prueba12345'})
     assert result.status_code == 201
     state=web.get('/api/state?app=profesor_particular').json()
     assert not state.get('students') and not state.get('library')
-    assert state['teacherProfile']['plan'] == 'premium'
-    assert web.get('/api/profesor/material-sessions').status_code == 200
+    assert state['teacherProfile']['plan'] == 'normal'
+    assert web.get('/api/profesor/material-sessions').status_code == 403
     for path in ['/profesor','/profesor/login']:
         html=web.get(path).text
         assert 'educamesuite@gmail.com' in html and 'profesorparticularapp' in html
@@ -53,13 +53,14 @@ def test_signup_has_no_personal_content_and_public_assets_work(client):
 
 def test_signup_plan_changes_only_future_teacher_accounts(client, monkeypatch):
     web, factory = client
+    monkeypatch.setattr(auth_api.get_settings(), 'profesor_signup_plan', 'PROFESOR_PREMIUM')
     assert web.get('/auth/profesor/signup-settings').json()['plan'] == 'premium'
     first = {'email': 'premium@example.com', 'full_name': 'Primera profesora', 'password': 'Prueba12345'}
     second = {'email': 'normal@example.com', 'full_name': 'Segundo profesor', 'password': 'Prueba12345'}
-    assert web.post('/auth/profesor/register', json=first).status_code == 201
+    assert register_and_verify(web,'/auth/profesor/register',first).status_code == 201
     monkeypatch.setattr(auth_api.get_settings(), 'profesor_signup_plan', 'PROFESOR_FREE')
     assert web.get('/auth/profesor/signup-settings').json()['plan'] == 'normal'
-    assert web.post('/auth/profesor/register', json=second).status_code == 201
+    assert register_and_verify(web,'/auth/profesor/register',second).status_code == 201
     assert web.get('/api/state?app=profesor_particular').json()['teacherProfile']['plan'] == 'normal'
     with factory() as db:
         assert {license_obj.plan for license_obj in db.query(License).filter(License.product_code == 'PROFESOR_PARTICULAR')} == {'PROFESOR_PREMIUM', 'PROFESOR_FREE'}
@@ -68,13 +69,13 @@ def test_signup_plan_changes_only_future_teacher_accounts(client, monkeypatch):
     assert web.get('/api/state?app=profesor_particular').json()['teacherProfile']['plan'] == 'premium'
 
 
-def test_new_google_teacher_gets_the_same_premium_plan(client):
+def test_new_google_teacher_gets_the_same_normal_plan(client):
     _, factory = client
     with factory() as db:
         auth_api.get_or_create_google_user(db, {'email': 'google-teacher@example.com', 'sub': 'teacher-google-sub', 'name': 'Profesora Google', 'email_verified': True}, ('PROFESOR_PARTICULAR',))
         db.commit()
         plans = [license_obj.plan for license_obj in db.query(License).filter(License.product_code == 'PROFESOR_PARTICULAR')]
-        assert plans == ['PROFESOR_PREMIUM']
+        assert plans == ['PROFESOR_FREE']
 
 
 def test_sentence_board_is_served_for_personal_and_shared_players(client):

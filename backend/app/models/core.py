@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
 from app.database.session import Base
+from app.security.encrypted_fields import EncryptedToken
 
 
 def utcnow() -> datetime:
@@ -45,15 +46,50 @@ class User(Base, TimestampMixin):
     full_name: Mapped[str] = mapped_column(String(200), default="", nullable=False)
     role: Mapped[str] = mapped_column(String(40), default="user", nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    requires_email_verification: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
     google_sub: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     google_picture: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    drive_refresh_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    drive_refresh_token: Mapped[str | None] = mapped_column(EncryptedToken(), nullable=True)
     drive_folder_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     drive_connected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    meet_refresh_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    meet_refresh_token: Mapped[str | None] = mapped_column(EncryptedToken(), nullable=True)
     meet_connected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     organization: Mapped[Organization] = relationship(back_populates="users")
+
+
+class AuthSession(Base):
+    __tablename__ = "auth_sessions"
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    credential_stamp: Mapped[str] = mapped_column(String(64), nullable=False)
+    refresh_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class AccountToken(Base):
+    __tablename__ = "account_tokens"
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    purpose: Mapped[str] = mapped_column(String(32), nullable=False)
+    product_code: Mapped[str] = mapped_column(String(80), default="", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class ProfesorEditorDraft(Base, TimestampMixin):
+    __tablename__ = "profesor_editor_drafts"
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    organization_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
+    title: Mapped[str] = mapped_column(String(180), nullable=False)
+    payload_zlib: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
 
 
 class License(Base, TimestampMixin):

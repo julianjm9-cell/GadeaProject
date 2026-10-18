@@ -52,7 +52,7 @@ def test_ocr_rejects_inactive_accounts_and_excess_queue(client):
         user = db.scalar(select(User))
         user.is_active = False
         db.commit()
-    assert c.get("/api/ocr/jobs").status_code == 403
+    assert c.get("/api/ocr/jobs").status_code == 401
 
 
 def test_ocr_google_does_not_grant_free_license(client):

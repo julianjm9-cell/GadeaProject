@@ -134,6 +134,7 @@ def start_job(payload: dict, background_tasks: BackgroundTasks, user: User = Dep
     job.failure_category = ''
     job.attempt_count = (job.attempt_count or 0) + 1
     db.commit()
+    db.info['teacher_admitted_job'] = str(job.id)
     background_tasks.add_task(run_job, db.get_bind(), job.id, job.lease)
     return public_job(job)
 
@@ -147,6 +148,7 @@ def get_job(request_id: UUID, user: User = Depends(current_user), license_obj: L
     if not job:
         raise HTTPException(404, 'No se encontró este intento de generación.')
     value = public_job(job)
+    value['context'] = job.payload
     if job.status in ('queued', 'running') and stale(job):
         value.update(status='interrupted', error='El servidor se reinició. Pulsa Generar con IA para recuperar el progreso.')
     return value

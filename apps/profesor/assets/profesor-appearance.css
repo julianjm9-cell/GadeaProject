@@ -251,6 +251,19 @@ html.teacher-academy-theme #dialog.studio-renewed .family-number {background:lin
 html.teacher-academy-theme #dialog.studio-renewed .exercise-tile>strong {font-family:Georgia,'Times New Roman',serif;font-size:16px;color:#213e55}
 html.teacher-academy-theme #dialog.studio-renewed .exercise-visual {border-radius:7px;border-color:#d7bd8b}
 
+/* The logo is the shared Home control: outlined at rest, raised when selected. */
+:is(html.teacher-study-theme,html.teacher-academy-theme) .app-shell-view .home-nav .home-brand {
+  background:var(--look-button);color:var(--look-button-ink);border-color:var(--look-button-edge);
+  border-radius:var(--look-button-radius);box-shadow:var(--look-button-shadow);
+}
+:is(html.teacher-study-theme,html.teacher-academy-theme) .app-shell-view .home-nav .home-brand span {color:inherit}
+:is(html.teacher-study-theme,html.teacher-academy-theme) .app-shell-view .home-nav .home-brand[aria-current="page"] {
+  background:var(--look-selected);border-color:var(--look-selected-edge);
+  box-shadow:0 3px 0 var(--look-selected-edge),inset 0 1px 0 #ffffffba;
+}
+:is(html.teacher-study-theme,html.teacher-academy-theme) .app-shell-view .home-nav .home-brand:hover {border-color:var(--look-focus)}
+:is(html.teacher-study-theme,html.teacher-academy-theme) .app-shell-view .home-nav .home-brand:focus-visible {outline-color:var(--look-focus)}
+
 @media(hover:hover) {
   :is(html.teacher-study-theme,html.teacher-academy-theme) .app-shell-view :is(.home-page,.workspace-page) .primary:hover,
   :is(html.teacher-study-theme,html.teacher-academy-theme) #dialog:not(.activity-play):not(.live-watch-dialog) .primary:hover {filter:brightness(1.07);color:var(--look-primary-ink)}

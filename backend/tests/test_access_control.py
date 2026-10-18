@@ -7,7 +7,7 @@ from uuid import UUID
 import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -23,8 +23,13 @@ from app.services.licenses import check_access, license_for_user
 
 
 @pytest.fixture()
-def client():
+def client(monkeypatch):
     LOGIN_BUCKET.clear()
+    monkeypatch.setattr(auth_api.get_settings(), "jwt_secret", "isolated-tests-signing-key-over-32-bytes")
+    sent=[]
+    monkeypatch.setattr(auth_api.get_settings(), "smtp_host", "smtp.invalid")
+    monkeypatch.setattr(auth_api.get_settings(), "smtp_from", "app@example.com")
+    monkeypatch.setattr(auth_api, "send_account_mail", lambda email,token,purpose:sent.append((email,token,purpose)))
     engine = create_engine("sqlite+pysqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     TestingSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
     Base.metadata.create_all(bind=engine)
@@ -38,6 +43,7 @@ def client():
 
     app.dependency_overrides[get_db] = override_db
     with TestClient(app) as test_client:
+        test_client.account_mail = sent
         yield test_client, TestingSessionLocal
     app.dependency_overrides.clear()
 
@@ -80,6 +86,19 @@ def seed_user(db_factory, *, org_status="active", user_active=True, license_stat
 
 def login(test_client: TestClient, email="cliente@example.com", password="temporal123"):
     return test_client.post("/auth/login", json={"email": email, "password": password})
+
+
+def register_and_verify(test_client, path, payload):
+    response=test_client.post(path,json=payload)
+    if response.status_code!=201:
+        return response
+    assert response.json()['verification_required']
+    token=test_client.account_mail[-1][1]
+    assert test_client.post('/auth/account/verify',json={'token':token,'new_password':payload['password']}).status_code==200
+    response=login(test_client,email=payload['email'],password=payload['password'])
+    assert response.status_code==200
+    response.status_code=201
+    return response
 
 
 def test_profesor_product_login_and_state_isolation(client):
@@ -170,7 +189,7 @@ def test_profesor_registration_and_admin_access_management(client):
     seed_user(db_factory, role="superadmin", email="admin@example.com")
     admin_token = login(test_client, email="admin@example.com").json()["access_token"]
     payload = {"email": "teacher@example.com", "full_name": "Laura Profesora", "password": "segura12345"}
-    response = test_client.post("/auth/profesor/register", json=payload)
+    response = register_and_verify(test_client,"/auth/profesor/register",payload)
     assert response.status_code == 201
     teacher_id = response.json()["user"]["id"]
     assert test_client.get("/api/state?app=profesor_particular").status_code == 200
@@ -180,8 +199,8 @@ def test_profesor_registration_and_admin_access_management(client):
     accounts = test_client.get("/admin/accounts", headers=headers).json()["accounts"]
     teacher = next(a for a in accounts if a["id"] == teacher_id)
     assert [a["product_code"] for a in teacher["accesses"]] == ["PROFESOR_PARTICULAR"]
-    assert teacher["accesses"][0]["plan"] == "PROFESOR_PREMIUM"
-    assert test_client.get("/api/state?app=profesor_particular").json()["teacherProfile"]["plan"] == "premium"
+    assert teacher["accesses"][0]["plan"] == "PROFESOR_FREE"
+    assert test_client.get("/api/state?app=profesor_particular").json()["teacherProfile"]["plan"] == "normal"
     result = test_client.patch(f"/admin/users/{teacher_id}/access/PROFESOR_PARTICULAR", headers=headers, json={"status": "suspended", "usage_limit": 100})
     assert result.status_code == 200
     assert test_client.get("/api/state?app=profesor_particular").status_code == 402
@@ -196,7 +215,7 @@ def test_profesor_enrollment_does_not_replenish_credits(client):
     with db_factory() as db:
         user = db.get(User, UUID(user_id))
         license_obj = license_for_user(db, user, "PROFESOR_PARTICULAR")
-        assert license_obj.plan == "PROFESOR_PREMIUM"
+        assert license_obj.plan == "PROFESOR_FREE"
         license_obj.usage_limit = 7
         original_id = license_obj.id
         db.commit()
@@ -261,7 +280,7 @@ def test_profesor_material_files_are_private_and_persistent(client, monkeypatch,
     seed_user(db_factory, email="otro-profesor@example.com", product_codes=("PROFESOR_PARTICULAR",))
     login(test_client, email="otro-profesor@example.com")
     assert test_client.get(url).status_code == 404
-    assert test_client.get(url.replace("profesor_particular", "eso_adultos")).status_code == 402
+    assert test_client.get(url.replace("profesor_particular", "eso_adultos")).status_code == 403
 
 
 def test_profesor_rejects_invalid_materials(client, monkeypatch, tmp_path):
@@ -445,7 +464,7 @@ def test_google_login_uses_the_site_callback_and_basic_identity_scopes(client, m
 
 
 def register_eso(test_client, email="nuevo@example.com"):
-    return test_client.post("/auth/eso/register", json={"email": email, "full_name": "Nueva alumna", "password": "segura12345"})
+    return register_and_verify(test_client,"/auth/eso/register",{"email": email, "full_name": "Nueva alumna", "password": "segura12345"})
 
 
 def test_eso_registration_creates_only_eso_and_appears_in_admin(client):
@@ -1191,6 +1210,8 @@ def test_diplomator_google_requires_existing_account_and_preserves_license(clien
         assert db.query(User).count() == 0
     seed_user(db_factory)
     with db_factory() as db:
+        existing=db.scalar(select(User).where(User.email=='cliente@example.com'))
+        existing.email_verified_at=datetime.now(timezone.utc)
         before = db.query(License).one()
         license_id, credits = before.id, before.usage_limit
         user = auth_api.get_or_create_google_user(db, {"email": "cliente@example.com", "sub": "existingdip", "email_verified": True}, ("DIPLOMATOR",))

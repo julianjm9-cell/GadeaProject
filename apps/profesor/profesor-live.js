@@ -166,7 +166,7 @@
     const current=Math.max(0,Math.min(session.questions.length-1,session.status==='completed'&&selected!==null?selected:Number(session.progress?.current_index)||0));
     const answered=Object.values(session.progress?.responses||{}).filter(value=>value!==null&&value!==''&&(!Array.isArray(value)||value.length)).length;
     const seen=session.progress?.last_seen?Date.parse(session.progress.last_seen):0;
-    const presence=session.status==='in_progress'?(Date.now()-seen<18000?'● Conectado':'○ Sin conexión reciente'):'';
+    const presence=session.status==='in_progress'?(Date.now()-seen<30000?'● Conectado':'○ Sin conexión reciente'):'';
     const progressBar=`<div class="live-progress"><span style="width:${Math.round((session.status==='completed'?session.questions.length:Math.max(answered,current))/session.questions.length*100)}%"></span></div>`;
     const header=teacher?`<div class="live-player-head"><span class="live-eyebrow">SEGUIMIENTO EN DIRECTO</span><h2>${escape(session.title)}</h2><p>${escape(session.subject)} · ${session.questions.length} ${session.questions.length===1?'ejercicio':'ejercicios'}</p><div class="live-status"><span>${escape(statusText(session,true))}</span>${presence?`<small>${presence}</small>`:''}</div>${progressBar}</div>`:`<div class="live-player-head live-student-head"><span class="live-head-number">${String(current+1).padStart(2,'0')}</span><div class="live-head-title"><small>${escape(session.title)}</small><h2>${escape(session.status==='pending'?session.title:labels[session.questions[current]?.type]||'Ejercicio')}</h2></div><span class="live-subject">✦ ${escape(session.subject)}</span></div>${progressBar}`;
     if(session.status==='pending')return `<div class="live-player">${header}${teacher?'<p class="live-wait">Aparecerá aquí en cuanto el alumno lo abra.</p>':'<div class="live-start"><p>Tu profesor ha preparado este material para ti. Puedes continuar si cambias de dispositivo o recargas la página.</p><button type="button" data-live-action="start" class="live-primary">Empezar</button></div>'}</div>`;
@@ -178,8 +178,16 @@
   // Teacher flow: the current personal play mode remains unchanged.
   if(!studentRoot){
     let closeMaterialPicker=null;
+    function sessionMaterialIssue(material){
+      const questions=material.activity?.questions;
+      if(!Array.isArray(questions)||!questions.length||questions.length>80)return 'Las sesiones admiten entre 1 y 80 preguntas. Divide este material antes de compartirlo.';
+      if(questions.some(question=>!question||!Object.hasOwn(activityLabels,question.type)))return 'Este material contiene un tipo de ejercicio que necesita revisión.';
+      if(questions.some(question=>question.image?.local))return 'Guarda primero las imágenes locales en tu cuenta.';
+      if(JSON.stringify(questions).length>110000)return 'Este material es muy extenso para una sesión en directo. Divídelo en materiales más pequeños.';
+      return '';
+    }
     function pickSessionMaterial(){
-      const materials=state.library.filter(item=>item.activity?.questions?.length);
+      const materials=state.library.filter(item=>Array.isArray(item.activity?.questions)&&item.activity.questions.length);
       if(!materials.length){notify('Primero crea un material interactivo.');return}
       const courseOf=m=>m.activity?.context?.course||student(m.studentId)?.course||m.course||'';
       const choices=(values,label)=>`<option value="">${label}</option>${[...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es')).map(value=>`<option value="${escape(value)}">${escape(value)}</option>`).join('')}`;
@@ -198,6 +206,7 @@
         $('sessionMaterialPage').textContent=`${page+1} / ${pages}`;
         previous.disabled=page===0;next.disabled=page===pages-1;
         root.scrollTop=0;paintMaterialCards(root);
+        root.querySelectorAll('[data-live-teacher="choose-material"]').forEach(button=>{const material=materials.find(item=>String(item.id)===button.dataset.id),reason=material?sessionMaterialIssue(material):'Material no disponible';if(reason){button.disabled=true;button.title=reason;const note=document.createElement('p');note.className='generator-help';note.textContent=reason;button.closest('.material-hub-card')?.append(note)}});
       }
       const filter=()=>{page=0;paint()};
       const back=()=>{if(page>0){page--;paint()}};
@@ -213,6 +222,7 @@
     async function sendMaterial(material){
       if(!isPremium()){openPremiumInfo('Las sesiones de juegos con código se activan con Premium.');return;}
       if(typeof demo!=='undefined'&&demo)throw Error('Inicia sesión con una cuenta Premium para mandar materiales.');
+      const issue=sessionMaterialIssue(material);if(issue)throw Error(issue);
       await saveQueue;
       if(saveFailed)throw Error('Guarda el material antes de enviarlo.');
        modal('Crear sesión · '+material.title,`<p>Generaremos un código único, válido durante 24 horas. Compártelo junto con <b>educame.tech/profesor/alumno</b>. El participante no necesita cuenta ni nombre.</p>${submit('Crear sesión y código')}`,async()=>{
@@ -231,10 +241,31 @@
        modal('Seguir material',`${result.session.join_code?`<div class="live-join-code"><span><b>Código de la sesión</b><small>Se introduce en educame.tech/profesor/alumno</small></span><strong>${escape(result.session.join_code)}</strong><button type="button" data-live-teacher="copy-code" data-code="${escape(result.session.join_code)}">Copiar código</button></div>`:''}<div id="liveWatch">${sessionMarkup(result.session,true)}</div><div class="live-teacher-actions"><button type="button" data-live-teacher="refresh" data-id="${escape(id)}">Actualizar</button>${result.session.status==='pending'||result.session.status==='in_progress'?`<button type="button" data-live-teacher="cancel" data-id="${escape(id)}">Cerrar sesión</button>`:''}<button type="button" data-live-teacher="delete" data-id="${escape(id)}">Borrar sesión y respuestas</button></div>`,()=>false);
       mountSentence(result.session,$('liveWatch'),true);
       const dialog=$('dialog');dialog.classList.add('live-watch-dialog');const joinCode=dialog.querySelector('.live-join-code');if(joinCode)dialog.querySelector(':scope > .row').insertBefore(joinCode,dialog.querySelector(':scope > .row .close'));let revision=result.session.revision;
-      let connected=result.session.status==='in_progress'&&Boolean(result.session.progress?.last_seen)&&Date.now()-Date.parse(result.session.progress.last_seen)<18000;
+      let connected=result.session.status==='in_progress'&&Boolean(result.session.progress?.last_seen)&&Date.now()-Date.parse(result.session.progress.last_seen)<30000;
       clearInterval(watcher);
-      watcher=setInterval(async()=>{if(!dialog.open||!$('liveWatch')){clearInterval(watcher);return}try{const next=(await api('/api/profesor/material-sessions/'+encodeURIComponent(id))).session;const nextConnected=next.status==='in_progress'&&Boolean(next.progress?.last_seen)&&Date.now()-Date.parse(next.progress.last_seen)<18000;if(next.revision!==revision||nextConnected!==connected){revision=next.revision;connected=nextConnected;watchedSession=next;$('liveWatch').innerHTML=sessionMarkup(next,true);mountSentence(next,$('liveWatch'),true);if(!next.join_code)dialog.querySelector('.live-join-code')?.remove();const actions=dialog.querySelector('.live-teacher-actions');if(actions)actions.querySelector('[data-live-teacher="cancel"]')?.remove();if(next.status==='pending'||next.status==='in_progress')actions?.insertAdjacentHTML('beforeend',`<button type="button" data-live-teacher="cancel" data-id="${escape(id)}">Retirar material</button>`);}}catch(error){if($('liveWatch'))$('liveWatch').insertAdjacentHTML('beforeend',`<p class="live-error">${escape(error.message)}</p>`);clearInterval(watcher)}},1200);
-      dialog.addEventListener('close',()=>{clearInterval(watcher);dialog.classList.remove('live-watch-dialog');joinCode?.remove()},{once:true});
+      let failures=0,stopped=false,pollBusy=false;
+      const connection=document.createElement('p');connection.className='live-error';connection.setAttribute('role','status');connection.hidden=true;dialog.querySelector('.live-teacher-actions').before(connection);
+      async function poll(){
+        if(stopped||!dialog.open||!$('liveWatch')||pollBusy)return;
+        if(document.hidden){watcher=setTimeout(poll,10000);return}
+        pollBusy=true;
+        try{
+          const data=await api('/api/profesor/material-sessions/'+encodeURIComponent(id)+'?since_revision='+revision);
+          const next=data.session||{...watchedSession,status:data.status,progress:{...watchedSession.progress,last_seen:data.last_seen}};
+          const nextConnected=next.status==='in_progress'&&Boolean(next.progress?.last_seen)&&Date.now()-Date.parse(next.progress.last_seen)<30000;
+          failures=0;connection.hidden=true;
+          if(next.revision!==revision||nextConnected!==connected){
+            revision=next.revision;connected=nextConnected;watchedSession=next;$('liveWatch').innerHTML=sessionMarkup(next,true);mountSentence(next,$('liveWatch'),true);
+            if(!next.join_code)dialog.querySelector('.live-join-code')?.remove();
+            const actions=dialog.querySelector('.live-teacher-actions');if(actions)actions.querySelector('[data-live-teacher="cancel"]')?.remove();
+            if(next.status==='pending'||next.status==='in_progress')actions?.insertAdjacentHTML('beforeend',`<button type="button" data-live-teacher="cancel" data-id="${escape(id)}">Retirar material</button>`);
+          }
+        }catch(error){failures++;connection.hidden=false;connection.textContent='Conexión interrumpida. Reconectando automáticamente… '+error.message}
+        finally{pollBusy=false;if(!stopped)watcher=setTimeout(poll,failures?Math.min(30000,2500*2**Math.min(failures,4)):2500)}
+      }
+      const resume=()=>{if(!document.hidden&&!stopped){clearTimeout(watcher);poll()}};
+      document.addEventListener('visibilitychange',resume);window.addEventListener('online',resume);watcher=setTimeout(poll,2500);
+      dialog.addEventListener('close',()=>{stopped=true;clearTimeout(watcher);document.removeEventListener('visibilitychange',resume);window.removeEventListener('online',resume);dialog.classList.remove('live-watch-dialog');joinCode?.remove()},{once:true});
     }
     document.addEventListener('click',async event=>{
       const button=event.target.closest('[data-action="sendLiveMaterial"],[data-action="liveSessionList"],[data-live-teacher]');if(!button)return;

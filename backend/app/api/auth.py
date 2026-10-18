@@ -7,9 +7,10 @@ from urllib.parse import urlencode
 from uuid import UUID
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError as JWTError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -18,26 +19,40 @@ from app.auth.dependencies import current_user
 from app.config import get_settings
 from app.database.session import get_db
 from app.models import License, Organization, User
-from app.schemas.core import ApiOk, EsoRegisterRequest, LoginRequest, TokenResponse, PasswordChangeRequest
+from app.schemas.core import ApiOk, EsoRegisterRequest, LoginRequest, TokenResponse, PasswordChangeRequest, AccountEmailRequest, AccountTokenRequest, PasswordResetRequest
 from app.security.passwords import hash_password, verify_password
 from app.security.tokens import create_token, decode_token
+from app.security.sessions import authenticated_session, new_session, revoke_sessions, digest
+from app.services.account_mail import mail_enabled, send_account_mail
+from app.services.account_tokens import account_token, consume_account_token
+import logging
 from app.services.audit import audit
 from app.services.licenses import PROFESOR_PREMIUM_PLAN, check_access, license_for_user, profesor_account_plan
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+logger = logging.getLogger(__name__)
+
+
+def deliver_account_link(email, token, purpose):
+    try:
+        send_account_mail(email, token, purpose)
+    except Exception:
+        logger.error("account_mail_delivery_failed purpose=%s", purpose)
+        raise HTTPException(503, "No se ha podido enviar el enlace. Espera unos minutos y vuelve a solicitarlo o contacta con soporte.")
 
 
 @router.post("/change-password")
-def change_password(payload: PasswordChangeRequest, user: User = Depends(current_user), db: Session = Depends(get_db)):
+def change_password(payload: PasswordChangeRequest, response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
     rate_limit_key("password-change:" + str(user.id))
     if len(payload.current_password.encode("utf-8")) > 72 or not verify_password(payload.current_password, user.password_hash):
         raise HTTPException(400, "La contraseña actual no es correcta.")
     if len(payload.new_password.encode("utf-8")) > 72:
         raise HTTPException(400, "La contraseña no puede superar los 72 bytes.")
     user.password_hash = hash_password(payload.new_password)
+    revoke_sessions(db, user.id)
     db.commit()
-    return {"ok": True}
+    return issue_login_response(user, response, db=db)
 LOGIN_BUCKET: dict[str, list[float]] = {}
 PRODUCT_CODES = ("DIPLOMATOR", "CAMBRIDGE", "UNIVERSIDAD_ADULTOS", "ESO_ADULTOS", "PROFESOR_PARTICULAR", "OCR_FACTURAS")
 SAFE_NEXT_PATHS = ("/apps", "/app", "/cambridge", "/universidad-adultos", "/eso-adultos", "/profesor-particular", "/facturas")
@@ -45,6 +60,12 @@ SAFE_NEXT_PATHS = ("/apps", "/app", "/cambridge", "/universidad-adultos", "/eso-
 
 def rate_limit_key(identifier: str, limit: int = 8) -> None:
     now = monotonic()
+    if len(LOGIN_BUCKET) >= 5000:
+        for old_key in list(LOGIN_BUCKET):
+            if not any(now - tick < 300 for tick in LOGIN_BUCKET[old_key]):
+                LOGIN_BUCKET.pop(old_key, None)
+        if len(LOGIN_BUCKET) >= 5000:
+            raise HTTPException(429, "Hay demasiados intentos de acceso. Espera unos minutos.")
     key = identifier.lower().strip()[:255]
     attempts = [t for t in LOGIN_BUCKET.get(key, []) if now - t < 300]
     if len(attempts) >= limit:
@@ -65,6 +86,8 @@ def public_user(user: User) -> dict:
         "google_picture": user.google_picture or "",
         "drive_connected": bool(user.drive_refresh_token),
         "drive_folder_id": user.drive_folder_id or "",
+        "email_verified": bool(user.email_verified_at),
+        "password_recovery_available": mail_enabled(),
     }
 
 
@@ -74,8 +97,8 @@ def issue_login_response(user: User, response: Response, *, db: Session, method:
         record_activity(db, user, login_method=method)
         db.commit()
     settings = get_settings()
-    access = create_token(user.id, "access", timedelta(minutes=settings.access_token_minutes))
-    refresh = create_token(user.id, "refresh", timedelta(days=settings.refresh_token_days))
+    access, refresh = new_session(db, user)
+    db.commit()
     response.set_cookie("diplomator_access", access, httponly=True, secure=settings.cookie_secure, samesite="lax", max_age=settings.access_token_minutes * 60)
     response.set_cookie("diplomator_refresh", refresh, httponly=True, secure=settings.cookie_secure, samesite="lax", max_age=settings.refresh_token_days * 86400)
     response.delete_cookie("profesor_student_access")
@@ -225,6 +248,12 @@ def get_or_create_google_user(db: Session, info: dict, product_codes: tuple[str,
             raise HTTPException(status_code=403, detail="Cuenta desactivada.")
         if user.google_sub and user.google_sub != google_sub:
             raise HTTPException(status_code=409, detail="Esta cuenta ya está vinculada a otra cuenta de Google.")
+        if not user.email_verified_at:
+            # Verified possession must not retain a password/sessions chosen by a prior registrant.
+            user.password_hash = hash_password(secrets.token_urlsafe(32))
+            revoke_sessions(db, user.id)
+        user.email_verified_at = datetime.now(timezone.utc)
+        user.requires_email_verification = False
         user.google_sub = google_sub
         user.google_picture = str(info.get("picture") or "")[:500]
         if not user.full_name:
@@ -248,6 +277,7 @@ def get_or_create_google_user(db: Session, info: dict, product_codes: tuple[str,
         role="user",
         is_active=True,
         google_sub=google_sub,
+        email_verified_at=datetime.now(timezone.utc),
         google_picture=str(info.get("picture") or "")[:500],
     )
     db.add(user)
@@ -260,14 +290,16 @@ def get_or_create_google_user(db: Session, info: dict, product_codes: tuple[str,
 @router.get("/eso/signup-settings")
 def eso_signup_settings():
     settings = get_settings()
-    return {"enabled": settings.eso_signup_enabled, "credits": settings.eso_signup_credits, "days": settings.eso_signup_days}
+    return {"enabled": settings.eso_signup_enabled, "email_enabled": mail_enabled(), "credits": settings.eso_signup_credits, "days": settings.eso_signup_days}
 
 
-@router.post("/eso/register", response_model=TokenResponse, status_code=201)
+@router.post("/eso/register", status_code=201)
 def register_eso(payload: EsoRegisterRequest, request: Request, response: Response, db: Session = Depends(get_db)):
     settings = get_settings()
     if not settings.eso_signup_enabled:
         raise HTTPException(status_code=403, detail="El registro gratuito está cerrado temporalmente.")
+    if not mail_enabled():
+        raise HTTPException(503, "El registro por correo no está disponible. Puedes entrar con Google o contactar con soporte.")
     email = str(payload.email).strip().lower()
     # Allow shared connections/proxies while limiting repeated attempts per email.
     rate_limit_key(f"register-ip:{request.client.host if request.client else 'unknown'}", limit=60)
@@ -280,30 +312,34 @@ def register_eso(payload: EsoRegisterRequest, request: Request, response: Respon
         org = Organization(name=f"ESO Adultos - {email}"[:200], status="active")
         db.add(org)
         db.flush()
-        user = User(organization_id=org.id, email=email, full_name=payload.full_name.strip(), password_hash=hash_password(payload.password), role="user", is_active=True)
+        user = User(organization_id=org.id, email=email, full_name=payload.full_name.strip(), password_hash=hash_password(payload.password), role="user", is_active=True, requires_email_verification=True)
         db.add(user)
         db.flush()
-        ensure_google_access(db, user, ("ESO_ADULTOS",))
+        token = account_token(db, user, "verify", "ESO_ADULTOS")
+        deliver_account_link(email, token, "verify")
         audit(db, actor=user, organization_id=org.id, action="eso_user_registered", entity_type="user", entity_id=str(user.id), metadata={"credits": settings.eso_signup_credits})
         db.commit()
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Este correo ya tiene cuenta. Inicia sesión para acceder a ESO.")
-    return issue_login_response(user, response, db=db)
+    return {"ok": True, "verification_required": True, "message": "Revisa tu correo para activar la cuenta. El enlace caduca en 30 minutos."}
 
 
 @router.get("/profesor/signup-settings")
 def profesor_signup_settings():
     settings = get_settings()
     return {"enabled": settings.profesor_signup_enabled, "credits": settings.profesor_signup_credits, "days": settings.profesor_signup_days,
+            "email_enabled": mail_enabled(),
             "plan": "premium" if settings.profesor_signup_plan == PROFESOR_PREMIUM_PLAN else "normal"}
 
 
-@router.post("/profesor/register", response_model=TokenResponse, status_code=201)
+@router.post("/profesor/register", status_code=201)
 def register_profesor(payload: EsoRegisterRequest, request: Request, response: Response, db: Session = Depends(get_db)):
     settings = get_settings()
     if not settings.profesor_signup_enabled:
         raise HTTPException(status_code=403, detail="El registro gratuito está cerrado temporalmente.")
+    if not mail_enabled():
+        raise HTTPException(503, "El registro por correo no está disponible. Puedes entrar con Google o contactar con soporte.")
     email = str(payload.email).strip().lower()
     # Allow shared connections/proxies while limiting repeated attempts per email.
     rate_limit_key(f"register-ip:{request.client.host if request.client else 'unknown'}", limit=60)
@@ -316,26 +352,30 @@ def register_profesor(payload: EsoRegisterRequest, request: Request, response: R
         org = Organization(name=f"Profesor Particular - {email}"[:200], status="active")
         db.add(org)
         db.flush()
-        user = User(organization_id=org.id, email=email, full_name=payload.full_name.strip(), password_hash=hash_password(payload.password), role="user", is_active=True)
+        user = User(organization_id=org.id, email=email, full_name=payload.full_name.strip(), password_hash=hash_password(payload.password), role="user", is_active=True, requires_email_verification=True)
         db.add(user)
         db.flush()
-        ensure_google_access(db, user, ("PROFESOR_PARTICULAR",))
+        token = account_token(db, user, "verify", "PROFESOR_PARTICULAR")
+        deliver_account_link(email, token, "verify")
         audit(db, actor=user, organization_id=org.id, action="profesor_user_registered", entity_type="user", entity_id=str(user.id), metadata={"credits": settings.profesor_signup_credits})
         db.commit()
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Este correo ya tiene cuenta. Inicia sesión para acceder a Profesor Particular.")
-    return issue_login_response(user, response, db=db)
+    return {"ok": True, "verification_required": True, "message": "Revisa tu correo para activar la cuenta. El enlace caduca en 30 minutos."}
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)) -> TokenResponse:
+def login(payload: LoginRequest, request: Request, response: Response, db: Session = Depends(get_db)) -> TokenResponse:
     identifier = (payload.email or payload.identifier or "").strip().lower()
     rate_limit_key(identifier or "anonymous")
+    rate_limit_key("login-ip:" + (request.client.host if request.client else "unknown"), 120)
     generic = "Usuario o contrasena incorrectos."
     user = db.scalar(select(User).where(User.email == identifier))
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=generic)
+    if user.requires_email_verification:
+        raise HTTPException(403, "Verifica tu correo antes de entrar. Puedes solicitar otro enlace en Recuperar acceso.")
     if payload.enroll_profesor:
         user = db.scalar(select(User).where(User.id == user.id).with_for_update())
         org = db.get(Organization, user.organization_id)
@@ -366,6 +406,66 @@ def google_login(next: str = "/apps"):
     if not google_enabled():
         return RedirectResponse(f"/login?google_disabled=1&next={next_path}")
     return google_auth_redirect("login", next_path)
+
+
+@router.post("/account/request-link")
+def request_account_link(payload: AccountEmailRequest, request: Request, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    if not mail_enabled():
+        raise HTTPException(503, "La recuperación por correo aún no está disponible. Contacta con soporte para verificar tu titularidad.")
+    email = str(payload.email).lower().strip()
+    rate_limit_key("account-link-ip:" + (request.client.host if request.client else "unknown"), 30)
+    rate_limit_key("account-link:" + email, 3)
+    user = db.scalar(select(User).where(User.email == email))
+    if user and user.is_active:
+        purpose = "verify" if user.requires_email_verification else "reset"
+        # Pending new registrations have no licence before verification.
+        from app.models import AccountToken
+        old = db.scalar(select(AccountToken).where(AccountToken.user_id == user.id, AccountToken.purpose == "verify").order_by(AccountToken.created_at.desc()))
+        product = old.product_code if old else "PROFESOR_PARTICULAR"
+        token = account_token(db, user, purpose, product)
+        db.commit()
+        def deliver():
+            try:
+                send_account_mail(email, token, purpose)
+            except Exception:
+                logger.error("account_mail_delivery_failed purpose=%s", purpose)
+        background_tasks.add_task(deliver)
+    return {"ok": True, "message": "Si el correo corresponde a una cuenta activa, recibirás un enlace para recuperar el acceso. Revisa también la carpeta de spam."}
+
+
+@router.post("/account/verify")
+def verify_account(payload: PasswordResetRequest, db: Session = Depends(get_db)):
+    rate_limit_key("account-token:" + digest(payload.token)[:24])
+    row = consume_account_token(db, payload.token, "verify")
+    user = db.get(User, row.user_id)
+    if not user or not user.is_active or not user.requires_email_verification:
+        raise HTTPException(400, "Este enlace ya no está disponible.")
+    if len(payload.new_password.encode()) > 72:
+        raise HTTPException(422, "La contraseña no puede superar los 72 bytes.")
+    # The mailbox owner chooses the password, never a prior unverified registrant.
+    user.password_hash = hash_password(payload.new_password)
+    user.email_verified_at = datetime.now(timezone.utc)
+    user.requires_email_verification = False
+    revoke_sessions(db, user.id)
+    ensure_google_access(db, user, (row.product_code,))
+    db.commit()
+    return {"ok": True, "message": "Correo verificado. Ya puedes entrar con tu contraseña."}
+
+
+@router.post("/account/reset-password")
+def reset_account_password(payload: PasswordResetRequest, db: Session = Depends(get_db)):
+    rate_limit_key("account-token:" + digest(payload.token)[:24])
+    row = consume_account_token(db, payload.token, "reset")
+    user = db.get(User, row.user_id)
+    if not user or not user.is_active or user.requires_email_verification:
+        raise HTTPException(400, "Este enlace ya no está disponible.")
+    if len(payload.new_password.encode()) > 72:
+        raise HTTPException(422, "La contraseña no puede superar los 72 bytes.")
+    user.password_hash = hash_password(payload.new_password)
+    user.email_verified_at = datetime.now(timezone.utc)
+    revoke_sessions(db, user.id)
+    db.commit()
+    return {"ok": True, "message": "Contraseña actualizada y sesiones anteriores cerradas. Entra de nuevo para continuar."}
 
 
 @router.get("/google/status")
@@ -442,7 +542,8 @@ async def google_callback(request: Request, response: Response, code: str | None
     if purpose == "meet":
         try:
             user_id = UUID(str(payload.get("user_id")))
-            session_id = decode_token(request.cookies.get("diplomator_access") or "", "access")
+            session_user, _ = authenticated_session(db, request.cookies.get("diplomator_access") or "")
+            session_id = session_user.id
         except (ValueError, TypeError):
             return RedirectResponse("/profesor/login?expired=1")
         if session_id != user_id:
@@ -461,11 +562,12 @@ async def google_callback(request: Request, response: Response, code: str | None
         redirect.delete_cookie("diplomator_google_state")
         return redirect
     if purpose == "drive":
-        user = db.get(User, UUID(str(payload.get("user_id"))))
-        if not user:
+        try:
+            user, _ = authenticated_session(db, request.cookies.get("diplomator_access") or "")
+            if str(user.id) != str(payload.get("user_id")):
+                raise ValueError("Mismatched account")
+        except (ValueError, TypeError):
             return RedirectResponse("/login?google_error=user")
-        user.google_sub = user.google_sub or str(info.get("sub") or "")
-        user.google_picture = user.google_picture or str(info.get("picture") or "")[:500]
         if token_data.get("refresh_token"):
             user.drive_refresh_token = token_data["refresh_token"]
         next_path = clean_next_path(str(payload.get("next") or "/app?drive=connected"), "/app?drive=connected")
@@ -505,7 +607,27 @@ async def google_callback(request: Request, response: Response, code: str | None
 
 
 @router.post("/logout", response_model=ApiOk)
-def logout(response: Response) -> ApiOk:
+def logout(request: Request, response: Response, db: Session = Depends(get_db)) -> ApiOk:
+    raw = request.headers.get("Authorization", "").removeprefix("Bearer ") or request.cookies.get("diplomator_access") or ""
+    try:
+        _, session = authenticated_session(db, raw)
+    except ValueError:
+        try:
+            _, session = authenticated_session(db, request.cookies.get("diplomator_refresh") or "", "refresh")
+        except ValueError:
+            session = None
+    if session:
+        session.revoked_at = datetime.now(timezone.utc)
+        db.commit()
+    response.delete_cookie("diplomator_access")
+    response.delete_cookie("diplomator_refresh")
+    return ApiOk()
+
+
+@router.post("/logout-all", response_model=ApiOk)
+def logout_all(response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    revoke_sessions(db, user.id)
+    db.commit()
     response.delete_cookie("diplomator_access")
     response.delete_cookie("diplomator_refresh")
     return ApiOk()
@@ -527,12 +649,9 @@ def refresh(request: Request, response: Response, refresh_token: str | None = No
     if not raw_refresh:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token requerido.")
     try:
-        user_id = decode_token(raw_refresh, "refresh")
+        user, session = authenticated_session(db, raw_refresh, "refresh")
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token no valido.") from exc
-    user = db.get(User, user_id)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token no valido.")
     decision = check_access(db, user)
     for product_code in PRODUCT_CODES[1:]:
         if decision.ok:
@@ -541,6 +660,12 @@ def refresh(request: Request, response: Response, refresh_token: str | None = No
     if not decision.ok:
         raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=decision.message)
     settings = get_settings()
-    access = create_token(user.id, "access", timedelta(minutes=settings.access_token_minutes))
+    access = create_token(user.id, "access", timedelta(minutes=settings.access_token_minutes), sid=str(session.id))
+    nonce = secrets.token_urlsafe(32)
+    remaining = session.expires_at.replace(tzinfo=timezone.utc) if session.expires_at.tzinfo is None else session.expires_at
+    refresh = create_token(user.id, "refresh", remaining - datetime.now(timezone.utc), sid=str(session.id), nonce=nonce)
+    session.refresh_hash = digest(nonce)
+    db.commit()
     response.set_cookie("diplomator_access", access, httponly=True, secure=settings.cookie_secure, samesite="lax", max_age=settings.access_token_minutes * 60)
-    return {"ok": True, "access_token": access, "token_type": "bearer"}
+    response.set_cookie("diplomator_refresh", refresh, httponly=True, secure=settings.cookie_secure, samesite="lax", max_age=max(0, int((remaining-datetime.now(timezone.utc)).total_seconds())))
+    return {"ok": True, "access_token": access, "refresh_token": refresh, "token_type": "bearer"}

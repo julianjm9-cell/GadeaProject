@@ -1,0 +1,36 @@
+name: Tests and dependency security
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      ENVIRONMENT: test
+      DATABASE_URL: sqlite:///./ci.sqlite
+      JWT_SECRET: isolated-ci-test-signing-key-at-least-32-bytes
+      COOKIE_SECURE: 'false'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - run: python -m pip install -r backend/requirements.txt pip-audit==2.10.1
+      - name: Backend and data preservation
+        working-directory: backend
+        env:
+          PYTHONPATH: .
+        run: python -m pytest tests -q -p no:cacheprovider
+      - name: Teacher and administration interfaces
+        run: node --test apps/profesor/tests/*.test.cjs admin/dashboard.test.cjs
+      - name: Published dependency advisories
+        run: python -m pip_audit -r backend/requirements.txt --progress-spinner off

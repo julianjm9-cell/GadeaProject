@@ -1,4 +1,7 @@
 from app.models.core import (
+    AuthSession,
+    AccountToken,
+    ProfesorEditorDraft,
     AuditLog,
     AppSetting,
     ClientState,
@@ -21,7 +24,11 @@ from app.models.core import (
 )
 
 __all__ = [
+    "AuthSession",
+    "AccountToken",
+    "ProfesorEditorDraft",
     "ProfesorGenerationJob",
+    "ProviderCall",
     "OcrJob",
     "AuditLog",
     "AppSetting",
@@ -45,4 +52,4 @@ __all__ = [
 ]
 
 from app.models.ocr import OcrJob
-from app.models.teacher_generation import ProfesorGenerationJob
+from app.models.teacher_generation import ProfesorGenerationJob, ProviderCall

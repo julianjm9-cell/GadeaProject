@@ -3,6 +3,7 @@ import json
 import re
 import math
 import asyncio
+import time
 import httpx
 from uuid import UUID
 from fastapi import HTTPException
@@ -964,13 +965,18 @@ async def generation_post(client, url, *, headers, json):
     """Retry transient failures and respect Retry-After without an unbounded loop."""
     waited = 0
     for attempt in range(3):
+        started = time.monotonic()
         try:
             response = await client.post(url, headers=headers, json=json)
         except (httpx.TimeoutException, httpx.RequestError):
+            from app.services.provider_metering import record_call
+            record_call(url,json,None,(time.monotonic()-started)*1000)
             if attempt == 2:
                 raise
             await asyncio.sleep(attempt + 1)
             continue
+        from app.services.provider_metering import record_call
+        record_call(url,json,response,(time.monotonic()-started)*1000)
         if response.status_code not in {408, 429, 500, 502, 503, 504}:
             return response
         try:

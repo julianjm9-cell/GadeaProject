@@ -211,7 +211,7 @@
   <div class="workspace">
     <main class="layout">
     <section id="view-overview" class="card screen-card">
-      <div class="grid five" id="globalMetrics"></div>
+      <div class="grid five" id="globalMetrics"></div><section class="overview-note" aria-label="Estado operativo"><div class="row"><strong>Operación y preparación comercial</strong><button type="button" onclick="loadOperations()">Actualizar estado</button></div><div id="operationsStatus" role="status">Consultando procesos, copias y consumo de IA…</div></section>
     </section>
 
     <section id="view-app" class="card screen-card" hidden>
@@ -326,6 +326,7 @@ function accessFor(user,productCode){return accountForUser(user).accesses.find(a
 function appAccounts(key=currentApp){const code=productByKey(key).code;return accounts.filter(account=>account.accesses.some(access=>access.product_code===code))}
 function accessCredits(access){return access.unlimited?'Sin límite':String(access.available_credits)}
 function renderOverview(){
+  loadOperations();
   const capabilities=ai?.capabilities||[];
   const ready=capabilities.filter(capability=>capability.configured).length;
   $('globalMetrics').innerHTML=['eso','profesor','diplomator','ocr'].map(key=>{
@@ -491,6 +492,10 @@ async function saveAppAI(event){event.preventDefault();const product=aiApp,capab
 async function saveConnections(event){event.preventDefault();const body={};for(const p of ['groq','openai','gemini','pixabay'])if($(p+'Key').value.trim())body[p+'_api_key']=$(p+'Key').value.trim();if(!Object.keys(body).length)return toast('Introduce una clave nueva para guardarla.');try{ai=await api('/admin/ai-settings/keys',{method:'POST',body:JSON.stringify(body)});for(const p of ['groq','openai','gemini','pixabay']){$(p+'Key').value='';if(body[p+'_api_key'])delete connectionResults[p]}renderAI();renderOverview();toast('Claves guardadas. Comprueba cada conexión para confirmar que funciona.')}catch(e){toast(e.message)}}
 async function testConnection(provider){connectionResults[provider]={ok:null,message:'Comprobando…'};renderConnectionStates();try{const result=await api('/admin/ai-settings/test-connection',{method:'POST',body:JSON.stringify({provider})});connectionResults[provider]={ok:true,message:result.message};toast(provider+': conexión verificada')}catch(e){connectionResults[provider]={ok:false,message:e.message};toast(e.message)}renderConnectionStates()}
 async function testAI(capability){if(appDirty())return toast('Guarda los cambios antes de probar.');const product=aiApp;try{const result=await api('/admin/ai-settings/test',{method:'POST',body:JSON.stringify({capability,product})});aiTestResults[product+':'+capability]='✓ '+(capability==='transcribe'?'Ajustes válidos':'Prueba correcta');renderAI();toast(result.message||'Prueba correcta.')}catch(e){aiTestResults[product+':'+capability]='No se pudo completar la prueba';renderAI();toast(e.message)}}
+async function loadOperations(){
+ if(!token)return;
+ try{const result=await api('/admin/operations-health');$('operationsStatus').innerHTML=`<p>${result.ok?'✓ Sin alertas críticas registradas':'Revisar antes de vender'} · Disco libre: ${result.disk.free_percent}% · ${result.ai.calls} llamadas IA este mes</p><p>Coste estimado con tarifas configuradas: ${Number(result.ai.estimated_usd).toFixed(4)} USD. ${result.ai.unpriced_calls} llamadas sin coste estimable. Contrasta siempre el panel del proveedor.</p>${result.alerts.length?'<ul>'+result.alerts.map(row=>`<li><strong>${row.severity==='critical'?'Atención':'Revisar'}:</strong> ${esc(row.message)}</li>`).join('')+'</ul>':'<p>Procesos y planificación de copias con señales recientes.</p>'}<p>Nuevas altas: cuenta normal. Premium se activa manualmente tras acordar sus condiciones.</p>`}catch(error){$('operationsStatus').textContent=error.message}
+}
 setLoginState(false);if(token)loadAll();
 </script>
 </body>

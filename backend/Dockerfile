@@ -33,10 +33,11 @@ COPY apps/profesor/profesor-puzzle-boards.js /app/app/static/assets/profesor-puz
 COPY apps/profesor/profesor-mini-games.js /app/app/static/assets/profesor-mini-games.js
 COPY apps/profesor/profesor-live.js /app/app/static/assets/profesor-live.js
 COPY apps/profesor/profesor-state-history.js /app/app/static/assets/profesor-state-history.js
+COPY apps/profesor/profesor-editor-recovery.js /app/app/static/assets/profesor-editor-recovery.js
 COPY apps/profesor/assets /app/app/static/assets
 COPY apps/e25/assets/desk /app/app/static/assets/desk
 COPY marketing/app_landings_demo /app/app/static/marketing
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]

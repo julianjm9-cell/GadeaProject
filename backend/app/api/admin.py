@@ -44,6 +44,12 @@ from app.services.resources import load_resource_catalog, save_resource_catalog
 
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+
+@router.get("/operations-health")
+def operations_health(_: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    from app.services.operation_health import signals
+    return signals(db)
 AI_SETTING_KEYS = ("points_provider", "chat_provider", "transcribe_provider", "openai_api_key", "groq_api_key", "gemini_api_key", "pixabay_api_key", "points_model", "chat_model", "transcribe_model", "topic_style_guide")
 DEFAULT_TOPIC_STYLE_GUIDE = """Treat the selected topic as a strict boundary. Build a coherent oral presentation from the few angles that directly answer that exact topic; never force a standard history, impact, controversy or future section when it is not relevant. Prefer specific explanations, mechanisms, examples and dates that help explain the subject. Every paragraph must earn its place: remove generic introductions, broad international-relations filler, moral conclusions and nearby subjects that were not requested. The student profile controls language and difficulty only; it is never source material. Use natural transitions and an informed C1/C2 tone. Include only facts you can state confidently and never invent dates, statistics, institutions or quotations."""
 PRODUCT_CODES = ("OCR_FACTURAS", "UNIVERSIDAD_ADULTOS", "ESO_ADULTOS", "CAMBRIDGE", "DIPLOMATOR", "PROFESOR_PARTICULAR")
@@ -510,6 +516,10 @@ def get_organization(organization_id: UUID, _: User = Depends(require_superadmin
 @router.patch("/organizations/{organization_id}", response_model=OrganizationOut)
 def patch_organization(organization_id: UUID, payload: OrganizationPatch, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
     org = get_or_404(db, Organization, organization_id)
+    if "status" in payload.model_fields_set:
+        from app.security.sessions import revoke_sessions
+        for user_id in db.scalars(select(User.id).where(User.organization_id == org.id)):
+            revoke_sessions(db, user_id)
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(org, key, value)
     audit(db, actor=actor, organization_id=org.id, action="organization_updated", entity_type="organization", entity_id=str(org.id), metadata=payload.model_dump(exclude_unset=True))
@@ -727,6 +737,11 @@ def get_user(user_id: UUID, _: User = Depends(require_superadmin), db: Session =
 def patch_user(user_id: UUID, payload: UserPatch, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
     user = get_or_404(db, User, user_id)
     updates = payload.model_dump(exclude_unset=True)
+    from app.security.sessions import revoke_sessions
+    if updates.get("password") or any(key in updates and updates[key] != getattr(user,key) for key in ("email", "organization_id", "is_active", "role")):
+        revoke_sessions(db, user.id)
+    if updates.get("email") and updates["email"].lower() != user.email.lower():
+        user.email_verified_at = None
     if updates.get("organization_id") and updates["organization_id"] != user.organization_id:
         saved = db.scalar(select(ClientState).where(ClientState.user_id == user.id).with_for_update())
         document = db.scalar(select(Document.id).where(Document.user_id == user.id).limit(1))
@@ -749,6 +764,10 @@ def delete_user(user_id: UUID, actor: User = Depends(require_superadmin), db: Se
     user = get_or_404(db, User, user_id)
     if user.id == actor.id or user.role != "user":
         raise HTTPException(status_code=403, detail="Solo se pueden eliminar cuentas de usuario.")
+    from app.models import AuthSession, AccountToken
+    from app.models import ProfesorEditorDraft, ProviderCall
+    for model in (AuthSession, AccountToken, ProfesorEditorDraft, ProviderCall):
+        db.execute(delete(model).where(model.user_id == user_id))
     state_ids = [str(value) for value in db.scalars(select(ClientState.id).where(ClientState.user_id == user_id))]
     db.execute(delete(AuditLog).where(AuditLog.action == "profesor_state_saved", AuditLog.entity_type == "client_state", AuditLog.entity_id.in_(state_ids)))
     profile_ids = list(db.scalars(select(GamificationProfile.id).where(GamificationProfile.user_id == user_id)))

@@ -31,7 +31,7 @@ def test_separate_current_consent_is_required_and_recorded(client):
         assert ad.consent_version == CONSENT_VERSION
     public = web.get('/api/profesor/ads')
     assert 'governance' not in public.text and 'manage_token_hash' not in public.text
-    assert public.headers['cache-control'] == 'no-store'
+    assert 'no-store' in public.headers['cache-control'].split(', ')
     assert public.headers['x-robots-tag'] == 'noindex, nofollow'
     assert web.get('/api/profesor/ad-policy').json()['version'] == CONSENT_VERSION
 
@@ -184,13 +184,13 @@ def test_publication_management_and_public_visibility(client):
     assert web.post("/api/profesor/ads", json=ad_payload(website="spam")).status_code == 422
     created = web.post("/api/profesor/ads", json=ad_payload())
     assert created.status_code == 201
-    assert created.headers["cache-control"] == "no-store"
+    assert 'no-store' in created.headers["cache-control"].split(', ')
     ad_id, key = created.json()["ad"]["id"], created.json()["manage_key"]
     assert key not in web.get("/api/profesor/ads").text
     assert web.get(f"/api/profesor/ads/{ad_id}").status_code == 200
     assert web.get(f"/api/profesor/ads/manage/{ad_id}", headers={"X-Ad-Key": "wrong"}).status_code == 404
     managed = web.get(f"/api/profesor/ads/manage/{ad_id}", headers={"X-Ad-Key": key})
-    assert managed.status_code == 200 and managed.headers["cache-control"] == "no-store"
+    assert managed.status_code == 200 and 'no-store' in managed.headers["cache-control"].split(', ')
     with factory() as db:
         stored = db.get(ProfesorAd, UUID(ad_id))
         assert stored.manage_token_hash != key
@@ -223,7 +223,7 @@ def test_photo_validation_reports_and_admin_moderation(client, tmp_path, monkeyp
     ad_id, key = created["ad"]["id"], created["manage_key"]
     image = web.get(f"/api/profesor/ads/{ad_id}/image")
     assert image.status_code == 200 and image.headers["content-type"] == "image/webp"
-    assert image.headers["cache-control"] == "no-store"
+    assert 'no-store' in image.headers["cache-control"].split(', ')
     assert web.post(f"/api/profesor/ads/{ad_id}/reports", json={"reason": "muy breve"}).status_code == 422
     assert web.post(f"/api/profesor/ads/{ad_id}/reports", json={"reason": "El contacto del anuncio es falso", "name": "Informante", "email": "informante@example.com", "good_faith": True}).status_code == 200
     assert web.get("/admin/profesor-ads").status_code == 401

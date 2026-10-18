@@ -52,11 +52,49 @@ def check_revision(row: ClientState, supplied: str | None) -> int:
 
 
 def validate_transition(previous: dict, incoming: dict, *, confirm_empty: bool = False) -> None:
+    # Iterative bounds protect decoding/traversal without discarding historical fields.
+    stack, nodes = [(incoming, 0)], 0
+    while stack:
+        value, depth = stack.pop(); nodes += 1
+        if depth > 24 or nodes > 250_000:
+            raise HTTPException(422, "El escritorio tiene demasiados elementos anidados. No se ha modificado lo guardado.")
+        if isinstance(value, dict):
+            if any(not isinstance(key,str) or len(key)>200 for key in value):
+                raise HTTPException(422, "Hay campos no válidos en el escritorio.")
+            stack.extend((item,depth+1) for item in value.values())
+        elif isinstance(value, list):
+            if len(value)>10_000:
+                raise HTTPException(422, "Hay una lista demasiado grande. Divide el contenido.")
+            stack.extend((item,depth+1) for item in value)
     for key in COLLECTIONS:
         if key in incoming and not isinstance(incoming[key], list):
             raise HTTPException(422, f"Datos no válidos en {key}. No se ha modificado tu escritorio.")
         if previous.get(key) and key not in incoming:
             raise HTTPException(422, f"Faltan datos de {key} en el guardado. No se ha modificado tu escritorio.")
+        if key in incoming and any(not isinstance(item, dict) for item in incoming[key]):
+            raise HTTPException(422, f"Hay registros no válidos en {key}. No se ha modificado lo guardado.")
+    old_materials={item.get('id'):item for item in previous.get('library',[]) if isinstance(item,dict) and isinstance(item.get('id'),str)}
+    from app.services.teacher_generator import TYPES
+    for material in incoming.get('library',[]):
+        if material==old_materials.get(material.get('id')) or not material.get('activity'):
+            continue  # Unchanged legacy material can still be retained or removed.
+        activity=material['activity']
+        questions=activity.get('questions') if isinstance(activity,dict) else None
+        if not isinstance(questions,list) or not 1<=len(questions)<=80:
+            raise HTTPException(422,"Cada material interactivo admite entre 1 y 80 preguntas.")
+        for question in questions:
+            if not isinstance(question,dict) or question.get('type') not in (*TYPES,'visualquiz','imagepoint'):
+                raise HTTPException(422,"El material incluye un tipo de ejercicio no válido.")
+            for field,maximum in (('prompt',12000),('text',12000),('answer',2500),('explanation',12000)):
+                if field in question and (not isinstance(question[field],str) or len(question[field])>maximum):
+                    raise HTTPException(422,f"Revisa el campo {field} de los ejercicios.")
+            options=question.get('options',[])
+            if not isinstance(options,list) or len(options)>40 or any(not isinstance(option,str) or len(option)>3000 for option in options):
+                raise HTTPException(422,"Revisa las opciones del material.")
+            if question['type'] in ('pasapalabra','crossword','memory','dragdrop','bingo'):
+                width=3 if question['type']=='pasapalabra' else 2
+                if any(len(option.split('|'))!=width or not all(piece.strip() for piece in option.split('|')) for option in options):
+                    raise HTTPException(422,"Revisa las pistas, parejas o respuestas del juego.")
     if not confirm_empty and sum(counts(previous).values()) > 0 and sum(counts(incoming).values()) == 0:
         raise HTTPException(409, detail={"code": "state_empty", "message":
             "El guardado dejaría vacío tu escritorio. Lo hemos detenido para proteger tus datos. Revisa el guardado si quieres confirmar ese cambio."})

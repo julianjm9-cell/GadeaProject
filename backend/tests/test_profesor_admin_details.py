@@ -78,7 +78,8 @@ def test_details_require_an_active_superadmin(client, role, active, org_status):
         admin.organization.status = org_status
         db.commit()
     for suffix in ('','/materials'):
-        assert web.get(f'/admin/profesor-users/{teacher}{suffix}').status_code == 403
+        expected=401 if not active or org_status!='active' else 403
+        assert web.get(f'/admin/profesor-users/{teacher}{suffix}').status_code == expected
     with factory() as db:
         assert db.scalar(select(AuditLog.id).where(AuditLog.action == 'profesor_account_viewed')) is None
 

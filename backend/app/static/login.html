@@ -336,7 +336,7 @@ body[data-login-app="profesor"] .eyebrow{color:#1463df}.google-button[hidden],.d
         <a href="mailto:julianjm9@gmail.com">Email</a>
       </div>
     </div>
-  </form>
+  <p><a href="/cuenta">Recuperar acceso o verificar correo</a></p></form>
 </main>
 <script>
 const LOGIN_TARGETS = {
@@ -360,7 +360,7 @@ function toggleSignup(force) {
   password.autocomplete = signupMode ? 'new-password' : 'current-password';
   document.getElementById('formTitle').textContent = signupMode ? 'Crear cuenta gratis' : 'Acceder';
   document.getElementById('formCopy').textContent = signupMode ? 'Tu cuenta y tu progreso, en un solo lugar.' : nextPath() === '/eso-adultos' && signupAvailable ? 'Entra con tu cuenta. Si aún no tienes acceso a ESO, se añadirá el acceso gratuito una sola vez.' : 'Entra con tu cuenta y su acceso actual.';
-  document.getElementById('submitButton').textContent = signupMode ? 'Crear cuenta y empezar' : 'Entrar';
+  document.getElementById('submitButton').textContent = signupMode ? 'Crear cuenta y verificar correo' : 'Entrar';
   document.getElementById('signupToggleLink').textContent = signupMode ? 'Ya tengo cuenta: iniciar sesión' : 'Crear cuenta gratis';
   document.getElementById('error').textContent = '';
 }
@@ -373,7 +373,7 @@ async function loadSignupSettings() {
     const response = await fetch(nextPath() === '/profesor-particular' ? '/auth/profesor/signup-settings' : '/auth/eso/signup-settings');
     if (!response.ok) throw new Error('No se pudo consultar el registro.');
     const settings = await response.json();
-    signupAvailable = settings.enabled;
+    signupAvailable = settings.enabled && settings.email_enabled;
     document.getElementById('signupToggle').hidden = !signupAvailable;
     const allowance = document.getElementById('signupAllowance');
     allowance.hidden = false;
@@ -485,6 +485,7 @@ async function login(event) {
     error.textContent = typeof data.detail === 'string' ? data.detail : 'Revisa los datos introducidos.';
     return;
   }
+  if(data.verification_required){error.textContent=data.message;document.querySelector('form').reset();return;}
   location.href = nextPath();
   } catch (_) { error.textContent = 'No se pudo conectar. Prueba de nuevo.'; }
   finally { button.disabled = false; }

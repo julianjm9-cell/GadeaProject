@@ -106,7 +106,8 @@ def account_diagnostics(db: Session, user: User) -> dict:
         .group_by(ProfesorMaterialSession.status)).all())
     return {
         "counts": totals,
-        "last_saved_at": stamp(snapshots[0].created_at) if snapshots else None,
+        "last_saved_at": stamp(row.updated_at) if row else None,
+        "last_backup_at": stamp(snapshots[0].created_at) if snapshots else None,
         "revision": row.profesor_revision if row else 0,
         "activity": {"retention_days": ACTIVITY_DAYS, "last_login_at": stamp(latest.get("profesor_login")),
             "last_open_at": stamp(latest.get("profesor_activity")),

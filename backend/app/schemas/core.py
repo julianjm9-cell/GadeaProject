@@ -29,6 +29,18 @@ class PasswordChangeRequest(BaseModel):
     new_password: str = Field(min_length=8, max_length=72)
 
 
+class AccountEmailRequest(BaseModel):
+    email: EmailStr = Field(max_length=255)
+
+
+class AccountTokenRequest(BaseModel):
+    token: str = Field(min_length=32, max_length=128)
+
+
+class PasswordResetRequest(AccountTokenRequest):
+    new_password: str = Field(min_length=8, max_length=72)
+
+
 class TokenResponse(BaseModel):
     ok: bool = True
     access_token: str

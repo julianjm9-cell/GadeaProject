@@ -39,6 +39,10 @@
   if(job.status!=='completed'||!job.result?.questions)throw Object.assign(new Error(job.error||'El intento se interrumpió. Pulsa Reintentar para recuperar el progreso guardado.'),{status:job.error_status,code:job.error_code,completed:job.completed,total:job.total,recoverable:job.status==='interrupted'});
   return job.result;
  }
+ window.profesorResumeGeneration=async function(job,status){
+  const result=await generateInBackground({...job.context,request_id:job.request_id},status);
+  return {id:job.request_id,generationRequestId:job.request_id,title:job.context.topic||'Material recuperado',subject:job.context.subject,kind:'Actividad interactiva',body:'',activity:{version:1,context:job.context,questions:validateActivityQuestions(result.questions).map(q=>({...q,id:q.id||uid()}))}};
+ };
  const originalMarkup=workshopMarkup;
  workshopMarkup=function(owner,draft,st){
   return originalMarkup(owner,draft,st).replace('<div class="catalog-board">',`<section class="generator-brief"><label for="workshopInstructions">Describe el material que necesitas</label><textarea id="workshopInstructions" name="instructions" maxlength="3000" rows="2" placeholder="Por ejemplo: un relato con huecos para practicar imperfecto y pretérito perfecto simple, con vocabulario A2.">${esc(draft.instructions||'')}</textarea></section><div class="catalog-board">`);
@@ -165,7 +169,7 @@
    let group=0;
    const blank=[];
    for(const type of Object.keys(activityLabels))for(let n=0;n<c[type];n++){group++;for(let i=0;i<(bundleTypes.has(type)?c.activitySizes[type]:1);i++)blank.push({id:uid(),type,activityGroup:group,prompt:'',answer:'',text:'',options:type==='boolean'?['Verdadero','Falso']:optionTypes.includes(type)?Array(type==='mystery'?3:type==='intruder'?4:['quiz','classify'].includes(type)?3:c.activitySizes[type]||3).fill(''):[]});}
-   let questions=blank;
+   let questions=blank,completedRequestId='';
    if(form.get('mode')==='ai'){
     workshopBusy=true;const controls=[...$('form').querySelectorAll('input,textarea,select,button')].map(el=>[el,el.disabled]);controls.forEach(([el])=>el.disabled=true);
     $('workshopStatus').textContent='Preparando actividades completas y revisando sus respuestas…';
@@ -177,6 +181,7 @@
      generatorRetry.body={...c,focus};generatorRetry.account=accountEmail;generatorRetry.recoverable=true;
      try{sessionStorage.setItem('profesor.generatorRetry',JSON.stringify(generatorRetry));}catch{}
      const response=await generateInBackground({...c,visualquiz:0,imagepoint:0,focus,request_id:generatorRetry.id},$('workshopStatus'));
+     completedRequestId=generatorRetry.id;
      await refreshProfesorLimits().catch(()=>{});
      const generated=validateActivityQuestions(response.questions);
      for(const type of Object.keys(activityLabels).filter(k=>!visualTypes.includes(k)))if(generated.filter(q=>q.type===type).length!==c[type]*(bundleTypes.has(type)?c.activitySizes[type]||0:1))throw Error('La IA devolvió una cantidad de preguntas distinta a la solicitada.');
@@ -193,7 +198,7 @@
      throw error;
     }finally{workshopBusy=false;controls.forEach(([el,disabled])=>el.disabled=disabled);$('workshopStatus').textContent='';$('form').dispatchEvent(new Event('workshop:refresh'));}
    }
-   const material={id:uid(),title:c.topic,subject:c.subject,studentId:c.studentId,kind:'Actividad interactiva',body:'',activity:{version:1,context:c,questions}};
+   const material={id:completedRequestId||uid(),...(completedRequestId?{generationRequestId:completedRequestId}:{}),title:c.topic,subject:c.subject,studentId:c.studentId,kind:'Actividad interactiva',body:'',activity:{version:1,context:c,questions}};
    setTimeout(()=>editActivity(material),0);
   });setupWorkshop(owner,draft,st);
   try{const saved=JSON.parse(sessionStorage.getItem('profesor.generatorRetry')||'null');if(saved?.recoverable&&saved.body&&saved.account===accountEmail)showGenerationRetry($('workshopRetryNotice'),{message:'Tienes un intento anterior. Pulsa Reintentar para continuarlo.'})}catch{}

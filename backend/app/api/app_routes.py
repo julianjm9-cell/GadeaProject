@@ -26,10 +26,10 @@ from app.auth.dependencies import current_license, current_user
 from app.api.auth import rate_limit_key
 from app.config import get_settings
 from app.database.session import get_db
-from app.models import AppSetting, ClientState, Conversation, Document, License, Message, ProfesorStateSnapshot, UsageRecord, User
+from app.models import AppSetting, ClientState, Conversation, Document, License, Message, ProfesorStateSnapshot, ProfesorGenerationJob, UsageRecord, User
 from app.services import profesor_state_history as state_history
 from app.services import profesor_entitlements as entitlements
-from app.security.tokens import decode_token
+from app.security.sessions import authenticated_session
 from app.security.passwords import verify_password
 from app.services.ai_config import (
     DIPLOMATOR_POINT_MODELS,
@@ -150,11 +150,8 @@ def page_user_or_redirect(request: Request, db: Session, next_path: str) -> User
     if not token:
         return RedirectResponse(f"/login?next={next_path}")
     try:
-        user_id = decode_token(token, "access")
+        user, _ = authenticated_session(db, token)
     except ValueError:
-        return RedirectResponse(f"/login?next={next_path}")
-    user = db.get(User, user_id)
-    if not user:
         return RedirectResponse(f"/login?next={next_path}")
     return user
 
@@ -718,6 +715,7 @@ def profesor_temario_catalogue():
 @router.get("/profesor-rich-text.js")
 @router.get("/profesor-access.js")
 @router.get("/profesor-state-history.js")
+@router.get("/profesor-editor-recovery.js")
 @router.get("/profesor-live.js")
 @router.get("/profesor-uploaded-topics.js")
 def profesor_support_script(request: Request):
@@ -1026,6 +1024,16 @@ def login_page(request: Request):
     if request.url.path in {"/diplomator/login", "/facturas/login", "/e25/login", "/e25/register", "/profesor/login", "/profesor/register"} or request.query_params.get("next") in {"/app", "/eso-adultos", "/profesor-particular", "/facturas"}:
         return static_html("product-access.html", PROJECT_ROOT / "backend" / "app" / "static" / "product-access.html")
     return static_html("login.html", PROJECT_ROOT / "backend" / "app" / "static" / "login.html")
+
+
+@router.get("/cuenta")
+def account_recovery_page():
+    return static_html("account-recovery.html", PROJECT_ROOT / "backend" / "app" / "static" / "account-recovery.html")
+
+
+@router.get("/profesor/planes")
+def teacher_plans_page():
+    return marketing_file("profesor-planes.html")
 
 
 @router.get("/apps")
@@ -1784,11 +1792,31 @@ def profesor_plan_limits(user: User = Depends(current_user), license_obj: Licens
 
 @router.post("/api/profesor/generate")
 async def generate_teacher_material(payload: dict, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db)):
-    return await generate_teacher_material_impl(payload, user, license_obj, db)
+    # Keep the legacy response contract but use the same persisted admission/lease.
+    from fastapi import BackgroundTasks
+    from app.api.teacher_generation_jobs import start_job, run_job
+    value = start_job(payload, BackgroundTasks(), user, license_obj, db)
+    job = db.scalar(select(ProfesorGenerationJob).where(ProfesorGenerationJob.user_id == user.id, ProfesorGenerationJob.request_id == value['request_id']))
+    if value['status'] == 'completed':
+        return {**value['result'], 'reused': True}
+    if job.attempt_count and value['status'] in ('running', 'queued'):
+        # start_job grants the lease only once; an existing request is polled instead of run twice.
+        if getattr(db, 'info', {}).pop('teacher_admitted_job', None) != str(job.id):
+            raise HTTPException(409, 'Este material ya se está generando. Recupera el intento anterior.')
+        job_id, lease, bind = job.id, job.lease, db.get_bind()
+        db.rollback()
+        await run_job(bind, job_id, lease)
+        db.expire_all()
+        job = db.get(ProfesorGenerationJob, job_id)
+    if job.status != 'completed':
+        raise HTTPException(job.error_status or 503, job.error or 'La generación se interrumpió. Reintenta el mismo material.')
+    return job.result
 
 
 async def generate_teacher_material_impl(payload, user, license_obj, db, progress=None):
     from app.services.teacher_generation_contract import GenerationAlreadyCompleted
+    from app.services.provider_metering import context as meter_context
+    meter = meter_context.set({'bind':db.get_bind(),'user_id':user.id,'organization_id':user.organization_id,'request_id':str(payload.get('request_id',''))[:36]})
     def release_reservation():
         try:
             request_id = str(UUID(str(payload.get('request_id', ''))))
@@ -1805,6 +1833,8 @@ async def generate_teacher_material_impl(payload, user, license_obj, db, progres
         db.rollback()
         release_reservation()
         raise
+    finally:
+        meter_context.reset(meter)
     release_reservation()
     return result
 

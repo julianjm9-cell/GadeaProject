@@ -24,6 +24,10 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         connection.execute(text("SELECT id FROM profesor_ads LIMIT 0"))
         connection.execute(text("SELECT id FROM profesor_ad_reports LIMIT 0"))
         connection.execute(text("SELECT id, request_id, status, attempt_count, failure_category FROM profesor_generation_jobs LIMIT 0"))
+        connection.execute(text("SELECT id, user_id, revoked_at FROM auth_sessions LIMIT 0"))
+        connection.execute(text("SELECT email_verified_at, requires_email_verification FROM users LIMIT 0"))
+        connection.execute(text("SELECT id, expires_at FROM profesor_editor_drafts LIMIT 0"))
+        connection.execute(text("SELECT id, estimated_usd FROM profesor_provider_calls LIMIT 0"))
     checks = {
         "/ocr-facturas": b'href="/facturas/login"',
         "/facturas": b"LOGIN_TARGETS",
@@ -56,6 +60,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/diplomator-refresh.css": b".session-header-actions",
         "/assets/landing/eso-dashboard.png": b"\x89PNG\r\n\x1a\n",
         "/profesor/login": b"/profesor-particular",
+        "/cuenta": b"accountForm",
+        "/profesor-editor-recovery.js": b"editorDrafts.v1",
         "/profesor/demo": b"globalSearch",
         "/profesor-temario.js": b"PROFESOR_TEMARIO",
         "/profesor-temario-depth.js": b"deepDive",

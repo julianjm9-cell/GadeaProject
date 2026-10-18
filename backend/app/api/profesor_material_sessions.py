@@ -36,14 +36,14 @@ class SendMaterial(BaseModel):
 
 class StudentMove(BaseModel):
     action: str = Field(pattern="^(start|draft|check|next|finish|heartbeat|reveal|focus)$")
-    question_index: int = Field(default=0, ge=0, le=19)
+    question_index: int = Field(default=0, ge=0, le=79)
     part: int | None = Field(default=None, ge=0, le=30)
     value: object | None = None
-    current_index: int | None = Field(default=None, ge=0, le=19)
+    current_index: int | None = Field(default=None, ge=0, le=79)
 
 
 class ReviewGrade(BaseModel):
-    question_index: int = Field(ge=0, le=19)
+    question_index: int = Field(ge=0, le=79)
     grade: str = Field(pattern="^(correct|partial|incorrect)$")
 
 
@@ -457,7 +457,7 @@ def send_material(payload: SendMaterial, response: Response, user: User = Depend
     if not material or not isinstance(material.get("activity"), dict):
         raise HTTPException(404, "Material interactivo no encontrado.")
     questions = material["activity"].get("questions")
-    if not isinstance(questions, list) or not 1 <= len(questions) <= 20 or any(not isinstance(q, dict) or q.get("type") not in SUPPORTED for q in questions):
+    if not isinstance(questions, list) or not 1 <= len(questions) <= 80 or any(not isinstance(q, dict) or q.get("type") not in SUPPORTED for q in questions):
         raise HTTPException(422, "Revisa los ejercicios antes de enviarlos.")
     if any(isinstance(q.get("image"), dict) and q["image"].get("local") for q in questions):
         raise HTTPException(422, "Este material usa una imagen local. Guárdala en la cuenta antes de enviarlo al alumno.")
@@ -494,11 +494,13 @@ def teacher_sessions(response: Response, user: User = Depends(current_user), db:
 
 
 @router.get("/api/profesor/material-sessions/{session_id}")
-def teacher_watch(session_id: UUID, response: Response, user: User = Depends(current_user), db: Session = Depends(get_db)):
+def teacher_watch(session_id: UUID, response: Response, since_revision: int | None = None, user: User = Depends(current_user), db: Session = Depends(get_db)):
     teacher_premium(db, user)
     response.headers["Cache-Control"] = "private, no-store"
     purge_expired_sessions(db, user.id)
     row = teacher_session(db, user, session_id)
+    if since_revision == row.revision:
+        return {"unchanged": True, "revision": row.revision, "status": row.status, "last_seen": (row.progress or {}).get("last_seen")}
     return {"session": public_session(row, teacher=True)}
 
 
@@ -562,6 +564,18 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
         raise HTTPException(422, "La respuesta es demasiado larga.")
     if row.status == "pending" and payload.action not in {"start", "heartbeat"}:
         raise HTTPException(409, "Abre el material antes de responder.")
+    if payload.action == "heartbeat":
+        progress = dict(row.progress or {})
+        try:
+            last = datetime.fromisoformat(progress.get("last_seen") or "")
+            recent = (datetime.now(timezone.utc) - (last.replace(tzinfo=timezone.utc) if last.tzinfo is None else last)).total_seconds() < 10
+        except (ValueError, TypeError):
+            recent = False
+        if not recent:
+            progress["last_seen"] = now_iso()
+            row.progress = progress
+            db.commit()
+        return {"ok": True, "revision": row.revision, "status": row.status, "session": None}
     progress = dict(row.progress or {})
     progress["last_seen"] = now_iso()
     feedback = None

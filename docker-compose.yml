@@ -27,11 +27,13 @@ services:
         required: false
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-educa_suite}:${POSTGRES_PASSWORD:-educa_suite}@postgres:5432/${POSTGRES_DB:-educa_suite}
+      # Only private Docker/host peers can supply proxy headers. Public ports bind to loopback.
+      FORWARDED_ALLOW_IPS: "127.0.0.1,172.16.0.0/12,10.0.0.0/8,192.168.0.0/16"
     depends_on:
       postgres:
         condition: service_healthy
     ports:
-      - "8890:8000"
+      - "127.0.0.1:8890:8000"
     volumes:
       - educa_suite_documents:/app/data/documents
     networks:
@@ -70,7 +72,7 @@ services:
     volumes:
       - ./admin:/usr/share/nginx/html:ro
     ports:
-      - "5174:80"
+      - "127.0.0.1:5174:80"
     networks:
       - suite_internal
     healthcheck:

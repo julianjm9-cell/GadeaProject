@@ -4,7 +4,7 @@ Fecha de revisión del código: 16 de octubre de 2026. Este documento registra c
 
 ## Lo que hace la aplicación
 
-- El escritorio privado permite fichas con nombres y notas, calendario y tareas. El acceso a un juego usa un código temporal y una cookie técnica, sin crear cuentas de alumnos ni pedir nombre o correo al participante. Las fichas privadas no se comparten con quien abre el código. El historial conserva hasta 50 versiones del escritorio, dentro de la misma base de datos.
+- El escritorio privado permite fichas con nombres y notas, calendario y tareas. El acceso a un juego usa un código temporal y una cookie técnica, sin crear cuentas de alumnos ni pedir nombre o correo al participante. Las fichas privadas no se comparten con quien abre el código. El historial conserva hasta cinco copias diarias del escritorio a las 00:00 de Europe/Madrid, dentro de la misma base de datos.
 - Las sesiones vencen a las 24 horas. Un proceso periódico elimina de la base activa el material copiado, las respuestas y las calificaciones; el profesor puede borrarlos antes. Las respuestas privadas se sirven con `Cache-Control: private, no-store`.
 - El estado privado del profesor también se sirve sin caché. Las páginas públicas revisadas no incorporan Analytics, Tag Manager, Meta Pixel, Hotjar ni Clarity.
 - Un código entregado individualmente puede permitir que el profesor identifique al participante fuera de la aplicación. Los materiales y respuestas libres también pueden contener datos personales si alguien los escribe. No se debe afirmar que los juegos son anónimos en sentido jurídico ni que es imposible tratar datos de menores.
