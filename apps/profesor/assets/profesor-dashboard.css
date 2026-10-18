@@ -201,9 +201,11 @@ html.teacher-plain-background .app-shell-view .workspace-page{
 }
 
 /* Student details use the same solid, quiet cards as the other workspace pages. */
-.app-shell-view .home-nav .premium-section-link{position:relative;padding-top:22px}
-.nav-premium-label{position:absolute;top:4px;left:50%;transform:translateX(-50%);padding:2px 7px;border-radius:999px;background:#fff1ce;color:#8a5a0a;font-size:9px;line-height:1.15;white-space:nowrap}
-.home-account .account-plan:not(.premium){border-color:#edce8d;background:#fff8e9;color:#8a5a0a}
+.account-dropdown-menu{max-height:calc(100dvh - 110px);overflow-y:auto;overscroll-behavior:contain}
+.account-menu-plan{display:grid;gap:5px;margin:2px 2px 8px;padding:12px;border:1px solid var(--look-edge,#dce8f7);border-radius:11px;background:var(--look-soft,#f4f8ff)}
+.account-menu-plan>span{color:var(--look-muted,#667e9c);font-size:11px;font-weight:500}
+.account-menu-plan>strong{color:var(--look-ink,#183d70);font-size:15px;line-height:1.4}
+.account-dropdown-menu .account-menu-plan>button{min-height:30px;width:fit-content;max-width:100%;padding:5px 0;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--look-accent,#1764c5);font-size:12px;white-space:normal;line-height:1.4;text-decoration:underline;text-underline-offset:3px}
 .premium-label,.advanced-plan-allowance{display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border:1px solid #efd59b;border-radius:999px;background:#fff6df;color:#8a5a0a;font-size:12px;font-weight:750;white-space:nowrap}
 .premium-info-dialog{width:min(580px,calc(100vw - 28px));padding:26px;border:1px solid #dbe8fa;border-radius:22px;background:#fbfdff;box-shadow:0 24px 80px #12386b40}
 .premium-info-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
@@ -219,8 +221,6 @@ html.teacher-plain-background .app-shell-view .workspace-page{
 .access-locked-features span{padding:10px 14px;border:1px solid #dce9f8;border-radius:12px;background:#f4f9ff;color:#45668f;font-size:13px}
 .studio-renewed .advanced-plan-allowance{margin-left:auto;font-size:11px;padding:5px 9px}
 @media(max-width:760px){
-  .app-shell-view .home-nav .premium-section-link{padding-top:17px}
-  .nav-premium-label{top:1px;font-size:8px;padding:2px 6px}
   .premium-info-dialog{padding:20px}.premium-info-dialog h2{font-size:23px}
   .studio-renewed .advanced-family .family-heading{flex-wrap:wrap}
   .studio-renewed .advanced-plan-allowance{order:4;margin-left:46px}
