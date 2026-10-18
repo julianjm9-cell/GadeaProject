@@ -18,15 +18,55 @@ function library(){
 test('All public questions remain available separately with stable identities and their original context',()=>{
   const {run}=library();
   const before=run('JSON.stringify(publicTemarioMaterials())');
-  assert.equal(run('publicLibraryMaterials().length'),351);
-  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),2106);
+  assert.equal(run('temarioLibraryMaterials().length'),351);
+  assert.equal(run("materialPublicFormat='single';temarioLibraryMaterials().length"),2106);
   assert.equal(run('new Set(publicSingleMaterials().map(m=>m.id)).size'),2106);
   assert.equal(run('publicSingleMaterials().every(m=>m.activity.questions.length===1&&m.activity.context.course&&m.subject&&m.activity.context.topic&&publicMaterial(m.id)===m)'),true);
   const original=JSON.parse(before).flatMap(m=>m.activity.questions.map(q=>q.id)).sort();
   const singles=JSON.parse(run('JSON.stringify(publicSingleMaterials().flatMap(m=>m.activity.questions.map(q=>q.id)))')).sort();
   assert.deepEqual(singles,original);
   assert.equal(run('JSON.stringify(publicTemarioMaterials())'),before);
-  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),351);
+  assert.equal(run("materialPublicFormat='combined';temarioLibraryMaterials().length"),351);
+});
+
+test('The public showcase is an explicit, stable selection and never mutates or replaces syllabus activities',()=>{
+  const {run}=library();
+  const before=run('JSON.stringify(publicTemarioMaterials())');
+  assert.equal(run('publicMaterialSelection.length'),42);
+  assert.equal(run('publicLibraryMaterials().length'),42);
+  assert.equal(run('new Set(publicLibraryMaterials().map(m=>m.id)).size'),42);
+  assert.equal(run('new Set(publicMaterialSelection.map(([id])=>id)).size'),42);
+  assert.equal(run('publicLibraryMaterials().every(m=>m.activity.context.curated&&m.title&&m.body&&publicMaterial(m.id)===m&&publicMaterial(m.activity.context.curatedSourceId))'),true);
+  assert.equal(run('publicLibraryMaterials().every(m=>JSON.stringify(m.activity.questions)===JSON.stringify(publicMaterial(m.activity.context.curatedSourceId).activity.questions))'),true);
+  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),42);
+  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),42);
+  assert.equal(run('new Set(publicLibraryMaterials().flatMap(m=>m.activity.questions.map(q=>q.type))).size'),8);
+  run("publicLibraryMaterials()[0].activity.questions[0].options.push('Copia de prueba')");
+  assert.equal(run('JSON.stringify(publicTemarioMaterials())'),before);
+  assert.equal(run('publicSingleMaterials().length'),2106);
+});
+
+test('Private, curated public and syllabus libraries use separate sources and filters',()=>{
+  const {context,run}=library();
+  context.state={library:[{id:'mine',title:'Privado',subject:'Lengua',updatedAt:'2026-10-18'}]};
+  context.student=()=>null;
+  vm.runInContext(html.slice(html.indexOf('function filteredMaterials()'),html.indexOf('function materialPageSize()')),context);
+  vm.runInContext(html.slice(html.indexOf("let homeStudentQuery=''"),html.indexOf('function materialResultSummary()')).replace(",materialPublicFormat='combined'",''),context);
+  assert.equal(run('materialLibrarySource()===state.library'),true);
+  run("switchMaterialMode('public')");
+  assert.equal(run('filteredMaterials().length'),42);
+  assert.equal(run('filteredMaterials()[0].id===publicLibraryMaterials()[0].id'),true);
+  run("materialType='memory';materialCourse='A1'");
+  assert.equal(run('filteredMaterials().length'),2);
+  run("switchMaterialMode('temario')");
+  assert.equal(run('materialLibrarySource().length'),351);
+  assert.equal(run("materialPublicFormat='single';materialLibrarySource().length"),2106);
+  run("switchMaterialMode('mine')");
+  assert.equal(run('filteredMaterials()[0].id'),'mine');
+  run("switchMaterialMode('public')");
+  assert.equal(run('filteredMaterials().length'),2);
+  run("switchMaterialMode('temario')");
+  assert.equal(run('materialPublicFormat'),'single');
 });
 test('Split activities preserve question groups, passages, alternatives and feedback without changing their pack',()=>{
   const {context,run}=library();

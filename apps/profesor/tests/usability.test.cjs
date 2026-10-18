@@ -31,13 +31,17 @@ test('Transient errors retry drafts, while grading is never replayed and access 
  fail=false;await sync.resume();assert.equal(sync.status().state,'saved');sync.dispose();
  const denied=outbox(async()=>{throw Object.assign(Error('expired'),{status:401})});denied.sync.stage(0,'x');await assert.rejects(denied.sync.flush());assert.equal(denied.sync.status().state,'blocked');assert.equal(denied.jobs.size,0);denied.sync.dispose();
 });
-test('Public and private filters retain their independent searches, courses, types and pages',()=>{
+test('All three library views retain independent searches, courses, types, pages and syllabus format',()=>{
  const context={student:()=>({course:'2.º ESO'})};vm.createContext(context);
  vm.runInContext(html.slice(html.indexOf("let homeStudentQuery=''"),html.indexOf('function materialResultSummary()')),context);
  const run=code=>vm.runInContext(code,context);
  run("materialQuery='gato';materialSubject='Lengua';materialCourse='3.º ESO';materialType='memory';materialPage=2;switchMaterialMode('public');materialQuery='fracciones';materialCourse='1.º ESO';materialPage=4;switchMaterialMode('mine')");
  assert.equal(run('materialQuery'),'gato');assert.equal(run('materialCourse'),'3.º ESO');assert.equal(run('materialType'),'memory');assert.equal(run('materialPage'),2);
  run("switchMaterialMode('public')");assert.equal(run('materialQuery'),'fracciones');assert.equal(run('materialPage'),4);
+  run("switchMaterialMode('temario');materialQuery='ondas';materialPublicFormat='single';materialType='numeric';materialPage=3;switchMaterialMode('public')");
+  assert.equal(run('materialQuery'),'fracciones');assert.equal(run('materialPublicFormat'),'combined');
+  run("switchMaterialMode('temario')");assert.equal(run('materialQuery'),'ondas');assert.equal(run('materialPublicFormat'),'single');assert.equal(run('materialType'),'numeric');assert.equal(run('materialPage'),3);
+  run("switchMaterialMode('unknown')");assert.equal(run('materialLibraryMode'),'temario');
  assert.equal(run("materialCourseValue({course:'A2'})"),'A2');assert.equal(run("materialCourseValue({studentId:'test'})"),'2.º ESO');
 });
 test('Editor validation identifies the actual question and field, including board and numeric errors',()=>{
