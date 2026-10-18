@@ -411,7 +411,9 @@ def grade(q: dict, value: object, part: int | None = None) -> str:
                 if len(pieces) > 2 or not all(re.fullmatch(r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?", p.strip()) for p in pieces):
                     raise ValueError()
                 return float(pieces[0]) / float(pieces[1]) if len(pieces) == 2 else float(pieces[0])
-            return "correct" if abs(number(value) - number(q["answer"])) <= float(q.get("tolerance") or 0) + 1e-12 else "incorrect"
+            actual, expected = number(value), number(q["answer"])
+            rounding = 2.220446049250313e-16 * max(1, abs(expected)) * 4
+            return "correct" if math.isfinite(actual) and math.isfinite(expected) and abs(actual - expected) <= float(q.get("tolerance") or 0) + rounding else "incorrect"
         except (ValueError, ZeroDivisionError, OverflowError):
             return "incorrect"
     return "correct" if norm(value) in [norm(q.get("answer")), *[norm(a) for a in q.get("alternatives", [])]] else "incorrect"
@@ -586,6 +588,7 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
                              "token": payload.value[:100] if isinstance(payload.value, str) else None}
     elif payload.action in {"draft", "check", "next", "finish"}:
         if payload.value is not None:
+            previous_response = progress.get("responses", {}).get(str(payload.question_index))
             if questions[payload.question_index]['type'] == 'bingo':
                 previous = progress.get('responses', {}).get(str(payload.question_index), [])
                 previous = previous if isinstance(previous, list) else []
@@ -594,10 +597,14 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
                 parts[str(payload.question_index)] = {key: result for key, result in parts.get(str(payload.question_index), {}).items() if int(key) < len(current) and int(key) < len(previous) and current[int(key)] == previous[int(key)]}
                 progress['parts'] = parts
             responses = dict(progress.get("responses", {})); responses[str(payload.question_index)] = payload.value; progress["responses"] = responses
-            if payload.action == "draft" and questions[payload.question_index]["type"] in {"timeline", "error", "sentence", "crossword", "dragdrop", "mystery", "intruder", "bingo"}:
+            if payload.action == "draft" and previous_response != payload.value:
                 grades = dict(progress.get("grades", {})); grades.pop(str(payload.question_index), None); progress["grades"] = grades
-                if questions[payload.question_index]["type"] in {"timeline", "crossword", "dragdrop"}:
-                    parts = dict(progress.get("parts", {})); parts.pop(str(payload.question_index), None); progress["parts"] = parts
+                parts = dict(progress.get("parts", {}))
+                if isinstance(previous_response, list) and isinstance(payload.value, list) and questions[payload.question_index]["type"] not in {"timeline", "crossword", "dragdrop", "sentence"}:
+                    parts[str(payload.question_index)] = {key: result for key, result in parts.get(str(payload.question_index), {}).items() if int(key) < len(previous_response) and int(key) < len(payload.value) and previous_response[int(key)] == payload.value[int(key)]}
+                else:
+                    parts.pop(str(payload.question_index), None)
+                progress["parts"] = parts
         if payload.current_index is not None:
             progress["current_index"] = payload.current_index
         if payload.action == "check":

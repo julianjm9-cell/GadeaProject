@@ -74,6 +74,12 @@ html.teacher-plain-background .app-shell-view .workspace-page{
 .app-shell-view .home-nav .home-brand img{width:52px;height:52px}
 .app-shell-view .home-nav .home-brand-group{gap:22px}
 .app-shell-view .home-nav .home-account{gap:12px}
+.workspace-page .material-page-head>.material-hub-toolbar.private-library-toolbar{grid-template-columns:minmax(210px,1.3fr) repeat(3,minmax(130px,.65fr))}
+.material-result-summary{display:table;margin:0 0 14px;padding:8px 13px;border:1px solid var(--look-edge,#c9ddf6);border-radius:12px;background:var(--look-card,#fffffff0);color:var(--look-muted,#506b93);font-size:13px}
+#form .form-error-summary{padding:12px 15px;border:1px solid #e9ada9;border-radius:12px;background:#fff1ef;color:#962f29;line-height:1.5}
+#form .form-field-error{display:block;margin:5px 0 12px;color:#a02b27;line-height:1.5;font-weight:600}
+#form [aria-invalid="true"]{border-color:#c6443b;box-shadow:0 0 0 2px #c6443b19}
+@media(max-width:900px){.workspace-page .material-page-head>.material-hub-toolbar.private-library-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.workspace-page .material-page-head>.material-hub-toolbar.private-library-toolbar .material-search{grid-column:1/-1}}
 .app-shell-view .workspace-page .workspace-content{height:auto;max-width:1480px;min-height:0;margin:0 auto;padding:12px 28px 45px;overflow:visible}
 .app-shell-view .material-page-head{
   padding:22px 24px;

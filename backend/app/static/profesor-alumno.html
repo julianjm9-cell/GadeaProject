@@ -6,7 +6,7 @@
   <title>Mi clase · Profesor Particular</title>
   <link rel="icon" href="/assets/brand/profesor-simple-v2.png">
   <link rel="stylesheet" href="/assets/vendor/katex/katex.min.css">
-  <link rel="stylesheet" href="/assets/profesor-live.css?v=20261017-watch-2">
+  <link rel="stylesheet" href="/assets/profesor-live.css?v=20261018-usability-3">
   <link rel="stylesheet" href="/assets/profesor-memory-theme.css?v=20261016-3">
   <link rel="stylesheet" href="/assets/profesor-flashcard-theme.css?v=20261016-2">
   <link rel="stylesheet" href="/assets/profesor-sentence-theme.css?v=20261016-2">
@@ -109,7 +109,7 @@
       }catch(error){if(!window.profesorStudentReady)window.profesorRequireJoin()}
     }
     $('studentJoinForm').addEventListener('submit',async event=>{event.preventDefault();const button=event.target.querySelector('button[type="submit"]');button.disabled=true;$('studentJoinError').textContent='';try{const response=await fetch('/auth/profesor/student-join',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:$('studentJoinCode').value})});const data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.detail||'No se pudo entrar en la sesión.');$('studentJoinCode').value='';await load()}catch(error){$('studentJoinError').textContent=error.message}finally{button.disabled=false}});
-    $('logout').onclick=async()=>{await fetch('/auth/profesor/student-logout',{method:'POST',credentials:'same-origin'});location.replace('/profesor/alumno')};
+    $('logout').onclick=async()=>{try{await window.profesorFlushStudentAnswers?.()}catch{$('studentWelcome').hidden=false;$('studentWelcome').innerHTML='<h2>Hay respuestas pendientes</h2><p>Espera a recuperar la conexión antes de salir para conservarlas.</p>';return}await fetch('/auth/profesor/student-logout',{method:'POST',credentials:'same-origin'});location.replace('/profesor/alumno')};
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
     setInterval(()=>{if(!document.hidden)load()},20000);
     load();
@@ -117,6 +117,7 @@
   <script src="/profesor-puzzle-boards.js?v=20261017-4"></script>
   <script src="/profesor-mini-games.js?v=20261017-2"></script>
   <script src="/profesor-sentence-board.js?v=20261016-timeline-2"></script>
-  <script src="/profesor-live.js?v=20261017-watch-2"></script>
+  <script src="/profesor-live-sync.js?v=20261018-1"></script>
+  <script src="/profesor-live.js?v=20261018-usability-3"></script>
 </body>
 </html>

@@ -93,6 +93,14 @@
 .live-solution{background:#f4f5ff;color:#43548e}.live-check{margin-top:13px}.live-hint-button{margin-top:12px;padding:7px 10px;border:1px solid #efd4a0;border-radius:9px;background:#fff8e9;color:#996117}.live-hint-box p{padding:9px;border-radius:8px;background:#fff8e9}
 .live-navigation{display:flex;justify-content:space-between;gap:10px;margin-top:15px}.live-start,.live-wait{padding:19px 0;color:#5877a1;line-height:1.6}.live-result{padding:15px;margin-top:16px;border:1px solid #c8ead7;border-radius:12px;background:#effaf3;color:#137849}.live-result p{margin:5px 0 0}
 .live-error{padding:10px;border-radius:9px;background:#fff1ec;color:#a23e2f}
+.live-save-status{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;margin:14px 0;padding:9px 12px;border:1px solid #cce7db;border-radius:12px;background:#f1fbf5;color:#22664c;font-size:12px;line-height:1.5}
+.live-save-status[data-state="saving"]{background:#eff7ff;border-color:#c4ddf8;color:#235c91}
+.live-save-status:is([data-state="pending"],[data-state="blocked"]){background:#fff7e7;border-color:#e6c887;color:#80531c}
+.live-save-status button{padding:7px 10px;border:1px solid currentColor;border-radius:9px;background:#fff;color:inherit;font:inherit;cursor:pointer}
+.live-game-notice{margin:12px 0;padding:12px 15px;border:1px solid #e9b7ad;border-radius:12px;background:#fff3ed;color:#963c27;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.live-finish-confirm{margin:16px 0;padding:18px;border:1px solid #b8d6f7;border-radius:16px;background:#f3f9ff;color:#173c69;line-height:1.5}
+.live-finish-confirm strong{font-size:18px}.live-finish-confirm p{margin:10px 0 16px}.live-finish-confirm>div{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px}
+.live-finish-confirm button{padding:10px 14px;border:1px solid #a9c9ef;border-radius:10px;cursor:pointer}
 .live-review-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;margin-top:12px}
 .live-review-list button{padding:9px;border:1px solid #c5e4d2;border-radius:9px;background:#fff;color:#155f43;text-align:left;cursor:pointer}
 .live-review-list button.active{border-color:#168b5b;background:#dff5e8}

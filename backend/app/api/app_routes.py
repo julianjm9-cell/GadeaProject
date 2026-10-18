@@ -716,6 +716,7 @@ def profesor_temario_catalogue():
 @router.get("/profesor-access.js")
 @router.get("/profesor-state-history.js")
 @router.get("/profesor-editor-recovery.js")
+@router.get("/profesor-live-sync.js")
 @router.get("/profesor-live.js")
 @router.get("/profesor-uploaded-topics.js")
 def profesor_support_script(request: Request):

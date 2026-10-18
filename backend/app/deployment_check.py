@@ -71,6 +71,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/profesor-access.js": b"accessView",
         "/profesor-state-history.js": b"openStateHistory",
         "/profesor-live.js": b"studentMaterials",
+        "/profesor-live-sync.js": b"profesorCreateLiveSync",
         "/profesor-generator.js": b"/api/profesor/generation/start",
         "/assets/profesor-home.css": b".home-roster",
         "/assets/profesor-studio.css": b"studio-renewed",

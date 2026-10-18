@@ -12,6 +12,19 @@
   const sequence = new Set(['order','sentence','timeline']);
   const open = new Set(['short','reading','problem','error']);
   const studentRoot = document.getElementById('studentMaterials');
+  let liveSync=null,liveMessage='',actionBusy=false;
+  function saveStatusMarkup(){const value=liveSync?.status()||{state:'saved',pending:0};return `<div id="liveSaveStatus" class="live-save-status" data-state="${value.state}" role="status" aria-live="polite"><span>${saveStatusText(value)}</span><button type="button" data-live-action="retry-save" ${value.state==='pending'?'':'hidden'}>Reintentar guardado</button></div>`}
+  function saveStatusText(value){return value.state==='saved'?(active?.status==='pending'?'Listo para empezar':Object.keys(active?.progress?.responses||{}).length?'✓ Respuestas guardadas':'Sin respuestas pendientes'):value.state==='saving'?'Guardando respuestas…':value.state==='blocked'?'No se pudo guardar. Revisa tu acceso a la sesión.':'Pendiente de conexión. Conservamos tus respuestas en esta pestaña y reintentaremos el guardado.'}
+  function updateSaveStatus(value){const root=document.getElementById('liveSaveStatus');if(!root)return;root.dataset.state=value.state;root.querySelector('span').textContent=saveStatusText(value);root.querySelector('button').hidden=value.state!=='pending'}
+  function gameNotice(message){liveMessage=message||'';const root=studentRoot||document.getElementById('liveWatch');if(!root)return;let box=root.querySelector('.live-game-notice');if(!message){box?.remove();return}if(!box){box=document.createElement('p');box.className='live-game-notice';box.setAttribute('role','alert');(root.querySelector('.live-controls')||root).prepend(box)}box.textContent=message}
+  function confirmGameFinish(){return new Promise(resolve=>{
+    const unanswered=active.questions.filter((_,i)=>{const value=val(active,i);return value==null||value===''||Array.isArray(value)&&!value.length}).length;
+    const panel=document.createElement('section');panel.className='live-finish-confirm';panel.setAttribute('role','group');panel.setAttribute('aria-label','Terminar el material');
+    panel.innerHTML=`<strong>¿Terminar y ver tu resultado?</strong><p>${unanswered?`Quedan ${unanswered} ejercicios sin responder. Puedes volver a ellos antes de terminar.`:'Se guardarán tus respuestas y se mostrará el resultado.'}</p><div><button type="button" data-finish="stay">Seguir jugando</button><button type="button" class="live-primary" data-finish="finish">Terminar material</button></div>`;
+    studentRoot.querySelector('.live-navigation').before(panel);const done=value=>{panel.remove();resolve(value)};
+    panel.querySelector('[data-finish="stay"]').onclick=()=>done(false);panel.querySelector('[data-finish="finish"]').onclick=()=>done(true);panel.querySelector('button').focus();
+  })}
+
   const flashFront = new Set();
   const letterKey=value=>String(value||'').toUpperCase().replaceAll('Ñ','\u0001').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replaceAll('\u0001','Ñ');
   const wordKey=value=>String(value||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -108,7 +121,7 @@
     const partial=['pasapalabra','multigaps','crossword','dragdrop','memory','wordsearch'].includes(kind);
     const feedback=result&&!(kind==='hangman'&&result==='unanswered')?`<p class="live-feedback ${result}" role="status">${kind==='flashcard'?'Valoración guardada: '+({correct:'La sabía',partial:'Con ayuda',incorrect:'Repasar'}[result]||'Sin valorar'):result==='correct'?'✓ Correcto':result==='pending'?'◷ Guardado para revisión':result==='partial'?'◷ Parcialmente correcto':result==='unanswered'?(['crossword','dragdrop'].includes(kind)?'Completa las casillas o piezas que faltan.':'Sin responder'):'× Puedes volver a intentarlo'}</p>`:'';
     const review=teacher&&session.status==='completed'&&open.has(kind)&&(kind!=='error'||result==='pending')?`<div class="live-grade-actions"><b>Valorar respuesta:</b>${[['correct','Correcta'],['partial','Parcial'],['incorrect','Revisar']].map(([value,label])=>`<button type="button" data-live-teacher="grade" data-id="${escape(session.id)}" data-index="${n}" data-grade="${value}" class="${result===value?'active':''}">${label}</button>`).join('')}</div>`:'';
-    return `<article class="live-question" data-live-type="${escape(kind)}"><div class="live-kind"><span>${String(n+1).padStart(2,'0')}</span>${escape(labels[kind]||'Ejercicio')}</div>${(kind==='flashcard'&&!teacher)||kind==='hangman'?'':`<h3>${rich(kind==='error'?'Encuentra el error y corrígelo en la frase.':q.prompt)}</h3>`}${kind==='reading'&&q.text?`<div class="live-reading">${rich(q.text)}</div>`:''}${kind==='visualquiz'?image(session,q,teacher):''}<div class="live-controls">${controls}</div>${!teacher&&q.hints?.length?`${kind==='pasapalabra'?'':'<button type="button" class="live-hint-button" data-live-action="hint">Necesito una pista</button>'}<div class="live-hint-box" id="liveHintBox"></div>`:''}${feedback}${!locked&&!partial&&!choice.has(kind)&&kind!=='flashcard'&&kind!=='hangman'&&kind!=='sentence'&&kind!=='timeline'&&kind!=='error'&&!['mystery','intruder','bingo'].includes(kind)?'<button type="button" data-live-action="check" class="live-check">Comprobar respuesta</button>':''}${teacher?`<p class="live-observed-answer"><b>Respuesta del alumno:</b> ${escape(summaryValue(response,q))}</p>`:''}${session.status==='completed'&&q.solution?`<div class="live-solution"><b>Solución:</b> ${rich(q.solutions?.join(' · ')||q.solution)}</div>`:''}${review}</article>`;
+    return `<article class="live-question" data-live-type="${escape(kind)}"><div class="live-kind"><span>${String(n+1).padStart(2,'0')}</span>${escape(labels[kind]||'Ejercicio')}</div>${(kind==='flashcard'&&!teacher)||['hangman','gaps','multigaps'].includes(kind)?'':`<h3>${rich(kind==='error'?'Encuentra el error y corrígelo en la frase.':q.prompt)}</h3>`}${kind==='reading'&&q.text?`<div class="live-reading">${rich(q.text)}</div>`:''}${kind==='visualquiz'?image(session,q,teacher):''}<div class="live-controls">${controls}</div>${!teacher&&q.hints?.length?`${kind==='pasapalabra'?'':'<button type="button" class="live-hint-button" data-live-action="hint">Necesito una pista</button>'}<div class="live-hint-box" id="liveHintBox"></div>`:''}${feedback}${!locked&&!partial&&!choice.has(kind)&&kind!=='flashcard'&&kind!=='hangman'&&kind!=='sentence'&&kind!=='timeline'&&kind!=='error'&&!['mystery','intruder','bingo'].includes(kind)?'<button type="button" data-live-action="check" class="live-check">Comprobar respuesta</button>':''}${teacher?`<p class="live-observed-answer"><b>Respuesta del alumno:</b> ${escape(summaryValue(response,q))}</p>`:''}${session.status==='completed'&&q.solution?`<div class="live-solution"><b>Solución:</b> ${rich(q.solutions?.join(' · ')||q.solution)}</div>`:''}${review}</article>`;
   }
   function mountSentence(session, root, teacher=false){
     root.querySelectorAll('[data-mini-kind]').forEach(board=>{
@@ -142,7 +155,7 @@
       const config={
         locked,seed:session.id+':'+index,result:grade(session,index),partResults:session.progress?.parts?.[String(index)],values:Array.isArray(val(session,index))?val(session,index):[],
         onChange(value){if(locked)return;delete active.progress.grades?.[String(index)];delete active.progress.parts?.[String(index)];board.closest('.live-question')?.querySelector('.live-feedback')?.remove();draft(index,value);},
-        async onCheck(value){if(locked)return;try{await flush();await send('check',index,value);renderActive();}catch(error){alert(error.message)}}
+        async onCheck(value){if(locked)return;try{await flush();await send('check',index,value);renderActive();}catch(error){gameNotice(error.message)}}
       };
       if(q.type==='error')window.profesorErrorBoard(board,{...config,text:errorExample(q.prompt),value:val(session,index)});
       if(q.type==='crossword')window.profesorCrosswordBoard(board,{...config,grid:q.grid||[],entries:q.entries||[]});
@@ -155,8 +168,8 @@
         kind:q.type,label:q.type==='timeline'?(value,revealed)=>timelineLabel(value,revealed):null,partResults:session.progress?.parts?.[String(index)],
         options:q.options||[],values:Array.isArray(val(session,index))?val(session,index):[],
         locked:teacher||session.status==='completed',reviewed:!!grade(session,index),result:grade(session,index),
-        onChange(values){setValue(index,values);delete active.progress.grades?.[String(index)];if(q.type==='timeline')delete active.progress.parts?.[String(index)];send('draft',index,values).catch(error=>alert(error.message));},
-        async onCheck(values){await saving.catch(()=>{});try{await send('check',index,values);renderActive();}catch(error){alert(error.message)}}
+        onChange(values){setValue(index,values);delete active.progress.grades?.[String(index)];if(q.type==='timeline')delete active.progress.parts?.[String(index)];send('draft',index,values).catch(error=>gameNotice(error.message));},
+        async onCheck(values){await saving.catch(()=>{});try{await send('check',index,values);renderActive();}catch(error){gameNotice(error.message)}}
       });
     });
   }
@@ -169,10 +182,10 @@
     const presence=session.status==='in_progress'?(Date.now()-seen<30000?'● Conectado':'○ Sin conexión reciente'):'';
     const progressBar=`<div class="live-progress"><span style="width:${Math.round((session.status==='completed'?session.questions.length:Math.max(answered,current))/session.questions.length*100)}%"></span></div>`;
     const header=teacher?`<div class="live-player-head"><span class="live-eyebrow">SEGUIMIENTO EN DIRECTO</span><h2>${escape(session.title)}</h2><p>${escape(session.subject)} · ${session.questions.length} ${session.questions.length===1?'ejercicio':'ejercicios'}</p><div class="live-status"><span>${escape(statusText(session,true))}</span>${presence?`<small>${presence}</small>`:''}</div>${progressBar}</div>`:`<div class="live-player-head live-student-head"><span class="live-head-number">${String(current+1).padStart(2,'0')}</span><div class="live-head-title"><small>${escape(session.title)}</small><h2>${escape(session.status==='pending'?session.title:labels[session.questions[current]?.type]||'Ejercicio')}</h2></div><span class="live-subject">✦ ${escape(session.subject)}</span></div>${progressBar}`;
-    if(session.status==='pending')return `<div class="live-player">${header}${teacher?'<p class="live-wait">Aparecerá aquí en cuanto el alumno lo abra.</p>':'<div class="live-start"><p>Tu profesor ha preparado este material para ti. Puedes continuar si cambias de dispositivo o recargas la página.</p><button type="button" data-live-action="start" class="live-primary">Empezar</button></div>'}</div>`;
-    const review=session.status==='completed'?`<div class="live-result"><b>Material terminado</b><p>${Object.values(session.progress?.grades||{}).filter(value=>value==='correct').length} de ${session.questions.length} correctas · ${Object.values(session.progress?.grades||{}).filter(value=>value==='pending').length} pendientes de revisión</p><div class="live-review-list">${session.questions.map((q,i)=>`<button type="button" data-live-${teacher?'teacher':'action'}="review" data-index="${i}" class="${i===current?'active':''}">${i+1}. ${escape(labels[q.type]||'Ejercicio')} <small>${escape(session.progress?.grades?.[String(i)]||'Sin responder')}</small></button>`).join('')}</div></div>`:'';
+    if(session.status==='pending')return `<div class="live-player">${header}${teacher?'':saveStatusMarkup()}${teacher?'<p class="live-wait">Aparecerá aquí en cuanto el alumno lo abra.</p>':'<div class="live-start"><p>Tu profesor ha preparado este material para ti. Puedes continuar si cambias de dispositivo o recargas la página.</p><button type="button" data-live-action="start" class="live-primary">Empezar</button></div>'}</div>`;
+    const review=session.status==='completed'?`<div class="live-result"><b>Material terminado</b><p>${Object.values(session.progress?.grades||{}).filter(value=>value==='correct').length} de ${session.questions.length} correctas · ${Object.values(session.progress?.grades||{}).filter(value=>value==='pending').length} pendientes de revisión</p><div class="live-review-list">${session.questions.map((q,i)=>`<button type="button" data-live-${teacher?'teacher':'action'}="review" data-index="${i}" class="${i===current?'active':''}">${i+1}. ${escape(labels[q.type]||'Ejercicio')} <small>${escape(({correct:'Correcta',incorrect:'Para repasar',partial:'Parcialmente correcta',pending:'Revisión del profesor',unanswered:'Sin responder'})[session.progress?.grades?.[String(i)]]||'Sin responder')}</small></button>`).join('')}</div></div>`:'';
     const navigation=teacher||session.status==='completed'?'':`<div class="live-navigation"><button type="button" data-live-action="previous" ${current===0?'disabled':''}>← Anterior</button>${current===session.questions.length-1?'<button type="button" data-live-action="finish" class="live-primary">Terminar material</button>':'<button type="button" data-live-action="next" class="live-primary">Siguiente →</button>'}</div>`;
-    return `<div class="live-player">${header}<div class="live-step"><span>Ejercicio ${current+1} de ${session.questions.length}</span>${teacher?'':`<span>${escape(statusText(session,false))} · progreso guardado</span>`}</div>${questionMarkup(session,current,teacher)}${review}${navigation}</div>`;
+    return `<div class="live-player">${header}${teacher?'':saveStatusMarkup()}<div class="live-step"><span>Ejercicio ${current+1} de ${session.questions.length}</span>${teacher?'':`<span>${escape(statusText(session,false))}</span>`}</div>${questionMarkup(session,current,teacher)}${review}${navigation}</div>`;
   }
 
   // Teacher flow: the current personal play mode remains unchanged.
@@ -294,23 +307,51 @@
     return;
   }
 
-  async function request(path,body){const response=await fetch(path,{credentials:'same-origin',cache:'no-store',method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});let data={};try{data=await response.json()}catch{}if(response.status===401||response.status===403){window.profesorStudentReady=false;window.profesorRequireJoin?.();throw Error('Introduce el código de tu sesión para continuar.')}if(!response.ok)throw Error(data.detail||'No se pudo guardar tu respuesta.');return data;}
+  async function request(path,body){let response;try{response=await fetch(path,{credentials:'same-origin',cache:'no-store',method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined})}catch{throw Error('No hay conexión con el servidor. Tus respuestas siguen en esta pestaña.')}let data;try{data=await response.json()}catch{throw Object.assign(Error('El servidor no ha confirmado el guardado. Se volverá a intentar.'),{status:502})}if(response.status===401||response.status===403){window.profesorStudentReady=false;window.profesorRequireJoin?.();throw Object.assign(Error('Introduce el código de tu sesión para continuar.'),{status:response.status})}if(!response.ok)throw Object.assign(Error(typeof data?.detail==='string'?data.detail:'No se pudo guardar tu respuesta.'),{status:response.status});if(body&&path.endsWith('/move')&&(!data||!Number.isInteger(data.revision)||typeof data.status!=='string'))throw Object.assign(Error('El servidor no ha confirmado el guardado. Se volverá a intentar.'),{status:502});return data;}
   const path=id=>'/api/profesor/student-material-sessions/'+encodeURIComponent(id);
-  function enqueue(move){const run=()=>request(path(active.id)+'/move',move);saving=saving.catch(()=>{}).then(run);return saving;}
+  function ensureSync(){if(liveSync)return;const sessionId=active.id;liveSync=window.profesorCreateLiveSync({
+    transport:move=>request(path(sessionId)+'/move',move),onStatus:updateSaveStatus,
+    onResult(result,move){
+      if(active?.id!==sessionId)return;
+      if(result.session)active=result.session;
+      else{active.revision=result.revision;active.status=result.status;
+       if(result.feedback!=null&&move.action!=='reveal'){if(move.part==null){active.progress.grades??={};active.progress.grades[String(move.question_index)]=result.feedback}else{active.progress.parts??={};active.progress.parts[String(move.question_index)]??={};active.progress.parts[String(move.question_index)][String(move.part)]=result.feedback}}
+       if(result.extra&&active.questions[move.question_index]?.type==='hangman')Object.assign(active.questions[move.question_index],result.extra);
+      }
+      for(const [index,value] of liveSync.entries())setValue(index,value);
+    }
+  })}
+  function enqueue(move){ensureSync();saving=liveSync.send(move);return saving}
   function renderList(sessions){
     const panel=document.getElementById('studentMaterialList');if(!panel)return;
     const running=sessions.some(item=>item.status==='in_progress');
     panel.innerHTML=sessions.length?`<div class="live-inbox">${sessions.map((item,i)=>`<button type="button" data-live-open="${escape(item.id)}" class="${item.status==='pending'?'new':''} ${active?.id===item.id?'current':''}" ${running&&item.status==='pending'?'disabled':''}><span class="live-inbox-icon">${item.status==='completed'?'✓':String(i+1).padStart(2,'0')}</span><span class="live-inbox-copy"><strong>${escape(item.title)}</strong><small>${item.count} ${item.count===1?'ejercicio':'ejercicios'} · ${escape(item.subject)}</small>${item.status==='pending'?'<em>Nuevo material disponible</em>':item.status==='in_progress'?'<em>En curso</em>':''}</span><span class="live-inbox-arrow" aria-hidden="true">›</span></button>`).join('')}</div>`:'<p class="student-inbox-empty">Cuando tu profesor te mande un material, aparecerá aquí.</p>';
   }
-  async function loadList(){try{const data=await request('/api/profesor/student-material-sessions');const fingerprint=JSON.stringify(data.sessions);if(fingerprint!==lastList){lastList=fingerprint;renderList(data.sessions)}if(active?.status==='in_progress'&&!data.sessions.some(item=>item.id===active.id)){active=null;studentRoot.hidden=true;studentRoot.innerHTML='';document.getElementById('studentWelcome')?.removeAttribute('hidden');document.getElementById('studentMaterialList').insertAdjacentHTML('afterbegin','<p class="live-error">El profesor ha retirado el material que tenías abierto.</p>')}if(!active){const running=data.sessions.find(item=>item.status==='in_progress');if(running)await openSession(running.id)}}catch(error){document.getElementById('studentMaterialList').innerHTML=`<p class="live-error">${escape(error.message)}</p>`}}
-  async function openSession(id){wordsearchHint=null;wordsearchMessage='';flashFront.clear();clearTimeout(draftTimer);await saving.catch(()=>{});active=(await request(path(id))).session;activeWord=0;activeLetter=0;firstCard=null;pickedCell=null;reviewIndex=null;const focus=active.progress?.focus;if(focus?.question_index===active.progress?.current_index){const type=active.questions[active.progress.current_index]?.type;if(type==='pasapalabra')activeLetter=focus.part||0;if(type==='wordsearch')activeWord=focus.part||0;if(type==='memory')firstCard=focus.token||null}document.getElementById('studentWelcome')?.setAttribute('hidden','');studentRoot.hidden=false;studentRoot.innerHTML=sessionMarkup(active);mountSentence(active,studentRoot);studentRoot.scrollIntoView({behavior:'smooth',block:'start'});}
-  function renderActive(keepFocus=false){if(!active)return;const focused=keepFocus?document.activeElement?.dataset.liveField:null,part=keepFocus?document.activeElement?.dataset.part:null,selection=keepFocus?document.activeElement?.selectionStart:null;studentRoot.innerHTML=sessionMarkup(active);mountSentence(active,studentRoot);if(focused){const field=[...studentRoot.querySelectorAll('[data-live-field]')].find(input=>input.dataset.liveField===focused&&(part==null||input.dataset.part===part));if(field){field.focus({preventScroll:true});if(Number.isInteger(selection)&&field.setSelectionRange)field.setSelectionRange(selection,selection)}}}
+  async function loadList(){try{const data=await request('/api/profesor/student-material-sessions');const fingerprint=JSON.stringify(data.sessions);if(fingerprint!==lastList){lastList=fingerprint;renderList(data.sessions)}if(active&&!data.sessions.some(item=>item.id===active.id)){liveSync?.dispose();liveSync=null;active=null;studentRoot.hidden=true;studentRoot.innerHTML='';document.getElementById('studentWelcome')?.removeAttribute('hidden');document.getElementById('studentMaterialList').insertAdjacentHTML('afterbegin','<p class="live-error">El profesor ha retirado el material que tenías abierto.</p>')}if(!active){const running=data.sessions.find(item=>item.status==='in_progress');if(running)await openSession(running.id)}}catch(error){document.getElementById('studentMaterialList').innerHTML=`<p class="live-error">${escape(error.message)}</p>`}}
+  async function openSession(id){wordsearchHint=null;wordsearchMessage='';flashFront.clear();clearTimeout(draftTimer);if(active?.id!==id&&liveSync?.status().pending)await liveSync.flush();const loaded=(await request(path(id))).session;if(active?.id!==id){liveSync?.dispose();liveSync=null}active=loaded;ensureSync();activeWord=0;activeLetter=0;firstCard=null;pickedCell=null;reviewIndex=null;const focus=active.progress?.focus;if(focus?.question_index===active.progress?.current_index){const type=active.questions[active.progress.current_index]?.type;if(type==='pasapalabra')activeLetter=focus.part||0;if(type==='wordsearch')activeWord=focus.part||0;if(type==='memory')firstCard=focus.token||null}document.getElementById('studentWelcome')?.setAttribute('hidden','');studentRoot.hidden=false;studentRoot.innerHTML=sessionMarkup(active);mountSentence(active,studentRoot);studentRoot.scrollIntoView({behavior:'smooth',block:'start'});}
+  function renderActive(keepFocus=false){if(!active)return;const focused=keepFocus?document.activeElement?.dataset.liveField:null,part=keepFocus?document.activeElement?.dataset.part:null,selection=keepFocus?document.activeElement?.selectionStart:null;studentRoot.innerHTML=sessionMarkup(active);mountSentence(active,studentRoot);if(liveMessage)gameNotice(liveMessage);if(focused){const field=[...studentRoot.querySelectorAll('[data-live-field]')].find(input=>input.dataset.liveField===focused&&(part==null||input.dataset.part===part));if(field){field.focus({preventScroll:true});if(Number.isInteger(selection)&&field.setSelectionRange)field.setSelectionRange(selection,selection)}}}
   function current(){return Math.max(0,Math.min(active.questions.length-1,Number(active.progress?.current_index)||0))}
   function setValue(index,value){active.progress.responses??={};active.progress.responses[String(index)]=value;}
   function valueFor(index){const q=active.questions[index],value=val(active,index);if(q.type==='order'||q.type==='sentence'||q.type==='timeline')return Array.isArray(value)?value:q.options||[];return value;}
-  async function send(action,index,value,part=null,currentIndex=null){const result=await enqueue({action,question_index:index,value,part,current_index:currentIndex});if(result.session)active=result.session;else{active.revision=result.revision;active.status=result.status;if(result.feedback!=null&&action!=='reveal'){if(part==null){active.progress.grades??={};active.progress.grades[String(index)]=result.feedback}else{active.progress.parts??={};active.progress.parts[String(index)]??={};active.progress.parts[String(index)][String(part)]=result.feedback}}if(result.extra&&active.questions[index].type==='hangman')Object.assign(active.questions[index],result.extra)}return result}
-  function draft(index,value){setValue(index,value);clearTimeout(draftTimer);draftTimer=setTimeout(()=>send('draft',index,value).catch(error=>{studentRoot.insertAdjacentHTML('afterbegin',`<p class="live-error">${escape(error.message)}</p>`)}),400)}
-  async function flush(){if(draftTimer){clearTimeout(draftTimer);draftTimer=null;await send('draft',current(),valueFor(current()))}else await saving.catch(()=>{})}
+  async function send(action,index,value,part=null,currentIndex=null){
+    if(action==='heartbeat')return request(path(active.id)+'/move',{action,question_index:index});
+    const frozen=action==='finish'?[...studentRoot.querySelectorAll('input,textarea,select')].map(field=>[field,field.disabled]):[];frozen.forEach(([field])=>field.disabled=true);
+    try{return await enqueue({action,question_index:index,value,part,current_index:currentIndex})}
+    catch(error){if(action==='check'&&value!=null&&active.questions[index]?.type!=='memory')liveSync.stage(index,value);throw error}finally{frozen.forEach(([field,disabled])=>{if(field.isConnected)field.disabled=disabled})}
+  }
+  function draft(index,value){
+    const previous=val(active,index);
+    if(JSON.stringify(previous)!==JSON.stringify(value)){
+      delete active.progress.grades?.[String(index)];const parts=active.progress.parts?.[String(index)];
+      if(parts){if(Array.isArray(previous)&&Array.isArray(value))for(const key of Object.keys(parts)){if(JSON.stringify(previous[key])!==JSON.stringify(value[key])){delete parts[key];const letter=studentRoot.querySelector(`.live-rosco [data-index="${key}"]`);letter?.classList.remove('correct','incorrect');letter?.querySelector('small')?.remove()}}else delete active.progress.parts[String(index)]}
+      studentRoot.querySelector('.live-feedback')?.remove();
+    }
+    setValue(index,value);ensureSync();liveSync.stage(index,value);
+  }
+  async function flush(){if(liveSync)await liveSync.flush()}
+  window.addEventListener('online',()=>liveSync?.resume().catch(()=>{}));
+  window.addEventListener('beforeunload',event=>{if(liveSync?.status().pending){event.preventDefault();event.returnValue=''}});
+  window.profesorFlushStudentAnswers=flush;
   async function checkPart(index,part,value){setValue(index,value);await send('check',index,value,part);renderActive();}
   async function selectWordsearchCell(r,c){
     const index=current(),q=active.questions[index];
@@ -328,7 +369,7 @@
   studentRoot.addEventListener('pointerdown',event=>{const cell=event.target.closest('[data-live-action="cell"]');if(!cell||cell.disabled||event.button!==0)return;suppressWordClick=false;wordDrag={r:Number(cell.dataset.row),c:Number(cell.dataset.col),x:event.clientX,y:event.clientY,moved:false};});
   studentRoot.addEventListener('pointermove',event=>{if(!wordDrag||event.buttons!==1)return;if(Math.hypot(event.clientX-wordDrag.x,event.clientY-wordDrag.y)>8){wordDrag.moved=true;studentRoot.setPointerCapture(event.pointerId)}});
   studentRoot.addEventListener('pointercancel',()=>wordDrag=null);
-  studentRoot.addEventListener('pointerup',event=>{const drag=wordDrag;wordDrag=null;if(!drag?.moved)return;suppressWordClick=true;const cell=document.elementFromPoint(event.clientX,event.clientY)?.closest('[data-live-action="cell"]');if(!cell)return;pickedCell=[drag.r,drag.c];selectWordsearchCell(Number(cell.dataset.row),Number(cell.dataset.col)).catch(error=>alert(error.message));});
+  studentRoot.addEventListener('pointerup',event=>{const drag=wordDrag;wordDrag=null;if(!drag?.moved)return;suppressWordClick=true;const cell=document.elementFromPoint(event.clientX,event.clientY)?.closest('[data-live-action="cell"]');if(!cell)return;pickedCell=[drag.r,drag.c];selectWordsearchCell(Number(cell.dataset.row),Number(cell.dataset.col)).catch(error=>gameNotice(error.message));});
   studentRoot.addEventListener('keydown',event=>{
     const cell=event.target.closest('[data-live-action="cell"]');
     if(cell&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)){event.preventDefault();const size=active.questions[current()].grid.length;focusCell(Math.max(0,Math.min(size-1,Number(cell.dataset.row)+(event.key==='ArrowDown'?1:event.key==='ArrowUp'?-1:0))),Math.max(0,Math.min(size-1,Number(cell.dataset.col)+(event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:0))));}
@@ -345,18 +386,20 @@
   });
   studentRoot.addEventListener('change',async event=>{
     const field=event.target.closest('select[data-live-field="part"]');if(!field||!active)return;
-    try{await flush();await checkPart(current(),Number(field.dataset.part),val(active,current()))}catch(error){alert(error.message)}
+    try{await flush();await checkPart(current(),Number(field.dataset.part),val(active,current()))}catch(error){gameNotice(error.message)}
   });
   studentRoot.addEventListener('keydown',event=>{if(event.key==='Enter'&&event.target.matches('input[data-live-field]')){event.preventDefault();const part=event.target.dataset.part;const check=part!=null?studentRoot.querySelector(`[data-live-action="check-part"][data-part="${part}"]`):studentRoot.querySelector('[data-live-action="check"]');check?.click()}});
   studentRoot.addEventListener('click',async event=>{
-    const button=event.target.closest('[data-live-action]');if(!button||!active||button.disabled||memoryBusy||flashBusy)return;
+    const button=event.target.closest('[data-live-action]');if(!button||!active||button.disabled||memoryBusy||flashBusy||actionBusy)return;
     const action=button.dataset.liveAction,index=current(),q=active.questions[index];
     if(action==='cell'&&suppressWordClick){suppressWordClick=false;return}
+    gameNotice('');actionBusy=true;button.disabled=true;
     try{
+      if(action==='retry-save'){await flush();return}
       if(action==='start'){await send('start',0,null);renderActive();return}
       if(action==='review'&&active.status==='completed'){reviewIndex=Number(button.dataset.index);renderActive();return}
       if(action==='previous'||action==='next'){await flush();const next=Math.max(0,Math.min(active.questions.length-1,index+(action==='next'?1:-1)));await send('next',index,null,null,next);active.progress.current_index=next;activeWord=activeLetter=0;firstCard=pickedCell=null;wordsearchHint=null;wordsearchMessage='';renderActive();studentRoot.scrollIntoView({block:'start',behavior:'instant'});return}
-      if(action==='finish'){await flush();if(!confirm('¿Terminar el material y ver tu resultado?'))return;await send('finish',index,null);renderActive();await loadList();return}
+      if(action==='finish'){await flush();if(!await confirmGameFinish())return;await send('finish',index,null);renderActive();await loadList();return}
       if(action==='choice'){const value=button.dataset.value;setValue(index,value);await send('check',index,value);renderActive();return}
       if(action==='flash-flip'||action==='flash-grade'){
         flashBusy=true;
@@ -368,7 +411,7 @@
         } finally {flashBusy=false;renderActive();}
         return;
       }
-      if(action==='check'){await flush();const value=valueFor(index);if(q.type==='error'&&(!value||typeof value!=='object'||!value.selected?.trim()||!value.correction?.trim())){alert('Selecciona el error y escribe su corrección.');return}await send('check',index,value);renderActive();return}
+      if(action==='check'){await flush();const value=valueFor(index);if(q.type==='error'&&(!value||typeof value!=='object'||!value.selected?.trim()||!value.correction?.trim())){gameNotice('Selecciona el error y escribe su corrección.');return}await send('check',index,value);renderActive();return}
       if(action==='move'){const value=[...valueFor(index)],from=Number(button.dataset.pos),to=from+Number(button.dataset.dir);[value[from],value[to]]=[value[to],value[from]];setValue(index,value);if(q.type==='timeline'){delete active.progress.grades?.[String(index)];delete active.progress.parts?.[String(index)]}await send('draft',index,value);renderActive();return}
       if(action==='letter'){await flush();activeLetter=Number(button.dataset.index);active.progress.focus={question_index:index,part:activeLetter};renderActive();studentRoot.querySelector('.live-clue input')?.focus();await send('focus',index,null,activeLetter);return}
       if(action==='pass'||action==='letter-previous'){await flush();activeLetter=(activeLetter+(action==='pass'?1:-1)+q.entries.length)%q.entries.length;active.progress.focus={question_index:index,part:activeLetter};renderActive();studentRoot.querySelector('.live-clue input')?.focus();await send('focus',index,null,activeLetter);return}
@@ -407,11 +450,11 @@
       if(action==='reveal'){const result=await send('reveal',index,null);q.revealed_answer=result.feedback;renderActive();return}
       if(action==='hint'){const box=studentRoot.querySelector('#liveHintBox'),visible=box.childElementCount;box.insertAdjacentHTML('beforeend',`<p>💡 ${rich(q.hints[Math.min(visible,q.hints.length-1)])}</p>`);if(visible+1>=q.hints.length)button.hidden=true;return}
       if(action==='error-word'){const words=errorExample(q.prompt).split(/\s+/).filter(Boolean),current=typeof val(active,index)==='object'&&val(active,index)||{},selected=new Set(String(current.selected||'').split(' ').filter(Boolean)),word=words[Number(button.dataset.index)];if(selected.has(word))selected.delete(word);else selected.add(word);const value={...current,selected:words.filter(item=>selected.has(item)).join(' ')};setValue(index,value);delete active.progress.grades?.[String(index)];draft(index,value);renderActive();return}
-    }catch(error){alert(error.message)}
+    }catch(error){gameNotice(error.message)}finally{actionBusy=false;if(button.isConnected)button.disabled=false;else if(!studentRoot.contains(document.activeElement)){const next=[...studentRoot.querySelectorAll('[data-live-action]')].find(item=>!item.disabled&&item.dataset.liveAction===action&&item.dataset.part===button.dataset.part&&item.dataset.value===button.dataset.value);next?.focus({preventScroll:true})}}
   });
-  document.getElementById('studentMaterialList').addEventListener('click',event=>{const button=event.target.closest('[data-live-open]');if(button)openSession(button.dataset.liveOpen).catch(error=>alert(error.message))});
+  document.getElementById('studentMaterialList').addEventListener('click',event=>{const button=event.target.closest('[data-live-open]');if(button)openSession(button.dataset.liveOpen).catch(error=>gameNotice(error.message))});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadList()});
   setInterval(()=>{if(!document.hidden&&window.profesorStudentReady){if(active?.status==='in_progress')send('heartbeat',current(),null).catch(()=>{});if(active?.status==='completed')request(path(active.id)).then(data=>{if(data.session.revision!==active.revision){active=data.session;renderActive()}}).catch(()=>{});loadList()}},5000);
-  document.addEventListener('profesor-student-ready',()=>{active=null;lastList='';studentRoot.hidden=true;studentRoot.innerHTML='';loadList()});
+  document.addEventListener('profesor-student-ready',()=>{lastList='';loadList().then(()=>{if(window.profesorStudentReady)liveSync?.resume().catch(()=>{})})});
   if(window.profesorStudentReady)loadList();
 })();

@@ -31,6 +31,7 @@ COPY apps/profesor/profesor-access.js /app/app/static/assets/profesor-access.js
 COPY apps/profesor/profesor-sentence-board.js /app/app/static/assets/profesor-sentence-board.js
 COPY apps/profesor/profesor-puzzle-boards.js /app/app/static/assets/profesor-puzzle-boards.js
 COPY apps/profesor/profesor-mini-games.js /app/app/static/assets/profesor-mini-games.js
+COPY apps/profesor/profesor-live-sync.js /app/app/static/assets/profesor-live-sync.js
 COPY apps/profesor/profesor-live.js /app/app/static/assets/profesor-live.js
 COPY apps/profesor/profesor-state-history.js /app/app/static/assets/profesor-state-history.js
 COPY apps/profesor/profesor-editor-recovery.js /app/app/static/assets/profesor-editor-recovery.js

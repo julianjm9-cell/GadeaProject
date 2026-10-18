@@ -105,9 +105,15 @@
   if(!Array.isArray(questions)||!questions.length||questions.length>80)throw Error('El material debe tener entre 1 y 80 preguntas.');
   const clean=questions.map((source,index)=>{
    const q=JSON.parse(JSON.stringify(source)),number=index+1;
+   const invalid=(message,field='q')=>{throw Object.assign(Error(message),{questionIndex:index,fieldId:field+'-'+index})};
+   try{
    if(!Object.hasOwn(activityLabels,q.type)||typeof q.prompt!=='string'||typeof q.answer!=='string')throw Error('Formato de ejercicio no válido.');
    q.prompt=q.prompt.trim();q.answer=q.answer.trim();q.text=q.text||'';
-   if(!q.prompt||q.prompt.length>(q.type==='multigaps'?12000:1500)||q.answer.length>2500||typeof q.text!=='string'||q.text.length>12000||!q.answer&&!sequenceTypes.includes(q.type)&&q.type!=='memory'&&!puzzleTypes.includes(q.type)&&q.type!=='imagepoint')throw Error(`Completa el enunciado y la solución del ejercicio ${number}.`);
+   if(!q.prompt)invalid(`Escribe el enunciado del ejercicio ${number}.`);
+   if(q.prompt.length>(q.type==='multigaps'?12000:1500))invalid(`Acorta el enunciado del ejercicio ${number}.`);
+   if(q.answer.length>2500)invalid(`Acorta la solución del ejercicio ${number}.`,'a');
+   if(typeof q.text!=='string'||q.text.length>12000)invalid(`Revisa el texto de lectura del ejercicio ${number}.`,'text');
+   if(!q.answer&&!sequenceTypes.includes(q.type)&&q.type!=='memory'&&!puzzleTypes.includes(q.type)&&q.type!=='imagepoint')invalid(`Escribe la solución del ejercicio ${number}.`,'a');
    const gaps=(q.prompt.match(/___/g)||[]).length;
    if(q.type==='gaps'&&gaps!==1)throw Error(`El ejercicio ${number} debe tener exactamente un hueco ___.`);
    if(q.type==='multigaps'&&(gaps<2||gaps>20))throw Error('El texto debe tener entre 2 y 20 huecos ___.');
@@ -116,27 +122,27 @@
    q.options=q.options.map(v=>v.trim()).filter(Boolean);
    if(optionTypes.includes(q.type)){
     const max=q.type==='mystery'?3:limits[q.type]||5;
-    if(q.options.length<2||q.options.length>max||q.options.some(v=>v.length>300)||q.type!=='multigaps'&&new Set(q.options.map(v=>v.toLocaleLowerCase())).size!==q.options.length)throw Error(`Revisa las opciones del ejercicio ${number}.`);
+    if(q.options.length<2||q.options.length>max||q.options.some(v=>v.length>300)||q.type!=='multigaps'&&new Set(q.options.map(v=>v.toLocaleLowerCase())).size!==q.options.length)invalid(`Revisa las opciones del ejercicio ${number}: comprueba su cantidad, longitud y que no se repitan.`,'o');
     if(sequenceTypes.includes(q.type))q.answer=q.options.join(' → ');
     else if(q.type==='memory'){validateMemory(q.options);q.answer='Completado';}
     else if(puzzleTypes.includes(q.type)){puzzleRows(q.type,q.options);q.answer=q.type==='multigaps'?q.options.join(' | '):'Completado';}
     else if(q.type==='mystery'){window.profesorMiniGames.validate(q);}
-    else if(!q.options.includes(q.answer))throw Error(`La solución del ejercicio ${number} debe coincidir con una opción.`);
+    else if(!q.options.includes(q.answer))invalid(`La solución del ejercicio ${number} debe coincidir con una opción.`,'a');
    }
    if(['mystery','intruder','bingo'].includes(q.type))window.profesorMiniGames.validate(q);
-   if(q.type==='multigaps'&&gaps!==q.options.length)throw Error('Añade una solución por cada hueco.');
+   if(q.type==='multigaps'&&gaps!==q.options.length)invalid('Añade una solución por cada hueco.','o');
    if(q.type==='boolean'&&(q.options.length!==2||!q.options.includes('Verdadero')||!q.options.includes('Falso')))throw Error('Verdadero / Falso requiere esas dos opciones.');
-   if(q.type==='reading'&&!q.text.trim())throw Error('Añade el texto de lectura.');
-   if(q.type==='numeric'&&(!q.answer.trim()||!Number.isFinite(Number(q.answer.replace(',','.')))))throw Error('La solución numérica debe ser un número.');
-   if(q.type==='hangman'&&!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s-]{1,39}$/.test(q.answer))throw Error('Ahorcado: usa una palabra o expresión de 2 a 40 caracteres.');
-   for(const [key,limit] of [['explanation',1500],['rubric',1000],['unit',30],['errorSegment',200],['correctedSegment',200]])if(q[key]!=null&&(typeof q[key]!=='string'||q[key].length>limit))throw Error(`Revisa ${key} del ejercicio ${number}.`);
-   if(q.errorSegment&&!q.prompt.includes(q.errorSegment))throw Error('El fragmento erróneo debe aparecer en el enunciado.');
-   if(q.type==='error'&&q.correctedSegment&&(!q.errorSegment||q.correctedSegment.trim().toLocaleLowerCase('es')===q.errorSegment.trim().toLocaleLowerCase('es')))throw Error('La corrección debe ser distinta del fragmento erróneo.');
-   for(const [key,count,limit] of [['hints',3,300],['alternatives',6,100],['wordBank',12,100]])if(q[key]!=null&&(!Array.isArray(q[key])||q[key].length>count||q[key].some(v=>typeof v!=='string'||!v.trim()||v.length>limit)))throw Error(`Revisa las pistas y alternativas del ejercicio ${number}.`);
+   if(q.type==='reading'&&!q.text.trim())invalid('Añade el texto de lectura.','text');
+   if(q.type==='numeric'&&(!q.answer.trim()||!Number.isFinite(Number(q.answer.replace(',','.')))))invalid('Escribe un número como solución; puedes usar coma decimal.','a');
+   if(q.type==='hangman'&&!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s-]{1,39}$/.test(q.answer))invalid('Ahorcado: usa una palabra o expresión de 2 a 40 caracteres.','a');
+   for(const [key,limit] of [['explanation',1500],['rubric',1000],['unit',30],['errorSegment',200],['correctedSegment',200]])if(q[key]!=null&&(typeof q[key]!=='string'||q[key].length>limit))invalid(`Revisa ${key} del ejercicio ${number}.`,key);
+   if(q.errorSegment&&!q.prompt.includes(q.errorSegment))invalid('El fragmento erróneo debe aparecer exactamente en el enunciado.','errorSegment');
+   if(q.type==='error'&&q.correctedSegment&&(!q.errorSegment||q.correctedSegment.trim().toLocaleLowerCase('es')===q.errorSegment.trim().toLocaleLowerCase('es')))invalid('La corrección debe ser distinta del fragmento erróneo.','correctedSegment');
+   for(const [key,count,limit] of [['hints',3,300],['alternatives',6,100],['wordBank',12,100]])if(q[key]!=null&&(!Array.isArray(q[key])||q[key].length>count||q[key].some(v=>typeof v!=='string'||!v.trim()||v.length>limit)))invalid(`Revisa las pistas y alternativas del ejercicio ${number}.`,key);
    if(q.optionFeedback!=null&&(!['quiz','boolean','classify'].includes(q.type)||!Array.isArray(q.optionFeedback)||q.optionFeedback.length!==q.options.length||new Set(q.optionFeedback.map(row=>row?.option)).size!==q.options.length||q.optionFeedback.some(row=>!row||!q.options.includes(row.option)||typeof row.explanation!=='string'||!row.explanation.trim()||row.explanation.length>400)))throw Error('Revisa la explicación de cada opción.');
    if(q.itemExplanations!=null&&(!Object.hasOwn(limits,q.type)||!Array.isArray(q.itemExplanations)||q.itemExplanations.length!==q.options.length||q.itemExplanations.some(value=>typeof value!=='string'||!value.trim()||value.length>300)))throw Error('Añade una explicación por elemento en el mismo orden que sus opciones.');
    if(q.calculation!=null&&(q.type!=='numeric'||typeof q.calculation!=='string'||q.calculation.length>160))throw Error('Cálculo de comprobación no válido.');
-   if(q.tolerance!=null&&(!Number.isFinite(q.tolerance)||q.tolerance<0||q.tolerance>1e6))throw Error('Tolerancia numérica no válida.');
+   if(q.tolerance!=null&&(!Number.isFinite(q.tolerance)||q.tolerance<0||q.tolerance>1e6))invalid('La tolerancia debe ser un número entre 0 y 1000000.','tolerance');
    if(visualTypes.includes(q.type)){
     if(q.image&&(typeof q.image.id!=='string'||!q.image.id||typeof q.image.filename!=='string'))throw Error('Imagen no válida.');
     if(requireImages&&!q.image)throw Error(`Selecciona una imagen para el ejercicio ${number}.`);
@@ -151,6 +157,7 @@
    }
    if(q.activityGroup!=null&&(!Number.isInteger(q.activityGroup)||q.activityGroup<1||q.activityGroup>20))throw Error('Grupo de actividad no válido.');
    q.id=q.id||uid();q.text=q.text.trim();return q;
+   }catch(error){error.questionIndex=index;if(!error.fieldId)error.fieldId=(q.type==='reading'?'text':optionTypes.includes(q.type)?'o':'q')+'-'+index;throw error}
   });
   const pairs=clean.filter(q=>q.type==='pairs').map(q=>(q.activityGroup||0)+'|'+q.answer.toLocaleLowerCase());
   if(new Set(pairs).size!==pairs.length)throw Error('Las respuestas de Relacionar deben ser distintas en cada actividad.');return clean;
@@ -218,7 +225,7 @@
  function readQuestionFeedback(index,q,requireComplete=false){
   const root=$('questionFeedback-'+index),options=$('o-'+index)?.value.split('\n').map(v=>v.trim()).filter(Boolean)||[];
   const values=root?[...root.querySelectorAll('textarea')].map(input=>input.value.trim()):[];
-  if(requireComplete&&values.some(Boolean)&&values.some(value=>!value)){root.closest('details').open=true;throw Error('Completa todas las explicaciones del ejercicio '+(index+1)+' o déjalas todas vacías.');}
+  if(requireComplete&&values.some(Boolean)&&values.some(value=>!value)){root.closest('details').open=true;throw Object.assign(Error('Completa todas las explicaciones del ejercicio '+(index+1)+' o déjalas todas vacías.'),{questionIndex:index,fieldId:'feedbackField-'+index+'-'+values.findIndex(value=>!value)});}
   return {optionFeedback:['quiz','boolean','classify'].includes(q.type)&&values.length>0&&values.length===options.length&&values.every(Boolean)?options.map((option,n)=>({option,explanation:values[n]})):undefined,
    itemExplanations:Object.hasOwn(limits,q.type)&&values.length>0&&values.length===options.length&&values.every(Boolean)?values:undefined};
  }

@@ -1,0 +1,263 @@
+[
+  {
+    "prompt": "Elige la respuesta correcta.",
+    "answer": "Completado",
+    "options": [
+      "Concepto 1 | Definición número 1",
+      "Concepto 2 | Definición número 2",
+      "Concepto 3 | Definición número 3",
+      "Concepto 4 | Definición número 4",
+      "Concepto 5 | Definición número 5",
+      "Concepto 6 | Definición número 6",
+      "Concepto 7 | Definición número 7",
+      "Concepto 8 | Definición número 8",
+      "Concepto 9 | Definición número 9"
+    ],
+    "id": "qa-bingo",
+    "type": "bingo"
+  },
+  {
+    "prompt": "Dos más dos son cuatro.",
+    "answer": "Verdadero",
+    "options": [
+      "Verdadero",
+      "Falso"
+    ],
+    "id": "qa-boolean",
+    "type": "boolean"
+  },
+  {
+    "prompt": "Elige la respuesta correcta.",
+    "answer": "4",
+    "options": [
+      "3",
+      "4",
+      "5"
+    ],
+    "id": "qa-classify",
+    "type": "classify"
+  },
+  {
+    "prompt": "Elige la respuesta correcta.",
+    "answer": "Completado",
+    "options": [
+      "CASA | Vivienda",
+      "SOL | Astro",
+      "SAL | Condimento"
+    ],
+    "id": "qa-crossword",
+    "type": "crossword"
+  },
+  {
+    "prompt": "Elige la respuesta correcta.",
+    "answer": "Completado",
+    "options": [
+      "Gato | Mamífero",
+      "Perro | Mamífero",
+      "Águila | Ave"
+    ],
+    "id": "qa-dragdrop",
+    "type": "dragdrop"
+  },
+  {
+    "prompt": "Corrige: Tú trajistes el libro.",
+    "answer": "Tú trajiste el libro.",
+    "options": [],
+    "errorSegment": "trajistes",
+    "correctedSegment": "trajiste",
+    "id": "qa-error",
+    "type": "error"
+  },
+  {
+    "prompt": "Capital de Francia",
+    "answer": "París",
+    "options": [],
+    "id": "qa-flashcard",
+    "type": "flashcard"
+  },
+  {
+    "prompt": "2 + 2 = ___.",
+    "answer": "4",
+    "options": [],
+    "id": "qa-gaps",
+    "type": "gaps"
+  },
+  {
+    "prompt": "Lugar donde vives",
+    "answer": "CASA",
+    "options": [],
+    "id": "qa-hangman",
+    "type": "hangman"
+  },
+  {
+    "prompt": "Elige la respuesta correcta.",
+    "answer": "Zona marcada",
+    "options": [],
+    "target": {
+      "x": 50,
+      "y": 50
+    },
+    "id": "qa-imagepoint",
+    "type": "imagepoint"
+  },
+  {
+    "prompt": "Elige el que no es un mamífero",
+    "answer": "Piedra",
+    "options": [
+      "Gato",
+      "Perro",
+      "Piedra"
+    ],
+    "id": "qa-intruder",
+    "type": "intruder"
+  },
+  {
+    "prompt": "Elige la respuesta correcta.",
+    "answer": "Completado",
+    "options": [
+      "gato | cat",
+      "perro | dog",
+      "pez | fish"
+    ],
+    "id": "qa-memory",
+    "type": "memory"
+  },
+  {
+    "prompt": "El ___ da luz y la ___ brilla por la noche.",
+    "answer": "Completado",
+    "options": [
+      "sol",
+      "luna"
+    ],
+    "id": "qa-multigaps",
+    "type": "multigaps"
+  },
+  {
+    "prompt": "Descubre el animal",
+    "answer": "Gato",
+    "options": [
+      "Es un animal",
+      "Es un felino doméstico",
+      "Suele maullar"
+    ],
+    "id": "qa-mystery",
+    "type": "mystery"
+  },
+  {
+    "prompt": "Calcula 3 dividido entre 2.",
+    "answer": "1.5",
+    "options": [],
+    "id": "qa-numeric",
+    "type": "numeric"
+  },
+  {
+    "prompt": "Elige la respuesta correcta.",
+    "answer": "primero → segundo → tercero",
+    "options": [
+      "primero",
+      "segundo",
+      "tercero"
+    ],
+    "id": "qa-order",
+    "type": "order"
+  },
+  {
+    "prompt": "Elige la respuesta correcta.",
+    "answer": "4",
+    "options": [
+      "3",
+      "4",
+      "5"
+    ],
+    "id": "qa-pairs",
+    "type": "pairs"
+  },
+  {
+    "prompt": "Elige la respuesta correcta.",
+    "answer": "Completado",
+    "options": [
+      "A | Ave rapaz | Águila",
+      "B | Embarcación | Barco",
+      "C | Vivienda | Casa"
+    ],
+    "id": "qa-pasapalabra",
+    "type": "pasapalabra"
+  },
+  {
+    "prompt": "Explica cómo repartirías seis manzanas entre dos personas.",
+    "answer": "Dividimos las seis manzanas en dos grupos iguales de tres.",
+    "options": [],
+    "id": "qa-problem",
+    "type": "problem"
+  },
+  {
+    "prompt": "Elige la respuesta correcta.",
+    "answer": "4",
+    "options": [
+      "3",
+      "4",
+      "5"
+    ],
+    "id": "qa-quiz",
+    "type": "quiz"
+  },
+  {
+    "prompt": "Explica por qué Ana regó la planta.",
+    "answer": "La regó porque la tierra estaba seca y la planta necesitaba agua.",
+    "options": [],
+    "text": "Ana vio que la tierra estaba seca. Cogió agua y regó la planta.",
+    "id": "qa-reading",
+    "type": "reading"
+  },
+  {
+    "prompt": "Ordena la frase.",
+    "answer": "El → gato → duerme.",
+    "options": [
+      "El",
+      "gato",
+      "duerme."
+    ],
+    "id": "qa-sentence",
+    "type": "sentence"
+  },
+  {
+    "prompt": "Capital de Francia",
+    "answer": "París",
+    "options": [],
+    "id": "qa-short",
+    "type": "short"
+  },
+  {
+    "prompt": "Ordena estos años.",
+    "answer": "Completado",
+    "options": [
+      "1901 – Primer hecho",
+      "1910 – Segundo hecho",
+      "1920 – Tercer hecho"
+    ],
+    "id": "qa-timeline",
+    "type": "timeline"
+  },
+  {
+    "prompt": "Elige la respuesta correcta.",
+    "answer": "4",
+    "options": [
+      "3",
+      "4",
+      "5"
+    ],
+    "id": "qa-visualquiz",
+    "type": "visualquiz"
+  },
+  {
+    "prompt": "Elige la respuesta correcta.",
+    "answer": "Completado",
+    "options": [
+      "SOL",
+      "MAR",
+      "LUNA"
+    ],
+    "id": "qa-wordsearch",
+    "type": "wordsearch"
+  }
+]

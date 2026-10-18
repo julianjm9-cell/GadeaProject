@@ -712,7 +712,7 @@
       if(objectiveShort(q))return [q.answer,...(q.alternatives||[])].some(answer=>shortKey(value)===shortKey(answer))?'correct':'incorrect';
       if(openAnswerTypes.includes(q.type))return 'pending';
       if(sequenceTypes.includes(q.type))return touchedSequences.has(index)?sequences[index].length===q.options.length&&sequences[index].every((item,position)=>item===expectedSequence(q)[position])?'correct':'incorrect':'unanswered';
-      if(q.type==='numeric'){const n=numberValue(value),s=numberValue(q.answer);return Number.isFinite(n)&&Math.abs(n-s)<=(q.tolerance||0)+Number.EPSILON*Math.max(1,Math.abs(s))*4?'correct':'incorrect';}
+      if(q.type==='numeric'){const n=numberValue(value),s=numberValue(q.answer);return Number.isFinite(n)&&Number.isFinite(s)&&Math.abs(n-s)<=(q.tolerance||0)+Number.EPSILON*Math.max(1,Math.abs(s))*4?'correct':'incorrect';}
       if(q.type==='imagepoint'){const [x,y]=value.split(',').map(Number);return (q.target.width&&q.target.height?Math.abs(x-q.target.x)<=q.target.width/2&&Math.abs(y-q.target.y)<=q.target.height/2:Math.hypot(x-q.target.x,y-q.target.y)<=10)?'correct':'incorrect';}
       return accepts(value,q.answer,q.alternatives)?'correct':'incorrect';
     }
@@ -734,6 +734,13 @@
       if(sequenceTypes.includes(q.type))renderSequence(index);
       if(q.type==='error')errorBoards[index]?.review(grade);
     }
+    function confirmPlayFinish(){return new Promise(resolve=>{
+      const unanswered=questions.filter((_,i)=>gradeQuestion(i)==='unanswered').length,panel=document.createElement('section'),dialog=$('dialog');
+      panel.className='live-finish-confirm';panel.setAttribute('role','group');panel.setAttribute('aria-label','Terminar el material');
+      panel.innerHTML=`<strong>¿Terminar y ver tu resultado?</strong><p>${unanswered?`Quedan ${unanswered} ejercicios sin responder. Puedes revisarlos antes de terminar.`:'Se mostrará el resultado y podrás repasar tus respuestas.'}</p><div><button type="button" data-finish="stay">Seguir jugando</button><button type="button" class="primary" data-finish="finish">Terminar material</button></div>`;
+      content.prepend(panel);const done=value=>{panel.remove();dialog.removeEventListener('close',cancel);resolve(value)},cancel=()=>done(false);dialog.addEventListener('close',cancel,{once:true});
+      panel.querySelector('[data-finish="stay"]').onclick=()=>done(false);panel.querySelector('[data-finish="finish"]').onclick=()=>done(true);panel.scrollIntoView({block:'start',behavior:'smooth'});panel.querySelector('button').focus();
+    })}
     const touchedSequences = new Set(), confirmedSequences = new Set(), groupReviews = [];
     let checked = false;
     let attempt = null;
@@ -743,8 +750,9 @@
       if (sequences[index].every((item,position)=>item===expectedSequence(q)[position]) && sequences[index].length > 1) sequences[index].reverse();
     });
     const studentName = studentId ? student(studentId)?.name || 'Alumno' : '';
-    modal('Ejercicios', `${questions.map((q, i) => questionMarkup(q, i, pairChoices)).join('')}<p id="activityScore" class="play-score" role="status"></p>${submit('Terminar')}`, form => {
+    modal('Ejercicios', `${questions.map((q, i) => questionMarkup(q, i, pairChoices)).join('')}<p id="activityScore" class="play-score" role="status"></p>${submit('Terminar')}`, async form => {
       if (checked) return false;
+      if(!await confirmPlayFinish())return false;
       questions.forEach((q,index)=>confirmQuestion(index));
       const answers = questions.map((q, index) => String(form.get('r-' + index) || ''));
       const grades = questions.map((q,index)=>gradeQuestion(index));
