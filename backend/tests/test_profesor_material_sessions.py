@@ -233,6 +233,9 @@ def test_every_generated_activity_type_can_be_prepared_for_a_student():
         "intruder": {"answer": "Piedra", "options": ["Gato", "Perro", "Piedra"]},
         "bingo": {"answer": "Completado", "options": [f"Concepto {i} | Definición número {i}" for i in range(9)]},
     }
+    from pathlib import Path
+    import json
+    overrides.update({q['type']:q for q in json.loads((Path(__file__).resolve().parents[2]/'apps/profesor/tests/fixtures/challenge-games.json').read_text(encoding='utf-8'))})
     for kind in SUPPORTED:
         source = {**base, **overrides.get(kind, {}), "type": kind}
         question = prepare(source, 123)

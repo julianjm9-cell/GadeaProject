@@ -4,7 +4,8 @@ const {readFileSync}=require('node:fs');
 const {join}=require('node:path');
 const vm=require('node:vm');
 const code=readFileSync(join(__dirname,'../profesor-live.js'),'utf8');
-const context={};vm.createContext(context);
+const context={window:{}};vm.createContext(context);
+vm.runInContext(readFileSync(join(__dirname,'../profesor-challenge-games.js'),'utf8'),context);
 vm.runInContext(code.slice(code.indexOf('  function summaryValue('),code.indexOf('  function questionMarkup(')),context);
 const summary=(value,question)=>context.summaryValue(value,question);
 test('Memory shows the matched concepts and never opaque tokens, including unavailable historic cards',()=>{

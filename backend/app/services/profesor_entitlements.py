@@ -9,7 +9,7 @@ from sqlalchemy import select
 from app.models import AppSetting, User
 from app.services.licenses import profesor_account_plan
 
-ADVANCED_TYPES = frozenset(('pasapalabra', 'hangman', 'wordsearch', 'memory', 'flashcard', 'sentence', 'timeline', 'error', 'crossword', 'dragdrop', 'mystery', 'intruder', 'bingo'))
+ADVANCED_TYPES = frozenset(('pasapalabra', 'hangman', 'wordsearch', 'memory', 'flashcard', 'sentence', 'timeline', 'error', 'crossword', 'dragdrop', 'mystery', 'intruder', 'bingo', 'cipher', 'race'))
 STUDENT_LIMIT = 3
 ZONE = ZoneInfo('Europe/Madrid')
 

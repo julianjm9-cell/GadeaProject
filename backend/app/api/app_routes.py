@@ -709,6 +709,7 @@ def profesor_temario_catalogue():
 @router.get("/profesor-temario-depth.js")
 @router.get("/profesor-sentence-board.js")
 @router.get("/profesor-puzzle-boards.js")
+@router.get("/profesor-challenge-games.js")
 @router.get("/profesor-mini-games.js")
 @router.get("/profesor-activity-play.js")
 @router.get("/profesor-generator.js")
@@ -740,6 +741,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-game-usability.css")
 @router.get("/assets/profesor-timeline-theme.css")
 @router.get("/assets/profesor-puzzle-theme.css")
+@router.get("/assets/profesor-challenge-games.css")
 @router.get("/assets/profesor-mini-games.css")
 @router.get("/assets/profesor-sentence-theme.css")
 @router.get("/assets/profesor-memory-theme.css")
@@ -807,6 +809,10 @@ def profesor_game_illustration(filename: str):
         "mystery.webp",
         "intruder.webp",
         "bingo.webp",
+        "multiselect.webp",
+        "table.webp",
+        "cipher.webp",
+        "race.webp",
         "games-overview.webp",
         "pasapalabra.webp",
         "sentence.webp",

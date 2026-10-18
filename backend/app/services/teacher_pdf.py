@@ -163,7 +163,7 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
               "order":"Ordenar", "classify":"Clasificar", "boolean":"Verdadero o falso", "reading":"Comprensión",
               "problem":"Problemas", "flashcard":"Tarjeta", "memory":"Memory", "sentence":"Construye la frase",
               "timeline":"Línea temporal", "error":"Encuentra el error", "wordsearch":"Sopa de letras",
-              "crossword":"Crucigrama", "dragdrop":"Asociar", "pasapalabra":"Pasapalabra", "hangman":"Ahorcado", "visualquiz":"Quiz visual", "imagepoint":"Señalar imagen", "mystery":"¿Quién soy?", "intruder":"Elimina al intruso", "bingo":"Bingo de conceptos"}
+              "crossword":"Crucigrama", "dragdrop":"Asociar", "pasapalabra":"Pasapalabra", "hangman":"Ahorcado", "visualquiz":"Quiz visual", "imagepoint":"Señalar imagen", "mystery":"¿Quién soy?", "intruder":"Elimina al intruso", "bingo":"Bingo de conceptos", "multiselect":"Selecciona todas las correctas", "table":"Completa la tabla", "cipher":"Descifra el mensaje", "race":"Carrera del conocimiento"}
     seen_readings = set()
     for index, q in enumerate(questions, 1):
         if not isinstance(q, dict) or q.get("type") not in labels:
@@ -212,7 +212,32 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
             section.append(Paragraph('Unidad: ' + _text(q['unit'], 30), styles['TeacherSmall']))
         if not solutions and kind in ('gaps', 'multigaps') and q.get('wordBank'):
             section.append(Paragraph('Banco de palabras: ' + ' / '.join(_text(word, 100) for word in sorted(_lines(q['wordBank'], 12))), styles['TeacherSmall']))
-        if kind in ("quiz", "visualquiz", "boolean", "classify", "intruder"):
+        if kind in ('multiselect', 'table', 'cipher', 'race'):
+            from app.services.teacher_challenge_games import prepare as prepare_challenge, solutions as challenge_solutions
+            entries = prepare_challenge(kind, options, 17)
+            if kind == 'table':
+                row_names = list(dict.fromkeys(entry['row'] for entry in entries))
+                columns = list(dict.fromkeys(entry['column'] for entry in entries))
+                content = [[Paragraph(_text(label, 80), styles['TeacherBody']) for label in ['Concepto'] + columns]]
+                for name in row_names:
+                    content.append([Paragraph(_text(name, 80), styles['TeacherBody'])] + [Paragraph(_text(next(entry['answer'] for entry in entries if entry['row'] == name and entry['column'] == column) if solutions else '____________', 80), styles['TeacherBody']) for column in columns])
+                table = Table(content, colWidths=[162*mm / (len(columns)+1)] * (len(columns)+1), repeatRows=1)
+                table.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('GRID',(0,0),(-1,-1),.6,PALE),('BACKGROUND',(0,0),(-1,0),colors.HexColor('#eff7ff')),('TOPPADDING',(0,0),(-1,-1),9),('BOTTOMPADDING',(0,0),(-1,-1),9)]))
+                section.append(table)
+            else:
+                for number, entry in enumerate(entries, 1):
+                    if kind == 'multiselect':
+                        section.append(Paragraph('[  ] ' + _text(entry['label'], 180), styles['TeacherBody']))
+                    elif kind == 'cipher':
+                        section.append(Paragraph(f'Pista {number}: ' + _text(entry['clue'], 180) + ' — Respuesta: ______________', styles['TeacherBody']))
+                    else:
+                        section.append(Paragraph(f'Reto {number}: ' + _text(entry['clue'], 150), styles['TeacherBody']))
+                        for letter, choice in zip('ABC', entry['choices']):
+                            section.append(Paragraph(letter + '. ' + _text(choice['label'], 60), styles['TeacherBody']))
+                if kind == 'cipher':
+                    section.append(Paragraph('Mensaje: ' + (' '.join(entry['letter'] for entry in entries) if solutions else '___ ' * len(entries)), styles['TeacherBody']))
+        elif kind in ("quiz", "visualquiz", "boolean", "classify", "intruder"):
+
             for letter, option in zip("ABCDEFGH", options):
                 section.append(Paragraph(f"{letter}. {_text(option, 300)}", styles["TeacherBody"]))
         elif kind == 'mystery':
@@ -276,7 +301,9 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
                     section.extend([Paragraph(label, styles['TeacherBody']), Spacer(1, 8*mm)])
         if solutions:
             answer = q.get("answer") or ""
-            if kind == "imagepoint":
+            if kind in ('multiselect', 'table', 'cipher', 'race'):
+                answer = '; '.join(challenge_solutions({'type':kind, '_challenge':entries}))
+            elif kind == "imagepoint":
                 target = q.get("target") or {}
                 answer = f"Zona marcada por el profesor ({target.get('x', '?')} %, {target.get('y', '?')} %)"
             elif kind in ("wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps", "bingo"):
@@ -298,7 +325,7 @@ def render_teacher_pdf(material: dict, solutions: bool, image_loader: Callable[[
                         section.extend(text_blocks(label + ': ' + reason[:300], styles['TeacherSmall'], 172*mm, 600))
             if q.get('rubric'):
                 section.append(Paragraph('Criterios de revisión: ' + _text(q['rubric'], 1000), styles['TeacherSmall']))
-        elif kind not in ("quiz", "visualquiz", "boolean", "classify", "wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps", "hangman", "mystery", "intruder", "bingo"):
+        elif kind not in ("quiz", "visualquiz", "boolean", "classify", "wordsearch", "crossword", "dragdrop", "memory", "pasapalabra", "multigaps", "hangman", "mystery", "intruder", "bingo", "multiselect", "table", "cipher", "race"):
             section.append(Paragraph("________________________________________________________________________", styles["TeacherSmall"]))
         section.append(Spacer(1, 2*mm))
 

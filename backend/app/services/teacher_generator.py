@@ -8,9 +8,9 @@ import httpx
 from uuid import UUID
 from fastapi import HTTPException
 
-TYPES = ('pairs', 'gaps', 'quiz', 'short', 'order', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'memory', 'sentence', 'timeline', 'error', 'wordsearch', 'crossword', 'dragdrop', 'multigaps', 'numeric', 'pasapalabra', 'hangman', 'mystery', 'intruder', 'bingo')
+TYPES = ('pairs', 'gaps', 'quiz', 'short', 'order', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'memory', 'sentence', 'timeline', 'error', 'wordsearch', 'crossword', 'dragdrop', 'multigaps', 'numeric', 'pasapalabra', 'hangman', 'mystery', 'intruder', 'bingo', 'multiselect', 'table', 'cipher', 'race')
 BUNDLE_TYPES = {'pairs', 'gaps', 'quiz', 'short', 'classify', 'boolean', 'reading', 'problem', 'flashcard', 'error', 'numeric', 'hangman', 'mystery', 'intruder'}
-ELEMENT_LIMITS = {'multigaps': 20, 'pasapalabra': 27, 'crossword': 7, 'wordsearch': 8, 'memory': 8, 'dragdrop': 8, 'order': 8, 'sentence': 8, 'timeline': 8, 'bingo': 9}
+ELEMENT_LIMITS = {'multigaps': 20, 'pasapalabra': 27, 'crossword': 7, 'wordsearch': 8, 'memory': 8, 'dragdrop': 8, 'order': 8, 'sentence': 8, 'timeline': 8, 'bingo': 9, 'multiselect': 6, 'table': 12, 'cipher': 10, 'race': 12}
 ROSCO_LETTERS = 'ABCDEFGHIJLMNOPRSTUVWÑKXYZQ'
 MAX_ACTIVITIES = 1
 
@@ -61,6 +61,10 @@ def puzzle_word(value):
 
 
 def puzzle_rows(kind, options):
+    from app.services.teacher_challenge_games import TYPES as CHALLENGES, validate, parse_entry
+    if kind in CHALLENGES:
+        validate(kind, options)
+        return [parse_entry(kind, item) for item in options]
     if kind == 'bingo':
         entries = [[part.strip() for part in item.split('|')] for item in options]
         if len(entries) != 9 or any(len(row) != 2 or not 1 <= len(row[0]) <= 80 or not 1 <= len(row[1]) <= 140 for row in entries):
@@ -157,7 +161,7 @@ def generator_context(payload):
         if type(payload['qualityVersion']) is not int or payload['qualityVersion'] != 1:
             raise HTTPException(422, 'Versión de calidad no válida.')
         context['qualityVersion'] = 1
-    if 'activitySizes' in payload or any(context.get(kind) for kind in ('mystery', 'intruder', 'bingo')):
+    if 'activitySizes' in payload or any(context.get(kind) for kind in ('mystery', 'intruder', 'bingo', 'multiselect', 'table', 'cipher', 'race')):
         sizes = payload.get('activitySizes', {})
         if not isinstance(sizes, dict) or any(key not in TYPES for key in sizes):
             raise HTTPException(422, 'Tamaños de actividad no válidos.')
@@ -167,9 +171,11 @@ def generator_context(payload):
                 continue
             size = sizes.get(kind, 9 if kind == 'bingo' else 3 if kind == 'mystery' else 5 if kind == 'intruder' else 18 if kind == 'pasapalabra' else 6)
             limit = ELEMENT_LIMITS.get(kind, 12)
-            minimum = 9 if kind == 'bingo' else 3 if kind in ('pasapalabra', 'wordsearch', 'crossword', 'dragdrop') else 2
+            minimum = 4 if kind in ('table', 'race') else 3 if kind in ('multiselect', 'cipher') else 9 if kind == 'bingo' else 3 if kind in ('pasapalabra', 'wordsearch', 'crossword', 'dragdrop') else 2
             if type(size) is not int or not minimum <= size <= limit:
                 raise HTTPException(422, f'El tamaño de {kind} debe estar entre {minimum} y {limit}.')
+            if kind == 'table' and size not in (4, 6, 8, 9, 10, 12):
+                raise HTTPException(422, 'Tabla: elige 4, 6, 8, 9, 10 o 12 casillas para formar un rectángulo completo.')
             context['activitySizes'][kind] = size
         if sum(context[k] * (context['activitySizes'][k] if k in BUNDLE_TYPES else 1) for k in TYPES if context[k]) > 80:
             raise HTTPException(422, 'El material puede tener hasta 80 preguntas. Reduce las actividades o las preguntas por actividad.')
@@ -520,9 +526,9 @@ def parse_material(content, context):
                 raise ValueError('Ahorcado requiere una palabra o expresión de 2 a 40 caracteres, solo letras, espacios y guiones.')
             options = []
             field = 'options'
-            if kind in ('quiz', 'classify', 'boolean', 'order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop', 'pasapalabra', 'multigaps', 'mystery', 'intruder', 'bingo'):
+            if kind in ('quiz', 'classify', 'boolean', 'order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop', 'pasapalabra', 'multigaps', 'mystery', 'intruder', 'bingo', 'multiselect', 'table', 'cipher', 'race'):
                 options = q['options']
-                if not isinstance(options, list) or not 2 <= len(options) <= (9 if kind == 'bingo' else 27 if kind == 'pasapalabra' else 8 if kind in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'dragdrop') else 7 if kind == 'crossword' else 20 if kind == 'multigaps' else 5) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in options):
+                if not isinstance(options, list) or not 2 <= len(options) <= (ELEMENT_LIMITS[kind] if kind in ('multiselect','table','cipher','race') else 9 if kind == 'bingo' else 27 if kind == 'pasapalabra' else 8 if kind in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'dragdrop') else 7 if kind == 'crossword' else 20 if kind == 'multigaps' else 5) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in options):
                     raise ValueError(f'{kind}: la lista options tiene un tamaño o formato incorrecto.')
                 options = [v.strip() for v in options]
                 if kind == 'timeline':
@@ -540,9 +546,9 @@ def parse_material(content, context):
                         options = [options[index] for index in order]
                         if isinstance(q.get('itemExplanations'), list) and len(q['itemExplanations']) == len(order):
                             q = {**q, 'itemExplanations': [q['itemExplanations'][index] for index in order]}
-                if len('\n'.join(options)) > (8100 if kind == 'pasapalabra' else 2500 if kind in ('multigaps', 'bingo') else 1500):
+                if len('\n'.join(options)) > (8100 if kind == 'pasapalabra' else 4000 if kind in ('multiselect','table','cipher','race') else 2500 if kind in ('multigaps', 'bingo') else 1500):
                     raise ValueError()
-                if (kind != 'multigaps' and len(set(v.casefold() for v in options)) != len(options)) or (kind not in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop', 'pasapalabra', 'multigaps', 'mystery', 'bingo') and answer not in options):
+                if (kind != 'multigaps' and len(set(v.casefold() for v in options)) != len(options)) or (kind not in ('order', 'sentence', 'timeline', 'memory', 'wordsearch', 'crossword', 'dragdrop', 'pasapalabra', 'multigaps', 'mystery', 'bingo', 'multiselect', 'table', 'cipher', 'race') and answer not in options):
                     raise ValueError()
             if kind == 'mystery':
                 if len(options) != 3 or len(answer) > 100:
@@ -565,7 +571,7 @@ def parse_material(content, context):
                 if any(len({pair[side].casefold() for pair in pairs}) != len(pairs) for side in (0, 1)):
                     raise ValueError()
                 answer = 'Completado'
-            if kind in ('wordsearch', 'crossword', 'dragdrop', 'pasapalabra', 'multigaps', 'bingo'):
+            if kind in ('wordsearch', 'crossword', 'dragdrop', 'pasapalabra', 'multigaps', 'bingo', 'multiselect', 'table', 'cipher', 'race'):
                 puzzle_rows(kind, options)
                 if kind == 'pasapalabra' and context.get('roscoLetters'):
                     if ''.join(row[0].upper() for row in puzzle_rows(kind, options)) != context['roscoLetters']:
@@ -787,6 +793,10 @@ Si se piden dos tiempos, incluye ambos naturalmente. Revisa también los verbos 
 que NO se ocultarán: nunca introduzcas tiempos excluidos como había sucedido o habían caído.''',
     'mystery': 'Un concepto por objeto. prompt invita a descubrirlo SIN nombrarlo. options son EXACTAMENTE tres pistas progresivas: contexto amplio, rasgo distintivo y pista concreta inequívoca; ninguna contiene la respuesta. answer es el concepto (hasta 100 caracteres), explanation explica cómo encajan las pistas.',
     'intruder': 'Una ronda por objeto. options tiene entre 3 y 5 conceptos breves: todos salvo uno comparten un criterio académico claro. prompt indica el criterio o la consigna sin revelar el intruso. answer es EXACTAMENTE la opción intrusa. explanation explica por qué se excluye y qué comparten las restantes. Evita que otra clasificación haga ambigua la respuesta.',
+    'multiselect': 'Un tablero por objeto. entries son exactamente elementCount objetos label y correct (sí o no). Entre 3 y 6 opciones diferentes del tema, al menos dos correctas y una incorrecta. prompt define el criterio inequívoco. La app corrige tanto las marcadas como las omitidas. No indiques en el enunciado qué opciones son correctas.',
+    'table': 'Un tablero por objeto. entries son exactamente elementCount casillas con row, column y answer. Tabla rectangular completa: al menos dos filas y dos columnas, máximo 6 filas y 4 columnas, máximo 12 casillas. Con 6 elementos usa 3 filas por 2 columnas. Etiquetas y respuestas de hasta 80 caracteres. El alumno escribe solo las respuestas; row y column identifican cada casilla. No repitas coordenadas.',
+    'cipher': 'Un mensaje por objeto. entries son exactamente elementCount objetos clue, answer y letter. Cada clue plantea una pista del tema sin revelar su answer; answer breve admite variantes con ~; letter es una única letra de premio. La concatenación de letter en orden forma una palabra significativa del tema de elementCount letras. Entre 3 y 10 pistas únicas, hasta 180 caracteres; respuestas hasta 80. No reveles el mensaje final en prompt ni explanation antes de jugar.',
+    'race': 'Un tablero por objeto. entries son exactamente elementCount retos con question, answer, distractor1 y distractor2. Entre 4 y 12 preguntas concretas del tema de hasta 150 caracteres; una respuesta correcta y dos distractores plausibles, distintos, hasta 60 caracteres cada uno. El orden de las opciones lo mezcla la app. Los retos progresan en dificultad; cada acierto avanza una casilla. No incluyas preguntas sin datos suficientes.',
     'bingo': 'Un cartón por objeto. options son exactamente elementCount parejas concepto | definición. Conceptos únicos de hasta 80 caracteres y definiciones únicas de hasta 140, inequívocas y sin incluir el propio concepto. Nueve conceptos del tema, sin barras dentro del texto. prompt es la consigna del juego; answer=Completado. La app mezcla cartón y definiciones por separado.',
     'quiz': 'Una pregunta por objeto, de 2 a 5 opciones distintas y plausibles. answer coincide exactamente con una. explanation explica la respuesta y la confusión principal de los distractores.',
     'short': 'Una pregunta concreta y respuesta breve orientativa. Incluye rubric con criterios de revisión, hasta 1000 caracteres.',

@@ -113,7 +113,17 @@
     });
     update(board.values());
   }
+  function mountChallengeGame(question,index,isChecked,report){
+    const api=window.profesorChallengeGames,items=api.prepare(question,question.id||index),root=$('mini-'+index);let marks={},previous=[];
+    const review=value=>({result:api.grade(question.type,items,value),parts:Object.fromEntries(items.map((_,i)=>[i,api.grade(question.type,items,value,i)]))});
+    const update=value=>{const result=api.grade(question.type,items,value);$('r-'+index).value=api.summary(question.type,items,value);report(index,{complete:result!=='unanswered',correct:result==='correct',answer:$('r-'+index).value,review:()=>{const feedback=review(value);board.review({...feedback,items:api.safeItems(question.type,items,feedback.parts)});}});};
+    const board=window.profesorChallengeGame(root,{kind:question.type,id:index,items:api.safeItems(question.type,items),
+      onChange(value){Object.keys(marks).forEach(i=>{if(value[i]!==previous[i])delete marks[i];});previous=value.slice();root.closest('.play-question').removeAttribute('data-result');$('feedback-'+index).textContent='';update(value);},
+      onCheck(value,part){if(isChecked())return;const result=api.grade(question.type,items,value,part);if(part==null)marks=review(value).parts;else marks[part]=result;recordAnswer(index,part??0,result==='correct',api.summary(question.type,items,value));update(value);return {result,parts:marks,items:api.safeItems(question.type,items,marks)};}
+    });update(board.value());
+  }
   function mountMiniGame(question,index,isChecked,report){
+    if(window.profesorChallengeGames.types.includes(question.type))return mountChallengeGame(question,index,isChecked,report);
     const api=window.profesorMiniGames,data=api.prepare(question,question.id||String(index));
     const parts={},root=$('mini-'+index);
     const review=value=>({result:api.grade(question,value,null,data),parts:question.type==='bingo'?Object.fromEntries(data.clues.map((_,n)=>[n,api.grade(question,value,n,data)])):undefined,explanation:question.explanation||''});
@@ -493,6 +503,10 @@
       pasapalabra: 'Prepara entre 3 y 27 letras distintas. Cada respuesta debe empezar por su letra o contenerla.',
       mystery: 'Escribe el concepto en Solución y tres pistas progresivas en las filas de abajo, sin nombrar la respuesta. El alumno empieza con la primera pista.',
       intruder: 'Escribe entre tres y cinco conceptos: solo uno no pertenece al grupo. En Solución copia exactamente la tarjeta intrusa y explica el criterio.',
+      multiselect: 'Escribe cada opción y elige sí o no. Debe haber al menos dos correctas y una incorrecta.',
+      table: 'Una fila por casilla: etiqueta de fila, columna y respuesta. Completa un rectángulo de al menos 2 × 2, hasta 12 casillas.',
+      cipher: 'Cada pista resuelta revela una letra. Las letras premio, en orden, forman el mensaje. Las respuestas equivalentes se separan con ~.',
+      race: 'Cada reto tiene una pregunta, una respuesta correcta y dos distractores. Las opciones se mezclan; las casillas estrella valen 20 puntos.',
       bingo: 'Nueve parejas concepto | definición. El cartón y las pistas se mezclan por separado; una definición no debe incluir su propio concepto.',
       hangman: 'Escribe una pista clara en el enunciado y la palabra o expresión que debe descubrir en la solución.',
       flashcard: 'El enunciado es el anverso y la solución es el reverso. El alumno indicará si la sabía.',
@@ -516,8 +530,10 @@
       const options = $('o-' + index);
       if (['gaps','multigaps'].includes(question.type)) section.querySelector('.pedagogy-editor').insertAdjacentHTML('beforeend', `<label>Banco de palabras opcional (una por línea, hasta 12)<textarea name="wordBank-${index}" maxlength="1211">${escape((question.wordBank || []).join('\n'))}</textarea></label>`);
       if (options) {
-        const columns = ['memory','crossword','dragdrop','bingo'].includes(question.type) ? 2 : question.type === 'pasapalabra' ? 3 : 1;
-        const labels = question.type === 'bingo' ? ['Concepto','Definición'] : question.type === 'mystery' ? ['Pista'] : question.type === 'intruder' ? ['Tarjeta'] : question.type === 'pasapalabra' ? ['Letra','Pista','Respuesta'] : question.type === 'crossword' ? ['Palabra','Pista'] : question.type === 'memory' ? ['Concepto','Pareja'] : question.type === 'dragdrop' ? ['Elemento','Destino'] : [sequenceTypes.includes(question.type) ? 'Paso en orden correcto' : question.type === 'multigaps' ? 'Solución (variantes con ~)' : 'Opción'];
+        if(window.profesorChallengeGames.types.includes(question.type))section.dataset.editorType=question.type;
+        const columns = window.profesorChallengeGames.fields[question.type]?.length || (['memory','crossword','dragdrop','bingo'].includes(question.type) ? 2 : question.type === 'pasapalabra' ? 3 : 1);
+        const challengeMax=column=>question.type==='multiselect'?180:question.type==='table'?80:question.type==='cipher'?[180,80,1][column]:question.type==='race'?(column===0?150:60):0;
+        const labels = window.profesorChallengeGames.fields[question.type] || (question.type === 'bingo' ? ['Concepto','Definición'] : question.type === 'mystery' ? ['Pista'] : question.type === 'intruder' ? ['Tarjeta'] : question.type === 'pasapalabra' ? ['Letra','Pista','Respuesta'] : question.type === 'crossword' ? ['Palabra','Pista'] : question.type === 'memory' ? ['Concepto','Pareja'] : question.type === 'dragdrop' ? ['Elemento','Destino'] : [sequenceTypes.includes(question.type) ? 'Paso en orden correcto' : question.type === 'multigaps' ? 'Solución (variantes con ~)' : 'Opción']);
         let rows = options.value.split('\n').map(line => columns === 1 ? [line.trim()] : line.split('|').map(value => value.trim()));
         // HTML textareas remove a leading newline; preserve empty manual board rows.
         if (question.options?.length && question.options.every(value => !value.trim())) rows = Array.from({ length: question.options.length }, () => Array(columns).fill(''));
@@ -525,8 +541,8 @@
         const editor = document.createElement('div'); editor.className = 'structured-options'; options.after(editor);
         function sync() { options.value = rows.map(row => row.join(' | ')).join('\n'); options.dispatchEvent(new Event('input', { bubbles: true })); }
         function draw() {
-          editor.innerHTML = `<p class="play-editor-hint">${labels.map(escape).join(' · ')}${sequenceTypes.includes(question.type) ? ' · El alumno recibirá los pasos mezclados.' : ''}</p>${rows.map((row, n) => `<div class="structured-row" style="--columns:${columns}"><span>${n + 1}</span>${Array.from({ length: columns }, (_, c) => (c===1&&columns>1)||question.type==='mystery'?`<textarea data-row="${n}" data-col="${c}" aria-label="${labels[c]} ${n + 1}" maxlength="${question.type==='mystery'?300:question.type==='pasapalabra'?180:question.type==='crossword'?120:140}" rows="2">${escape(row[c]||'')}</textarea>`:`<input data-row="${n}" data-col="${c}" aria-label="${labels[c]} ${n + 1}" value="${escape(row[c] || '')}" maxlength="${question.type==='bingo'?80:question.type==='intruder'?140:question.type==='pasapalabra'?(c===0?1:60):columns === 1 ? 300 : 140}">`).join('')}<button type="button" data-remove-row="${n}" aria-label="Eliminar fila ${n + 1}" ${question.type==='bingo'&&rows.length<=9||question.type==='mystery'&&rows.length<=3||question.type==='intruder'&&rows.length<=3?'disabled':''}>×</button></div>`).join('')}<button type="button" data-add-row ${question.type==='bingo'&&rows.length>=9||question.type==='mystery'&&rows.length>=3||question.type==='intruder'&&rows.length>=5?'disabled':''}>+ Añadir fila</button>`;
-          editor.querySelectorAll('input,textarea').forEach(input => input.oninput = () => { rows[Number(input.dataset.row)][Number(input.dataset.col)] = input.value.replace(/[\r\n|]+/g,' '); sync(); });
+          editor.innerHTML = `<p class="play-editor-hint">${labels.map(escape).join(' · ')}${sequenceTypes.includes(question.type) ? ' · El alumno recibirá los pasos mezclados.' : ''}</p>${rows.map((row, n) => `<div class="structured-row" style="--columns:${columns}"><span>${n + 1}</span>${Array.from({ length: columns }, (_, c) => question.type==='multiselect'&&c===1?`<select data-row="${n}" data-col="${c}" aria-label="Correcta ${n+1}"><option value="">Elige…</option><option ${['sí','si'].includes(row[c])?'selected':''}>sí</option><option ${row[c]==='no'?'selected':''}>no</option></select>`:(c===1&&columns>1)||question.type==='mystery'||['cipher','race'].includes(question.type)&&c===0?`<textarea data-row="${n}" data-col="${c}" aria-label="${labels[c]} ${n + 1}" maxlength="${challengeMax(c)||(question.type==='mystery'?300:question.type==='pasapalabra'?180:question.type==='crossword'?120:140)}" rows="2">${escape(row[c]||'')}</textarea>`:`<input data-row="${n}" data-col="${c}" aria-label="${labels[c]} ${n + 1}" value="${escape(row[c] || '')}" maxlength="${challengeMax(c)||(question.type==='bingo'?80:question.type==='intruder'?140:question.type==='pasapalabra'?(c===0?1:60):columns === 1 ? 300 : 140)}">`).map((field,c)=>window.profesorChallengeGames.types.includes(question.type)?`<label class="challenge-editor-cell" data-field="${c}"><span>${escape(labels[c])}</span>${field}</label>`:field).join('')}<button type="button" data-remove-row="${n}" aria-label="Eliminar fila ${n + 1}" ${question.type==='bingo'&&rows.length<=9||question.type==='mystery'&&rows.length<=3||question.type==='intruder'&&rows.length<=3?'disabled':''}>×</button></div>`).join('')}<button type="button" data-add-row ${question.type==='bingo'&&rows.length>=9||question.type==='mystery'&&rows.length>=3||question.type==='intruder'&&rows.length>=5?'disabled':''}>+ Añadir fila</button>`;
+          editor.querySelectorAll('input,textarea,select').forEach(input => input.oninput = () => { rows[Number(input.dataset.row)][Number(input.dataset.col)] = input.value.replace(/[\r\n|]+/g,' '); sync(); });
           editor.querySelector('[data-add-row]').onclick = () => { rows.push(Array(columns).fill('')); draw(); sync(); };
           editor.querySelectorAll('[data-remove-row]').forEach(button => button.onclick = () => { rows.splice(Number(button.dataset.removeRow), 1); draw(); sync(); });
         }
@@ -541,7 +557,11 @@
     shell.innerHTML = questionMarkup(question, index, [question.answer]);
     const type = question.type;
     const options = question.options || [];
-    if(['mystery','intruder','bingo'].includes(type)){
+    if(window.profesorChallengeGames.types.includes(type)){
+      const preview=shell.querySelector('[id^="mini-"]');
+      try{const items=window.profesorChallengeGames.prepare(question,question.id||'preview');window.profesorChallengeGame(preview,{kind:type,items:window.profesorChallengeGames.safeItems(type,items),locked:true});}
+      catch(error){preview.innerHTML='<p class="challenge-editor-hint">'+escape(error.message)+'</p>';}
+    }else if(['mystery','intruder','bingo'].includes(type)){
       const preview=shell.querySelector('[id^="mini-"]');
       const data=type==='bingo'?{
         cards:Array.from({length:9},(_,n)=>({token:String(n),label:options[n]?.split('|')[0]?.trim()||'Concepto '+(n+1)})),
@@ -605,10 +625,10 @@
   }
   function questionMarkup(question, index, pairChoices) {
     const type = question.type;
-    const heading = ['gaps','multigaps','flashcard'].includes(type) ? '' : type === 'hangman' ? `<div class="hangman-heading"><h3 id="question-${index}">Adivina el concepto antes de quedarte sin intentos.</h3><p>Lee la pista y selecciona letras.</p></div>` : ['pasapalabra','wordsearch','memory','sentence','timeline','error','crossword','dragdrop','mystery','intruder','bingo'].includes(type) ? `<h3 id="question-${index}" class="${type}-intro">${escape(type==='error'?'Encuentra el error y corrígelo en la frase.':question.prompt)}</h3>` : `<h3 id="question-${index}">${type === 'flashcard' ? 'Lee la tarjeta y piensa la respuesta.' : `${index + 1}. ${escape(question.prompt)}`}</h3>`;
+    const heading = ['gaps','multigaps','flashcard'].includes(type) ? '' : type === 'hangman' ? `<div class="hangman-heading"><h3 id="question-${index}">Adivina el concepto antes de quedarte sin intentos.</h3><p>Lee la pista y selecciona letras.</p></div>` : ['pasapalabra','wordsearch','memory','sentence','timeline','error','crossword','dragdrop','mystery','intruder','bingo','multiselect','table','cipher','race'].includes(type) ? `<h3 id="question-${index}" class="${type}-intro">${escape(type==='error'?'Encuentra el error y corrígelo en la frase.':question.prompt)}</h3>` : `<h3 id="question-${index}">${type === 'flashcard' ? 'Lee la tarjeta y piensa la respuesta.' : `${index + 1}. ${escape(question.prompt)}`}</h3>`;
     const image = visualTypes.includes(type) ? `<div class="visual-image-box ${type === 'imagepoint' ? 'visual-answer-box' : ''}" id="visual-${index}" ${type === 'imagepoint' ? 'tabindex="0" role="button" aria-label="Marca el punto en la imagen; usa las flechas para ajustarlo"' : ''}><img data-activity-image="${index}" alt="${escape(question.image?.filename || 'Imagen del ejercicio')}"></div>` : '';
     let control = '';
-    if (['mystery','intruder','bingo'].includes(type)) {
+    if (['mystery','intruder','bingo','multiselect','table','cipher','race'].includes(type)) {
       control = `<div id="mini-${index}"></div><input type="hidden" name="r-${index}" id="r-${index}">`;
     } else if (type === 'gaps') {
       const [before, after] = displayGapPrompt(question).split('___');
@@ -644,7 +664,7 @@
       control = choiceMarkup(question, index, options);
     }
     const review = openAnswerTypes.includes(type) && type !== 'flashcard' ? `<div id="review-${index}" hidden><label for="grade-${index}">Valoración del profesor</label><select id="grade-${index}"><option value="pending">Pendiente de revisar</option><option value="correct">Correcta</option><option value="incorrect">Necesita revisión</option><option value="partial">Parcialmente correcta</option></select></div>` : '';
-    return `<section class="block play-question" data-type="${type}" data-tone="${materialTone(type)}" data-question="${index}"><div class="play-question-top"><span class="play-number">${String(index + 1).padStart(2, '0')}</span><span class="play-kind">${escape(activityLabels[type])}</span>${['flashcard','memory','sentence','timeline','error','wordsearch','crossword','dragdrop','pasapalabra','hangman','mystery','intruder','bingo'].includes(type) ? `<div class="game-timer"><button type="button" data-timer="${index}" aria-label="Iniciar cronómetro opcional">Cronómetro</button><output id="timer-${index}" aria-label="Tiempo de práctica">00:00</output></div>` : ''}</div>${heading}<div class="question-workspace">${type === 'reading' ? `<div class="reading-passage prewrap" tabindex="0">${escape(question.text)}<button type="button" data-highlight="${index}">Subrayar selección</button></div>` : ''}<div class="question-controls">${image}${type === 'visualquiz' ? `<button type="button" data-zoom="${index}">Ampliar imagen</button>` : ''}${control}</div></div>${type === 'pasapalabra' ? `<div class="pasapalabra-meta" role="status"><div class="pasapalabra-score-group"><span id="pasapalabra-score-${index}"></span><span class="pasapalabra-meta-actions"></span></div><strong id="pasapalabra-position-${index}"></strong></div>` : ''}${question.hints?.length ? `<div class="play-hints"><button type="button" data-hint="${index}">Necesito una pista</button><ol id="hints-${index}"></ol></div>` : ''}<p id="feedback-${index}" class="play-feedback prewrap" role="status"></p>${review}</section>`;
+    return `<section class="block play-question" data-type="${type}" data-tone="${materialTone(type)}" data-question="${index}"><div class="play-question-top"><span class="play-number">${String(index + 1).padStart(2, '0')}</span><span class="play-kind">${escape(activityLabels[type])}</span>${['flashcard','memory','sentence','timeline','error','wordsearch','crossword','dragdrop','pasapalabra','hangman','mystery','intruder','bingo','multiselect','table','cipher','race'].includes(type) ? `<div class="game-timer"><button type="button" data-timer="${index}" aria-label="Iniciar cronómetro opcional">Cronómetro</button><output id="timer-${index}" aria-label="Tiempo de práctica">00:00</output></div>` : ''}</div>${heading}<div class="question-workspace">${type === 'reading' ? `<div class="reading-passage prewrap" tabindex="0">${escape(question.text)}<button type="button" data-highlight="${index}">Subrayar selección</button></div>` : ''}<div class="question-controls">${image}${type === 'visualquiz' ? `<button type="button" data-zoom="${index}">Ampliar imagen</button>` : ''}${control}</div></div>${type === 'pasapalabra' ? `<div class="pasapalabra-meta" role="status"><div class="pasapalabra-score-group"><span id="pasapalabra-score-${index}"></span><span class="pasapalabra-meta-actions"></span></div><strong id="pasapalabra-position-${index}"></strong></div>` : ''}${question.hints?.length ? `<div class="play-hints"><button type="button" data-hint="${index}">Necesito una pista</button><ol id="hints-${index}"></ol></div>` : ''}<p id="feedback-${index}" class="play-feedback prewrap" role="status"></p>${review}</section>`;
   }
 
   function mountHangman(question, index, isChecked) {
@@ -699,7 +719,7 @@
     function gradeQuestion(index) {
       const q=questions[index],value=new FormData($('form')).get('r-'+index)||'';
       if(q.type==='flashcard')return flashGrades[index]||'unanswered';
-      if(['mystery','intruder','bingo'].includes(q.type))return !games[index]?.complete?'unanswered':games[index].correct?'correct':'incorrect';
+      if(['mystery','intruder','bingo','multiselect','table','cipher','race'].includes(q.type))return !games[index]?.complete?'unanswered':games[index].correct?'correct':'incorrect';
       if(puzzleTypes.includes(q.type))return !games[index]?.complete?'unanswered':games[index].correct?'correct':'incorrect';
       if(q.type==='memory')return value?'correct':'unanswered';
       if(q.type==='error') {
@@ -799,7 +819,7 @@
     const score = $('activityScore'), actions = score.nextElementSibling;
     score.before(footer); footer.append(score, actions);
     actions.prepend(toolbar);actions.querySelector('[data-action="close"]').hidden=true;
-    const hasPasapalabra = questions.some(question => ['pasapalabra','memory','sentence','timeline','error','crossword','dragdrop','mystery','intruder','bingo'].includes(question.type));
+    const hasPasapalabra = questions.some(question => ['pasapalabra','memory','sentence','timeline','error','crossword','dragdrop','mystery','intruder','bingo','multiselect','table','cipher','race'].includes(question.type));
     let pasapalabraSolutionModal = null;
     let solutionTrigger = null;
     if (hasPasapalabra) {
@@ -934,12 +954,12 @@
     Object.keys(sequences).forEach(index => renderSequence(Number(index)));
     paintActivityImages(questions, $('form'));
     questions.forEach((q, index) => {
-      if (['mystery','intruder','bingo'].includes(q.type)) mountMiniGame(q,index,()=>checked,(key,result)=>{games[key]=result;updateProgress();});
+      if (['mystery','intruder','bingo','multiselect','table','cipher','race'].includes(q.type)) mountMiniGame(q,index,()=>checked,(key,result)=>{games[key]=result;updateProgress();});
       else if (puzzleTypes.includes(q.type)) mountPuzzleGame(q, index, () => checked, (key, result) => { games[key] = result; updateProgress(); });
       if (q.type === 'memory') mountMemory(q, index, () => checked);
       if (q.type === 'hangman') mountHangman(q, index, () => checked);
       const section = document.querySelector(`[data-question="${index}"]`);
-      if(!['quiz','boolean','visualquiz','pairs','classify','flashcard','pasapalabra','memory','wordsearch','crossword','dragdrop','hangman','order','sentence','timeline','error','mystery','intruder','bingo'].includes(q.type)){
+      if(!['quiz','boolean','visualquiz','pairs','classify','flashcard','pasapalabra','memory','wordsearch','crossword','dragdrop','hangman','order','sentence','timeline','error','mystery','intruder','bingo','multiselect','table','cipher','race'].includes(q.type)){
         const check=document.createElement('button');check.type='button';check.dataset.checkQuestion=index;check.textContent=openAnswerTypes.includes(q.type)&&q.type!=='error'&&!objectiveShort(q)?'Guardar respuesta':'Comprobar';
         check.onclick=()=>{if(q.type==='multigaps'){section.querySelectorAll('[data-multi-gap]').forEach((input,n)=>{if(input.value.trim()){const right=q.options[n].split('~').some(s=>accepts(input.value,s));markControl(input,right);recordAnswer(index,n,right,input.value.trim());}});}else if(q.type==='error'&&gradeQuestion(index)==='unanswered'){$('feedback-'+index).className='play-feedback is-incorrect';$('feedback-'+index).textContent='Selecciona el error de la oración y escribe su corrección.';}else confirmQuestion(index);};section.querySelector('.question-controls').append(check);
       }
@@ -947,11 +967,11 @@
       solution.type='button';solution.dataset.showSolution=index;solution.textContent='Ver solución';solution.hidden=q.type==='flashcard';solution.className='play-solution-link';
       solution.onclick=()=>{
         practice[index].assisted=true;
-        if (['pasapalabra','memory','sentence','timeline','error','crossword','dragdrop','mystery','intruder','bingo'].includes(q.type) && pasapalabraSolutionModal) {
-          if(['mystery','intruder','bingo'].includes(q.type)){
+        if (['pasapalabra','memory','sentence','timeline','error','crossword','dragdrop','mystery','intruder','bingo','multiselect','table','cipher','race'].includes(q.type) && pasapalabraSolutionModal) {
+          if(['mystery','intruder','bingo','multiselect','table','cipher','race'].includes(q.type)){
             pasapalabraSolutionModal.querySelector('.pasapalabra-solution-eyebrow').textContent=activityLabels[q.type].toUpperCase();
             pasapalabraSolutionModal.querySelector('h2').textContent='Solución del juego';
-            const rows=q.type==='bingo'?q.options.map(row=>row.split('|').map(part=>part.trim())):[[q.type==='mystery'?'Concepto oculto':'El intruso',q.answer]];
+            const rows=window.profesorChallengeGames.types.includes(q.type)?q.options.map(row=>{const parts=row.split('|').map(part=>part.trim());return q.type==='table'?[parts[0]+' · '+parts[1],parts[2]]:q.type==='multiselect'?[parts[0],parts[1]]:[parts[0],parts[1]+(q.type==='cipher'?' → '+parts[2]:'')];}):q.type==='bingo'?q.options.map(row=>row.split('|').map(part=>part.trim())):[[q.type==='mystery'?'Concepto oculto':'El intruso',q.answer]];
             pasapalabraSolutionModal.querySelector('.pasapalabra-solution-body').innerHTML='<ol class="puzzle-solution-list">'+rows.map(([label,answer])=>'<li><strong>'+rich(label)+'</strong> → '+rich(answer)+'</li>').join('')+'</ol>'+(q.explanation?'<p>'+rich(q.explanation)+'</p>':'');
             solutionTrigger=solution;pasapalabraSolutionModal.showModal();pasapalabraSolutionModal.querySelector('.pasapalabra-solution-close').focus();return;
           }
@@ -993,7 +1013,7 @@
       if (q.type === 'wordsearch') solution.addEventListener('click', () => section.querySelector('#puzzle-' + index)?.revealWordSearchSolution?.());
       if(!puzzleTypes.includes(q.type))section.addEventListener('click',()=>queueMicrotask(()=>{if(section.dataset.result==='incorrect'||section.dataset.result==='pending')solution.hidden=false;}),{signal});
       section.querySelectorAll('input:not([type="radio"]):not([type="hidden"])').forEach(input=>{
-        if(['multigaps','pasapalabra','crossword','mystery','intruder','bingo'].includes(q.type))return;
+        if(['multigaps','pasapalabra','crossword','mystery','intruder','bingo','multiselect','table','cipher','race'].includes(q.type))return;
         input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();confirmQuestion(index);if(section.dataset.result==='incorrect')solution.hidden=false;}},{signal});
         input.addEventListener('input',()=>{input.classList.remove('answer-right','answer-wrong');input.removeAttribute('aria-invalid');},{signal});
       });

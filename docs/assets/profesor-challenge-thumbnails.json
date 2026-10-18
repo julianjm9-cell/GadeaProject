@@ -1,0 +1,79 @@
+{
+  "tool": "Built-in image_gen",
+  "date": "2026-10-18",
+  "style": "Polished blue, cyan and lavender 3D educational game thumbnails. Centered safe margins, no words or logos; child and adolescent variants.",
+  "assets": [
+    {
+      "id": "multiselect",
+      "path": "C:\\Users\\julia\\.codex\\generated_images\\01a0e0c3-18f9-7a50-abff-09ff41f23954\\exec-ec53b650-d325-4406-b2e7-6b0d669a3a09.png",
+      "output": "apps\\profesor\\assets\\games\\multiselect.webp",
+      "width": 900,
+      "height": 450,
+      "bytes": 46116,
+      "prompt": "Use case: stylized-concept. Asset type: wide educational game card thumbnail, 2:1 composition. Primary request: charming polished 3D illustration for a game named Select all correct answers, for children 7–11. Blue and lavender educational app palette, warm soft light, glossy rounded materials. A small open notebook with four floating rounded answer tiles: two with green checkmarks, one undecided blue tile, one neutral tile; a friendly pencil and small stars. Meaning conveyed only by shapes; absolutely no text, words, letters, numbers, logos or watermark. Keep objects centered and whole with generous safe margins. Background softly illustrated classroom tabletop, uncluttered. Landscape."
+    },
+    {
+      "id": "mature-multiselect",
+      "path": "C:\\Users\\julia\\.codex\\generated_images\\01a0e0c3-18f9-7a50-abff-09ff41f23954\\exec-958499ef-ad3d-4489-a363-df078421ce0e.png",
+      "output": "apps\\profesor\\assets\\games\\mature-multiselect.webp",
+      "width": 900,
+      "height": 450,
+      "bytes": 50468,
+      "prompt": "Use case: stylized-concept. Asset type: wide 2:1 educational app game card thumbnail. Game concept: Select all correct answers. Audience: adolescents 12–18, sophisticated modern study desk, no faces or childish animals. Scene: A sleek navy clipboard and four floating rounded tiles, two vivid green checkmarks and other neutral blue choices, a pen. Polished dimensional 3D illustration, blue, cyan and lavender app palette with restrained gold accents, soft warm studio light and subtle shadows. Objects fully inside centered safe margins, unobstructed silhouette, uncluttered illustrated background. Absolutely no text, words, numbers, logos or watermark. Landscape."
+    },
+    {
+      "id": "table",
+      "path": "C:\\Users\\julia\\.codex\\generated_images\\01a0e0c3-18f9-7a50-abff-09ff41f23954\\exec-d633baf4-1bf3-4aa6-9d0e-029b83ec849d.png",
+      "output": "apps\\profesor\\assets\\games\\table.webp",
+      "width": 900,
+      "height": 450,
+      "bytes": 47650,
+      "prompt": "Use case: stylized-concept. Asset type: wide 2:1 educational app game card thumbnail. Game concept: Complete the table. Audience: children 7–11, friendly playful classroom. Scene: A charming rounded three-by-three pastel blank worksheet table with some blank white squares and some colorful educational object tiles, a cheerful pencil arranging a tile. Polished dimensional 3D illustration, blue, cyan and lavender app palette with restrained gold accents, soft warm studio light and subtle shadows. Objects fully inside centered safe margins, unobstructed silhouette, uncluttered illustrated background. Absolutely no text, words, numbers, logos or watermark. Landscape."
+    },
+    {
+      "id": "mature-table",
+      "path": "C:\\Users\\julia\\.codex\\generated_images\\01a0e0c3-18f9-7a50-abff-09ff41f23954\\exec-9efb7186-8b29-47ca-823c-b7b36b4fab6a.png",
+      "output": "apps\\profesor\\assets\\games\\mature-table.webp",
+      "width": 900,
+      "height": 450,
+      "bytes": 51632,
+      "prompt": "Use case: stylized-concept. Asset type: wide 2:1 educational app game card thumbnail. Game concept: Complete the table. Audience: adolescents 12–18, sophisticated academic workspace. Scene: A premium blank navy-and-white matrix table on a tablet-like board, a pen and three geometric learning tiles poised to fill cells. Polished dimensional 3D illustration, blue, cyan and lavender app palette with restrained gold accents, soft warm studio light and subtle shadows. Objects fully inside centered safe margins, unobstructed silhouette, uncluttered illustrated background. Absolutely no text, words, numbers, logos or watermark. Landscape."
+    },
+    {
+      "id": "cipher",
+      "path": "C:\\Users\\julia\\.codex\\generated_images\\01a0e0c3-18f9-7a50-abff-09ff41f23954\\exec-ef89adef-af4e-4d3a-9d05-662b5069d3b4.png",
+      "output": "apps\\profesor\\assets\\games\\cipher.webp",
+      "width": 900,
+      "height": 450,
+      "bytes": 85062,
+      "prompt": "Use case: stylized-concept. Asset type: wide 2:1 educational app game card thumbnail. Game concept: Decipher the message. Audience: children 7–11, playful educational mystery. Scene: An inviting blue explorer notebook with a secret message represented by blank tiles and simple abstract symbols, a magnifying glass, golden key and twinkling stars. Polished dimensional 3D illustration, blue, cyan and lavender app palette with restrained gold accents, soft warm studio light and subtle shadows. Objects fully inside centered safe margins, unobstructed silhouette, uncluttered illustrated background. Absolutely no text, words, numbers, logos or watermark. Landscape."
+    },
+    {
+      "id": "mature-cipher",
+      "path": "C:\\Users\\julia\\.codex\\generated_images\\01a0e0c3-18f9-7a50-abff-09ff41f23954\\exec-fe2afa0a-aa8f-4b30-b14b-087514c47cb8.png",
+      "output": "apps\\profesor\\assets\\games\\mature-cipher.webp",
+      "width": 900,
+      "height": 450,
+      "bytes": 90496,
+      "prompt": "Use case: stylized-concept. Asset type: wide 2:1 educational app game card thumbnail. Game concept: Decipher the message. Audience: adolescents 12–18, polished thoughtful mystery atmosphere. Scene: A navy cryptography notebook, brass key, magnifying glass and luminous blank decoding tiles, subtle cyan light. Polished dimensional 3D illustration, blue, cyan and lavender app palette with restrained gold accents, soft warm studio light and subtle shadows. Objects fully inside centered safe margins, unobstructed silhouette, uncluttered illustrated background. Absolutely no text, words, numbers, logos or watermark. Landscape."
+    },
+    {
+      "id": "race",
+      "path": "C:\\Users\\julia\\.codex\\generated_images\\01a0e0c3-18f9-7a50-abff-09ff41f23954\\exec-2fcc4716-1ef7-4538-aada-51a7ebde0dbc.png",
+      "output": "apps\\profesor\\assets\\games\\race.webp",
+      "width": 900,
+      "height": 450,
+      "bytes": 92478,
+      "prompt": "Use case: stylized-concept. Asset type: wide 2:1 educational app game card thumbnail. Game concept: Knowledge race. Audience: children 7–11, joyful educational board game. Scene: A colorful rounded winding board-game path, a small blue pawn, blank challenge tiles, small trophy and checkered finish flag, friendly science and book objects. Polished dimensional 3D illustration, blue, cyan and lavender app palette with restrained gold accents, soft warm studio light and subtle shadows. Objects fully inside centered safe margins, unobstructed silhouette, uncluttered illustrated background. Absolutely no text, words, numbers, logos or watermark. Landscape."
+    },
+    {
+      "id": "mature-race",
+      "path": "C:\\Users\\julia\\.codex\\generated_images\\01a0e0c3-18f9-7a50-abff-09ff41f23954\\exec-935c0f71-46de-474b-b834-25c9f94d9a1f.png",
+      "output": "apps\\profesor\\assets\\games\\mature-race.webp",
+      "width": 900,
+      "height": 450,
+      "bytes": 74712,
+      "prompt": "Use case: stylized-concept. Asset type: wide 2:1 educational app game card thumbnail. Game concept: Knowledge race. Audience: adolescents 12–18, refined strategy board-game aesthetic. Scene: An elegant navy-and-cyan winding tabletop board path, blue and gold pawns, small gold trophy and checkered finish flag, academic geometric objects. Polished dimensional 3D illustration, blue, cyan and lavender app palette with restrained gold accents, soft warm studio light and subtle shadows. Objects fully inside centered safe margins, unobstructed silhouette, uncluttered illustrated background. Absolutely no text, words, numbers, logos or watermark. Landscape."
+    }
+  ]
+}

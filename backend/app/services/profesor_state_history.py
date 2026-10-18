@@ -95,6 +95,12 @@ def validate_transition(previous: dict, incoming: dict, *, confirm_empty: bool =
                 width=3 if question['type']=='pasapalabra' else 2
                 if any(len(option.split('|'))!=width or not all(piece.strip() for piece in option.split('|')) for option in options):
                     raise HTTPException(422,"Revisa las pistas, parejas o respuestas del juego.")
+            if question['type'] in ('multiselect','table','cipher','race'):
+                from app.services.teacher_challenge_games import validate
+                try:
+                    validate(question['type'], options)
+                except ValueError as exc:
+                    raise HTTPException(422, str(exc)) from exc
     if not confirm_empty and sum(counts(previous).values()) > 0 and sum(counts(incoming).values()) == 0:
         raise HTTPException(409, detail={"code": "state_empty", "message":
             "El guardado dejaría vacío tu escritorio. Lo hemos detenido para proteger tus datos. Revisa el guardado si quieres confirmar ese cambio."})

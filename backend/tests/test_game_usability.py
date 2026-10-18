@@ -9,6 +9,8 @@ from app.api.profesor_material_sessions import SUPPORTED, clean_hangman, expecte
 
 def response_for(question):
     kind = question['type']
+    if kind in {'multiselect','table','cipher','race'}:
+        return [item['answer'] if kind in {'multiselect','race'} else item['answer'].split('~')[0] for item in question['_challenge']]
     if kind == 'memory':
         groups = {}
         for card in question['_cards']:

@@ -26,7 +26,7 @@ router = APIRouter(tags=["profesor-material-sessions"])
 CHOICE = {"quiz", "boolean", "classify", "visualquiz", "pairs", "intruder"}
 SEQUENCE = {"order", "sentence", "timeline"}
 OPEN = {"short", "reading", "problem", "error"}
-SUPPORTED = CHOICE | SEQUENCE | OPEN | {"gaps", "multigaps", "numeric", "flashcard", "memory", "dragdrop", "pasapalabra", "hangman", "wordsearch", "crossword", "imagepoint", "mystery", "bingo"}
+SUPPORTED = CHOICE | SEQUENCE | OPEN | {"gaps", "multigaps", "numeric", "flashcard", "memory", "dragdrop", "pasapalabra", "hangman", "wordsearch", "crossword", "imagepoint", "mystery", "bingo", "multiselect", "table", "cipher", "race"}
 
 
 class SendMaterial(BaseModel):
@@ -168,6 +168,9 @@ def crossword_board(question: dict) -> dict:
 def prepare(question: dict, seed: int) -> dict:
     q = dict(question)
     kind = q.get("type")
+    from app.services.teacher_challenge_games import TYPES as CHALLENGES, prepare as prepare_challenge
+    if kind in CHALLENGES:
+        q['_challenge'] = prepare_challenge(kind, q.get('options'), seed)
     from app.services.teacher_mini_games import validate_mini_game
     validate_mini_game(kind, q.get('answer'), q.get('options'))
     if kind == 'bingo':
@@ -198,7 +201,7 @@ def prepare(question: dict, seed: int) -> dict:
     return q
 
 
-def safe_question(q: dict, all_questions: list[dict], completed: bool, revealed: bool = False, response: object = None, verified: bool = False) -> dict:
+def safe_question(q: dict, all_questions: list[dict], completed: bool, revealed: bool = False, response: object = None, verified: bool = False, checked_parts: dict | None = None) -> dict:
     kind = q["type"]
     out = {key: q[key] for key in ("id", "type", "prompt", "text", "unit", "wordBank") if key in q}
     if kind in {"gaps", "multigaps"}:
@@ -209,7 +212,10 @@ def safe_question(q: dict, all_questions: list[dict], completed: bool, revealed:
                 out["prompt"] = re.sub(r"___\s*\(\s*" + re.escape(exact) + r"\s*\)", "___", out["prompt"], count=1, flags=re.I)
         out["prompt"] = out["prompt"].replace("**", "")
     out["hints"] = q.get("hints", [])
-    if kind in CHOICE:
+    if kind in {'multiselect', 'table', 'cipher', 'race'}:
+        from app.services.teacher_challenge_games import safe_items
+        out['items'] = safe_items(q, response, checked_parts or {}, completed)
+    elif kind in CHOICE:
         out["options"] = list(dict.fromkeys(other.get("answer", "") for other in all_questions if other.get("type") == "pairs")) if kind == "pairs" else q.get("options", [])
         if kind == "pairs" and len(out["options"]) < 2:
             out["options"] = []
@@ -258,6 +264,9 @@ def safe_question(q: dict, all_questions: list[dict], completed: bool, revealed:
             out["solutions"] = q["options"]
         elif kind == "dragdrop":
             out["solutions"] = [parts[1] for parts in rows(q)]
+        elif kind in {'multiselect', 'table', 'cipher', 'race'}:
+            from app.services.teacher_challenge_games import solutions
+            out['solutions'] = solutions(q)
         elif kind == 'bingo':
             out['solutions'] = [concept + ': ' + clue for concept, clue in rows(q)]
         if kind in ('mystery', 'intruder', 'bingo'):
@@ -275,6 +284,9 @@ def grade(q: dict, value: object, part: int | None = None) -> str:
     kind = q["type"]
     if value is None or value == "":
         return "unanswered"
+    if kind in {'multiselect', 'table', 'cipher', 'race'}:
+        from app.services.teacher_challenge_games import grade as grade_challenge
+        return grade_challenge(q, value, part)
     if kind == 'mystery':
         answer = value.get('answer') if isinstance(value, dict) else value
         if not isinstance(answer, str) or not answer.strip():
@@ -445,7 +457,7 @@ def public_session(row: ProfesorMaterialSession, *, teacher: bool = False) -> di
     completed = row.status == "completed"
     return {"id": str(row.id), "title": row.title, "subject": row.subject, "status": "expired" if session_is_expired(row) else row.status, "revision": row.revision,
             "expires_at": row.expires_at.isoformat(),
-            "created_at": row.created_at.isoformat(), "updated_at": row.updated_at.isoformat(), "questions": [safe_question(q, questions, completed or teacher, n in progress.get("reveals", []), progress.get("responses", {}).get(str(n)), progress.get('grades', {}).get(str(n)) == 'correct') for n, q in enumerate(questions)],
+            "created_at": row.created_at.isoformat(), "updated_at": row.updated_at.isoformat(), "questions": [safe_question(q, questions, completed or teacher, n in progress.get("reveals", []), progress.get("responses", {}).get(str(n)), progress.get('grades', {}).get(str(n)) == 'correct', progress.get('parts', {}).get(str(n), {})) for n, q in enumerate(questions)],
             "progress": progress, **({"join_code": visible_session_code(row)} if teacher else {})}
 
 
@@ -614,6 +626,10 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
             feedback = grade(q, payload.value, payload.part)
             if payload.part is None:
                 grades = dict(progress.get("grades", {})); grades[str(payload.question_index)] = feedback; progress["grades"] = grades
+                if q['type'] in {'multiselect', 'table', 'cipher', 'race'}:
+                    parts = dict(progress.get('parts', {}))
+                    parts[str(payload.question_index)] = {str(i): grade(q, payload.value, i) for i in range(len(q['_challenge']))}
+                    progress['parts'] = parts
                 if q["type"] == "timeline" and isinstance(payload.value, list):
                     parts = dict(progress.get("parts", {}))
                     expected = expected_sequence(q)
@@ -631,6 +647,8 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
             progress["grades"] = grades; row.status = "completed"
             parts = dict(progress.get("parts", {}))
             for n, q in enumerate(questions):
+                if q['type'] in {'multiselect', 'table', 'cipher', 'race'}:
+                    parts[str(n)] = {str(i): grade(q, progress.get('responses', {}).get(str(n)), i) for i in range(len(q['_challenge']))}
                 if q['type'] == 'bingo':
                     parts[str(n)] = {str(i): grade(q, progress.get('responses', {}).get(str(n)), i) for i in range(len(q['_bingo']['clues']))}
                 if q["type"] in {"crossword", "dragdrop"}:
@@ -657,7 +675,7 @@ def student_move(session_id: UUID, payload: StudentMove, request: Request, db: S
     if payload.action == 'check' and questions[payload.question_index]['type'] in {'mystery', 'intruder'} and feedback == 'correct':
         extra = {'explanation': questions[payload.question_index].get('explanation', '')}
     return {"ok": True, "revision": row.revision, "status": row.status, "feedback": feedback, "extra": extra,
-            "session": public_session(row) if payload.action in {"finish", "start"} or (payload.action == "check" and questions[payload.question_index]["type"] in {"timeline", "crossword", "dragdrop"}) else None}
+            "session": public_session(row) if payload.action in {"finish", "start"} or (payload.action == "check" and questions[payload.question_index]["type"] in {"timeline", "crossword", "dragdrop", "multiselect", "table", "cipher", "race"}) else None}
 
 
 @router.get("/api/profesor/student-material-sessions/{session_id}/images/{image_id}")

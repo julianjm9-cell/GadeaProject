@@ -10,7 +10,7 @@ import unicodedata
 from fastapi import HTTPException
 
 
-BOARDS = {'wordsearch', 'crossword', 'memory', 'dragdrop', 'pasapalabra', 'bingo'}
+BOARDS = {'wordsearch', 'crossword', 'memory', 'dragdrop', 'pasapalabra', 'bingo', 'multiselect', 'table', 'cipher', 'race'}
 SEQUENCES = {'order', 'sentence', 'timeline'}
 LETTER_ORDER = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'
 
@@ -81,6 +81,9 @@ def wire_schema(context):
     properties = {'type': {'type': 'string', 'enum': [kind]}, 'prompt': string, 'explanation': string}
     if kind == 'pasapalabra':
         properties['roscoEntries'] = array(obj({'clue': string, 'answer': string}), size)
+    elif kind in ('multiselect', 'table', 'cipher', 'race'):
+        from app.services.teacher_challenge_games import FIELDS
+        properties['entries'] = array(obj({field: {'type':'string','enum':['sí','no']} if kind == 'multiselect' and field == 'correct' else string for field in FIELDS[kind]}), size)
     elif kind in ('memory', 'dragdrop', 'crossword', 'bingo'):
         fields = ('concept', 'clue') if kind == 'bingo' else ('left', 'right') if kind == 'memory' else ('element', 'target') if kind == 'dragdrop' else ('word', 'clue')
         properties['entries'] = array(obj({field: string for field in fields}), size)
@@ -147,6 +150,9 @@ def normalize_question(source, kind, context):
         q['options'] = q['items']
     if kind == 'wordsearch' and 'words' in q:
         q['options'] = q['words']
+    if kind in ('multiselect', 'table', 'cipher', 'race') and isinstance(q.get('entries'), list):
+        from app.services.teacher_challenge_games import FIELDS
+        q['options'] = [' | '.join(str(row.get(field, '')).strip() for field in FIELDS[kind]) if isinstance(row, dict) else row for row in q['entries']]
     if kind in ('memory', 'dragdrop', 'crossword', 'bingo') and isinstance(q.get('entries'), list):
         fields = ('concept', 'clue') if kind == 'bingo' else ('left', 'right') if kind == 'memory' else ('element', 'target') if kind == 'dragdrop' else ('word', 'clue')
         q['options'] = [' | '.join(str(row.get(field, '')).strip() for field in fields) if isinstance(row, dict) else row for row in q['entries']]
@@ -282,7 +288,10 @@ class GenerationDraft:
                                 value = item.strip()
                                 if not value or len(value) > 300:
                                     raise ValueError('element: texto vacío o demasiado largo.')
-                                if self.kind == 'wordsearch':
+                                if self.kind in ('multiselect', 'table', 'cipher', 'race'):
+                                    from app.services.teacher_challenge_games import parse_entry
+                                    value = ' | '.join(parse_entry(self.kind, value))
+                                elif self.kind == 'wordsearch':
                                     value = puzzle_word(value)
                                     if not value:
                                         raise ValueError('word: usa una palabra de 3 a 12 letras.')
@@ -300,7 +309,9 @@ class GenerationDraft:
                                         from app.services.teacher_mini_games import validate_bingo_pair
                                         validate_bingo_pair(*pair)
                                     value = ' | '.join(pair)
-                                sides = (0, 1) if self.kind in ('memory', 'bingo') else (0,)
+                                if self.kind == 'table' and any(tuple(text_key(x) for x in value.split('|')[:2]) == tuple(text_key(x) for x in old.split('|')[:2]) for old in self.elements):
+                                    raise ValueError('duplicate: esa casilla ya está aceptada.')
+                                sides = () if self.kind == 'table' else (0, 1) if self.kind in ('memory', 'bingo') else (0,)
                                 if any(text_key(value.split('|')[side]) == text_key(old.split('|')[side]) for old in self.elements for side in sides):
                                     raise ValueError('duplicate: el elemento o su pareja ya están aceptados.')
                             self.elements.append(value)

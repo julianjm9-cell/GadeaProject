@@ -7,7 +7,7 @@
   const timelineLabel = (value,reveal) => reveal?String(value):String(value)
     .replace(/\b(?:1\d{3}|20\d{2})-\d{1,2}-\d{1,2}\b|\b\d{1,2}[/.]\d{1,2}[/.](?:1\d{3}|20\d{2})\b|\b\d{1,2}\s+(?:de\s+)?(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s+(?:de\s+)?(?:1\d{3}|20\d{2})\b|\b(?:1\d{3}|20\d{2})\b/gi,'fecha oculta')
     .replace(/\bfecha oculta\s*[–—:-]\s*/gi,'').trim()||'Fecha oculta';
-  const labels = {pairs:'Relacionar',gaps:'Completar',multigaps:'Texto con huecos',numeric:'Respuesta numérica',quiz:'Elegir respuesta',short:'Respuesta breve',order:'Ordenar',classify:'Clasificar',boolean:'Verdadero / Falso',reading:'Comprensión',problem:'Problemas',flashcard:'Flashcards',memory:'Memory',sentence:'Construye la frase',timeline:'Línea temporal',error:'Encuentra el error',wordsearch:'Sopa de letras',crossword:'Crucigrama',dragdrop:'Arrastrar y soltar',pasapalabra:'Pasapalabra',hangman:'Ahorcado',visualquiz:'Quiz visual',imagepoint:'Señalar imagen',mystery:'¿Quién soy?',intruder:'Elimina al intruso',bingo:'Bingo de conceptos'};
+  const labels = {pairs:'Relacionar',gaps:'Completar',multigaps:'Texto con huecos',numeric:'Respuesta numérica',quiz:'Elegir respuesta',short:'Respuesta breve',order:'Ordenar',classify:'Clasificar',boolean:'Verdadero / Falso',reading:'Comprensión',problem:'Problemas',flashcard:'Flashcards',memory:'Memory',sentence:'Construye la frase',timeline:'Línea temporal',error:'Encuentra el error',wordsearch:'Sopa de letras',crossword:'Crucigrama',dragdrop:'Arrastrar y soltar',pasapalabra:'Pasapalabra',hangman:'Ahorcado',visualquiz:'Quiz visual',imagepoint:'Señalar imagen',mystery:'¿Quién soy?',intruder:'Elimina al intruso',bingo:'Bingo de conceptos',multiselect:'Selecciona todas las correctas',table:'Completa la tabla',cipher:'Descifra el mensaje',race:'Carrera del conocimiento'};
   const choice = new Set(['pairs','quiz','boolean','classify','visualquiz']);
   const sequence = new Set(['order','sentence','timeline']);
   const open = new Set(['short','reading','problem','error']);
@@ -50,6 +50,7 @@
       const cards=new Map((question.cards||[]).map(card=>[card.token,card.label]));
       return value.map((pair,index)=>Array.isArray(pair)&&pair.length===2&&pair.every(token=>cards.has(token))?pair.map(token=>cards.get(token)).join(' ↔ '):'Pareja '+(index+1)+' encontrada').join(' · ');
     }
+    if(window.profesorChallengeGames?.types.includes(kind))return window.profesorChallengeGames.summary(kind,question.items||[],value);
     if(kind==='bingo'&&Array.isArray(value))return (question.clues||[]).map((clue,index)=>clue.clue+': '+((question.cards||[]).find(card=>card.token===value[index])?.label||'Sin responder')).join(' · ');
     if(kind==='wordsearch'&&Array.isArray(value)){
       const words=(question.words||[]).filter((word,index)=>Array.isArray(value[index])&&value[index].length);
@@ -70,7 +71,7 @@
     const q = session.questions[n], response = val(session,n), result=grade(session,n), locked = teacher || session.status==='completed';
     const disabled=locked?'disabled':'', kind=q.type;
     let controls='';
-    if(['mystery','intruder','bingo'].includes(kind)){
+    if(['mystery','intruder','bingo','multiselect','table','cipher','race'].includes(kind)){
       controls=`<div id="live-mini-${n}" data-mini-kind="${kind}"></div>`;
     } else if(choice.has(kind)) {
       controls=`<div class="live-options">${(q.options||[]).map((item,i)=>option(`<b>${String.fromCharCode(65+i)}</b><span>${escape(item)}</span>`,response===item,'choice',item,locked)).join('')}</div>`;
@@ -121,12 +122,14 @@
     const partial=['pasapalabra','multigaps','crossword','dragdrop','memory','wordsearch'].includes(kind);
     const feedback=result&&!(kind==='hangman'&&result==='unanswered')?`<p class="live-feedback ${result}" role="status">${kind==='flashcard'?'Valoración guardada: '+({correct:'La sabía',partial:'Con ayuda',incorrect:'Repasar'}[result]||'Sin valorar'):result==='correct'?'✓ Correcto':result==='pending'?'◷ Guardado para revisión':result==='partial'?'◷ Parcialmente correcto':result==='unanswered'?(['crossword','dragdrop'].includes(kind)?'Completa las casillas o piezas que faltan.':'Sin responder'):'× Puedes volver a intentarlo'}</p>`:'';
     const review=teacher&&session.status==='completed'&&open.has(kind)&&(kind!=='error'||result==='pending')?`<div class="live-grade-actions"><b>Valorar respuesta:</b>${[['correct','Correcta'],['partial','Parcial'],['incorrect','Revisar']].map(([value,label])=>`<button type="button" data-live-teacher="grade" data-id="${escape(session.id)}" data-index="${n}" data-grade="${value}" class="${result===value?'active':''}">${label}</button>`).join('')}</div>`:'';
-    return `<article class="live-question" data-live-type="${escape(kind)}"><div class="live-kind"><span>${String(n+1).padStart(2,'0')}</span>${escape(labels[kind]||'Ejercicio')}</div>${(kind==='flashcard'&&!teacher)||['hangman','gaps','multigaps'].includes(kind)?'':`<h3>${rich(kind==='error'?'Encuentra el error y corrígelo en la frase.':q.prompt)}</h3>`}${kind==='reading'&&q.text?`<div class="live-reading">${rich(q.text)}</div>`:''}${kind==='visualquiz'?image(session,q,teacher):''}<div class="live-controls">${controls}</div>${!teacher&&q.hints?.length?`${kind==='pasapalabra'?'':'<button type="button" class="live-hint-button" data-live-action="hint">Necesito una pista</button>'}<div class="live-hint-box" id="liveHintBox"></div>`:''}${feedback}${!locked&&!partial&&!choice.has(kind)&&kind!=='flashcard'&&kind!=='hangman'&&kind!=='sentence'&&kind!=='timeline'&&kind!=='error'&&!['mystery','intruder','bingo'].includes(kind)?'<button type="button" data-live-action="check" class="live-check">Comprobar respuesta</button>':''}${teacher?`<p class="live-observed-answer"><b>Respuesta del alumno:</b> ${escape(summaryValue(response,q))}</p>`:''}${session.status==='completed'&&q.solution?`<div class="live-solution"><b>Solución:</b> ${rich(q.solutions?.join(' · ')||q.solution)}</div>`:''}${review}</article>`;
+    return `<article class="live-question" data-live-type="${escape(kind)}"><div class="live-kind"><span>${String(n+1).padStart(2,'0')}</span>${escape(labels[kind]||'Ejercicio')}</div>${(kind==='flashcard'&&!teacher)||['hangman','gaps','multigaps'].includes(kind)?'':`<h3>${rich(kind==='error'?'Encuentra el error y corrígelo en la frase.':q.prompt)}</h3>`}${kind==='reading'&&q.text?`<div class="live-reading">${rich(q.text)}</div>`:''}${kind==='visualquiz'?image(session,q,teacher):''}<div class="live-controls">${controls}</div>${!teacher&&q.hints?.length?`${kind==='pasapalabra'?'':'<button type="button" class="live-hint-button" data-live-action="hint">Necesito una pista</button>'}<div class="live-hint-box" id="liveHintBox"></div>`:''}${feedback}${!locked&&!partial&&!choice.has(kind)&&kind!=='flashcard'&&kind!=='hangman'&&kind!=='sentence'&&kind!=='timeline'&&kind!=='error'&&!['mystery','intruder','bingo','multiselect','table','cipher','race'].includes(kind)?'<button type="button" data-live-action="check" class="live-check">Comprobar respuesta</button>':''}${teacher?`<p class="live-observed-answer"><b>Respuesta del alumno:</b> ${escape(summaryValue(response,q))}</p>`:''}${session.status==='completed'&&q.solution?`<div class="live-solution"><b>Solución:</b> ${rich(q.solutions?.join(' · ')||q.solution)}</div>`:''}${review}</article>`;
   }
   function mountSentence(session, root, teacher=false){
     root.querySelectorAll('[data-mini-kind]').forEach(board=>{
       const index=Number(board.id.split('-').at(-1)),q=session.questions[index],locked=teacher||session.status==='completed';
-      window.profesorMiniGame(board,{
+      const challenge=window.profesorChallengeGames.types.includes(q.type);
+      (challenge?window.profesorChallengeGame:window.profesorMiniGame)(board,{
+        items:q.items,id:index,
         kind:q.type,options:q.options,cards:q.cards,clues:q.clues,value:val(session,index),result:grade(session,index),
         parts:session.progress?.parts?.[String(index)],explanation:q.explanation,seed:session.id+':'+index,locked,
         focus:session.progress?.focus?.question_index===index?session.progress.focus.part:0,
@@ -134,7 +137,7 @@
           if(locked)return;
           const previous=val(active,index);
           delete active.progress.grades?.[String(index)];
-          if(q.type==='bingo'){
+          if(q.type==='bingo'||challenge){
             const parts=active.progress.parts?.[String(index)]||{};
             Object.keys(parts).forEach(key=>{if(value[key]!==previous?.[key])delete parts[key];});
           }
@@ -145,7 +148,7 @@
           if(locked)return;
           await flush();
           const response=await send('check',index,value,part);
-          return {result:response.feedback,parts:active.progress.parts?.[String(index)],explanation:response.extra?.explanation||''};
+          return {result:response.feedback,items:active.questions[index]?.items,parts:active.progress.parts?.[String(index)],explanation:response.extra?.explanation||''};
         },
         onFocus(part){if(!locked){flush().then(()=>send('focus',index,null,part)).catch(error=>{const status=board.querySelector('[role="status"]');if(status)status.textContent=error.message;});}}
       });

@@ -1,11 +1,12 @@
 /* Activity size, teacher instructions and complete game previews. */
 (() => {
  const bundleTypes=new Set(['pairs','gaps','quiz','short','classify','boolean','reading','problem','flashcard','error','numeric','hangman','mystery','intruder']);
- const limits={multigaps:20,pasapalabra:27,crossword:7,wordsearch:8,memory:8,dragdrop:8,order:8,sentence:8,timeline:8,bingo:9};
+ const limits={multigaps:20,pasapalabra:27,crossword:7,wordsearch:8,memory:8,dragdrop:8,order:8,sentence:8,timeline:8,bingo:9,multiselect:6,table:12,cipher:10,race:12};
  const defaults={pasapalabra:18,multigaps:10,reading:4,problem:3,hangman:3,mystery:3,intruder:5,bingo:9};
- const unitLabels={pairs:'parejas',gaps:'frases',multigaps:'huecos',numeric:'preguntas',quiz:'preguntas',short:'preguntas',order:'elementos',classify:'elementos',boolean:'preguntas',reading:'preguntas',problem:'problemas',flashcard:'tarjetas',memory:'parejas',sentence:'fragmentos',timeline:'eventos',error:'frases',wordsearch:'palabras',crossword:'palabras',dragdrop:'parejas',pasapalabra:'letras',hangman:'palabras',visualquiz:'imagen',imagepoint:'imagen',mystery:'misterios',intruder:'rondas',bingo:'conceptos'};
- const minSize=type=>type==='bingo'?9:['pasapalabra','wordsearch','crossword','dragdrop'].includes(type)?3:2;
+ const unitLabels={pairs:'parejas',gaps:'frases',multigaps:'huecos',numeric:'preguntas',quiz:'preguntas',short:'preguntas',order:'elementos',classify:'elementos',boolean:'preguntas',reading:'preguntas',problem:'problemas',flashcard:'tarjetas',memory:'parejas',sentence:'fragmentos',timeline:'eventos',error:'frases',wordsearch:'palabras',crossword:'palabras',dragdrop:'parejas',pasapalabra:'letras',hangman:'palabras',visualquiz:'imagen',imagepoint:'imagen',mystery:'misterios',intruder:'rondas',bingo:'conceptos',multiselect:'opciones',table:'casillas',cipher:'pistas',race:'retos'};
+ const minSize=type=>['table','race'].includes(type)?4:['multiselect','cipher'].includes(type)?3:type==='bingo'?9:['pasapalabra','wordsearch','crossword','dragdrop'].includes(type)?3:2;
  const maxSize=type=>limits[type]||12;
+ const steppedSize=(type,size,direction)=>type==='table'?([4,6,8,9,10,12].filter(value=>direction>0?value>size:value<size)[direction>0?'shift':'pop']()||size):Math.max(minSize(type),Math.min(maxSize(type),size+direction));
  const recoverableGenerationError=error=>{
   const status=Number(error?.status);
   if(status===503&&/no hay una ia configurada|configura|clave|modelo/i.test(error?.message||''))return false;
@@ -65,7 +66,7 @@
    quantity.querySelector('output').after(unit);
    tile.querySelectorAll('[data-step]').forEach(control=>{
     control.setAttribute('aria-label',`${control.dataset.step==='1'?'Añadir':'Quitar'} ${unitLabels[type]} de ${activityLabels[type]}`);
-    const change=event=>{event.stopPropagation();event.preventDefault();if(tile.disabled||workshopBusy||Number($('count-'+type).value)!==1||visualTypes.includes(type))return;input.value=String(Math.max(minSize(type),Math.min(maxSize(type),Number(input.value)+Number(control.dataset.step))));refreshSizes()};
+    const change=event=>{event.stopPropagation();event.preventDefault();if(tile.disabled||workshopBusy||Number($('count-'+type).value)!==1||visualTypes.includes(type))return;input.value=String(steppedSize(type,Number(input.value),Number(control.dataset.step)));refreshSizes()};
     control.onclick=change;
     control.onkeydown=event=>{if(event.key==='Enter'||event.key===' ')change(event)};
    });

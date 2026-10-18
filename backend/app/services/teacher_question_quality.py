@@ -24,7 +24,7 @@ def feedback_fields(question, kind, options):
         extra['optionFeedback'] = [dict(option=row['option'], explanation=row['explanation'].strip()) for row in rows]
     if 'itemExplanations' in question:
         values = question['itemExplanations']
-        if kind not in ('multigaps', 'pasapalabra', 'crossword', 'memory', 'dragdrop', 'wordsearch', 'order', 'sentence', 'timeline', 'bingo') or not isinstance(values, list) or len(values) != len(options) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in values):
+        if kind not in ('multigaps', 'pasapalabra', 'crossword', 'memory', 'dragdrop', 'wordsearch', 'order', 'sentence', 'timeline', 'bingo', 'multiselect', 'table', 'cipher', 'race') or not isinstance(values, list) or len(values) != len(options) or any(not isinstance(v, str) or not 1 <= len(v.strip()) <= 300 for v in values):
             raise ValueError('Añade una explicación breve por elemento, en el mismo orden que options.')
         extra['itemExplanations'] = [v.strip() for v in values]
     if 'calculation' in question:
