@@ -15,6 +15,6 @@ El cupo se reinicia a las 00:00 de Europe/Madrid, incluidos los cambios de hora.
 
 Se guarda un único registro compacto de cupo por usuario en `app_settings`; no requiere migraciones y no depende de los materiales que el profesor conserve o borre. Las fichas existentes por encima de tres se conservan y pueden editarse al pasar a normal. Se rechazan nuevas incorporaciones por encima del límite sin recortar los datos guardados. La recuperación de copias sigue disponible.
 
-Los avisos de Premium se abren sobre el formulario actual para conservar el trabajo pendiente. La activación sigue siendo manual por el administrador tras contactar por `educamesuite@gmail.com` o WhatsApp `+34 663 533 412`. Este cambio no modifica los planes asignados ni la configuración de altas nuevas.
+Los avisos de Premium se abren sobre el formulario actual para conservar el trabajo pendiente. La activación sigue siendo manual por el administrador tras contactar por `educamesuite@gmail.com`. Este cambio no modifica los planes asignados ni la configuración de altas nuevas.
 
 Validación: pruebas de permisos, conservación de fichas al cambiar de plan, cuota compartida entre trece tipos, reintentos, fallos, reservas simultáneas, aislamiento de cuentas y reinicio de día en Madrid. Revisión visual con cuentas ficticias normales y Premium, en escritorio y móvil.

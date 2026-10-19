@@ -274,6 +274,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
   document.querySelectorAll("[data-request-demo]").forEach((button) => {
-    button.addEventListener("click", () => showToast("Preparado para conectar con formulario, pago o WhatsApp."));
+    button.addEventListener("click", () => showToast("Preparado para conectar con formulario o correo."));
   });
 });

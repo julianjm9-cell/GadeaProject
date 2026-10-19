@@ -6,7 +6,7 @@ Modelo manual:
 
 - No hay prueba gratuita descargable.
 - No hay descarga publica.
-- Primero te habla por WhatsApp.
+- Primero te habla por correo.
 - Le mandas un link de prueba.
 - Si hace falta, lo enseñas en directo.
 - Si le gusta, lo instalas.
@@ -19,7 +19,7 @@ Precio orientativo actual:
 ## Flujo comercial
 
 1. Landing publica en Netlify.
-2. Boton "Hablame por WhatsApp".
+2. Boton "Hablame por correo".
 3. Le mandas un link de prueba.
 4. Demo o instalacion guiada si hace falta.
 5. Pago mensual si decide quedarse.

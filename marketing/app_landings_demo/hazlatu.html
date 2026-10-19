@@ -56,8 +56,7 @@
           <input class="participation" id="participation" type="range" min="0" max="100" step="50" value="50" aria-label="Grado de participación">
           <div class="range-ends" aria-hidden="true"><span>Quiero aprender<br>Tú lo haces y te guío</span><span>Quiero el servicio<br>Yo me encargo y tú decides</span></div>
           <div class="idea-actions">
-            <a class="button button-primary" id="whatsappLink" href="https://wa.me/34663533412" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.6a8 8 0 0 1-11.8 7L4 20l1.4-4.1A8 8 0 1 1 20 11.6Z"/><path d="M9 8.5c.4 2.5 2 4.1 4.5 5"/></svg>Contactar por WhatsApp</a>
-            <a class="button button-secondary" id="emailLink" href="mailto:julianjm9@gmail.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>Escribirme un correo</a>
+            <a class="button button-primary" id="emailLink" href="mailto:julianjm9@gmail.com"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>Escribirme un correo</a>
           </div>
         </aside>
       </div></div>
@@ -93,7 +92,7 @@
           <details><summary>¿Trabajas solamente con proyectos educativos?</summary><p>No. También podemos estudiar herramientas de organización, reservas, automatización o gestión.</p></details>
           <details><summary>¿Cuánto cuesta y cuánto tarda?</summary><p>Depende del alcance. Tras una conversación breve definiré una primera versión, un precio y una estimación concretos.</p></details>
           <details><summary>¿Podré modificarla después?</summary><p>Sí. La herramienta se plantea para evolucionar y podemos dejar documentación o trabajar juntos para que entiendas cómo actualizarla.</p></details>
-          <details><summary>¿Cómo empezamos?</summary><p>Vuelve a Inicio, escribe tu idea, elige cuánto quieres participar y envíamela por WhatsApp o correo.</p></details>
+          <details><summary>¿Cómo empezamos?</summary><p>Vuelve a Inicio, escribe tu idea, elige cuánto quieres participar y envíamela por correo.</p></details>
         </div>
       </div></div>
     </section>
@@ -107,7 +106,6 @@
       const counter=document.getElementById('counter');
       const participation=document.getElementById('participation');
       const rangeValue=document.getElementById('rangeValue');
-      const whatsapp=document.getElementById('whatsappLink');
       const email=document.getElementById('emailLink');
       const modes={0:'Quiero aprender y construirlo contigo',50:'Construimos juntos',100:'Quiero que te encargues y yo decido'};
       function showView(name,focusId,writeHash=true){
@@ -125,7 +123,6 @@
         const message=`Hola, te escribo desde HazloTú.\n\nMi idea: ${text}\n\nCómo quiero participar: ${mode}.`;
         counter.textContent=`${idea.value.length} / 300`;
         rangeValue.textContent=mode;
-        whatsapp.href=`https://wa.me/34663533412?text=${encodeURIComponent(message)}`;
         email.href=`mailto:julianjm9@gmail.com?subject=${encodeURIComponent('Mi idea para HazloTú')}&body=${encodeURIComponent(message)}`;
       }
       idea.addEventListener('input',updateContact);

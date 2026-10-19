@@ -11,7 +11,7 @@ C:\Users\julia\Desktop\BUILD\marketing\diplomator\index.html
 Comprueba:
 
 - Que la pagina se ve bien.
-- Que "Hablame por WhatsApp" abre una conversacion con `663 533 412`.
+- Que "Háblame por correo" abre un mensaje dirigido a `julianjm9@gmail.com`.
 - Que no hay enlace de pago activo.
 - Que no hay descarga publica.
 
@@ -34,8 +34,8 @@ No subas:
 ## 3. Flujo comercial actual
 
 1. La persona ve la landing.
-2. Pulsa "Hablame por WhatsApp" o "Contactar".
-3. Te escribe por WhatsApp.
+2. Pulsa "Hablame por correo" o "Contactar".
+3. Te escribe por correo.
 4. Le mandas un link de prueba.
 5. Quedas con ella en directo si hace falta.
 6. Si le gusta, se lo instalas o le das acceso.
