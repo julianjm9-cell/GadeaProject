@@ -711,6 +711,8 @@ def profesor_temario_catalogue():
 @router.get("/profesor-puzzle-boards.js")
 @router.get("/profesor-challenge-games.js")
 @router.get("/profesor-notifications.js")
+@router.get("/profesor-subjects.js")
+@router.get("/profesor-profile.js")
 @router.get("/profesor-mini-games.js")
 @router.get("/profesor-activity-play.js")
 @router.get("/profesor-generator.js")
@@ -744,6 +746,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-puzzle-theme.css")
 @router.get("/assets/profesor-challenge-games.css")
 @router.get("/assets/profesor-notifications.css")
+@router.get("/assets/profesor-profile.css")
 @router.get("/assets/profesor-mini-games.css")
 @router.get("/assets/profesor-sentence-theme.css")
 @router.get("/assets/profesor-memory-theme.css")
@@ -767,6 +770,8 @@ def profesor_final_styles(request: Request):
 
 
 @router.get("/assets/profesor-study-room.png")
+@router.get("/assets/profesor-study-preview.webp")
+@router.get("/assets/profesor-academy-preview.webp")
 @router.get("/assets/profesor-academy-room.webp")
 @router.get("/assets/profesor-academy-paper.webp")
 def profesor_study_room(request: Request):

@@ -52,6 +52,16 @@ def check_revision(row: ClientState, supplied: str | None) -> int:
 
 
 def validate_transition(previous: dict, incoming: dict, *, confirm_empty: bool = False) -> None:
+    profile = incoming.get('teacherProfile')
+    if profile is not None and profile != previous.get('teacherProfile'):
+        if not isinstance(profile, dict):
+            raise HTTPException(422, 'El perfil del profesor no es válido.')
+        offered = profile.get('subjects', [])
+        if not isinstance(offered, list) or len(offered) > 30 or any(
+                not isinstance(subject, str) or not subject.strip() or len(subject) > 80 or any(ord(char) < 32 for char in subject) for subject in offered):
+            raise HTTPException(422, 'Selecciona hasta 30 asignaturas con nombres válidos, de hasta 80 caracteres.')
+        if 'backgroundMode' in profile and profile['backgroundMode'] not in ('study', 'academy', 'plain'):
+            raise HTTPException(422, 'Elige uno de los tres estilos disponibles.')
     # Iterative bounds protect decoding/traversal without discarding historical fields.
     stack, nodes = [(incoming, 0)], 0
     while stack:

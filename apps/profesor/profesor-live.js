@@ -203,7 +203,7 @@
       return '';
     }
     function pickSessionMaterial(){
-      const materials=state.library.filter(item=>Array.isArray(item.activity?.questions)&&item.activity.questions.length);
+      const materials=state.library.filter(teacherMaterialVisible).filter(item=>Array.isArray(item.activity?.questions)&&item.activity.questions.length);
       if(!materials.length){notify('Primero crea un material interactivo.');return}
       const courseOf=m=>m.activity?.context?.course||student(m.studentId)?.course||m.course||'';
       const choices=(values,label)=>`<option value="">${label}</option>${[...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es')).map(value=>`<option value="${escape(value)}">${escape(value)}</option>`).join('')}`;

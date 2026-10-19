@@ -1,0 +1,74 @@
+/* Profile settings use the existing guarded account save and existing security tools. */
+(() => {
+  const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const looks=[
+    {id:'study',title:'Aula luminosa',label:'Fondo 1',description:'Azules suaves, tarjetas claras y un espacio de estudio acogedor.',image:'./assets/profesor-study-preview.webp'},
+    {id:'academy',title:'Academia de aventuras',label:'Fondo 2',description:'Tonos de pergamino, azul profundo y detalles dorados.',image:'./assets/profesor-academy-preview.webp'},
+    {id:'plain',title:'Estilo original',label:'Sin fondo',description:'La vista azul de siempre, sencilla y sin ilustraciones de fondo.'}
+  ];
+  let dialog,draftMode,originalMode,initialSubjects=[],busy=false,preferenceSaveFailed=false;
+  const icons={'Matemáticas':'∑','Lengua':'Aa','Inglés':'EN','Español':'ES','Ciencias Naturales':'✿','Física y Química':'⚗','Geografía e Historia':'◎'};
+  function options(){return window.profesorSubjects.unique([...subjects,...Object.values(window.PROFESOR_TEMARIO||{}).flatMap(items=>Object.keys(items)),...state.students.flatMap(item=>item.subjects),...state.library.map(item=>item.subject),...(state.uploadedTopics||[]).map(item=>item.subject),...teacherOfferedSubjects()]);}
+  const picked=()=>[...dialog.querySelectorAll('[name="offeredSubject"]:checked')].map(input=>input.value);
+  function subjectOption(value,checked){return `<label class="profile-subject-choice"><input type="checkbox" name="offeredSubject" value="${escape(value)}" ${checked?'checked':''}><span class="profile-subject-icon" aria-hidden="true">${escape(icons[value]||'✦')}</span><span>${escape(value)}</span><span class="profile-choice-check" aria-hidden="true">✓</span></label>`;}
+  function status(text,error=false){const node=dialog.querySelector('[data-profile-status]');node.textContent=text;node.classList.toggle('error',error);}
+  function dirty(){return draftMode!==originalMode||JSON.stringify(picked().slice().sort())!==JSON.stringify(initialSubjects.slice().sort());}
+  function updateSelection(){const count=picked().length;dialog.querySelector('[data-subject-count]').textContent=`${count} ${count===1?'asignatura seleccionada':'asignaturas seleccionadas'}`;dialog.querySelectorAll('[data-look-choice]').forEach(card=>{const active=card.dataset.lookChoice===draftMode;card.classList.toggle('selected',active);card.querySelector('input').checked=active;});const active=dialog.querySelector('[role="tab"][aria-selected="true"]')?.dataset.settingsTab;dialog.querySelector('[data-profile-save]').hidden=!dirty()&&!['subjects','appearance'].includes(active);}
+  function tab(name){
+    dialog.querySelectorAll('[role="tab"]').forEach(node=>{const active=node.dataset.settingsTab===name;node.setAttribute('aria-selected',String(active));node.tabIndex=active?0:-1;});
+    dialog.querySelectorAll('[role="tabpanel"]').forEach(node=>node.hidden=node.dataset.settingsPanel!==name);
+    dialog.querySelector('[data-profile-save]').hidden=!dirty()&&!['subjects','appearance'].includes(name);
+    status('');
+  }
+  async function savePreferences(){
+    if(busy)return;
+    const chosen=picked();
+    if(!chosen.length){tab('subjects');status('Selecciona al menos una asignatura para personalizar tu escritorio.',true);return;}
+    if(chosen.length>30){status('Puedes seleccionar hasta 30 asignaturas.',true);return;}
+    busy=true;dialog.querySelectorAll('button,input').forEach(node=>node.disabled=true);status('Guardando tus preferencias…');
+    const previous=state.teacherProfile;
+    try{
+      await saveQueue;
+      if(saveBlocked||(saveFailed&&!preferenceSaveFailed))throw Error('Hay cambios pendientes de guardar en tu escritorio. Cierra esta ventana y revisa el guardado antes de cambiar tus preferencias.');
+      state.teacherProfile={...previous,subjects:chosen,backgroundMode:draftMode};
+      if(!await save()){state.teacherProfile=previous;preferenceSaveFailed=true;throw Error('No se han podido guardar tus preferencias. Conservamos tu selección en esta ventana para reintentar.');}
+      preferenceSaveFailed=false;
+      originalMode=draftMode;initialSubjects=chosen;
+      try{localStorage.setItem(backgroundPreferenceKey,draftMode);}catch{}
+      if(JSON.stringify(chosen.map(window.profesorSubjects.key).sort())!==JSON.stringify(window.profesorSubjects.selected(previous).map(window.profesorSubjects.key).sort()))teacherResetSubjectFilters();render();
+      status('Preferencias guardadas. El temario y los materiales ya muestran tus asignaturas.');
+    }catch(error){status(error.message,true);}
+    finally{busy=false;dialog.querySelectorAll('button,input').forEach(node=>node.disabled=false);updateSelection();}
+  }
+  function close(){if(busy)return;dialog.close();}
+  function auxiliary(action){
+    if(busy)return;
+    if(dirty()){status('Guarda tus preferencias o pulsa Cerrar para descartarlas antes de abrir esta opción.',true);return;}
+    close();
+    const trigger=document.createElement('button');trigger.type='button';trigger.dataset.action=action;trigger.hidden=true;document.body.append(trigger);trigger.click();trigger.remove();
+  }
+  function open(initialTab='account'){
+    if(dialog?.open){tab(initialTab);return;}
+    originalMode=teacherBackgroundMode;draftMode=originalMode;busy=false;preferenceSaveFailed=false;
+    const available=options(),chosen=teacherOfferedSubjects();initialSubjects=chosen.length?available.filter(value=>window.profesorSubjects.allows(state.teacherProfile,value)):available.slice();
+    dialog=document.createElement('dialog');dialog.className='teacher-settings-dialog';dialog.setAttribute('aria-labelledby','teacherSettingsTitle');
+    dialog.innerHTML=`<header class="teacher-settings-head"><div class="teacher-settings-avatar">${escape((accountName||'P').slice(0,1))}</div><div><span>Tu espacio de profesor</span><h2 id="teacherSettingsTitle">Perfil y preferencias</h2></div><button type="button" data-profile-close aria-label="Cerrar perfil">×</button></header>
+      <div class="teacher-settings-layout"><nav class="teacher-settings-nav" role="tablist" aria-label="Opciones del perfil">${[['account','Mi cuenta','Tu nombre y tu plan'],['subjects','Mis asignaturas','Solo lo que enseñas'],['appearance','Apariencia','Elige tu ambiente'],['security','Seguridad y datos','Acceso y recuperación']].map(([id,title,detail])=>`<button type="button" role="tab" id="settings-tab-${id}" aria-controls="settings-panel-${id}" aria-selected="false" data-settings-tab="${id}"><strong>${title}</strong><small>${detail}</small></button>`).join('')}</nav>
+      <div class="teacher-settings-content">
+        <section role="tabpanel" id="settings-panel-account" aria-labelledby="settings-tab-account" data-settings-panel="account"><div class="settings-section-title"><h3>Tu cuenta, a tu manera</h3><p>Gestiona cómo apareces en la aplicación y consulta lo que incluye tu cuenta.</p></div><article class="settings-info-card"><div><span class="settings-kicker">Nombre visible</span><strong>${escape(accountName||'Profesor')}</strong><p>${escape(accountEmail||'Cuenta de demostración')}</p></div><button type="button" data-profile-tool="profile">Cambiar nombre</button></article><article class="settings-plan-card"><span class="settings-kicker">Tipo de cuenta</span><h4>${isPremium()?'Premium':'Normal'}</h4><p>${isPremium()?'Tienes acceso a las sesiones con código, más alumnos y juegos avanzados con IA sin límite diario.':'Puedes tener hasta 3 alumnos y generar un juego avanzado con IA al día. La creación manual sigue siendo libre.'}</p><button type="button" data-profile-tool="premiumInfo">${isPremium()?'Consultar condiciones':'Cómo obtener Premium'}</button><small>La activación se acuerda por correo o WhatsApp. Los créditos de IA funcionan como hasta ahora.</small></article><p class="settings-footnote">Tus preferencias de asignaturas se guardan en esta cuenta y se aplican al abrirla en otro dispositivo.</p></section>
+        <section role="tabpanel" id="settings-panel-subjects" aria-labelledby="settings-tab-subjects" data-settings-panel="subjects" hidden><div class="settings-section-title"><h3>¿Qué asignaturas ofreces?</h3><p>Elige las que enseñas y guarda tus preferencias. El temario, las bibliotecas, el creador y las sesiones mostrarán contenido de tu selección.</p></div><div class="profile-subject-toolbar"><strong data-subject-count></strong><button type="button" data-subject-select="all">Seleccionar todas</button><button type="button" data-subject-select="none">Limpiar selección</button></div><div class="profile-subject-grid">${available.map(value=>subjectOption(value,initialSubjects.includes(value))).join('')}</div><div class="profile-add-subject"><label for="profileExtraSubject">¿Enseñas otra asignatura?</label><div><input id="profileExtraSubject" maxlength="80" placeholder="Por ejemplo, Francés o Tecnología"><button type="button" data-add-subject>Añadir</button></div></div><div class="settings-reassurance">Tus materiales y datos se conservan. Si dejas de mostrar una asignatura, podrás volver a verla seleccionándola de nuevo.</div></section>
+        <section role="tabpanel" id="settings-panel-appearance" aria-labelledby="settings-tab-appearance" data-settings-panel="appearance" hidden><div class="settings-section-title"><h3>Elige dónde preparar tus clases</h3><p>Prueba un estilo para ver cómo queda. Guarda tus preferencias para mantenerlo; al cerrar sin guardar volverás al anterior.</p></div><fieldset class="profile-look-grid"><legend class="sr-only">Estilo de la aplicación</legend>${looks.map(look=>`<label class="profile-look-card" data-look-choice="${look.id}"><input type="radio" name="profileBackground" value="${look.id}" aria-label="${look.label} · ${look.title}" aria-describedby="profile-look-description-${look.id}" ${look.id===draftMode?'checked':''}><div class="profile-look-preview ${look.id}">${look.image?`<img src="${look.image}" alt="Vista previa del ambiente ${escape(look.title)}" loading="lazy">`:'<div class="profile-plain-sky" aria-hidden="true"></div>'}<div class="profile-preview-nav" aria-hidden="true"><i></i><span></span><span></span></div><div class="profile-preview-panels" aria-hidden="true"><span></span><span></span><span></span></div><b class="profile-look-check" aria-hidden="true">✓</b></div><div class="profile-look-copy"><small>${look.label}</small><strong>${look.title}</strong><p id="profile-look-description-${look.id}">${look.description}</p></div></label>`).join('')}</fieldset></section>
+        <section role="tabpanel" id="settings-panel-security" aria-labelledby="settings-tab-security" data-settings-panel="security" hidden><div class="settings-section-title"><h3>Tu acceso y tu trabajo, a salvo</h3><p>Estas herramientas te ayudan a gestionar tu cuenta y recuperar lo que has preparado.</p></div><div class="profile-tool-list">${[['password','Cambiar contraseña','Actualiza la contraseña con la que entras en tu cuenta.'],['stateHistory','Historial y recuperación','Consulta las copias de tu escritorio y recupera una versión anterior.'],['recoverWork','Recuperar trabajo','Retoma borradores y materiales que se quedaron a medias.']].map(([action,title,description])=>`<button type="button" data-profile-tool="${action}"><span><strong>${title}</strong><small>${description}</small></span><b aria-hidden="true">→</b></button>`).join('')}<a href="/privacidad" target="_blank" rel="noopener noreferrer"><span><strong>Política de privacidad</strong><small>Consulta cómo se tratan los datos de tu cuenta.</small></span><b aria-hidden="true">↗</b></a>${!demo?'<button type="button" data-profile-tool="logoutAll"><span><strong>Cerrar todas las sesiones</strong><small>Cierra el acceso en todos los navegadores y dispositivos, incluido este.</small></span><b aria-hidden="true">→</b></button>':''}</div>${demo?'<a class="settings-signout" href="/profesor/login">Entrar con mi cuenta</a>':'<button type="button" class="settings-signout" data-profile-tool="logout">Cerrar sesión en este dispositivo</button>'}</section>
+      </div></div><footer class="teacher-settings-footer"><p data-profile-status role="status" aria-live="polite"></p><div><button type="button" data-profile-close>Cerrar</button><button type="button" class="primary" data-profile-save>Guardar preferencias</button></div></footer>`;
+    document.body.append(dialog);
+    dialog.addEventListener('click',event=>{const control=event.target.closest('button');if(!control)return;if(control.dataset.settingsTab)tab(control.dataset.settingsTab);if(control.hasAttribute('data-profile-close'))close();if(control.hasAttribute('data-profile-save'))savePreferences();if(control.dataset.profileTool)auxiliary(control.dataset.profileTool);if(control.dataset.subjectSelect){dialog.querySelectorAll('[name="offeredSubject"]').forEach(input=>input.checked=control.dataset.subjectSelect==='all');updateSelection();}if(control.hasAttribute('data-add-subject'))addSubject();});
+    function addSubject(){const input=dialog.querySelector('#profileExtraSubject'),value=input.value.trim();if(!value)return;if(value.length>80||/[\x00-\x1f]/.test(value)){status('Escribe un nombre de asignatura válido, de hasta 80 caracteres.',true);return;}const existing=[...dialog.querySelectorAll('[name="offeredSubject"]')].find(node=>window.profesorSubjects.key(node.value)===window.profesorSubjects.key(value));if(existing)existing.checked=true;else dialog.querySelector('.profile-subject-grid').insertAdjacentHTML('beforeend',subjectOption(value,true));input.value='';updateSelection();}
+    dialog.addEventListener('change',event=>{if(event.target.name==='profileBackground'){draftMode=event.target.value;teacherBackgroundMode=draftMode;applyTeacherBackground();}updateSelection();status('');});
+    dialog.addEventListener('keydown',event=>{if(event.target.id==='profileExtraSubject'&&event.key==='Enter'){event.preventDefault();addSubject();}if(event.target.matches('[role="tab"]')&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key)){event.preventDefault();const tabs=[...dialog.querySelectorAll('[role="tab"]')],index=tabs.indexOf(event.target),next=event.key==='Home'?0:event.key==='End'?tabs.length-1:(index+(['ArrowLeft','ArrowUp'].includes(event.key)?-1:1)+tabs.length)%tabs.length;tab(tabs[next].dataset.settingsTab);tabs[next].focus();}});
+    dialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
+    dialog.addEventListener('close',()=>{teacherBackgroundMode=originalMode;applyTeacherBackground();dialog.remove();},{once:true});
+    dialog.showModal();tab(initialTab);updateSelection();
+  }
+  window.profesorProfile={open};
+  document.addEventListener('click',event=>{const button=event.target.closest('[data-action="accountSettings"]');if(button)open(button.dataset.settingsPanel||'account');});
+})();

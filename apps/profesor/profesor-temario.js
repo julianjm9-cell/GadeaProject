@@ -325,6 +325,7 @@ function temarioMaterials(topic) {
   });
 }
 function temarioVisibleTopics() {
+  if(!teacherAllowsSubject(temarioSubject))return [];
   const query = temarioNorm(temarioQuery);
   return temarioTopics().filter(topic => (!query || temarioNorm(topic.title + ' ' + topic.explanation).includes(query)));
 }
@@ -428,16 +429,19 @@ const temarioResources=[
  {kind:'examples',title:'Ejemplos resueltos',description:'Aplicación explicada y errores frecuentes.',premium:true}
 ];
 temarioView=function(){
- const courses=Object.keys(window.PROFESOR_TEMARIO||{});
+ const allCourses=Object.keys(window.PROFESOR_TEMARIO||{});
+ const matchedCourses=allCourses.filter(course=>Object.keys(window.PROFESOR_TEMARIO[course]).some(teacherAllowsSubject)||(state.uploadedTopics||[]).some(topic=>topic.course===course&&teacherAllowsSubject(topic.subject))||(state.personalTopics||[]).some(topic=>topic.course===course&&teacherAllowsSubject(topic.subject)));
+ const courses=matchedCourses.length?matchedCourses:allCourses.filter(course=>!spanishLevels.includes(course));
  if(!courses.includes(temarioCourse))temarioCourse=courses[0]||'';
- const subjects=[...new Set([...Object.keys(window.PROFESOR_TEMARIO?.[spanishLevels.includes(temarioCourse)?temarioSchoolCourse:temarioCourse]||{}),'Español'])];
+ const subjects=teacherSubjectChoices([...Object.keys(window.PROFESOR_TEMARIO?.[spanishLevels.includes(temarioCourse)?temarioSchoolCourse:temarioCourse]||{}),'Español',...teacherOfferedSubjects()]);
  if(!subjects.includes(temarioSubject))temarioSubject=subjects[0]||'';
  const topics=temarioVisibleTopics();
  if(!topics.some(t=>t.id===temarioSelected))temarioSelected=topics[0]?.id||'';
  const current=topics.find(t=>t.id===temarioSelected);
  const options=(list,value)=>list.map(x=>'<option value="'+esc(x)+'"'+(x===value?' selected':'')+'>'+esc(x)+'</option>').join('');
- const courseOptions='<optgroup label="Cursos escolares">'+options(courses.filter(course=>!spanishLevels.includes(course)),temarioCourse)+'</optgroup><optgroup label="Español · niveles A1–C2">'+spanishLevels.filter(level=>courses.includes(level)).map(level=>'<option value="'+level+'"'+(level===temarioCourse?' selected':'')+'>'+level+' · Español</option>').join('')+'</optgroup>';
- return '<div class="temario-page temario-simple temario-renewed"><div class="temario-controls" aria-label="Buscar en el temario">'+
+ const schoolCourses=courses.filter(course=>!spanishLevels.includes(course));
+ const courseOptions=(schoolCourses.length?'<optgroup label="Cursos escolares">'+options(schoolCourses,temarioCourse)+'</optgroup>':'')+(teacherAllowsSubject('Español')?'<optgroup label="Español · niveles A1–C2">'+spanishLevels.filter(level=>courses.includes(level)).map(level=>'<option value="'+level+'"'+(level===temarioCourse?' selected':'')+'>'+level+' · Español</option>').join('')+'</optgroup>':'');
+ return '<div class="temario-page temario-simple temario-renewed">'+teacherSubjectNotice()+'<div class="temario-controls" aria-label="Buscar en el temario">'+
  '<label for="temarioCourse">Curso / nivel<select id="temarioCourse">'+courseOptions+'</select></label>'+
  '<label for="temarioSubject">Asignatura<select id="temarioSubject">'+options(subjects,temarioSubject)+'</select></label>'+
  '<label for="temarioSearch">Buscar tema<input id="temarioSearch" type="search" value="'+esc(temarioQuery)+'" placeholder="Nombre o concepto…" autocomplete="off"></label>'+

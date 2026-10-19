@@ -12,6 +12,7 @@ function library(){
   const labels=html.split('\n').find(line=>line.startsWith('const activityLabels='));
   const functions=html.slice(html.indexOf('let publicMaterialCache='),html.indexOf('function filteredMaterials()'));
   vm.createContext(context);
+  vm.runInContext(readFileSync(join(__dirname,'../profesor-subjects.js'),'utf8'),context);
   vm.runInContext(labels+"\nlet materialPublicFormat='combined';\n"+functions,context);
   return {run:code=>vm.runInContext(code,context),context};
 }
@@ -52,7 +53,8 @@ test('Private, curated public and syllabus libraries use separate sources and fi
   context.student=()=>null;
   vm.runInContext(html.slice(html.indexOf('function filteredMaterials()'),html.indexOf('function materialPageSize()')),context);
   vm.runInContext(html.slice(html.indexOf("let homeStudentQuery=''"),html.indexOf('function materialResultSummary()')).replace(",materialPublicFormat='combined'",''),context);
-  assert.equal(run('materialLibrarySource()===state.library'),true);
+  assert.equal(run('materialLibrarySource()[0]===state.library[0]'),true);
+  assert.equal(run('state.library.length'),1);
   run("switchMaterialMode('public')");
   assert.equal(run('filteredMaterials().length'),42);
   assert.equal(run('filteredMaterials()[0].id===publicLibraryMaterials()[0].id'),true);

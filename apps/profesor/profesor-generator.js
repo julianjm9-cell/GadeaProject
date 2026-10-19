@@ -165,6 +165,10 @@
  };
  openWorkshop=function(prefill={}){
   if(!Object.keys(prefill).length)try{const saved=JSON.parse(sessionStorage.getItem('profesor.generatorRetry')||'null');if(saved?.body&&saved.account===accountEmail)prefill=saved.body}catch{}
+  if(prefill.subject&&!teacherAllowsSubject(prefill.subject)){
+   notify('El borrador anterior pertenece a una asignatura que no estás mostrando. Sigue conservado; elige un tema para tus asignaturas actuales.');
+   prefill={...prefill,studentId:'',subject:materialSubjects()[0]||'',topic:'',instructions:''};
+  }
   const owner=Object.hasOwn(prefill,'studentId')?prefill.studentId:selected||'',draft=isPremium()?{...prefill}:{...prefill,visualquiz:0,imagepoint:0},st=student(owner);
   modal('Crear material',workshopMarkup(owner,draft,st),async form=>{
    const retryNotice=$('workshopRetryNotice');
@@ -173,6 +177,7 @@
    let total=0,totalQuestions=0;
    for(const type of Object.keys(activityLabels)){c[type]=Number(form.get(type));if(!Number.isInteger(c[type])||c[type]<0||c[type]>MAX_GENERATOR_ACTIVITIES)throw Error('Elige un único tipo de actividad.');if(visualTypes.includes(type)&&!isPremium()&&c[type])throw Error('Las fotografías requieren Premium.');total+=c[type];if(c[type]&&!visualTypes.includes(type)){const size=Number(form.get('size-'+type));if(!Number.isInteger(size)||size<(['pasapalabra','wordsearch','crossword','dragdrop'].includes(type)?3:2)||size>(limits[type]||12))throw Error('Revisa el número de preguntas o elementos de '+activityLabels[type]+'.');c.activitySizes[type]=size;}totalQuestions+=c[type]*(bundleTypes.has(type)?c.activitySizes[type]:1);}
    const selectedTypes=Object.keys(activityLabels).filter(type=>c[type]>0);
+   if(!c.subject||!teacherAllowsSubject(c.subject))throw Error('Elige una de las asignaturas que ofreces en tu perfil.');
    if(!c.topic||selectedTypes.length!==MAX_GENERATOR_TYPES||total<1||total>MAX_GENERATOR_ACTIVITIES||totalQuestions>80)throw Error('Indica el tema y selecciona un único tipo de actividad.');
    let group=0;
    const blank=[];
