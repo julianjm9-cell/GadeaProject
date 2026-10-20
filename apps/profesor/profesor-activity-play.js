@@ -157,7 +157,8 @@
         if (source[key]?.trim()) q[key] = source[key].trim();
       }
       if (q.errorSegment && !q.prompt.includes(q.errorSegment)) throw Error('El fragmento erróneo debe aparecer en el enunciado.');
-      if (q.type === 'error' && q.correctedSegment && (!q.errorSegment || normalize(q.correctedSegment) === normalize(q.errorSegment))) throw Error('Indica un fragmento erróneo y una corrección distinta.');
+      if (q.type === 'error' && source.strictCorrection === true) q.strictCorrection = true;
+      if (q.type === 'error' && q.correctedSegment && (!q.errorSegment || (q.strictCorrection ? q.correctedSegment === q.errorSegment : normalize(q.correctedSegment) === normalize(q.errorSegment)))) throw Error('Indica un fragmento erróneo y una corrección distinta.');
       for (const [key, count, limit] of [['hints', 3, 300], ['alternatives', 6, 100], ['wordBank', 12, 100]]) {
         const values = source[key] || [];
         if (!Array.isArray(values) || values.length > count || values.some(v => typeof v !== 'string' || !v.trim() || v.length > limit)) throw Error(`Revisa las pistas o respuestas alternativas del ejercicio ${i + 1}.`);
@@ -753,7 +754,8 @@
         const selected = errorBoards[index]?.value().selected || '';
         if (!selected || !String(value).trim()) return 'unanswered';
         if (!q.errorSegment || !q.correctedSegment) return 'pending';
-        return errorValue(selected) === errorValue(q.errorSegment) && errorValue(value) === errorValue(q.correctedSegment) ? 'correct' : 'incorrect';
+        const match=q.strictCorrection ? (actual,expected)=>String(actual).trim().replace(/\s+/g,' ')===String(expected).trim().replace(/\s+/g,' ') : (actual,expected)=>errorValue(actual)===errorValue(expected);
+        return match(selected,q.errorSegment) && match(value,q.correctedSegment) ? 'correct' : 'incorrect';
       }
       if(!String(value).trim())return 'unanswered';
       if(objectiveShort(q))return [q.answer,...(q.alternatives||[])].some(answer=>shortKey(value)===shortKey(answer))?'correct':'incorrect';

@@ -34,14 +34,14 @@ test('The public showcase is an explicit, stable selection and never mutates or 
   const {run}=library();
   const before=run('JSON.stringify(publicTemarioMaterials())');
   assert.equal(run('publicMaterialSelection.length'),42);
-  assert.equal(run('publicLibraryMaterials().length'),46);
-  assert.equal(run('new Set(publicLibraryMaterials().map(m=>m.id)).size'),46);
+  assert.equal(run('publicLibraryMaterials().length'),50);
+  assert.equal(run('new Set(publicLibraryMaterials().map(m=>m.id)).size'),50);
   assert.equal(run('new Set(publicMaterialSelection.map(([id])=>id)).size'),42);
   assert.equal(run('curatedPublicMaterials().every(m=>m.activity.context.curated&&m.title&&m.body&&publicMaterial(m.id)===m&&publicMaterial(m.activity.context.curatedSourceId))'),true);
   assert.equal(run('curatedPublicMaterials().every(m=>JSON.stringify(m.activity.questions)===JSON.stringify(publicMaterial(m.activity.context.curatedSourceId).activity.questions))'),true);
-  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),46);
-  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),46);
-  assert.equal(run('new Set(publicLibraryMaterials().flatMap(m=>m.activity.questions.map(q=>q.type))).size'),10);
+  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),50);
+  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),50);
+  assert.equal(run('new Set(publicLibraryMaterials().flatMap(m=>m.activity.questions.map(q=>q.type))).size'),13);
   run("curatedPublicMaterials()[0].activity.questions[0].options.push('Copia de prueba')");
   assert.equal(run('JSON.stringify(publicTemarioMaterials())'),before);
   assert.equal(run('publicSingleMaterials().length'),2106);
@@ -50,7 +50,7 @@ test('The public showcase is an explicit, stable selection and never mutates or 
 test('First four advanced public games cover distinct 1.º Primaria subjects with valid rounds and stable previews',()=>{
   const {run,context}=library();
   vm.runInContext(readFileSync(join(__dirname,'../profesor-mini-games.js'),'utf8'),context);
-  const games=JSON.parse(run('JSON.stringify(publicAdvancedGames)'));
+  const games=JSON.parse(run('JSON.stringify(publicAdvancedGames.slice(0,4))'));
   assert.deepEqual(games.map(game=>game.subject),['Matemáticas','Lengua','Inglés','Ciencias Naturales']);
   assert.ok(games.every(game=>game.activity.context.course==='1.º Primaria'&&game.activity.context.public&&game.activity.context.publicSourceId===game.id&&game.activity.questions.length));
   assert.ok(games.every(game=>/^public-[a-z-]+\.webp$/.test(game.artwork)&&existsSync(join(__dirname,'../assets/games',game.artwork))));
@@ -71,6 +71,32 @@ test('First four advanced public games cover distinct 1.º Primaria subjects wit
   assert.ok(games[3].activity.questions.every(question=>{context.window.profesorMiniGames.validate(question);return context.window.profesorMiniGames.grade(question,{answer:question.answer})==='correct'}));
 });
 
+test('Next four advanced public games cover 2.º Primaria with checkable market, spelling, English and life cycles',()=>{
+  const {run,context}=library();
+  vm.runInContext(readFileSync(join(__dirname,'../profesor-challenge-games.js'),'utf8'),context);
+  const games=JSON.parse(run('JSON.stringify(publicAdvancedGames.slice(4,8))'));
+  assert.deepEqual(games.map(game=>game.subject),['Matemáticas','Lengua','Inglés','Ciencias Naturales']);
+  assert.ok(games.every(game=>game.activity.context.course==='2.º Primaria'&&game.activity.context.publicSourceId===game.id&&game.activity.questions.length&&existsSync(join(__dirname,'../assets/games',game.artwork))));
+  assert.equal(new Set(games.map(game=>game.artwork)).size,4);
+  const market=games[0].activity.questions[0];
+  assert.equal(market.type,'race');
+  assert.equal(market.options.length,6);
+  context.window.profesorChallengeGames.validate(market);
+  assert.equal(run('publicAdvancedGames.slice(4,8).every(game=>publicMaterial(game.id)===game)'),true);
+  const spelling=games[1].activity.questions;
+  assert.equal(spelling.length,5);
+  assert.ok(spelling.every(question=>question.type==='error'&&question.strictCorrection===true&&question.prompt.includes(question.errorSegment)&&question.correctedSegment!==question.errorSegment&&question.answer.includes(question.correctedSegment)));
+  assert.ok(spelling.some(question=>question.correctedSegment.startsWith('¿')));
+  assert.ok(spelling.some(question=>question.correctedSegment.startsWith('¡')));
+  const safari=games[2].activity.questions;
+  assert.equal(safari.length,4);
+  assert.ok(safari.every(question=>question.type==='sentence'&&question.options.length>=5&&question.options.join(' → ')===question.answer));
+  assert.ok(safari.some(question=>question.options[1]==='is')&&safari.some(question=>question.options[1]==='are'));
+  const garden=games[3].activity.questions;
+  assert.equal(garden.length,3);
+  assert.ok(garden.every(question=>question.type==='timeline'&&question.options.length===4&&question.options.join(' → ')===question.answer));
+});
+
 test('Private, curated public and syllabus libraries use separate sources and filters',()=>{
   const {context,run}=library();
   context.state={library:[{id:'mine',title:'Privado',subject:'Lengua',updatedAt:'2026-10-18'}]};
@@ -80,7 +106,7 @@ test('Private, curated public and syllabus libraries use separate sources and fi
   assert.equal(run('materialLibrarySource()[0]===state.library[0]'),true);
   assert.equal(run('state.library.length'),1);
   run("switchMaterialMode('public')");
-  assert.equal(run('filteredMaterials().length'),46);
+  assert.equal(run('filteredMaterials().length'),50);
   assert.equal(run('filteredMaterials()[0].id===publicLibraryMaterials()[0].id'),true);
   run("materialType='memory';materialCourse='A1'");
   assert.equal(run('filteredMaterials().length'),2);

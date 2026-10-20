@@ -398,8 +398,46 @@ const publicAdvancedGames=[
    {id:'advanced-sentidos-gusto',type:'mystery',prompt:'Misterio 4 de 5: escribe el nombre del sentido.',answer:'Gusto',options:['Me usas al probar la comida.','Ayudo a distinguir lo dulce de lo salado.','La lengua participa en esta experiencia.'],explanation:'El gusto permite distinguir sabores con ayuda de la lengua.'},
    {id:'advanced-sentidos-tacto',type:'mystery',prompt:'Misterio 5 de 5: escribe el nombre del sentido.',answer:'Tacto',options:['Te ayudo a notar si algo es suave o áspero.','La piel es muy importante para mí.','Puedo reconocer la textura de un objeto con los ojos cerrados.'],explanation:'El tacto permite percibir texturas y temperaturas a través de la piel.'}
   ]
+ },
+ {
+  id:'public:advanced:2-primaria:matematicas:mercado-monedas',course:'2.º Primaria',title:'El mercado de las monedas',subject:'Matemáticas',topic:'Tiempo y dinero',artwork:'public-mercado-monedas.webp',body:'Recorre el mercado resolviendo compras y cambios con euros y céntimos.',
+  questions:[{id:'advanced-mercado-monedas-1',type:'race',prompt:'Llega al último puesto del mercado. Supera cada compra para avanzar.',answer:'Completado',options:[
+   'Tienes 50 céntimos y gastas 20. ¿Cuánto queda? | 30 céntimos | 20 céntimos | 40 céntimos',
+   'Una manzana cuesta 40 céntimos. Pagas con 1 €. ¿Qué cambio recibes? | 60 céntimos | 40 céntimos | 50 céntimos',
+   'Un zumo cuesta 30 céntimos y una pera 20. ¿Cuánto pagas? | 50 céntimos | 40 céntimos | 60 céntimos',
+   'Tres monedas de 20 céntimos valen... | 60 céntimos | 40 céntimos | 80 céntimos',
+   'El pan cuesta 70 céntimos. Pagas con 1 €. ¿Qué cambio recibes? | 30 céntimos | 20 céntimos | 40 céntimos',
+   'Tienes 2 € y compras fruta por 1 €. ¿Cuánto te queda? | 1 € | 50 céntimos | 2 €'
+  ],explanation:'Un euro son 100 céntimos. Para calcular el cambio, resta el precio al dinero entregado.'}]
+ },
+ {
+  id:'public:advanced:2-primaria:lengua:detectives-signos',course:'2.º Primaria',title:'Detectives de los signos',subject:'Lengua',topic:'Mayúsculas y signos',artwork:'public-detectives-signos.webp',body:'Busca una mayúscula o un signo perdido y corrígelo en su lugar.',
+  questions:[
+   {id:'advanced-signos-1',type:'error',prompt:'Corrige este mensaje: «mañana visitamos la biblioteca.»',answer:'Mañana visitamos la biblioteca.',errorSegment:'mañana',correctedSegment:'Mañana',strictCorrection:true,explanation:'La primera palabra de una oración empieza con mayúscula.'},
+   {id:'advanced-signos-2',type:'error',prompt:'Corrige esta pregunta: «¿Dónde está mi estuche.»',answer:'¿Dónde está mi estuche?',errorSegment:'estuche.',correctedSegment:'estuche?',strictCorrection:true,explanation:'Una pregunta termina con el signo de cierre ?'},
+   {id:'advanced-signos-3',type:'error',prompt:'Corrige este mensaje: «lucía trae su cuaderno.»',answer:'Lucía trae su cuaderno.',errorSegment:'lucía',correctedSegment:'Lucía',strictCorrection:true,explanation:'Los nombres propios se escriben con mayúscula inicial.'},
+   {id:'advanced-signos-4',type:'error',prompt:'Corrige esta exclamación: «Vamos al jardín!»',answer:'¡Vamos al jardín!',errorSegment:'Vamos',correctedSegment:'¡Vamos',strictCorrection:true,explanation:'En español, la exclamación lleva signo de apertura ¡ y de cierre !'},
+   {id:'advanced-signos-5',type:'error',prompt:'Corrige esta pregunta: «Cuántos lápices hay?»',answer:'¿Cuántos lápices hay?',errorSegment:'Cuántos',correctedSegment:'¿Cuántos',strictCorrection:true,explanation:'En español, la pregunta lleva signo de apertura ¿ y de cierre ?'}
+  ]
+ },
+ {
+  id:'public:advanced:2-primaria:ingles:safari-parque',course:'2.º Primaria',title:'Safari en el parque',subject:'Inglés',topic:'There is / There are',artwork:'public-safari-parque.webp',body:'Construye frases en inglés sobre los animales y objetos del parque.',
+  questions:[
+   {id:'advanced-safari-1',type:'sentence',prompt:'Ves un perro en el parque. Construye la frase en inglés.',answer:'There → is → a → dog → in → the park.',options:['There','is','a','dog','in','the park.'],explanation:'There is se usa para hablar de una sola cosa: a dog.'},
+   {id:'advanced-safari-2',type:'sentence',prompt:'Ves tres pájaros en un árbol. Construye la frase en inglés.',answer:'There → are → three → birds → in → the tree.',options:['There','are','three','birds','in','the tree.'],explanation:'There are se usa con más de una cosa: three birds.'},
+   {id:'advanced-safari-3',type:'sentence',prompt:'Ves un columpio cerca del estanque. Construye la frase en inglés.',answer:'There → is → a → swing → near → the pond.',options:['There','is','a','swing','near','the pond.'],explanation:'There is acompaña al singular: a swing.'},
+   {id:'advanced-safari-4',type:'sentence',prompt:'Ves dos patos en el lago. Construye la frase en inglés.',answer:'There → are → two → ducks → on → the lake.',options:['There','are','two','ducks','on','the lake.'],explanation:'There are acompaña al plural: two ducks.'}
+  ]
+ },
+ {
+  id:'public:advanced:2-primaria:ciencias-naturales:jardin-mariposa',course:'2.º Primaria',title:'El jardín de la mariposa',subject:'Ciencias Naturales',topic:'Ciclo de vida de los seres vivos',artwork:'public-jardin-mariposa.webp',body:'Ordena las etapas de una mariposa y descubre otros ciclos de vida.',
+  questions:[
+   {id:'advanced-jardin-mariposa-1',type:'timeline',prompt:'El primer rincón del jardín: ordena el ciclo de vida de la mariposa.',answer:'Huevo en una hoja → Oruga que se alimenta → Crisálida protegida → Mariposa adulta',options:['Huevo en una hoja','Oruga que se alimenta','Crisálida protegida','Mariposa adulta'],explanation:'La mariposa nace de un huevo, crece como oruga y cambia dentro de la crisálida.'},
+   {id:'advanced-jardin-mariposa-2',type:'timeline',prompt:'Junto al estanque: ordena cómo crece una rana.',answer:'Huevos en el agua → Renacuajo → Renacuajo con patas → Rana adulta',options:['Huevos en el agua','Renacuajo','Renacuajo con patas','Rana adulta'],explanation:'El renacuajo crece, desarrolla patas y termina convirtiéndose en rana.'},
+   {id:'advanced-jardin-mariposa-3',type:'timeline',prompt:'En el huerto: ordena cómo crece una planta.',answer:'Semilla bajo tierra → Brote pequeño → Planta con hojas → Flor abierta',options:['Semilla bajo tierra','Brote pequeño','Planta con hojas','Flor abierta'],explanation:'La semilla germina y la planta crece antes de dar flores.'}
+  ]
  }
-].map(({id,title,subject,topic,artwork,body,questions})=>({id,title,subject,studentId:'',kind:'Juego público',artwork,body,activity:{version:1,context:{course:'1.º Primaria',subject,topic,duration:8,public:true,curated:true,publicSourceId:id},questions}}));
+].map(({id,course='1.º Primaria',title,subject,topic,artwork,body,questions})=>({id,title,subject,studentId:'',kind:'Juego público',artwork,body,activity:{version:1,context:{course,subject,topic,duration:8,public:true,curated:true,publicSourceId:id},questions}}));
 function temarioLibraryMaterials(){return materialPublicFormat==='single'?publicSingleMaterials():publicTemarioMaterials();}
 function publicLibraryMaterials(){return [...publicAdvancedGames,...curatedPublicMaterials()];}
 function materialLibraryRawSource(){return materialLibraryMode==='public'?publicLibraryMaterials():materialLibraryMode==='temario'?temarioLibraryMaterials():state.library;}
@@ -413,7 +451,7 @@ function materialTone(type){if(visualTypes.includes(type))return 'visual';if(['f
 const materialArtworkFiles={pairs:'basic-pairs',gaps:'basic-gaps',multigaps:'basic-multigaps',numeric:'basic-numeric',quiz:'basic-quiz',short:'basic-short',order:'basic-order',classify:'basic-classify',boolean:'basic-boolean',reading:'basic-reading',problem:'basic-problem',flashcard:'flashcards',memory:'memory',sentence:'sentence',timeline:'timeline',error:'error',wordsearch:'wordsearch',crossword:'crossword',dragdrop:'dragdrop',pasapalabra:'pasapalabra',hangman:'hangman',mystery:'mystery',intruder:'intruder',bingo:'bingo',multiselect:'multiselect',table:'table',cipher:'cipher',race:'race'};
 function usesMatureArtwork(course='',subject=''){const normalized=String(subject).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().trim();return /\b(?:eso|bachillerato)\b/i.test(String(course))||normalized==='ingles'}
 function activityArtworkUrl(type,course='',subject=''){const file=materialArtworkFiles[type]||'uploaded-material',prefix=file!=='uploaded-material'&&usesMatureArtwork(course,subject)?'mature-':'';return `./assets/games/${prefix}${file}.webp`}
-const publicAdvancedArtworkFiles=new Set(['public-tren-decenas.webp','public-fabrica-palabras.webp','public-mochila-bilingue.webp','public-exploradores-sentidos.webp']);
+const publicAdvancedArtworkFiles=new Set(['public-tren-decenas.webp','public-fabrica-palabras.webp','public-mochila-bilingue.webp','public-exploradores-sentidos.webp','public-mercado-monedas.webp','public-detectives-signos.webp','public-safari-parque.webp','public-jardin-mariposa.webp']);
 function materialArtwork(m){const type=m.activity?.questions?.[0]?.type||legacyMaterialType(m),course=m.activity?.context?.course||student(m.studentId)?.course||m.course||'',customArtwork=publicAdvancedArtworkFiles.has(m.artwork),file=customArtwork?`./assets/games/${m.artwork}`:m.attachment&&!m.activity?'./assets/games/uploaded-material.webp':activityArtworkUrl(type,course,m.subject||m.activity?.context?.subject||'');return `<div class="material-art${customArtwork?' custom-public-art':''}" data-art="${esc(type||'resource')}"><img src="${file}" alt="" loading="lazy" decoding="async"></div>`}
 async function paintMaterialCards(root=document){for(const img of root.querySelectorAll('[data-card-image]')){const m=state.library.find(item=>item.id===img.dataset.cardImage),image=m?.activity?.questions?.find(q=>q.image)?.image||m?.attachment;if(!image)continue;try{const url=await visualImageUrl(image);if(img.isConnected)img.src=url}catch{if(img.isConnected)img.replaceWith(Object.assign(document.createElement('small'),{textContent:'Imagen no disponible'}))}}}
 function materialHubCard(m,studentView=false,publicEntry=false,sessionPicker=false){
@@ -931,8 +969,8 @@ init();
 <script src="./profesor-puzzle-boards.js?v=20261017-4"></script>
 <script src="./profesor-challenge-games.js?v=20261018-games-7"></script>
 <script src="./profesor-mini-games.js?v=20261017-2"></script>
-<script src="./profesor-sentence-board.js?v=20261016-timeline-2"></script>
-<script src="./profesor-activity-play.js?v=20261018-preview-1"></script>
+<script src="./profesor-sentence-board.js?v=20261020-stages-1"></script>
+<script src="./profesor-activity-play.js?v=20261020-signos-1"></script>
 <script src="./profesor-live-sync.js?v=20261018-1"></script>
 <script src="./profesor-live.js?v=20261019-profile-4"></script>
 <link rel="stylesheet" href="./assets/profesor-activity-play.css?v=20261018-preview-1">
