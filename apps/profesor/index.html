@@ -375,11 +375,36 @@ function curatedPublicMaterials(){
  });
  return curatedPublicMaterialCache;
 }
+// Juegos revisados para la biblioteca pública; el temario original sigue intacto.
+const publicAdvancedGames=[
+ {
+  id:'public:advanced:1-primaria:matematicas:tren-decenas',title:'El tren de las decenas',subject:'Matemáticas',topic:'Números hasta 100',artwork:'public-tren-decenas.webp',body:'Une cada carga de decenas y unidades con el vagón que muestra su número.',
+  questions:[{id:'advanced-tren-decenas-1',type:'dragdrop',prompt:'El tren sale de la estación. Lleva cada carga al vagón con el número que representa.',answer:'Completado',options:['4 decenas y 7 unidades | 47','6 decenas y 3 unidades | 63','2 decenas y 5 unidades | 25','8 decenas y 1 unidad | 81','5 decenas y 9 unidades | 59','1 decena y 4 unidades | 14'],explanation:'Cada decena vale diez unidades: 4 decenas y 7 unidades son 40 + 7 = 47.'}]
+ },
+ {
+  id:'public:advanced:1-primaria:lengua:fabrica-palabras',title:'La fábrica de palabras',subject:'Lengua',topic:'Letras, sílabas y palabras',artwork:'public-fabrica-palabras.webp',body:'Destapa palabras y encuentra cómo se separan en sílabas.',
+  questions:[{id:'advanced-fabrica-palabras-1',type:'memory',prompt:'La fábrica ha mezclado las tarjetas. Encuentra cada palabra y su separación en sílabas.',answer:'Completado',options:['pelota | pe-lo-ta','mariposa | ma-ri-po-sa','camino | ca-mi-no','zapato | za-pa-to','tomate | to-ma-te','ventana | ven-ta-na'],explanation:'Cada pareja muestra una palabra y sus sílabas en el mismo orden.'}]
+ },
+ {
+  id:'public:advanced:1-primaria:ingles:mochila-bilingue',title:'La mochila bilingüe',subject:'Inglés',topic:'School objects',artwork:'public-mochila-bilingue.webp',body:'Encuentra los objetos del aula y sus nombres en inglés.',
+  questions:[{id:'advanced-mochila-bilingue-1',type:'memory',prompt:'Prepara la mochila: une cada objeto del aula con su nombre en inglés.',answer:'Completado',options:['lápiz | pencil','libro | book','goma | eraser','regla | ruler','mesa escolar | desk','mochila | schoolbag'],explanation:'Repasa los objetos señalándolos y nombrándolos también fuera del juego.'}]
+ },
+ {
+  id:'public:advanced:1-primaria:ciencias-naturales:sentidos',title:'Exploradores de los sentidos',subject:'Ciencias Naturales',topic:'Mi cuerpo y los sentidos',artwork:'public-exploradores-sentidos.webp',body:'Resuelve cinco misterios sobre cómo conocemos el mundo con nuestros sentidos.',
+  questions:[
+   {id:'advanced-sentidos-vista',type:'mystery',prompt:'Misterio 1 de 5: escribe el nombre del sentido.',answer:'Vista',options:['Detecto colores y formas.','Me ayudan dos órganos situados en la cara.','Necesito luz para distinguir los objetos.'],explanation:'La vista permite reconocer colores y formas gracias a los ojos y a la luz.'},
+   {id:'advanced-sentidos-oido',type:'mystery',prompt:'Misterio 2 de 5: escribe el nombre del sentido.',answer:'Oído',options:['Percibo lo que suena a mi alrededor.','Me ayuda a distinguir una canción de una voz.','Me ayudan las orejas y los órganos que hay dentro de ellas.'],explanation:'El oído permite percibir sonidos.'},
+   {id:'advanced-sentidos-olfato',type:'mystery',prompt:'Misterio 3 de 5: escribe el nombre del sentido.',answer:'Olfato',options:['Reconozco aromas aunque no vea de dónde vienen.','La nariz me ayuda a descubrirlos.','Puedo avisarte si hay olor a humo.'],explanation:'El olfato permite reconocer olores por medio de la nariz.'},
+   {id:'advanced-sentidos-gusto',type:'mystery',prompt:'Misterio 4 de 5: escribe el nombre del sentido.',answer:'Gusto',options:['Me usas al probar la comida.','Ayudo a distinguir lo dulce de lo salado.','La lengua participa en esta experiencia.'],explanation:'El gusto permite distinguir sabores con ayuda de la lengua.'},
+   {id:'advanced-sentidos-tacto',type:'mystery',prompt:'Misterio 5 de 5: escribe el nombre del sentido.',answer:'Tacto',options:['Te ayudo a notar si algo es suave o áspero.','La piel es muy importante para mí.','Puedo reconocer la textura de un objeto con los ojos cerrados.'],explanation:'El tacto permite percibir texturas y temperaturas a través de la piel.'}
+  ]
+ }
+].map(({id,title,subject,topic,artwork,body,questions})=>({id,title,subject,studentId:'',kind:'Juego público',artwork,body,activity:{version:1,context:{course:'1.º Primaria',subject,topic,duration:8,public:true,curated:true,publicSourceId:id},questions}}));
 function temarioLibraryMaterials(){return materialPublicFormat==='single'?publicSingleMaterials():publicTemarioMaterials();}
-function publicLibraryMaterials(){return curatedPublicMaterials();}
+function publicLibraryMaterials(){return [...publicAdvancedGames,...curatedPublicMaterials()];}
 function materialLibraryRawSource(){return materialLibraryMode==='public'?publicLibraryMaterials():materialLibraryMode==='temario'?temarioLibraryMaterials():state.library;}
 function materialLibrarySource(){return materialLibraryRawSource().filter(teacherMaterialVisible);}
-function publicMaterial(id){return curatedPublicMaterials().find(material=>material.id===id)||publicTemarioMaterials().find(material=>material.id===id)||publicSingleMaterials().find(material=>material.id===id)}
+function publicMaterial(id){return publicAdvancedGames.find(material=>material.id===id)||curatedPublicMaterials().find(material=>material.id===id)||publicTemarioMaterials().find(material=>material.id===id)||publicSingleMaterials().find(material=>material.id===id)}
 function filteredMaterials(){const q=materialQuery.toLocaleLowerCase(),source=materialLibrarySource();return source.filter(m=>(!materialSubject||m.subject===materialSubject)&&(!materialCourse||materialCourseValue(m)===materialCourse)&&(!materialType||m.activity?.questions?.some(question=>question.type===materialType))&&(!q||(m.title+' '+m.subject+' '+m.kind+' '+(student(m.studentId)?.name||'')+' '+(m.body||'')+' '+(m.activity?.context?.course||'')+' '+(m.activity?.context?.topic||'')).toLocaleLowerCase().includes(q))).sort((a,b)=>materialLibraryMode==='public'?0:materialLibraryMode==='temario'?String(a.activity?.context?.course||'').localeCompare(String(b.activity?.context?.course||''),'es',{numeric:true})||a.subject.localeCompare(b.subject,'es')||a.title.localeCompare(b.title,'es'):String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')))}
 function materialPageSize(){return matchMedia('(max-width:720px)').matches?(matchMedia('(max-height:740px)').matches?4:6):12}
 function materialPreviewText(m){if(m.activity?.questions?.length)return m.activity.questions.slice(0,4).map((q,i)=>`${i+1}. ${q.prompt}`).join('\n');return m.attachment?.filename||m.body||'Abre el material para verlo.'}
@@ -388,7 +413,8 @@ function materialTone(type){if(visualTypes.includes(type))return 'visual';if(['f
 const materialArtworkFiles={pairs:'basic-pairs',gaps:'basic-gaps',multigaps:'basic-multigaps',numeric:'basic-numeric',quiz:'basic-quiz',short:'basic-short',order:'basic-order',classify:'basic-classify',boolean:'basic-boolean',reading:'basic-reading',problem:'basic-problem',flashcard:'flashcards',memory:'memory',sentence:'sentence',timeline:'timeline',error:'error',wordsearch:'wordsearch',crossword:'crossword',dragdrop:'dragdrop',pasapalabra:'pasapalabra',hangman:'hangman',mystery:'mystery',intruder:'intruder',bingo:'bingo',multiselect:'multiselect',table:'table',cipher:'cipher',race:'race'};
 function usesMatureArtwork(course='',subject=''){const normalized=String(subject).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().trim();return /\b(?:eso|bachillerato)\b/i.test(String(course))||normalized==='ingles'}
 function activityArtworkUrl(type,course='',subject=''){const file=materialArtworkFiles[type]||'uploaded-material',prefix=file!=='uploaded-material'&&usesMatureArtwork(course,subject)?'mature-':'';return `./assets/games/${prefix}${file}.webp`}
-function materialArtwork(m){const type=m.activity?.questions?.[0]?.type||legacyMaterialType(m),course=m.activity?.context?.course||student(m.studentId)?.course||m.course||'',file=m.attachment&&!m.activity?'./assets/games/uploaded-material.webp':activityArtworkUrl(type,course,m.subject||m.activity?.context?.subject||'');return `<div class="material-art" data-art="${esc(type||'resource')}"><img src="${file}" alt="" loading="lazy" decoding="async"></div>`}
+const publicAdvancedArtworkFiles=new Set(['public-tren-decenas.webp','public-fabrica-palabras.webp','public-mochila-bilingue.webp','public-exploradores-sentidos.webp']);
+function materialArtwork(m){const type=m.activity?.questions?.[0]?.type||legacyMaterialType(m),course=m.activity?.context?.course||student(m.studentId)?.course||m.course||'',customArtwork=publicAdvancedArtworkFiles.has(m.artwork),file=customArtwork?`./assets/games/${m.artwork}`:m.attachment&&!m.activity?'./assets/games/uploaded-material.webp':activityArtworkUrl(type,course,m.subject||m.activity?.context?.subject||'');return `<div class="material-art${customArtwork?' custom-public-art':''}" data-art="${esc(type||'resource')}"><img src="${file}" alt="" loading="lazy" decoding="async"></div>`}
 async function paintMaterialCards(root=document){for(const img of root.querySelectorAll('[data-card-image]')){const m=state.library.find(item=>item.id===img.dataset.cardImage),image=m?.activity?.questions?.find(q=>q.image)?.image||m?.attachment;if(!image)continue;try{const url=await visualImageUrl(image);if(img.isConnected)img.src=url}catch{if(img.isConnected)img.replaceWith(Object.assign(document.createElement('small'),{textContent:'Imagen no disponible'}))}}}
 function materialHubCard(m,studentView=false,publicEntry=false,sessionPicker=false){
  const first=m.activity?.questions?.find(item=>item.image)||m.activity?.questions?.[0],types=[...new Set(m.activity?.questions?.map(q=>q.type)||[])],tone=materialTone(first?.type||legacyMaterialType(m)),count=m.activity?.questions?.length||0,kind=types.length>1?'Material combinado':types.length?activityLabels[types[0]]:m.kind||'Archivo subido',description=String(m.body||first?.prompt||m.attachment?.filename||'Abre este recurso para prepararlo y usarlo en clase.').trim().slice(0,145),course=m.activity?.context?.course||student(m.studentId)?.course||m.course||'';
@@ -1201,7 +1227,7 @@ init();
 </style>
 <link rel="stylesheet" href="./assets/profesor-final.css?v=20261017-public-format-1">
 <link rel="stylesheet" href="./assets/profesor-home.css?v=20261017-logo-1">
-<link rel="stylesheet" href="./assets/profesor-studio.css?v=20261017-artwork-1">
+<link rel="stylesheet" href="./assets/profesor-studio.css?v=20261020-public-1">
 <link rel="stylesheet" href="./assets/profesor-temario.css?v=20261017-material-1">
 <link rel="stylesheet" href="./assets/profesor-game-theme.css?v=20261011-1">
 <link rel="stylesheet" href="./assets/profesor-pasapalabra-theme.css?v=20261012-4">

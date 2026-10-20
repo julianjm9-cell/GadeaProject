@@ -2,7 +2,7 @@
 
 Una propuesta por cada combinación de curso y asignatura que figura en el temario actual de Profesor Particular: 55 juegos escolares. Español se organiza por nivel lingüístico, por eso se añaden seis juegos A1–C2. Total: **61 juegos**.
 
-Cada fila indica el tema curricular que sirve de base, un título pensado para la biblioteca pública, el tipo de juego avanzado disponible en el creador y una mecánica concreta. Son propuestas de contenido; aún no son materiales publicados. Antes de publicarlos conviene revisar manualmente todas las preguntas, respuestas, pistas y explicaciones.
+Cada fila indica el tema curricular que sirve de base, un título pensado para la biblioteca pública, el tipo de juego avanzado disponible en el creador y una mecánica concreta. Los cuatro juegos de 1.º Primaria ya están implementados en la biblioteca pública; los otros 57 siguen siendo propuestas. Antes de publicar cada nuevo juego conviene revisar manualmente todas las preguntas, respuestas, pistas y explicaciones.
 
 ## Primaria
 
