@@ -17,6 +17,10 @@
 [data-public-scene="isla-tildes"]{--scene-accent:#1a83a3!important;--scene-soft:#e4faff!important;--scene-image:url('./games/public-isla-tildes.webp')!important;--scene-position:center 54%!important}
 [data-public-scene="ciudad-direcciones"]{--scene-accent:#2860bb!important;--scene-soft:#e8f2ff!important;--scene-image:url('./games/public-ciudad-direcciones.webp')!important;--scene-position:center 55%!important}
 [data-public-scene="laboratorio-mezclas"]{--scene-accent:#418d79!important;--scene-soft:#e7f8f0!important;--scene-image:url('./games/public-laboratorio-mezclas.webp')!important;--scene-position:center 54%!important}
+[data-public-scene="feria-porcentajes"]{--scene-accent:#af5e35!important;--scene-soft:#fff0d9!important;--scene-image:url('./games/public-feria-porcentajes.webp')!important;--scene-position:center 54%!important}
+[data-public-scene="redaccion-titulares"]{--scene-accent:#67529f!important;--scene-soft:#f3ecfc!important;--scene-image:url('./games/public-redaccion-titulares.webp')!important;--scene-position:center 55%!important}
+[data-public-scene="portal-pasado"]{--scene-accent:#247fb6!important;--scene-soft:#e9f7ff!important;--scene-image:url('./games/public-portal-pasado.webp')!important;--scene-position:center 54%!important}
+[data-public-scene="taller-circuitos"]{--scene-accent:#148b9d!important;--scene-soft:#e4f8fa!important;--scene-image:url('./games/public-taller-circuitos.webp')!important;--scene-position:center 54%!important}
 
 /* La escena sigue el ejercicio activo, también cuando el material tiene varias fases. */
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])){width:min(1450px,97vw);max-width:1450px;height:min(94dvh,940px);max-height:94dvh;background:#d9eaff;overflow:hidden}
@@ -36,6 +40,10 @@ dialog.activity-play:has(.play-question[data-public-scene="cocina-fracciones"]:n
 dialog.activity-play:has(.play-question[data-public-scene="isla-tildes"]:not([hidden])){background-image:linear-gradient(90deg,#ebfcffb8,#ebfcff59),url('./games/public-isla-tildes.webp');background-position:center,center 54%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene="ciudad-direcciones"]:not([hidden])){background-image:linear-gradient(90deg,#eff6ffb8,#eff6ff59),url('./games/public-ciudad-direcciones.webp');background-position:center,center 55%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene="laboratorio-mezclas"]:not([hidden])){background-image:linear-gradient(90deg,#effcf6b8,#effcf659),url('./games/public-laboratorio-mezclas.webp');background-position:center,center 54%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="feria-porcentajes"]:not([hidden])){background-image:linear-gradient(90deg,#fff5e5b8,#fff5e559),url('./games/public-feria-porcentajes.webp');background-position:center,center 54%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="redaccion-titulares"]:not([hidden])){background-image:linear-gradient(90deg,#f8f2ffb8,#f8f2ff59),url('./games/public-redaccion-titulares.webp');background-position:center,center 55%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="portal-pasado"]:not([hidden])){background-image:linear-gradient(90deg,#effaffb8,#effaff59),url('./games/public-portal-pasado.webp');background-position:center,center 54%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="taller-circuitos"]:not([hidden])){background-image:linear-gradient(90deg,#e9faffb8,#e9faff59),url('./games/public-taller-circuitos.webp');background-position:center,center 54%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-content{width:100%;flex:1;min-height:0;overflow:auto;scrollbar-gutter:stable}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-footer{margin-top:6px;padding:9px 12px;border:1px solid #ffffffc9;border-radius:18px;background:#ffffffda;backdrop-filter:blur(12px)}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-toolbar{background:#ffffffde;border-radius:16px;backdrop-filter:blur(12px)}
@@ -126,6 +134,21 @@ dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-
 [data-public-scene="laboratorio-mezclas"] .race-track .is-current{border-color:#388e77;background:#d4f0e4;box-shadow:0 4px #42927a}
 [data-public-scene="laboratorio-mezclas"] .challenge-stage-card{background:#fffdf3;border-color:#a6d1b8}
 [data-public-scene="laboratorio-mezclas"] .race-answers button{border-color:#9bcdb7;background:#f8fff9}
+/* Casetas de feria, recortes, portal de verbos y experimentos eléctricos. */
+[data-public-scene="feria-porcentajes"] .race-track button{border:2px solid #d6a268;background:#fff3dc;box-shadow:0 4px #c5865a}
+[data-public-scene="feria-porcentajes"] .race-track .is-current{border-color:#bb6439;background:#ffe5bc;box-shadow:0 4px #b76d47}
+[data-public-scene="feria-porcentajes"] .challenge-stage-card{background:#fffaf1;border-color:#e7bf90}
+[data-public-scene="feria-porcentajes"] .race-answers button{border-color:#d9ad82;background:#fffdf5}
+[data-public-scene="redaccion-titulares"] .match-bank{background:#fffaf1ed;border-color:#d2bfa5}
+[data-public-scene="redaccion-titulares"] .matching-workbench{grid-template-columns:minmax(0,1fr);gap:12px}
+[data-public-scene="redaccion-titulares"] .match-pieces{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+[data-public-scene="redaccion-titulares"] .match-piece{min-height:50px;padding:8px 10px;border-color:#b7a2d8;background:#f9f2ff;color:#483579;font-size:13px;line-height:1.25}
+[data-public-scene="redaccion-titulares"] .match-destinations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+[data-public-scene="redaccion-titulares"] .match-bucket{border:2px solid #bda7d9;border-radius:17px;background:linear-gradient(#fffdf8,#eee3f7);box-shadow:0 5px #b4a1cd}
+[data-public-scene="portal-pasado"] .memory-stage .memory-card:not(.revealed):not(.flipped):not(.matched){background:linear-gradient(145deg,#338dbd,#18578d);border-color:#c6e6ef;box-shadow:inset 0 2px #fff8,0 4px #8fb7d0}
+[data-public-scene="portal-pasado"] .memory-card.revealed,[data-public-scene="portal-pasado"] .memory-card.flipped{border-color:#86bad1;background:#f1fbff}
+[data-public-scene="taller-circuitos"] .intruder-cards button{border:2px solid #8dccd1;background:#eefcff;box-shadow:0 5px #a3dce0}
+[data-public-scene="taller-circuitos"] .intruder-cards button.is-selected{border-color:#167e92;background:#d8f5fa}
 :is(.activity-play .play-question,.live-question)[data-public-scene] :is(.answer-right,.is-correct,.correct,.matched){border-color:#5cad79!important;background:#e4f7e7!important;color:#175636!important}
 :is(.activity-play .play-question,.live-question)[data-public-scene] :is(.answer-wrong,.is-incorrect,.incorrect){border-color:#d87765!important;background:#fff0eb!important;color:#8c3529!important}
 
@@ -136,4 +159,5 @@ dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-
 .live-question[data-public-scene] .live-feedback{background:#fffdf0ed;border-radius:12px;padding:10px}
 @media(max-width:700px){dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])){width:98vw;height:96dvh;max-height:96dvh;padding:10px}.activity-play .play-question[data-public-scene]{padding:7px!important}.activity-play .play-question[data-public-scene] .play-question-top{min-height:70px;padding:3px 0 34px}.activity-play .play-question[data-public-scene] .game-timer{right:0;top:38px}.activity-play .play-question[data-public-scene] h3{padding:8px 11px;font-size:17px}[data-public-scene="tren-decenas"] .match-destinations,[data-public-scene="bosque-vivo"] .match-destinations{grid-template-columns:1fr}.student-portal .live-question[data-public-scene]{padding:12px}.student-portal .live-question[data-public-scene]>h3{font-size:17px}}
 @media(max-width:700px){[data-public-scene="bosque-vivo"] .match-pieces{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){[data-public-scene="redaccion-titulares"] .match-pieces,[data-public-scene="redaccion-titulares"] .match-destinations{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){[data-public-scene] *{transition:none!important;animation:none!important}}
