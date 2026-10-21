@@ -121,3 +121,23 @@ def test_shared_puzzle_boards_and_raster_backgrounds_are_served(client):
         page = web.get(path).text
         assert 'profesor-puzzle-boards.js' in page and 'profesor-puzzle-theme.css' in page
         assert page.index('profesor-puzzle-boards.js') < page.index('profesor-live.js')
+
+
+def test_all_public_game_card_illustrations_are_served(client):
+    web, _ = client
+    styles = web.get('/assets/profesor-public-games.css')
+    assert styles.status_code == 200
+    assert 'data-public-scene' in styles.text
+    assert 'profesor-public-games.css' in web.get('/profesor/alumno').text
+    names = [
+        'public-tren-decenas.webp', 'public-fabrica-palabras.webp',
+        'public-mochila-bilingue.webp', 'public-exploradores-sentidos.webp',
+        'public-mercado-monedas.webp', 'public-detectives-signos.webp',
+        'public-safari-parque.webp', 'public-jardin-mariposa.webp',
+    ]
+    for name in names:
+        response = web.get('/assets/games/' + name)
+        assert response.status_code == 200, name
+        assert response.headers['content-type'].startswith('image/webp'), name
+        assert len(response.content) > 1000, name
+    assert web.get('/assets/games/public-unknown.webp').status_code == 404

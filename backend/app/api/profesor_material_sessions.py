@@ -487,7 +487,7 @@ def send_material(payload: SendMaterial, response: Response, user: User = Depend
         code = new_session_code()
     row = ProfesorMaterialSession(teacher_user_id=user.id, material_id=payload.material_id,
                                   title=str(material.get("title") or "Material")[:180], subject=str(material.get("subject") or "")[:100],
-                                  material_snapshot={"questions": prepared}, progress={"current_index": 0, "responses": {}, "grades": {}, "parts": {}, "last_seen": None},
+                                  material_snapshot={"questions": prepared, "course": str(((material.get("activity") or {}).get("context") or {}).get("course") or material.get("course") or "")[:100]}, progress={"current_index": 0, "responses": {}, "grades": {}, "parts": {}, "last_seen": None},
                                   join_code_hash=session_code_hash(code), join_code_encrypted=session_code_cipher().encrypt(code.encode("ascii")).decode("ascii"),
                                   expires_at=datetime.now(timezone.utc) + SESSION_LIFETIME)
     db.add(row); db.commit(); db.refresh(row)
@@ -502,7 +502,7 @@ def teacher_sessions(response: Response, user: User = Depends(current_user), db:
     rows_ = db.scalars(select(ProfesorMaterialSession).where(
         ProfesorMaterialSession.teacher_user_id == user.id,
     ).order_by(ProfesorMaterialSession.created_at.desc()).limit(100)).all()
-    return {"sessions": [{"id": str(row.id), "title": row.title, "subject": row.subject, "status": row.status,
+    return {"sessions": [{"id": str(row.id), "material_id": row.material_id, "title": row.title, "subject": row.subject, "course": (row.material_snapshot or {}).get("course", ""), "status": row.status,
                           "created_at": row.created_at.isoformat(), "expires_at": row.expires_at.isoformat(),
                           "join_code": visible_session_code(row)} for row in rows_]}
 

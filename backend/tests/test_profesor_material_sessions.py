@@ -36,6 +36,21 @@ def prepare_teacher(client):
     return web, factory
 
 
+def test_teacher_session_list_keeps_the_material_course_for_profile_filtering(client):
+    web, _ = prepare_teacher(client)
+    current = web.get('/api/state?app=profesor_particular')
+    state = current.json()
+    state['library'][0]['activity']['context'] = {'course': '2.º Primaria'}
+    saved = web.post('/api/state?app=profesor_particular', json=state,
+                     headers={'If-Match': current.headers['etag']})
+    assert saved.status_code == 200, saved.text
+    created = web.post('/api/profesor/material-sessions', json={'material_id': 'm1'})
+    assert created.status_code == 200, created.text
+    listed = web.get('/api/profesor/material-sessions').json()['sessions']
+    assert listed[0]['material_id'] == 'm1'
+    assert listed[0]['course'] == '2.º Primaria'
+
+
 def test_codes_are_unique_scoped_and_do_not_require_pupil_accounts(client):
     web, _ = prepare_teacher(client)
     first = web.post("/api/profesor/material-sessions", json={"material_id": "m1"})

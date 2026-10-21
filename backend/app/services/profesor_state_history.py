@@ -60,6 +60,10 @@ def validate_transition(previous: dict, incoming: dict, *, confirm_empty: bool =
         if not isinstance(offered, list) or len(offered) > 30 or any(
                 not isinstance(subject, str) or not subject.strip() or len(subject) > 80 or any(ord(char) < 32 for char in subject) for subject in offered):
             raise HTTPException(422, 'Selecciona hasta 30 asignaturas con nombres válidos, de hasta 80 caracteres.')
+        courses = profile.get('courses', [])
+        if not isinstance(courses, list) or len(courses) > 40 or any(
+                not isinstance(course, str) or not course.strip() or len(course) > 100 or any(ord(char) < 32 for char in course) for course in courses):
+            raise HTTPException(422, 'Selecciona hasta 40 cursos o niveles con nombres válidos, de hasta 100 caracteres.')
         if 'backgroundMode' in profile and profile['backgroundMode'] not in ('study', 'academy', 'plain'):
             raise HTTPException(422, 'Elige uno de los tres estilos disponibles.')
     # Iterative bounds protect decoding/traversal without discarding historical fields.

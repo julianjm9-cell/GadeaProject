@@ -17,11 +17,12 @@ def save(web,payload,etag=None):
 def test_preferences_roundtrip_preserves_every_material_and_plan_is_server_owned(client):
     web=teacher(client)
     material={'id':'kept','subject':'Matemáticas','title':'No se borra','body':'Contenido guardado'}
-    payload={'students':[],'sessions':[],'tasks':[],'library':[material],'teacherProfile':{'subjects':['Inglés'],'backgroundMode':'academy','plan':'premium'}}
+    payload={'students':[],'sessions':[],'tasks':[],'library':[material],'teacherProfile':{'subjects':['Inglés'],'courses':['2.º Primaria','A2'],'backgroundMode':'academy','plan':'premium'}}
     response=save(web,payload)
     assert response.status_code==200,response.text
     current=web.get('/api/state?app=profesor_particular').json()
     assert current['teacherProfile']['subjects']==['Inglés']
+    assert current['teacherProfile']['courses']==['2.º Primaria','A2']
     assert current['teacherProfile']['backgroundMode']=='academy'
     assert current['teacherProfile']['plan']=='normal'
     assert current['library']==[material]
@@ -32,7 +33,7 @@ def test_preferences_roundtrip_preserves_every_material_and_plan_is_server_owned
     assert web.get('/api/state?app=profesor_particular').json()['library']==[material]
 
 
-@pytest.mark.parametrize('profile',[{'subjects':'Inglés'},{'subjects':['']},{'subjects':['a'*81]},{'subjects':['x']*31},{'subjects':['bad\x00subject']},{'backgroundMode':'unknown'}])
+@pytest.mark.parametrize('profile',[{'subjects':'Inglés'},{'subjects':['']},{'subjects':['a'*81]},{'subjects':['x']*31},{'subjects':['bad\x00subject']},{'courses':'2.º Primaria'},{'courses':['']},{'courses':['x'*101]},{'courses':['x']*41},{'backgroundMode':'unknown'}])
 def test_invalid_preferences_never_overwrite_saved_work(client,profile):
     web=teacher(client)
     original={'library':[{'id':'kept','title':'Guardado','subject':'Lengua','body':'Contenido'}],'teacherProfile':{'subjects':['Lengua'],'backgroundMode':'plain'}}

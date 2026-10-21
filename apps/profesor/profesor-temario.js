@@ -325,7 +325,7 @@ function temarioMaterials(topic) {
   });
 }
 function temarioVisibleTopics() {
-  if(!teacherAllowsSubject(temarioSubject))return [];
+  if(!teacherAllowsSubject(temarioSubject)||!teacherAllowsCourse(temarioCourse))return [];
   const query = temarioNorm(temarioQuery);
   return temarioTopics().filter(topic => (!query || temarioNorm(topic.title + ' ' + topic.explanation).includes(query)));
 }
@@ -335,8 +335,8 @@ function planTemarioWithStudent(topic) {
   modal('Planificar · ' + topic.title, `<p>Se añadirá a tus tareas como recordatorio para trabajar este tema con un alumno. No se enviará a ninguna cuenta del alumno.</p><label for="temarioStudent">Alumno</label><select id="temarioStudent" name="studentId">${pupils.map(pupil => `<option value="${esc(pupil.id)}">${esc(pupil.name)}</option>`).join('')}</select><label for="temarioDue">Fecha (opcional)</label><input id="temarioDue" name="due" type="date">${submit('Añadir a mi plan')}`, form => {const pupil = student(form.get('studentId'));state.tasks.push({id:uid(),title:'Trabajar ' + topic.title,studentId:pupil.id,priority:'Normal',due:form.get('due') || '',done:false});save();render();notify('Tema añadido a tus tareas para ' + pupil.name);});
 }
 document.addEventListener('change', event => {
-  if (event.target.id === 'temarioCourse') { temarioCourse = event.target.value; if(!spanishLevels.includes(temarioCourse))temarioSchoolCourse=temarioCourse; if(!window.PROFESOR_TEMARIO?.[temarioCourse]?.[temarioSubject])temarioSubject = Object.keys(window.PROFESOR_TEMARIO?.[temarioCourse] || {})[0] || '';temarioSelected = '';render(); }
-  if (event.target.id === 'temarioSubject') { temarioSubject = event.target.value;if(temarioSubject==='Español'){if(!spanishLevels.includes(temarioCourse))temarioSchoolCourse=temarioCourse;temarioCourse=spanishLevels.includes(temarioCourse)?temarioCourse:'A1';}else if(spanishLevels.includes(temarioCourse))temarioCourse=temarioSchoolCourse;temarioSelected = '';render(); }
+  if (event.target.id === 'temarioCourse') { temarioCourse = event.target.value; if(!spanishLevels.includes(temarioCourse))temarioSchoolCourse=temarioCourse; if(!window.PROFESOR_TEMARIO?.[temarioCourse]?.[temarioSubject])temarioSubject = teacherSubjectChoices(Object.keys(window.PROFESOR_TEMARIO?.[temarioCourse] || {}))[0] || '';temarioSelected = '';render(); }
+  if (event.target.id === 'temarioSubject') { temarioSubject = event.target.value;if(temarioSubject==='Español'){if(!spanishLevels.includes(temarioCourse))temarioSchoolCourse=temarioCourse;temarioCourse=spanishLevels.includes(temarioCourse)?temarioCourse:spanishLevels.find(teacherAllowsCourse)||'';}else if(spanishLevels.includes(temarioCourse))temarioCourse=teacherAllowsCourse(temarioSchoolCourse)?temarioSchoolCourse:teacherCourseChoices(Object.keys(window.PROFESOR_TEMARIO||{}).filter(course=>!spanishLevels.includes(course)))[0]||'';temarioSelected = '';render(); }
 });
 document.addEventListener('input', event => {
   if (event.target.id !== 'temarioSearch') return;
@@ -430,10 +430,10 @@ const temarioResources=[
 ];
 temarioView=function(){
  const allCourses=Object.keys(window.PROFESOR_TEMARIO||{});
- const matchedCourses=allCourses.filter(course=>Object.keys(window.PROFESOR_TEMARIO[course]).some(teacherAllowsSubject)||(state.uploadedTopics||[]).some(topic=>topic.course===course&&teacherAllowsSubject(topic.subject))||(state.personalTopics||[]).some(topic=>topic.course===course&&teacherAllowsSubject(topic.subject)));
- const courses=matchedCourses.length?matchedCourses:allCourses.filter(course=>!spanishLevels.includes(course));
+ const courses=allCourses.filter(course=>teacherAllowsCourse(course)&&(Object.keys(window.PROFESOR_TEMARIO[course]).some(teacherAllowsSubject)||(state.uploadedTopics||[]).some(topic=>topic.course===course&&teacherAllowsSubject(topic.subject))||(state.personalTopics||[]).some(topic=>topic.course===course&&teacherAllowsSubject(topic.subject))));
+ if(!courses.length)return '<div class="temario-page temario-simple temario-renewed">'+teacherSubjectNotice()+'<div class="temario-empty">No hay temas para los cursos y asignaturas que has elegido. Puedes cambiar tu selección en el perfil.</div></div>';
  if(!courses.includes(temarioCourse))temarioCourse=courses[0]||'';
- const subjects=teacherSubjectChoices([...Object.keys(window.PROFESOR_TEMARIO?.[spanishLevels.includes(temarioCourse)?temarioSchoolCourse:temarioCourse]||{}),'Español',...teacherOfferedSubjects()]);
+ const subjects=teacherSubjectChoices([...Object.keys(window.PROFESOR_TEMARIO?.[temarioCourse]||{}),...(state.uploadedTopics||[]).filter(topic=>topic.course===temarioCourse).map(topic=>topic.subject)]);
  if(!subjects.includes(temarioSubject))temarioSubject=subjects[0]||'';
  const topics=temarioVisibleTopics();
  if(!topics.some(t=>t.id===temarioSelected))temarioSelected=topics[0]?.id||'';

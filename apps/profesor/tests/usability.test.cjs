@@ -32,7 +32,7 @@ test('Transient errors retry drafts, while grading is never replayed and access 
  const denied=outbox(async()=>{throw Object.assign(Error('expired'),{status:401})});denied.sync.stage(0,'x');await assert.rejects(denied.sync.flush());assert.equal(denied.sync.status().state,'blocked');assert.equal(denied.jobs.size,0);denied.sync.dispose();
 });
 test('All three library views retain independent searches, courses, types, pages and syllabus format',()=>{
- const context={student:()=>({course:'2.º ESO'})};vm.createContext(context);
+ const context={student:()=>({course:'2.º ESO'}),studentSubjectCourse:(pupil,subject)=>subject==='Español'?(pupil.spanishLevel||'A1'):pupil.course};vm.createContext(context);
  vm.runInContext(html.slice(html.indexOf("let homeStudentQuery=''"),html.indexOf('function materialResultSummary()')),context);
  const run=code=>vm.runInContext(code,context);
  run("materialQuery='gato';materialSubject='Lengua';materialCourse='3.º ESO';materialType='memory';materialPage=2;switchMaterialMode('public');materialQuery='fracciones';materialCourse='1.º ESO';materialPage=4;switchMaterialMode('mine')");

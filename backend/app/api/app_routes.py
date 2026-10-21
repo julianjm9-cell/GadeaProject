@@ -757,6 +757,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-dashboard.css")
 @router.get("/assets/profesor-academy-theme.css")
 @router.get("/assets/profesor-appearance.css")
+@router.get("/assets/profesor-public-games.css")
 @router.get("/assets/profesor-live.css")
 @router.get("/assets/profesor-uploaded-topics.css")
 def profesor_final_styles(request: Request):
@@ -826,8 +827,16 @@ def profesor_game_illustration(filename: str):
         "timeline.webp",
         "uploaded-material.webp",
         "wordsearch.webp",
+        "public-tren-decenas.webp",
+        "public-fabrica-palabras.webp",
+        "public-mochila-bilingue.webp",
+        "public-exploradores-sentidos.webp",
+        "public-mercado-monedas.webp",
+        "public-detectives-signos.webp",
+        "public-safari-parque.webp",
+        "public-jardin-mariposa.webp",
     }
-    allowed = base_files | {f"mature-{name}" for name in base_files if name not in {"uploaded-material.webp", "pasapalabra-stage.png", "wordsearch-stage.png"}}
+    allowed = base_files | {f"mature-{name}" for name in base_files if name.endswith(".webp") and not name.startswith("public-") and name != "uploaded-material.webp"}
     if filename not in allowed:
         raise HTTPException(status_code=404, detail="Ilustración de actividad no encontrada.")
     local_path = PROJECT_ROOT / "apps" / "profesor" / "assets" / "games" / filename
