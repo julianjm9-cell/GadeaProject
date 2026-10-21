@@ -134,6 +134,8 @@ def test_all_public_game_card_illustrations_are_served(client):
         'public-mochila-bilingue.webp', 'public-exploradores-sentidos.webp',
         'public-mercado-monedas.webp', 'public-detectives-signos.webp',
         'public-safari-parque.webp', 'public-jardin-mariposa.webp',
+        'public-observatorio-numeros.webp', 'public-biblioteca-secreta.webp',
+        'public-aeropuerto-habitos.webp', 'public-bosque-vivo.webp',
     ]
     for name in names:
         response = web.get('/assets/games/' + name)

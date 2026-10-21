@@ -438,6 +438,55 @@ const publicAdvancedGames=[
    {id:'advanced-jardin-mariposa-2',type:'timeline',prompt:'Junto al estanque: ordena cómo crece una rana.',answer:'Huevos en el agua → Renacuajo → Renacuajo con patas → Rana adulta',options:['Huevos en el agua','Renacuajo','Renacuajo con patas','Rana adulta'],explanation:'El renacuajo crece, desarrolla patas y termina convirtiéndose en rana.'},
    {id:'advanced-jardin-mariposa-3',type:'timeline',prompt:'En el huerto: ordena cómo crece una planta.',answer:'Semilla bajo tierra → Brote pequeño → Planta con hojas → Flor abierta',options:['Semilla bajo tierra','Brote pequeño','Planta con hojas','Flor abierta'],explanation:'La semilla germina y la planta crece antes de dar flores.'}
   ]
+ },
+ {
+  id:'public:advanced:3-primaria:matematicas:observatorio-numeros',course:'3.º Primaria',title:'El observatorio de los números',subject:'Matemáticas',topic:'Números de cuatro y cinco cifras',artwork:'public-observatorio-numeros.webp',body:'Avanza entre constelaciones descubriendo el valor de cada cifra.',
+  questions:[{id:'advanced-observatorio-numeros-1',type:'race',prompt:'Supera las seis estaciones del observatorio. Fíjate en la posición de cada cifra.',answer:'Completado',options:[
+   'En 13 620, ¿cuánto vale la cifra 3? | 3 000 | 300 | 30',
+   'En 24 508, ¿cuánto vale la cifra 5? | 500 | 5 000 | 50',
+   '¿Qué número es 30 000 + 4 000 + 200 + 6? | 34 206 | 34 026 | 30 426',
+   'En 47 091, ¿qué cifra ocupa las decenas? | 9 | 0 | 1',
+   '¿Cuál es el mayor número? | 58 210 | 58 120 | 52 810',
+   'En 60 405, ¿cuánto vale la cifra 4? | 400 | 4 000 | 40'
+  ],explanation:'El valor de una cifra depende de su posición: unidades, decenas, centenas, millares o decenas de millar.'}]
+ },
+ {
+  id:'public:advanced:3-primaria:lengua:biblioteca-secreta',course:'3.º Primaria',title:'La biblioteca secreta',subject:'Lengua',topic:'Clases de palabras',artwork:'public-biblioteca-secreta.webp',body:'Resuelve pistas de gramática y descubre la palabra oculta.',
+  questions:[{id:'advanced-biblioteca-secreta-1',type:'cipher',prompt:'Abre los seis libros secretos. Cada respuesta correcta revela una letra del mensaje final.',answer:'LECTOR',options:[
+   'Clase de palabra que nombra personas, animales, lugares o cosas. | sustantivo | L',
+   'Clase de palabra que expresa una acción, como correr o leer. | verbo | E',
+   'Clase de palabra que describe cómo es un nombre. | adjetivo | C',
+   'Palabra que acompaña a un nombre, como «el» o «una». | artículo | T',
+   'Número gramatical que indica un solo elemento. | singular | O',
+   'Número gramatical que indica más de un elemento. | plural | R'
+  ],explanation:'Sustantivos, verbos, adjetivos y artículos cumplen funciones distintas en la oración.'}]
+ },
+ {
+  id:'public:advanced:3-primaria:ingles:aeropuerto-habitos',course:'3.º Primaria',title:'El aeropuerto de los hábitos',subject:'Inglés',topic:'Present simple',artwork:'public-aeropuerto-habitos.webp',body:'Lee las pistas de viaje y completa un bingo de hábitos en inglés.',
+  questions:[{id:'advanced-aeropuerto-habitos-1',type:'bingo',prompt:'Lee cada pista y marca en el cartón la frase correcta en presente simple.',answer:'Completado',options:[
+   'I pack my bag | Yo preparo mi maleta.',
+   'She packs her bag | Ella prepara su maleta.',
+   'He reads a map | Él lee un mapa.',
+   'We read a map | Nosotros leemos un mapa.',
+   'They walk to school | Ellos van andando al colegio.',
+   'She walks to school | Ella va andando al colegio.',
+   'I play games | Yo juego a juegos.',
+   'He plays games | Él juega a juegos.',
+   'We visit museums | Nosotros visitamos museos.'
+  ],explanation:'Con he y she, el verbo suele llevar -s; con I, we y they se usa la forma básica.'}]
+ },
+ {
+  id:'public:advanced:3-primaria:ciencias-naturales:bosque-vivo',course:'3.º Primaria',title:'El bosque vivo',subject:'Ciencias Naturales',topic:'Los seres vivos y sus funciones',artwork:'public-bosque-vivo.webp',body:'Clasifica las acciones de los seres vivos en sus tres funciones vitales.',
+  questions:[{id:'advanced-bosque-vivo-1',type:'dragdrop',prompt:'Completa el cuaderno de campo: lleva cada observación a nutrición, relación o reproducción.',answer:'Completado',options:[
+   'Un conejo come hierba | Nutrición',
+   'Una planta absorbe agua por las raíces | Nutrición',
+   'Un árbol fabrica alimento con luz | Nutrición',
+   'Un girasol se orienta hacia la luz | Relación',
+   'Un ciervo huye al oír un ruido | Relación',
+   'Una persona retira la mano de algo caliente | Relación',
+   'Una mariposa pone huevos | Reproducción',
+   'Una planta produce semillas | Reproducción'
+  ],explanation:'Nutrición obtiene materia y energía, relación responde al entorno y reproducción da origen a nuevos seres vivos.'}]
  }
 ].map(({id,course='1.º Primaria',title,subject,topic,artwork,body,questions})=>({id,title,subject,studentId:'',kind:'Juego público',artwork,body,activity:{version:1,context:{course,subject,topic,duration:8,public:true,curated:true,publicSourceId:id},questions}}));
 function temarioLibraryMaterials(){return materialPublicFormat==='single'?publicSingleMaterials():publicTemarioMaterials();}
@@ -453,7 +502,7 @@ function materialTone(type){if(visualTypes.includes(type))return 'visual';if(['f
 const materialArtworkFiles={pairs:'basic-pairs',gaps:'basic-gaps',multigaps:'basic-multigaps',numeric:'basic-numeric',quiz:'basic-quiz',short:'basic-short',order:'basic-order',classify:'basic-classify',boolean:'basic-boolean',reading:'basic-reading',problem:'basic-problem',flashcard:'flashcards',memory:'memory',sentence:'sentence',timeline:'timeline',error:'error',wordsearch:'wordsearch',crossword:'crossword',dragdrop:'dragdrop',pasapalabra:'pasapalabra',hangman:'hangman',mystery:'mystery',intruder:'intruder',bingo:'bingo',multiselect:'multiselect',table:'table',cipher:'cipher',race:'race'};
 function usesMatureArtwork(course='',subject=''){const normalized=String(subject).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().trim();return /\b(?:eso|bachillerato)\b/i.test(String(course))||normalized==='ingles'}
 function activityArtworkUrl(type,course='',subject=''){const file=materialArtworkFiles[type]||'uploaded-material',prefix=file!=='uploaded-material'&&usesMatureArtwork(course,subject)?'mature-':'';return `./assets/games/${prefix}${file}.webp`}
-const publicAdvancedArtworkFiles=new Set(['public-tren-decenas.webp','public-fabrica-palabras.webp','public-mochila-bilingue.webp','public-exploradores-sentidos.webp','public-mercado-monedas.webp','public-detectives-signos.webp','public-safari-parque.webp','public-jardin-mariposa.webp']);
+const publicAdvancedArtworkFiles=new Set(['public-tren-decenas.webp','public-fabrica-palabras.webp','public-mochila-bilingue.webp','public-exploradores-sentidos.webp','public-mercado-monedas.webp','public-detectives-signos.webp','public-safari-parque.webp','public-jardin-mariposa.webp','public-observatorio-numeros.webp','public-biblioteca-secreta.webp','public-aeropuerto-habitos.webp','public-bosque-vivo.webp']);
 function materialArtwork(m){const type=m.activity?.questions?.[0]?.type||legacyMaterialType(m),course=m.activity?.context?.course||student(m.studentId)?.course||m.course||'',customArtwork=publicAdvancedArtworkFiles.has(m.artwork),file=customArtwork?`./assets/games/${m.artwork}`:m.attachment&&!m.activity?'./assets/games/uploaded-material.webp':activityArtworkUrl(type,course,m.subject||m.activity?.context?.subject||'');return `<div class="material-art${customArtwork?' custom-public-art':''}" data-art="${esc(type||'resource')}"><img src="${file}" alt="" loading="lazy" decoding="async"></div>`}
 async function paintMaterialCards(root=document){for(const img of root.querySelectorAll('[data-card-image]')){const m=state.library.find(item=>item.id===img.dataset.cardImage),image=m?.activity?.questions?.find(q=>q.image)?.image||m?.attachment;if(!image)continue;try{const url=await visualImageUrl(image);if(img.isConnected)img.src=url}catch{if(img.isConnected)img.replaceWith(Object.assign(document.createElement('small'),{textContent:'Imagen no disponible'}))}}}
 function materialHubCard(m,studentView=false,publicEntry=false,sessionPicker=false){
@@ -972,9 +1021,9 @@ init();
 <script src="./profesor-challenge-games.js?v=20261018-games-7"></script>
 <script src="./profesor-mini-games.js?v=20261017-2"></script>
 <script src="./profesor-sentence-board.js?v=20261020-stages-1"></script>
-<script src="./profesor-activity-play.js?v=20261021-public-scenes-1"></script>
+<script src="./profesor-activity-play.js?v=20261021-public-scenes-2"></script>
 <script src="./profesor-live-sync.js?v=20261018-1"></script>
-<script src="./profesor-live.js?v=20261021-public-scenes-1"></script>
+<script src="./profesor-live.js?v=20261021-public-scenes-2"></script>
 <link rel="stylesheet" href="./assets/profesor-activity-play.css?v=20261018-preview-1">
 <link rel="stylesheet" href="./assets/profesor-live.css?v=20261018-usability-3">
 <style>
@@ -1299,7 +1348,7 @@ init();
 @media(max-width:620px){.attachment-document{padding:14px}#dialog.file-preview-dialog{padding:16px}.attachment-row{margin-top:10px}.attachment-pdf{height:60dvh}}
 </style>
 <link rel="stylesheet" href="./assets/profesor-appearance.css?v=20261018-5">
-<link rel="stylesheet" href="./assets/profesor-public-games.css?v=20261021-1">
+<link rel="stylesheet" href="./assets/profesor-public-games.css?v=20261021-2">
 <script src="./profesor-state-history.js?v=20261016-daily-1"></script>
 <script src="./profesor-editor-recovery.js?v=20261018-3"></script></body>
 </html>

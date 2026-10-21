@@ -1,4 +1,4 @@
-/* Los ocho juegos públicos iniciales comparten un tablero escénico. La imagen
+/* Los juegos públicos comparten un tablero escénico. La imagen
    acompaña al juego; los controles conservan contraste y estados accesibles. */
 :is(.activity-play .play-question,.live-question)[data-public-scene]{--scene-accent:#1676d2;--scene-soft:#eaf5ff;--scene-paper:#fffcf4;--scene-image:none;--scene-position:center;min-width:0}
 [data-public-scene="tren-decenas"]{--scene-accent:#cf623d!important;--scene-soft:#ffebd9!important;--scene-image:url('./games/public-tren-decenas.webp')!important;--scene-position:center 54%!important}
@@ -9,6 +9,10 @@
 [data-public-scene="signos"]{--scene-accent:#7752aa!important;--scene-soft:#f3eafa!important;--scene-image:url('./games/public-detectives-signos.webp')!important;--scene-position:center 52%!important}
 [data-public-scene="safari"]{--scene-accent:#458656!important;--scene-soft:#e7f4de!important;--scene-image:url('./games/public-safari-parque.webp')!important;--scene-position:center 57%!important}
 [data-public-scene="jardin-mariposa"]{--scene-accent:#a75a9b!important;--scene-soft:#fae9f5!important;--scene-image:url('./games/public-jardin-mariposa.webp')!important;--scene-position:center 56%!important}
+[data-public-scene="observatorio-numeros"]{--scene-accent:#385bc8!important;--scene-soft:#edf1ff!important;--scene-image:url('./games/public-observatorio-numeros.webp')!important;--scene-position:center 54%!important}
+[data-public-scene="biblioteca-secreta"]{--scene-accent:#8554ad!important;--scene-soft:#f7edff!important;--scene-image:url('./games/public-biblioteca-secreta.webp')!important;--scene-position:center 54%!important}
+[data-public-scene="aeropuerto-habitos"]{--scene-accent:#087da9!important;--scene-soft:#eaf8ff!important;--scene-image:url('./games/public-aeropuerto-habitos.webp')!important;--scene-position:center 55%!important}
+[data-public-scene="bosque-vivo"]{--scene-accent:#338449!important;--scene-soft:#e9f9e8!important;--scene-image:url('./games/public-bosque-vivo.webp')!important;--scene-position:center 57%!important}
 
 /* La escena sigue el ejercicio activo, también cuando el material tiene varias fases. */
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])){width:min(1450px,97vw);max-width:1450px;height:min(94dvh,940px);max-height:94dvh;background:#d9eaff;overflow:hidden}
@@ -20,6 +24,10 @@ dialog.activity-play:has(.play-question[data-public-scene="mercado-monedas"]:not
 dialog.activity-play:has(.play-question[data-public-scene="signos"]:not([hidden])){background-image:linear-gradient(90deg,#faf2ffb8,#faf2ff62),url('./games/public-detectives-signos.webp');background-position:center,center 52%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene="safari"]:not([hidden])){background-image:linear-gradient(90deg,#eff8e7b5,#eff8e75c),url('./games/public-safari-parque.webp');background-position:center,center 57%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene="jardin-mariposa"]:not([hidden])){background-image:linear-gradient(90deg,#fff2f9b8,#fff2f959),url('./games/public-jardin-mariposa.webp');background-position:center,center 56%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="observatorio-numeros"]:not([hidden])){background-image:linear-gradient(90deg,#f3f6ffb8,#f3f6ff59),url('./games/public-observatorio-numeros.webp');background-position:center,center 54%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="biblioteca-secreta"]:not([hidden])){background-image:linear-gradient(90deg,#fbf4ffb8,#fbf4ff59),url('./games/public-biblioteca-secreta.webp');background-position:center,center 54%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="aeropuerto-habitos"]:not([hidden])){background-image:linear-gradient(90deg,#effaffb8,#effaff59),url('./games/public-aeropuerto-habitos.webp');background-position:center,center 55%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="bosque-vivo"]:not([hidden])){background-image:linear-gradient(90deg,#f2fff0b8,#f2fff059),url('./games/public-bosque-vivo.webp');background-position:center,center 57%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-content{width:100%;flex:1;min-height:0;overflow:auto;scrollbar-gutter:stable}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-footer{margin-top:6px;padding:9px 12px;border:1px solid #ffffffc9;border-radius:18px;background:#ffffffda;backdrop-filter:blur(12px)}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-toolbar{background:#ffffffde;border-radius:16px;backdrop-filter:blur(12px)}
@@ -64,6 +72,28 @@ dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-
 [data-public-scene="jardin-mariposa"] .timeline-board .sentence-piece{border-color:#cba1c9!important;background:#fce9f5!important;box-shadow:0 4px #e6c6dd!important}
 [data-public-scene="jardin-mariposa"] .timeline-board .sentence-slot{border-color:#cba1c9!important;background:#fff7fb!important}
 [data-public-scene="jardin-mariposa"] .timeline-board .sentence-slot.filled{background:#fff!important}
+/* Cada mesa de juego adopta los objetos y colores de su escenario. */
+[data-public-scene="observatorio-numeros"] .race-track button{border:2px solid #93a9ed;background:#eaf0ff;box-shadow:0 4px #778ed0}
+[data-public-scene="observatorio-numeros"] .race-track .is-current{border-color:#405cba;background:#dce6ff;box-shadow:0 4px #526ac3}
+[data-public-scene="observatorio-numeros"] .challenge-stage-card{background:#fffdf4;border-color:#abb9e1}
+[data-public-scene="observatorio-numeros"] .race-answers button{border-color:#a9b8e8;background:#f8faff}
+[data-public-scene="biblioteca-secreta"] .cipher-message span{border-color:#b399d3;background:#f6eaff;color:#633b8b;box-shadow:0 4px #d5bee8}
+[data-public-scene="biblioteca-secreta"] .cipher-message span.revealed{background:#fff9e2;color:#493176;border-color:#c9a56b}
+[data-public-scene="biblioteca-secreta"] .challenge-stage-card{background:#fffaf0;border-color:#d4bcdd}
+[data-public-scene="aeropuerto-habitos"] .bingo-cards button{border-color:#8fc7db;background:#eefaff;box-shadow:0 4px #aadce9}
+[data-public-scene="aeropuerto-habitos"] .bingo-cards{gap:8px}
+[data-public-scene="aeropuerto-habitos"] .mini-game .bingo-cards button{min-height:69px;padding:7px 5px;gap:4px}
+[data-public-scene="aeropuerto-habitos"] .bingo-line-status{min-height:30px;margin-top:9px;padding:6px 10px}
+[data-public-scene="aeropuerto-habitos"] .bingo-cards button.is-found{background:#dff5dc;border-color:#73bb78}
+[data-public-scene="aeropuerto-habitos"] .bingo-clue-card{background:#fffdf4;border-color:#a7d7e6}
+[data-public-scene="bosque-vivo"] .match-bank{background:#f8fff0e8;border-color:#afd391}
+[data-public-scene="bosque-vivo"] .matching-workbench{grid-template-columns:minmax(0,1fr);gap:12px}
+[data-public-scene="bosque-vivo"] .match-pieces{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+[data-public-scene="bosque-vivo"] .match-piece{min-height:46px;padding:8px 10px;font-size:13px;line-height:1.25}
+[data-public-scene="bosque-vivo"] .match-destinations{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+[data-public-scene="bosque-vivo"] .match-bucket{border:2px solid #8dc88d;border-radius:18px;background:linear-gradient(#fbfff2,#dff2ce);box-shadow:0 5px #89ae79}
+[data-public-scene="bosque-vivo"] .match-bucket>button{min-height:49px;padding:5px 8px}
+[data-public-scene="bosque-vivo"] .match-piece{border-color:#9bc988;background:#f5ffed;color:#275734}
 :is(.activity-play .play-question,.live-question)[data-public-scene] :is(.answer-right,.is-correct,.correct,.matched){border-color:#5cad79!important;background:#e4f7e7!important;color:#175636!important}
 :is(.activity-play .play-question,.live-question)[data-public-scene] :is(.answer-wrong,.is-incorrect,.incorrect){border-color:#d87765!important;background:#fff0eb!important;color:#8c3529!important}
 
@@ -72,5 +102,6 @@ dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-
 .student-portal .live-question[data-public-scene]>h3,#dialog.live-watch-dialog .live-question[data-public-scene]>h3{width:fit-content;max-width:100%;padding:9px 17px;border-radius:14px;background:#fffdf0ed;color:#173254;font-weight:800;text-align:center}
 .live-question[data-public-scene] .live-controls{min-width:0}
 .live-question[data-public-scene] .live-feedback{background:#fffdf0ed;border-radius:12px;padding:10px}
-@media(max-width:700px){dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])){width:98vw;height:96dvh;max-height:96dvh;padding:10px}.activity-play .play-question[data-public-scene]{padding:7px!important}.activity-play .play-question[data-public-scene] .play-question-top{min-height:70px;padding:3px 0 34px}.activity-play .play-question[data-public-scene] .game-timer{right:0;top:38px}.activity-play .play-question[data-public-scene] h3{padding:8px 11px;font-size:17px}[data-public-scene="tren-decenas"] .match-destinations{grid-template-columns:1fr}.student-portal .live-question[data-public-scene]{padding:12px}.student-portal .live-question[data-public-scene]>h3{font-size:17px}}
+@media(max-width:700px){dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])){width:98vw;height:96dvh;max-height:96dvh;padding:10px}.activity-play .play-question[data-public-scene]{padding:7px!important}.activity-play .play-question[data-public-scene] .play-question-top{min-height:70px;padding:3px 0 34px}.activity-play .play-question[data-public-scene] .game-timer{right:0;top:38px}.activity-play .play-question[data-public-scene] h3{padding:8px 11px;font-size:17px}[data-public-scene="tren-decenas"] .match-destinations,[data-public-scene="bosque-vivo"] .match-destinations{grid-template-columns:1fr}.student-portal .live-question[data-public-scene]{padding:12px}.student-portal .live-question[data-public-scene]>h3{font-size:17px}}
+@media(max-width:700px){[data-public-scene="bosque-vivo"] .match-pieces{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){[data-public-scene] *{transition:none!important;animation:none!important}}

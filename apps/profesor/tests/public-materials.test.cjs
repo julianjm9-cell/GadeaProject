@@ -34,14 +34,14 @@ test('The public showcase is an explicit, stable selection and never mutates or 
   const {run}=library();
   const before=run('JSON.stringify(publicTemarioMaterials())');
   assert.equal(run('publicMaterialSelection.length'),42);
-  assert.equal(run('publicLibraryMaterials().length'),50);
-  assert.equal(run('new Set(publicLibraryMaterials().map(m=>m.id)).size'),50);
+  assert.equal(run('publicLibraryMaterials().length'),54);
+  assert.equal(run('new Set(publicLibraryMaterials().map(m=>m.id)).size'),54);
   assert.equal(run('new Set(publicMaterialSelection.map(([id])=>id)).size'),42);
   assert.equal(run('curatedPublicMaterials().every(m=>m.activity.context.curated&&m.title&&m.body&&publicMaterial(m.id)===m&&publicMaterial(m.activity.context.curatedSourceId))'),true);
   assert.equal(run('curatedPublicMaterials().every(m=>JSON.stringify(m.activity.questions)===JSON.stringify(publicMaterial(m.activity.context.curatedSourceId).activity.questions))'),true);
-  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),50);
-  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),50);
-  assert.equal(run('new Set(publicLibraryMaterials().flatMap(m=>m.activity.questions.map(q=>q.type))).size'),13);
+  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),54);
+  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),54);
+  assert.equal(run('new Set(publicLibraryMaterials().flatMap(m=>m.activity.questions.map(q=>q.type))).size'),15);
   run("curatedPublicMaterials()[0].activity.questions[0].options.push('Copia de prueba')");
   assert.equal(run('JSON.stringify(publicTemarioMaterials())'),before);
   assert.equal(run('publicSingleMaterials().length'),2106);
@@ -97,6 +97,34 @@ test('Next four advanced public games cover 2.º Primaria with checkable market,
   assert.ok(garden.every(question=>question.type==='timeline'&&question.options.length===4&&question.options.join(' → ')===question.answer));
 });
 
+test('Four new 3.º Primaria games have playable rounds, unique artwork and correct course metadata',()=>{
+  const {run,context}=library();
+  vm.runInContext(readFileSync(join(__dirname,'../profesor-challenge-games.js'),'utf8'),context);
+  vm.runInContext(readFileSync(join(__dirname,'../profesor-mini-games.js'),'utf8'),context);
+  const games=JSON.parse(run('JSON.stringify(publicAdvancedGames.slice(8,12))'));
+  assert.deepEqual(games.map(game=>game.subject),['Matemáticas','Lengua','Inglés','Ciencias Naturales']);
+  assert.ok(games.every(game=>game.activity.context.course==='3.º Primaria'&&game.activity.context.publicSourceId===game.id&&existsSync(join(__dirname,'../assets/games',game.artwork))));
+  assert.equal(new Set(games.map(game=>game.artwork)).size,4);
+  assert.equal(run('publicAdvancedGames.slice(8,12).every(game=>publicMaterial(game.id)===game)'),true);
+  const [numbers,grammar,english,science]=games.map(game=>game.activity.questions[0]);
+  assert.equal(numbers.type,'race');
+  assert.equal(numbers.options.length,6);
+  context.window.profesorChallengeGames.validate(numbers);
+  assert.equal(grammar.type,'cipher');
+  context.window.profesorChallengeGames.validate(grammar);
+  assert.equal(grammar.options.map(row=>row.split('|')[2].trim()).join(''),'LECTOR');
+  assert.equal(english.type,'bingo');
+  context.window.profesorMiniGames.validate(english);
+  const bingo=context.window.profesorMiniGames.prepare(english,'3-primaria-test');
+  assert.equal(bingo.cards.length,9);
+  assert.equal(bingo.clues.length,9);
+  assert.equal(science.type,'dragdrop');
+  assert.equal(science.options.length,8);
+  assert.deepEqual(new Set(science.options.map(row=>row.split('|')[1].trim())),new Set(['Nutrición','Relación','Reproducción']));
+  vm.runInContext(html.slice(html.indexOf('function puzzleRows('),html.indexOf('function buildWordSearch(')),context);
+  assert.equal(run("puzzleRows('dragdrop',publicAdvancedGames[11].activity.questions[0].options).length"),8);
+});
+
 test('Private, curated public and syllabus libraries use separate sources and filters',()=>{
   const {context,run}=library();
   context.state={library:[{id:'mine',title:'Privado',subject:'Lengua',updatedAt:'2026-10-18'}]};
@@ -106,7 +134,7 @@ test('Private, curated public and syllabus libraries use separate sources and fi
   assert.equal(run('materialLibrarySource()[0]===state.library[0]'),true);
   assert.equal(run('state.library.length'),1);
   run("switchMaterialMode('public')");
-  assert.equal(run('filteredMaterials().length'),50);
+  assert.equal(run('filteredMaterials().length'),54);
   assert.equal(run('filteredMaterials()[0].id===publicLibraryMaterials()[0].id'),true);
   run("materialType='memory';materialCourse='A1'");
   assert.equal(run('filteredMaterials().length'),2);
