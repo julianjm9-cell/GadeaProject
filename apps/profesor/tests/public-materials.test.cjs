@@ -34,14 +34,14 @@ test('The public showcase is an explicit, stable selection and never mutates or 
   const {run}=library();
   const before=run('JSON.stringify(publicTemarioMaterials())');
   assert.equal(run('publicMaterialSelection.length'),42);
-  assert.equal(run('publicLibraryMaterials().length'),54);
-  assert.equal(run('new Set(publicLibraryMaterials().map(m=>m.id)).size'),54);
+  assert.equal(run('publicLibraryMaterials().length'),58);
+  assert.equal(run('new Set(publicLibraryMaterials().map(m=>m.id)).size'),58);
   assert.equal(run('new Set(publicMaterialSelection.map(([id])=>id)).size'),42);
   assert.equal(run('curatedPublicMaterials().every(m=>m.activity.context.curated&&m.title&&m.body&&publicMaterial(m.id)===m&&publicMaterial(m.activity.context.curatedSourceId))'),true);
   assert.equal(run('curatedPublicMaterials().every(m=>JSON.stringify(m.activity.questions)===JSON.stringify(publicMaterial(m.activity.context.curatedSourceId).activity.questions))'),true);
-  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),54);
-  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),54);
-  assert.equal(run('new Set(publicLibraryMaterials().flatMap(m=>m.activity.questions.map(q=>q.type))).size'),15);
+  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),58);
+  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),58);
+  assert.equal(run('new Set(publicLibraryMaterials().flatMap(m=>m.activity.questions.map(q=>q.type))).size'),17);
   run("curatedPublicMaterials()[0].activity.questions[0].options.push('Copia de prueba')");
   assert.equal(run('JSON.stringify(publicTemarioMaterials())'),before);
   assert.equal(run('publicSingleMaterials().length'),2106);
@@ -125,6 +125,28 @@ test('Four new 3.º Primaria games have playable rounds, unique artwork and corr
   assert.equal(run("puzzleRows('dragdrop',publicAdvancedGames[11].activity.questions[0].options).length"),8);
 });
 
+test('Four 4.º Primaria scenes have complete puzzles and correct answer keys',()=>{
+  const {run,context}=library();
+  vm.runInContext(readFileSync(join(__dirname,'../profesor-challenge-games.js'),'utf8'),context);
+  const games=JSON.parse(run('JSON.stringify(publicAdvancedGames.slice(12,16))'));
+  assert.deepEqual(games.map(game=>game.subject),['Matemáticas','Lengua','Inglés','Ciencias Naturales']);
+  assert.ok(games.every(game=>game.activity.context.course==='4.º Primaria'&&game.activity.context.publicSourceId===game.id&&existsSync(join(__dirname,'../assets/games',game.artwork))));
+  assert.equal(new Set(games.map(game=>game.artwork)).size,4);
+  assert.equal(run('publicAdvancedGames.slice(12,16).every(game=>publicMaterial(game.id)===game)'),true);
+  const [fractions,accents,directions,mixtures]=games.map(game=>game.activity.questions);
+  assert.equal(fractions[0].type,'table');
+  context.window.profesorChallengeGames.validate(fractions[0]);
+  assert.equal(fractions[0].options.length,6);
+  assert.ok(fractions[0].options.every(option=>{const [fraction,multiplier,result]=option.split('|').map(value=>value.trim());const [a,b]=fraction.split('/').map(Number);const [c,d]=result.split('/').map(Number);const n=Number(multiplier.slice(1));return a*n===c&&b*n===d;}));
+  assert.equal(accents.length,2);
+  assert.ok(accents.every(question=>{context.window.profesorChallengeGames.validate(question);return question.type==='multiselect'&&question.options.length===6;}));
+  assert.equal(directions.length,4);
+  assert.ok(directions.every(question=>question.type==='sentence'&&question.options.length>=4&&question.options.join(' → ')===question.answer));
+  assert.equal(mixtures[0].type,'race');
+  context.window.profesorChallengeGames.validate(mixtures[0]);
+  assert.equal(mixtures[0].options.length,6);
+});
+
 test('Private, curated public and syllabus libraries use separate sources and filters',()=>{
   const {context,run}=library();
   context.state={library:[{id:'mine',title:'Privado',subject:'Lengua',updatedAt:'2026-10-18'}]};
@@ -134,7 +156,7 @@ test('Private, curated public and syllabus libraries use separate sources and fi
   assert.equal(run('materialLibrarySource()[0]===state.library[0]'),true);
   assert.equal(run('state.library.length'),1);
   run("switchMaterialMode('public')");
-  assert.equal(run('filteredMaterials().length'),54);
+  assert.equal(run('filteredMaterials().length'),58);
   assert.equal(run('filteredMaterials()[0].id===publicLibraryMaterials()[0].id'),true);
   run("materialType='memory';materialCourse='A1'");
   assert.equal(run('filteredMaterials().length'),2);

@@ -839,6 +839,10 @@ def profesor_game_illustration(filename: str):
         "public-biblioteca-secreta.webp",
         "public-aeropuerto-habitos.webp",
         "public-bosque-vivo.webp",
+        "public-cocina-fracciones.webp",
+        "public-isla-tildes.webp",
+        "public-ciudad-direcciones.webp",
+        "public-laboratorio-mezclas.webp",
     }
     allowed = base_files | {f"mature-{name}" for name in base_files if name.endswith(".webp") and not name.startswith("public-") and name != "uploaded-material.webp"}
     if filename not in allowed:

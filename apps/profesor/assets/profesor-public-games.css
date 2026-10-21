@@ -13,6 +13,10 @@
 [data-public-scene="biblioteca-secreta"]{--scene-accent:#8554ad!important;--scene-soft:#f7edff!important;--scene-image:url('./games/public-biblioteca-secreta.webp')!important;--scene-position:center 54%!important}
 [data-public-scene="aeropuerto-habitos"]{--scene-accent:#087da9!important;--scene-soft:#eaf8ff!important;--scene-image:url('./games/public-aeropuerto-habitos.webp')!important;--scene-position:center 55%!important}
 [data-public-scene="bosque-vivo"]{--scene-accent:#338449!important;--scene-soft:#e9f9e8!important;--scene-image:url('./games/public-bosque-vivo.webp')!important;--scene-position:center 57%!important}
+[data-public-scene="cocina-fracciones"]{--scene-accent:#bd6728!important;--scene-soft:#fff1d8!important;--scene-image:url('./games/public-cocina-fracciones.webp')!important;--scene-position:center 55%!important}
+[data-public-scene="isla-tildes"]{--scene-accent:#1a83a3!important;--scene-soft:#e4faff!important;--scene-image:url('./games/public-isla-tildes.webp')!important;--scene-position:center 54%!important}
+[data-public-scene="ciudad-direcciones"]{--scene-accent:#2860bb!important;--scene-soft:#e8f2ff!important;--scene-image:url('./games/public-ciudad-direcciones.webp')!important;--scene-position:center 55%!important}
+[data-public-scene="laboratorio-mezclas"]{--scene-accent:#418d79!important;--scene-soft:#e7f8f0!important;--scene-image:url('./games/public-laboratorio-mezclas.webp')!important;--scene-position:center 54%!important}
 
 /* La escena sigue el ejercicio activo, también cuando el material tiene varias fases. */
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])){width:min(1450px,97vw);max-width:1450px;height:min(94dvh,940px);max-height:94dvh;background:#d9eaff;overflow:hidden}
@@ -28,6 +32,10 @@ dialog.activity-play:has(.play-question[data-public-scene="observatorio-numeros"
 dialog.activity-play:has(.play-question[data-public-scene="biblioteca-secreta"]:not([hidden])){background-image:linear-gradient(90deg,#fbf4ffb8,#fbf4ff59),url('./games/public-biblioteca-secreta.webp');background-position:center,center 54%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene="aeropuerto-habitos"]:not([hidden])){background-image:linear-gradient(90deg,#effaffb8,#effaff59),url('./games/public-aeropuerto-habitos.webp');background-position:center,center 55%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene="bosque-vivo"]:not([hidden])){background-image:linear-gradient(90deg,#f2fff0b8,#f2fff059),url('./games/public-bosque-vivo.webp');background-position:center,center 57%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="cocina-fracciones"]:not([hidden])){background-image:linear-gradient(90deg,#fff5e9b8,#fff5e959),url('./games/public-cocina-fracciones.webp');background-position:center,center 55%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="isla-tildes"]:not([hidden])){background-image:linear-gradient(90deg,#ebfcffb8,#ebfcff59),url('./games/public-isla-tildes.webp');background-position:center,center 54%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="ciudad-direcciones"]:not([hidden])){background-image:linear-gradient(90deg,#eff6ffb8,#eff6ff59),url('./games/public-ciudad-direcciones.webp');background-position:center,center 55%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="laboratorio-mezclas"]:not([hidden])){background-image:linear-gradient(90deg,#effcf6b8,#effcf659),url('./games/public-laboratorio-mezclas.webp');background-position:center,center 54%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-content{width:100%;flex:1;min-height:0;overflow:auto;scrollbar-gutter:stable}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-footer{margin-top:6px;padding:9px 12px;border:1px solid #ffffffc9;border-radius:18px;background:#ffffffda;backdrop-filter:blur(12px)}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-toolbar{background:#ffffffde;border-radius:16px;backdrop-filter:blur(12px)}
@@ -94,6 +102,30 @@ dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-
 [data-public-scene="bosque-vivo"] .match-bucket{border:2px solid #8dc88d;border-radius:18px;background:linear-gradient(#fbfff2,#dff2ce);box-shadow:0 5px #89ae79}
 [data-public-scene="bosque-vivo"] .match-bucket>button{min-height:49px;padding:5px 8px}
 [data-public-scene="bosque-vivo"] .match-piece{border-color:#9bc988;background:#f5ffed;color:#275734}
+/* Recetario, etiquetas rescatadas, señales de calle y estaciones de laboratorio. */
+[data-public-scene="cocina-fracciones"] .challenge-table-wrap{border:3px solid #d9a26a;background:#fff8e9;box-shadow:0 7px #b87847}
+[data-public-scene="cocina-fracciones"] .challenge-table th{background:#ffe3bb;color:#663d23;border-color:#e8bc8b}
+[data-public-scene="cocina-fracciones"] .challenge-table td{background:#fffaf0;border-color:#e8bc8b}
+[data-public-scene="cocina-fracciones"] .challenge-table input{border-color:#d4a36d;background:#fffef9}
+[data-public-scene="cocina-fracciones"] .challenge-game{padding:17px 22px}
+[data-public-scene="cocina-fracciones"] .challenge-game progress{margin:9px 0 14px}
+[data-public-scene="cocina-fracciones"] .challenge-table th,[data-public-scene="cocina-fracciones"] .challenge-table td{padding:7px 9px}
+[data-public-scene="cocina-fracciones"] .challenge-table input{min-height:38px;padding:7px 10px}
+[data-public-scene="cocina-fracciones"] .challenge-table small{min-height:12px;margin-top:2px}
+[data-public-scene="cocina-fracciones"] .challenge-bottom{margin-top:12px}
+[data-public-scene="isla-tildes"] .challenge-choice{border:2px solid #91cbd6;background:#f5feff;box-shadow:0 5px #a7dce1}
+[data-public-scene="isla-tildes"] .challenge-choice:has(input:checked){border-color:#268aa6;background:#dcf8fc}
+[data-public-scene="isla-tildes"] .challenge-choice{min-height:82px;padding:12px 15px}
+[data-public-scene="isla-tildes"] .challenge-game{padding:18px 22px}
+[data-public-scene="isla-tildes"] .challenge-game progress{margin:9px 0 14px}
+[data-public-scene="isla-tildes"] .challenge-bottom{margin-top:13px}
+@media(min-width:900px){[data-public-scene="isla-tildes"] .challenge-choices{grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}}
+[data-public-scene="ciudad-direcciones"] :is(.sentence-piece,.sentence-slot){border:2px solid #92b8df!important;background:#eef6ff!important;box-shadow:0 4px #aac9e8!important}
+[data-public-scene="ciudad-direcciones"] .sentence-slot.filled{background:#fff!important}
+[data-public-scene="laboratorio-mezclas"] .race-track button{border:2px solid #91cdb7;background:#e8f8ee;box-shadow:0 4px #8bbba8}
+[data-public-scene="laboratorio-mezclas"] .race-track .is-current{border-color:#388e77;background:#d4f0e4;box-shadow:0 4px #42927a}
+[data-public-scene="laboratorio-mezclas"] .challenge-stage-card{background:#fffdf3;border-color:#a6d1b8}
+[data-public-scene="laboratorio-mezclas"] .race-answers button{border-color:#9bcdb7;background:#f8fff9}
 :is(.activity-play .play-question,.live-question)[data-public-scene] :is(.answer-right,.is-correct,.correct,.matched){border-color:#5cad79!important;background:#e4f7e7!important;color:#175636!important}
 :is(.activity-play .play-question,.live-question)[data-public-scene] :is(.answer-wrong,.is-incorrect,.incorrect){border-color:#d87765!important;background:#fff0eb!important;color:#8c3529!important}
 

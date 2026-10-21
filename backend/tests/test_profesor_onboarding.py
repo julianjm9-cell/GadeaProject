@@ -136,6 +136,8 @@ def test_all_public_game_card_illustrations_are_served(client):
         'public-safari-parque.webp', 'public-jardin-mariposa.webp',
         'public-observatorio-numeros.webp', 'public-biblioteca-secreta.webp',
         'public-aeropuerto-habitos.webp', 'public-bosque-vivo.webp',
+        'public-cocina-fracciones.webp', 'public-isla-tildes.webp',
+        'public-ciudad-direcciones.webp', 'public-laboratorio-mezclas.webp',
     ]
     for name in names:
         response = web.get('/assets/games/' + name)

@@ -487,6 +487,41 @@ const publicAdvancedGames=[
    'Una mariposa pone huevos | Reproducción',
    'Una planta produce semillas | Reproducción'
   ],explanation:'Nutrición obtiene materia y energía, relación responde al entorno y reproducción da origen a nuevos seres vivos.'}]
+ },
+ {
+  id:'public:advanced:4-primaria:matematicas:cocina-fracciones',course:'4.º Primaria',title:'La cocina de las fracciones',subject:'Matemáticas',topic:'Fracciones equivalentes',artwork:'public-cocina-fracciones.webp',body:'Completa el recetario multiplicando numerador y denominador por el mismo número.',
+  questions:[{id:'advanced-cocina-fracciones-1',type:'table',prompt:'Cada fila es una receta. Multiplica numerador y denominador por el número indicado en la columna y escribe la fracción equivalente.',answer:'Completado',options:[
+   '1/2 | ×2 | 2/4','1/2 | ×3 | 3/6',
+   '2/3 | ×2 | 4/6','2/3 | ×3 | 6/9',
+   '3/4 | ×2 | 6/8','3/4 | ×3 | 9/12'
+  ],explanation:'Dos fracciones son equivalentes si representan la misma cantidad. Multiplica arriba y abajo por el mismo número.'}]
+ },
+ {
+  id:'public:advanced:4-primaria:lengua:isla-tildes',course:'4.º Primaria',title:'La isla de las tildes',subject:'Lengua',topic:'Acentuación básica',artwork:'public-isla-tildes.webp',body:'Rescata las palabras que necesitan tilde antes de que llegue la marea.',
+  questions:[
+   {id:'advanced-isla-tildes-1',type:'multiselect',prompt:'En estas palabras agudas se han borrado todas las tildes. Marca solo las que deberían llevarla.',answer:'Completado',options:['camion | sí','cafe | sí','compas | sí','reloj | no','papel | no','sabor | no'],explanation:'Las agudas llevan tilde cuando terminan en vocal, -n o -s: camión, café y compás.'},
+   {id:'advanced-isla-tildes-2',type:'multiselect',prompt:'Ahora son palabras llanas sin tildes. Marca solo las que deberían llevarla.',answer:'Completado',options:['lapiz | sí','arbol | sí','facil | sí','mesa | no','silla | no','joven | no'],explanation:'Las llanas llevan tilde cuando no terminan en vocal, -n o -s: lápiz, árbol y fácil.'}
+  ]
+ },
+ {
+  id:'public:advanced:4-primaria:ingles:ciudad-direcciones',course:'4.º Primaria',title:'La ciudad de las direcciones',subject:'Inglés',topic:'Directions',artwork:'public-ciudad-direcciones.webp',body:'Ordena las señales en inglés para guiar a tus amigos por la ciudad.',
+  questions:[
+   {id:'advanced-ciudad-direcciones-1',type:'sentence',prompt:'El museo está al final de la calle. Ordena la indicación para seguir recto.',options:['Go','straight','to','the','museum.'],answer:'Go → straight → to → the → museum.',explanation:'Go straight significa seguir recto.'},
+   {id:'advanced-ciudad-direcciones-2',type:'sentence',prompt:'Gira a la izquierda en el parque.',options:['Turn','left','at','the','park.'],answer:'Turn → left → at → the → park.',explanation:'Turn left significa girar a la izquierda.'},
+   {id:'advanced-ciudad-direcciones-3',type:'sentence',prompt:'La biblioteca está al lado del colegio.',options:['The library','is','next to','the school.'],answer:'The library → is → next to → the school.',explanation:'Next to indica que dos lugares están uno al lado del otro.'},
+   {id:'advanced-ciudad-direcciones-4',type:'sentence',prompt:'Pasa el banco y para en el puente.',options:['Walk','past','the bank','and','stop','at','the bridge.'],answer:'Walk → past → the bank → and → stop → at → the bridge.',explanation:'Walk past significa pasar por delante de un lugar.'}
+  ]
+ },
+ {
+  id:'public:advanced:4-primaria:ciencias-naturales:laboratorio-mezclas',course:'4.º Primaria',title:'El laboratorio de mezclas',subject:'Ciencias Naturales',topic:'Mezclas y materiales',artwork:'public-laboratorio-mezclas.webp',body:'Elige el método adecuado para separar cada mezcla y avanza por el laboratorio.',
+  questions:[{id:'advanced-laboratorio-mezclas-1',type:'race',prompt:'Supera las estaciones del laboratorio eligiendo cómo separar cada mezcla.',answer:'Completado',options:[
+   'Hay arena mezclada con agua. ¿Qué método retiene la arena? | Filtración | Imantación | Evaporación',
+   'Hay limaduras de hierro mezcladas con arena. ¿Qué objeto ayuda a separarlas? | Un imán | Un filtro de papel | Un termómetro',
+   'Hay piedras mezcladas con arena fina. ¿Qué método las separa por tamaño? | Tamizado | Evaporación | Imantación',
+   'La sal está disuelta en agua. ¿Cómo recuperas la sal? | Evaporando el agua | Pasándola por un colador | Usando un imán',
+   'Hay aceite flotando sobre agua. ¿Qué método permite separarlos? | Decantación | Tamizado | Imantación',
+   '¿Qué mezcla puedes separar con un filtro de papel? | Agua y arena | Agua y sal disuelta | Agua y azúcar disuelta'
+  ],explanation:'Filtrar separa sólidos no disueltos; tamizar separa por tamaño; imantar atrae hierro; evaporar recupera sal y decantar separa líquidos que no se mezclan.'}]
  }
 ].map(({id,course='1.º Primaria',title,subject,topic,artwork,body,questions})=>({id,title,subject,studentId:'',kind:'Juego público',artwork,body,activity:{version:1,context:{course,subject,topic,duration:8,public:true,curated:true,publicSourceId:id},questions}}));
 function temarioLibraryMaterials(){return materialPublicFormat==='single'?publicSingleMaterials():publicTemarioMaterials();}
@@ -502,7 +537,7 @@ function materialTone(type){if(visualTypes.includes(type))return 'visual';if(['f
 const materialArtworkFiles={pairs:'basic-pairs',gaps:'basic-gaps',multigaps:'basic-multigaps',numeric:'basic-numeric',quiz:'basic-quiz',short:'basic-short',order:'basic-order',classify:'basic-classify',boolean:'basic-boolean',reading:'basic-reading',problem:'basic-problem',flashcard:'flashcards',memory:'memory',sentence:'sentence',timeline:'timeline',error:'error',wordsearch:'wordsearch',crossword:'crossword',dragdrop:'dragdrop',pasapalabra:'pasapalabra',hangman:'hangman',mystery:'mystery',intruder:'intruder',bingo:'bingo',multiselect:'multiselect',table:'table',cipher:'cipher',race:'race'};
 function usesMatureArtwork(course='',subject=''){const normalized=String(subject).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().trim();return /\b(?:eso|bachillerato)\b/i.test(String(course))||normalized==='ingles'}
 function activityArtworkUrl(type,course='',subject=''){const file=materialArtworkFiles[type]||'uploaded-material',prefix=file!=='uploaded-material'&&usesMatureArtwork(course,subject)?'mature-':'';return `./assets/games/${prefix}${file}.webp`}
-const publicAdvancedArtworkFiles=new Set(['public-tren-decenas.webp','public-fabrica-palabras.webp','public-mochila-bilingue.webp','public-exploradores-sentidos.webp','public-mercado-monedas.webp','public-detectives-signos.webp','public-safari-parque.webp','public-jardin-mariposa.webp','public-observatorio-numeros.webp','public-biblioteca-secreta.webp','public-aeropuerto-habitos.webp','public-bosque-vivo.webp']);
+const publicAdvancedArtworkFiles=new Set(['public-tren-decenas.webp','public-fabrica-palabras.webp','public-mochila-bilingue.webp','public-exploradores-sentidos.webp','public-mercado-monedas.webp','public-detectives-signos.webp','public-safari-parque.webp','public-jardin-mariposa.webp','public-observatorio-numeros.webp','public-biblioteca-secreta.webp','public-aeropuerto-habitos.webp','public-bosque-vivo.webp','public-cocina-fracciones.webp','public-isla-tildes.webp','public-ciudad-direcciones.webp','public-laboratorio-mezclas.webp']);
 function materialArtwork(m){const type=m.activity?.questions?.[0]?.type||legacyMaterialType(m),course=m.activity?.context?.course||student(m.studentId)?.course||m.course||'',customArtwork=publicAdvancedArtworkFiles.has(m.artwork),file=customArtwork?`./assets/games/${m.artwork}`:m.attachment&&!m.activity?'./assets/games/uploaded-material.webp':activityArtworkUrl(type,course,m.subject||m.activity?.context?.subject||'');return `<div class="material-art${customArtwork?' custom-public-art':''}" data-art="${esc(type||'resource')}"><img src="${file}" alt="" loading="lazy" decoding="async"></div>`}
 async function paintMaterialCards(root=document){for(const img of root.querySelectorAll('[data-card-image]')){const m=state.library.find(item=>item.id===img.dataset.cardImage),image=m?.activity?.questions?.find(q=>q.image)?.image||m?.attachment;if(!image)continue;try{const url=await visualImageUrl(image);if(img.isConnected)img.src=url}catch{if(img.isConnected)img.replaceWith(Object.assign(document.createElement('small'),{textContent:'Imagen no disponible'}))}}}
 function materialHubCard(m,studentView=false,publicEntry=false,sessionPicker=false){
@@ -1021,9 +1056,9 @@ init();
 <script src="./profesor-challenge-games.js?v=20261018-games-7"></script>
 <script src="./profesor-mini-games.js?v=20261017-2"></script>
 <script src="./profesor-sentence-board.js?v=20261020-stages-1"></script>
-<script src="./profesor-activity-play.js?v=20261021-public-scenes-2"></script>
+<script src="./profesor-activity-play.js?v=20261021-public-scenes-3"></script>
 <script src="./profesor-live-sync.js?v=20261018-1"></script>
-<script src="./profesor-live.js?v=20261021-public-scenes-2"></script>
+<script src="./profesor-live.js?v=20261021-public-scenes-3"></script>
 <link rel="stylesheet" href="./assets/profesor-activity-play.css?v=20261018-preview-1">
 <link rel="stylesheet" href="./assets/profesor-live.css?v=20261018-usability-3">
 <style>
@@ -1348,7 +1383,7 @@ init();
 @media(max-width:620px){.attachment-document{padding:14px}#dialog.file-preview-dialog{padding:16px}.attachment-row{margin-top:10px}.attachment-pdf{height:60dvh}}
 </style>
 <link rel="stylesheet" href="./assets/profesor-appearance.css?v=20261018-5">
-<link rel="stylesheet" href="./assets/profesor-public-games.css?v=20261021-2">
+<link rel="stylesheet" href="./assets/profesor-public-games.css?v=20261021-4">
 <script src="./profesor-state-history.js?v=20261016-daily-1"></script>
 <script src="./profesor-editor-recovery.js?v=20261018-3"></script></body>
 </html>
