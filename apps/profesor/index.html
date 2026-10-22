@@ -557,6 +557,49 @@ const publicAdvancedGames=[
    {id:'advanced-taller-circuitos-3',type:'intruder',prompt:'Tres situaciones dejan pasar la corriente en un circuito con pila y bombilla. ¿Cuál la interrumpe?',answer:'Cable desconectado',options:['Camino cerrado','Cables unidos','Interruptor cerrado','Cable desconectado'],explanation:'La corriente necesita un camino cerrado. Al desconectar un cable, el circuito queda abierto.'},
    {id:'advanced-taller-circuitos-4',type:'intruder',prompt:'Tres aparatos transforman energía eléctrica en luz. ¿Cuál produce sobre todo movimiento?',answer:'Ventilador',options:['Bombilla','Lámpara LED','Linterna','Ventilador'],explanation:'El ventilador transforma la electricidad principalmente en movimiento.'}
   ]
+ },
+ {
+  id:'public:advanced:6-primaria:matematicas:observatorio-decimales',course:'6.º Primaria',title:'El observatorio de los decimales',subject:'Matemáticas',topic:'Fracciones y decimales',artwork:'public-observatorio-decimales.webp',body:'Completa el panel submarino convirtiendo fracciones en decimales y porcentajes.',
+  questions:[{id:'advanced-observatorio-decimales-1',type:'table',prompt:'Cada fila es una fracción del tanque. Completa sus formas decimal y porcentual.',answer:'Completado',options:[
+   '1/2 | Decimal | 0,5','1/2 | Porcentaje | 50 %',
+   '1/4 | Decimal | 0,25','1/4 | Porcentaje | 25 %',
+   '3/4 | Decimal | 0,75','3/4 | Porcentaje | 75 %',
+   '1/5 | Decimal | 0,2','1/5 | Porcentaje | 20 %'
+  ],explanation:'Divide el numerador entre el denominador para obtener el decimal; multiplícalo por 100 para obtener el porcentaje.'}]
+ },
+ {
+  id:'public:advanced:6-primaria:lengua:agencia-oraciones',course:'6.º Primaria',title:'La agencia de las oraciones',subject:'Lengua',topic:'Análisis de oraciones',artwork:'public-agencia-oraciones.webp',body:'Resuelve seis pistas de gramática y descifra la palabra secreta.',
+  questions:[{id:'advanced-agencia-oraciones-1',type:'cipher',prompt:'Investiga cada pista sobre la oración. Una respuesta correcta revela una letra de la clave.',answer:'VERBOS',options:[
+   'Palabra que expresa una acción, un proceso o un estado. | verbo | V',
+   'Parte de la oración que indica de quién se habla. | sujeto | E',
+   'Parte de la oración que dice qué hace el sujeto. | predicado | R',
+   'Nombre que designa seres, objetos, lugares o ideas. | sustantivo | B',
+   'Palabra que acompaña al nombre y expresa una cualidad. | adjetivo | O',
+   'Conjunto de palabras con sentido completo y un verbo conjugado. | oración | S'
+  ],explanation:'Busca primero el verbo; después identifica de quién se habla y qué se dice de ese sujeto.'}]
+ },
+ {
+  id:'public:advanced:6-primaria:ingles:estacion-tiempos',course:'6.º Primaria',title:'La estación de los tiempos',subject:'Inglés',topic:'Present and past',artwork:'public-estacion-tiempos.webp',body:'Construye frases para elegir si el tren viaja en presente o en pasado.',
+  questions:[
+   {id:'advanced-estacion-tiempos-1',type:'sentence',prompt:'Un hábito de cada día: voy andando al colegio.',options:['Every day,','I','walk','to school.'],answer:'Every day, → I → walk → to school.',explanation:'Every day señala un hábito; usa el presente walk.'},
+   {id:'advanced-estacion-tiempos-2',type:'sentence',prompt:'Una acción terminada ayer: fui andando al colegio.',options:['Yesterday,','I','walked','to school.'],answer:'Yesterday, → I → walked → to school.',explanation:'Yesterday señala el pasado; walked es una forma regular.'},
+   {id:'advanced-estacion-tiempos-3',type:'sentence',prompt:'Una rutina de los viernes: ella juega al tenis.',options:['She','plays','tennis','on Fridays.'],answer:'She → plays → tennis → on Fridays.',explanation:'Con she en presente simple, el verbo lleva -s.'},
+   {id:'advanced-estacion-tiempos-4',type:'sentence',prompt:'Una acción del viernes pasado: ella jugó al tenis.',options:['Last Friday,','she','played','tennis.'],answer:'Last Friday, → she → played → tennis.',explanation:'Last Friday señala un momento terminado; played está en pasado.'}
+  ]
+ },
+ {
+  id:'public:advanced:6-primaria:ciencias-naturales:atlas-cuerpo',course:'6.º Primaria',title:'El atlas del cuerpo humano',subject:'Ciencias Naturales',topic:'Organización del cuerpo',artwork:'public-atlas-cuerpo.webp',body:'Relaciona pistas de células, tejidos, órganos y sistemas en un bingo científico.',
+  questions:[{id:'advanced-atlas-cuerpo-1',type:'bingo',prompt:'Lee las pistas y completa el cartón de los niveles de organización del cuerpo.',answer:'Completado',options:[
+   'Célula | Unidad viva más pequeña que forma nuestro cuerpo.',
+   'Tejido | Conjunto de unidades semejantes que realizan una función.',
+   'Órgano | Estructura formada por varios tipos de tejidos que cumple una tarea.',
+   'Sistema circulatorio | Red corporal que transporta oxígeno y nutrientes.',
+   'Sistema respiratorio | Conjunto de estructuras que permite intercambiar gases con el exterior.',
+   'Corazón | Músculo que impulsa la sangre por todo el cuerpo.',
+   'Pulmones | Dos estructuras del tórax donde el oxígeno pasa a la sangre.',
+   'Vasos sanguíneos | Conductos por los que circula la sangre.',
+   'Neuronas | Unidades nerviosas especializadas en transmitir señales.'
+  ],explanation:'Las células forman tejidos; los tejidos forman órganos, y los órganos colaboran en sistemas.'}]
  }
 ].map(({id,course='1.º Primaria',title,subject,topic,artwork,body,questions})=>({id,title,subject,studentId:'',kind:'Juego público',artwork,body,activity:{version:1,context:{course,subject,topic,duration:8,public:true,curated:true,publicSourceId:id},questions}}));
 function temarioLibraryMaterials(){return materialPublicFormat==='single'?publicSingleMaterials():publicTemarioMaterials();}
@@ -564,7 +607,7 @@ function publicLibraryMaterials(){return [...publicAdvancedGames,...curatedPubli
 function materialLibraryRawSource(){return materialLibraryMode==='public'?publicLibraryMaterials():materialLibraryMode==='temario'?temarioLibraryMaterials():state.library;}
 function materialLibrarySource(){return materialLibraryRawSource().filter(teacherMaterialVisible);}
 function publicMaterial(id){return publicAdvancedGames.find(material=>material.id===id)||curatedPublicMaterials().find(material=>material.id===id)||publicTemarioMaterials().find(material=>material.id===id)||publicSingleMaterials().find(material=>material.id===id)}
-function filteredMaterials(){const q=materialQuery.toLocaleLowerCase(),source=materialLibrarySource();return source.filter(m=>(!materialSubject||m.subject===materialSubject)&&(!materialCourse||materialCourseValue(m)===materialCourse)&&(!materialType||m.activity?.questions?.some(question=>question.type===materialType))&&(!q||(m.title+' '+m.subject+' '+m.kind+' '+(student(m.studentId)?.name||'')+' '+(m.body||'')+' '+(m.activity?.context?.course||'')+' '+(m.activity?.context?.topic||'')).toLocaleLowerCase().includes(q))).sort((a,b)=>materialLibraryMode==='public'?0:materialLibraryMode==='temario'?String(a.activity?.context?.course||'').localeCompare(String(b.activity?.context?.course||''),'es',{numeric:true})||a.subject.localeCompare(b.subject,'es')||a.title.localeCompare(b.title,'es'):String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')))}
+function filteredMaterials(){const q=materialQuery.toLocaleLowerCase(),source=materialLibrarySource();return source.filter(m=>(!materialSubject||m.subject===materialSubject)&&(!materialCourse||materialCourseValue(m)===materialCourse)&&(!materialType||m.activity?.questions?.some(question=>question.type===materialType))&&(!q||(m.title+' '+m.subject+' '+m.kind+' '+(student(m.studentId)?.name||'')+' '+(m.body||'')+' '+(m.activity?.context?.course||'')+' '+(m.activity?.context?.topic||'')).toLocaleLowerCase().includes(q))).sort((a,b)=>materialLibraryMode==='public'?Number(String(b.id).startsWith('public:advanced:'))-Number(String(a.id).startsWith('public:advanced:')):materialLibraryMode==='temario'?String(a.activity?.context?.course||'').localeCompare(String(b.activity?.context?.course||''),'es',{numeric:true})||a.subject.localeCompare(b.subject,'es')||a.title.localeCompare(b.title,'es'):String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')))}
 function materialPageSize(){return matchMedia('(max-width:720px)').matches?(matchMedia('(max-height:740px)').matches?4:6):12}
 function materialPreviewText(m){if(m.activity?.questions?.length)return m.activity.questions.slice(0,4).map((q,i)=>`${i+1}. ${q.prompt}`).join('\n');return m.attachment?.filename||m.body||'Abre el material para verlo.'}
 function legacyMaterialType(m){const kind=String(m.kind||'').toLocaleLowerCase();if(m.attachment&&/\.(png|jpe?g|webp)$/i.test(m.attachment.filename||''))return 'visualquiz';if(kind.includes('quiz')||kind.includes('test'))return 'quiz';if(kind.includes('completar'))return 'gaps';if(kind.includes('error'))return 'error';if(kind.includes('ejercicio'))return 'order';if(kind.includes('explicaci'))return 'reading';return ''}
@@ -572,13 +615,13 @@ function materialTone(type){if(visualTypes.includes(type))return 'visual';if(['f
 const materialArtworkFiles={pairs:'basic-pairs',gaps:'basic-gaps',multigaps:'basic-multigaps',numeric:'basic-numeric',quiz:'basic-quiz',short:'basic-short',order:'basic-order',classify:'basic-classify',boolean:'basic-boolean',reading:'basic-reading',problem:'basic-problem',flashcard:'flashcards',memory:'memory',sentence:'sentence',timeline:'timeline',error:'error',wordsearch:'wordsearch',crossword:'crossword',dragdrop:'dragdrop',pasapalabra:'pasapalabra',hangman:'hangman',mystery:'mystery',intruder:'intruder',bingo:'bingo',multiselect:'multiselect',table:'table',cipher:'cipher',race:'race'};
 function usesMatureArtwork(course='',subject=''){const normalized=String(subject).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().trim();return /\b(?:eso|bachillerato)\b/i.test(String(course))||normalized==='ingles'}
 function activityArtworkUrl(type,course='',subject=''){const file=materialArtworkFiles[type]||'uploaded-material',prefix=file!=='uploaded-material'&&usesMatureArtwork(course,subject)?'mature-':'';return `./assets/games/${prefix}${file}.webp`}
-const publicAdvancedArtworkFiles=new Set(['public-tren-decenas.webp','public-fabrica-palabras.webp','public-mochila-bilingue.webp','public-exploradores-sentidos.webp','public-mercado-monedas.webp','public-detectives-signos.webp','public-safari-parque.webp','public-jardin-mariposa.webp','public-observatorio-numeros.webp','public-biblioteca-secreta.webp','public-aeropuerto-habitos.webp','public-bosque-vivo.webp','public-cocina-fracciones.webp','public-isla-tildes.webp','public-ciudad-direcciones.webp','public-laboratorio-mezclas.webp','public-feria-porcentajes.webp','public-redaccion-titulares.webp','public-portal-pasado.webp','public-taller-circuitos.webp']);
+const publicAdvancedArtworkFiles=new Set(['public-tren-decenas.webp','public-fabrica-palabras.webp','public-mochila-bilingue.webp','public-exploradores-sentidos.webp','public-mercado-monedas.webp','public-detectives-signos.webp','public-safari-parque.webp','public-jardin-mariposa.webp','public-observatorio-numeros.webp','public-biblioteca-secreta.webp','public-aeropuerto-habitos.webp','public-bosque-vivo.webp','public-cocina-fracciones.webp','public-isla-tildes.webp','public-ciudad-direcciones.webp','public-laboratorio-mezclas.webp','public-feria-porcentajes.webp','public-redaccion-titulares.webp','public-portal-pasado.webp','public-taller-circuitos.webp','public-observatorio-decimales.webp','public-agencia-oraciones.webp','public-estacion-tiempos.webp','public-atlas-cuerpo.webp']);
 function materialArtwork(m){const type=m.activity?.questions?.[0]?.type||legacyMaterialType(m),course=m.activity?.context?.course||student(m.studentId)?.course||m.course||'',customArtwork=publicAdvancedArtworkFiles.has(m.artwork),file=customArtwork?`./assets/games/${m.artwork}`:m.attachment&&!m.activity?'./assets/games/uploaded-material.webp':activityArtworkUrl(type,course,m.subject||m.activity?.context?.subject||'');return `<div class="material-art${customArtwork?' custom-public-art':''}" data-art="${esc(type||'resource')}"><img src="${file}" alt="" loading="lazy" decoding="async"></div>`}
 async function paintMaterialCards(root=document){for(const img of root.querySelectorAll('[data-card-image]')){const m=state.library.find(item=>item.id===img.dataset.cardImage),image=m?.activity?.questions?.find(q=>q.image)?.image||m?.attachment;if(!image)continue;try{const url=await visualImageUrl(image);if(img.isConnected)img.src=url}catch{if(img.isConnected)img.replaceWith(Object.assign(document.createElement('small'),{textContent:'Imagen no disponible'}))}}}
 function materialHubCard(m,studentView=false,publicEntry=false,sessionPicker=false){
- const first=m.activity?.questions?.find(item=>item.image)||m.activity?.questions?.[0],types=[...new Set(m.activity?.questions?.map(q=>q.type)||[])],tone=materialTone(first?.type||legacyMaterialType(m)),count=m.activity?.questions?.length||0,kind=types.length>1?'Material combinado':types.length?activityLabels[types[0]]:m.kind||'Archivo subido',description=String(m.body||first?.prompt||m.attachment?.filename||'Abre este recurso para prepararlo y usarlo en clase.').trim().slice(0,145),course=m.activity?.context?.course||student(m.studentId)?.course||m.course||'';
+ const first=m.activity?.questions?.find(item=>item.image)||m.activity?.questions?.[0],types=[...new Set(m.activity?.questions?.map(q=>q.type)||[])],tone=materialTone(first?.type||legacyMaterialType(m)),count=m.activity?.questions?.length||0,kind=types.length>1?'Material combinado':types.length?activityLabels[types[0]]:m.kind||'Archivo subido',description=String(m.body||first?.prompt||m.attachment?.filename||'Abre este recurso para prepararlo y usarlo en clase.').trim().slice(0,145),course=m.activity?.context?.course||student(m.studentId)?.course||m.course||'',featured=publicEntry&&String(m.id).startsWith('public:advanced:');
  const actions=sessionPicker?`<button type="button" class="material-open session-material-choose" data-live-teacher="choose-material" data-id="${esc(m.id)}" aria-label="Elegir ${esc(m.title)}">Elegir material</button>`:publicEntry?`<div class="public-material-actions">${button('Probar','previewPublicMaterial',m.id,'material-open')}${button('Guardar copia','savePublicMaterial',m.id)}</div>`:`${m.activity?`<details class="material-use-menu"><summary class="material-open" aria-label="Usar ${esc(m.title)}">Usar <span aria-hidden="true">⌄</span></summary><div>${button('Usar yo','useMaterial',m.id)}${button('Crear sesión con código','sendLiveMaterial',m.id)}</div></details>`:button('Usar','useMaterial',m.id,'material-open')}<details class="material-card-menu"><summary aria-label="Más opciones de ${esc(m.title)}" title="Más opciones">⋮</summary><div>${button('Editar','editMaterial',m.id)}</div></details>`;
- return `<article class="material-hub-card ${publicEntry?'public-material-card':''} ${sessionPicker?'session-material-card':''}" data-tone="${tone}" tabindex="${sessionPicker?-1:0}">${materialArtwork(m)}<div class="material-card-copy"><span class="material-kind">${icon(m.activity?'spark':m.attachment?'file':'book')} ${esc(kind)}</span><h3 title="${esc(m.title)}">${esc(m.title)}</h3><p class="material-card-description">${esc(description)}</p></div><div class="material-card-foot"><span class="badge ${subjectColor(m.subject)}">${esc(m.subject)}</span>${course?`<span class="material-course">${esc(course)}</span>`:''}<small>${icon('file')} ${count||1}</small>${actions}</div></article>`
+ return `<article class="material-hub-card ${publicEntry?'public-material-card':''} ${featured?'featured-public-game':''} ${sessionPicker?'session-material-card':''}" data-tone="${tone}" tabindex="${sessionPicker?-1:0}">${materialArtwork(m)}<div class="material-card-copy"><span class="material-kind">${icon(m.activity?'spark':m.attachment?'file':'book')} ${esc(kind)}${featured?'<span class="featured-game-label">★ Destacado</span>':''}</span><h3 title="${esc(m.title)}">${esc(m.title)}</h3><p class="material-card-description">${esc(description)}</p></div><div class="material-card-foot"><span class="badge ${subjectColor(m.subject)}">${esc(m.subject)}</span>${course?`<span class="material-course">${esc(course)}</span>`:''}<small>${icon('file')} ${count||1}</small>${actions}</div></article>`
 }
 const materialMenus='.material-use-menu,.material-card-menu';
 document.addEventListener('click',event=>{
@@ -1091,9 +1134,9 @@ init();
 <script src="./profesor-challenge-games.js?v=20261018-games-7"></script>
 <script src="./profesor-mini-games.js?v=20261017-2"></script>
 <script src="./profesor-sentence-board.js?v=20261020-stages-1"></script>
-<script src="./profesor-activity-play.js?v=20261021-public-scenes-4"></script>
+<script src="./profesor-activity-play.js?v=20261022-public-scenes-5"></script>
 <script src="./profesor-live-sync.js?v=20261018-1"></script>
-<script src="./profesor-live.js?v=20261021-public-scenes-4"></script>
+<script src="./profesor-live.js?v=20261022-public-scenes-5"></script>
 <link rel="stylesheet" href="./assets/profesor-activity-play.css?v=20261018-preview-1">
 <link rel="stylesheet" href="./assets/profesor-live.css?v=20261018-usability-3">
 <style>
@@ -1418,7 +1461,7 @@ init();
 @media(max-width:620px){.attachment-document{padding:14px}#dialog.file-preview-dialog{padding:16px}.attachment-row{margin-top:10px}.attachment-pdf{height:60dvh}}
 </style>
 <link rel="stylesheet" href="./assets/profesor-appearance.css?v=20261018-5">
-<link rel="stylesheet" href="./assets/profesor-public-games.css?v=20261021-5">
+<link rel="stylesheet" href="./assets/profesor-public-games.css?v=20261022-1">
 <script src="./profesor-state-history.js?v=20261016-daily-1"></script>
 <script src="./profesor-editor-recovery.js?v=20261018-3"></script></body>
 </html>

@@ -1,5 +1,11 @@
 /* Los juegos públicos comparten un tablero escénico. La imagen
    acompaña al juego; los controles conservan contraste y estados accesibles. */
+.material-hub-card.featured-public-game{border:3px solid #f2ae46!important;border-top:5px solid #e98f32!important;border-radius:19px!important;background:linear-gradient(155deg,#fff4dc,#fff 69%)!important;box-shadow:0 12px 28px #9a5e2640,0 0 0 2px #fff6dd80!important}
+.material-hub-card.featured-public-game:hover,.material-hub-card.featured-public-game:focus-within,.material-hub-card.featured-public-game:focus{border-color:#dd7e21!important;box-shadow:0 17px 35px #92502355,0 0 0 3px #fff0c4!important}
+.featured-public-game .material-art{border-bottom:2px solid #f4c783}
+.featured-public-game .material-card-copy{background:linear-gradient(180deg,#fffaf0,#fff)}
+.featured-public-game .material-kind{display:flex;align-items:center;flex-wrap:wrap;gap:7px}
+.featured-game-label{display:inline-flex;align-items:center;padding:4px 9px;border:1px solid #e8b362;border-radius:999px;background:#fff0cb;color:#79440a;font-size:10px;font-weight:900;letter-spacing:.015em;white-space:nowrap}
 :is(.activity-play .play-question,.live-question)[data-public-scene]{--scene-accent:#1676d2;--scene-soft:#eaf5ff;--scene-paper:#fffcf4;--scene-image:none;--scene-position:center;min-width:0}
 [data-public-scene="tren-decenas"]{--scene-accent:#cf623d!important;--scene-soft:#ffebd9!important;--scene-image:url('./games/public-tren-decenas.webp')!important;--scene-position:center 54%!important}
 [data-public-scene="fabrica-palabras"]{--scene-accent:#7753c8!important;--scene-soft:#f2eaff!important;--scene-image:url('./games/public-fabrica-palabras.webp')!important;--scene-position:center 52%!important}
@@ -21,6 +27,10 @@
 [data-public-scene="redaccion-titulares"]{--scene-accent:#67529f!important;--scene-soft:#f3ecfc!important;--scene-image:url('./games/public-redaccion-titulares.webp')!important;--scene-position:center 55%!important}
 [data-public-scene="portal-pasado"]{--scene-accent:#247fb6!important;--scene-soft:#e9f7ff!important;--scene-image:url('./games/public-portal-pasado.webp')!important;--scene-position:center 54%!important}
 [data-public-scene="taller-circuitos"]{--scene-accent:#148b9d!important;--scene-soft:#e4f8fa!important;--scene-image:url('./games/public-taller-circuitos.webp')!important;--scene-position:center 54%!important}
+[data-public-scene="observatorio-decimales"]{--scene-accent:#087f9c!important;--scene-soft:#e5faff!important;--scene-image:url('./games/public-observatorio-decimales.webp')!important;--scene-position:center 54%!important}
+[data-public-scene="agencia-oraciones"]{--scene-accent:#7e4e99!important;--scene-soft:#f7ecff!important;--scene-image:url('./games/public-agencia-oraciones.webp')!important;--scene-position:center 55%!important}
+[data-public-scene="estacion-tiempos"]{--scene-accent:#3172a8!important;--scene-soft:#e7f4ff!important;--scene-image:url('./games/public-estacion-tiempos.webp')!important;--scene-position:center 54%!important}
+[data-public-scene="atlas-cuerpo"]{--scene-accent:#278466!important;--scene-soft:#ebfaef!important;--scene-image:url('./games/public-atlas-cuerpo.webp')!important;--scene-position:center 54%!important}
 
 /* La escena sigue el ejercicio activo, también cuando el material tiene varias fases. */
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])){width:min(1450px,97vw);max-width:1450px;height:min(94dvh,940px);max-height:94dvh;background:#d9eaff;overflow:hidden}
@@ -44,6 +54,10 @@ dialog.activity-play:has(.play-question[data-public-scene="feria-porcentajes"]:n
 dialog.activity-play:has(.play-question[data-public-scene="redaccion-titulares"]:not([hidden])){background-image:linear-gradient(90deg,#f8f2ffb8,#f8f2ff59),url('./games/public-redaccion-titulares.webp');background-position:center,center 55%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene="portal-pasado"]:not([hidden])){background-image:linear-gradient(90deg,#effaffb8,#effaff59),url('./games/public-portal-pasado.webp');background-position:center,center 54%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene="taller-circuitos"]:not([hidden])){background-image:linear-gradient(90deg,#e9faffb8,#e9faff59),url('./games/public-taller-circuitos.webp');background-position:center,center 54%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="observatorio-decimales"]:not([hidden])){background-image:linear-gradient(90deg,#e8faffb8,#e8faff59),url('./games/public-observatorio-decimales.webp');background-position:center,center 54%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="agencia-oraciones"]:not([hidden])){background-image:linear-gradient(90deg,#fbf3ffb8,#fbf3ff59),url('./games/public-agencia-oraciones.webp');background-position:center,center 55%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="estacion-tiempos"]:not([hidden])){background-image:linear-gradient(90deg,#ecf6ffb8,#ecf6ff59),url('./games/public-estacion-tiempos.webp');background-position:center,center 54%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="atlas-cuerpo"]:not([hidden])){background-image:linear-gradient(90deg,#eefcf5b8,#eefcf559),url('./games/public-atlas-cuerpo.webp');background-position:center,center 54%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-content{width:100%;flex:1;min-height:0;overflow:auto;scrollbar-gutter:stable}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-footer{margin-top:6px;padding:9px 12px;border:1px solid #ffffffc9;border-radius:18px;background:#ffffffda;backdrop-filter:blur(12px)}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-toolbar{background:#ffffffde;border-radius:16px;backdrop-filter:blur(12px)}
@@ -149,6 +163,24 @@ dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-
 [data-public-scene="portal-pasado"] .memory-card.revealed,[data-public-scene="portal-pasado"] .memory-card.flipped{border-color:#86bad1;background:#f1fbff}
 [data-public-scene="taller-circuitos"] .intruder-cards button{border:2px solid #8dccd1;background:#eefcff;box-shadow:0 5px #a3dce0}
 [data-public-scene="taller-circuitos"] .intruder-cards button.is-selected{border-color:#167e92;background:#d8f5fa}
+/* Conversión submarina, investigación gramatical, viajes temporales y atlas biológico. */
+[data-public-scene="observatorio-decimales"] .challenge-table-wrap{border:3px solid #6ab5bb;background:#f1ffff;box-shadow:0 6px #76b9ba}
+[data-public-scene="observatorio-decimales"] .challenge-table th{background:#d5f4f2;color:#15526b;border-color:#8bcad0}
+[data-public-scene="observatorio-decimales"] .challenge-table td{background:#f8ffff;border-color:#8bcad0}
+[data-public-scene="observatorio-decimales"] .challenge-table input{border-color:#8cc6c9;background:#fff}
+[data-public-scene="observatorio-decimales"] .challenge-game{padding:16px 22px}
+[data-public-scene="observatorio-decimales"] .challenge-game progress{margin:8px 0 12px}
+[data-public-scene="observatorio-decimales"] .challenge-table th,[data-public-scene="observatorio-decimales"] .challenge-table td{padding:6px 9px}
+[data-public-scene="observatorio-decimales"] .challenge-table input{min-height:37px;padding:6px 9px}
+[data-public-scene="observatorio-decimales"] .challenge-bottom{margin-top:10px}
+[data-public-scene="agencia-oraciones"] .cipher-message span{border:2px solid #b99acf;background:#f4e9fb;color:#633b81;box-shadow:0 4px #c4a8d5}
+[data-public-scene="agencia-oraciones"] .cipher-message span.revealed{background:#e8d2f3}
+[data-public-scene="agencia-oraciones"] .challenge-stage-card{background:#fffcf7;border-color:#cdb3d3}
+[data-public-scene="agencia-oraciones"] .cipher-answer input{border-color:#b794c8;background:#fffdfc}
+[data-public-scene="estacion-tiempos"] :is(.sentence-piece,.sentence-slot){border:2px solid #8ab9dc!important;background:#eef8ff!important;box-shadow:0 4px #abc8df!important}
+[data-public-scene="estacion-tiempos"] .sentence-slot.filled{background:#fff!important}
+[data-public-scene="atlas-cuerpo"] .bingo-cards button{border:2px solid #91c7a4;background:#f0fff4;box-shadow:0 4px #a9d5b6}
+[data-public-scene="atlas-cuerpo"] .bingo-cards button.is-selected{border-color:#26795a;background:#dcf5e3}
 :is(.activity-play .play-question,.live-question)[data-public-scene] :is(.answer-right,.is-correct,.correct,.matched){border-color:#5cad79!important;background:#e4f7e7!important;color:#175636!important}
 :is(.activity-play .play-question,.live-question)[data-public-scene] :is(.answer-wrong,.is-incorrect,.incorrect){border-color:#d87765!important;background:#fff0eb!important;color:#8c3529!important}
 

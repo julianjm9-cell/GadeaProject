@@ -140,6 +140,8 @@ def test_all_public_game_card_illustrations_are_served(client):
         'public-ciudad-direcciones.webp', 'public-laboratorio-mezclas.webp',
         'public-feria-porcentajes.webp', 'public-redaccion-titulares.webp',
         'public-portal-pasado.webp', 'public-taller-circuitos.webp',
+        'public-observatorio-decimales.webp', 'public-agencia-oraciones.webp',
+        'public-estacion-tiempos.webp', 'public-atlas-cuerpo.webp',
     ]
     for name in names:
         response = web.get('/assets/games/' + name)
