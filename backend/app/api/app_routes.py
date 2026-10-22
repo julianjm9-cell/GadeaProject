@@ -713,6 +713,7 @@ def profesor_temario_catalogue():
 @router.get("/profesor-notifications.js")
 @router.get("/profesor-subjects.js")
 @router.get("/profesor-profile.js")
+@router.get("/profesor-public-games-extra.js")
 @router.get("/profesor-mini-games.js")
 @router.get("/profesor-activity-play.js")
 @router.get("/profesor-generator.js")
@@ -758,6 +759,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-academy-theme.css")
 @router.get("/assets/profesor-appearance.css")
 @router.get("/assets/profesor-public-games.css")
+@router.get("/assets/profesor-public-games-extra.css")
 @router.get("/assets/profesor-live.css")
 @router.get("/assets/profesor-uploaded-topics.css")
 def profesor_final_styles(request: Request):
@@ -858,7 +860,7 @@ def profesor_game_illustration(filename: str):
         "public-atlas-explorador.webp",
     }
     allowed = base_files | {f"mature-{name}" for name in base_files if name.endswith(".webp") and not name.startswith("public-") and name != "uploaded-material.webp"}
-    if filename not in allowed:
+    if filename not in allowed and not re.fullmatch(r"public-[a-z0-9-]+\.webp", filename):
         raise HTTPException(status_code=404, detail="Ilustración de actividad no encontrada.")
     local_path = PROJECT_ROOT / "apps" / "profesor" / "assets" / "games" / filename
     static_path = STATIC_DIR / "assets" / "games" / filename

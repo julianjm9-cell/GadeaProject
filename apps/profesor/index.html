@@ -170,6 +170,7 @@ body{background:radial-gradient(ellipse at 78% 0,#e4f0ff90,transparent 50%),line
 <script src="./profesor-notifications.js?v=20261018-2"></script>
 <script src="./profesor-subjects.js?v=20261020-courses-1"></script>
 <script src="./profesor-profile.js?v=20261020-courses-1"></script>
+<script src="./profesor-public-games-extra.js?v=20261022-complete-1"></script>
 <link rel="stylesheet" href="./assets/profesor-profile.css?v=20261020-courses-1">
 <link rel="stylesheet" href="./assets/profesor-notifications.css?v=20261018-2">
 <script>
@@ -648,7 +649,8 @@ const publicAdvancedGames=[
    'Paralelo | Círculo imaginario que sirve para medir la latitud.','Meridiano | Semicírculo imaginario que sirve para medir la longitud.',
    'Coordenadas | Pareja de latitud y longitud que permite localizar un punto.'
   ],explanation:'La orientación indica direcciones, la leyenda interpreta símbolos, la escala relaciona distancias y las coordenadas localizan puntos.'}]
- }
+ },
+ ...window.PROFESOR_ADVANCED_PUBLIC_GAMES_EXTRA
 ].map(({id,course='1.º Primaria',title,subject,topic,artwork,body,questions})=>({id,title,subject,studentId:'',kind:'Juego público',artwork,body,activity:{version:1,context:{course,subject,topic,duration:8,public:true,curated:true,publicSourceId:id},questions}}));
 function temarioLibraryMaterials(){return materialPublicFormat==='single'?publicSingleMaterials():publicTemarioMaterials();}
 function publicLibraryMaterials(){return [...publicAdvancedGames,...curatedPublicMaterials()];}
@@ -1182,9 +1184,9 @@ init();
 <script src="./profesor-challenge-games.js?v=20261018-games-7"></script>
 <script src="./profesor-mini-games.js?v=20261017-2"></script>
 <script src="./profesor-sentence-board.js?v=20261020-stages-1"></script>
-<script src="./profesor-activity-play.js?v=20261022-public-scenes-6"></script>
+<script src="./profesor-activity-play.js?v=20261022-complete-1"></script>
 <script src="./profesor-live-sync.js?v=20261018-1"></script>
-<script src="./profesor-live.js?v=20261022-public-scenes-6"></script>
+<script src="./profesor-live.js?v=20261022-complete-1"></script>
 <link rel="stylesheet" href="./assets/profesor-activity-play.css?v=20261018-preview-1">
 <link rel="stylesheet" href="./assets/profesor-live.css?v=20261018-usability-3">
 <style>
@@ -1510,6 +1512,7 @@ init();
 </style>
 <link rel="stylesheet" href="./assets/profesor-appearance.css?v=20261018-5">
 <link rel="stylesheet" href="./assets/profesor-public-games.css?v=20261022-4">
+<link rel="stylesheet" href="./assets/profesor-public-games-extra.css?v=20261022-complete-1">
 <script src="./profesor-state-history.js?v=20261016-daily-1"></script>
 <script src="./profesor-editor-recovery.js?v=20261018-3"></script></body>
 </html>

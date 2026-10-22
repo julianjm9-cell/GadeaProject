@@ -12,6 +12,7 @@ function library(){
   const labels=html.split('\n').find(line=>line.startsWith('const activityLabels='));
   const functions=html.slice(html.indexOf('let publicMaterialCache='),html.indexOf('function filteredMaterials()'));
   vm.createContext(context);
+  vm.runInContext(readFileSync(join(__dirname,'../profesor-public-games-extra.js'),'utf8'),context);
   vm.runInContext(readFileSync(join(__dirname,'../profesor-subjects.js'),'utf8'),context);
   vm.runInContext(labels+"\nlet materialPublicFormat='combined';\n"+functions,context);
   return {run:code=>vm.runInContext(code,context),context};
@@ -34,13 +35,13 @@ test('The public showcase is an explicit, stable selection and never mutates or 
   const {run}=library();
   const before=run('JSON.stringify(publicTemarioMaterials())');
   assert.equal(run('publicMaterialSelection.length'),42);
-  assert.equal(run('publicLibraryMaterials().length'),71);
-  assert.equal(run('new Set(publicLibraryMaterials().map(m=>m.id)).size'),71);
+  assert.equal(run('publicLibraryMaterials().length'),103);
+  assert.equal(run('new Set(publicLibraryMaterials().map(m=>m.id)).size'),103);
   assert.equal(run('new Set(publicMaterialSelection.map(([id])=>id)).size'),42);
   assert.equal(run('curatedPublicMaterials().every(m=>m.activity.context.curated&&m.title&&m.body&&publicMaterial(m.id)===m&&publicMaterial(m.activity.context.curatedSourceId))'),true);
   assert.equal(run('curatedPublicMaterials().every(m=>JSON.stringify(m.activity.questions)===JSON.stringify(publicMaterial(m.activity.context.curatedSourceId).activity.questions))'),true);
-  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),71);
-  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),71);
+  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),103);
+  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),103);
   assert.equal(run('new Set(publicLibraryMaterials().flatMap(m=>m.activity.questions.map(q=>q.type))).size'),18);
   run("curatedPublicMaterials()[0].activity.questions[0].options.push('Copia de prueba')");
   assert.equal(run('JSON.stringify(publicTemarioMaterials())'),before);
@@ -226,6 +227,34 @@ test('Five 1.º ESO featured games match the syllabus, validate and keep their o
   assert.equal(context.window.profesorMiniGames.prepare(atlas[0],'eso-test').cards.length,9);
 });
 
+test('Every syllabus course and subject has exactly one playable featured advanced game',()=>{
+  const {run,context}=library();
+  vm.runInContext(readFileSync(join(__dirname,'../profesor-challenge-games.js'),'utf8'),context);
+  vm.runInContext(readFileSync(join(__dirname,'../profesor-mini-games.js'),'utf8'),context);
+  const games=JSON.parse(run('JSON.stringify(publicAdvancedGames)'));
+  const catalogue=new Set(topics.map(topic=>`${topic.course}|${topic.subject}`));
+  const covered=games.map(game=>`${game.activity.context.course}|${game.subject}`);
+  assert.equal(games.length,61);
+  assert.deepEqual(new Set(covered),catalogue);
+  assert.equal(new Set(covered).size,61);
+  assert.equal(new Set(games.flatMap(game=>game.activity.questions.map(question=>question.id))).size,games.reduce((count,game)=>count+game.activity.questions.length,0));
+  const scenes=readFileSync(join(__dirname,'../assets/profesor-public-games-extra.css'),'utf8');
+  for(const game of games.slice(29)){
+    assert.ok(game.title&&game.body&&game.activity.context.topic&&game.activity.questions.length,game.id);
+    assert.ok(existsSync(join(__dirname,'../assets/games',game.artwork)),game.artwork);
+    assert.ok(game.activity.questions.every(question=>question.publicScene&&scenes.includes(`data-public-scene="${question.publicScene}"`)),game.id);
+    for(const question of game.activity.questions){
+      if(['race','multiselect','table','cipher'].includes(question.type))context.window.profesorChallengeGames.validate(question);
+      else if(['bingo','mystery','intruder'].includes(question.type))context.window.profesorMiniGames.validate(question);
+      else if(question.type==='dragdrop'||question.type==='memory'){
+        assert.ok(question.options.length>=6,game.id);
+        assert.ok(question.options.every(row=>row.split('|').length===2&&row.split('|').every(part=>part.trim())),game.id);
+      }else assert.fail(`Tipo no comprobado: ${question.type}`);
+    }
+  }
+  assert.equal(new Set(games.slice(29).map(game=>game.artwork)).size,32);
+});
+
 test('Private, curated public and syllabus libraries use separate sources and filters',()=>{
   const {context,run}=library();
   context.state={library:[{id:'mine',title:'Privado',subject:'Lengua',updatedAt:'2026-10-18'}]};
@@ -235,22 +264,22 @@ test('Private, curated public and syllabus libraries use separate sources and fi
   assert.equal(run('materialLibrarySource()[0]===state.library[0]'),true);
   assert.equal(run('state.library.length'),1);
   run("switchMaterialMode('public')");
-  assert.equal(run('filteredMaterials().length'),71);
+  assert.equal(run('filteredMaterials().length'),103);
   assert.equal(run('filteredMaterials()[0].id===publicLibraryMaterials()[0].id'),true);
-  assert.equal(run("filteredMaterials().slice(0,29).every(m=>m.id.startsWith('public:advanced:'))"),true);
-  assert.equal(run("filteredMaterials().slice(29).every(m=>!m.id.startsWith('public:advanced:'))"),true);
+  assert.equal(run("filteredMaterials().slice(0,61).every(m=>m.id.startsWith('public:advanced:'))"),true);
+  assert.equal(run("filteredMaterials().slice(61).every(m=>!m.id.startsWith('public:advanced:'))"),true);
   run("materialCourse='6.º Primaria'");
   assert.equal(run("filteredMaterials().slice(0,4).every(m=>m.id.startsWith('public:advanced:'))"),true);
   run("materialCourse=''");
   run("materialType='memory';materialCourse='A1'");
-  assert.equal(run('filteredMaterials().length'),2);
+  assert.equal(run('filteredMaterials().length'),3);
   run("switchMaterialMode('temario')");
   assert.equal(run('materialLibrarySource().length'),351);
   assert.equal(run("materialPublicFormat='single';materialLibrarySource().length"),2106);
   run("switchMaterialMode('mine')");
   assert.equal(run('filteredMaterials()[0].id'),'mine');
   run("switchMaterialMode('public')");
-  assert.equal(run('filteredMaterials().length'),2);
+  assert.equal(run('filteredMaterials().length'),3);
   run("switchMaterialMode('temario')");
   assert.equal(run('materialPublicFormat'),'single');
 });
