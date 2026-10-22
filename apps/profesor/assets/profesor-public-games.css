@@ -31,6 +31,11 @@
 [data-public-scene="agencia-oraciones"]{--scene-accent:#7e4e99!important;--scene-soft:#f7ecff!important;--scene-image:url('./games/public-agencia-oraciones.webp')!important;--scene-position:center 55%!important}
 [data-public-scene="estacion-tiempos"]{--scene-accent:#3172a8!important;--scene-soft:#e7f4ff!important;--scene-image:url('./games/public-estacion-tiempos.webp')!important;--scene-position:center 54%!important}
 [data-public-scene="atlas-cuerpo"]{--scene-accent:#278466!important;--scene-soft:#ebfaef!important;--scene-image:url('./games/public-atlas-cuerpo.webp')!important;--scene-position:center 54%!important}
+[data-public-scene="ruta-bajo-cero"]{--scene-accent:#2873a9!important;--scene-soft:#e8f6ff!important;--scene-image:url('./games/public-ruta-bajo-cero.webp')!important;--scene-position:center 52%!important}
+[data-public-scene="central-mensajes"]{--scene-accent:#7551ad!important;--scene-soft:#f3ecff!important;--scene-image:url('./games/public-central-mensajes.webp')!important;--scene-position:center 53%!important}
+[data-public-scene="estudio-habitos"]{--scene-accent:#26688d!important;--scene-soft:#eaf7f8!important;--scene-image:url('./games/public-estudio-habitos.webp')!important;--scene-position:center 55%!important}
+[data-public-scene="invernadero-cientifico"]{--scene-accent:#418252!important;--scene-soft:#edfae9!important;--scene-image:url('./games/public-invernadero-cientifico.webp')!important;--scene-position:center 54%!important}
+[data-public-scene="atlas-explorador"]{--scene-accent:#39678e!important;--scene-soft:#f5f1df!important;--scene-image:url('./games/public-atlas-explorador.webp')!important;--scene-position:center 54%!important}
 
 /* La escena sigue el ejercicio activo, también cuando el material tiene varias fases. */
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])){width:min(1450px,97vw);max-width:1450px;height:min(94dvh,940px);max-height:94dvh;background:#d9eaff;overflow:hidden}
@@ -58,6 +63,11 @@ dialog.activity-play:has(.play-question[data-public-scene="observatorio-decimale
 dialog.activity-play:has(.play-question[data-public-scene="agencia-oraciones"]:not([hidden])){background-image:linear-gradient(90deg,#fbf3ffb8,#fbf3ff59),url('./games/public-agencia-oraciones.webp');background-position:center,center 55%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene="estacion-tiempos"]:not([hidden])){background-image:linear-gradient(90deg,#ecf6ffb8,#ecf6ff59),url('./games/public-estacion-tiempos.webp');background-position:center,center 54%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene="atlas-cuerpo"]:not([hidden])){background-image:linear-gradient(90deg,#eefcf5b8,#eefcf559),url('./games/public-atlas-cuerpo.webp');background-position:center,center 54%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="ruta-bajo-cero"]:not([hidden])){background-image:linear-gradient(90deg,#edf8ff9e,#edf8ff49),url('./games/public-ruta-bajo-cero.webp');background-position:center,center 52%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="central-mensajes"]:not([hidden])){background-image:linear-gradient(90deg,#f5f0ffad,#f5f0ff59),url('./games/public-central-mensajes.webp');background-position:center,center 53%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="estudio-habitos"]:not([hidden])){background-image:linear-gradient(90deg,#f5faffb3,#f5faff60),url('./games/public-estudio-habitos.webp');background-position:center,center 55%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="invernadero-cientifico"]:not([hidden])){background-image:linear-gradient(90deg,#f1ffeab0,#f1ffea58),url('./games/public-invernadero-cientifico.webp');background-position:center,center 54%;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="atlas-explorador"]:not([hidden])){background-image:linear-gradient(90deg,#fff9e9ab,#fff9e956),url('./games/public-atlas-explorador.webp');background-position:center,center 54%;background-size:cover}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-content{width:100%;flex:1;min-height:0;overflow:auto;scrollbar-gutter:stable}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-footer{margin-top:6px;padding:9px 12px;border:1px solid #ffffffc9;border-radius:18px;background:#ffffffda;backdrop-filter:blur(12px)}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-toolbar{background:#ffffffde;border-radius:16px;backdrop-filter:blur(12px)}
@@ -181,6 +191,24 @@ dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-
 [data-public-scene="estacion-tiempos"] .sentence-slot.filled{background:#fff!important}
 [data-public-scene="atlas-cuerpo"] .bingo-cards button{border:2px solid #91c7a4;background:#f0fff4;box-shadow:0 4px #a9d5b6}
 [data-public-scene="atlas-cuerpo"] .bingo-cards button.is-selected{border-color:#26795a;background:#dcf5e3}
+/* ESO: las interacciones se apoyan en el paisaje de cada misión. */
+[data-public-scene="ruta-bajo-cero"] .race-track button{border:2px solid #94bbd7;background:#e9f7ff;box-shadow:0 4px #81aac8}
+[data-public-scene="ruta-bajo-cero"] .race-track .is-current{border-color:#347cae;background:#d7efff;box-shadow:0 4px #438eb4}
+[data-public-scene="ruta-bajo-cero"] .challenge-stage-card{background:#fffdf6;border-color:#a6c4dc}
+[data-public-scene="ruta-bajo-cero"] .race-answers button{border-color:#9fc7dc;background:#f7fcff}
+[data-public-scene="central-mensajes"] .matching-workbench{grid-template-columns:minmax(0,1fr);gap:12px}
+[data-public-scene="central-mensajes"] .match-pieces{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+[data-public-scene="central-mensajes"] .match-piece{min-height:49px;padding:8px;border-color:#a8a1d1;background:#f8f5ff;font-size:12px;line-height:1.25}
+[data-public-scene="central-mensajes"] .match-destinations{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+[data-public-scene="central-mensajes"] .match-bucket{border:2px solid #ada5d1;border-radius:16px;background:linear-gradient(#fffefa,#ebe7f8);box-shadow:0 4px #aca2ca}
+[data-public-scene="estudio-habitos"] .challenge-choice{border:2px solid #94bcc9;background:#f3fdfc;box-shadow:0 4px #b6d8db}
+[data-public-scene="estudio-habitos"] .challenge-choice:has(input:checked){border-color:#297da0;background:#dcf4f7}
+@media(min-width:900px){[data-public-scene="estudio-habitos"] .challenge-choices{grid-template-columns:repeat(3,minmax(0,1fr))}}
+[data-public-scene="invernadero-cientifico"] .timeline-board .sentence-piece{border-color:#9fc99a!important;background:#f0fae9!important;box-shadow:0 4px #badbb0!important}
+[data-public-scene="invernadero-cientifico"] .timeline-board .sentence-slot{border-color:#9fc99a!important;background:#fbfff8!important}
+[data-public-scene="invernadero-cientifico"] .timeline-board .sentence-slot.filled{background:#fff!important}
+[data-public-scene="atlas-explorador"] .bingo-cards button{border:2px solid #9bb7c4;background:#fffaf0;box-shadow:0 4px #bdc6ba}
+[data-public-scene="atlas-explorador"] .bingo-cards button.is-selected{border-color:#38799c;background:#e2f4f5}
 :is(.activity-play .play-question,.live-question)[data-public-scene] :is(.answer-right,.is-correct,.correct,.matched){border-color:#5cad79!important;background:#e4f7e7!important;color:#175636!important}
 :is(.activity-play .play-question,.live-question)[data-public-scene] :is(.answer-wrong,.is-incorrect,.incorrect){border-color:#d87765!important;background:#fff0eb!important;color:#8c3529!important}
 
@@ -192,4 +220,5 @@ dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-
 @media(max-width:700px){dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])){width:98vw;height:96dvh;max-height:96dvh;padding:10px}.activity-play .play-question[data-public-scene]{padding:7px!important}.activity-play .play-question[data-public-scene] .play-question-top{min-height:70px;padding:3px 0 34px}.activity-play .play-question[data-public-scene] .game-timer{right:0;top:38px}.activity-play .play-question[data-public-scene] h3{padding:8px 11px;font-size:17px}[data-public-scene="tren-decenas"] .match-destinations,[data-public-scene="bosque-vivo"] .match-destinations{grid-template-columns:1fr}.student-portal .live-question[data-public-scene]{padding:12px}.student-portal .live-question[data-public-scene]>h3{font-size:17px}}
 @media(max-width:700px){[data-public-scene="bosque-vivo"] .match-pieces{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){[data-public-scene="redaccion-titulares"] .match-pieces,[data-public-scene="redaccion-titulares"] .match-destinations{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){[data-public-scene="central-mensajes"] .match-pieces,[data-public-scene="central-mensajes"] .match-destinations{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){[data-public-scene] *{transition:none!important;animation:none!important}}

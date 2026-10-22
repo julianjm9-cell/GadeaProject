@@ -34,13 +34,13 @@ test('The public showcase is an explicit, stable selection and never mutates or 
   const {run}=library();
   const before=run('JSON.stringify(publicTemarioMaterials())');
   assert.equal(run('publicMaterialSelection.length'),42);
-  assert.equal(run('publicLibraryMaterials().length'),66);
-  assert.equal(run('new Set(publicLibraryMaterials().map(m=>m.id)).size'),66);
+  assert.equal(run('publicLibraryMaterials().length'),71);
+  assert.equal(run('new Set(publicLibraryMaterials().map(m=>m.id)).size'),71);
   assert.equal(run('new Set(publicMaterialSelection.map(([id])=>id)).size'),42);
   assert.equal(run('curatedPublicMaterials().every(m=>m.activity.context.curated&&m.title&&m.body&&publicMaterial(m.id)===m&&publicMaterial(m.activity.context.curatedSourceId))'),true);
   assert.equal(run('curatedPublicMaterials().every(m=>JSON.stringify(m.activity.questions)===JSON.stringify(publicMaterial(m.activity.context.curatedSourceId).activity.questions))'),true);
-  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),66);
-  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),66);
+  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),71);
+  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),71);
   assert.equal(run('new Set(publicLibraryMaterials().flatMap(m=>m.activity.questions.map(q=>q.type))).size'),18);
   run("curatedPublicMaterials()[0].activity.questions[0].options.push('Copia de prueba')");
   assert.equal(run('JSON.stringify(publicTemarioMaterials())'),before);
@@ -199,6 +199,33 @@ test('Four 6.º Primaria games have valid boards, answers and their own illustra
   assert.equal(bingo.clues.length,9);
 });
 
+test('Five 1.º ESO featured games match the syllabus, validate and keep their own scenes',()=>{
+  const {run,context}=library();
+  vm.runInContext(readFileSync(join(__dirname,'../profesor-challenge-games.js'),'utf8'),context);
+  vm.runInContext(readFileSync(join(__dirname,'../profesor-mini-games.js'),'utf8'),context);
+  const games=JSON.parse(run('JSON.stringify(publicAdvancedGames.slice(24,29))'));
+  const player=readFileSync(join(__dirname,'../profesor-activity-play.js'),'utf8');
+  const live=readFileSync(join(__dirname,'../profesor-live.js'),'utf8');
+  const scenes=readFileSync(join(__dirname,'../assets/profesor-public-games.css'),'utf8');
+  assert.deepEqual(games.map(game=>game.subject),['Matemáticas','Lengua','Inglés','Ciencias Naturales','Geografía e Historia']);
+  assert.ok(games.every(game=>game.activity.context.course==='1.º ESO'&&game.activity.context.publicSourceId===game.id&&existsSync(join(__dirname,'../assets/games',game.artwork))));
+  assert.equal(new Set(games.map(game=>game.artwork)).size,5);
+  assert.ok(games.every(game=>{const scene=game.activity.questions[0].id.match(/^advanced-(.*)-1$/)[1],marker=new RegExp('\\|'+scene+'(?:\\||\\))');return marker.test(player)&&marker.test(live)&&scenes.includes(`data-public-scene="${scene}"`)}));
+  assert.equal(run('publicAdvancedGames.slice(24,29).every(game=>publicMaterial(game.id)===game)'),true);
+  const [mountain,news,english,science,atlas]=games.map(game=>game.activity.questions);
+  assert.equal(mountain[0].type,'race');
+  context.window.profesorChallengeGames.validate(mountain[0]);
+  assert.equal(mountain[0].options.length,6);
+  assert.equal(news[0].type,'dragdrop');
+  assert.equal(news[0].options.length,8);
+  assert.deepEqual(new Set(news[0].options.map(row=>row.split('|')[1].trim())),new Set(['Emisor','Receptor','Mensaje','Canal']));
+  assert.ok(english.every(question=>{context.window.profesorChallengeGames.validate(question);return question.type==='multiselect'&&question.options.length===6&&question.options.filter(row=>row.endsWith('| sí')).length===3;}));
+  assert.ok(science.every(question=>question.type==='timeline'&&question.options.length===4&&question.options.join(' → ')===question.answer));
+  assert.equal(atlas[0].type,'bingo');
+  context.window.profesorMiniGames.validate(atlas[0]);
+  assert.equal(context.window.profesorMiniGames.prepare(atlas[0],'eso-test').cards.length,9);
+});
+
 test('Private, curated public and syllabus libraries use separate sources and filters',()=>{
   const {context,run}=library();
   context.state={library:[{id:'mine',title:'Privado',subject:'Lengua',updatedAt:'2026-10-18'}]};
@@ -208,10 +235,10 @@ test('Private, curated public and syllabus libraries use separate sources and fi
   assert.equal(run('materialLibrarySource()[0]===state.library[0]'),true);
   assert.equal(run('state.library.length'),1);
   run("switchMaterialMode('public')");
-  assert.equal(run('filteredMaterials().length'),66);
+  assert.equal(run('filteredMaterials().length'),71);
   assert.equal(run('filteredMaterials()[0].id===publicLibraryMaterials()[0].id'),true);
-  assert.equal(run("filteredMaterials().slice(0,24).every(m=>m.id.startsWith('public:advanced:'))"),true);
-  assert.equal(run("filteredMaterials().slice(24).every(m=>!m.id.startsWith('public:advanced:'))"),true);
+  assert.equal(run("filteredMaterials().slice(0,29).every(m=>m.id.startsWith('public:advanced:'))"),true);
+  assert.equal(run("filteredMaterials().slice(29).every(m=>!m.id.startsWith('public:advanced:'))"),true);
   run("materialCourse='6.º Primaria'");
   assert.equal(run("filteredMaterials().slice(0,4).every(m=>m.id.startsWith('public:advanced:'))"),true);
   run("materialCourse=''");
