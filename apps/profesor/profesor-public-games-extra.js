@@ -7,9 +7,18 @@
  const bingo=(slug,prompt,rows,explanation)=>({id:`advanced-${slug}-1`,type:'bingo',prompt,answer:'Completado',options:rows,explanation});
  const select=(slug,prompt,rows,explanation)=>({id:`advanced-${slug}-1`,type:'multiselect',prompt,answer:'Completado',options:rows,explanation});
  const memory=(slug,prompt,rows,explanation)=>({id:`advanced-${slug}-1`,type:'memory',prompt,answer:'Completado',options:rows,explanation});
+ const sceneArtwork={
+  'cine-pasado':'public-cine-pasado-scene.webp',
+  'laboratorio-atomo':'public-laboratorio-atomo-scene.webp',
+  'pista-movimiento':'public-pista-movimiento-scene.webp',
+  'centro-cinematica':'public-centro-cinematica-scene.webp',
+  'camara-matrices':'public-camara-matrices-scene.webp',
+  'hemeroteca-fuentes':'public-hemeroteca-fuentes-scene.webp',
+  'plaza-saludos':'public-plaza-saludos-scene.webp'
+ };
  const game=(level,course,subjectKey,subject,slug,title,topic,body,question,artwork)=>({
   id:`public:advanced:${level}:${subjectKey}:${slug}`,course,subject,slug,title,topic,body,
-  artwork:`public-${slug}.webp`,questions:[{...question,publicScene:slug}],sceneSource:artwork
+  artwork:sceneArtwork[slug]||`public-${slug}.webp`,questions:[{...question,publicScene:slug}],sceneSource:sceneArtwork[slug]||artwork
  });
  window.PROFESOR_ADVANCED_PUBLIC_GAMES_EXTRA=[
   game('2-eso','2.º ESO','matematicas','Matemáticas','boveda-racionales','La cocina de los racionales','Números racionales','Completa seis recetas calculando y comparando fracciones.',race('boveda-racionales','Calcula las cantidades exactas para completar cada receta.',[
@@ -79,7 +88,7 @@
    'Industrialización | Extensión de fábricas y producción mecanizada.','Liberalismo | Doctrina política que defiende libertades individuales y límites al poder.','Nacionalismo | Movimiento que reivindica identidad y autonomía política de una nación.','Imperialismo | Expansión y dominio político o económico sobre otros territorios.','Movimiento obrero | Organización colectiva de trabajadores para defender sus derechos.','Sufragio | Derecho a votar en elecciones.','Constitucionalismo | Organización del poder mediante una constitución.','Urbanización | Aumento de población y extensión de las ciudades.','Revolución liberal | Cambio político que limita el absolutismo y afirma nuevos derechos.'
   ],'Los procesos se relacionan, pero cada uno tiene causas, protagonistas y consecuencias propias.'),'public-atlas-explorador.webp'),
 
-  game('2-bachillerato','2.º Bachillerato','matematicas','Matemáticas','camara-matrices','El observatorio de matrices','Matrices y determinantes','Desbloquea operaciones matriciales y determinantes de orden dos.',race('camara-matrices','Calcula cada resultado antes de avanzar en el observatorio.',[
+  game('2-bachillerato','2.º Bachillerato','matematicas','Matemáticas','camara-matrices','La cámara de matrices','Matrices y determinantes','Desbloquea operaciones matriciales y determinantes de orden dos.',race('camara-matrices','Calcula cada resultado antes de avanzar en la cámara.',[
    'det [[1,2],[3,4]] = | −2 | 2 | 10','det [[2,0],[0,5]] = | 10 | 7 | 0','det [[3,1],[2,1]] = | 1 | 5 | −1','Traza de [[2,1],[3,4]] = | 6 | 10 | 4','det [[0,1],[1,0]] = | −1 | 1 | 0','det [[4,2],[2,1]] = | 0 | 8 | 2'
   ],'Para una matriz 2×2, det [[a,b],[c,d]]=ad−bc; la traza suma las entradas diagonales.'),'public-observatorio-decimales.webp'),
   game('2-bachillerato','2.º Bachillerato','lengua','Lengua','sala-comentario','La sala del comentario','Comentario lingüístico','Identifica nueve recursos de un texto antes de redactar el comentario.',bingo('sala-comentario','Lee la pista y localiza el recurso lingüístico.',[
@@ -91,11 +100,11 @@
   game('2-bachillerato','2.º Bachillerato','fisica-quimica','Física y Química','observatorio-ondas','El observatorio de las ondas','Ondas y óptica','Ajusta frecuencia, periodo y longitud de onda para captar la señal.',race('observatorio-ondas','Resuelve los seis datos de calibración (v = λ·f).',[
    'f=5 Hz. Periodo T: | 0,2 s | 5 s | 25 s','v=20 m/s y f=4 Hz. Longitud λ: | 5 m | 16 m | 80 m','λ=2 m y f=3 Hz. Velocidad: | 6 m/s | 1,5 m/s | 5 m/s','T=0,5 s. Frecuencia: | 2 Hz | 0,5 Hz | 5 Hz','v=12 m/s y λ=3 m. Frecuencia: | 4 Hz | 9 Hz | 36 Hz','f=10 Hz. Periodo T: | 0,1 s | 10 s | 100 s'
   ],'El periodo y la frecuencia son inversos: T=1/f. La rapidez de onda es v=λf.'),'public-observatorio-decimales.webp'),
-  game('2-bachillerato','2.º Bachillerato','geografia-historia','Geografía e Historia','hemeroteca-fuentes','El atlas de las fuentes','Fuentes históricas','Clasifica fuentes para investigar un acontecimiento histórico.',match('hemeroteca-fuentes','Lleva cada pieza documental al tipo de fuente que representa.',[
+  game('2-bachillerato','2.º Bachillerato','geografia-historia','Geografía e Historia','hemeroteca-fuentes','La hemeroteca de las fuentes','Fuentes históricas','Clasifica fuentes para investigar un acontecimiento histórico.',match('hemeroteca-fuentes','Lleva cada pieza documental al tipo de fuente que representa.',[
    'Carta escrita por un testigo de la época | Primaria','Fotografía tomada durante el acontecimiento | Primaria','Acta oficial redactada ese mismo año | Primaria','Diario personal de un protagonista | Primaria','Manual de historia publicado décadas después | Secundaria','Documental actual que interpreta las fuentes | Secundaria','Artículo reciente de investigación histórica | Secundaria','Ensayo posterior sobre las causas | Secundaria'
   ],'Una fuente primaria procede de la época estudiada; una secundaria analiza e interpreta fuentes y hechos posteriores.'),'public-atlas-explorador.webp'),
 
-  game('a1','A1','espanol','Español','plaza-saludos','La mochila de los saludos','Saludos y presentaciones','Encuentra parejas de saludos y respuestas para empezar a conversar.',memory('plaza-saludos','Destapa y une cada pregunta cotidiana con una respuesta adecuada.',[
+  game('a1','A1','espanol','Español','plaza-saludos','La plaza de los saludos','Saludos y presentaciones','Encuentra parejas de saludos y respuestas para empezar a conversar.',memory('plaza-saludos','Destapa y une cada pregunta cotidiana con una respuesta adecuada.',[
    '¿Cómo te llamas? | Me llamo Ana.','¿De dónde eres? | Soy de Perú.','¿Cómo estás? | Estoy bien.','¿Cuántos años tienes? | Tengo veinte años.','¿Dónde vives? | Vivo en Madrid.','¿A qué te dedicas? | Soy estudiante.'
   ],'Practica las preguntas en voz alta y cambia los datos para hablar de ti.'),'public-mochila-bilingue.webp'),
   game('a2','A2','espanol','Español','album-recuerdos','El álbum de los recuerdos','Pasado: hechos terminados','Selecciona frases de pasado que cuentan recuerdos terminados.',select('album-recuerdos','Marca solo las frases correctas para acompañar el álbum.',[

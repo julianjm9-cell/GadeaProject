@@ -231,6 +231,8 @@ test('Every syllabus course and subject has exactly one playable featured advanc
   const {run,context}=library();
   vm.runInContext(readFileSync(join(__dirname,'../profesor-challenge-games.js'),'utf8'),context);
   vm.runInContext(readFileSync(join(__dirname,'../profesor-mini-games.js'),'utf8'),context);
+  context.esc=value=>String(value);
+  vm.runInContext(html.slice(html.indexOf('const materialArtworkFiles='),html.indexOf('async function paintMaterialCards')),context);
   const games=JSON.parse(run('JSON.stringify(publicAdvancedGames)'));
   const catalogue=new Set(topics.map(topic=>`${topic.course}|${topic.subject}`));
   const covered=games.map(game=>`${game.activity.context.course}|${game.subject}`);
@@ -242,6 +244,7 @@ test('Every syllabus course and subject has exactly one playable featured advanc
   for(const game of games.slice(29)){
     assert.ok(game.title&&game.body&&game.activity.context.topic&&game.activity.questions.length,game.id);
     assert.ok(existsSync(join(__dirname,'../assets/games',game.artwork)),game.artwork);
+    assert.ok(run(`materialArtwork(publicAdvancedGames.find(game=>game.id===${JSON.stringify(game.id)}))`).includes(`./assets/games/${game.artwork}`),game.id);
     assert.ok(game.activity.questions.every(question=>question.publicScene&&scenes.includes(`data-public-scene="${question.publicScene}"`)),game.id);
     for(const question of game.activity.questions){
       if(['race','multiselect','table','cipher'].includes(question.type))context.window.profesorChallengeGames.validate(question);
@@ -252,6 +255,7 @@ test('Every syllabus course and subject has exactly one playable featured advanc
       }else assert.fail(`Tipo no comprobado: ${question.type}`);
     }
   }
+  assert.ok(run("materialArtwork({...publicAdvancedGames[29],id:'private-copy'})").includes(`./assets/games/${games[29].artwork}`));
   assert.equal(new Set(games.slice(29).map(game=>game.artwork)).size,32);
 });
 

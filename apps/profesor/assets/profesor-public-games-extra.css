@@ -1,68 +1,68 @@
 /* Portadas y tableros de los juegos destacados de ESO, Bachillerato y Español. */
 [data-public-scene="boveda-racionales"]{--scene-accent:#2269c1!important;--scene-soft:#e4edf8!important;--scene-image:url('./games/public-cocina-fracciones.webp')!important;--scene-position:center 50%!important;--mission-name:"NÚMEROS RACIONALES"}
-dialog.activity-play:has(.play-question[data-public-scene="boveda-racionales"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-cocina-fracciones.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="boveda-racionales"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-cocina-fracciones.webp');background-position:center;background-size:cover}
 [data-public-scene="museo-expositivo"]{--scene-accent:#7749ac!important;--scene-soft:#efe9f5!important;--scene-image:url('./games/public-central-mensajes.webp')!important;--scene-position:center 50%!important;--mission-name:"TEXTO EXPOSITIVO"}
-dialog.activity-play:has(.play-question[data-public-scene="museo-expositivo"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-central-mensajes.webp');background-position:center;background-size:cover}
-[data-public-scene="cine-pasado"]{--scene-accent:#1a7ca7!important;--scene-soft:#e4eff4!important;--scene-image:url('./games/public-portal-pasado.webp')!important;--scene-position:center 50%!important;--mission-name:"PAST SIMPLE AND CONTINUOUS"}
-dialog.activity-play:has(.play-question[data-public-scene="cine-pasado"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-portal-pasado.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="museo-expositivo"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-central-mensajes.webp');background-position:center;background-size:cover}
+[data-public-scene="cine-pasado"]{--scene-accent:#1a7ca7!important;--scene-soft:#e4eff4!important;--scene-image:url('./games/public-cine-pasado-scene.webp')!important;--scene-position:center 50%!important;--mission-name:"PAST SIMPLE AND CONTINUOUS"}
+dialog.activity-play:has(.play-question[data-public-scene="cine-pasado"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-cine-pasado-scene.webp');background-position:center;background-size:cover}
 [data-public-scene="laboratorio-medidas"]{--scene-accent:#1d7b88!important;--scene-soft:#e4eff1!important;--scene-image:url('./games/public-laboratorio-mezclas.webp')!important;--scene-position:center 50%!important;--mission-name:"MEDIR EN CIENCIA"}
-dialog.activity-play:has(.play-question[data-public-scene="laboratorio-medidas"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-laboratorio-mezclas.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="laboratorio-medidas"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-laboratorio-mezclas.webp');background-position:center;background-size:cover}
 [data-public-scene="mapa-migraciones"]{--scene-accent:#98632f!important;--scene-soft:#f3ece6!important;--scene-image:url('./games/public-atlas-explorador.webp')!important;--scene-position:center 50%!important;--mission-name:"POBLACIÓN Y MIGRACIONES"}
-dialog.activity-play:has(.play-question[data-public-scene="mapa-migraciones"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-atlas-explorador.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="mapa-migraciones"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-atlas-explorador.webp');background-position:center;background-size:cover}
 [data-public-scene="mercado-porcentajes"]{--scene-accent:#2269c1!important;--scene-soft:#e4edf8!important;--scene-image:url('./games/public-feria-porcentajes.webp')!important;--scene-position:center 50%!important;--mission-name:"FRACCIONES, DECIMALES Y PORCENTAJES"}
-dialog.activity-play:has(.play-question[data-public-scene="mercado-porcentajes"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-feria-porcentajes.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="mercado-porcentajes"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-feria-porcentajes.webp');background-position:center;background-size:cover}
 [data-public-scene="archivo-sintagmas"]{--scene-accent:#7749ac!important;--scene-soft:#efe9f5!important;--scene-image:url('./games/public-agencia-oraciones.webp')!important;--scene-position:center 50%!important;--mission-name:"ORACIÓN SIMPLE Y SINTAGMAS"}
-dialog.activity-play:has(.play-question[data-public-scene="archivo-sintagmas"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-agencia-oraciones.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="archivo-sintagmas"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-agencia-oraciones.webp');background-position:center;background-size:cover}
 [data-public-scene="diario-viajes"]{--scene-accent:#1a7ca7!important;--scene-soft:#e4eff4!important;--scene-image:url('./games/public-aeropuerto-habitos.webp')!important;--scene-position:center 50%!important;--mission-name:"PRESENT PERFECT AND PAST SIMPLE"}
-dialog.activity-play:has(.play-question[data-public-scene="diario-viajes"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-aeropuerto-habitos.webp');background-position:center;background-size:cover}
-[data-public-scene="laboratorio-atomo"]{--scene-accent:#1d7b88!important;--scene-soft:#e4eff1!important;--scene-image:url('./games/public-taller-circuitos.webp')!important;--scene-position:center 50%!important;--mission-name:"ESTRUCTURA ATÓMICA"}
-dialog.activity-play:has(.play-question[data-public-scene="laboratorio-atomo"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-taller-circuitos.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="diario-viajes"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-aeropuerto-habitos.webp');background-position:center;background-size:cover}
+[data-public-scene="laboratorio-atomo"]{--scene-accent:#1d7b88!important;--scene-soft:#e4eff1!important;--scene-image:url('./games/public-laboratorio-atomo-scene.webp')!important;--scene-position:center 50%!important;--mission-name:"ESTRUCTURA ATÓMICA"}
+dialog.activity-play:has(.play-question[data-public-scene="laboratorio-atomo"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-laboratorio-atomo-scene.webp');background-position:center;background-size:cover}
 [data-public-scene="ciudad-economica"]{--scene-accent:#98632f!important;--scene-soft:#f3ece6!important;--scene-image:url('./games/public-ciudad-direcciones.webp')!important;--scene-position:center 50%!important;--mission-name:"ACTIVIDADES ECONÓMICAS"}
-dialog.activity-play:has(.play-question[data-public-scene="ciudad-economica"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-ciudad-direcciones.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="ciudad-economica"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-ciudad-direcciones.webp');background-position:center;background-size:cover}
 [data-public-scene="hospital-nutricion"]{--scene-accent:#31845c!important;--scene-soft:#e6f0eb!important;--scene-image:url('./games/public-atlas-cuerpo.webp')!important;--scene-position:center 50%!important;--mission-name:"NUTRICIÓN Y SALUD"}
-dialog.activity-play:has(.play-question[data-public-scene="hospital-nutricion"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-atlas-cuerpo.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="hospital-nutricion"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-atlas-cuerpo.webp');background-position:center;background-size:cover}
 [data-public-scene="torre-radicales"]{--scene-accent:#2269c1!important;--scene-soft:#e4edf8!important;--scene-image:url('./games/public-observatorio-numeros.webp')!important;--scene-position:center 50%!important;--mission-name:"NÚMEROS REALES Y RADICALES"}
-dialog.activity-play:has(.play-question[data-public-scene="torre-radicales"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-observatorio-numeros.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="torre-radicales"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-observatorio-numeros.webp');background-position:center;background-size:cover}
 [data-public-scene="redaccion-compuesta"]{--scene-accent:#7749ac!important;--scene-soft:#efe9f5!important;--scene-image:url('./games/public-redaccion-titulares.webp')!important;--scene-position:center 50%!important;--mission-name:"ORACIONES COMPUESTAS"}
-dialog.activity-play:has(.play-question[data-public-scene="redaccion-compuesta"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-redaccion-titulares.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="redaccion-compuesta"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-redaccion-titulares.webp');background-position:center;background-size:cover}
 [data-public-scene="portal-condicional"]{--scene-accent:#1a7ca7!important;--scene-soft:#e4eff4!important;--scene-image:url('./games/public-portal-pasado.webp')!important;--scene-position:center 50%!important;--mission-name:"CONDITIONALS"}
-dialog.activity-play:has(.play-question[data-public-scene="portal-condicional"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-portal-pasado.webp');background-position:center;background-size:cover}
-[data-public-scene="pista-movimiento"]{--scene-accent:#1d7b88!important;--scene-soft:#e4eff1!important;--scene-image:url('./games/public-ruta-bajo-cero.webp')!important;--scene-position:center 50%!important;--mission-name:"MOVIMIENTO Y GRÁFICAS"}
-dialog.activity-play:has(.play-question[data-public-scene="pista-movimiento"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-ruta-bajo-cero.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="portal-condicional"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-portal-pasado.webp');background-position:center;background-size:cover}
+[data-public-scene="pista-movimiento"]{--scene-accent:#1d7b88!important;--scene-soft:#e4eff1!important;--scene-image:url('./games/public-pista-movimiento-scene.webp')!important;--scene-position:center 50%!important;--mission-name:"MOVIMIENTO Y GRÁFICAS"}
+dialog.activity-play:has(.play-question[data-public-scene="pista-movimiento"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-pista-movimiento-scene.webp');background-position:center;background-size:cover}
 [data-public-scene="asamblea-revoluciones"]{--scene-accent:#98632f!important;--scene-soft:#f3ece6!important;--scene-image:url('./games/public-atlas-explorador.webp')!important;--scene-position:center 50%!important;--mission-name:"ILUSTRACIÓN Y REVOLUCIONES"}
-dialog.activity-play:has(.play-question[data-public-scene="asamblea-revoluciones"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-atlas-explorador.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="asamblea-revoluciones"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-atlas-explorador.webp');background-position:center;background-size:cover}
 [data-public-scene="observatorio-complejos"]{--scene-accent:#2269c1!important;--scene-soft:#e4edf8!important;--scene-image:url('./games/public-observatorio-numeros.webp')!important;--scene-position:center 50%!important;--mission-name:"NÚMEROS REALES Y COMPLEJOS"}
-dialog.activity-play:has(.play-question[data-public-scene="observatorio-complejos"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-observatorio-numeros.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="observatorio-complejos"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-observatorio-numeros.webp');background-position:center;background-size:cover}
 [data-public-scene="atlas-registros"]{--scene-accent:#7749ac!important;--scene-soft:#efe9f5!important;--scene-image:url('./games/public-central-mensajes.webp')!important;--scene-position:center 50%!important;--mission-name:"COMUNICACIÓN Y VARIEDADES LINGÜÍSTICAS"}
-dialog.activity-play:has(.play-question[data-public-scene="atlas-registros"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-central-mensajes.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="atlas-registros"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-central-mensajes.webp');background-position:center;background-size:cover}
 [data-public-scene="estudio-advanced-tenses"]{--scene-accent:#1a7ca7!important;--scene-soft:#e4eff4!important;--scene-image:url('./games/public-estudio-habitos.webp')!important;--scene-position:center 50%!important;--mission-name:"ADVANCED TENSES"}
-dialog.activity-play:has(.play-question[data-public-scene="estudio-advanced-tenses"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-estudio-habitos.webp');background-position:center;background-size:cover}
-[data-public-scene="centro-cinematica"]{--scene-accent:#1d7b88!important;--scene-soft:#e4eff1!important;--scene-image:url('./games/public-ruta-bajo-cero.webp')!important;--scene-position:center 50%!important;--mission-name:"CINEMÁTICA"}
-dialog.activity-play:has(.play-question[data-public-scene="centro-cinematica"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-ruta-bajo-cero.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="estudio-advanced-tenses"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-estudio-habitos.webp');background-position:center;background-size:cover}
+[data-public-scene="centro-cinematica"]{--scene-accent:#1d7b88!important;--scene-soft:#e4eff1!important;--scene-image:url('./games/public-centro-cinematica-scene.webp')!important;--scene-position:center 50%!important;--mission-name:"CINEMÁTICA"}
+dialog.activity-play:has(.play-question[data-public-scene="centro-cinematica"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-centro-cinematica-scene.webp');background-position:center;background-size:cover}
 [data-public-scene="archivo-contemporaneo"]{--scene-accent:#98632f!important;--scene-soft:#f3ece6!important;--scene-image:url('./games/public-atlas-explorador.webp')!important;--scene-position:center 50%!important;--mission-name:"EL MUNDO CONTEMPORÁNEO"}
-dialog.activity-play:has(.play-question[data-public-scene="archivo-contemporaneo"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-atlas-explorador.webp');background-position:center;background-size:cover}
-[data-public-scene="camara-matrices"]{--scene-accent:#2269c1!important;--scene-soft:#e4edf8!important;--scene-image:url('./games/public-observatorio-decimales.webp')!important;--scene-position:center 50%!important;--mission-name:"MATRICES Y DETERMINANTES"}
-dialog.activity-play:has(.play-question[data-public-scene="camara-matrices"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-observatorio-decimales.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="archivo-contemporaneo"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-atlas-explorador.webp');background-position:center;background-size:cover}
+[data-public-scene="camara-matrices"]{--scene-accent:#2269c1!important;--scene-soft:#e4edf8!important;--scene-image:url('./games/public-camara-matrices-scene.webp')!important;--scene-position:center 50%!important;--mission-name:"MATRICES Y DETERMINANTES"}
+dialog.activity-play:has(.play-question[data-public-scene="camara-matrices"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-camara-matrices-scene.webp');background-position:center;background-size:cover}
 [data-public-scene="sala-comentario"]{--scene-accent:#7749ac!important;--scene-soft:#efe9f5!important;--scene-image:url('./games/public-redaccion-titulares.webp')!important;--scene-position:center 50%!important;--mission-name:"COMENTARIO LINGÜÍSTICO"}
-dialog.activity-play:has(.play-question[data-public-scene="sala-comentario"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-redaccion-titulares.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="sala-comentario"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-redaccion-titulares.webp');background-position:center;background-size:cover}
 [data-public-scene="biblioteca-inference"]{--scene-accent:#1a7ca7!important;--scene-soft:#e4eff4!important;--scene-image:url('./games/public-biblioteca-secreta.webp')!important;--scene-position:center 50%!important;--mission-name:"READING AND INFERENCE"}
-dialog.activity-play:has(.play-question[data-public-scene="biblioteca-inference"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-biblioteca-secreta.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="biblioteca-inference"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-biblioteca-secreta.webp');background-position:center;background-size:cover}
 [data-public-scene="observatorio-ondas"]{--scene-accent:#1d7b88!important;--scene-soft:#e4eff1!important;--scene-image:url('./games/public-observatorio-decimales.webp')!important;--scene-position:center 50%!important;--mission-name:"ONDAS Y ÓPTICA"}
-dialog.activity-play:has(.play-question[data-public-scene="observatorio-ondas"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-observatorio-decimales.webp');background-position:center;background-size:cover}
-[data-public-scene="hemeroteca-fuentes"]{--scene-accent:#98632f!important;--scene-soft:#f3ece6!important;--scene-image:url('./games/public-atlas-explorador.webp')!important;--scene-position:center 50%!important;--mission-name:"FUENTES HISTÓRICAS"}
-dialog.activity-play:has(.play-question[data-public-scene="hemeroteca-fuentes"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-atlas-explorador.webp');background-position:center;background-size:cover}
-[data-public-scene="plaza-saludos"]{--scene-accent:#924886!important;--scene-soft:#f2e9f0!important;--scene-image:url('./games/public-mochila-bilingue.webp')!important;--scene-position:center 50%!important;--mission-name:"SALUDOS Y PRESENTACIONES"}
-dialog.activity-play:has(.play-question[data-public-scene="plaza-saludos"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-mochila-bilingue.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="observatorio-ondas"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-observatorio-decimales.webp');background-position:center;background-size:cover}
+[data-public-scene="hemeroteca-fuentes"]{--scene-accent:#98632f!important;--scene-soft:#f3ece6!important;--scene-image:url('./games/public-hemeroteca-fuentes-scene.webp')!important;--scene-position:center 50%!important;--mission-name:"FUENTES HISTÓRICAS"}
+dialog.activity-play:has(.play-question[data-public-scene="hemeroteca-fuentes"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-hemeroteca-fuentes-scene.webp');background-position:center;background-size:cover}
+[data-public-scene="plaza-saludos"]{--scene-accent:#924886!important;--scene-soft:#f2e9f0!important;--scene-image:url('./games/public-plaza-saludos-scene.webp')!important;--scene-position:center 50%!important;--mission-name:"SALUDOS Y PRESENTACIONES"}
+dialog.activity-play:has(.play-question[data-public-scene="plaza-saludos"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-plaza-saludos-scene.webp');background-position:center;background-size:cover}
 [data-public-scene="album-recuerdos"]{--scene-accent:#924886!important;--scene-soft:#f2e9f0!important;--scene-image:url('./games/public-portal-pasado.webp')!important;--scene-position:center 50%!important;--mission-name:"PASADO: HECHOS TERMINADOS"}
-dialog.activity-play:has(.play-question[data-public-scene="album-recuerdos"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-portal-pasado.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="album-recuerdos"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-portal-pasado.webp');background-position:center;background-size:cover}
 [data-public-scene="cronica-pasado"]{--scene-accent:#924886!important;--scene-soft:#f2e9f0!important;--scene-image:url('./games/public-biblioteca-secreta.webp')!important;--scene-position:center 50%!important;--mission-name:"NARRAR: INDEFINIDO E IMPERFECTO"}
-dialog.activity-play:has(.play-question[data-public-scene="cronica-pasado"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-biblioteca-secreta.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="cronica-pasado"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-biblioteca-secreta.webp');background-position:center;background-size:cover}
 [data-public-scene="puente-subjuntivo"]{--scene-accent:#924886!important;--scene-soft:#f2e9f0!important;--scene-image:url('./games/public-ciudad-direcciones.webp')!important;--scene-position:center 50%!important;--mission-name:"CONTRASTAR INDICATIVO Y SUBJUNTIVO"}
-dialog.activity-play:has(.play-question[data-public-scene="puente-subjuntivo"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-ciudad-direcciones.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="puente-subjuntivo"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-ciudad-direcciones.webp');background-position:center;background-size:cover}
 [data-public-scene="consejo-modalidad"]{--scene-accent:#924886!important;--scene-soft:#f2e9f0!important;--scene-image:url('./games/public-central-mensajes.webp')!important;--scene-position:center 50%!important;--mission-name:"MATICES DE MODALIDAD Y COMPROMISO"}
-dialog.activity-play:has(.play-question[data-public-scene="consejo-modalidad"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-central-mensajes.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="consejo-modalidad"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-central-mensajes.webp');background-position:center;background-size:cover}
 [data-public-scene="tribunal-ambiguedad"]{--scene-accent:#924886!important;--scene-soft:#f2e9f0!important;--scene-image:url('./games/public-redaccion-titulares.webp')!important;--scene-position:center 50%!important;--mission-name:"AMBIGÜEDAD Y DESAMBIGUACIÓN"}
-dialog.activity-play:has(.play-question[data-public-scene="tribunal-ambiguedad"]:not([hidden])){background-image:linear-gradient(90deg,#f7faffb8,#f7faff58),url('./games/public-redaccion-titulares.webp');background-position:center;background-size:cover}
+dialog.activity-play:has(.play-question[data-public-scene="tribunal-ambiguedad"]:not([hidden])){background-image:linear-gradient(90deg,#f7faff78,#f7faff28),url('./games/public-redaccion-titulares.webp');background-position:center;background-size:cover}
 /* El alumno ve el mismo escenario cuando entra con el código de sesión. */
 .live-question[data-public-scene]{background-image:linear-gradient(#f8fbffbb,#f8fbffbd),var(--scene-image)!important;background-size:cover!important;background-position:center!important}
 .live-question[data-public-scene] .live-controls{border-radius:22px;background:#fffdf3df;padding:14px;backdrop-filter:blur(8px)}
@@ -70,3 +70,190 @@ dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-footer .actions{flex:1;min-width:0}
 dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-footer>.play-solution-link{order:-1;align-self:center;min-height:38px;margin:0 auto 0 0;padding:7px 12px;border:1px solid #bcd7f3;border-radius:10px;background:#fff;color:#075cbe;font-weight:800;text-decoration:none}
 @media(max-width:620px){.live-question[data-public-scene] .live-controls{padding:8px}dialog.activity-play:has(.play-question[data-public-scene]:not([hidden])) .play-footer{flex-wrap:wrap}}
+
+/* Identidad propia de cada misión: los nombres también aparecen en las
+   paradas y destinos del tablero, no solo en la portada de la biblioteca. */
+[data-public-scene="boveda-racionales"]{--mission-symbol:"◔";--stop-name:"RECETA"}
+[data-public-scene="museo-expositivo"]{--mission-symbol:"▤"}
+[data-public-scene="cine-pasado"]{--mission-symbol:"▣"}
+[data-public-scene="laboratorio-medidas"]{--mission-symbol:"⚗";--target-name:"MESA";--target-columns:4}
+[data-public-scene="mapa-migraciones"]{--mission-symbol:"◎"}
+[data-public-scene="mercado-porcentajes"]{--mission-symbol:"€";--stop-name:"ENCARGO"}
+[data-public-scene="archivo-sintagmas"]{--mission-symbol:"✒";--target-name:"CARPETA";--target-columns:4}
+[data-public-scene="diario-viajes"]{--mission-symbol:"✈"}
+[data-public-scene="laboratorio-atomo"]{--mission-symbol:"⚛"}
+[data-public-scene="ciudad-economica"]{--mission-symbol:"⌂";--target-name:"SECTOR";--target-columns:4}
+[data-public-scene="hospital-nutricion"]{--mission-symbol:"✚"}
+[data-public-scene="torre-radicales"]{--mission-symbol:"√";--stop-name:"PLANTA"}
+[data-public-scene="redaccion-compuesta"]{--mission-symbol:"✒";--target-name:"MESA";--target-columns:4}
+[data-public-scene="portal-condicional"]{--mission-symbol:"◇"}
+[data-public-scene="pista-movimiento"]{--mission-symbol:"↗";--stop-name:"TRAMO"}
+[data-public-scene="asamblea-revoluciones"]{--mission-symbol:"⚑"}
+[data-public-scene="observatorio-complejos"]{--mission-symbol:"∞";--stop-name:"ÓRBITA"}
+[data-public-scene="atlas-registros"]{--mission-symbol:"✎";--target-name:"REGISTRO";--target-columns:4}
+[data-public-scene="estudio-advanced-tenses"]{--mission-symbol:"◷"}
+[data-public-scene="centro-cinematica"]{--mission-symbol:"↗";--stop-name:"MEDIDA"}
+[data-public-scene="archivo-contemporaneo"]{--mission-symbol:"▤"}
+[data-public-scene="camara-matrices"]{--mission-symbol:"▦";--stop-name:"FOTOGRAMA"}
+[data-public-scene="sala-comentario"]{--mission-symbol:"✒"}
+[data-public-scene="biblioteca-inference"]{--mission-symbol:"⌕"}
+[data-public-scene="observatorio-ondas"]{--mission-symbol:"∿";--stop-name:"ONDA"}
+[data-public-scene="hemeroteca-fuentes"]{--mission-symbol:"▤";--target-name:"ARCHIVO";--target-columns:4}
+[data-public-scene="plaza-saludos"]{--mission-symbol:"◉"}
+[data-public-scene="album-recuerdos"]{--mission-symbol:"▧"}
+[data-public-scene="cronica-pasado"]{--mission-symbol:"✒";--stop-name:"ESCENA"}
+[data-public-scene="puente-subjuntivo"]{--mission-symbol:"⇄"}
+[data-public-scene="consejo-modalidad"]{--mission-symbol:"§";--stop-name:"CASO"}
+[data-public-scene="tribunal-ambiguedad"]{--mission-symbol:"⚖"}
+
+/* El color sigue al lugar de la misión, no a una plantilla de asignatura. */
+[data-public-scene="boveda-racionales"]{--scene-accent:#a35c28!important;--scene-soft:#fff0d7!important}
+[data-public-scene="museo-expositivo"]{--scene-accent:#6b528e!important;--scene-soft:#f3ebfb!important}
+[data-public-scene="cine-pasado"]{--scene-accent:#354b83!important;--scene-soft:#e8eefb!important}
+[data-public-scene="laboratorio-medidas"]{--scene-accent:#197e83!important;--scene-soft:#e0f5f2!important}
+[data-public-scene="mapa-migraciones"]{--scene-accent:#8e6936!important;--scene-soft:#f8efd9!important}
+[data-public-scene="mercado-porcentajes"]{--scene-accent:#b5622e!important;--scene-soft:#fff0df!important}
+[data-public-scene="archivo-sintagmas"]{--scene-accent:#704d90!important;--scene-soft:#f2e9fb!important}
+[data-public-scene="diario-viajes"]{--scene-accent:#23749a!important;--scene-soft:#e6f6ff!important}
+[data-public-scene="laboratorio-atomo"]{--scene-accent:#197a9b!important;--scene-soft:#e3f7fc!important}
+[data-public-scene="ciudad-economica"]{--scene-accent:#956b38!important;--scene-soft:#fcf2df!important}
+[data-public-scene="hospital-nutricion"]{--scene-accent:#387b64!important;--scene-soft:#e7f8ee!important}
+[data-public-scene="torre-radicales"]{--scene-accent:#4e5b9f!important;--scene-soft:#edf0ff!important}
+[data-public-scene="redaccion-compuesta"]{--scene-accent:#765085!important;--scene-soft:#f6eafa!important}
+[data-public-scene="portal-condicional"]{--scene-accent:#4a6395!important;--scene-soft:#eaf2ff!important}
+[data-public-scene="pista-movimiento"]{--scene-accent:#b05c46!important;--scene-soft:#fff0e7!important}
+[data-public-scene="asamblea-revoluciones"]{--scene-accent:#8d624b!important;--scene-soft:#f9eee4!important}
+[data-public-scene="observatorio-complejos"]{--scene-accent:#485b9a!important;--scene-soft:#e9edff!important}
+[data-public-scene="atlas-registros"]{--scene-accent:#6d5c91!important;--scene-soft:#f0ebf9!important}
+[data-public-scene="estudio-advanced-tenses"]{--scene-accent:#406c8a!important;--scene-soft:#e9f4fa!important}
+[data-public-scene="centro-cinematica"]{--scene-accent:#267b9a!important;--scene-soft:#e6f6fb!important}
+[data-public-scene="archivo-contemporaneo"]{--scene-accent:#776249!important;--scene-soft:#f9f1e6!important}
+[data-public-scene="camara-matrices"]{--scene-accent:#755b99!important;--scene-soft:#f0eafa!important}
+[data-public-scene="sala-comentario"]{--scene-accent:#65577d!important;--scene-soft:#f3eef8!important}
+[data-public-scene="biblioteca-inference"]{--scene-accent:#8b663f!important;--scene-soft:#fbf2e2!important}
+[data-public-scene="observatorio-ondas"]{--scene-accent:#277a9a!important;--scene-soft:#e3f5fc!important}
+[data-public-scene="hemeroteca-fuentes"]{--scene-accent:#816841!important;--scene-soft:#fbf3e4!important}
+[data-public-scene="plaza-saludos"]{--scene-accent:#af6847!important;--scene-soft:#fff0e3!important}
+[data-public-scene="album-recuerdos"]{--scene-accent:#9b607d!important;--scene-soft:#fbeaf2!important}
+[data-public-scene="cronica-pasado"]{--scene-accent:#906343!important;--scene-soft:#f8eee1!important}
+[data-public-scene="puente-subjuntivo"]{--scene-accent:#398177!important;--scene-soft:#e8f8f3!important}
+[data-public-scene="consejo-modalidad"]{--scene-accent:#546991!important;--scene-soft:#ebf1fa!important}
+[data-public-scene="tribunal-ambiguedad"]{--scene-accent:#965b68!important;--scene-soft:#faeaf0!important}
+
+/* Los tableros de todas las misiones destacadas conservan la ilustración a la
+   vista; las respuestas son piezas del escenario con contraste propio. */
+:is(.activity-play .play-question,.live-question)[data-public-scene]{
+ --scene-card-texture:linear-gradient(145deg,#fffefaee,#ffffffc0);
+ --scene-card-radius:18px;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] :is(.challenge-choices,.memory-board,.bingo-cards,.matching-workbench){
+ min-width:0;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] :is(.challenge-choice,.bingo-cards button,.matching-studio .match-bucket,.challenge-race .race-track button,.challenge-race .race-answers button){
+ background-image:var(--scene-card-texture);
+ background-color:var(--scene-soft);
+ background-size:cover;
+ border-radius:var(--scene-card-radius);
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] :is(.challenge-choices,.bingo-cards,.matching-studio .match-destinations){
+ padding:clamp(7px,1vw,13px);
+ border:1px solid #ffffffa8;
+ border-radius:24px;
+ background:color-mix(in srgb,var(--scene-soft) 46%,transparent);
+ box-shadow:0 9px 27px #152f4c25;
+ backdrop-filter:blur(4px);
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] :is(.challenge-choice,.bingo-cards button,.match-bucket,.race-answers button){
+ transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] :is(.challenge-choice,.bingo-cards button,.match-bucket,.race-answers button):hover:not(:disabled){
+ transform:translateY(-2px);
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] :is(.challenge-choice,.bingo-cards button,.match-bucket,.race-answers button):focus-within{
+ outline:3px solid var(--scene-accent);
+ outline-offset:2px;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] :is(progress,.challenge-game progress){accent-color:var(--scene-accent)}
+:is(.activity-play .play-question,.live-question)[data-public-scene] :is(.race-answers button,.challenge-choice,.bingo-cards button,.match-bucket){position:relative}
+:is(.activity-play .play-question,.live-question)[data-public-scene] :is(.race-answers button,.challenge-choice,.bingo-cards button)::after,
+:is(.activity-play .play-question,.live-question)[data-public-scene]:not([data-public-scene="tren-decenas"]) .match-bucket::after{
+ content:var(--mission-symbol,"✦");
+ position:absolute;
+ right:8px;
+ bottom:5px;
+ color:var(--scene-accent);
+ font-size:clamp(13px,1.4vw,19px);
+ font-weight:800;
+ line-height:1;
+ opacity:.24;
+ pointer-events:none;
+}
+
+/* Papel cuadriculado para números y laboratorios; fichas de archivo para
+   lengua e historia; rutas de mapa para viajes y escenarios. */
+:is([data-public-scene="boveda-racionales"],[data-public-scene="mercado-porcentajes"],[data-public-scene="torre-radicales"],[data-public-scene="observatorio-complejos"],[data-public-scene="camara-matrices"],[data-public-scene="laboratorio-medidas"],[data-public-scene="laboratorio-atomo"],[data-public-scene="centro-cinematica"],[data-public-scene="observatorio-ondas"]){
+ --scene-card-texture:linear-gradient(#ffffffb9,#ffffffb9),repeating-linear-gradient(0deg,transparent 0 23px,color-mix(in srgb,var(--scene-accent) 23%,transparent) 23px 24px),repeating-linear-gradient(90deg,transparent 0 23px,color-mix(in srgb,var(--scene-accent) 23%,transparent) 23px 24px)!important;
+ --scene-card-radius:15px!important;
+}
+:is([data-public-scene="museo-expositivo"],[data-public-scene="archivo-sintagmas"],[data-public-scene="redaccion-compuesta"],[data-public-scene="atlas-registros"],[data-public-scene="archivo-contemporaneo"],[data-public-scene="sala-comentario"],[data-public-scene="hemeroteca-fuentes"],[data-public-scene="cronica-pasado"],[data-public-scene="consejo-modalidad"],[data-public-scene="tribunal-ambiguedad"]){
+ --scene-card-texture:repeating-linear-gradient(0deg,#fffdf4ee 0 25px,color-mix(in srgb,var(--scene-accent) 18%,#fffdf4) 25px 26px)!important;
+ --scene-card-radius:9px 19px 19px 9px!important;
+}
+:is([data-public-scene="cine-pasado"],[data-public-scene="diario-viajes"],[data-public-scene="mapa-migraciones"],[data-public-scene="portal-condicional"],[data-public-scene="pista-movimiento"],[data-public-scene="asamblea-revoluciones"],[data-public-scene="biblioteca-inference"],[data-public-scene="album-recuerdos"],[data-public-scene="puente-subjuntivo"]){
+ --scene-card-texture:radial-gradient(circle at 88% 14%,var(--scene-soft) 0 15%,transparent 16%),linear-gradient(145deg,#fffef5f2,#ffffffd8)!important;
+ --scene-card-radius:23px 11px 23px 11px!important;
+}
+:is([data-public-scene="ciudad-economica"],[data-public-scene="hospital-nutricion"],[data-public-scene="estudio-advanced-tenses"],[data-public-scene="plaza-saludos"]){
+ --scene-card-texture:linear-gradient(145deg,#ffffffed,var(--scene-soft))!important;
+ --scene-card-radius:19px!important;
+}
+
+/* Cada mecánica tiene un gesto visual reconocible sin cambiar cómo se juega. */
+:is(.activity-play .play-question,.live-question)[data-public-scene] .challenge-race .race-track{
+ background:radial-gradient(circle at 50% 50%,#ffffff8c,transparent 70%),var(--scene-soft);
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio .match-bank{
+ border-color:var(--scene-line);
+ background:linear-gradient(135deg,#fffdf3ed,var(--scene-soft));
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .bingo-clue-card{
+ border-color:var(--scene-line);
+ background:linear-gradient(145deg,#fffdf5ef,var(--scene-soft));
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .bingo-cards button.is-found{
+ background-image:none;
+ background-color:#e4f7e7!important;
+ border-color:#5cad79!important;
+ color:#175636!important;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .bingo-cards button.is-found::after{
+ content:"✓";
+ color:#175636;
+ opacity:1;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .challenge-choice:has(input:checked),
+:is(.activity-play .play-question,.live-question)[data-public-scene] .bingo-cards button.is-selected,
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-answers button.is-selected{
+ box-shadow:0 0 0 3px #fff,0 5px 0 var(--scene-accent),0 9px 20px #1935533b;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .memory-board{
+ padding:10px;
+ border:1px solid #ffffffa8;
+ border-radius:24px;
+ background:color-mix(in srgb,var(--scene-soft) 44%,transparent);
+ box-shadow:0 9px 27px #152f4c25;
+}
+[data-public-scene="plaza-saludos"] .memory-card:not(.revealed):not(.flipped):not(.matched){
+ border-radius:50% 50% 17px 17px!important;
+ background:linear-gradient(145deg,#f6c787,#bc724e)!important;
+ border-color:#ffebcb!important;
+}
+
+@media(max-width:800px){
+ :is(.activity-play .play-question,.live-question)[data-public-scene] :is(.challenge-choices,.bingo-cards,.matching-studio .match-destinations,.memory-board){padding:6px;border-radius:16px}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .challenge-choice{min-height:62px;padding:11px}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .bingo-cards button{min-height:68px}
+}
+@media(prefers-reduced-motion:reduce){
+ :is(.activity-play .play-question,.live-question)[data-public-scene] :is(.challenge-choice,.bingo-cards button,.match-bucket,.race-answers button){transition:none}
+}
