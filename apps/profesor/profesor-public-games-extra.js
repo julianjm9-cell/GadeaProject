@@ -11,10 +11,14 @@
   'cine-pasado':'public-cine-pasado-scene.webp',
   'laboratorio-atomo':'public-laboratorio-atomo-scene.webp',
   'pista-movimiento':'public-pista-movimiento-scene.webp',
+  'asamblea-revoluciones':'public-asamblea-revoluciones-scene.webp',
   'centro-cinematica':'public-centro-cinematica-scene.webp',
+  'archivo-contemporaneo':'public-archivo-contemporaneo-scene.webp',
   'camara-matrices':'public-camara-matrices-scene.webp',
+  'observatorio-ondas':'public-observatorio-ondas-scene.webp',
   'hemeroteca-fuentes':'public-hemeroteca-fuentes-scene.webp',
-  'plaza-saludos':'public-plaza-saludos-scene.webp'
+  'plaza-saludos':'public-plaza-saludos-scene.webp',
+  'puente-subjuntivo':'public-puente-subjuntivo-scene.webp'
  };
  const game=(level,course,subjectKey,subject,slug,title,topic,body,question,artwork)=>({
   id:`public:advanced:${level}:${subjectKey}:${slug}`,course,subject,slug,title,topic,body,
@@ -68,7 +72,7 @@
   game('4-eso','4.º ESO','fisica-quimica','Física y Química','pista-movimiento','La pista del movimiento','Movimiento y gráficas','Calcula distancias, velocidades y aceleraciones para completar la pista.',race('pista-movimiento','Resuelve cada tramo y elige la magnitud con sus unidades.',[
    'Recorre 100 m en 20 s. Velocidad media: | 5 m/s | 20 m/s | 120 m/s','A 4 m/s durante 15 s recorre: | 60 m | 19 m | 3,75 m','Pasa de 0 a 12 m/s en 3 s. Aceleración: | 4 m/s² | 36 m/s² | 9 m/s²','A 10 m/s durante 8 s recorre: | 80 m | 18 m | 1,25 m','Recorre 90 km en 2 h. Velocidad media: | 45 km/h | 92 km/h | 180 km/h','Frena de 20 a 0 m/s en 5 s. Aceleración: | −4 m/s² | 4 m/s² | −25 m/s²'
   ],'Velocidad media = distancia/tiempo; aceleración = cambio de velocidad/tiempo.'),'public-ruta-bajo-cero.webp'),
-  game('4-eso','4.º ESO','geografia-historia','Geografía e Historia','asamblea-revoluciones','El atlas de las revoluciones','Ilustración y revoluciones','Relaciona ideas, hechos y protagonistas de la Ilustración y las revoluciones.',bingo('asamblea-revoluciones','Lee cada documento y señala el concepto histórico adecuado.',[
+  game('4-eso','4.º ESO','geografia-historia','Geografía e Historia','asamblea-revoluciones','La asamblea de las revoluciones','Ilustración y revoluciones','Relaciona ideas, hechos y protagonistas de la Ilustración y las revoluciones.',bingo('asamblea-revoluciones','Lee cada documento y señala el concepto histórico adecuado.',[
    'Ilustración | Movimiento que defendió la razón y la crítica del Antiguo Régimen.','Montesquieu | Pensador asociado a la separación de poderes.','Soberanía nacional | Principio según el cual el poder político reside en la nación.','Antiguo Régimen | Sistema anterior a las revoluciones liberales, basado en privilegios estamentales.','Revolución francesa | Proceso iniciado en 1789 que puso fin al absolutismo en Francia.','Constitución | Norma fundamental que organiza el Estado y reconoce derechos.','Burguesía | Grupo social urbano con protagonismo en las revoluciones liberales.','Declaración de derechos | Texto que proclama libertades e igualdad jurídica.','Separación de poderes | Distribución de funciones legislativa, ejecutiva y judicial.'
   ],'Las revoluciones liberales cuestionaron privilegios y defendieron derechos y nuevas formas de soberanía.'),'public-atlas-explorador.webp'),
 
