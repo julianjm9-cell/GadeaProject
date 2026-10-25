@@ -34,6 +34,7 @@ COPY apps/profesor/profesor-challenge-games.js /app/app/static/assets/profesor-c
 COPY apps/profesor/profesor-notifications.js /app/app/static/assets/profesor-notifications.js
 COPY apps/profesor/profesor-subjects.js /app/app/static/assets/profesor-subjects.js
 COPY apps/profesor/profesor-profile.js /app/app/static/assets/profesor-profile.js
+COPY apps/profesor/profesor-public-games-extra.js /app/app/static/assets/profesor-public-games-extra.js
 COPY apps/profesor/profesor-mini-games.js /app/app/static/assets/profesor-mini-games.js
 COPY apps/profesor/profesor-live-sync.js /app/app/static/assets/profesor-live-sync.js
 COPY apps/profesor/profesor-live.js /app/app/static/assets/profesor-live.js

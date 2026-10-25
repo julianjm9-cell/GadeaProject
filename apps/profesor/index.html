@@ -650,7 +650,7 @@ const publicAdvancedGames=[
    'Coordenadas | Pareja de latitud y longitud que permite localizar un punto.'
   ],explanation:'La orientación indica direcciones, la leyenda interpreta símbolos, la escala relaciona distancias y las coordenadas localizan puntos.'}]
  },
- ...window.PROFESOR_ADVANCED_PUBLIC_GAMES_EXTRA
+ ...(window.PROFESOR_ADVANCED_PUBLIC_GAMES_EXTRA || [])
 ].map(({id,course='1.º Primaria',title,subject,topic,artwork,body,questions})=>({id,title,subject,studentId:'',kind:'Juego público',artwork,body,activity:{version:1,context:{course,subject,topic,duration:8,public:true,curated:true,publicSourceId:id},questions}}));
 function temarioLibraryMaterials(){return materialPublicFormat==='single'?publicSingleMaterials():publicTemarioMaterials();}
 function publicLibraryMaterials(){return [...publicAdvancedGames,...curatedPublicMaterials()];}
