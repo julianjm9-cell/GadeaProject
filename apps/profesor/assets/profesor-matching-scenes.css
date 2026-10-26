@@ -134,7 +134,7 @@
 [data-public-scene="hemeroteca-fuentes"] .match-bucket .match-object-symbol{font-size:31px}
 [data-public-scene="hemeroteca-fuentes"] .match-bucket .match-piece{background:#fffaf0!important;border-radius:2px!important}
 
-@media(max-width:1100px){
+@media(max-width:950px){
   [data-public-scene="tren-decenas"] .matching-studio.match-scene{--matching-columns:3}
   [data-public-scene="central-mensajes"] .matching-studio.match-scene,
   [data-public-scene="laboratorio-medidas"] .matching-studio.match-scene,
@@ -151,3 +151,19 @@
   [data-public-scene="tren-decenas"] .match-locomotive{transform:scale(.8);transform-origin:left bottom;margin-bottom:0}
 }
 @media(prefers-reduced-motion:reduce){.match-scene .match-bucket{transition:none!important}.match-locomotive{animation:none!important}}
+
+@media(min-width:701px) and (max-height:900px){
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .matching-workbench{gap:8px}
+ .matching-studio.match-scene .match-scene-heading{display:none}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-destinations{padding:8px 12px 10px}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-scene-targets{gap:8px}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-bucket{min-height:95px!important;padding:4px 5px 10px!important}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-bucket>button{min-height:49px;padding:3px 4px}
+ .matching-studio.match-scene .match-bucket>button small{display:none}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-bank{padding:5px 9px}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-bank h4{margin-bottom:3px}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-piece{min-height:34px;padding:4px 7px;font-size:11px;line-height:1.12}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="tren-decenas"] .matching-studio.match-scene .match-locomotive{height:51px;margin:1px 0 7px;padding:5px 12px}
+ [data-public-scene="tren-decenas"] .matching-studio.match-scene .match-pieces{grid-template-columns:repeat(6,minmax(0,1fr))}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .puzzle-board-actions{margin-top:6px;padding:4px 8px}
+}

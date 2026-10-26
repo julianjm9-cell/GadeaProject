@@ -60,3 +60,15 @@
 @media(max-width:700px){.timeline-board .sentence-pieces,.timeline-board .sentence-slots{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 .timeline-board{gap:10px}.timeline-board .sentence-bank,.timeline-board .sentence-answer{padding:11px 16px;gap:8px}
+
+/* Cinco hitos caben en una fila de portátil. Antes el quinto creaba una
+   segunda fila tanto en la bandeja como en la línea y ocultaba el final. */
+@media(min-width:1000px) and (max-height:900px){
+ .activity-play [data-type="timeline"] .timeline-intro{max-width:100%;margin:5px auto 8px;padding:7px 15px;font-size:clamp(17px,1.45vw,21px);line-height:1.2}
+ .activity-play [data-type="timeline"] .timeline-board .sentence-pieces:has(>.sentence-piece:nth-child(5)){grid-template-columns:repeat(5,minmax(0,1fr))}
+ .activity-play [data-type="timeline"] .timeline-board .sentence-slots:has(>.sentence-slot:nth-child(5)){grid-template-columns:repeat(5,minmax(0,1fr))}
+ .activity-play [data-type="timeline"] .timeline-board .sentence-bank,.activity-play [data-type="timeline"] .timeline-board .sentence-answer{padding:8px 12px;gap:5px}
+ .activity-play [data-type="timeline"] .timeline-board .sentence-piece{min-height:82px;padding:7px 9px;gap:4px;font-size:clamp(12px,1.5dvh,15px)}
+ .activity-play [data-type="timeline"] .timeline-board .sentence-slot{min-height:66px;padding:12px 8px 8px}
+ .activity-play [data-type="timeline"] .timeline-event-icon{width:26px;height:26px;font-size:21px}
+}

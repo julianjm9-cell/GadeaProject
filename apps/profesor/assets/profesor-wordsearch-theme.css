@@ -72,7 +72,7 @@
  .activity-play [data-type="wordsearch"] .wordsearch-grid button{border-radius:4px;font-size:clamp(10px,2.8vw,15px)}
  .activity-play [data-type="wordsearch"] .wordsearch-sidebar{display:grid;grid-template-columns:1fr 1fr;gap:7px}
  .activity-play [data-type="wordsearch"] .wordsearch-progress{grid-column:1/-1;padding:6px 10px}
- .activity-play [data-type="wordsearch"] .wordsearch-list{max-height:130px;padding:8px}
+ .activity-play [data-type="wordsearch"] .wordsearch-list{max-height:none;overflow:visible;padding:8px}
  .activity-play [data-type="wordsearch"] .wordsearch-list h4{font-size:11px}
  .activity-play [data-type="wordsearch"] .wordsearch-list li{min-height:26px;padding:2px 6px;font-size:10px}
  .activity-play [data-type="wordsearch"] .wordsearch-list li span{width:16px;height:16px;font-size:11px}
