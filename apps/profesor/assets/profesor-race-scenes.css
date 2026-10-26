@@ -1,0 +1,192 @@
+/* Quince misiones por etapas. El escenario es decorativo; todas las respuestas
+   siguen siendo botones reales con foco, estados y corrección del motor común. */
+:is(.activity-play .play-question,.live-question)[data-public-scene] .challenge-race.race-scene{display:grid;grid-template-columns:minmax(195px,25%) minmax(0,1fr);gap:7px 16px;width:100%;padding:12px 15px 16px;background:linear-gradient(145deg,#fffdf0ef,#f5f9ffdf);border:2px solid #ffffffeb;box-shadow:0 12px 30px #1029462d}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene>.challenge-guide{justify-self:stretch;width:100%;margin:0;padding:5px 10px}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene>.challenge-guide p{font-size:12px}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene>.challenge-guide strong{padding:4px 9px;font-size:11px}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene>progress{height:7px;margin:0 0 3px}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-track{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px;border-radius:20px;background:#fffdf2e5}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-track::before{content:none}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-track button,
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-track button:nth-child(even){min-height:61px;padding:5px 3px;border-radius:12px;transform:none;gap:2px}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-track button:is(.is-current,:focus-visible,:hover:not(:disabled)){transform:translateY(-2px);box-shadow:0 4px 0 var(--scene-accent),0 7px 12px #183b4b36}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-track button b{width:29px;height:29px;font-size:19px}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-track button span{font-size:10px;font-weight:850;line-height:1.1}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-track button span::before{content:none}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .challenge-stage-card{display:flex;flex-direction:column;min-width:0;gap:6px;padding:0}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .challenge-stage-label{font-size:10px;letter-spacing:.08em;padding:3px 9px}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .challenge-clue{width:100%;margin:0;padding:7px 11px;font-size:clamp(16px,1.55vw,20px);line-height:1.3}
+.race-scene-workspace{position:relative;isolation:isolate;min-height:224px;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;padding:11px 14px 14px;border:3px solid var(--scene-accent);border-radius:20px;background:linear-gradient(145deg,#f9fcffe9,#e5f4ffeb);overflow:hidden;box-shadow:inset 0 0 0 3px #ffffffae,0 8px 0 color-mix(in srgb,var(--scene-accent) 40%,#81929c)}
+.race-scene-workspace::before,.race-scene-workspace::after{content:'';position:absolute;pointer-events:none}
+.race-scene-workspace-title{position:relative;z-index:3;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;width:fit-content;max-width:100%;padding:4px 10px;border-radius:9px;background:#fffdf2ee;color:var(--scene-ink,#112b51);box-shadow:0 3px 8px #1427431f}
+.race-scene-workspace-title strong{font-size:15px}.race-scene-workspace-title small{font-size:11px}
+.race-scene-object{position:absolute;z-index:0;display:grid;place-items:center;color:var(--scene-accent);pointer-events:none;transition:filter .2s,transform .2s}
+.race-scene-object-mark{position:relative;z-index:2;font-size:clamp(44px,7vw,84px);line-height:1}
+.race-scene-object-value{display:none;position:relative;z-index:3;max-width:88%;max-height:75%;overflow:hidden;color:#183753;font-size:clamp(10px,1vw,14px);font-weight:900;line-height:1.13;text-align:center;overflow-wrap:anywhere;text-shadow:0 1px #fff}
+.race-scene-object.has-choice .race-scene-object-mark{display:none}
+.race-scene-object.has-choice .race-scene-object-value{display:block}
+.race-scene-object-number{position:absolute;z-index:3;right:8px;bottom:5px;padding:2px 5px;border-radius:5px;background:#fffdf2e6;font-size:11px;font-weight:900}
+.race-scene-object.is-correct{filter:drop-shadow(0 0 15px #56d879);transform:scale(1.03)}
+.race-scene-object.is-incorrect{filter:drop-shadow(0 0 9px #f27c6d)}
+.race-scene-object.has-choice:not(.is-correct):not(.is-incorrect){filter:drop-shadow(0 0 10px #ffda68)}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-answers{z-index:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;align-items:stretch;width:100%;margin:0}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-answers::before{content:none}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-answers button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:52px;padding:5px 7px;border:2px solid var(--scene-accent);border-radius:11px;background:#fffdf5f5;color:var(--scene-ink,#142d53);font-size:clamp(12px,1.3vw,16px);font-weight:850;line-height:1.2;text-align:center;overflow-wrap:anywhere;box-shadow:0 3px 0 color-mix(in srgb,var(--scene-accent) 55%,#aeb6a6)}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-answers button b{display:none}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-answers button.is-selected{outline:3px solid #ffe174;outline-offset:0;background:#fff1b9;box-shadow:0 4px 0 var(--scene-accent)}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-answers button.is-selected.is-correct{outline-color:#5ade8f}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-answers button.is-selected.is-incorrect{outline-color:#ff8990}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .challenge-stage-feedback{margin:0;padding:3px 9px}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .challenge-stage-actions{margin:0;padding:3px 5px;background:#fffdf4ed}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .challenge-stage-actions button{min-height:35px;padding:4px 9px;font-size:12px}
+
+/* Mercado infantil: toldo, mostrador y tres monedas sobre la madera. */
+[data-public-scene="mercado-monedas"] .race-scene-workspace,[data-public-scene="feria-porcentajes"] .race-scene-workspace{background:linear-gradient(#9dd2ee 0 31%,#faefcc 31% 72%,#bd7953 72% 76%,#866046 76%);border-color:#a85c31}
+[data-public-scene="mercado-monedas"] .race-scene-workspace::before,[data-public-scene="feria-porcentajes"] .race-scene-workspace::before{inset:0 0 auto;height:39px;background:repeating-linear-gradient(90deg,#f5b756 0 55px,#fff4db 55px 108px);clip-path:polygon(0 0,100% 0,100% 73%,96% 100%,92% 73%,88% 100%,84% 73%,80% 100%,76% 73%,72% 100%,68% 73%,64% 100%,60% 73%,56% 100%,52% 73%,48% 100%,44% 73%,40% 100%,36% 73%,32% 100%,28% 73%,24% 100%,20% 73%,16% 100%,12% 73%,8% 100%,4% 73%,0 100%)}
+[data-public-scene="mercado-monedas"] .race-scene-object{right:13%;top:45px;width:135px;height:90px;border:6px solid #82533c;border-radius:8px;background:#fff2cf;box-shadow:0 6px #633f33}
+[data-public-scene="mercado-monedas"] .race-scene-object-mark{font-size:60px}
+[data-public-scene="mercado-monedas"] .race-answers button{aspect-ratio:2.4;border-radius:50%!important;background:radial-gradient(circle at 35% 32%,#fff8d8,#efc15d 65%,#bd8531)!important;border-color:#9a6d2d!important;color:#563813!important}
+[data-public-scene="feria-porcentajes"] .race-scene-workspace::before{background:repeating-linear-gradient(90deg,#e5716b 0 55px,#fff3cb 55px 108px)}
+[data-public-scene="feria-porcentajes"] .race-scene-object{right:11%;top:47px;width:150px;height:95px;border:5px solid #bd7448;border-radius:8px;background:repeating-linear-gradient(90deg,#fff8dc 0 47px,#e4bc8f 48px 50px);box-shadow:inset 0 18px #fee5a9,0 6px #864e37}
+[data-public-scene="feria-porcentajes"] .race-scene-object-mark{font-size:52px;color:#edab2e}
+[data-public-scene="feria-porcentajes"] .race-answers button{clip-path:polygon(0 0,100% 0,100% 85%,50% 100%,0 85%);border-radius:5px!important;background:#fff9e3!important}
+
+/* Telescopio infantil: el aro es la lente y las respuestas son astros. */
+[data-public-scene="observatorio-numeros"] .race-scene-workspace{background:radial-gradient(circle at 74% 45%,#5976c7,#202e68 58%,#162651)}
+[data-public-scene="observatorio-numeros"] .race-scene-workspace-title{color:#193969}
+[data-public-scene="observatorio-numeros"] .race-scene-workspace::before{inset:0;background-image:radial-gradient(#fff 1px,transparent 2px);background-size:36px 32px;opacity:.7}
+[data-public-scene="observatorio-numeros"] .race-scene-object{top:30px;right:12%;width:142px;height:142px;border:11px solid #aac8ed;border-radius:50%;background:radial-gradient(circle,#456fc4,#142b62);box-shadow:0 0 0 5px #263d75,0 0 0 12px #c5d7ed,0 12px 22px #09132e}
+[data-public-scene="observatorio-numeros"] .race-scene-object-mark{color:#fff4bb}
+[data-public-scene="observatorio-numeros"] .race-answers button{border-radius:50%!important;background:#fff8da!important;color:#263f7a!important}
+
+/* Muestra, embudo y mesa de laboratorio. */
+[data-public-scene="laboratorio-mezclas"] .race-scene-workspace{background:linear-gradient(#e2fbf1 0 72%,#559c93 72% 76%,#31736c 76%)}
+[data-public-scene="laboratorio-mezclas"] .race-scene-object{top:39px;right:11%;width:120px;height:130px;border:5px solid #427f83;border-radius:8px 8px 35px 35px;background:linear-gradient(transparent 0 38%,#78dbd2a8 39% 76%,#d9a963 77%);box-shadow:inset 0 0 0 8px #ffffffb8,0 7px 12px #22535055}
+[data-public-scene="laboratorio-mezclas"] .race-scene-object::before{content:'';position:absolute;top:-24px;left:35px;width:38px;height:19px;border:4px solid #437e83;border-radius:50%;background:#d7f9ee}
+[data-public-scene="laboratorio-mezclas"] .race-scene-object-mark{font-size:46px;color:#247c77}
+[data-public-scene="laboratorio-mezclas"] .race-answers button{border-radius:12px 12px 28px 28px!important;background:#e7fbf6!important}
+
+/* Teleférico: escala visible y cabina suspendida. */
+[data-public-scene="ruta-bajo-cero"] .race-scene-workspace{background:linear-gradient(163deg,#c0e6ff 0 40%,#e8f4fb 40% 60%,#8db8ce 60% 64%,#edf7fb 65%)}
+[data-public-scene="ruta-bajo-cero"] .race-scene-workspace::before{inset:34px 8% 42px;border-left:3px dashed #356c8b;border-right:3px dashed #356c8b;transform:skewY(-9deg)}
+[data-public-scene="ruta-bajo-cero"] .race-scene-object{top:58px;right:15%;width:110px;height:78px;border:6px solid #367291;border-radius:10px 10px 25px 25px;background:#f8fffd;box-shadow:inset 0 -17px #86bed1,0 9px 10px #274a6055}
+[data-public-scene="ruta-bajo-cero"] .race-scene-object::before{content:'';position:absolute;left:43%;bottom:100%;height:37px;border-left:5px solid #36637f}
+[data-public-scene="ruta-bajo-cero"] .race-scene-object-mark{font-size:36px}
+[data-public-scene="ruta-bajo-cero"] .race-answers button{border-radius:5px!important;background:#f2fbff!important;box-shadow:inset 0 -6px #aad1dd,0 3px #5487a2!important}
+
+/* Cocina: recetario abierto, cantidades colocadas en la página. */
+[data-public-scene="boveda-racionales"] .race-scene-workspace{background:linear-gradient(#f9edcf 0 71%,#a76e43 72% 77%,#7a4d38 78%)}
+[data-public-scene="boveda-racionales"] .race-scene-object{top:37px;right:9%;width:165px;height:125px;border:5px solid #8c654a;border-radius:8px 22px 22px 8px;background:repeating-linear-gradient(#fff9e8 0 22px,#d8c9a9 23px 24px);box-shadow:inset 7px 0 #d9b886,6px 6px #8f6e56}
+[data-public-scene="boveda-racionales"] .race-scene-object-mark{font-size:46px}
+[data-public-scene="boveda-racionales"] .race-answers button{border-radius:10px 10px 24px 24px!important;background:#fff6e3!important}
+
+/* Comercio adolescente: terminal de caja y recibo. */
+[data-public-scene="mercado-porcentajes"] .race-scene-workspace{background:linear-gradient(#c7dee4,#ebf3ee 66%,#9b755a 67%,#6b5349)}
+[data-public-scene="mercado-porcentajes"] .race-scene-object{top:38px;right:9%;width:160px;height:130px;border:8px solid #405e6d;border-radius:17px;background:linear-gradient(#d6f6ec 0 52%,#779ba0 53%);box-shadow:0 8px #344957}
+[data-public-scene="mercado-porcentajes"] .race-scene-object-mark{font-size:54px;color:#275678}
+[data-public-scene="mercado-porcentajes"] .race-answers button{border-radius:6px!important;background:#eafaf3!important;font-variant-numeric:tabular-nums}
+
+/* Torre: fachada, compuerta y códigos de la planta. */
+[data-public-scene="torre-radicales"] .race-scene-workspace{background:linear-gradient(#d8eafd,#adc7e0)}
+[data-public-scene="torre-radicales"] .race-scene-object{top:18px;right:12%;width:130px;height:163px;border:6px solid #455a79;border-bottom-width:12px;background:repeating-linear-gradient(#e9f5ff 0 26px,#859cbb 26px 31px);box-shadow:inset 0 0 0 11px #b9cee6,0 5px #354d68}
+[data-public-scene="torre-radicales"] .race-scene-object-mark{display:grid;place-items:center;width:68px;height:78px;border:4px solid #506b8e;background:#253c60;color:#f3d584;font-size:53px}
+[data-public-scene="torre-radicales"] .race-answers button{border-radius:5px!important;background:#f3f7ff!important;font-family:Georgia,serif}
+
+/* Pista de velocidad: carril y cronómetro. */
+[data-public-scene="pista-movimiento"] .race-scene-workspace{background:linear-gradient(#bfe7f0 0 51%,#617b84 51% 58%,#405b69 58%)}
+[data-public-scene="pista-movimiento"] .race-scene-workspace::before{left:0;right:0;top:66%;border-top:3px dashed #f5f6d4;transform:skewY(-6deg)}
+[data-public-scene="pista-movimiento"] .race-scene-object{top:35px;right:10%;width:135px;height:112px;border:6px solid #2b586b;border-radius:12px;background:#e7f7ff;box-shadow:inset 0 -16px #7eb0bf,0 5px #21485a}
+[data-public-scene="pista-movimiento"] .race-scene-object-mark{font-size:52px}
+[data-public-scene="pista-movimiento"] .race-answers button{border-radius:6px!important;background:#ebf8fc!important;font-variant-numeric:tabular-nums}
+
+/* Plano complejo: cuadrícula y ejes real/imaginario. */
+[data-public-scene="observatorio-complejos"] .race-scene-workspace{background:linear-gradient(#d9eaf4,#f5f9f8)}
+[data-public-scene="observatorio-complejos"] .race-scene-object{top:18px;right:8%;width:170px;height:160px;border:3px solid #5e83a2;background:linear-gradient(90deg,transparent 49%,#315b83 49% 51%,transparent 51%),linear-gradient(transparent 49%,#315b83 49% 51%,transparent 51%),linear-gradient(#b2cfe6 1px,transparent 1px),linear-gradient(90deg,#b2cfe6 1px,transparent 1px),#f9fdff;background-size:auto,auto,22px 22px,22px 22px;box-shadow:0 5px #6e91ae}
+[data-public-scene="observatorio-complejos"] .race-scene-object::before{content:'Im';position:absolute;top:2px;left:54%;font-size:11px;font-weight:900}
+[data-public-scene="observatorio-complejos"] .race-scene-object::after{content:'Re';position:absolute;bottom:49%;right:2px;font-size:11px;font-weight:900}
+[data-public-scene="observatorio-complejos"] .race-scene-object-mark{font-size:49px;text-shadow:0 0 5px white}
+[data-public-scene="observatorio-complejos"] .race-answers button{border-radius:50%!important;background:#f4faff!important}
+
+/* Sensores de cinemática: gráfica y módulo de lectura. */
+[data-public-scene="centro-cinematica"] .race-scene-workspace{background:linear-gradient(#d9f0ed,#a7cfd4)}
+[data-public-scene="centro-cinematica"] .race-scene-object{top:24px;right:8%;width:178px;height:145px;border:7px solid #285769;border-radius:11px;background:linear-gradient(135deg,transparent 48%,#39b3ba 49% 52%,transparent 53%),repeating-linear-gradient(0deg,#e9ffff 0 24px,#b8e0e5 25px 26px);box-shadow:inset 0 0 0 6px #f8ffff,0 6px #214759}
+[data-public-scene="centro-cinematica"] .race-scene-object-mark{font-size:54px}
+[data-public-scene="centro-cinematica"] .race-answers button{border-radius:8px!important;background:#e7f8fa!important;font-variant-numeric:tabular-nums}
+
+/* Cámara matricial: cuatro celdas visibles detrás de un visor. */
+[data-public-scene="camara-matrices"] .race-scene-workspace{background:linear-gradient(#c5d2e7,#758ba9)}
+[data-public-scene="camara-matrices"] .race-scene-object{top:23px;right:9%;width:155px;height:148px;border:8px solid #344968;border-radius:9px;background:linear-gradient(90deg,transparent 48%,#344968 49% 52%,transparent 53%),linear-gradient(transparent 48%,#344968 49% 52%,transparent 53%),#cce5f2;box-shadow:inset 0 0 0 8px #f8faf4,0 7px #263c5a}
+[data-public-scene="camara-matrices"] .race-scene-object-mark{font-size:70px;opacity:.55}
+[data-public-scene="camara-matrices"] .race-answers button{border-radius:4px!important;background:#e8f2fa!important;font-family:Georgia,serif}
+
+/* Banco de ondas: osciloscopio y onda animada solo si el usuario lo permite. */
+[data-public-scene="observatorio-ondas"] .race-scene-workspace{background:linear-gradient(#d7f4f7,#95bfcf)}
+[data-public-scene="observatorio-ondas"] .race-scene-object{top:27px;right:8%;width:181px;height:135px;border:8px solid #325468;border-radius:17px;background:repeating-linear-gradient(90deg,#dcf9ee 0 23px,#cae9e7 24px 25px);box-shadow:inset 0 0 0 5px #fff,0 7px #263d53}
+[data-public-scene="observatorio-ondas"] .race-scene-object-mark{font-size:90px;line-height:.8;color:#268b9e}
+[data-public-scene="observatorio-ondas"] .race-answers button{border-radius:999px!important;background:#e9fafd!important;font-variant-numeric:tabular-nums}
+
+/* Cuaderno cronológico: la forma verbal se coloca en la página. */
+[data-public-scene="cronica-pasado"] .race-scene-workspace{background:linear-gradient(#dcc5a8,#aa8368)}
+[data-public-scene="cronica-pasado"] .race-scene-object{top:20px;right:8%;width:185px;height:154px;border:5px solid #816453;border-radius:6px 20px 20px 6px;background:repeating-linear-gradient(#fffaed 0 21px,#dacdbd 22px 23px);box-shadow:inset 10px 0 #dbc79d,7px 7px #705246}
+[data-public-scene="cronica-pasado"] .race-scene-object-mark{font-size:67px;color:#665477}
+[data-public-scene="cronica-pasado"] .race-answers button{border-radius:3px!important;background:#fff9e9!important;font-family:Georgia,serif}
+
+/* Interpretación C1: indicador de intención y mensajes en el panel. */
+[data-public-scene="consejo-modalidad"] .race-scene-workspace{background:linear-gradient(#d6e4f0,#a8bad4)}
+[data-public-scene="consejo-modalidad"] .race-scene-object{top:23px;right:7%;width:176px;height:146px;border:7px solid #445373;border-radius:22px;background:radial-gradient(circle at 50% 75%,#f8fafc 0 25%,transparent 26%),conic-gradient(from 230deg at 50% 75%,#73be9e 0 35deg,#e6cc82 36deg 75deg,#cf8594 76deg 120deg,transparent 121deg);box-shadow:inset 0 0 0 8px #f6f7f2,0 7px #36455f}
+[data-public-scene="consejo-modalidad"] .race-scene-object-mark{font-size:55px;color:#273d65}
+[data-public-scene="consejo-modalidad"] .race-answers button{border-radius:18px!important;background:#f5f4ff!important}
+
+/* Cada parada también pertenece a su mundo; la ruta no es la misma tarjeta
+   repetida con otra foto. Conserva seis botones compactos y navegables. */
+[data-public-scene="mercado-monedas"] .race-track{background:repeating-linear-gradient(45deg,#f4d8af 0 12px,#fbe9c9 12px 24px)!important}
+[data-public-scene="mercado-monedas"] .race-track button{border-top:7px solid #eab456!important;border-radius:9px 9px 14px 14px!important}
+[data-public-scene="observatorio-numeros"] .race-track{background:radial-gradient(circle at 70% 30%,#5e70be,#202d62)!important}
+[data-public-scene="observatorio-numeros"] .race-track button{border-radius:50%!important;background:#fbf7df!important}
+[data-public-scene="laboratorio-mezclas"] .race-track{background:repeating-linear-gradient(0deg,#b8d9d4 0 2px,#e0f5ef 2px 28px)!important}
+[data-public-scene="laboratorio-mezclas"] .race-track button{border-radius:10px 10px 24px 24px!important}
+[data-public-scene="feria-porcentajes"] .race-track{background:repeating-linear-gradient(90deg,#ffe5bb 0 55px,#f5c0b2 55px 110px)!important}
+[data-public-scene="feria-porcentajes"] .race-track button{border-top:9px solid #e37861!important;border-radius:9px 9px 3px 3px!important}
+[data-public-scene="ruta-bajo-cero"] .race-track{background:linear-gradient(155deg,#bbddec,#f5fbff 50%,#8eb8d1)!important}
+[data-public-scene="ruta-bajo-cero"] .race-track button{border-radius:24px 24px 7px 7px!important}
+[data-public-scene="boveda-racionales"] .race-track{background:repeating-linear-gradient(90deg,#d7ac7e 0 5px,#e6c397 5px 22px)!important}
+[data-public-scene="boveda-racionales"] .race-track button{border-radius:5px 14px 14px 5px!important;box-shadow:inset 5px 0 #d9b989,0 4px #9d7450!important}
+[data-public-scene="mercado-porcentajes"] .race-track{background:linear-gradient(#dce8e7,#b3d2d4)!important}
+[data-public-scene="mercado-porcentajes"] .race-track button{border-radius:4px!important;font-variant-numeric:tabular-nums}
+[data-public-scene="torre-radicales"] .race-track{background:repeating-linear-gradient(0deg,#a8bad2 0 3px,#dee9f7 3px 61px)!important}
+[data-public-scene="torre-radicales"] .race-track button{border-radius:3px!important;border:3px double #6279a0!important;background:#eaf1fc!important}
+[data-public-scene="pista-movimiento"] .race-track{background:repeating-linear-gradient(0deg,#647f8c 0 4px,#516977 4px 62px)!important}
+[data-public-scene="pista-movimiento"] .race-track button{border-radius:6px!important;border-left:7px solid #f4de74!important}
+[data-public-scene="observatorio-complejos"] .race-track{background:linear-gradient(#b5cee6 1px,transparent 1px),linear-gradient(90deg,#b5cee6 1px,transparent 1px),#eaf3fa!important;background-size:22px 22px!important}
+[data-public-scene="observatorio-complejos"] .race-track button{border-radius:50%!important}
+[data-public-scene="centro-cinematica"] .race-track{background:linear-gradient(#91d2d6 1px,transparent 1px),#d5eeee!important;background-size:100% 20px!important}
+[data-public-scene="centro-cinematica"] .race-track button{border-radius:7px!important;border-bottom:6px solid #6bb5bc!important}
+[data-public-scene="camara-matrices"] .race-track{background:repeating-linear-gradient(90deg,#9db1ce 0 3px,#cfdeed 3px 45px)!important}
+[data-public-scene="camara-matrices"] .race-track button{border-radius:3px!important;border:3px double #62779a!important}
+[data-public-scene="observatorio-ondas"] .race-track{background:repeating-linear-gradient(90deg,#e3f8f2 0 22px,#b8e1df 22px 24px)!important}
+[data-public-scene="observatorio-ondas"] .race-track button{border-radius:999px!important}
+[data-public-scene="cronica-pasado"] .race-track{background:repeating-linear-gradient(#ecdfc9 0 21px,#bfa98a 22px 23px)!important}
+[data-public-scene="cronica-pasado"] .race-track button{border-radius:4px 11px 11px 4px!important;font-family:Georgia,serif}
+[data-public-scene="consejo-modalidad"] .race-track{background:linear-gradient(135deg,#b5c5dc,#dce6ef)!important}
+[data-public-scene="consejo-modalidad"] .race-track button{border-radius:20px 20px 20px 5px!important}
+
+@media(max-width:800px){
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .challenge-race.race-scene{display:block;padding:10px}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-track{grid-template-columns:repeat(3,minmax(0,1fr));margin:8px 0;padding:7px}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-track button,
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-track button:nth-child(even){min-height:47px}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-track button b{width:23px;height:23px;font-size:14px}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-track button span{font-size:9px}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-answers{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .race-scene-workspace{min-height:230px}
+}
+@media(max-width:490px){
+ .race-scene-workspace{min-height:264px;padding:9px}
+ .race-scene-workspace-title{display:grid;gap:0;max-width:70%}
+ .race-scene-object{transform:scale(.68);transform-origin:top right}
+ .race-scene-object.is-correct{transform:scale(.71)}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .race-answers button{min-height:62px;padding:4px;font-size:11px}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .challenge-stage-actions{flex-wrap:nowrap}
+ :is(.activity-play .play-question,.live-question)[data-public-scene] .race-scene .challenge-stage-actions button{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){.race-scene-object{transition:none}}
