@@ -1,0 +1,153 @@
+/* Destinos interactivos para las diez misiones de clasificar. Las ilustraciones
+   son escenografía; botones y piezas siguen siendo HTML táctil y accesible. */
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-destinations {
+  display:block;
+  padding:12px 15px 16px;
+  background:linear-gradient(145deg,#fffdf2ee,#ffffffc7);
+  border:2px solid #ffffffec;
+  border-radius:25px;
+  overflow:hidden;
+}
+.match-scene .match-scene-heading{display:flex;align-items:center;gap:10px;margin:0 0 11px;color:var(--scene-ink,#14345c)}
+.match-scene .match-scene-heading span{display:grid;place-items:center;width:35px;height:35px;border-radius:11px;background:var(--scene-soft);font-size:21px}
+.match-scene .match-scene-heading b{font-size:15px;letter-spacing:.02em}
+.match-scene .match-scene-heading i{flex:1;height:2px;background:linear-gradient(90deg,var(--scene-accent),transparent);opacity:.48}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-scene-targets{display:grid;grid-template-columns:repeat(var(--matching-columns,3),minmax(0,1fr));gap:14px;align-items:stretch}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-bucket{
+  display:flex;flex-direction:column;min-width:0;min-height:125px;padding:12px 10px 15px;
+  border:2px solid var(--scene-accent);border-radius:16px;background:#fffdf6f5!important;
+  box-shadow:0 6px 0 color-mix(in srgb,var(--scene-accent) 28%,#c9d3d0),0 12px 20px #172e4a24!important;
+  transform:none;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-bucket::before,
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-bucket::after{content:none}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-bucket>button{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  width:100%;min-height:65px;padding:3px 5px;text-align:center;cursor:pointer;
+}
+.match-scene .match-object-symbol{display:grid;place-items:center;min-width:39px;min-height:34px;font-size:27px;line-height:1;color:var(--scene-accent)}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-bucket>button strong{max-width:100%;font-size:clamp(14px,1.4vw,18px);overflow-wrap:anywhere}
+.match-scene .match-bucket>button small{max-width:100%;line-height:1.15}
+.match-scene .match-bucket>div{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;min-height:20px;margin-top:auto}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-bucket .match-piece{
+  flex:1 1 85px;min-height:34px;padding:5px 7px;font-size:11px;line-height:1.12;text-align:left;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-bucket:is(.drag-over,:focus-within){
+  transform:translateY(-3px);border-color:#0b71e4;box-shadow:0 0 0 4px #ffffffd9,0 7px 0 #0b71e4!important;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-bucket.is-solved{border-color:#268a5c;background:#e8f9ec!important;box-shadow:0 6px 0 #83c99e,0 12px 20px #172e4a24!important}
+.matching-studio.match-scene .match-bucket.has-error{border-color:#d44457!important;box-shadow:0 6px 0 #e7a5ad,0 12px 20px #172e4a24!important}
+.match-scene .match-bucket.is-solved .match-object-symbol::after{content:'✓';display:grid;place-items:center;position:absolute;top:7px;right:8px;width:23px;height:23px;border-radius:50%;background:#207d50;color:white;font:900 15px Arial,sans-serif}
+.match-scene .match-bank{position:relative}
+.match-scene .match-bank::before{content:'';position:absolute;inset:4px;pointer-events:none;border:1px dashed color-mix(in srgb,var(--scene-accent) 55%,white);border-radius:16px}
+.match-scene .match-bank:has(.match-empty){padding-block:5px!important}
+.match-scene .match-bank:has(.match-empty) .match-empty{margin:3px 0;padding:3px 7px}
+.match-scene-finish{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:10px;padding:10px 14px;border:2px solid #6ab486;border-radius:14px;background:#ebf9ed;color:#185333;box-shadow:0 4px #95cba7;font-size:13px}
+.match-scene-finish>span{color:#e2ab23;font-size:22px}
+.match-finished-headlines{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;width:100%;margin-top:3px}
+.match-finished-headlines>span{padding:5px 9px;border-left:3px solid #438b61;background:#fffdf6;font-family:Georgia,serif;font-weight:700}
+
+/* Tren: la locomotora tira de seis vagones que contienen realmente la carga. */
+[data-public-scene="tren-decenas"] .matching-studio.match-scene{--matching-columns:6}
+[data-public-scene="tren-decenas"] .match-locomotive{position:relative;display:flex;align-items:center;gap:11px;width:215px;height:68px;margin:3px 0 13px;padding:10px 16px;border:4px solid #713c32;border-radius:27px 17px 9px 9px;background:linear-gradient(140deg,#d74f3b,#973b36);color:#fff7e7;box-shadow:inset 0 -11px #713c32,0 8px #364a61;font-weight:900;font-size:13px;text-shadow:0 1px #422625}
+[data-public-scene="tren-decenas"] .match-locomotive::before{content:'';position:absolute;left:22px;top:-20px;width:28px;height:19px;border:4px solid #713c32;border-radius:5px 5px 0 0;background:#443b4b}
+[data-public-scene="tren-decenas"] .match-locomotive::after{content:'●       ●';position:absolute;left:14px;bottom:-17px;color:#263b50;font-size:25px;letter-spacing:15px;white-space:nowrap}
+[data-public-scene="tren-decenas"] .match-locomotive-cab{font-size:32px;text-shadow:none}
+[data-public-scene="tren-decenas"] .match-locomotive-smoke{position:absolute;left:11px;top:-34px;color:#bccbd0;font-size:10px;letter-spacing:5px}
+[data-public-scene="tren-decenas"] .match-scene-targets{position:relative;padding:0 0 15px;background:linear-gradient(transparent calc(100% - 18px),#3f5361 calc(100% - 18px),#3f5361 calc(100% - 13px),transparent calc(100% - 13px)),repeating-linear-gradient(90deg,transparent 0 16px,#73674b 16px 23px,transparent 23px 40px)}
+:is(.activity-play .play-question,.live-question)[data-public-scene="tren-decenas"] .matching-studio.match-scene .match-bucket{position:relative;min-height:128px;padding:6px 5px 17px;border:3px solid #8e493f;border-top:7px solid #773b37;border-radius:12px 12px 7px 7px;background:linear-gradient(#ffe6a9,#df9069)!important;box-shadow:inset 0 -12px #a45348,0 8px #344c63!important}
+[data-public-scene="tren-decenas"] .match-bucket::after{content:'●  ●'!important;position:absolute!important;left:10px!important;right:auto!important;bottom:-17px!important;color:#263b50!important;font-size:23px!important;letter-spacing:clamp(12px,2vw,25px)!important;opacity:1!important;white-space:nowrap}
+[data-public-scene="tren-decenas"] .match-bucket:not(:first-child)::before{content:''!important;position:absolute;top:55%;left:-16px;width:13px;height:5px;background:#494f55}
+[data-public-scene="tren-decenas"] .match-bucket .match-object-symbol{display:none}
+[data-public-scene="tren-decenas"] .match-bucket>button strong{display:grid;place-items:center;width:42px;height:42px;border:3px solid #fff4ca;border-radius:8px;background:#5a83ac;color:white!important;font-size:23px!important;box-shadow:0 3px #375677}
+[data-public-scene="tren-decenas"] .match-bucket>button small{color:#603628}
+[data-public-scene="tren-decenas"] .match-bucket>div{padding:4px;border-radius:5px;background:#fff5d0b9}
+[data-public-scene="tren-decenas"] .match-bucket .match-piece{background:#fff1c3!important;border-color:#a95d43!important;color:#5b392e!important}
+[data-public-scene="tren-decenas"] .matching-studio.match-scene:has(.match-bucket.is-solved) .match-locomotive{filter:drop-shadow(0 0 9px #ffe2a5)}
+[data-public-scene="tren-decenas"] .matching-studio.match-scene:has(.match-bucket.is-solved):not(:has(.match-bucket:not(.is-solved))) .match-locomotive{animation:train-departs .7s ease-out both}
+@keyframes train-departs{0%{transform:translateX(0)}50%{transform:translateX(14px)}100%{transform:translateX(0)}}
+
+/* Tres claros del bosque, con copa y suelo; las fichas son notas de campo. */
+[data-public-scene="bosque-vivo"] .matching-studio.match-scene{--matching-columns:3}
+[data-public-scene="bosque-vivo"] .match-scene-targets{padding:23px 10px 9px;border-radius:25px;background:linear-gradient(#dff8d4 0 57%,#82ad6c 58% 64%,#6b9662 65%)}
+:is(.activity-play .play-question,.live-question)[data-public-scene="bosque-vivo"] .matching-studio.match-scene .match-bucket{border:3px solid #6b9d59;border-radius:48% 48% 23px 23px;background:linear-gradient(#f0ffdf,#daf1ba)!important;box-shadow:inset 0 -13px #a3cc84,0 7px #536b42!important}
+[data-public-scene="bosque-vivo"] .match-bucket::before{content:'🌳'!important;position:absolute;top:-31px;left:calc(50% - 20px);padding:0;background:none;color:inherit;font-size:30px}
+[data-public-scene="bosque-vivo"] .match-bucket .match-piece{background:#fffdf0!important;color:#275638!important}
+
+/* Papel de redacción con bandejas para recortes y una cabecera de periódico. */
+[data-public-scene="redaccion-titulares"] .matching-studio.match-scene{--matching-columns:2}
+[data-public-scene="redaccion-titulares"] .match-scene-targets{padding:16px;background:repeating-linear-gradient(#f1e8db 0 22px,#d9c7ad 23px 24px);border:1px solid #bcac99}
+:is(.activity-play .play-question,.live-question)[data-public-scene="redaccion-titulares"] .matching-studio.match-scene .match-bucket{border:2px solid #8f755d;border-radius:4px!important;background:#fffdf6!important;box-shadow:5px 5px #cfbaa0,9px 9px #e8d9c5!important;transform:none}
+[data-public-scene="redaccion-titulares"] .match-bucket>button{border-bottom:3px double #b79a7a!important}
+[data-public-scene="redaccion-titulares"] .match-bucket .match-object-symbol{font-size:26px}
+[data-public-scene="redaccion-titulares"] .match-bucket .match-piece{border-radius:2px!important;background:#fff4d9!important;box-shadow:2px 3px #dac6a5!important}
+
+/* Central: cuatro compartimentos de un sobre y dos mensajes por cada parte. */
+[data-public-scene="central-mensajes"] .matching-studio.match-scene{--matching-columns:4}
+[data-public-scene="central-mensajes"] .match-scene-targets{padding:12px;border-radius:17px;background:linear-gradient(135deg,#cddcf4,#e8d7ef)}
+:is(.activity-play .play-question,.live-question)[data-public-scene="central-mensajes"] .matching-studio.match-scene .match-bucket{border:2px solid #696a9e;border-radius:9px 9px 22px 22px!important;background:linear-gradient(150deg,#fff 0 58%,#e9e3f8 59%)!important;box-shadow:0 5px 0 #b3aace!important}
+[data-public-scene="central-mensajes"] .match-bucket::after{content:''!important;position:absolute!important;top:64px!important;right:0!important;bottom:auto!important;left:0!important;height:1px!important;background:#afa9ce!important;opacity:1!important}
+[data-public-scene="central-mensajes"] .match-bucket>div{padding-top:7px}
+
+/* Mesas con instrumento y unidad de la magnitud visible. */
+[data-public-scene="laboratorio-medidas"] .matching-studio.match-scene{--matching-columns:4}
+[data-public-scene="laboratorio-medidas"] .match-scene-targets{padding:10px;border-radius:14px;background:repeating-linear-gradient(90deg,#b8d8d8 0 3px,#dcf0ed 3px 46px)}
+:is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-medidas"] .matching-studio.match-scene .match-bucket{border:3px solid #6f9ba6;border-radius:15px 15px 5px 5px!important;background:linear-gradient(#f5ffff,#dbf2ee)!important;box-shadow:inset 0 -8px #9ccdc5,0 6px #587a81!important}
+[data-public-scene="laboratorio-medidas"] .match-bucket>button{border-bottom:2px solid #afcfca!important}
+[data-public-scene="laboratorio-medidas"] .match-bucket .match-object-symbol{font-size:34px}
+
+/* Cajones de archivo: tirador bajo la etiqueta y fichas en el interior. */
+[data-public-scene="archivo-sintagmas"] .matching-studio.match-scene{--matching-columns:4}
+[data-public-scene="archivo-sintagmas"] .match-scene-targets{padding:13px;border:8px solid #7d6652;border-radius:8px;background:#b7936d}
+:is(.activity-play .play-question,.live-question)[data-public-scene="archivo-sintagmas"] .matching-studio.match-scene .match-bucket{border:4px solid #76553e;border-radius:5px!important;background:linear-gradient(#e4c19a,#bc8c5c)!important;box-shadow:inset 0 0 0 3px #f6ddbb,0 4px #593c2c!important}
+[data-public-scene="archivo-sintagmas"] .match-bucket>button{background:#fff8e9!important;border:2px solid #98714b!important;border-radius:4px!important;box-shadow:none!important}
+[data-public-scene="archivo-sintagmas"] .match-bucket .match-object-symbol{min-width:43px;min-height:26px;border-radius:3px;background:#4f6371;color:#fff;font-size:11px;font-weight:900}
+[data-public-scene="archivo-sintagmas"] .match-bucket>div{margin-top:8px;padding-top:8px;border-top:4px solid #73503b}
+[data-public-scene="archivo-sintagmas"] .match-bucket>div::after{content:'▰';display:block;width:100%;color:#73503b;text-align:center;font-size:16px}
+
+/* Mapa: la clasificación se hace en campo, industria y calle comercial. */
+[data-public-scene="ciudad-economica"] .matching-studio.match-scene{--matching-columns:3}
+[data-public-scene="ciudad-economica"] .match-scene-targets{padding:13px;border-radius:18px;background:linear-gradient(45deg,#c9ddc1 25%,#e5e0c6 25% 30%,#c9ddc1 30% 60%,#e5e0c6 60% 65%,#c9ddc1 65%)}
+:is(.activity-play .play-question,.live-question)[data-public-scene="ciudad-economica"] .matching-studio.match-scene .match-bucket{border:3px solid #608784;border-radius:7px 7px 19px 19px!important;background:linear-gradient(#f8fff2,#d7eddf)!important;box-shadow:inset 0 -11px #a5ccac,0 6px #54787a!important}
+[data-public-scene="ciudad-economica"] .match-bucket .match-object-symbol{min-height:44px;font-size:35px}
+[data-public-scene="ciudad-economica"] .match-bucket .match-piece{background:#fff8e8!important}
+
+/* Cuatro diagramas de enlace con la relación en el centro. */
+[data-public-scene="redaccion-compuesta"] .matching-studio.match-scene{--matching-columns:4}
+[data-public-scene="redaccion-compuesta"] .match-scene-targets{padding:13px;background:repeating-linear-gradient(0deg,#f6f0e5 0 26px,#b9a69355 27px 28px)}
+:is(.activity-play .play-question,.live-question)[data-public-scene="redaccion-compuesta"] .matching-studio.match-scene .match-bucket{border:2px solid #9d846e;border-radius:8px!important;background:#fffef7!important;box-shadow:0 5px #d0bda4!important}
+[data-public-scene="redaccion-compuesta"] .match-bucket .match-object-symbol{min-width:55px;min-height:35px;border-radius:18px;border:2px solid #a38b78;background:#f6e8d5;font-size:25px;font-weight:900}
+[data-public-scene="redaccion-compuesta"] .match-bucket>button::before{content:'▭ ━ ▭';color:#75614f;font-size:14px;letter-spacing:3px}
+
+/* Canales por situación comunicativa. */
+[data-public-scene="atlas-registros"] .matching-studio.match-scene{--matching-columns:3}
+[data-public-scene="atlas-registros"] .match-scene-targets{padding:13px;border-radius:18px;background:linear-gradient(135deg,#dfeaf1,#d4e2e5)}
+:is(.activity-play .play-question,.live-question)[data-public-scene="atlas-registros"] .matching-studio.match-scene .match-bucket{border:2px solid #65838e;border-radius:22px 22px 7px 7px!important;background:linear-gradient(#fcffff,#e1eff2)!important;box-shadow:inset 0 -8px #accbd3,0 5px #688b99!important}
+[data-public-scene="atlas-registros"] .match-bucket>button{border-bottom:3px solid #b2cdd4!important}
+[data-public-scene="atlas-registros"] .match-bucket .match-object-symbol{font-size:34px}
+
+/* Vitrinas históricas con marco y cristal; los documentos quedan expuestos. */
+[data-public-scene="hemeroteca-fuentes"] .matching-studio.match-scene{--matching-columns:2}
+[data-public-scene="hemeroteca-fuentes"] .match-scene-targets{padding:14px;border:6px solid #8c6b47;border-radius:9px;background:repeating-linear-gradient(90deg,#b48d5e 0 8px,#d4b282 8px 115px)}
+:is(.activity-play .play-question,.live-question)[data-public-scene="hemeroteca-fuentes"] .matching-studio.match-scene .match-bucket{border:6px ridge #9d784a;border-radius:7px!important;background:linear-gradient(120deg,#ffffffbc 0 38%,#ffffff56 39% 45%,#fff8e7e8 46%)!important;box-shadow:inset 0 0 0 2px #f6e2b6,0 6px #694f35!important}
+[data-public-scene="hemeroteca-fuentes"] .match-bucket>button{border-bottom:1px solid #bfa982!important}
+[data-public-scene="hemeroteca-fuentes"] .match-bucket .match-object-symbol{font-size:31px}
+[data-public-scene="hemeroteca-fuentes"] .match-bucket .match-piece{background:#fffaf0!important;border-radius:2px!important}
+
+@media(max-width:1100px){
+  [data-public-scene="tren-decenas"] .matching-studio.match-scene{--matching-columns:3}
+  [data-public-scene="central-mensajes"] .matching-studio.match-scene,
+  [data-public-scene="laboratorio-medidas"] .matching-studio.match-scene,
+  [data-public-scene="archivo-sintagmas"] .matching-studio.match-scene,
+  [data-public-scene="redaccion-compuesta"] .matching-studio.match-scene{--matching-columns:2}
+}
+@media(max-width:650px){
+  :is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-scene-targets{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  [data-public-scene="bosque-vivo"] .matching-studio.match-scene .match-scene-targets,
+  [data-public-scene="ciudad-economica"] .matching-studio.match-scene .match-scene-targets,
+  [data-public-scene="atlas-registros"] .matching-studio.match-scene .match-scene-targets{grid-template-columns:1fr}
+  :is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-scene .match-bucket{min-height:112px;padding:7px}
+  .match-scene .match-bucket>button small{display:none}
+  [data-public-scene="tren-decenas"] .match-locomotive{transform:scale(.8);transform-origin:left bottom;margin-bottom:0}
+}
+@media(prefers-reduced-motion:reduce){.match-scene .match-bucket{transition:none!important}.match-locomotive{animation:none!important}}
