@@ -76,7 +76,7 @@
 })(typeof window === 'undefined' ? globalThis : window);
 
 if (typeof window !== 'undefined') {
-  let gameSubject = 'all';
+  let gameSubject = null;
   let gameRun = null;
 
   window.installGamesShortcut = function () {
@@ -98,6 +98,7 @@ if (typeof window !== 'undefined') {
       if (document.getElementById('modelEvidenceAnswer')) saveModelEvidence(state.activeTopic, state.activeLesson, false);
     }
     if (subjectId && MODULES.some(module => module.id === subjectId)) gameSubject = subjectId;
+    else if (gameSubject === null) gameSubject = MODULES.some(module => module.id === state.activeModule && !['exam', 'oficial'].includes(module.id)) ? state.activeModule : MODULES[0].id;
     gameRun = null;
     currentView = 'games';
     closeProfile();
