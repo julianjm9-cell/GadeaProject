@@ -7096,6 +7096,7 @@ function renderWorkspace() {
   const module = moduleById(state.activeModule);
   if (module.id === 'exam' && ['aleatorio','examen','ejemplos','elegir'].includes(state.activeTab)) state.activeTab = 'exam-home';
   $('workspace').classList.toggle('exam-workspace', module.id === 'exam');
+  $('workspace').querySelector('.workspace-head').hidden = module.id === 'exam';
   $('tabs').hidden = module.id === 'exam';
   const topicMode = module.id !== 'exam' && module.id !== 'oficial' && state.activeTab === 'contenidos';
   const subjectMode = !['exam','oficial'].includes(module.id);
@@ -7749,7 +7750,7 @@ function renderRandomExam() { renderExamHome(); }
 function renderExamBuilder() {
   const modelLink = OFFICIAL_LINKS.find(link => /modelos|convocatorias anteriores/i.test(link.title)) || OFFICIAL_LINKS[0];
   state.activeTab = 'simulacro';
-  $('viewer').innerHTML = `<div class="exam-redesign">${examSectionHeader('Simulacro','Elige un ámbito y la duración. Después podrás responder y corregir.')}
+  $('viewer').innerHTML = `<div class="exam-redesign">${examSectionHeader('Simulacro de examen','Elige un ámbito y la duración. Después podrás responder y corregir.')}
   <section class="exam-wizard"><div class="exam-wizard-grid">
   <section class="exam-wizard-step"><h4><i>1</i> Elige el ámbito</h4><div class="exam-scope-options">${[['comunicacion','Comunicación','Lengua e inglés','Aa'],['social','Social','Geografía e historia','⌖'],['cientifico','Científico-tecnológico','Matemáticas y ciencias','Σ'],['all','Todos','Los tres ámbitos','▦']].map(([value,title,description,icon])=>`<label><input type="radio" name="simScope" value="${value}" ${value==='all'?'checked':''} onchange="updateExamSetup()"><span><i aria-hidden="true">${icon}</i><strong>${title}</strong><small>${description}</small></span></label>`).join('')}</div></section>
   <section class="exam-wizard-step"><h4><i>2</i> Elige el formato</h4><div class="exam-format-options">${[['quick','Repaso breve','20 minutos'],['complete','Práctica completa','75 minutos'],['official','Simulacro oficial','120 minutos · un ámbito']].map(([value,title,description])=>`<label><input type="radio" name="simFormat" value="${value}" ${value==='quick'?'checked':''} onchange="updateExamSetup()"><span><strong>${title}</strong><small>${description}</small></span></label>`).join('')}</div><p class="exam-format-note" id="examSetupNote">Práctica de desarrollo con temas de tu biblioteca.</p></section>
@@ -7910,7 +7911,7 @@ function examSectionHeader(title,description,back="setTab('exam-home')",backLabe
 function renderExamHome() {
   $('viewer').innerHTML=`<div class="exam-home-options">${[
     ['practicar','▤','Practicar','Ejercicios guiados y tests con autocorrección.'],
-    ['simulacro','◇','Simulacro','Elige el ámbito y prepárate a tu ritmo.'],
+    ['simulacro','◇','Simulacro de examen','Elige el ámbito y prepárate a tu ritmo.'],
     ['correccion','✓','Corregir examen','Escribe o sube una foto del enunciado y tu respuesta.'],
     ['historial','◷','Historial','Retoma tus exámenes y consulta las correcciones.']
   ].map(([tab,icon,title,text])=>`<button type="button" onclick="setTab('${tab}')"><i aria-hidden="true">${icon}</i><span><strong>${title}</strong><small>${text}</small></span><b aria-hidden="true">›</b></button>`).join('')}</div>`;
