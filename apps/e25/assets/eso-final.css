@@ -92,3 +92,7 @@
 @media(max-width:1150px){.desktop-refresh .today-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr))}.eso-game-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.desktop-refresh header .screen-nav{grid-template-columns:repeat(5,minmax(0,1fr));max-width:none}.desktop-refresh header .screen-nav button{font-size:11px;padding-inline:3px}.desktop-refresh .today-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}.desktop-refresh .today-shortcut{min-height:170px}.lesson-part-body{padding:0 16px 16px}.eso-game-cards{grid-template-columns:1fr}.eso-game-options{grid-template-columns:1fr}.eso-game-pairs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){.desktop-refresh .today-shortcuts{grid-template-columns:1fr}.desktop-refresh .today-shortcut{min-height:132px}.eso-game-subject{padding:15px}.eso-game-run{padding:14px}.eso-game-question{padding:16px}.eso-game-run-head h2{font-size:20px}.eso-game-question h3{font-size:18px}.desktop-refresh .eso-game-pairs button{min-height:92px}}
+
+/* El menú superior ya identifica Exámenes; las opciones empiezan sin otro encabezado. */
+.exam-workspace .workspace-head{display:none!important}
+.exam-workspace .exam-home-options{margin-top:0}
