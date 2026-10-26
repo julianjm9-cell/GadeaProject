@@ -52,7 +52,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/profesor/anuncios": "Tablón de profesores".encode("utf-8"),
         "/sitemap.xml": b"/profesor/juegos-interactivos",
         "/api/profesor/ads": b'"ads"',
-        "/e25": b"/e25/register",
+        "/e25": b"/auth/google/login?next=%2Feso-adultos",
         "/e25/login": b"LOGIN_TARGETS",
         "/e25/register": b"signupMode",
         "/profesor/register": b"signupMode",
@@ -162,6 +162,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
                 assert b'perfil del alumno' not in data, "La página anuncia perfiles de alumnos retirados"
             if path == "/profesor-particular":
                 assert "/login?next=/profesor-particular" in response.url, "La app no redirige al login"
+            if path == "/e25":
+                assert b'href="/e25/register"' not in data and b'href="/e25/login"' not in data, "La landing de ESO Adultos ofrece un acceso distinto de Google"
         print(f"OK {path}")
     with urlopen(base + "/auth/profesor/signup-settings", timeout=20) as response:
         settings = json.load(response)

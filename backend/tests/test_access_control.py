@@ -650,6 +650,14 @@ def test_public_marketing_pages_load_without_login(client, path):
     assert "text/html" in response.headers["content-type"]
 
 
+def test_eso_landing_offers_google_as_its_only_sign_in(client):
+    test_client, _ = client
+    page = test_client.get("/e25").text
+    assert 'href="/auth/google/login?next=%2Feso-adultos"' in page
+    assert 'href="/e25/register"' not in page
+    assert 'href="/e25/login"' not in page
+
+
 def test_hazlotu_access_is_admin_managed_and_rotation_revokes_cookies(client):
     test_client, db_factory = client
     for path in ("/hazlo-tu", "/hazlatu", "/hazlatu.html"):
