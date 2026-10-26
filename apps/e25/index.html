@@ -3378,7 +3378,7 @@
 @media(max-width:760px){.desktop-refresh .exam-workspace #viewer{padding:16px}.exam-home-options{gap:12px}.desktop-refresh .exam-home-options>button{min-height:135px;padding:18px;grid-template-columns:44px minmax(0,1fr) 12px;gap:12px}.exam-home-options i{width:44px;height:44px;border-radius:13px;font-size:23px}.exam-home-options strong{font-size:17px}.exam-home-options small{font-size:12px}.exam-correction .ocr-row{grid-template-columns:1fr}.exam-section-head h3{font-size:22px}.exam-record{padding:16px;gap:12px}.exam-record button{font-size:12px}.exam-correction .exam-submit-row{grid-template-columns:1fr}.exam-correction-tools{align-items:flex-start}.exam-correction-tools>span{line-height:1.6}}
 @media(max-width:520px){.exam-home-options{grid-template-columns:1fr}.desktop-refresh .exam-home-options>button{min-height:107px}.exam-home-options strong{font-size:18px}.exam-home-options small{font-size:13px}.exam-record{align-items:flex-start;flex-direction:column}.exam-record button{align-self:flex-end}.exam-section-head{gap:14px}.exam-correction #correctionOutput{padding:16px}}
 
-</style><link rel="stylesheet" href="assets/eso-final.css?v=20261026-3"></head>
+</style><link rel="stylesheet" href="assets/eso-final.css?v=20261026-4"></head>
 <body>
 <div class="app">
   <header>
@@ -3511,7 +3511,7 @@
   <div class="teacher-reading-modal" id="teacherReadingModal" hidden onclick="if(event.target===this) closeTeacherAnswer()"><section class="teacher-reading-dialog" role="dialog" aria-modal="true" aria-labelledby="teacherReadingTitle"><div class="teacher-reading-head"><strong id="teacherReadingTitle">Respuesta del Profesor IA</strong><button class="icon-button" type="button" onclick="closeTeacherAnswer()" aria-label="Cerrar" title="Cerrar">&times;</button></div><div class="teacher-reading-content teacher-rich" id="teacherReadingContent"></div></section></div>
 </div>
 
-<script src="assets/eso-games.js?v=20261026-2"></script>
+<script src="assets/eso-games.js?v=20261026-3"></script>
 <script>
 const APP_KEY = 'eso_adultos';
 const REDESIGN_MODE = false;
@@ -6354,7 +6354,7 @@ function renderNextProgress() {
     const topics = studyTasks();
     const tests = Object.values(state.testAttempts || {});
     const average = tests.length ? Math.round(tests.reduce((sum,item)=>sum+Number(item.score||0),0)/tests.length) : 0;
-    const games = Object.values(state.gameResults || {}).flatMap(result => [result?.quiz, result?.pairs].filter(Boolean));
+    const games = Object.values(state.gameResults || {}).flatMap(result => [result?.quiz, result?.pairs, result?.quest].filter(Boolean));
     $('nextProgressBody').innerHTML = `<div class="next-catalog"><article class="next-card next-info"><strong>${topics.filter(item=>state.done[item.id]).length}/${topics.length}</strong><span>temas completados</span></article><article class="next-card next-info"><strong>${(state.activityDates||[]).length}</strong><span>días con actividad registrados</span></article><article class="next-card next-info"><strong>${tests.length ? `${average} %` : '—'}</strong><span>media en tests realizados</span></article><article class="next-card next-info"><strong>${games.length}</strong><span>juegos practicados</span></article><article class="next-card next-info"><strong>${games.length ? `${Math.max(...games.map(game => Number(game.best || 0)))} %` : '—'}</strong><span>mejor resultado en juegos</span></article></div>`;
     return;
   }
@@ -6371,7 +6371,7 @@ function renderNextProgress() {
   const previousMin = level.min_xp;
   const xpPct = nextMin ? Math.max(0,Math.min(100,Math.round((profile.xp-previousMin)/(nextMin-previousMin)*100))) : 100;
   const days = recentStudyDays().filter(day=>day.done).length;
-  const gamesPlayed = Object.values(state.gameResults || {}).reduce((count, result) => count + Number(Boolean(result?.quiz)) + Number(Boolean(result?.pairs)), 0);
+  const gamesPlayed = Object.values(state.gameResults || {}).reduce((count, result) => count + Number(Boolean(result?.quiz)) + Number(Boolean(result?.pairs)) + Number(Boolean(result?.quest)), 0);
   $('nextProgressBody').innerHTML = `<div class="next-progress-grid"><article class="next-card next-progress-main"><div class="next-level-row"><div><span>Nivel del escritorio</span><strong>${level.level} · ${escapeHtml(level.name)}</strong></div><span class="next-coins">${profile.coins} monedas</span></div><div class="next-xp"><i style="width:${xpPct}%"></i></div><div class="next-xp-meta"><span>${profile.xp} XP</span><span>${nextMin ? `${nextMin-profile.xp} XP para el nivel ${level.level+1}` : 'Nivel máximo'}</span></div>${deskSceneHtml(profile,true)}<div class="next-actions"><button class="primary next-primary" type="button" onclick="openNextCustomizer()">Personalizar escritorio</button><button type="button" onclick="openNextShop()">Ir a la tienda</button></div></article><aside class="next-side"><article class="next-card next-info"><strong>${academicProgressPct()} %</strong><span>Temario completado</span></article><article class="next-card next-info"><strong>${days} de 7</strong><span>Tu ritmo reciente</span></article><article class="next-card next-info"><strong>${gamesPlayed}</strong><span>Juegos practicados</span></article><article class="next-card next-info"><strong>${profile.owned_items?.length || 0}/${profile.catalog?.length || 0}</strong><span>Objetos en el inventario</span></article></aside></div>`;
 }
 function renderNextExperience() { renderHomeDesk(); renderNextHome(); renderNextProgress(); }

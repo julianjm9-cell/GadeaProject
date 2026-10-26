@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {topicQuiz, topicPairs, pairsScore} = require('../assets/eso-games.js');
+const {topicQuiz, topicPairs, topicQuest, topicArt, pairsScore, questScore} = require('../assets/eso-games.js');
 
 const moduleData = {
   id: 'matematicas',
@@ -45,4 +45,19 @@ test('las parejas tienen correspondencia única y puntúan los intentos', () => 
   assert.deepEqual([...counts.values()], [2,2,2,2]);
   assert.equal(pairsScore(4,4), 100);
   assert.ok(pairsScore(8,4) < 100);
+});
+
+test('el mapa del tema ofrece tres destinos y respuestas únicas con distractores', () => {
+  const quest = topicQuest(moduleData.tasks[0], moduleData);
+  assert.equal(quest.stations.length, 3);
+  assert.equal(quest.cards.length, 5);
+  for (const station of quest.stations) {
+    assert.equal(quest.cards.filter(card => card.station === station.id).length, 1);
+  }
+  assert.equal(quest.cards.filter(card => card.station === null).length, 2);
+  assert.deepEqual(quest, topicQuest(moduleData.tasks[0], moduleData));
+  assert.equal(questScore(0), 100);
+  assert.equal(questScore(1), 80);
+  assert.equal(questScore(6), 0);
+  assert.equal(topicArt({id:'len-comprension'}, {id:'lengua'}), '/assets/games/public-biblioteca-inference.webp');
 });

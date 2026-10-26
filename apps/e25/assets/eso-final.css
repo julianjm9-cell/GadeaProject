@@ -96,3 +96,45 @@
 /* El menú superior ya identifica Exámenes; las opciones empiezan sin otro encabezado. */
 .exam-workspace .workspace-head{display:none!important}
 .exam-workspace .exam-home-options{margin-top:0}
+
+/* Juegos por tema: ilustraciones y tablero de respuestas integrado en la escena. */
+.eso-game-card{overflow:hidden}
+.eso-game-card .game-card-art{display:block;width:100%;height:120px;margin-bottom:14px;border-radius:12px;object-fit:cover;object-position:center top;background:#e8f2ff}
+.eso-game-card .game-card-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.eso-game-card .game-card-actions button:last-child{grid-column:1/-1}
+.desktop-refresh .eso-game-card .game-card-actions button:last-child{min-height:43px;border-color:#b7b0ef;background:#f0edff;color:#4937a3;font-weight:800}
+.desktop-refresh .eso-game-card .game-card-actions button:last-child:hover{background:#e3ddff}
+.eso-quest-run{width:min(1120px,100%)}
+.eso-quest-board{position:relative;isolation:isolate;overflow:hidden;border:1px solid #b4cdf2;border-radius:21px;background:#dbe9fa}
+.eso-quest-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top}
+.eso-quest-board:before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,#102e5dd9,#184d81ad 56%,#193b6c88)}
+.eso-quest-content{position:relative;z-index:2;padding:24px}
+.eso-quest-intro{display:grid;gap:5px;margin-bottom:20px;color:#fff}
+.eso-quest-intro span{font-size:12px;font-weight:900;letter-spacing:.1em;color:#dbeaff}
+.eso-quest-intro strong{font-size:24px;line-height:1.25}
+.eso-quest-intro small{font-size:13px;color:#e2efff}
+.eso-quest-stations{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.desktop-refresh .eso-quest-station{display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-width:0;min-height:198px;padding:16px;border:2px dashed #c4dcf8;border-radius:16px;background:#ffffffed;color:#17365c;box-shadow:0 10px 24px #0b1e4250;text-align:left;text-transform:none;white-space:normal}
+.desktop-refresh .eso-quest-station:hover:not(:disabled){border-color:#66b3ff;background:#fff}
+.desktop-refresh .eso-quest-station.complete{border-style:solid;border-color:#78c9a4;background:#edfff4;color:#164d37}
+.desktop-refresh .eso-quest-station.wrong{border-color:#e08e8e;background:#fff0f0}
+.desktop-refresh .eso-quest-station:disabled{opacity:1;cursor:default}
+.eso-quest-station-number{display:grid;place-items:center;width:31px;height:31px;flex:none;border-radius:9px;background:var(--quest-tone,#176de0);color:#fff;font-weight:900;font-size:12px}
+.eso-quest-station-content{display:grid;gap:9px;min-width:0;width:100%}
+.eso-quest-station-content strong{font-size:14px;line-height:1.36;overflow-wrap:anywhere}
+.eso-quest-station-content small{font-size:12px;line-height:1.4;color:#5d7797;overflow-wrap:anywhere}
+.eso-quest-station.complete .eso-quest-station-content small{color:#176447;font-weight:700}
+.eso-quest-station-state{margin-top:auto;color:#2475cf;font-size:20px;font-weight:900}
+.eso-quest-station.complete .eso-quest-station-state{color:#1e9b65}
+.eso-quest-bank{margin-top:18px;padding:19px;border:1px solid #dce8f7;border-radius:18px;background:#f5f9ff}
+.eso-quest-bank-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:13px}
+.eso-quest-bank-head strong{color:#153767;font-size:16px}
+.eso-quest-bank-head span{color:#5e7898;font-size:12px}
+.eso-quest-pieces{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.desktop-refresh .eso-quest-piece{display:flex;align-items:flex-start;gap:9px;min-width:0;min-height:54px;padding:12px 14px;border:1px solid #bfdbf9;border-radius:12px;background:#fff;color:#163c69;box-shadow:0 4px 0 #cbdff4;text-align:left;text-transform:none;white-space:normal;font-size:12px;line-height:1.4;overflow-wrap:anywhere;cursor:grab}
+.desktop-refresh .eso-quest-piece:hover,.desktop-refresh .eso-quest-piece.selected{border-color:#3991ed;background:#eaf4ff;box-shadow:0 4px 0 #91c5fa}
+.eso-quest-piece>span{flex:none;color:#1872dc;font-size:16px}
+.eso-quest-feedback{min-height:25px;margin:13px 0 0;color:#215f93;font-size:13px;line-height:1.5}
+.eso-quest-feedback.error{color:#a43f3f}
+@media(max-width:900px){.eso-quest-stations{grid-template-columns:1fr}.desktop-refresh .eso-quest-station{min-height:0}.eso-quest-bank-head{align-items:flex-start;flex-direction:column;gap:4px}}
+@media(max-width:600px){.eso-quest-content{padding:16px}.eso-quest-intro strong{font-size:20px}.eso-quest-station:not(.current){display:none}.eso-quest-pieces{grid-template-columns:1fr}.eso-quest-bank{padding:13px}.eso-game-card .game-card-art{height:90px}.eso-quest-backdrop{clip-path:inset(0 0 40% 0)}}

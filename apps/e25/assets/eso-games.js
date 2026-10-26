@@ -70,7 +70,118 @@
     return Math.max(40, Math.min(100, Math.round((pairCount / Math.max(pairCount, moves)) * 100)));
   }
 
-  const api = {topicQuiz, topicPairs, pairsScore};
+  const topicArtNames = {
+    'len-comprension':'public-biblioteca-inference.webp',
+    'len-resumen':'public-museo-expositivo.webp',
+    'len-gramatica':'public-archivo-sintagmas.webp',
+    'len-ortografia':'public-isla-tildes.webp',
+    'len-redaccion':'public-redaccion-titulares.webp',
+    'len-literatura':'public-biblioteca-secreta.webp',
+    'len-textos-vida':'public-central-mensajes.webp',
+    'len-medios':'public-hemeroteca-fuentes.webp',
+    'len-argumentacion':'public-tribunal-ambiguedad.webp',
+    'len-comentario':'public-sala-comentario.webp',
+    'len-presentacion':'public-museo-expositivo.webp',
+    'ing-reading':'public-biblioteca-inference.webp',
+    'ing-vocabulary':'public-fabrica-palabras.webp',
+    'ing-grammar':'public-estudio-advanced-tenses.webp',
+    'ing-writing':'public-redaccion-compuesta.webp',
+    'ing-listening':'public-plaza-saludos.webp',
+    'ing-dialogues':'public-plaza-saludos.webp',
+    'ing-forms':'public-aeropuerto-habitos.webp',
+    'ing-connectors':'public-puente-subjuntivo.webp',
+    'ing-exam-strategy':'public-estudio-habitos.webp',
+    'geo-mapas':'public-atlas-explorador.webp',
+    'geo-relieve':'public-safari-parque.webp',
+    'geo-poblacion':'public-mapa-migraciones.webp',
+    'geo-economia':'public-ciudad-economica.webp',
+    'geo-global':'public-atlas-explorador.webp',
+    'geo-espana-europa':'public-atlas-explorador.webp',
+    'geo-medioambiente':'public-bosque-vivo.webp',
+    'geo-fuentes':'public-hemeroteca-fuentes.webp',
+    'geo-ciudad':'public-ciudad-direcciones.webp',
+    'geo-trabajo':'public-mercado-monedas.webp',
+    'his-antigua':'public-museo-expositivo.webp',
+    'his-medieval':'public-biblioteca-secreta.webp',
+    'his-moderna':'public-cronica-pasado.webp',
+    'his-contemporanea':'public-archivo-contemporaneo.webp',
+    'his-sigloxx':'public-cronica-pasado.webp',
+    'his-ciudadania':'public-asamblea-revoluciones.webp',
+    'his-espana':'public-archivo-contemporaneo.webp',
+    'his-andalucia':'public-museo-expositivo.webp',
+    'his-valores':'public-asamblea-revoluciones.webp',
+    'his-fuentes':'public-hemeroteca-fuentes.webp',
+    'his-musica-cultura':'public-cronica-pasado.webp',
+    'mat-numeros':'public-observatorio-numeros.webp',
+    'mat-proporciones':'public-feria-porcentajes.webp',
+    'mat-algebra':'public-camara-matrices.webp',
+    'mat-geometria':'public-laboratorio-medidas.webp',
+    'mat-funciones':'public-observatorio-ondas.webp',
+    'mat-estadistica':'public-observatorio-decimales.webp',
+    'mat-medida':'public-laboratorio-medidas.webp',
+    'mat-finanzas':'public-mercado-monedas.webp',
+    'mat-problemas':'public-cocina-fracciones.webp',
+    'mat-graficas-examen':'public-observatorio-ondas.webp',
+    'mat-calculadora':'public-observatorio-numeros.webp',
+    'mat-razonamiento':'public-boveda-racionales.webp',
+    'cie-metodo':'public-laboratorio-mezclas.webp',
+    'cie-biologia':'public-atlas-cuerpo.webp',
+    'cie-ecologia':'public-bosque-vivo.webp',
+    'cie-materia':'public-laboratorio-atomo.webp',
+    'cie-fisica':'public-centro-cinematica.webp',
+    'cie-tecnologia':'public-taller-circuitos.webp',
+    'cie-tierra':'public-atlas-explorador.webp',
+    'cie-cuerpo':'public-atlas-cuerpo.webp',
+    'cie-laboratorio':'public-laboratorio-mezclas.webp',
+    'cie-sostenibilidad':'public-invernadero-cientifico.webp',
+    'cie-digitalizacion':'public-taller-circuitos.webp',
+    'cie-proyecto':'public-taller-circuitos.webp',
+  };
+  const fallbackArt = {
+    lengua:'public-biblioteca-secreta.webp',
+    ingles:'public-plaza-saludos.webp',
+    geografia:'public-atlas-explorador.webp',
+    historia:'public-archivo-contemporaneo.webp',
+    matematicas:'public-observatorio-numeros.webp',
+    ciencias:'public-laboratorio-atomo.webp',
+  };
+
+  function topicArt(topic, module) {
+    const file = topicArtNames[topic.id] || fallbackArt[module.id];
+    const localPreview = root.location?.protocol === 'file:' || root.location?.pathname?.includes('/apps/e25/');
+    return `${localPreview ? '../profesor/assets/games/' : '/assets/games/'}${file}`;
+  }
+
+  function topicQuest(topic, module, modelUnits = {}) {
+    const stations = topicQuiz(topic, module, modelUnits).slice(0, 3).map((question, index) => ({
+      id: index,
+      prompt: question.prompt,
+      answer: question.choices[question.correct],
+      explanation: question.explanation,
+    })).filter(station => station.answer);
+    if (stations.length < 3) return null;
+    const answers = stations.map(station => ({station:station.id, text:station.answer}));
+    const correctTexts = new Set(answers.map(item => item.text.trim().toLocaleLowerCase()));
+    const distractors = [];
+    for (const question of topicQuiz(topic, module, modelUnits)) {
+      for (const choice of question.choices) {
+        const normalized = choice.trim().toLocaleLowerCase();
+        if (normalized && !correctTexts.has(normalized) && !distractors.some(item => item.text.trim().toLocaleLowerCase() === normalized)) {
+          distractors.push({station:null, text:choice});
+        }
+        if (distractors.length === 2) break;
+      }
+      if (distractors.length === 2) break;
+    }
+    const cards = shuffle([...answers, ...distractors].map((item, index) => ({...item, id:index})), `${topic.id}:quest`);
+    return {stations, cards};
+  }
+
+  function questScore(mistakes) {
+    return Math.max(0, 100 - Math.max(0, mistakes) * 20);
+  }
+
+  const api = {topicQuiz, topicPairs, topicQuest, topicArt, pairsScore, questScore};
   root.EsoAdultGames = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);
@@ -120,12 +231,12 @@ if (typeof window !== 'undefined') {
     if (gameRun) return renderGameRun();
     const subjects = MODULES.filter(module => !['exam', 'oficial'].includes(module.id));
     const visible = subjects.filter(module => gameSubject === 'all' || module.id === gameSubject);
-    const completed = Object.values(state.gameResults || {}).reduce((sum, results) => sum + ['quiz', 'pairs'].filter(kind => results?.[kind]).length, 0);
+    const completed = Object.values(state.gameResults || {}).reduce((sum, results) => sum + ['quiz', 'pairs', 'quest'].filter(kind => results?.[kind]).length, 0);
     root.innerHTML = `<div class="eso-games-filters" role="group" aria-label="Filtrar juegos por asignatura"><strong>Asignaturas</strong><button type="button" class="${gameSubject === 'all' ? 'active' : ''}" aria-pressed="${gameSubject === 'all'}" onclick="filterGames('all')">Todas</button>${subjects.map(module => `<button type="button" class="${gameSubject === module.id ? 'active' : ''}" aria-pressed="${gameSubject === module.id}" onclick="filterGames('${module.id}')">${escapeHtml(module.title)}</button>`).join('')}</div>
-      <div class="eso-games-groups">${visible.map(module => `<section class="eso-game-subject" style="--subject-color:${moduleColor(module.id)}"><div class="eso-game-subject-head"><span class="subject-symbol" aria-hidden="true">${escapeHtml(topicVisual({}, module.id))}</span><div><h3>${escapeHtml(module.title)}</h3><small>${module.tasks.length} temas · dos formas de practicar cada uno</small></div></div><div class="eso-game-cards">${module.tasks.map((topic, index) => {
+      <div class="eso-games-groups">${visible.map(module => `<section class="eso-game-subject" style="--subject-color:${moduleColor(module.id)}"><div class="eso-game-subject-head"><span class="subject-symbol" aria-hidden="true">${escapeHtml(topicVisual({}, module.id))}</span><div><h3>${escapeHtml(module.title)}</h3><small>${module.tasks.length} temas · tres formas de practicar cada uno</small></div></div><div class="eso-game-cards">${module.tasks.map((topic, index) => {
         const results = state.gameResults?.[topic.id] || {};
-        const scores = [results.quiz?.best, results.pairs?.best].filter(Number.isFinite);
-        return `<article class="eso-game-card"><div class="game-card-top"><span class="game-card-index">${String(index + 1).padStart(2, '0')}</span><span class="game-card-best">${scores.length ? `Mejor: ${Math.max(...scores)} %` : 'Por descubrir'}</span></div><h4>${escapeHtml(topic.title)}</h4><p>${escapeHtml(topic.detail)}</p><div class="game-card-actions"><button type="button" onclick="startGame('${topic.id}','quiz')">Reto rápido</button><button type="button" onclick="startGame('${topic.id}','pairs')">Parejas</button></div></article>`;
+        const scores = [results.quiz?.best, results.pairs?.best, results.quest?.best].filter(Number.isFinite);
+        return `<article class="eso-game-card"><img class="game-card-art" src="${EsoAdultGames.topicArt(topic,module)}" alt="" loading="lazy" width="640" height="360"><div class="game-card-top"><span class="game-card-index">${String(index + 1).padStart(2, '0')}</span><span class="game-card-best">${scores.length ? `Mejor: ${Math.max(...scores)} %` : 'Por descubrir'}</span></div><h4>${escapeHtml(topic.title)}</h4><p>${escapeHtml(topic.detail)}</p><div class="game-card-actions"><button type="button" onclick="startGame('${topic.id}','quiz')">Reto rápido</button><button type="button" onclick="startGame('${topic.id}','pairs')">Parejas</button><button type="button" onclick="startGame('${topic.id}','quest')">Mapa del tema ✦</button></div></article>`;
       }).join('')}</div></section>`).join('')}</div><p class="eso-games-empty">${completed} juegos completados · puedes repetirlos cuando quieras.</p>`;
   };
 
@@ -133,13 +244,14 @@ if (typeof window !== 'undefined') {
     const topic = allTasks().find(item => item.id === topicId);
     if (!topic) return;
     const module = moduleById(topic.module);
-    const mode = kind === 'pairs' ? 'pairs' : 'quiz';
+    const mode = ['quiz', 'pairs', 'quest'].includes(kind) ? kind : 'quiz';
     const questions = mode === 'quiz' ? EsoAdultGames.topicQuiz(topic, module, MODEL_UNITS) : [];
     const cards = mode === 'pairs' ? EsoAdultGames.topicPairs(topic, module) : [];
-    if ((mode === 'quiz' && !questions.length) || (mode === 'pairs' && cards.length < 4)) return;
+    const quest = mode === 'quest' ? EsoAdultGames.topicQuest(topic, module, MODEL_UNITS) : null;
+    if ((mode === 'quiz' && !questions.length) || (mode === 'pairs' && cards.length < 4) || (mode === 'quest' && !quest)) return;
     gameSubject = module.id;
     currentView = 'games';
-    gameRun = {topic, module, kind: mode, questions, cards, round: 0, answers: [], selected: null, first: null, second: null, matched: new Set(), moves: 0, locked: false, finished: false};
+    gameRun = {topic, module, kind: mode, questions, cards, quest, questSelected:null, questPlaced:{}, questMistakes:0, questFeedback:'Elige una pieza y colócala en su estación, o arrástrala.', round: 0, answers: [], selected: null, first: null, second: null, matched: new Set(), moves: 0, locked: false, finished: false};
     renderGames();
     renderView();
     window.scrollTo({top: 0, behavior: 'auto'});
@@ -149,13 +261,14 @@ if (typeof window !== 'undefined') {
     const root = document.getElementById('gamesView');
     const run = gameRun;
     if (!root || !run) return;
-    const label = run.kind === 'quiz' ? 'Reto rápido' : 'Parejas de conceptos';
-    const total = run.kind === 'quiz' ? run.questions.length : run.cards.length / 2;
-    const progress = run.kind === 'quiz' ? run.round + (run.selected === null ? 0 : 1) : run.matched.size;
+    const label = run.kind === 'quiz' ? 'Reto rápido' : run.kind === 'pairs' ? 'Parejas de conceptos' : 'Mapa del tema';
+    const total = run.kind === 'quiz' ? run.questions.length : run.kind === 'pairs' ? run.cards.length / 2 : run.quest.stations.length;
+    const progress = run.kind === 'quiz' ? run.round + (run.selected === null ? 0 : 1) : run.kind === 'pairs' ? run.matched.size : Object.keys(run.questPlaced).length;
     const head = `<div class="eso-game-run-head"><button type="button" onclick="openGames('${run.module.id}')" aria-label="Volver a los juegos">←</button><div><h2>${escapeHtml(run.topic.title)}</h2><p>${escapeHtml(run.module.title)} · ${label}</p></div></div>`;
     if (run.finished) {
       const score = run.score;
-      root.innerHTML = `<div class="eso-game-run">${head}<div class="eso-game-result"><span class="result-medal" aria-hidden="true">${score >= 70 ? '★' : '↻'}</span><h3>${score >= 70 ? '¡Buen trabajo!' : 'Sigue practicando'}</h3><p>${run.kind === 'quiz' ? `${run.answers.filter(Boolean).length} de ${total} respuestas correctas` : `${total} parejas encontradas en ${run.moves} intentos`} · ${score} %.</p><p>Tu resultado está guardado. Puedes volver al tema o repetir el juego.</p><div class="result-actions"><button class="primary" type="button" onclick="startGame('${run.topic.id}','${run.kind}')">Jugar de nuevo</button><button type="button" onclick="openGames('${run.module.id}')">Ver más juegos</button><button type="button" onclick="openModule('${run.module.id}');openTopic('${run.topic.id}')">Estudiar el tema</button></div></div></div>`;
+      const detail = run.kind === 'quiz' ? `${run.answers.filter(Boolean).length} de ${total} respuestas correctas` : run.kind === 'pairs' ? `${total} parejas encontradas en ${run.moves} intentos` : `${total} estaciones completadas con ${run.questMistakes} intentos fallidos`;
+      root.innerHTML = `<div class="eso-game-run">${head}<div class="eso-game-result"><span class="result-medal" aria-hidden="true">${score >= 70 ? '★' : '↻'}</span><h3>${score >= 70 ? '¡Buen trabajo!' : 'Sigue practicando'}</h3><p>${detail} · ${score} %.</p><p>Tu resultado está guardado. Puedes volver al tema o repetir el juego.</p><div class="result-actions"><button class="primary" type="button" onclick="startGame('${run.topic.id}','${run.kind}')">Jugar de nuevo</button><button type="button" onclick="openGames('${run.module.id}')">Ver más juegos</button><button type="button" onclick="openModule('${run.module.id}');openTopic('${run.topic.id}')">Estudiar el tema</button></div></div></div>`;
       return;
     }
     if (run.kind === 'quiz') {
@@ -164,11 +277,83 @@ if (typeof window !== 'undefined') {
       root.innerHTML = `<div class="eso-game-run">${head}<div class="eso-game-progress" role="progressbar" aria-label="Rondas completadas" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${progress}"><span style="width:${progress / total * 100}%"></span></div><div class="eso-game-question"><span class="round-label">Ronda ${run.round + 1} de ${total}</span><h3>${escapeHtml(question.prompt)}</h3><div class="eso-game-options">${question.choices.map((choice, index) => `<button type="button" class="${answered && index === question.correct ? 'correct' : answered && index === run.selected ? 'wrong' : ''}" onclick="chooseGameAnswer(${index})" ${answered ? 'disabled' : ''}><b>${String.fromCharCode(65 + index)}</b><span>${escapeHtml(choice)}</span></button>`).join('')}</div><div class="eso-game-feedback ${answered && run.selected !== question.correct ? 'error' : ''}" role="status">${answered ? `<strong>${run.selected === question.correct ? '✓ Correcto' : 'Respuesta para repasar'}</strong>${escapeHtml(question.explanation)}` : 'Elige una respuesta para avanzar.'}</div></div><div class="eso-game-next">${answered ? `<button class="primary" type="button" onclick="nextGameRound()">${run.round + 1 < total ? 'Siguiente ronda' : 'Ver resultado'} →</button>` : ''}</div></div>`;
       return;
     }
+    if (run.kind === 'quest') {
+      renderQuestRun(root, head, run, total, progress);
+      return;
+    }
     root.innerHTML = `<div class="eso-game-run">${head}<div class="eso-game-progress" role="progressbar" aria-label="Parejas encontradas" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${progress}"><span style="width:${progress / total * 100}%"></span></div><div class="eso-game-question"><span class="round-label">${progress} de ${total} parejas</span><h3>Une cada tema con su idea principal</h3><div class="eso-game-pairs">${run.cards.map((card, index) => {
       const revealed = run.matched.has(card.pair) || run.first === index || run.second === index;
       return `<button type="button" class="${run.matched.has(card.pair) ? 'matched' : revealed ? 'revealed' : ''}" onclick="flipGameCard(${index})" aria-label="${revealed ? escapeHtml(card.kind + ': ' + card.text) : `Destapar tarjeta ${index + 1}`}" ${run.matched.has(card.pair) || run.locked ? 'disabled' : ''}>${revealed ? escapeHtml(card.text) : '✦'}</button>`;
     }).join('')}</div><div class="eso-game-pairs-status" role="status">${run.locked ? 'Estas tarjetas no forman pareja.' : run.first !== null ? 'Elige la tarjeta que completa la pareja.' : `${run.moves} intentos · observa los temas y sus ideas.`}</div></div></div>`;
   }
+
+  function renderQuestRun(root, head, run, total, progress) {
+    const art = EsoAdultGames.topicArt(run.topic, run.module);
+    const placed = new Set(Object.values(run.questPlaced));
+    const currentStation = run.quest.stations.findIndex(station => !Number.isInteger(run.questPlaced[station.id]));
+    root.innerHTML = `<div class="eso-game-run eso-quest-run" style="--quest-tone:${moduleColor(run.module.id)}">${head}
+      <div class="eso-game-progress" role="progressbar" aria-label="Estaciones completadas" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${progress}"><span style="width:${progress / total * 100}%"></span></div>
+      <div class="eso-quest-board">
+        <img class="eso-quest-backdrop" src="${art}" alt="" width="1200" height="675">
+        <div class="eso-quest-content"><div class="eso-quest-intro"><span>✦ MISIÓN DEL TEMA</span><strong>Completa el mapa de ${escapeHtml(run.topic.title)}</strong><small>${progress} de ${total} estaciones · ${run.questMistakes} fallos</small></div>
+          <div class="eso-quest-stations">${run.quest.stations.map((station, index) => {
+            const cardIndex = run.questPlaced[station.id];
+            const complete = Number.isInteger(cardIndex);
+            return `<button type="button" class="eso-quest-station ${complete ? 'complete' : ''} ${currentStation === index ? 'current' : ''} ${run.questErrorStation === index ? 'wrong' : ''}" onclick="placeQuestCard(${index})" ondragover="event.preventDefault()" ondrop="dropQuestCard(event,${index})" ${complete ? 'disabled' : ''} ${currentStation === index ? 'aria-current="step"' : ''}><span class="eso-quest-station-number">${String(index + 1).padStart(2, '0')}</span><span class="eso-quest-station-content"><strong>${escapeHtml(station.prompt)}</strong><small>${complete ? escapeHtml(run.quest.cards[cardIndex].text) : 'Toca aquí después de elegir una pieza'}</small></span><span class="eso-quest-station-state" aria-hidden="true">${complete ? '✓' : '＋'}</span></button>`;
+          }).join('')}</div></div>
+      </div>
+      <div class="eso-quest-bank"><div class="eso-quest-bank-head"><strong>Piezas de respuesta</strong><span>Selecciona una y toca su estación, o arrástrala.</span></div><div class="eso-quest-pieces">${run.quest.cards.map((card, index) => placed.has(index) ? '' : `<button type="button" draggable="true" class="eso-quest-piece ${run.questSelected === index ? 'selected' : ''}" aria-pressed="${run.questSelected === index}" onclick="selectQuestCard(${index})" ondragstart="dragQuestCard(event,${index})"><span aria-hidden="true">✦</span>${escapeHtml(card.text)}</button>`).join('')}</div></div>
+      <p class="eso-quest-feedback ${run.questErrorStation !== null ? 'error' : ''}" role="status" aria-live="polite">${escapeHtml(run.questFeedback)}</p>
+    </div>`;
+  }
+
+  window.selectQuestCard = function (index) {
+    const run = gameRun;
+    if (!run || run.kind !== 'quest' || run.finished || !run.quest.cards[index] || Object.values(run.questPlaced).includes(index)) return;
+    run.questSelected = run.questSelected === index ? null : index;
+    run.questErrorStation = null;
+    run.questFeedback = run.questSelected === null ? 'Selecciona otra pieza para continuar.' : 'Ahora toca la estación a la que corresponde la pieza.';
+    renderGameRun();
+  };
+
+  window.dragQuestCard = function (event, index) {
+    if (!gameRun || gameRun.kind !== 'quest' || gameRun.finished) return;
+    event.dataTransfer.setData('text/plain', String(index));
+    event.dataTransfer.effectAllowed = 'move';
+  };
+
+  window.dropQuestCard = function (event, stationIndex) {
+    event.preventDefault();
+    const value = event.dataTransfer.getData('text/plain');
+    if (!/^\d+$/.test(value)) return;
+    const index = Number(value);
+    if (Number.isInteger(index)) placeQuestCard(stationIndex, index);
+  };
+
+  window.placeQuestCard = function (stationIndex, droppedCardIndex) {
+    const run = gameRun;
+    if (!run || run.kind !== 'quest' || run.finished || !run.quest.stations[stationIndex] || Number.isInteger(run.questPlaced[stationIndex])) return;
+    const cardIndex = Number.isInteger(droppedCardIndex) ? droppedCardIndex : run.questSelected;
+    if (!Number.isInteger(cardIndex) || !run.quest.cards[cardIndex] || Object.values(run.questPlaced).includes(cardIndex)) {
+      run.questFeedback = 'Elige primero una pieza de respuesta.';
+      renderGameRun();
+      return;
+    }
+    const station = run.quest.stations[stationIndex];
+    if (run.quest.cards[cardIndex].station !== station.id) {
+      run.questMistakes += 1;
+      run.questErrorStation = stationIndex;
+      run.questFeedback = 'Esa pieza no corresponde a esta estación. Prueba en otra o elige otra respuesta.';
+      renderGameRun();
+      return;
+    }
+    run.questPlaced[stationIndex] = cardIndex;
+    run.questSelected = null;
+    run.questErrorStation = null;
+    run.questFeedback = `¡Bien colocado! ${station.explanation || 'Has relacionado la idea con su lugar en el mapa.'}`;
+    if (Object.keys(run.questPlaced).length === run.quest.stations.length) finishGame(EsoAdultGames.questScore(run.questMistakes));
+    else renderGameRun();
+  };
 
   window.chooseGameAnswer = function (index) {
     const run = gameRun;
