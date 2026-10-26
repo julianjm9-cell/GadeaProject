@@ -760,6 +760,9 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-appearance.css")
 @router.get("/assets/profesor-public-games.css")
 @router.get("/assets/profesor-public-games-extra.css")
+@router.get("/assets/profesor-matching-scenes.css")
+@router.get("/assets/profesor-race-scenes.css")
+@router.get("/assets/profesor-bingo-scenes.css")
 @router.get("/assets/profesor-live.css")
 @router.get("/assets/profesor-uploaded-topics.css")
 def profesor_final_styles(request: Request):

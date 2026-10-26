@@ -153,9 +153,19 @@ def test_all_public_game_card_illustrations_are_served(client):
         assert len(response.content) > 1000, name
     assert web.get('/profesor-public-games-extra.js').status_code == 200
     assert web.get('/assets/profesor-public-games-extra.css').status_code == 200
+    for name, marker in [
+        ('profesor-matching-scenes.css', 'match-scene-targets'),
+        ('profesor-race-scenes.css', 'race-scene-workspace'),
+        ('profesor-bingo-scenes.css', 'bingo-scene-art'),
+    ]:
+        response = web.get('/assets/' + name)
+        assert response.status_code == 200, name
+        assert response.headers['content-type'].startswith('text/css'), name
+        assert marker in response.text, name
     for name in ['public-boveda-racionales.webp', 'public-hospital-nutricion.webp', 'public-tribunal-ambiguedad.webp']:
         response = web.get('/assets/games/' + name)
         assert response.status_code == 200, name
         assert response.headers['content-type'].startswith('image/webp'), name
     assert 'profesor-public-games-extra.css' in web.get('/profesor/alumno').text
+    assert 'profesor-matching-scenes.css' in web.get('/profesor/alumno').text
     assert web.get('/assets/games/public-unknown.webp').status_code == 404
