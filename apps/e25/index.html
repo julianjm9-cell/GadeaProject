@@ -6861,10 +6861,10 @@ function renderModuleGrid() {
       const count=taskDoneCount(m.id), total=m.tasks.length, pct=total ? count/total*100 : 0;
       return `<button class="subject-tile" type="button" style="--subject-tone:${colors[m.id] || '#1677ff'}" onclick="openModule('${m.id}')" aria-label="${escapeHtml(names[m.id] || m.title)}: ${count} de ${total} temas completados"><span class="subject-tile-icon" aria-hidden="true">${symbols[m.id] || '▤'}</span>${next?.module.id === m.id ? '<span class="subject-next">Siguiente</span>' : ''}<strong>${escapeHtml(names[m.id] || m.title)}</strong><span class="subject-description">${['geografia','ciencias'].includes(m.id) ? 'Repasa por temas.' : 'Temario y ejercicios.'}</span><span class="subject-tile-footer"><span class="subject-track" aria-hidden="true"><span style="width:${pct}%"></span></span><span>${count}/${total} temas</span><span class="subject-arrow" aria-hidden="true">›</span></span></button>`;
     }).join('')}</div>`;
-  $('moduleGrid').innerHTML = libraryTabsHtml() + head + body;
+  $('moduleGrid').innerHTML = head + libraryTabsHtml() + body;
 }
 function libraryTabsHtml() {
-  return `<nav class="subject-library-toggle" aria-label="Secciones de la biblioteca">${[['subjects','Asignaturas'],['resources','Recursos'],['saved','Mis apuntes']].map(([key,label])=>`<button type="button" class="${state.libraryTab === key ? 'active' : ''}" aria-pressed="${state.libraryTab === key}" onclick="setLibraryTab('${key}')">${label}</button>`).join('')}</nav>`;
+  return `<nav class="subject-library-toggle" aria-label="Secciones de la biblioteca">${[['subjects','Temario'],['resources','Recursos'],['saved','Mis apuntes']].map(([key,label])=>`<button type="button" class="${state.libraryTab === key ? 'active' : ''}" aria-pressed="${state.libraryTab === key}" onclick="setLibraryTab('${key}')">${label}</button>`).join('')}</nav>`;
 }
 function setLibraryTab(tab) {
   if (!['subjects','resources','saved'].includes(tab)) return;
