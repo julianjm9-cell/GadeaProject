@@ -3378,7 +3378,7 @@
 @media(max-width:760px){.desktop-refresh .exam-workspace #viewer{padding:16px}.exam-home-options{gap:12px}.desktop-refresh .exam-home-options>button{min-height:135px;padding:18px;grid-template-columns:44px minmax(0,1fr) 12px;gap:12px}.exam-home-options i{width:44px;height:44px;border-radius:13px;font-size:23px}.exam-home-options strong{font-size:17px}.exam-home-options small{font-size:12px}.exam-correction .ocr-row{grid-template-columns:1fr}.exam-section-head h3{font-size:22px}.exam-record{padding:16px;gap:12px}.exam-record button{font-size:12px}.exam-correction .exam-submit-row{grid-template-columns:1fr}.exam-correction-tools{align-items:flex-start}.exam-correction-tools>span{line-height:1.6}}
 @media(max-width:520px){.exam-home-options{grid-template-columns:1fr}.desktop-refresh .exam-home-options>button{min-height:107px}.exam-home-options strong{font-size:18px}.exam-home-options small{font-size:13px}.exam-record{align-items:flex-start;flex-direction:column}.exam-record button{align-self:flex-end}.exam-section-head{gap:14px}.exam-correction #correctionOutput{padding:16px}}
 
-</style></head>
+</style><link rel="stylesheet" href="assets/eso-final.css?v=20261026-1"></head>
 <body>
 <div class="app">
   <header>
@@ -3391,6 +3391,7 @@
     <nav class="screen-nav" aria-label="Navegación principal">
       <button id="navHome" type="button" disabled onclick="showView('home')" aria-controls="homeView nextHomeView">Inicio</button>
       <button id="navModules" type="button" disabled onclick="openLibrary()" aria-controls="moduleGrid workspace">Asignaturas</button>
+      <button id="navGames" type="button" disabled onclick="openGames()" aria-controls="gamesView">Juegos</button>
       <button id="navExam" type="button" disabled onclick="openModule('exam')" aria-controls="workspace">Exámenes</button>
       <button id="navProgress" type="button" disabled onclick="showView('progress')" aria-controls="progressView nextProgressView">Progreso</button>
     </nav>
@@ -3483,6 +3484,7 @@
   </section>
 
   <section class="module-grid view-section" id="moduleGrid" hidden></section>
+  <section class="eso-games view-section" id="gamesView" hidden aria-label="Juegos para practicar por asignatura y tema"></section>
 
   <section class="panel workspace view-section" id="workspace" hidden>
     <div class="workspace-head">
@@ -3509,6 +3511,7 @@
   <div class="teacher-reading-modal" id="teacherReadingModal" hidden onclick="if(event.target===this) closeTeacherAnswer()"><section class="teacher-reading-dialog" role="dialog" aria-modal="true" aria-labelledby="teacherReadingTitle"><div class="teacher-reading-head"><strong id="teacherReadingTitle">Respuesta del Profesor IA</strong><button class="icon-button" type="button" onclick="closeTeacherAnswer()" aria-label="Cerrar" title="Cerrar">&times;</button></div><div class="teacher-reading-content teacher-rich" id="teacherReadingContent"></div></section></div>
 </div>
 
+<script src="assets/eso-games.js?v=20261026-1"></script>
 <script>
 const APP_KEY = 'eso_adultos';
 const REDESIGN_MODE = false;
@@ -5992,7 +5995,7 @@ const QUESTIONS = {
     ['Una contrasena segura debe ser...', ['larga, unica y dificil de adivinar','igual en todos los servicios','el nombre del usuario'], 0]
   ]
 };
-let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, learningEvidence:{}, teacherChats:{}, testAttempts:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, activeSession:null, examMode:null, examPracticeType:'development', currentExamScope:null, activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
+let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, learningEvidence:{}, teacherChats:{}, testAttempts:{}, gameResults:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, activeSession:null, examMode:null, examPracticeType:'development', currentExamScope:null, activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
 let gamification = {profile:null, config:null, lastError:'', loading:true};
 let deskRequestPending = false;
 const deskSyncChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('eso-adultos-desk') : null;
@@ -6072,6 +6075,7 @@ function init() {
     $('nextProgressView').appendChild($('progressView'));
   }
   document.body.classList.add('desktop-refresh');
+  installGamesShortcut();
   const brandImage = document.querySelector('.brand-logo img');
   if (brandImage) brandImage.src = 'assets/brand/eso-simple-v2.png';
   if (REDESIGN_MODE) {
@@ -6094,7 +6098,7 @@ async function backend(path, options={}) {
 }
 async function loadState() {
   esoStateReady=false;
-  for(const id of ['navHome','navModules','navExam','navProgress'])if($(id))$(id).disabled=true;
+  for(const id of ['navHome','navModules','navExam','navGames','navProgress'])if($(id))$(id).disabled=true;
   try { state = {...state, ...(await backend('/api/state'))}; }
   catch(error){
     if($('esoLoadStatus')){$('esoLoadStatus').hidden=false;$('esoLoadStatus').innerHTML=`No se pudo cargar tu progreso. Para proteger tus datos, no se guardarán cambios hasta que vuelva la conexión. <button type="button" onclick="loadState()">Reintentar carga</button>`;}
@@ -6111,6 +6115,7 @@ async function loadState() {
   state.learningEvidence = state.learningEvidence && typeof state.learningEvidence === 'object' ? state.learningEvidence : {};
   state.teacherChats = state.teacherChats && typeof state.teacherChats === 'object' && !Array.isArray(state.teacherChats) ? state.teacherChats : {};
   state.testAttempts = state.testAttempts && typeof state.testAttempts === 'object' && !Array.isArray(state.testAttempts) ? state.testAttempts : {};
+  state.gameResults = state.gameResults && typeof state.gameResults === 'object' && !Array.isArray(state.gameResults) ? state.gameResults : {};
   state.teacherOpen = state.teacherOpen === true;
   state.libraryTab = ['subjects','resources','saved'].includes(state.libraryTab) ? state.libraryTab : 'subjects';
   state.currentExamTopics = Array.isArray(state.currentExamTopics) ? state.currentExamTopics : [];
@@ -6134,7 +6139,7 @@ async function loadState() {
   state.currentExam = typeof state.currentExam === 'string' ? state.currentExam : '';
   esoStateReady=true;
   if($('esoLoadStatus'))$('esoLoadStatus').hidden=true;
-  for(const id of ['navHome','navModules','navExam','navProgress'])if($(id))$(id).disabled=false;
+  for(const id of ['navHome','navModules','navExam','navGames','navProgress'])if($(id))$(id).disabled=false;
   render();
 }
 async function loadOfficialResources() {
@@ -6293,7 +6298,7 @@ async function equipDeskItem(itemId) {
   }
 }
 function nextItemCard(item, mode='shop') {
-  const categoryNames = {desk:'mesa',chair:'silla',lamp:'lámpara',plant:'planta',shelf:'estantería',poster:'lámina',mug:'taza',trophy:'trofeo'};
+  const categoryNames = {desk:'mesa',chair:'silla',lamp:'lámpara',plant:'planta',shelf:'estantería',poster:'lámina',mug:'taza',trophy:'trofeo',globe:'globo',clock:'reloj'};
   let action = '';
   if (item.equipped) action = '<button type="button" disabled>En uso</button>';
   else if (item.owned) action = `<button class="primary" type="button" onclick="equipDeskItem('${item.id}')">Equipar</button>`;
@@ -6342,20 +6347,21 @@ function renderNextProgress() {
   if (nextProgressTab === 'achievements') {
     const owned = new Map((profile.achievements || []).map(item => [item.id,item]));
     const definitions = gamification.config?.achievements || [];
-    $('nextProgressBody').innerHTML = `<div class="next-catalog">${definitions.map(item => `<article class="next-card next-item" style="opacity:${owned.has(item.id) ? 1 : .58}"><div class="next-item-visual">★</div><h4>${escapeHtml(item.name)}</h4><p>${owned.has(item.id) ? 'Logro conseguido' : 'Sigue estudiando para conseguirlo'}</p><div class="next-item-meta"><span>+${item.xp} XP</span><span>+${item.coins} monedas</span></div></article>`).join('') || '<div class="next-card next-empty">Todavía no hay logros disponibles.</div>'}</div>`;
+    $('nextProgressBody').innerHTML = `<div class="next-catalog">${definitions.map(item => `<article class="next-card next-item ${owned.has(item.id) ? '' : 'locked'}"><div class="next-item-visual"><img class="next-achievement-icon" src="assets/desk/${item.id === 'weekly_rhythm' ? 'clock-focus' : item.id === 'first_subject' ? 'globe-study' : 'trophy-first'}.png" alt="" loading="lazy"></div><h4>${escapeHtml(item.name)}</h4><p>${owned.has(item.id) ? 'Logro conseguido' : 'Sigue estudiando para conseguirlo'}</p><div class="next-item-meta"><span>+${item.xp} XP</span><span>+${item.coins} monedas</span></div></article>`).join('') || '<div class="next-card next-empty">Todavía no hay logros disponibles.</div>'}</div>`;
     return;
   }
   if (nextProgressTab === 'stats') {
     const topics = studyTasks();
     const tests = Object.values(state.testAttempts || {});
     const average = tests.length ? Math.round(tests.reduce((sum,item)=>sum+Number(item.score||0),0)/tests.length) : 0;
-    $('nextProgressBody').innerHTML = `<div class="next-catalog"><article class="next-card next-info"><strong>${topics.filter(item=>state.done[item.id]).length}/${topics.length}</strong><span>temas completados</span></article><article class="next-card next-info"><strong>${(state.activityDates||[]).length}</strong><span>días con actividad registrados</span></article><article class="next-card next-info"><strong>${tests.length ? `${average} %` : '—'}</strong><span>media en tests realizados</span></article></div>`;
+    const games = Object.values(state.gameResults || {}).flatMap(result => [result?.quiz, result?.pairs].filter(Boolean));
+    $('nextProgressBody').innerHTML = `<div class="next-catalog"><article class="next-card next-info"><strong>${topics.filter(item=>state.done[item.id]).length}/${topics.length}</strong><span>temas completados</span></article><article class="next-card next-info"><strong>${(state.activityDates||[]).length}</strong><span>días con actividad registrados</span></article><article class="next-card next-info"><strong>${tests.length ? `${average} %` : '—'}</strong><span>media en tests realizados</span></article><article class="next-card next-info"><strong>${games.length}</strong><span>juegos practicados</span></article><article class="next-card next-info"><strong>${games.length ? `${Math.max(...games.map(game => Number(game.best || 0)))} %` : '—'}</strong><span>mejor resultado en juegos</span></article></div>`;
     return;
   }
   if (nextProgressMode === 'shop' || nextProgressMode === 'customize') {
     const available = (profile.catalog || []).filter(item => nextProgressMode === 'shop' || item.owned);
     const categories = [...new Set(available.map(item => item.category))];
-    const labels = {desk:'Mesas',chair:'Sillas',lamp:'Lámparas',plant:'Plantas',shelf:'Estanterías',poster:'Pósteres',mug:'Tazas',trophy:'Trofeos'};
+    const labels = {desk:'Mesas',chair:'Sillas',lamp:'Lámparas',plant:'Plantas',shelf:'Estanterías',poster:'Pósteres',mug:'Tazas',trophy:'Trofeos',globe:'Globos',clock:'Relojes'};
     const items = available.filter(item => nextShopCategory === 'all' || item.category === nextShopCategory);
     $('nextProgressBody').innerHTML = `<div class="next-card-head" style="padding:0 0 14px"><h3>${nextProgressMode === 'shop' ? 'Tienda' : 'Personalizar escritorio'}</h3><button class="next-link" type="button" onclick="nextProgressMode='overview';renderNextProgress()">← Volver a mi escritorio</button></div><div class="next-filters" role="group" aria-label="Filtrar objetos"><button class="${nextShopCategory === 'all' ? 'active' : ''}" aria-pressed="${nextShopCategory === 'all'}" type="button" onclick="setNextShopCategory('all')">Todo</button>${categories.map(category=>`<button class="${nextShopCategory === category ? 'active' : ''}" aria-pressed="${nextShopCategory === category}" type="button" onclick="setNextShopCategory('${category}')">${labels[category] || category}</button>`).join('')}</div><div class="next-catalog">${items.map(item => nextItemCard(item,nextProgressMode)).join('') || '<div class="next-card next-empty">No hay objetos en esta categoría.</div>'}</div>`;
     return;
@@ -6365,7 +6371,8 @@ function renderNextProgress() {
   const previousMin = level.min_xp;
   const xpPct = nextMin ? Math.max(0,Math.min(100,Math.round((profile.xp-previousMin)/(nextMin-previousMin)*100))) : 100;
   const days = recentStudyDays().filter(day=>day.done).length;
-  $('nextProgressBody').innerHTML = `<div class="next-progress-grid"><article class="next-card next-progress-main"><div class="next-level-row"><div><span>Nivel del escritorio</span><strong>${level.level} · ${escapeHtml(level.name)}</strong></div><span class="next-coins">${profile.coins} monedas</span></div><div class="next-xp"><i style="width:${xpPct}%"></i></div><div class="next-xp-meta"><span>${profile.xp} XP</span><span>${nextMin ? `${nextMin-profile.xp} XP para el nivel ${level.level+1}` : 'Nivel máximo'}</span></div>${deskSceneHtml(profile,true)}<div class="next-actions"><button class="primary next-primary" type="button" onclick="openNextCustomizer()">Personalizar escritorio</button><button type="button" onclick="openNextShop()">Ir a la tienda</button></div></article><aside class="next-side"><article class="next-card next-info"><strong>${academicProgressPct()} %</strong><span>Temario completado</span></article><article class="next-card next-info"><strong>${days} de 7</strong><span>Tu ritmo reciente</span></article><article class="next-card next-info"><strong>${profile.owned_items?.length || 0}/${profile.catalog?.length || 0}</strong><span>Objetos en el inventario</span></article></aside></div>`;
+  const gamesPlayed = Object.values(state.gameResults || {}).reduce((count, result) => count + Number(Boolean(result?.quiz)) + Number(Boolean(result?.pairs)), 0);
+  $('nextProgressBody').innerHTML = `<div class="next-progress-grid"><article class="next-card next-progress-main"><div class="next-level-row"><div><span>Nivel del escritorio</span><strong>${level.level} · ${escapeHtml(level.name)}</strong></div><span class="next-coins">${profile.coins} monedas</span></div><div class="next-xp"><i style="width:${xpPct}%"></i></div><div class="next-xp-meta"><span>${profile.xp} XP</span><span>${nextMin ? `${nextMin-profile.xp} XP para el nivel ${level.level+1}` : 'Nivel máximo'}</span></div>${deskSceneHtml(profile,true)}<div class="next-actions"><button class="primary next-primary" type="button" onclick="openNextCustomizer()">Personalizar escritorio</button><button type="button" onclick="openNextShop()">Ir a la tienda</button></div></article><aside class="next-side"><article class="next-card next-info"><strong>${academicProgressPct()} %</strong><span>Temario completado</span></article><article class="next-card next-info"><strong>${days} de 7</strong><span>Tu ritmo reciente</span></article><article class="next-card next-info"><strong>${gamesPlayed}</strong><span>Juegos practicados</span></article><article class="next-card next-info"><strong>${profile.owned_items?.length || 0}/${profile.catalog?.length || 0}</strong><span>Objetos en el inventario</span></article></aside></div>`;
 }
 function renderNextExperience() { renderHomeDesk(); renderNextHome(); renderNextProgress(); }
 async function loadProfile() {
@@ -6760,12 +6767,13 @@ function progressLevels(metrics) {
 function renderProgressDashboard(pct, monthly, next) {
   const levels = progressLevels({completedItems:monthly.items});
   const target = levels.at(-1).targetCount;
+  const monthlyPct = Math.min(100, Math.round(monthly.items / target * 100));
   const achieved = [...levels].reverse().find(level => monthly.items >= level.targetCount);
   const upcoming = levels.find(level => monthly.items < level.targetCount);
   $('progressMonthCount').textContent = `${monthly.items} de ${target} acciones`;
-  $('progressPct').textContent = pct + '%';
-  $('progressBar').style.width = pct + '%';
-  $('progressTrack').setAttribute('aria-valuenow', pct);
+  $('progressPct').textContent = monthlyPct + '%';
+  $('progressBar').style.width = monthlyPct + '%';
+  $('progressTrack').setAttribute('aria-valuenow', monthlyPct);
   $('progressLevel').textContent = achieved ? `Nivel ${achieved.level} · ${achieved.title}` : 'Nivel inicial';
   $('progressLevelBadge').classList.toggle('pending', !achieved);
   $('progressLevelHint').textContent = upcoming
@@ -6915,6 +6923,7 @@ function recordStudyActivity() {
 function showView(view) {
   captureExamDraft();
   if (view === 'modules') return openLibrary(state.libraryTab || 'subjects');
+  if (view === 'games') return openGames();
   currentView = view;
   closeProfile();
   if (view === 'modules') renderModuleGrid();
@@ -6938,12 +6947,14 @@ function renderView() {
   if ($('progressView')) $('progressView').hidden = PROGRESS_REDESIGN ? nextProgressTab !== 'study' || profileOpen || currentView !== 'progress' : profileOpen || currentView !== 'progress';
   if ($('nextProgressView')) $('nextProgressView').hidden = !PROGRESS_REDESIGN || profileOpen || currentView !== 'progress';
   if ($('moduleGrid')) $('moduleGrid').hidden = profileOpen || currentView !== 'modules';
+  if ($('gamesView')) $('gamesView').hidden = profileOpen || currentView !== 'games';
   if ($('workspace')) $('workspace').hidden = profileOpen || currentView !== 'workspace';
   if ($('navHome')) $('navHome').classList.toggle('active', currentView === 'home');
   if ($('navModules')) $('navModules').classList.toggle('active', currentView === 'modules' || (currentView === 'workspace' && state.activeModule !== 'exam'));
   if ($('navExam')) $('navExam').classList.toggle('active', currentView === 'workspace' && state.activeModule === 'exam');
+  if ($('navGames')) $('navGames').classList.toggle('active', currentView === 'games');
   if ($('navProgress')) $('navProgress').classList.toggle('active', currentView === 'progress');
-  [['navHome',currentView === 'home'],['navModules',currentView === 'modules' || (currentView === 'workspace' && state.activeModule !== 'exam')],['navExam',currentView === 'workspace' && state.activeModule === 'exam'],['navProgress',currentView === 'progress']].forEach(([id,active]) => {
+  [['navHome',currentView === 'home'],['navModules',currentView === 'modules' || (currentView === 'workspace' && state.activeModule !== 'exam')],['navExam',currentView === 'workspace' && state.activeModule === 'exam'],['navGames',currentView === 'games'],['navProgress',currentView === 'progress']].forEach(([id,active]) => {
     const button = $(id);
     if (!button) return;
     if (active) button.setAttribute('aria-current','page');
@@ -7269,7 +7280,7 @@ function renderContents(module) {
   }
   const lesson = lessons[state.activeLesson];
   const nextLabel = state.activeLesson + 1 < lessons.length ? 'Siguiente lección' : 'Volver al tema';
-  $('viewer').innerHTML = `<section class="topic-detail"><div class="topic-detail-head lesson-head"><button class="icon-button" type="button" onclick="closeLesson()" aria-label="Volver a las lecciones" title="Lecciones">&larr;</button><div><small class="topic-parent">${escapeHtml(topic.title)}</small><h2>${escapeHtml(lesson.title)}</h2></div></div>${lessonContentHtml(topic,lesson,state.activeLesson)}<div class="topic-primary-actions"><button class="primary" type="button" onclick="completeLesson('${topic.id}',${state.activeLesson})">${isLessonDone(topic,state.activeLesson) ? nextLabel : 'Guardar y continuar'}</button></div></section>`;
+  $('viewer').innerHTML = `<section class="topic-detail"><div class="topic-detail-head lesson-head"><button class="icon-button" type="button" onclick="closeLesson()" aria-label="Volver a las lecciones" title="Lecciones">&larr;</button><div><small class="topic-parent">${escapeHtml(topic.title)}</small><h2>${escapeHtml(lesson.title)}</h2></div></div>${lessonContentHtml(topic,lesson,state.activeLesson)}<div class="topic-primary-actions"><button class="primary" type="button" onclick="completeLesson('${topic.id}',${state.activeLesson})">${isLessonDone(topic,state.activeLesson) ? nextLabel : 'Guardar y continuar'}</button><button type="button" onclick="openGames('${module.id}','${topic.id}')">Practicar con un juego</button></div></section>`;
 }
 const SUBJECT_TOPIC_GROUPS = {
   lengua:[['Lectura y textos',['len-comprension','len-resumen','len-literatura','len-textos-vida','len-medios','len-comentario']],['Lengua y escritura',['len-gramatica','len-ortografia','len-redaccion','len-argumentacion','len-presentacion']]],
@@ -7312,7 +7323,7 @@ function subjectTopicHtml(topic,module) {
   const done = lessons.filter((lesson,index) => isLessonDone(topic,index)).length;
   const expanded = state.activeTopic === topic.id;
   const nextIndex = lessons.findIndex((lesson,index) => !isLessonDone(topic,index));
-  return `<div class="subject-topic ${expanded ? 'expanded' : ''}" id="subject-${topic.id}"><button class="subject-topic-trigger" type="button" onclick="toggleSubjectTopic('${topic.id}')" aria-expanded="${expanded}" aria-controls="lessons-${topic.id}"><span class="subject-topic-icon" aria-hidden="true">${escapeHtml(topicVisual(topic,module.id))}</span><strong>${escapeHtml(topic.title)}</strong><span class="subject-topic-progress"><span class="subject-progress-track" aria-hidden="true"><span style="width:${Math.round(done / lessons.length * 100)}%"></span></span><small>${done}/${lessons.length} lecciones</small></span><span class="subject-topic-chevron" aria-hidden="true">${expanded ? '⌃' : '›'}</span></button>${expanded ? `<div class="subject-topic-lessons" id="lessons-${topic.id}">${lessons.map((lesson,index) => { const complete = isLessonDone(topic,index); const current = index === nextIndex; return `<button class="subject-lesson-row ${complete ? 'done' : ''} ${current ? 'current' : ''}" type="button" onclick="openLesson(${index})" ${current ? 'aria-current="step"' : ''}><span class="subject-lesson-state" aria-hidden="true">${complete ? '✓' : current ? '▶' : ''}</span><strong>${escapeHtml(lesson.title)}</strong><small>${complete ? 'Completada' : current ? `Lección ${index + 1} de ${lessons.length}` : 'Pendiente'}</small>${current ? `<span class="subject-lesson-action">${done ? 'Continuar' : 'Empezar'}</span>` : ''}<span class="subject-lesson-arrow" aria-hidden="true">›</span></button>`; }).join('')}<button class="subject-topic-test" type="button" onclick="openTopicPractice('${topic.id}')">Hacer el test de este tema <span aria-hidden="true">→</span></button></div>` : ''}</div>`;
+  return `<div class="subject-topic ${expanded ? 'expanded' : ''}" id="subject-${topic.id}"><button class="subject-topic-trigger" type="button" onclick="toggleSubjectTopic('${topic.id}')" aria-expanded="${expanded}" aria-controls="lessons-${topic.id}"><span class="subject-topic-icon" aria-hidden="true">${escapeHtml(topicVisual(topic,module.id))}</span><strong>${escapeHtml(topic.title)}</strong><span class="subject-topic-progress"><span class="subject-progress-track" aria-hidden="true"><span style="width:${Math.round(done / lessons.length * 100)}%"></span></span><small>${done}/${lessons.length} lecciones</small></span><span class="subject-topic-chevron" aria-hidden="true">${expanded ? '⌃' : '›'}</span></button>${expanded ? `<div class="subject-topic-lessons" id="lessons-${topic.id}">${lessons.map((lesson,index) => { const complete = isLessonDone(topic,index); const current = index === nextIndex; return `<button class="subject-lesson-row ${complete ? 'done' : ''} ${current ? 'current' : ''}" type="button" onclick="openLesson(${index})" ${current ? 'aria-current="step"' : ''}><span class="subject-lesson-state" aria-hidden="true">${complete ? '✓' : current ? '▶' : ''}</span><strong>${escapeHtml(lesson.title)}</strong><small>${complete ? 'Completada' : current ? `Lección ${index + 1} de ${lessons.length}` : 'Pendiente'}</small>${current ? `<span class="subject-lesson-action">${done ? 'Continuar' : 'Empezar'}</span>` : ''}<span class="subject-lesson-arrow" aria-hidden="true">›</span></button>`; }).join('')}${MODEL_UNITS[topic.id]?.questions?.length ? `<button class="subject-topic-test" type="button" onclick="openTopicPractice('${topic.id}')">Hacer el test de este tema <span aria-hidden="true">→</span></button>` : ''}<button class="subject-topic-test" type="button" onclick="openGames('${module.id}','${topic.id}')">Jugar con este tema <span aria-hidden="true">→</span></button></div>` : ''}</div>`;
 }
 function toggleSubjectTopic(id) {
   state.activeTopic = state.activeTopic === id ? null : id;
@@ -7512,18 +7523,21 @@ function modelLessonHtml(topic, lesson) {
   const checks = ['He respondido todas las partes.','He usado datos o pistas concretas.','He revisado claridad, ortografía o unidades.'];
   return `<div class="model-unit-meta"><span class="model-badge">${escapeHtml(unit.label)}</span><small>Revisada ${escapeHtml(unit.reviewed)} · ${escapeHtml(unit.source)}</small></div>
     <div class="model-objective"><strong>Objetivo de la lección</strong>${escapeHtml(lesson.objective)}</div>
-    <div class="theory-card"><strong>TEORÍA CLARA</strong><p>${escapeHtml(lesson.theory)}</p></div>
-    <div class="model-learning-grid">
-      <section class="model-learning-block example"><h3>${escapeHtml(lesson.exampleTitle)}</h3><p>${escapeHtml(lesson.exampleText)}</p><ol>${lesson.exampleSteps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ol></section>
-      <section class="model-learning-block practice"><h3>Práctica autónoma</h3><p>${escapeHtml(lesson.practice)}</p><details class="model-solution"><summary>Ver solución razonada</summary><p>${escapeHtml(lesson.solution)}</p></details></section>
-      <section class="model-learning-block evidence"><h3>Tu práctica</h3><p>${escapeHtml(lesson.evidence)}</p><div class="model-evidence-form"><textarea id="modelEvidenceAnswer" aria-label="Tu respuesta" placeholder="Escribe aquí tu respuesta." onchange="saveModelEvidence('${topic.id}',${state.activeLesson},false)">${escapeHtml(evidence.response || '')}</textarea><div class="model-checks">${checks.map((check,index) => `<label><input type="checkbox" data-evidence-check onchange="saveModelEvidence('${topic.id}',${state.activeLesson},false)" ${evidence.checks?.[index] ? 'checked' : ''}>${escapeHtml(check)}</label>`).join('')}</div><div class="model-evidence-status ${evidence.ready ? 'ready' : ''}" id="modelEvidenceStatus">${evidence.ready ? 'Respuesta guardada. Puedes continuar.' : 'Para continuar: al menos 40 caracteres y dos comprobaciones.'}</div></div></section>
-      <details class="model-learning-block optional"><summary>Errores frecuentes</summary><ul>${lesson.errors.map(error => `<li>${escapeHtml(error)}</li>`).join('')}</ul></details>
+    <div class="lesson-parts">
+      ${lessonPartHtml(1,'Entiende la idea','La explicación esencial para empezar.',`<p>${escapeHtml(lesson.theory)}</p>`,true)}
+      ${lessonPartHtml(2,lesson.exampleTitle,'Un ejemplo explicado paso a paso.',`<p>${escapeHtml(lesson.exampleText)}</p><ol class="lesson-steps">${lesson.exampleSteps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ol>`)}
+      ${lessonPartHtml(3,'Pruébalo','Practica antes de consultar la respuesta.',`<p>${escapeHtml(lesson.practice)}</p><details class="model-solution"><summary>Ver solución razonada</summary><p>${escapeHtml(lesson.solution)}</p></details>`)}
+      ${lessonPartHtml(4,'Escribe y comprueba','Guarda tu respuesta para poder continuar.',`<p>${escapeHtml(lesson.evidence)}</p><div class="model-evidence-form"><textarea id="modelEvidenceAnswer" aria-label="Tu respuesta" placeholder="Escribe aquí tu respuesta." onchange="saveModelEvidence('${topic.id}',${state.activeLesson},false)">${escapeHtml(evidence.response || '')}</textarea><div class="model-checks">${checks.map((check,index) => `<label><input type="checkbox" data-evidence-check onchange="saveModelEvidence('${topic.id}',${state.activeLesson},false)" ${evidence.checks?.[index] ? 'checked' : ''}>${escapeHtml(check)}</label>`).join('')}</div><div class="model-evidence-status ${evidence.ready ? 'ready' : ''}" id="modelEvidenceStatus">${evidence.ready ? 'Respuesta guardada. Puedes continuar.' : 'Para continuar: al menos 40 caracteres y dos comprobaciones.'}</div></div>`,true)}
+      ${lessonPartHtml(5,'Evita estos errores','Una revisión breve antes de cerrar.',`<ul>${lesson.errors.map(error => `<li>${escapeHtml(error)}</li>`).join('')}</ul>`)}
     </div>`;
+}
+function lessonPartHtml(number,title,subtitle,body,open=false) {
+  return `<details class="lesson-part" ${open ? 'open' : ''}><summary><span class="part-number">${String(number).padStart(2,'0')}</span><span><strong>${escapeHtml(title)}</strong><small>${escapeHtml(subtitle)}</small></span></summary><div class="lesson-part-body">${body}</div></details>`;
 }
 function lessonContentHtml(topic,lesson,index) {
   const saved = state.lessonNotes?.[lessonNoteKey(topic.id,index)] || '';
-  const lessonBody = lesson.objective ? modelLessonHtml(topic, lesson) : `<div class="theory-card"><strong>TEORIA</strong><p>${escapeHtml(lessonTheory(topic,lesson,index)).replace(/\n/g,'<br>')}</p></div>`;
-  return `<div class="lesson-content">${lessonBody}<details class="ai-notes-card"><summary>Mis apuntes <small>Opcional</small></summary><div class="ai-notes-body"><textarea class="ai-notes-text" id="lessonAiNotes" placeholder="Escribe tus apuntes o genéralos con IA.">${escapeHtml(saved)}</textarea><div class="ai-notes-actions"><button class="primary" type="button" onclick="saveLessonNotes('${topic.id}',${index})">Guardar apuntes</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'improve')">Mejorar con IA</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'generate')">Generar con IA</button></div><div class="ai-notes-status" id="lessonAiStatus">${saved ? 'Apuntes guardados.' : 'Aún no hay apuntes personales.'}</div></div></details><details class="lesson-resources"><summary>Recursos oficiales</summary><div class="topic-resource-list">${resourcesForTopic(topic).map(link => `<a href="${link.url}" target="_blank" rel="noopener"><span><strong>${escapeHtml(link.title)}</strong><small>${escapeHtml(link.source)}</small></span><span>ABRIR</span></a>`).join('')}</div></details></div>`;
+  const lessonBody = lesson.objective ? modelLessonHtml(topic, lesson) : `<div class="lesson-parts">${lessonPartHtml(1,'Lo esencial','Qué necesitas saber de este tema.',`<p>${escapeHtml(topic.detail)}</p><p>${escapeHtml(topic.note)}</p>`,true)}${lessonPartHtml(2,'Ejemplo','Una aplicación que puedes recordar.',`<div class="lesson-example">${escapeHtml(topic.example)}</div>`)}${lessonPartHtml(3,'Explicación completa','Abre esta parte si necesitas más detalle.',`<p>${escapeHtml(lessonTheory(topic,lesson,index))}</p>`)}${lessonPartHtml(4,'Compruébalo','Una pregunta para repasar antes de continuar.',`<p>Explica con tus palabras ${escapeHtml(lesson.title.toLowerCase())} y usa el ejemplo anterior para justificar tu respuesta.</p><button type="button" onclick="openGames('${topic.module}','${topic.id}')">Practicar jugando →</button>`)}</div>`;
+  return `<div class="lesson-content"><div class="lesson-map"><strong>Tu recorrido:</strong><span>Entiende</span><span>Observa</span><span>Practica</span><span>Continúa</span></div>${lessonBody}<details class="ai-notes-card"><summary>Mis apuntes <small>Opcional</small></summary><div class="ai-notes-body"><textarea class="ai-notes-text" id="lessonAiNotes" placeholder="Escribe tus apuntes o genéralos con IA.">${escapeHtml(saved)}</textarea><div class="ai-notes-actions"><button class="primary" type="button" onclick="saveLessonNotes('${topic.id}',${index})">Guardar apuntes</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'improve')">Mejorar con IA</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'generate')">Generar con IA</button></div><div class="ai-notes-status" id="lessonAiStatus">${saved ? 'Apuntes guardados.' : 'Aún no hay apuntes personales.'}</div></div></details><details class="lesson-resources"><summary>Recursos oficiales</summary><div class="topic-resource-list">${resourcesForTopic(topic).map(link => `<a href="${link.url}" target="_blank" rel="noopener"><span><strong>${escapeHtml(link.title)}</strong><small>${escapeHtml(link.source)}</small></span><span>ABRIR</span></a>`).join('')}</div></details></div>`;
 }
 function contentFor(id, moduleId) {
   const topic = allTasks().find(t => t.id === id);

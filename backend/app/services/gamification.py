@@ -65,6 +65,8 @@ DESK_CATALOG = (
     {"id": "mug_steps", "name": "Taza especial", "category": "mug", "price": 50, "minimum_level": 2, "visual": "mug-steps", "is_default": False},
     {"id": "plant_olive", "name": "Olivo de escritorio", "category": "plant", "price": 180, "minimum_level": 4, "visual": "plant-olive", "is_default": False},
     {"id": "trophy_first", "name": "Trofeo Primer tema", "category": "trophy", "price": 0, "minimum_level": 2, "visual": "trophy-first", "is_default": False, "unlock_condition": "first_topic"},
+    {"id": "globe_study", "name": "Globo de exploración", "category": "globe", "price": 170, "minimum_level": 3, "visual": "globe-study", "is_default": False},
+    {"id": "clock_focus", "name": "Reloj de constancia", "category": "clock", "price": 180, "minimum_level": 4, "visual": "clock-focus", "is_default": False},
 )
 CATALOG_BY_ID = {item["id"]: item for item in DESK_CATALOG}
 

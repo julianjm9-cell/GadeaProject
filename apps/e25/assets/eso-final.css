@@ -1,0 +1,99 @@
+/* Temario, juegos y progreso de ESO Adultos. Mantiene los controles originales. */
+.desktop-refresh header .screen-nav{grid-template-columns:repeat(5,minmax(0,1fr));max-width:790px}
+.desktop-refresh .today-shortcuts{grid-template-columns:repeat(5,minmax(0,1fr))}
+.desktop-refresh .today-shortcut{min-height:196px;padding:21px}
+.desktop-refresh .today-shortcut strong{font-size:21px}
+.desktop-refresh .today-shortcut.tone-game .home-icon{background:#eaf4ff;color:#1467d1}
+.desktop-refresh .today-shortcut.tone-game .shortcut-art{background:linear-gradient(130deg,#e4edff,#c6d6ff)}
+
+.lesson-map{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 15px;padding:14px 17px;border:1px solid #dce8f8;border-radius:15px;background:#f3f8ff;color:#284a78;font-size:13px;font-weight:700}
+.lesson-map strong{color:#102a53}.lesson-map span{display:inline-flex;align-items:center;gap:7px}.lesson-map span:not(:last-child):after{content:'›';margin-left:4px;color:#88a2c5}
+.lesson-parts{display:grid;gap:10px}
+.lesson-part{overflow:hidden;border:1px solid #dce8f8;border-radius:17px;background:#fff;box-shadow:0 7px 22px #19487b0a}
+.lesson-part[open]{border-color:#b9d3f3;box-shadow:0 10px 28px #19487b13}
+.lesson-part>summary{display:flex;align-items:center;gap:13px;min-height:63px;padding:12px 17px;list-style:none;cursor:pointer;color:#132f59}
+.lesson-part>summary::-webkit-details-marker{display:none}
+.lesson-part>summary .part-number{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:11px;background:#e8f2ff;color:#1168ce;font-weight:850;font-size:13px}
+.lesson-part>summary strong{display:block;font-size:16px;line-height:1.25}
+.lesson-part>summary small{display:block;margin-top:3px;color:#6c809e;font-size:12px;line-height:1.35}
+.lesson-part>summary:after{content:'⌄';margin-left:auto;color:#3476cb;font-size:22px;line-height:1;transition:transform .2s}
+.lesson-part[open]>summary:after{transform:rotate(180deg)}
+.lesson-part-body{padding:0 20px 20px 66px;color:#284365;line-height:1.7;overflow-wrap:anywhere}
+.lesson-part-body>p{margin:0 0 11px;white-space:pre-line}
+.lesson-part-body>p:last-child{margin-bottom:0}
+.lesson-part-body .model-learning-block{margin:0;max-width:none}
+.lesson-part-body .model-learning-block p{white-space:pre-line}
+.lesson-part-body .lesson-example{padding:16px 18px;border-left:4px solid #54b9a5;border-radius:10px;background:#f2fbf8;color:#123f44}
+.lesson-part-body .lesson-steps{margin:0;padding-left:21px}
+.lesson-part-body .lesson-steps li{margin:5px 0}
+.lesson-part-body .model-evidence-form{margin-top:12px}
+.lesson-content>.ai-notes-card,.lesson-content>.lesson-resources{margin-top:12px}
+
+#gamesView[hidden]{display:none!important}
+.eso-games{display:grid;gap:22px;max-width:1390px;margin:22px auto 40px;color:#102852}
+.eso-games-hero{display:grid;grid-template-columns:1fr auto;align-items:center;gap:24px;min-height:170px;padding:30px 34px;border:1px solid #cfe0f6;border-radius:25px;background:linear-gradient(110deg,#e7f3ff,#f6faff 62%,#eaf7f4);box-shadow:0 15px 32px #23588a12}
+.eso-games-hero .eyebrow{display:block;margin-bottom:7px;color:#146cd1;font-size:12px;font-weight:850;text-transform:uppercase;letter-spacing:.08em}
+.eso-games-hero h2{margin:0;color:#10194c;font-size:clamp(29px,3vw,40px);letter-spacing:-.035em}
+.eso-games-hero p{max-width:650px;margin:8px 0 0;color:#526e96;font-size:15px;line-height:1.55}
+.eso-games-hero-art{display:grid;place-items:center;width:122px;height:104px;border-radius:23px;background:#fff9;color:#1168d1;font-size:54px;box-shadow:0 10px 26px #1a5fa820}
+.eso-games-filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;padding:12px;border:1px solid #dce8f8;border-radius:17px;background:#fff}
+.eso-games-filters>strong{margin:0 8px 0 5px;color:#26436c;font-size:13px}
+.desktop-refresh .eso-games-filters button{min-height:39px;padding:7px 13px;border:1px solid #d9e6f7;border-radius:10px;background:#f7faff;color:#365a89;box-shadow:none;font-size:13px;text-transform:none}
+.desktop-refresh .eso-games-filters button.active{background:#116de0;border-color:#116de0;color:white}
+.eso-games-groups{display:grid;gap:20px}
+.eso-game-subject{padding:22px;border:1px solid #dfebf8;border-radius:22px;background:#fff;box-shadow:0 10px 28px #1846770b}
+.eso-game-subject-head{display:flex;align-items:center;gap:15px;margin-bottom:17px}
+.eso-game-subject-head .subject-symbol{display:grid;place-items:center;width:48px;height:48px;flex:none;border-radius:13px;background:color-mix(in srgb,var(--subject-color) 14%,white);color:var(--subject-color);font-size:24px;font-weight:800}
+.eso-game-subject-head h3{margin:0;color:#112d55;font-size:23px}
+.eso-game-subject-head small{display:block;margin-top:3px;color:#697f9c}
+.eso-game-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.eso-game-card{display:flex;flex-direction:column;min-width:0;min-height:204px;padding:18px;border:1px solid #dce9f9;border-radius:17px;background:linear-gradient(155deg,#fff,#f8fbff);box-shadow:0 5px 16px #1c4c7c0a}
+.eso-game-card .game-card-top{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.eso-game-card .game-card-index{display:grid;place-items:center;width:31px;height:31px;border-radius:9px;background:color-mix(in srgb,var(--subject-color) 14%,white);color:var(--subject-color);font-size:12px;font-weight:850}
+.eso-game-card .game-card-best{font-size:12px;color:#237d59;font-weight:750}
+.eso-game-card h4{margin:13px 0 5px;font-size:17px;color:#102b54;line-height:1.25}
+.eso-game-card p{margin:0 0 16px;color:#617a9a;font-size:13px;line-height:1.42}
+.eso-game-card .game-card-actions{display:flex;gap:8px;margin-top:auto}
+.desktop-refresh .eso-game-card .game-card-actions button{flex:1;min-height:38px;padding:6px 9px;border:1px solid #c9ddf6;border-radius:9px;background:#fff;color:#1263c5;box-shadow:none;font-size:12px;text-transform:none}
+.desktop-refresh .eso-game-card .game-card-actions button:first-child{background:#116de0;border-color:#116de0;color:#fff}
+.eso-game-run{width:min(960px,100%);margin:0 auto;padding:26px;border:1px solid #d5e4f8;border-radius:24px;background:#fff;box-shadow:0 18px 44px #164c8a16}
+.eso-game-run-head{display:flex;align-items:flex-start;gap:13px}
+.desktop-refresh .eso-game-run-head>button{min-width:40px;min-height:40px;padding:5px;border:1px solid #dce8f7;border-radius:10px;background:#f7fbff;color:#205caa;box-shadow:none}
+.eso-game-run-head h2{margin:0;color:#10194c;font-size:25px}
+.eso-game-run-head p{margin:4px 0 0;color:#6580a1;font-size:14px}
+.eso-game-progress{height:10px;margin:20px 0 24px;border-radius:999px;background:#e5eefb;overflow:hidden}
+.eso-game-progress span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#1678ef,#3cc9a5);transition:width .25s}
+.eso-game-question{padding:23px;border:1px solid #dce9f8;border-radius:19px;background:#f7fbff}
+.eso-game-question .round-label{color:#176bd0;font-size:12px;font-weight:850;text-transform:uppercase;letter-spacing:.07em}
+.eso-game-question h3{margin:9px 0 18px;color:#102b54;font-size:21px;line-height:1.4}
+.eso-game-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.desktop-refresh .eso-game-options button{display:flex;align-items:center;gap:12px;min-height:75px;padding:13px 15px;border:1px solid #d3e3f6;border-radius:13px;background:#fff;color:#1c3c66;box-shadow:none;text-align:left;text-transform:none;font-size:14px;line-height:1.4;white-space:normal}
+.eso-game-options button b{display:grid;place-items:center;width:30px;height:30px;flex:none;border-radius:9px;background:#eaf2ff;color:#116ad3;font-size:12px}
+.desktop-refresh .eso-game-options button.correct{border-color:#5bbd91;background:#e8f8ef;color:#11593b}
+.desktop-refresh .eso-game-options button.wrong{border-color:#e79e9e;background:#fff0ee;color:#903633}
+.desktop-refresh .eso-game-options button:disabled{opacity:1;cursor:default}
+.eso-game-feedback{min-height:45px;margin-top:15px;color:#285070;line-height:1.5;font-size:14px}
+.eso-game-feedback strong{display:block;color:#0b5e46}
+.eso-game-feedback.error strong{color:#a13c39}
+.eso-game-next{display:flex;justify-content:flex-end;margin-top:14px}
+.eso-game-pairs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.desktop-refresh .eso-game-pairs button{min-height:100px;padding:9px;border:1px solid #b8d2f2;border-radius:13px;background:linear-gradient(145deg,#1679e6,#1956ad);box-shadow:0 5px 0 #123d85;color:#fff;font-size:23px;text-transform:none;white-space:normal}
+.desktop-refresh .eso-game-pairs button.revealed{background:#f8fbff;color:#17375e;font-size:13px;line-height:1.3;font-weight:700}
+.desktop-refresh .eso-game-pairs button.matched{background:#e3f7ec;border-color:#81cda0;color:#155a3b;box-shadow:0 4px 0 #68b58a;font-size:13px}
+.eso-game-pairs-status{min-height:26px;margin-top:15px;color:#426288;font-size:13px}
+.eso-game-result{text-align:center;padding:30px 12px}
+.eso-game-result .result-medal{display:grid;place-items:center;width:98px;height:98px;margin:0 auto 16px;border-radius:50%;background:#eaf4ff;color:#146bd2;font-size:55px}
+.eso-game-result h3{margin:0;font-size:28px;color:#10244d}
+.eso-game-result p{color:#5e789a;font-size:15px;line-height:1.6}
+.eso-game-result .result-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:22px}
+.eso-games-empty{padding:35px;text-align:center;color:#6c829d}
+
+.next-ui .next-desk-scene .desk-object[data-category="globe"]{z-index:5;right:33%;bottom:17%;width:19%;height:36%}
+.next-ui .next-desk-scene .desk-object[data-category="clock"]{z-index:5;right:6%;bottom:21%;width:17%;height:28%}
+.next-achievement-icon{width:66px;height:66px;object-fit:contain;margin:auto auto 8px;filter:drop-shadow(0 5px 6px #38516b24)}
+.next-item.locked .next-achievement-icon{filter:grayscale(1);opacity:.56}
+.progress-overview-copy .progress-meter-row{margin-top:12px}
+
+@media(max-width:1150px){.desktop-refresh .today-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr))}.eso-game-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.desktop-refresh header .screen-nav{grid-template-columns:repeat(5,minmax(0,1fr));max-width:none}.desktop-refresh header .screen-nav button{font-size:11px;padding-inline:3px}.desktop-refresh .today-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}.desktop-refresh .today-shortcut{min-height:170px}.lesson-part-body{padding:0 16px 16px}.eso-games-hero{padding:24px;grid-template-columns:1fr}.eso-games-hero-art{display:none}.eso-game-cards{grid-template-columns:1fr}.eso-game-options{grid-template-columns:1fr}.eso-game-pairs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:500px){.desktop-refresh .today-shortcuts{grid-template-columns:1fr}.desktop-refresh .today-shortcut{min-height:132px}.eso-game-subject{padding:15px}.eso-game-run{padding:14px}.eso-game-question{padding:16px}.eso-game-run-head h2{font-size:20px}.eso-game-question h3{font-size:18px}.desktop-refresh .eso-game-pairs button{min-height:92px}}

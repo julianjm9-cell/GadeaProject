@@ -680,12 +680,23 @@ def test_hazlotu_access_is_admin_managed_and_rotation_revokes_cookies(client):
     assert "Contraseña de acceso" in test_client.get("/hazlo-tu").text
 
 
-@pytest.mark.parametrize("filename", ["room.svg", "items.svg", "room-warm.png", "desk-light.png", "trophy-first.png"])
+@pytest.mark.parametrize("filename", ["room.svg", "items.svg", "room-warm.png", "desk-light.png", "trophy-first.png", "globe-study.png", "clock-focus.png"])
 def test_eso_desk_assets_are_served_for_the_production_page(client, filename):
     test_client, _ = client
     response = test_client.get(f"/assets/desk/{filename}")
     assert response.status_code == 200
     assert ("image/png" if filename.endswith(".png") else "image/svg+xml") in response.headers["content-type"]
+
+
+@pytest.mark.parametrize("path,content_type", [
+    ("/assets/eso-games.js", "javascript"),
+    ("/assets/eso-final.css", "text/css"),
+])
+def test_eso_game_assets_are_served_for_the_production_page(client, path, content_type):
+    test_client, _ = client
+    response = test_client.get(path)
+    assert response.status_code == 200
+    assert content_type in response.headers["content-type"]
 
 
 def test_hazlotu_logo_is_served_from_packaged_marketing_assets(client, tmp_path, monkeypatch):

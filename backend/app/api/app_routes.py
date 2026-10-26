@@ -692,6 +692,19 @@ def diplomator_refresh_styles():
     return FileResponse(path, media_type="text/css", headers={"Cache-Control": "public, max-age=3600"})
 
 
+@router.get("/assets/eso-final.css")
+@router.get("/assets/eso-games.js")
+def eso_app_assets(request: Request):
+    filename = request.url.path.rsplit("/", 1)[-1]
+    static_path = STATIC_DIR / "assets" / filename
+    fallback = PROJECT_ROOT / "apps" / "e25" / "assets" / filename
+    path = static_path if static_path.exists() else fallback
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Archivo no encontrado.")
+    media_type = "text/css" if filename.endswith(".css") else "application/javascript"
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=3600"})
+
+
 @router.get("/profesor-temario.js")
 def profesor_temario_catalogue():
     local_path = PROJECT_ROOT / "apps" / "profesor" / "profesor-temario.js"
@@ -929,6 +942,7 @@ def eso_desk_asset(filename: str):
         "desk-oak.png", "chair-comfort.png", "lamp-warm.png", "plant-monstera.png",
         "shelf-wood.png", "poster-focus.png", "poster-steps.png", "mug-steps.png",
         "plant-olive.png", "trophy-first.png",
+        "globe-study.png", "clock-focus.png",
     }
     if filename not in allowed:
         raise HTTPException(status_code=404, detail="Asset no encontrado.")
