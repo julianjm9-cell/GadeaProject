@@ -39,6 +39,8 @@
 .access-more>div button,.access-more>div a{min-height:34px;border:0;font-size:12px}
 .access-empty{padding:45px;text-align:center;border:1px dashed #c4ddf8;border-radius:18px;background:#fff;color:#5578a5}
 .access-empty h2{margin-top:0;color:#081b59}
+.access-empty-action{display:flex;justify-content:center;margin-top:23px}
+.access-empty-action button{min-width:190px;min-height:45px}
 .access-error{padding:12px 15px;border-radius:11px;background:#fff0e9;color:#b3442c}
 .access-loading{color:#587bac}
 @media(max-width:1150px){.access-card{grid-template-columns:minmax(220px,.95fr) minmax(280px,1.1fr);row-gap:19px}.access-card-person{align-items:flex-start}.access-card-credentials{border-right:0}.access-card-controls{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;padding:18px 0 0;border-top:1px solid #e0ecfb}.access-card-controls>button{flex:1 1 210px}.access-control-pair{flex:1 1 310px}.access-more{align-self:center}}
