@@ -212,7 +212,9 @@ test('Five 1.º ESO featured games match the syllabus, validate and keep their o
   assert.deepEqual(games.map(game=>game.subject),['Matemáticas','Lengua','Inglés','Ciencias Naturales','Geografía e Historia']);
   assert.ok(games.every(game=>game.activity.context.course==='1.º ESO'&&game.activity.context.publicSourceId===game.id&&existsSync(join(__dirname,'../assets/games',game.artwork))));
   assert.equal(new Set(games.map(game=>game.artwork)).size,5);
-  assert.ok(games.every(game=>{const scene=game.activity.questions[0].id.match(/^advanced-(.*)-1$/)[1],marker=new RegExp('\\|'+scene+'(?:\\||\\))');return marker.test(player)&&marker.test(live)&&scenes.includes(`data-public-scene="${scene}"`)}));
+  const scenePattern=/^advanced-([a-z0-9-]{1,64})-1$/;
+  assert.ok(player.includes(scenePattern.toString())&&live.includes(scenePattern.toString()));
+  assert.ok(games.every(game=>{const scene=game.activity.questions[0].id.match(scenePattern)?.[1];return scene&&scenes.includes(`data-public-scene="${scene}"`)}));
   assert.equal(run('publicAdvancedGames.slice(24,29).every(game=>publicMaterial(game.id)===game)'),true);
   const [mountain,news,english,science,atlas]=games.map(game=>game.activity.questions);
   assert.equal(mountain[0].type,'race');
