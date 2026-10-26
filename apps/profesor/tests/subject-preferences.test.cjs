@@ -41,12 +41,13 @@ test('Private, public and syllabus sources respect preferences while preserving 
  const {ctx,run}=preferences({subjects:['Inglés']});
  ctx.state.library=[{id:'private-math',subject:'Matemáticas'},{id:'private-en',subject:'Inglés'}];
  ctx.publicLibraryMaterials=()=>[{id:'public-en',subject:'Inglés'},{id:'public-math',subject:'Matemáticas'}];
+ ctx.advancedLibraryMaterials=()=>[{id:'advanced-en',subject:'Inglés'},{id:'advanced-math',subject:'Matemáticas'}];
  ctx.temarioLibraryMaterials=()=>[{id:'topic-en',subject:'Inglés'},{id:'topic-math',subject:'Matemáticas'}];
  const source=fs.readFileSync(path.join(root,'index.html'),'utf8').split('\n').filter(line=>/^function materialLibrary(?:Raw)?Source\(\)/.test(line)).join('\n');
  vm.runInContext(source,ctx);
- for(const mode of ['mine','public','temario']){ctx.materialLibraryMode=mode;const rows=run('materialLibrarySource()');assert.equal(rows.length,1);assert.equal(rows[0].subject,'Inglés');}
+ for(const mode of ['mine','public','temario','advanced']){ctx.materialLibraryMode=mode;const rows=run('materialLibrarySource()');assert.equal(rows.length,1);assert.equal(rows[0].subject,'Inglés');}
  assert.equal(ctx.state.library.length,2);
- ctx.state.teacherProfile.subjects=['Matemáticas'];assert.equal(run("materialLibrarySource()[0].id"),'topic-math');
+ ctx.state.teacherProfile.subjects=['Matemáticas'];ctx.materialLibraryMode='temario';assert.equal(run("materialLibrarySource()[0].id"),'topic-math');
 });
 test('A preference change clears only stale view filters, without removing pupil subjects',()=>{
  const {ctx,run}=preferences({subjects:['Inglés']});

@@ -35,14 +35,15 @@ test('The public showcase is an explicit, stable selection and never mutates or 
   const {run}=library();
   const before=run('JSON.stringify(publicTemarioMaterials())');
   assert.equal(run('publicMaterialSelection.length'),42);
-  assert.equal(run('publicLibraryMaterials().length'),103);
-  assert.equal(run('new Set(publicLibraryMaterials().map(m=>m.id)).size'),103);
+  assert.equal(run('publicLibraryMaterials().length'),42);
+  assert.equal(run('advancedLibraryMaterials().length'),61);
+  assert.equal(run('new Set([...publicLibraryMaterials(),...advancedLibraryMaterials()].map(m=>m.id)).size'),103);
   assert.equal(run('new Set(publicMaterialSelection.map(([id])=>id)).size'),42);
   assert.equal(run('curatedPublicMaterials().every(m=>m.activity.context.curated&&m.title&&m.body&&publicMaterial(m.id)===m&&publicMaterial(m.activity.context.curatedSourceId))'),true);
   assert.equal(run('curatedPublicMaterials().every(m=>JSON.stringify(m.activity.questions)===JSON.stringify(publicMaterial(m.activity.context.curatedSourceId).activity.questions))'),true);
-  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),103);
-  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),103);
-  assert.equal(run('new Set(publicLibraryMaterials().flatMap(m=>m.activity.questions.map(q=>q.type))).size'),18);
+  assert.equal(run("materialPublicFormat='single';publicLibraryMaterials().length"),42);
+  assert.equal(run("materialPublicFormat='combined';publicLibraryMaterials().length"),42);
+  assert.equal(run('new Set([...publicLibraryMaterials(),...advancedLibraryMaterials()].flatMap(m=>m.activity.questions.map(q=>q.type))).size'),18);
   run("curatedPublicMaterials()[0].activity.questions[0].options.push('Copia de prueba')");
   assert.equal(run('JSON.stringify(publicTemarioMaterials())'),before);
   assert.equal(run('publicSingleMaterials().length'),2106);
@@ -259,7 +260,7 @@ test('Every syllabus course and subject has exactly one playable featured advanc
   assert.equal(new Set(games.slice(29).map(game=>game.artwork)).size,32);
 });
 
-test('Private, curated public and syllabus libraries use separate sources and filters',()=>{
+test('Saved, public, advanced and syllabus libraries use separate sources and filters',()=>{
   const {context,run}=library();
   context.state={library:[{id:'mine',title:'Privado',subject:'Lengua',updatedAt:'2026-10-18'}]};
   context.student=()=>null;
@@ -268,22 +269,26 @@ test('Private, curated public and syllabus libraries use separate sources and fi
   assert.equal(run('materialLibrarySource()[0]===state.library[0]'),true);
   assert.equal(run('state.library.length'),1);
   run("switchMaterialMode('public')");
-  assert.equal(run('filteredMaterials().length'),103);
+  assert.equal(run('filteredMaterials().length'),42);
   assert.equal(run('filteredMaterials()[0].id===publicLibraryMaterials()[0].id'),true);
-  assert.equal(run("filteredMaterials().slice(0,61).every(m=>m.id.startsWith('public:advanced:'))"),true);
-  assert.equal(run("filteredMaterials().slice(61).every(m=>!m.id.startsWith('public:advanced:'))"),true);
+  assert.equal(run("filteredMaterials().every(m=>!m.id.startsWith('public:advanced:'))"),true);
+  run("switchMaterialMode('advanced')");
+  assert.equal(run('filteredMaterials().length'),61);
+  assert.equal(run("filteredMaterials().every(m=>m.id.startsWith('public:advanced:'))"),true);
   run("materialCourse='6.º Primaria'");
   assert.equal(run("filteredMaterials().slice(0,4).every(m=>m.id.startsWith('public:advanced:'))"),true);
   run("materialCourse=''");
   run("materialType='memory';materialCourse='A1'");
-  assert.equal(run('filteredMaterials().length'),3);
+  assert.equal(run('filteredMaterials().length'),1);
   run("switchMaterialMode('temario')");
   assert.equal(run('materialLibrarySource().length'),351);
   assert.equal(run("materialPublicFormat='single';materialLibrarySource().length"),2106);
   run("switchMaterialMode('mine')");
   assert.equal(run('filteredMaterials()[0].id'),'mine');
   run("switchMaterialMode('public')");
-  assert.equal(run('filteredMaterials().length'),3);
+  assert.equal(run('filteredMaterials().length'),42);
+  run("switchMaterialMode('advanced')");
+  assert.equal(run('filteredMaterials().length'),1);
   run("switchMaterialMode('temario')");
   assert.equal(run('materialPublicFormat'),'single');
 });

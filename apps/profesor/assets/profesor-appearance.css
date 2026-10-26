@@ -112,6 +112,8 @@ html.teacher-academy-theme {
 :is(html.teacher-study-theme,html.teacher-academy-theme) :is(
   .material-scope-switch,.home-agenda-switch,.calendar-scale,.student-section-nav,.student-overview-mobile-tabs,.home-mobile-tabs
 ) button.active {color:var(--look-primary-ink);background:var(--look-primary);box-shadow:inset 0 1px 0 #ffffff42,0 2px 4px #193c571a}
+:is(html.teacher-study-theme,html.teacher-academy-theme) .material-scope-switch {background:transparent;border-color:transparent}
+:is(html.teacher-study-theme,html.teacher-academy-theme) .material-scope-group {background:var(--look-soft);border-color:var(--look-edge)}
 :is(html.teacher-study-theme,html.teacher-academy-theme) .home-calendar-grid .home-calendar-day {
   background:var(--look-control);border-color:var(--look-edge);border-radius:var(--look-button-radius);
 }
