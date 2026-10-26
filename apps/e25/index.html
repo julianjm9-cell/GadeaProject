@@ -3378,7 +3378,7 @@
 @media(max-width:760px){.desktop-refresh .exam-workspace #viewer{padding:16px}.exam-home-options{gap:12px}.desktop-refresh .exam-home-options>button{min-height:135px;padding:18px;grid-template-columns:44px minmax(0,1fr) 12px;gap:12px}.exam-home-options i{width:44px;height:44px;border-radius:13px;font-size:23px}.exam-home-options strong{font-size:17px}.exam-home-options small{font-size:12px}.exam-correction .ocr-row{grid-template-columns:1fr}.exam-section-head h3{font-size:22px}.exam-record{padding:16px;gap:12px}.exam-record button{font-size:12px}.exam-correction .exam-submit-row{grid-template-columns:1fr}.exam-correction-tools{align-items:flex-start}.exam-correction-tools>span{line-height:1.6}}
 @media(max-width:520px){.exam-home-options{grid-template-columns:1fr}.desktop-refresh .exam-home-options>button{min-height:107px}.exam-home-options strong{font-size:18px}.exam-home-options small{font-size:13px}.exam-record{align-items:flex-start;flex-direction:column}.exam-record button{align-self:flex-end}.exam-section-head{gap:14px}.exam-correction #correctionOutput{padding:16px}}
 
-</style><link rel="stylesheet" href="assets/eso-final.css?v=20261026-4"></head>
+</style><link rel="stylesheet" href="assets/eso-final.css?v=20261026-5"></head>
 <body>
 <div class="app">
   <header>
@@ -3479,7 +3479,7 @@
 
   <section class="next-view next-ui" id="nextProgressView" tabindex="-1" aria-labelledby="nextProgressHeading" hidden>
     <p class="next-eyebrow">Progreso personal</p><h2 class="next-heading" id="nextProgressHeading">Tu escritorio crece contigo</h2><p class="next-lede">Tu avance, de un vistazo.</p>
-    <nav class="next-tabs" aria-label="Secciones de progreso"><button class="active" type="button" aria-pressed="true" data-next-tab="desk" onclick="setNextProgressTab('desk')">Mi escritorio</button><button type="button" aria-pressed="false" data-next-tab="achievements" onclick="setNextProgressTab('achievements')">Logros</button><button type="button" aria-pressed="false" data-next-tab="stats" onclick="setNextProgressTab('stats')">Estadísticas</button><button type="button" aria-pressed="false" data-next-tab="study" onclick="setNextProgressTab('study')">Tu estudio</button></nav>
+    <nav class="next-tabs" aria-label="Secciones de progreso"><button class="active" type="button" aria-pressed="true" data-next-tab="desk" onclick="setNextProgressTab('desk')">Escritorio</button><button type="button" aria-pressed="false" data-next-tab="stats" onclick="setNextProgressTab('stats')">Estadísticas</button></nav>
     <div id="nextProgressBody"></div><div class="next-message" id="nextDeskMessage" role="status" aria-live="polite"></div>
   </section>
 
@@ -6003,9 +6003,7 @@ if (deskSyncChannel) deskSyncChannel.addEventListener('message', event => {
   if (event.data?.type === 'profile-updated') void loadGamification(false);
 });
 let nextProgressTab = 'desk';
-let nextProgressMode = 'overview';
 let nextDuration = 15;
-let nextShopCategory = 'all';
 const OFFICIAL_SCOPES = [
   {
     id:'comunicacion', icon:'Aa', title:'Ámbito de Comunicación', color:'#2563eb', soft:'#eaf2ff', modules:['lengua','ingles'],
@@ -6250,13 +6248,10 @@ function startNextSession() {
   if (step) openSessionStep(step.module, step.tab, step.topic || '');
 }
 function setNextProgressTab(tab) {
-  nextProgressTab = ['desk','achievements','stats','study'].includes(tab) ? tab : 'desk';
-  nextProgressMode = 'overview';
+  nextProgressTab = tab === 'stats' ? 'stats' : 'desk';
+  $('nextDeskMessage').textContent = '';
   renderNextProgress();
 }
-function openNextShop() { nextProgressTab = 'desk'; nextProgressMode = 'shop'; nextShopCategory = 'all'; renderNextProgress(); }
-function openNextCustomizer() { nextProgressTab = 'desk'; nextProgressMode = 'customize'; nextShopCategory = 'all'; renderNextProgress(); }
-function setNextShopCategory(category) { nextShopCategory = category; renderNextProgress(); }
 async function buyDeskItem(itemId) {
   if (deskRequestPending) return;
   deskRequestPending = true;
@@ -6297,14 +6292,16 @@ async function equipDeskItem(itemId) {
     document.body.classList.remove('is-desk-busy');
   }
 }
-function nextItemCard(item, mode='shop') {
-  const categoryNames = {desk:'mesa',chair:'silla',lamp:'lámpara',plant:'planta',shelf:'estantería',poster:'lámina',mug:'taza',trophy:'trofeo',globe:'globo',clock:'reloj'};
+function nextDeskItemHtml(item, coins) {
+  const categoryNames = {desk:'Mesa',chair:'Silla',lamp:'Lámpara',plant:'Planta',shelf:'Estantería',poster:'Póster',mug:'Taza',trophy:'Trofeo',globe:'Globo',clock:'Reloj'};
+  const state = item.equipped ? 'En uso' : item.owned ? 'Conseguido' : item.unlocked ? 'Disponible' : 'Bloqueado';
   let action = '';
-  if (item.equipped) action = '<button type="button" disabled>En uso</button>';
-  else if (item.owned) action = `<button class="primary" type="button" onclick="equipDeskItem('${item.id}')">Equipar</button>`;
-  else if (!item.unlocked) action = `<button type="button" disabled>${item.unlock_condition ? 'Bloqueado · Logro' : `Bloqueado · Nivel ${item.minimum_level}`}</button>`;
-  else action = `<button class="primary" type="button" onclick="buyDeskItem('${item.id}')">Comprar</button>`;
-  return `<article class="next-card next-item"><div class="next-item-visual">${deskAssetImage(item.visual,item.name)}</div><h4>${escapeHtml(item.name)}</h4><p>${mode === 'customize' ? 'Selecciona este objeto para tu escritorio.' : `Categoría: ${escapeHtml(categoryNames[item.category] || item.category)}`}</p><div class="next-item-meta"><span>${item.price ? `${item.price} monedas` : 'Incluido'}</span><span>Nivel ${item.minimum_level}</span></div>${action}</article>`;
+  if (item.equipped) action = '<span class="next-desk-item-status">En uso</span>';
+  else if (item.owned) action = `<button type="button" onclick="equipDeskItem('${item.id}')">Equipar</button>`;
+  else if (!item.unlocked) action = `<span class="next-desk-item-status">${item.unlock_condition ? `Nivel ${item.minimum_level} y completa un tema` : `Desde el nivel ${item.minimum_level}`}</span>`;
+  else if (coins < item.price) action = `<span class="next-desk-item-status">Faltan ${item.price - coins} monedas</span>`;
+  else action = `<button type="button" onclick="buyDeskItem('${item.id}')">Comprar · ${item.price} monedas</button>`;
+  return `<article class="next-desk-item ${item.owned ? 'is-owned' : item.unlocked ? 'is-available' : 'is-locked'}" aria-label="${escapeHtml(item.name)}: ${state}"><div class="next-desk-item-art">${deskAssetImage(item.visual,item.name)}</div><div class="next-desk-item-copy"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(categoryNames[item.category] || item.category)} · ${state}</small>${action}</div></article>`;
 }
 function renderNextHome() {
   if (!REDESIGN_MODE || !$('nextHomeView')) return;
@@ -6332,47 +6329,31 @@ function renderNextProgress() {
     button.classList.toggle('active', selected);
     button.setAttribute('aria-pressed', String(selected));
   });
-  if ($('progressView')) $('progressView').hidden = nextProgressTab !== 'study' || currentView !== 'progress' || !$('profilePanel').hidden;
-  $('nextDeskMessage').hidden = nextProgressTab === 'study';
-  if (nextProgressTab === 'study') {
-    $('nextProgressBody').innerHTML = '';
-    return;
-  }
+  if ($('progressView')) $('progressView').hidden = true;
+  $('nextDeskMessage').hidden = nextProgressTab === 'stats';
   const profile = gamification.profile;
   if (!profile && gamification.lastError) {
     $('nextProgressBody').innerHTML = `<div class="next-card next-retry" role="alert"><h3>No hemos podido cargar tu escritorio</h3><p>${escapeHtml(gamification.lastError)} Tu progreso académico sigue guardado.</p><button class="primary next-primary" type="button" onclick="loadGamification()">Reintentar</button></div>`;
     return;
   }
   if (!profile) { $('nextProgressBody').innerHTML='<div class="next-card next-empty" role="status">Cargando el progreso del escritorio…</div>'; return; }
-  if (nextProgressTab === 'achievements') {
-    const owned = new Map((profile.achievements || []).map(item => [item.id,item]));
-    const definitions = gamification.config?.achievements || [];
-    $('nextProgressBody').innerHTML = `<div class="next-catalog">${definitions.map(item => `<article class="next-card next-item ${owned.has(item.id) ? '' : 'locked'}"><div class="next-item-visual"><img class="next-achievement-icon" src="assets/desk/${item.id === 'weekly_rhythm' ? 'clock-focus' : item.id === 'first_subject' ? 'globe-study' : 'trophy-first'}.png" alt="" loading="lazy"></div><h4>${escapeHtml(item.name)}</h4><p>${owned.has(item.id) ? 'Logro conseguido' : 'Sigue estudiando para conseguirlo'}</p><div class="next-item-meta"><span>+${item.xp} XP</span><span>+${item.coins} monedas</span></div></article>`).join('') || '<div class="next-card next-empty">Todavía no hay logros disponibles.</div>'}</div>`;
-    return;
-  }
   if (nextProgressTab === 'stats') {
     const topics = studyTasks();
     const tests = Object.values(state.testAttempts || {});
     const average = tests.length ? Math.round(tests.reduce((sum,item)=>sum+Number(item.score||0),0)/tests.length) : 0;
     const games = Object.values(state.gameResults || {}).flatMap(result => [result?.quiz, result?.pairs, result?.quest].filter(Boolean));
-    $('nextProgressBody').innerHTML = `<div class="next-catalog"><article class="next-card next-info"><strong>${topics.filter(item=>state.done[item.id]).length}/${topics.length}</strong><span>temas completados</span></article><article class="next-card next-info"><strong>${(state.activityDates||[]).length}</strong><span>días con actividad registrados</span></article><article class="next-card next-info"><strong>${tests.length ? `${average} %` : '—'}</strong><span>media en tests realizados</span></article><article class="next-card next-info"><strong>${games.length}</strong><span>juegos practicados</span></article><article class="next-card next-info"><strong>${games.length ? `${Math.max(...games.map(game => Number(game.best || 0)))} %` : '—'}</strong><span>mejor resultado en juegos</span></article></div>`;
-    return;
-  }
-  if (nextProgressMode === 'shop' || nextProgressMode === 'customize') {
-    const available = (profile.catalog || []).filter(item => nextProgressMode === 'shop' || item.owned);
-    const categories = [...new Set(available.map(item => item.category))];
-    const labels = {desk:'Mesas',chair:'Sillas',lamp:'Lámparas',plant:'Plantas',shelf:'Estanterías',poster:'Pósteres',mug:'Tazas',trophy:'Trofeos',globe:'Globos',clock:'Relojes'};
-    const items = available.filter(item => nextShopCategory === 'all' || item.category === nextShopCategory);
-    $('nextProgressBody').innerHTML = `<div class="next-card-head" style="padding:0 0 14px"><h3>${nextProgressMode === 'shop' ? 'Tienda' : 'Personalizar escritorio'}</h3><button class="next-link" type="button" onclick="nextProgressMode='overview';renderNextProgress()">← Volver a mi escritorio</button></div><div class="next-filters" role="group" aria-label="Filtrar objetos"><button class="${nextShopCategory === 'all' ? 'active' : ''}" aria-pressed="${nextShopCategory === 'all'}" type="button" onclick="setNextShopCategory('all')">Todo</button>${categories.map(category=>`<button class="${nextShopCategory === category ? 'active' : ''}" aria-pressed="${nextShopCategory === category}" type="button" onclick="setNextShopCategory('${category}')">${labels[category] || category}</button>`).join('')}</div><div class="next-catalog">${items.map(item => nextItemCard(item,nextProgressMode)).join('') || '<div class="next-card next-empty">No hay objetos en esta categoría.</div>'}</div>`;
+    const earned = new Set((profile.achievements || []).map(item => item.id));
+    const achievements = gamification.config?.achievements || [];
+    $('nextProgressBody').innerHTML = `<div class="next-catalog"><article class="next-card next-info"><strong>${topics.filter(item=>state.done[item.id]).length}/${topics.length}</strong><span>temas completados</span></article><article class="next-card next-info"><strong>${(state.activityDates||[]).length}</strong><span>días con actividad registrados</span></article><article class="next-card next-info"><strong>${tests.length ? `${average} %` : '—'}</strong><span>media en tests realizados</span></article><article class="next-card next-info"><strong>${games.length}</strong><span>juegos practicados</span></article><article class="next-card next-info"><strong>${games.length ? `${Math.max(...games.map(game => Number(game.best || 0)))} %` : '—'}</strong><span>mejor resultado en juegos</span></article><article class="next-card next-info"><strong>${earned.size}/${achievements.length}</strong><span>logros conseguidos</span></article></div>${achievements.length ? `<section class="next-stats-achievements"><h3>Logros</h3><div class="next-achievement-list">${achievements.map(item => `<div class="next-achievement-row ${earned.has(item.id) ? 'earned' : ''}"><strong>${escapeHtml(item.name)}</strong><span>${earned.has(item.id) ? 'Conseguido' : 'Pendiente'} · +${item.xp} XP</span></div>`).join('')}</div></section>` : ''}`;
     return;
   }
   const level = profile.level;
   const nextMin = level.next_min_xp;
   const previousMin = level.min_xp;
   const xpPct = nextMin ? Math.max(0,Math.min(100,Math.round((profile.xp-previousMin)/(nextMin-previousMin)*100))) : 100;
-  const days = recentStudyDays().filter(day=>day.done).length;
-  const gamesPlayed = Object.values(state.gameResults || {}).reduce((count, result) => count + Number(Boolean(result?.quiz)) + Number(Boolean(result?.pairs)) + Number(Boolean(result?.quest)), 0);
-  $('nextProgressBody').innerHTML = `<div class="next-progress-grid"><article class="next-card next-progress-main"><div class="next-level-row"><div><span>Nivel del escritorio</span><strong>${level.level} · ${escapeHtml(level.name)}</strong></div><span class="next-coins">${profile.coins} monedas</span></div><div class="next-xp"><i style="width:${xpPct}%"></i></div><div class="next-xp-meta"><span>${profile.xp} XP</span><span>${nextMin ? `${nextMin-profile.xp} XP para el nivel ${level.level+1}` : 'Nivel máximo'}</span></div>${deskSceneHtml(profile,true)}<div class="next-actions"><button class="primary next-primary" type="button" onclick="openNextCustomizer()">Personalizar escritorio</button><button type="button" onclick="openNextShop()">Ir a la tienda</button></div></article><aside class="next-side"><article class="next-card next-info"><strong>${academicProgressPct()} %</strong><span>Temario completado</span></article><article class="next-card next-info"><strong>${days} de 7</strong><span>Tu ritmo reciente</span></article><article class="next-card next-info"><strong>${gamesPlayed}</strong><span>Juegos practicados</span></article><article class="next-card next-info"><strong>${profile.owned_items?.length || 0}/${profile.catalog?.length || 0}</strong><span>Objetos en el inventario</span></article></aside></div>`;
+  const catalog = [...(profile.catalog || [])].sort((a,b) => Number(b.owned) - Number(a.owned) || Number(b.unlocked) - Number(a.unlocked));
+  const ownedCount = catalog.filter(item => item.owned).length;
+  $('nextProgressBody').innerHTML = `<div class="next-progress-grid next-desk-layout"><aside class="next-card next-desk-inventory" aria-label="Todos los objetos del escritorio"><div class="next-desk-inventory-head"><div><h3>Objetos del escritorio</h3><p>Conseguidos, disponibles y bloqueados.</p></div><span>${ownedCount}/${catalog.length}</span></div><div class="next-desk-inventory-list">${catalog.map(item => nextDeskItemHtml(item,profile.coins)).join('') || '<p class="next-empty">No hay objetos disponibles.</p>'}</div></aside><article class="next-card next-progress-main"><div class="next-level-row"><div><span>Nivel del escritorio</span><strong>${level.level} · ${escapeHtml(level.name)}</strong></div><span class="next-coins">${profile.coins} monedas</span></div><div class="next-xp"><i style="width:${xpPct}%"></i></div><div class="next-xp-meta"><span>${profile.xp} XP</span><span>${nextMin ? `${nextMin-profile.xp} XP para el nivel ${level.level+1}` : 'Nivel máximo'}</span></div>${deskSceneHtml(profile,true)}<p class="next-desk-help">Elige «Equipar» en un objeto conseguido para verlo aquí. Estudia y juega para desbloquear los demás.</p></article></div>`;
 }
 function renderNextExperience() { renderHomeDesk(); renderNextHome(); renderNextProgress(); }
 async function loadProfile() {
@@ -6945,7 +6926,7 @@ function renderView() {
   if ($('homeView')) $('homeView').hidden = profileOpen || currentView !== 'home';
   if ($('nextHomeView')) $('nextHomeView').hidden = true;
   if ($('planView')) $('planView').hidden = profileOpen || currentView !== 'home';
-  if ($('progressView')) $('progressView').hidden = PROGRESS_REDESIGN ? nextProgressTab !== 'study' || profileOpen || currentView !== 'progress' : profileOpen || currentView !== 'progress';
+  if ($('progressView')) $('progressView').hidden = PROGRESS_REDESIGN || profileOpen || currentView !== 'progress';
   if ($('nextProgressView')) $('nextProgressView').hidden = !PROGRESS_REDESIGN || profileOpen || currentView !== 'progress';
   if ($('moduleGrid')) $('moduleGrid').hidden = profileOpen || currentView !== 'modules';
   if ($('gamesView')) $('gamesView').hidden = profileOpen || currentView !== 'games';
