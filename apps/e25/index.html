@@ -3378,7 +3378,7 @@
 @media(max-width:760px){.desktop-refresh .exam-workspace #viewer{padding:16px}.exam-home-options{gap:12px}.desktop-refresh .exam-home-options>button{min-height:135px;padding:18px;grid-template-columns:44px minmax(0,1fr) 12px;gap:12px}.exam-home-options i{width:44px;height:44px;border-radius:13px;font-size:23px}.exam-home-options strong{font-size:17px}.exam-home-options small{font-size:12px}.exam-correction .ocr-row{grid-template-columns:1fr}.exam-section-head h3{font-size:22px}.exam-record{padding:16px;gap:12px}.exam-record button{font-size:12px}.exam-correction .exam-submit-row{grid-template-columns:1fr}.exam-correction-tools{align-items:flex-start}.exam-correction-tools>span{line-height:1.6}}
 @media(max-width:520px){.exam-home-options{grid-template-columns:1fr}.desktop-refresh .exam-home-options>button{min-height:107px}.exam-home-options strong{font-size:18px}.exam-home-options small{font-size:13px}.exam-record{align-items:flex-start;flex-direction:column}.exam-record button{align-self:flex-end}.exam-section-head{gap:14px}.exam-correction #correctionOutput{padding:16px}}
 
-</style><link rel="stylesheet" href="assets/eso-final.css?v=20261026-5"></head>
+</style><link rel="stylesheet" href="assets/eso-final.css?v=20261027-4"></head>
 <body>
 <div class="app">
   <header>
@@ -7144,7 +7144,8 @@ function teacherContext() {
   }
   if (topic && lesson) {
     const evidence = state.learningEvidence?.[evidenceKey(topic.id,state.activeLesson)];
-    return {key:`lesson:${topic.id}:${state.activeLesson}`, title:lesson.title, brief:`Asignatura: ${module.title}. Tema: ${topic.title}. Leccion: ${lesson.title}. Objetivo: ${lesson.objective || topic.detail}. Teoria: ${lesson.theory || lesson.note}. Ejemplo: ${lesson.exampleText || lesson.example}. Criterio: ${lesson.pass || 'responder con claridad y justificar'}. Evidencia del alumno: ${evidence?.response || 'todavia no entregada'}. Estado de evidencia: ${evidence?.ready ? 'guardada' : 'pendiente'}.`};
+    const evidenceSummary = evidence?.kind === 'choice-v1' ? `Mini reto: ${lessonEvidenceReady(topic.id,state.activeLesson) ? 'dos respuestas correctas' : 'pendiente o con errores'}` : `Respuesta escrita anterior: ${evidence?.response || 'no hay'}`;
+    return {key:`lesson:${topic.id}:${state.activeLesson}`, title:lesson.title, brief:`Asignatura: ${module.title}. Tema: ${topic.title}. Leccion: ${lesson.title}. Objetivo: ${lesson.objective || topic.detail}. Teoria: ${lesson.theory || lesson.note}. Ejemplo: ${lesson.exampleText || lesson.example}. Criterio: ${lesson.pass || 'responder con claridad y justificar'}. ${evidenceSummary}. Estado de la leccion: ${isLessonDone(topic,state.activeLesson) ? 'completada' : 'pendiente'}.`};
   }
   if (topic) {
     return {key:`topic:${topic.id}`, title:topic.title, brief:`Asignatura: ${module.title}. Tema abierto: ${topic.title}. Objetivo: ${topic.detail}. Apunte base: ${topic.note}.`};
@@ -7162,7 +7163,7 @@ function teacherIntro(ctx) {
 function teacherSuggestions(ctx) {
   if (ctx.key.startsWith('home:')) return ['Que hago primero?', 'Explicamelo en 5 minutos', 'Como cierro la sesion?'];
   if (ctx.key.startsWith('exam:')) return ['Explícame la puntuación', 'Cómo reparto las 2 horas', 'Revisa mi estrategia'];
-  if (ctx.key.startsWith('lesson:')) return ctx.brief.includes('Evidencia del alumno: todavia no entregada') ? ['Dame una pista, no la solución', 'Ponme otro ejemplo', 'Comprueba qué debo entregar'] : ['Revisa mi evidencia', 'Qué puedo mejorar', 'Hazme otra pregunta'];
+  if (ctx.key.startsWith('lesson:')) return ctx.brief.includes('dos respuestas correctas') ? ['Qué puedo mejorar', 'Ponme otro ejemplo', 'Hazme otra pregunta'] : ['Dame una pista, no la solución', 'Ponme otro ejemplo', 'Explícame el mini reto'];
   if (ctx.key === 'progress') return ['Que me falta para subir?', 'Que hago manana?', 'Donde estoy flojo?'];
   return ['Por donde empiezo?', 'Resumen rapido', 'Errores tipicos'];
 }
@@ -7210,14 +7211,14 @@ async function askTeacher(preset='') {
   saveState();
 }
 function formatStudyInline(value) {
-  return escapeHtml(value).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`(.+?)`/g,'<code>$1</code>');
+  return escapeHtml(value).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*]+)\*/g,'$1<em>$2</em>').replace(/`(.+?)`/g,'<code>$1</code>');
 }
 function formatStudyText(value) {
   const lines = String(value || '').replace(/\r/g,'').split('\n');
   const html = [];
   for (let index=0; index<lines.length; index++) {
     const line = lines[index].trim();
-    if (!line) continue;
+    if (!line || /^([-*_])\1{2,}$/.test(line)) continue;
     const next = lines[index + 1]?.trim() || '';
     if (line.includes('|') && /^\|?\s*:?-{3,}/.test(next)) {
       const headers = line.replace(/^\||\|$/g,'').split('|').map(cell => cell.trim());
@@ -7233,8 +7234,10 @@ function formatStudyText(value) {
       html.push(`<h3>${formatStudyInline(line.replace(/^#{1,3}\s+/,''))}</h3>`);
     } else if (/^[-*]\s+/.test(line)) {
       html.push(`<div class="study-bullet">${formatStudyInline(line.replace(/^[-*]\s+/,''))}</div>`);
+    } else if (/^\d+[.)]\s+/.test(line)) {
+      html.push(`<div class="study-step">${formatStudyInline(line)}</div>`);
     } else {
-      html.push(`<p>${formatStudyInline(line.replace(/^\d+[.)]\s+/,''))}</p>`);
+      html.push(`<p>${formatStudyInline(line)}</p>`);
     }
   }
   return html.join('');
@@ -7263,7 +7266,7 @@ function renderContents(module) {
   }
   const lesson = lessons[state.activeLesson];
   const nextLabel = state.activeLesson + 1 < lessons.length ? 'Siguiente lección' : 'Volver al tema';
-  $('viewer').innerHTML = `<section class="topic-detail"><div class="topic-detail-head lesson-head"><button class="icon-button" type="button" onclick="closeLesson()" aria-label="Volver a las lecciones" title="Lecciones">&larr;</button><div><small class="topic-parent">${escapeHtml(topic.title)}</small><h2>${escapeHtml(lesson.title)}</h2></div></div>${lessonContentHtml(topic,lesson,state.activeLesson)}<div class="topic-primary-actions"><button class="primary" type="button" onclick="completeLesson('${topic.id}',${state.activeLesson})">${isLessonDone(topic,state.activeLesson) ? nextLabel : 'Guardar y continuar'}</button><button type="button" onclick="openGames('${module.id}','${topic.id}')">Practicar con un juego</button></div></section>`;
+  $('viewer').innerHTML = `<section class="topic-detail"><div class="topic-detail-head lesson-head"><button class="icon-button" type="button" onclick="closeLesson()" aria-label="Volver a las lecciones" title="Lecciones">&larr;</button><div><small class="topic-parent">${escapeHtml(topic.title)}</small><h2>${escapeHtml(lesson.title)}</h2></div></div>${lessonContentHtml(topic,lesson,state.activeLesson)}<div class="topic-primary-actions"><button class="primary" type="button" onclick="completeLesson('${topic.id}',${state.activeLesson})">${isLessonDone(topic,state.activeLesson) ? nextLabel : 'Completar y continuar'}</button><button type="button" onclick="openGames('${module.id}','${topic.id}')">Practicar con un juego</button></div></section>`;
 }
 const SUBJECT_TOPIC_GROUPS = {
   lengua:[['Lectura y textos',['len-comprension','len-resumen','len-literatura','len-textos-vida','len-medios','len-comentario']],['Lengua y escritura',['len-gramatica','len-ortografia','len-redaccion','len-argumentacion','len-presentacion']]],
@@ -7334,10 +7337,10 @@ function completeLesson(topicId,index) {
   if (!topic) return;
   const wasDone = isLessonDone(topic,index);
   const topicWasDone = Boolean(state.done[topicId]);
-  if (MODEL_UNITS[topicId] && !wasDone && !saveModelEvidence(topicId,index,false)) {
+  if (MODEL_UNITS[topicId] && !wasDone && !lessonEvidenceReady(topicId,index)) {
     const status = $('modelEvidenceStatus');
     if (status) {
-      status.textContent = 'Escribe al menos 40 caracteres y marca dos comprobaciones para continuar.';
+      status.textContent = 'Acierta las dos preguntas de «Elige y comprueba» para continuar.';
       status.classList.remove('ready');
       status.scrollIntoView({behavior:'smooth', block:'center'});
     }
@@ -7367,7 +7370,34 @@ function saveLessonNotes(topicId,index,notify=true) {
   state.lessonNotes[lessonNoteKey(topicId,index)] = textarea.value.trim();
   if (notify) rememberSavedNote({kind:'apuntes', location:'app', topicId, lessonIndex:index});
   if (notify && $('lessonAiStatus')) $('lessonAiStatus').textContent = 'Apuntes guardados.';
+  showLessonNotesPreview(textarea.value);
   saveState();
+}
+function lessonNotesPreviewHtml(value) {
+  return `<div class="ai-notes-preview-kicker">Apuntes para repasar</div><div class="ai-notes-paper teacher-rich">${formatStudyText(value)}</div>`;
+}
+function showLessonNotesPreview(value) {
+  const preview = $('lessonNotesPreview');
+  const editor = $('lessonNotesEditor');
+  const toggle = $('lessonNotesEditButton');
+  if (!preview || !editor || !toggle) return;
+  const hasNotes = Boolean(String(value || '').trim());
+  preview.innerHTML = hasNotes ? lessonNotesPreviewHtml(value) : '';
+  preview.hidden = !hasNotes;
+  editor.hidden = hasNotes;
+  toggle.hidden = !hasNotes;
+  toggle.textContent = 'Editar apuntes';
+}
+function toggleLessonNotesEditor() {
+  const preview = $('lessonNotesPreview');
+  const editor = $('lessonNotesEditor');
+  const toggle = $('lessonNotesEditButton');
+  if (!preview || !editor || !toggle) return;
+  const editing = editor.hidden;
+  editor.hidden = !editing;
+  preview.hidden = editing;
+  toggle.textContent = editing ? 'Ver apuntes' : 'Editar apuntes';
+  if (editing) $('lessonAiNotes')?.focus();
 }
 async function generateLessonNotes(topicId,index,mode='generate') {
   const topic = allTasks().find(item => item.id === topicId);
@@ -7379,13 +7409,15 @@ async function generateLessonNotes(topicId,index,mode='generate') {
   if (status) status.textContent = mode === 'improve' ? 'Mejorando apuntes...' : 'Generando apuntes...';
   const guide = lessonPoints(topic, lesson, index).map((point,i) => `${i + 1}. ${point}`).join('\n');
   const prompt = topic.module === 'ingles'
-    ? `${mode === 'improve' && current ? 'Improve these study notes for an adult English learner.' : 'Create clear study notes for an adult English learner.'}\n\nTOPIC: ${topic.title}\nLESSON: ${lesson.title}\nOBJECTIVE: ${lesson.objective || ''}\nTHEORY: ${lesson.theory || lesson.note}\nMODEL EXAMPLE: ${lesson.exampleText || lesson.example}\nPRACTICE: ${lesson.practice || ''}\nCURRENT NOTES: ${current || 'None'}\n\nWrite the complete answer in English. Include a short summary, useful vocabulary or grammar, one model answer, common mistakes, and one short exam-style question. Keep it accurate, simple and practical. Do not translate it into Spanish.`
-    : `${mode === 'improve' && current ? 'Mejora estos apuntes de un alumno adulto con poco tiempo.' : 'Crea apuntes claros para un alumno adulto con poco tiempo.'}\n\nAPP: ${APP_TITLE}\nASIGNATURA: ${moduleById(topic.module).title}\nTEMA: ${topic.title}\nLECCION: ${lesson.title}\n\nCONTENIDO DEL TEMA:\n${guide}\n\nTEORIA BASE:\n${lesson.note}\n\nAPUNTES ACTUALES:\n${current || 'No hay apuntes todavia.'}\n\nDevuelve apuntes utiles en espanol, con: resumen corto, teoria clara, esquema sencillo, errores tipicos y mini pregunta de examen. Usa lenguaje sencillo y directo. No uses markdown pesado.`;
+    ? `${mode === 'improve' && current ? 'Improve these study notes for an adult English learner.' : 'Create clear study notes for an adult English learner.'}\n\nTOPIC: ${topic.title}\nLESSON: ${lesson.title}\nOBJECTIVE: ${lesson.objective || ''}\nTHEORY: ${lesson.theory || lesson.note}\nMODEL EXAMPLE: ${lesson.exampleText || lesson.example}\nPRACTICE: ${lesson.practice || ''}\nCURRENT NOTES: ${current || 'None'}\n\nWrite clear visual study notes in English, 250-400 words. Use simple Markdown only: one # title, then short sections with ## Key idea, ## Remember, ## Worked example, ## Common mistakes, ## Quick self-check. Use concise bullets and bold only for essential words. Include the answer to the self-check. No horizontal rules, HTML, long tables or introductory chatter. Do not translate into Spanish.`
+    : `${mode === 'improve' && current ? 'Mejora estos apuntes de un alumno adulto con poco tiempo.' : 'Crea apuntes claros para un alumno adulto con poco tiempo.'}\n\nAPP: ${APP_TITLE}\nASIGNATURA: ${moduleById(topic.module).title}\nTEMA: ${topic.title}\nLECCION: ${lesson.title}\n\nCONTENIDO DEL TEMA:\n${guide}\n\nTEORIA BASE:\n${lesson.note}\n\nAPUNTES ACTUALES:\n${current || 'No hay apuntes todavia.'}\n\nEscribe apuntes visuales y concretos de 250 a 400 palabras en español. Usa solo Markdown sencillo: un título con # y secciones breves con ## Idea clave, ## Recuerda, ## Ejemplo resuelto, ## Errores frecuentes y ## Compruébate. Emplea viñetas cortas y negrita solo en palabras importantes. Incluye la respuesta de la mini pregunta. Evita separadores ---, HTML, tablas largas, relleno y comentarios introductorios.`;
   try {
     const data = await backend('/api/chat', {method:'POST', body:JSON.stringify({purpose:'study', messages:[{role:'user', content:prompt}], temperature:.25, max_tokens:1800})});
-    if (textarea) textarea.value = data.content || '';
+    if (!String(data.content || '').trim()) throw new Error('La IA no ha devuelto apuntes. Inténtalo de nuevo.');
+    if (textarea) textarea.value = data.content.trim();
     state.lessonNotes[lessonNoteKey(topicId,index)] = textarea?.value.trim() || '';
     rememberSavedNote({kind:'apuntes', location:'ia', topicId, lessonIndex:index});
+    showLessonNotesPreview(textarea?.value || '');
     if (status) status.textContent = 'Apuntes generados y guardados.';
     saveState();
   } catch (e) {
@@ -7410,20 +7442,72 @@ function lessonPoints(topic, lesson, index) {
 }
 function lessonNoteKey(topicId,index) { return `${topicId}:notes:${index}`; }
 function evidenceKey(topicId,index) { return `${topicId}:evidence:${index}`; }
-function lessonEvidenceReady(topicId,index) { return state.learningEvidence?.[evidenceKey(topicId,index)]?.ready === true; }
-function saveModelEvidence(topicId,index,refresh=true) {
-  const response = String($('modelEvidenceAnswer')?.value || '').trim();
-  const checks = [...document.querySelectorAll('[data-evidence-check]')].map(input => input.checked);
-  const ready = response.length >= 40 && checks.filter(Boolean).length >= 2;
-  state.learningEvidence[evidenceKey(topicId,index)] = {response, checks, ready, submittedAt:new Date().toISOString()};
-  const status = $('modelEvidenceStatus');
-  if (status) {
-    status.textContent = ready ? 'Respuesta guardada. Puedes continuar.' : 'Para continuar: al menos 40 caracteres y dos comprobaciones.';
-    status.classList.toggle('ready',ready);
-  }
+function lessonCheckQuestions(topicId,index) {
+  const questions = MODEL_UNITS[topicId]?.questions || [];
+  const seed = [...topicId].reduce((sum,letter) => sum + letter.charCodeAt(0),0);
+  return questions.slice(index * 2,index * 2 + 2).map((question,questionIndex) => {
+    const choices = question[1].map((text,original) => ({text,original}));
+    const offset = (seed + index + questionIndex) % choices.length;
+    return {prompt:question[0],choices:[...choices.slice(offset),...choices.slice(0,offset)],correct:question[2],correctText:question[1][question[2]],explanation:question[3] || ''};
+  });
+}
+function lessonCheckEvidence(topicId,index) {
+  const evidence = state.learningEvidence?.[evidenceKey(topicId,index)] || {};
+  const prompts = lessonCheckQuestions(topicId,index).map(question => question.prompt);
+  return evidence.kind === 'choice-v1' && JSON.stringify(evidence.questionPrompts) === JSON.stringify(prompts) ? evidence : {};
+}
+function lessonEvidenceReady(topicId,index) {
+  const questions = lessonCheckQuestions(topicId,index);
+  const evidence = lessonCheckEvidence(topicId,index);
+  return questions.length === 2 && evidence.checked === true && questions.every((question,questionIndex) => evidence.answers?.[questionIndex] === question.correct);
+}
+function lessonCheckHtml(topicId,index) {
+  const questions = lessonCheckQuestions(topicId,index);
+  const evidence = lessonCheckEvidence(topicId,index);
+  const checked = evidence.checked === true;
+  const ready = lessonEvidenceReady(topicId,index);
+  const answers = evidence.answers || [];
+  return `<div class="model-quick-check"><div class="model-quick-check-head"><span aria-hidden="true">✦</span><div><strong>Mini reto del tema</strong><small>Elige una opción en cada pregunta. Verás la corrección al comprobar.</small></div></div>${questions.map((question,questionIndex) => {
+    const selected = answers[questionIndex];
+    const correct = checked && selected === question.correct;
+    return `<div class="model-check-question ${checked ? correct ? 'is-correct' : 'is-wrong' : ''}" id="modelCheckQuestion${questionIndex}"><span class="model-check-number">${questionIndex + 1} de ${questions.length}</span><strong>${escapeHtml(question.prompt)}</strong><div class="model-check-options" role="group" aria-label="Opciones de la pregunta ${questionIndex + 1}">${question.choices.map(choice => `<button type="button" data-choice-index="${choice.original}" class="${selected === choice.original ? 'selected' : ''} ${checked && choice.original === question.correct ? 'is-answer' : ''}" aria-pressed="${selected === choice.original}" onclick="chooseLessonAnswer('${topicId}',${index},${questionIndex},${choice.original})" ${checked ? 'disabled' : ''}>${escapeHtml(choice.text)}</button>`).join('')}</div>${checked ? `<div class="model-check-feedback"><strong>${correct ? '✓ Correcto' : '✕ Revisa esta respuesta'}</strong><p>${correct ? escapeHtml(question.explanation) : `Respuesta correcta: ${escapeHtml(question.correctText)}. ${escapeHtml(question.explanation)}`}</p></div>` : ''}</div>`;
+  }).join('')}<div class="model-check-actions"><button class="primary" type="button" onclick="checkLessonAnswers('${topicId}',${index})" ${checked ? 'hidden' : ''}>Comprobar respuestas</button>${checked && !ready ? `<button type="button" onclick="retryLessonCheck('${topicId}',${index})">Intentar de nuevo</button>` : ''}<span class="model-evidence-status ${ready ? 'ready' : ''}" id="modelEvidenceStatus" role="status" aria-live="polite">${ready ? '¡Bien! Has acertado las dos. Ya puedes continuar.' : checked ? 'Repasa la explicación e inténtalo de nuevo.' : 'Responde las dos preguntas para continuar.'}</span></div></div>`;
+}
+function chooseLessonAnswer(topicId,index,questionIndex,choiceIndex) {
+  const questions = lessonCheckQuestions(topicId,index);
+  const previous = state.learningEvidence?.[evidenceKey(topicId,index)] || {};
+  const current = lessonCheckEvidence(topicId,index);
+  if (!questions[questionIndex] || current.checked) return;
+  const answers = Array.isArray(current.answers) ? [...current.answers] : Array(questions.length).fill(null);
+  answers[questionIndex] = choiceIndex;
+  state.learningEvidence[evidenceKey(topicId,index)] = {...previous,kind:'choice-v1',questionPrompts:questions.map(question => question.prompt),answers,checked:false,ready:false};
+  const group = $(`modelCheckQuestion${questionIndex}`);
+  group?.querySelectorAll('.model-check-options button').forEach(button => {
+    const selected = Number(button.dataset.choiceIndex) === choiceIndex;
+    button.classList.toggle('selected',selected);
+    button.setAttribute('aria-pressed',String(selected));
+  });
   saveState();
-  if (refresh) renderWorkspace();
-  return ready;
+}
+function checkLessonAnswers(topicId,index) {
+  const questions = lessonCheckQuestions(topicId,index);
+  const previous = state.learningEvidence?.[evidenceKey(topicId,index)] || {};
+  const current = lessonCheckEvidence(topicId,index);
+  if (questions.length !== 2 || !Array.isArray(current.answers) || questions.some((_,questionIndex) => !Number.isInteger(current.answers[questionIndex]))) {
+    const status = $('modelEvidenceStatus');
+    if (status) status.textContent = 'Elige una opción en cada pregunta antes de comprobar.';
+    return;
+  }
+  const ready = questions.every((question,questionIndex) => current.answers[questionIndex] === question.correct);
+  state.learningEvidence[evidenceKey(topicId,index)] = {...previous,...current,checked:true,ready,attempts:Number(previous.attempts || 0) + 1,submittedAt:new Date().toISOString()};
+  $('modelLessonCheck').innerHTML = lessonCheckHtml(topicId,index);
+  saveState();
+}
+function retryLessonCheck(topicId,index) {
+  const previous = state.learningEvidence?.[evidenceKey(topicId,index)] || {};
+  state.learningEvidence[evidenceKey(topicId,index)] = {...previous,answers:[],checked:false,ready:false};
+  $('modelLessonCheck').innerHTML = lessonCheckHtml(topicId,index);
+  saveState();
 }
 function moduleStudyProfile(moduleId) {
   return {
@@ -7502,15 +7586,14 @@ Un buen metodo es: 1) leer que pide exactamente, 2) responder lo seguro primero,
 function modelLessonHtml(topic, lesson) {
   const unit = MODEL_UNITS[topic.id];
   if (!unit || !lesson.objective) return '';
-  const evidence = state.learningEvidence?.[evidenceKey(topic.id,state.activeLesson)] || {response:'',checks:[]};
-  const checks = ['He respondido todas las partes.','He usado datos o pistas concretas.','He revisado claridad, ortografía o unidades.'];
+  const previousResponse = state.learningEvidence?.[evidenceKey(topic.id,state.activeLesson)]?.response || '';
   return `<div class="model-unit-meta"><span class="model-badge">${escapeHtml(unit.label)}</span><small>Revisada ${escapeHtml(unit.reviewed)} · ${escapeHtml(unit.source)}</small></div>
     <div class="model-objective"><strong>Objetivo de la lección</strong>${escapeHtml(lesson.objective)}</div>
     <div class="lesson-parts">
       ${lessonPartHtml(1,'Entiende la idea','La explicación esencial para empezar.',`<p>${escapeHtml(lesson.theory)}</p>`,true)}
       ${lessonPartHtml(2,lesson.exampleTitle,'Un ejemplo explicado paso a paso.',`<p>${escapeHtml(lesson.exampleText)}</p><ol class="lesson-steps">${lesson.exampleSteps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ol>`)}
-      ${lessonPartHtml(3,'Pruébalo','Practica antes de consultar la respuesta.',`<p>${escapeHtml(lesson.practice)}</p><details class="model-solution"><summary>Ver solución razonada</summary><p>${escapeHtml(lesson.solution)}</p></details>`)}
-      ${lessonPartHtml(4,'Escribe y comprueba','Guarda tu respuesta para poder continuar.',`<p>${escapeHtml(lesson.evidence)}</p><div class="model-evidence-form"><textarea id="modelEvidenceAnswer" aria-label="Tu respuesta" placeholder="Escribe aquí tu respuesta." onchange="saveModelEvidence('${topic.id}',${state.activeLesson},false)">${escapeHtml(evidence.response || '')}</textarea><div class="model-checks">${checks.map((check,index) => `<label><input type="checkbox" data-evidence-check onchange="saveModelEvidence('${topic.id}',${state.activeLesson},false)" ${evidence.checks?.[index] ? 'checked' : ''}>${escapeHtml(check)}</label>`).join('')}</div><div class="model-evidence-status ${evidence.ready ? 'ready' : ''}" id="modelEvidenceStatus">${evidence.ready ? 'Respuesta guardada. Puedes continuar.' : 'Para continuar: al menos 40 caracteres y dos comprobaciones.'}</div></div>`,true)}
+      ${lessonPartHtml(3,'Piensa y revela','Una práctica guiada para entender el ejemplo.',`<p>${escapeHtml(lesson.practice)}</p><details class="model-solution"><summary>Ver solución razonada</summary><p>${escapeHtml(lesson.solution)}</p></details>`)}
+      ${lessonPartHtml(4,'Elige y comprueba','Dos preguntas con corrección inmediata.',`<div id="modelLessonCheck">${lessonCheckHtml(topic.id,state.activeLesson)}</div>${previousResponse ? `<details class="model-previous-answer"><summary>Ver mi respuesta escrita anteriormente</summary><p>${escapeHtml(previousResponse)}</p></details>` : ''}`,true)}
       ${lessonPartHtml(5,'Evita estos errores','Una revisión breve antes de cerrar.',`<ul>${lesson.errors.map(error => `<li>${escapeHtml(error)}</li>`).join('')}</ul>`)}
     </div>`;
 }
@@ -7520,7 +7603,7 @@ function lessonPartHtml(number,title,subtitle,body,open=false) {
 function lessonContentHtml(topic,lesson,index) {
   const saved = state.lessonNotes?.[lessonNoteKey(topic.id,index)] || '';
   const lessonBody = lesson.objective ? modelLessonHtml(topic, lesson) : `<div class="lesson-parts">${lessonPartHtml(1,'Lo esencial','Qué necesitas saber de este tema.',`<p>${escapeHtml(topic.detail)}</p><p>${escapeHtml(topic.note)}</p>`,true)}${lessonPartHtml(2,'Ejemplo','Una aplicación que puedes recordar.',`<div class="lesson-example">${escapeHtml(topic.example)}</div>`)}${lessonPartHtml(3,'Explicación completa','Abre esta parte si necesitas más detalle.',`<p>${escapeHtml(lessonTheory(topic,lesson,index))}</p>`)}${lessonPartHtml(4,'Compruébalo','Una pregunta para repasar antes de continuar.',`<p>Explica con tus palabras ${escapeHtml(lesson.title.toLowerCase())} y usa el ejemplo anterior para justificar tu respuesta.</p><button type="button" onclick="openGames('${topic.module}','${topic.id}')">Practicar jugando →</button>`)}</div>`;
-  return `<div class="lesson-content"><div class="lesson-map"><strong>Tu recorrido:</strong><span>Entiende</span><span>Observa</span><span>Practica</span><span>Continúa</span></div>${lessonBody}<details class="ai-notes-card"><summary>Mis apuntes <small>Opcional</small></summary><div class="ai-notes-body"><textarea class="ai-notes-text" id="lessonAiNotes" placeholder="Escribe tus apuntes o genéralos con IA.">${escapeHtml(saved)}</textarea><div class="ai-notes-actions"><button class="primary" type="button" onclick="saveLessonNotes('${topic.id}',${index})">Guardar apuntes</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'improve')">Mejorar con IA</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'generate')">Generar con IA</button></div><div class="ai-notes-status" id="lessonAiStatus">${saved ? 'Apuntes guardados.' : 'Aún no hay apuntes personales.'}</div></div></details><details class="lesson-resources"><summary>Recursos oficiales</summary><div class="topic-resource-list">${resourcesForTopic(topic).map(link => `<a href="${link.url}" target="_blank" rel="noopener"><span><strong>${escapeHtml(link.title)}</strong><small>${escapeHtml(link.source)}</small></span><span>ABRIR</span></a>`).join('')}</div></details></div>`;
+  return `<div class="lesson-content"><div class="lesson-map"><strong>Tu recorrido:</strong><span>Entiende</span><span>Observa</span><span>Practica</span><span>Continúa</span></div>${lessonBody}<details class="ai-notes-card"><summary>Mis apuntes <small>Opcional</small></summary><div class="ai-notes-body"><div class="ai-notes-preview" id="lessonNotesPreview" ${saved ? '' : 'hidden'}>${saved ? lessonNotesPreviewHtml(saved) : ''}</div><div class="ai-notes-editor" id="lessonNotesEditor" ${saved ? 'hidden' : ''}><label for="lessonAiNotes">Escribe o modifica tus apuntes</label><textarea class="ai-notes-text" id="lessonAiNotes" placeholder="Escribe aquí tus apuntes.">${escapeHtml(saved)}</textarea><button class="primary" type="button" onclick="saveLessonNotes('${topic.id}',${index})">Guardar apuntes</button></div><div class="ai-notes-actions"><button id="lessonNotesEditButton" type="button" onclick="toggleLessonNotesEditor()" ${saved ? '' : 'hidden'}>Editar apuntes</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'improve')">Mejorar con IA</button><button type="button" onclick="generateLessonNotes('${topic.id}',${index},'generate')">Generar con IA</button></div><div class="ai-notes-status" id="lessonAiStatus" role="status" aria-live="polite">${saved ? 'Apuntes guardados.' : 'Aún no hay apuntes personales.'}</div></div></details><details class="lesson-resources"><summary>Recursos oficiales</summary><div class="topic-resource-list">${resourcesForTopic(topic).map(link => `<a href="${link.url}" target="_blank" rel="noopener"><span><strong>${escapeHtml(link.title)}</strong><small>${escapeHtml(link.source)}</small></span><span>ABRIR</span></a>`).join('')}</div></details></div>`;
 }
 function contentFor(id, moduleId) {
   const topic = allTasks().find(t => t.id === id);
