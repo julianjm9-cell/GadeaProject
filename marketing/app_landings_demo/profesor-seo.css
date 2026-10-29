@@ -20,3 +20,29 @@
 .student-preview{padding:25px;border:1px solid #cee1fb;border-radius:21px;background:linear-gradient(150deg,#e6f3ff,#fff);box-shadow:0 14px 30px #145dab16}.student-preview-top{display:flex;gap:9px;align-items:center;margin-bottom:24px}.student-preview-top span{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:#0870ef;color:#fff}.student-preview label{display:block;color:#4c678f;font-size:12px;font-weight:800}.student-preview-code{margin-top:7px;padding:12px;border:1px solid #c8dffc;border-radius:10px;background:white;color:#0d3674;font-size:22px;font-weight:850;letter-spacing:.1em;text-align:center}.student-preview-button{margin-top:14px;padding:11px;border-radius:10px;background:#086cf0;color:#fff;font-size:13px;font-weight:800;text-align:center}
 .access-code strong{font-size:clamp(14px,1.65vw,23px);letter-spacing:.02em;white-space:nowrap}.student-preview-code{font-size:clamp(17px,4vw,22px);letter-spacing:.04em}
 @media(max-width:950px){.hero{grid-template-columns:1fr 1fr;gap:24px}.exercise-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.preview-card img{height:100px}}@media(max-width:760px){.hero{grid-template-columns:1fr}.product-preview{min-height:0}.path-grid,.level-grid{grid-template-columns:1fr}.exercise-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.feature-band{grid-template-columns:1fr}.feature-art{max-width:450px}.access-layout{margin-top:12px}}@media(max-width:480px){.hero-visual{padding:9px}.product-preview{padding:11px}.preview-card img{height:80px}.preview-card strong{font-size:10px}.preview-card span{font-size:8px}.game-spotlight img{height:130px}.game-spotlight strong{font-size:16px}.topic-layout{grid-template-columns:1fr}.topic-list span:nth-child(n+3){display:none}.access-layout{grid-template-columns:1fr}.access-code strong{margin:7px 0}.exercise-card img{height:92px}.exercise-card h3{font-size:13px}.exercise-card p{font-size:11px}.compare-grid{grid-template-columns:1fr}}
+/* Interactive polish and the complete public game catalog. */
+.site-header nav a,.button,.card,.exercise-card,.path-card,.level-grid article,.catalog-card{transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease,background .24s ease}
+.site-header nav a:hover:not(.cta){color:#0068e9;transform:translateY(-2px)}
+.button:hover,.site-header .cta:hover{transform:translateY(-3px);box-shadow:0 14px 27px #1173dd28}
+.card:hover,.exercise-card:hover,.path-card:hover,.level-grid article:hover,.catalog-card:hover{transform:translateY(-5px);border-color:#8dbff7;box-shadow:0 19px 35px #174d9b22}
+.card img,.exercise-card img,.catalog-card img{transition:transform .4s ease}
+.card:hover img,.exercise-card:hover img,.catalog-card:hover img{transform:scale(1.035)}
+.real-catalog{background:linear-gradient(150deg,#eff8ff,#fff 52%,#f2f7ff)}
+.catalog-jump{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 27px}
+.catalog-jump a{padding:10px 16px;border:1px solid #b7d7fa;border-radius:999px;background:#fff;color:#085dbd;font-size:13px;font-weight:800;transition:transform .2s,background .2s,box-shadow .2s}
+.catalog-jump a:hover{transform:translateY(-3px);background:#e3f2ff;box-shadow:0 8px 17px #0874ee20}
+.catalog-level{scroll-margin-top:85px;margin:24px 0 36px}
+.catalog-level h3{display:flex;align-items:center;gap:12px;margin:0 0 14px;font-size:23px;letter-spacing:-.035em}
+.catalog-level h3 span{padding:4px 10px;border-radius:999px;background:#dcefff;color:#075bb7;font-size:11px;letter-spacing:0}
+.catalog-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.catalog-card{min-width:0;overflow:hidden;border:1px solid #d7e7f7;border-radius:18px;background:#fff;box-shadow:0 8px 20px #1c5c9d0b}
+.catalog-card img{display:block;width:100%;height:135px;object-fit:cover;background:#e6f3ff}
+.catalog-card>div{padding:14px 16px 16px}
+.catalog-meta{display:inline-block;margin-bottom:7px;padding:4px 9px;border-radius:999px;background:#e8f3ff;color:#1264c0;font-size:11px;font-weight:800}
+.catalog-card h4{margin:0 0 5px;font-size:16px;line-height:1.25}
+.catalog-card p{min-height:54px;margin:0 0 8px;font-size:12px;line-height:1.45;color:#496588}
+.catalog-card small{color:#617a9d;font-size:11px}
+.catalog-end{margin:25px 0 0!important;text-align:center}
+@media(max-width:850px){.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:550px){.catalog-grid{grid-template-columns:1fr}.catalog-card{display:grid;grid-template-columns:38% 1fr}.catalog-card img{height:100%;min-height:170px}.catalog-card p{min-height:0}}
+@media(prefers-reduced-motion:reduce){.site-header nav a,.button,.card,.exercise-card,.path-card,.level-grid article,.catalog-card,.card img,.exercise-card img,.catalog-card img,.catalog-jump a{transition:none}}

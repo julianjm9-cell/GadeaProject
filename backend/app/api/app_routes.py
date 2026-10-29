@@ -683,7 +683,7 @@ def marketing_asset(filename: str):
 
 @router.get("/assets/landing/{filename}")
 def eso_landing_asset(filename: str):
-    if filename not in {"eso-study-desk.png", "profesor-dashboard.png", "profesor-materiales.png", "profesor-clases-apoyo.png", "profesor-hero-app-v3.png", "eso-dashboard.png", "eso-mobile.png", "profesor-mobile.png", "diplomator-dashboard.png", "diplomator-mobile.png", "facturas-dashboard.png", "facturas-mobile.png"}:
+    if filename not in {"eso-study-desk.png", "profesor-dashboard.png", "profesor-materiales.png", "profesor-clases-apoyo.png", "profesor-hero-app-v3.png", "profesor-hero-app-v4.png", "eso-dashboard.png", "eso-mobile.png", "profesor-mobile.png", "diplomator-dashboard.png", "diplomator-mobile.png", "facturas-dashboard.png", "facturas-mobile.png"}:
         raise HTTPException(status_code=404, detail="Asset no encontrado.")
     return marketing_file(f"assets/landing/{filename}", "image/png")
 

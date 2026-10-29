@@ -163,6 +163,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/landing/profesor-dashboard.png": b"\x89PNG\r\n\x1a\n",
         "/assets/landing/profesor-clases-apoyo.png": b"\x89PNG\r\n\x1a\n",
         "/assets/landing/profesor-hero-app-v3.png": b"\x89PNG\r\n\x1a\n",
+        "/assets/landing/profesor-hero-app-v4.png": b"\x89PNG\r\n\x1a\n",
     }
     for path, expected in checks.items():
         with urlopen(base + path, timeout=20) as response:
@@ -172,7 +173,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
                 assert b'href="/profesor"' in data, "Falta Profesor Particular en la portada"
             if path == "/profesor":
                 assert b"/assets/games/access-session.svg" in data, "Falta la ilustracion de accesos"
-                assert b'profesor-hero-app-v3.png' in data and b'Entrar con Google' in data, "Falta la nueva portada de Profesor Particular"
+                assert b'profesor-hero-app-v4.png' in data and b'Entrar con Google' in data, "Falta la nueva portada de Profesor Particular"
             if path == "/profesor/accesos-alumnos":
                 assert b'perfil del alumno' not in data, "La página anuncia perfiles de alumnos retirados"
             if path == "/profesor-particular":

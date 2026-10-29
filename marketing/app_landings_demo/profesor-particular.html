@@ -11,7 +11,7 @@
   <meta property="og:title" content="Profesor Particular · Prepara tus clases y haz que aprendan jugando">
   <meta property="og:description" content="Temario y materiales gratuitos, juegos interactivos y herramientas para organizar tus clases.">
   <meta property="og:url" content="https://educame.tech/profesor">
-  <meta property="og:image" content="https://educame.tech/assets/landing/profesor-hero-app-v3.png">
+  <meta property="og:image" content="https://educame.tech/assets/landing/profesor-hero-app-v4.png">
   <meta property="og:site_name" content="Profesor Particular">
   <meta name="twitter:card" content="summary_large_image">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Profesor Particular","url":"https://educame.tech/profesor","description":"Temario, materiales y juegos interactivos para preparar clases particulares y de refuerzo.","applicationCategory":"EducationalApplication","operatingSystem":"Web","inLanguage":"es"}</script>
@@ -27,30 +27,35 @@
     .site-header{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:22px 0}
     .brand{display:inline-flex;align-items:center;gap:9px;flex:none;font-size:18px;font-weight:850;line-height:1.05;letter-spacing:-.045em}
     .brand img{display:block;width:55px;height:55px;object-fit:contain}
+    .brand-cluster{display:flex;align-items:center;gap:12px}.instagram-link{display:grid;place-items:center;width:40px;height:40px;border:1px solid #d7dffa;border-radius:13px;background:#fff;color:#d83a86;box-shadow:0 6px 17px #224a8414;transition:transform .2s,box-shadow .2s,background .2s}.instagram-link:hover{transform:translateY(-3px) rotate(-5deg);background:#fff1f8;box-shadow:0 12px 21px #d83a8630}.instagram-link svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
     .header-links{display:flex;align-items:center;gap:clamp(14px,2.3vw,33px);font-size:14px;font-weight:700}
-    .header-links a:not(.header-entry):hover,.footer a:hover{color:#0866d7;text-decoration:underline;text-underline-offset:4px}
-    .header-entry{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 19px;border-radius:13px;background:var(--blue);color:white;box-shadow:0 7px 16px #0b72e62b}
-    .header-entry:hover,.button-primary:hover{background:#005ed0}
+    .header-links a:hover,.footer a:hover{color:#0866d7;text-decoration:underline;text-underline-offset:4px}
     .hero{display:grid;grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr);align-items:center;gap:clamp(20px,3vw,48px);min-height:605px;padding:22px 0 34px}
     .hero-copy{position:relative;z-index:1;padding:24px 0}
     .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 15px;border:1px solid #bcdcff;border-radius:999px;background:#e9f4ff;color:#1767c9;font-size:12px;font-weight:850;letter-spacing:.085em;text-transform:uppercase}
     .eyebrow:before{content:"✦";font-size:16px;line-height:1}
-    h1{max-width:660px;margin:22px 0 18px;font-size:clamp(44px,4.45vw,72px);line-height:1.055;letter-spacing:-.065em;font-weight:850}
-    h1 span{display:block;color:var(--blue)}
+    h1{max-width:660px;margin:22px 0 18px;line-height:1.08;letter-spacing:-.055em;font-weight:850}
+    .headline-top{display:block;white-space:nowrap;font-size:clamp(34px,3.5vw,48px)}
+    .headline-play{display:block;white-space:nowrap;color:var(--blue);font-size:clamp(27px,2.7vw,38px)}
     .lead{max-width:570px;margin:0;color:#4c668b;font-size:clamp(18px,1.45vw,22px);line-height:1.55}
     .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin:30px 0 12px}
     .hero-actions a{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:55px;padding:12px 21px;border-radius:14px;font-size:15px;font-weight:800;transition:transform .2s,box-shadow .2s,background .2s}
     .hero-actions a:hover{transform:translateY(-2px)}
-    .button-primary{background:var(--blue);color:#fff;box-shadow:0 11px 24px #0874ee40}
+    .google-entry{border:1px solid #dadce0;background:#fff;color:#3c4043;box-shadow:0 2px 7px #23355413;font-family:Arial,ui-sans-serif,system-ui,sans-serif;font-weight:600!important;letter-spacing:.005em}
+    .google-entry:hover{border-color:#c8d7ee;background:#f8fbff;box-shadow:0 5px 15px #2335541c}
     .button-secondary{border:1px solid #bbd9fb;background:#fff;color:#1164bd;box-shadow:0 7px 18px #2a74ba12}
     .button-secondary:hover{background:#eaf5ff}
-    .google-mark{width:21px;height:21px;flex:none}
+    .google-mark{width:20px;height:20px;flex:none}
     .access-note{margin:0;color:#6c82a2;font-size:13px}
     .access-note a{text-decoration:underline;text-underline-offset:2px}
     .hero-art{position:relative;min-width:0;margin:0;align-self:center}
     .hero-art:before{content:"";position:absolute;inset:15% 1% 10%;z-index:-1;border-radius:50%;background:#8dc6ff70;filter:blur(68px)}
     .hero-art img{display:block;width:100%;height:auto;filter:drop-shadow(0 24px 35px #286bb31d)}
     .hero-art figcaption{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    .hero-art-stage{position:relative}.hero-zone{position:absolute;z-index:2;padding:0;border:2px solid transparent;border-radius:24px;background:transparent;cursor:pointer;transition:border-color .2s,box-shadow .2s,background .2s}.hero-zone:hover,.hero-zone:focus-visible,.hero-zone[aria-expanded="true"]{border-color:#fff;box-shadow:0 0 0 4px #2695ff9c,0 12px 27px #0758ad30;background:#ffffff12;outline:none}.hero-zone-game{left:6%;top:12%;width:53%;height:79%}.hero-zone-temario{left:59%;top:12%;width:36%;height:48%}.hero-zone-alumnos{left:58%;top:61%;width:39%;height:31%}
+    .art-hint{margin:-8px 0 0;text-align:center;color:#54759c;font-size:12px;font-weight:650}
+    .hero-popover{position:absolute;z-index:4;top:49%;left:50%;width:min(380px,88%);max-height:78%;overflow:auto;transform:translate(-50%,-50%);padding:22px;border:1px solid #b9d9fb;border-radius:23px;background:#fffffff7;box-shadow:0 24px 55px #064b9b4a;backdrop-filter:blur(15px);pointer-events:none}.hero-popover a,.hero-popover button{pointer-events:auto}
+    .hero-popover[hidden],.hero-panel[hidden]{display:none}.hero-popover h2{margin:0 30px 7px 0;font-size:22px;line-height:1.15;letter-spacing:-.035em}.hero-popover p{margin:0 0 14px;color:#56729a;font-size:13px;line-height:1.45}.popover-close{position:absolute;top:13px;right:13px;display:grid;place-items:center;width:30px;height:30px;border:1px solid #d3e7fc;border-radius:9px;background:#f2f8ff;color:#0b4b93;font-size:19px;cursor:pointer}.popover-close:hover{background:#e0f0ff}.popover-tags{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 15px}.popover-tags span{padding:7px 10px;border:1px solid #d4e8ff;border-radius:999px;background:#f1f8ff;color:#164f91;font-size:12px;font-weight:700}.popover-label{display:block;margin-top:14px;color:#0b2e63;font-size:12px;font-weight:850;text-transform:uppercase;letter-spacing:.07em}.popover-link{display:inline-flex;align-items:center;gap:5px;color:#0869db;font-size:13px;font-weight:800;text-decoration:underline;text-underline-offset:3px}.popover-link:hover{color:#034ea9}
     .quick-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:2px 0 54px}
     .quick-link{display:flex;align-items:center;gap:17px;min-height:136px;padding:22px;border:1px solid var(--line);border-radius:23px;background:#ffffffed;box-shadow:0 14px 30px #2e6faf0e;transition:transform .2s,box-shadow .2s}
     .quick-link:hover{transform:translateY(-4px);box-shadow:0 18px 35px #2e6faf20}
@@ -62,11 +67,10 @@
     .section-heading p{margin:0;color:var(--muted)}
     .how{padding:36px 0 55px}
     .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
-    .step{position:relative;min-height:220px;padding:25px;border:1px solid var(--line);border-radius:25px;background:#fff;box-shadow:0 12px 28px #2d69aa10}
-    .step-number{display:grid;place-items:center;width:37px;height:37px;border-radius:12px;background:#e3f0ff;color:#086ee1;font-weight:850}
-    .step-visual{display:grid;place-items:center;width:78px;height:78px;margin:1px auto 12px;border-radius:23px;background:#eff6ff;font-size:43px;box-shadow:inset 0 0 0 1px #e0edff}
-    .step:nth-child(2) .step-visual{background:#f0f1ff}.step:nth-child(3) .step-visual{background:#e9f9f3}
-    .step h3{margin:0 0 4px;font-size:18px;letter-spacing:-.025em}.step p{margin:0;color:var(--muted);font-size:14px}
+    .step{position:relative;overflow:hidden;min-height:305px;padding:21px;border:1px solid var(--line);border-radius:25px;background:#fff;box-shadow:0 12px 28px #2d69aa10;transition:transform .25s,box-shadow .25s,border-color .25s}.step:hover{transform:translateY(-7px);border-color:#80b9f9;box-shadow:0 23px 38px #2675c32b}.step:after{content:"";position:absolute;right:-35px;top:-40px;width:150px;height:150px;border-radius:50%;background:#dcefff66;pointer-events:none}
+    .step-number{position:absolute;z-index:1;top:32px;left:32px;display:grid;place-items:center;width:39px;height:39px;border-radius:13px;background:#fff;color:#086ee1;font-weight:850;box-shadow:0 5px 14px #084e9e2c}
+    .step-visual{display:block;width:100%;height:152px;margin-bottom:18px;overflow:hidden;border-radius:17px;background:#eff6ff}.step-visual img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .4s}.step:hover .step-visual img{transform:scale(1.07)}
+    .step h3{margin:0 0 4px;font-size:19px;letter-spacing:-.025em}.step p{margin:0;color:var(--muted);font-size:14px}.step-arrow{position:absolute;right:22px;bottom:19px;color:#0a71e5;font-size:22px;transition:transform .2s}.step:hover .step-arrow{transform:translateX(5px)}
     .discover{padding:38px 0 58px}
     .discover-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
     .discover-grid a{display:block;overflow:hidden;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:0 12px 25px #2e6faf0e;transition:transform .2s}
@@ -80,37 +84,48 @@
     .footer{display:flex;justify-content:space-between;gap:18px;align-items:start;padding:26px 0 38px;border-top:1px solid #d6e6f6;color:#5a7192;font-size:12px}
     .footer nav{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px 19px;max-width:750px}
     @media(max-width:980px){.hero{min-height:0;grid-template-columns:1fr;gap:0;padding-top:15px}.hero-copy{padding:18px 0}.hero-art{width:min(680px,100%);margin:auto}.hero-art img{width:100%;margin-left:0}.quick-links{margin-top:-8px}.quick-link{padding:16px;min-height:120px}.quick-icon{width:54px;height:54px;font-size:29px}.header-links{gap:14px}.header-links a:nth-child(2){display:none}}
-    @media(max-width:700px){.site-header,.page{width:min(100% - 30px,560px)}.site-header{padding:15px 0;align-items:center}.brand{font-size:15px}.brand img{width:44px;height:44px}.header-links a:not(.header-entry){display:none}.header-entry{padding:8px 14px;min-height:39px}.hero-copy{padding:8px 0}h1{font-size:clamp(42px,10vw,61px)}.lead{font-size:17px}.hero-actions{margin-top:23px}.hero-actions a{min-height:50px;font-size:14px}.quick-links,.steps{grid-template-columns:1fr}.quick-links{gap:11px;margin:4px 0 30px}.quick-link{min-height:88px}.quick-icon{width:55px;height:55px}.how{padding:24px 0 30px}.step{min-height:0}.step-visual{margin:-26px 0 8px auto}.discover{padding:26px 0 40px}.discover-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.faq-grid{grid-template-columns:1fr}.footer{display:block}.footer nav{justify-content:flex-start;margin-top:14px}}
+    @media(max-width:700px){.site-header,.page{width:min(100% - 30px,560px)}.site-header{padding:15px 0;align-items:center}.brand{font-size:15px}.brand img{width:44px;height:44px}.instagram-link{width:35px;height:35px}.header-links{display:none}.hero-copy{padding:8px 0}.headline-top{font-size:clamp(26px,8vw,39px)}.headline-play{font-size:clamp(21px,6.45vw,33px)}.lead{font-size:17px}.hero-actions{margin-top:23px}.hero-actions a{min-height:50px;font-size:14px}.hero-popover{position:relative;top:auto;left:auto;width:100%;max-height:none;transform:none;margin:8px 0 12px;padding:18px}.quick-links,.steps{grid-template-columns:1fr}.quick-links{gap:11px;margin:4px 0 30px}.quick-link{min-height:88px}.quick-icon{width:55px;height:55px}.how{padding:24px 0 30px}.step{min-height:0}.step-visual{height:150px}.discover{padding:26px 0 40px}.discover-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.faq-grid{grid-template-columns:1fr}.footer{display:block}.footer nav{justify-content:flex-start;margin-top:14px}}
     @media(max-width:390px){.hero-actions a{width:100%}.discover-grid{grid-template-columns:1fr}.discover-grid img{height:150px}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
   </style>
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="/profesor" aria-label="Profesor Particular, inicio"><img src="/assets/brand/profesor-simple-v2.png" alt=""><span>Profesor<br>Particular</span></a>
+    <div class="brand-cluster"><a class="brand" href="/profesor" aria-label="Profesor Particular, inicio"><img src="/assets/brand/profesor-simple-v2.png" alt=""><span>Profesor<br>Particular</span></a><a class="instagram-link" href="https://www.instagram.com/profesorparticularapp/" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Profesor Particular"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6"/><circle cx="12" cy="12" r="4"/><circle cx="18" cy="6" r="1" fill="currentColor" stroke="none"/></svg></a></div>
     <nav class="header-links" aria-label="Navegación principal">
       <a href="/profesor/temario-clases">Temario</a>
       <a href="/profesor/materiales-para-clases">Materiales</a>
       <a href="/profesor/juegos-interactivos">Juegos</a>
       <a href="/profesor/anuncios">Buscar profesor</a>
-      <a class="header-entry" href="/auth/google/login?next=%2Fprofesor-particular">Entrar</a>
     </nav>
   </header>
   <main class="page">
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-copy">
         <span class="eyebrow">Para profesores particulares</span>
-        <h1 id="hero-title">Prepara tus clases. <span>Haz que aprendan jugando.</span></h1>
+        <h1 id="hero-title"><span class="headline-top">PREPARA TUS CLASES</span><span class="headline-play">Haz que aprendan jugando</span></h1>
         <p class="lead">Todo el temario y materiales gratis. Crea actividades interactivas para jugar con tus alumnos y organiza tus clases en un mismo lugar.</p>
         <div class="hero-actions">
-          <a class="button-primary" id="googleEntry" href="/auth/google/login?next=%2Fprofesor-particular"><svg class="google-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M21.6 12.23c0-.71-.06-1.42-.18-2.1H12v3.98h5.38a4.6 4.6 0 0 1-2 3.02v2.49h3.24c1.9-1.75 2.98-4.33 2.98-7.39Z"/><path fill="#fff" d="M12 22c2.7 0 4.96-.9 6.62-2.38l-3.24-2.49c-.9.61-2.05.97-3.38.97-2.6 0-4.8-1.76-5.59-4.12H3.06v2.57A10 10 0 0 0 12 22Z"/><path fill="#fff" d="M6.41 13.98A6 6 0 0 1 6.1 12c0-.69.12-1.36.32-1.98V7.45H3.06a10 10 0 0 0 0 9.1l3.35-2.57Z"/><path fill="#fff" d="M12 5.9c1.43 0 2.71.49 3.72 1.46l2.79-2.79A9.58 9.58 0 0 0 12 2a10 10 0 0 0-8.94 5.45l3.35-2.57C7.2 7.66 9.4 5.9 12 5.9Z"/></svg>Entrar con Google</a>
+          <a class="google-entry" id="googleEntry" href="/auth/google/login?next=%2Fprofesor-particular"><svg class="google-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.42-.18-2.1H12v3.98h5.38a4.6 4.6 0 0 1-2 3.02v2.49h3.24c1.9-1.75 2.98-4.33 2.98-7.39Z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.38l-3.24-2.49c-.9.61-2.05.97-3.38.97-2.6 0-4.8-1.76-5.59-4.12H3.06v2.57A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.41 13.98A6 6 0 0 1 6.1 12c0-.69.12-1.36.32-1.98V7.45H3.06a10 10 0 0 0 0 9.1l3.35-2.57Z"/><path fill="#EA4335" d="M12 5.9c1.43 0 2.71.49 3.72 1.46l2.79-2.79A9.58 9.58 0 0 0 12 2a10 10 0 0 0-8.94 5.45l3.35-2.57C7.2 7.66 9.4 5.9 12 5.9Z"/></svg>Entrar con Google</a>
           <a class="button-secondary" href="/profesor/alumno">Entrar con código <span aria-hidden="true">→</span></a>
         </div>
-        <p class="access-note">Al continuar aceptas la <a href="/privacidad">Política de privacidad</a> y el <a href="/aviso-legal">Aviso legal</a>. <a href="https://www.instagram.com/profesorparticularapp/" target="_blank" rel="noopener noreferrer">Ver cómo funciona ↗</a></p>
+        <p class="access-note">Al continuar aceptas la <a href="/privacidad">Política de privacidad</a> y el <a href="/aviso-legal">Aviso legal</a>.</p>
       </div>
-      <figure class="hero-art">
-        <img src="/assets/landing/profesor-hero-app-v3.png" alt="Juego de aventura La ruta bajo cero junto al temario y la organización de alumnos" width="1400" height="1100" fetchpriority="high">
-        <figcaption>Un juego de aventura, temario y organización de alumnos en Profesor Particular.</figcaption>
+      <figure class="hero-art" id="heroArt">
+        <div class="hero-art-stage">
+          <img src="/assets/landing/profesor-hero-app-v4.png" alt="Juego interactivo de aventura junto al temario y la organización de alumnos" width="1400" height="1100" fetchpriority="high">
+          <button class="hero-zone hero-zone-game" type="button" data-hero-zone="game" aria-label="Ver más juegos interactivos" aria-expanded="false" aria-controls="heroPopover"></button>
+          <button class="hero-zone hero-zone-temario" type="button" data-hero-zone="temario" aria-label="Ver cursos y asignaturas del temario" aria-expanded="false" aria-controls="heroPopover"></button>
+          <button class="hero-zone hero-zone-alumnos" type="button" data-hero-zone="alumnos" aria-label="Ver detalles de alumnos y clases" aria-expanded="false" aria-controls="heroPopover"></button>
+        </div>
+        <p class="art-hint">Pasa el cursor o toca una zona para descubrir más</p>
+        <div class="hero-popover" id="heroPopover" hidden>
+          <button class="popover-close" type="button" aria-label="Cerrar detalles">×</button>
+          <div class="hero-panel" data-hero-panel="game" hidden><h2>Juegos interactivos</h2><p>Elige entre retos rápidos y aventuras relacionadas con el tema de clase.</p><div class="popover-tags"><span>La ruta bajo cero</span><span>Pasapalabra</span><span>Bingo de conceptos</span><span>Sopa de letras</span><span>El tren de las decenas</span><span>Carrera del conocimiento</span></div><a class="popover-link" href="/profesor/juegos-interactivos#juegos-por-curso">Explorar los juegos →</a></div>
+          <div class="hero-panel" data-hero-panel="temario" hidden><h2>Temario para tus clases</h2><p>Busca un tema por curso y asignatura antes de preparar tu material.</p><strong class="popover-label">Cursos y niveles</strong><div class="popover-tags"><span>Primaria</span><span>ESO</span><span>Bachillerato</span><span>Adultos e idiomas</span></div><strong class="popover-label">Asignaturas</strong><div class="popover-tags"><span>Matemáticas</span><span>Lengua</span><span>Inglés</span><span>Ciencias</span><span>Geografía e Historia</span></div><a class="popover-link" href="/profesor/temario-clases">Explorar el temario →</a></div>
+          <div class="hero-panel" data-hero-panel="alumnos" hidden><h2>Alumnos y clases</h2><p>Ten a mano lo necesario para organizar cada clase y continuar donde lo dejaste.</p><div class="popover-tags"><span>Fichas y asignaturas</span><span>Próximas clases</span><span>Calendario</span><span>Notas y tareas</span><span>Sesiones con código</span></div><a class="popover-link" href="/profesor/accesos-alumnos">Conocer los accesos →</a></div>
+        </div>
+        <figcaption>Explora juegos interactivos, cursos y asignaturas, y organización de alumnos.</figcaption>
       </figure>
     </section>
     <nav class="quick-links" aria-label="Explora Profesor Particular">
@@ -121,9 +136,9 @@
     <section class="how" aria-labelledby="how-title">
       <div class="section-heading"><h2 id="how-title">De la idea a la actividad en tres pasos</h2><p>Prepara una clase de refuerzo y deja el material listo para jugar.</p></div>
       <div class="steps">
-        <div class="step"><span class="step-number">1</span><span class="step-visual" aria-hidden="true">📚</span><h3>Elige un tema</h3><p>Encuentra el contenido que necesitas por curso y asignatura.</p></div>
-        <div class="step"><span class="step-number">2</span><span class="step-visual" aria-hidden="true">🧩</span><h3>Crea una actividad</h3><p>Adapta un material o prepara un juego para practicar.</p></div>
-        <div class="step"><span class="step-number">3</span><span class="step-visual" aria-hidden="true">🔑</span><h3>Comparte el código</h3><p>En una sesión de juego, tus alumnos entran sin cuenta.</p></div>
+        <div class="step"><span class="step-number">1</span><span class="step-visual"><img src="/assets/games/mature-basic-reading.webp" alt="" loading="lazy"></span><h3>Elige un tema</h3><p>Encuentra el contenido que necesitas por curso y asignatura.</p><span class="step-arrow" aria-hidden="true">→</span></div>
+        <div class="step"><span class="step-number">2</span><span class="step-visual"><img src="/assets/games/public-ruta-bajo-cero.webp" alt="" loading="lazy"></span><h3>Crea una actividad</h3><p>Adapta un material o prepara un juego para practicar.</p><span class="step-arrow" aria-hidden="true">→</span></div>
+        <div class="step"><span class="step-number">3</span><span class="step-visual"><img src="/assets/games/access-session.svg" alt="" loading="lazy"></span><h3>Comparte el código</h3><p>En una sesión de juego, tus alumnos entran sin cuenta.</p><span class="step-arrow" aria-hidden="true">→</span></div>
       </div>
     </section>
     <section class="discover" aria-labelledby="discover-title">
@@ -154,6 +169,29 @@
     </footer>
   </main>
   <script>
+    const heroArt=document.getElementById('heroArt');
+    const heroPopover=document.getElementById('heroPopover');
+    const heroZones=[...heroArt.querySelectorAll('[data-hero-zone]')];
+    const heroPanels=[...heroArt.querySelectorAll('[data-hero-panel]')];
+    function showHeroPanel(name){
+      heroPopover.hidden=false;
+      heroPanels.forEach(panel=>panel.hidden=panel.dataset.heroPanel!==name);
+      heroZones.forEach(zone=>zone.setAttribute('aria-expanded',String(zone.dataset.heroZone===name)));
+    }
+    function closeHeroPanel(){
+      heroPopover.hidden=true;
+      heroPanels.forEach(panel=>panel.hidden=true);
+      heroZones.forEach(zone=>zone.setAttribute('aria-expanded','false'));
+    }
+    heroZones.forEach(zone=>{
+      zone.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse')showHeroPanel(zone.dataset.heroZone)});
+      zone.addEventListener('focus',()=>showHeroPanel(zone.dataset.heroZone));
+      zone.addEventListener('click',()=>showHeroPanel(zone.dataset.heroZone));
+    });
+    heroArt.addEventListener('pointerleave',event=>{if(event.pointerType==='mouse')closeHeroPanel()});
+    heroArt.querySelector('.popover-close').addEventListener('click',closeHeroPanel);
+    document.addEventListener('pointerdown',event=>{if(!heroArt.contains(event.target))closeHeroPanel()});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape')closeHeroPanel()});
     fetch('/auth/profesor/signup-settings').then(response=>response.ok?response.json():null).then(settings=>{if(!settings)return;document.getElementById('priceAnswer').textContent=settings.plan==='premium'?`Sí. Las nuevas cuentas incluyen Premium durante ${settings.days} días y ${settings.credits} créditos iniciales de IA.`:`Sí. Las nuevas cuentas incluyen ${settings.days} días de acceso y ${settings.credits} créditos iniciales de IA.`}).catch(()=>{});
   </script>
 </body>
