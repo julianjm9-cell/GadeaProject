@@ -20,7 +20,12 @@ function teacherOfferedSubjects(){return window.profesorSubjects.selected(state.
 function teacherOfferedCourses(){return window.profesorSubjects.selectedCourses(state.teacherProfile);}
 function teacherStudentSubjects(pupil){return teacherSubjectChoices(pupil?.subjects||[]).filter(value=>teacherAllowsCourse(studentSubjectCourse(pupil,value)));}
 function teacherStudentVisible(pupil){return teacherStudentSubjects(pupil).length>0;}
-function teacherMaterialVisible(material){return teacherAllowsSubject(material.subject||material.activity?.context?.subject||'')&&teacherAllowsCourse(materialCourseValue(material));}
+function teacherMaterialVisible(material){
+ const subject=material.subject||material.activity?.context?.subject||'',course=materialCourseValue(material);
+ const published=String(material.id||'').startsWith('public:')||material.activity?.context?.public===true;
+ if(published&&((!subject&&teacherOfferedSubjects().length)||(!course&&teacherOfferedCourses().length)))return false;
+ return teacherAllowsSubject(subject)&&teacherAllowsCourse(course);
+}
 function teacherSubjectNotice(hiddenCount=0){const chosen=teacherOfferedSubjects(),courses=teacherOfferedCourses();if(!chosen.length&&!courses.length)return '';return `<div class="teacher-subject-notice"><span>${chosen.length?`<strong>Asignaturas:</strong> ${chosen.map(esc).join(' · ')}`:''}${courses.length?`${chosen.length?' · ':''}<strong>Cursos y niveles:</strong> ${courses.map(esc).join(' · ')}`:''}${hiddenCount?`<small>${hiddenCount} ${hiddenCount===1?'material fuera de tu selección sigue guardado':'materiales fuera de tu selección siguen guardados'}.</small>`:''}</span><button type="button" data-action="accountSettings" data-settings-panel="subjects">Cambiar selección</button></div>`;}
 function teacherResetSubjectFilters(){
   if(materialSubject&&!teacherAllowsSubject(materialSubject))materialSubject='';

@@ -3378,7 +3378,7 @@
 @media(max-width:760px){.desktop-refresh .exam-workspace #viewer{padding:16px}.exam-home-options{gap:12px}.desktop-refresh .exam-home-options>button{min-height:135px;padding:18px;grid-template-columns:44px minmax(0,1fr) 12px;gap:12px}.exam-home-options i{width:44px;height:44px;border-radius:13px;font-size:23px}.exam-home-options strong{font-size:17px}.exam-home-options small{font-size:12px}.exam-correction .ocr-row{grid-template-columns:1fr}.exam-section-head h3{font-size:22px}.exam-record{padding:16px;gap:12px}.exam-record button{font-size:12px}.exam-correction .exam-submit-row{grid-template-columns:1fr}.exam-correction-tools{align-items:flex-start}.exam-correction-tools>span{line-height:1.6}}
 @media(max-width:520px){.exam-home-options{grid-template-columns:1fr}.desktop-refresh .exam-home-options>button{min-height:107px}.exam-home-options strong{font-size:18px}.exam-home-options small{font-size:13px}.exam-record{align-items:flex-start;flex-direction:column}.exam-record button{align-self:flex-end}.exam-section-head{gap:14px}.exam-correction #correctionOutput{padding:16px}}
 
-</style><link rel="stylesheet" href="assets/eso-final.css?v=20261027-4"></head>
+</style><link rel="stylesheet" href="assets/eso-final.css?v=20261029-all-missions-1"></head>
 <body>
 <div class="app">
   <header>
@@ -3401,6 +3401,7 @@
   </header>
 
   <div id="esoLoadStatus" class="message" role="status" aria-live="polite">Cargando tu progreso guardado…</div>
+  <div id="esoSaveStatus" class="eso-save-status" role="status" aria-live="polite" hidden></div>
 
   <section class="panel profile-panel" id="profilePanel" hidden>
     <div class="profile-layout">
@@ -3511,7 +3512,14 @@
   <div class="teacher-reading-modal" id="teacherReadingModal" hidden onclick="if(event.target===this) closeTeacherAnswer()"><section class="teacher-reading-dialog" role="dialog" aria-modal="true" aria-labelledby="teacherReadingTitle"><div class="teacher-reading-head"><strong id="teacherReadingTitle">Respuesta del Profesor IA</strong><button class="icon-button" type="button" onclick="closeTeacherAnswer()" aria-label="Cerrar" title="Cerrar">&times;</button></div><div class="teacher-reading-content teacher-rich" id="teacherReadingContent"></div></section></div>
 </div>
 
-<script src="assets/eso-games.js?v=20261026-3"></script>
+<script src="assets/eso-english-missions.js?v=20261029-1"></script>
+<script src="assets/eso-math-missions.js?v=20261029-1"></script>
+<script src="assets/eso-language-missions.js?v=20261029-1"></script>
+<script src="assets/eso-geography-missions.js?v=20261029-1"></script>
+<script src="assets/eso-history-missions.js?v=20261029-1"></script>
+<script src="assets/eso-science-missions.js?v=20261029-1"></script>
+<script src="assets/eso-external-games.js?v=20261029-1"></script>
+<script src="assets/eso-games.js?v=20261029-all-missions-1"></script>
 <script>
 const APP_KEY = 'eso_adultos';
 const REDESIGN_MODE = false;
@@ -3522,20 +3530,20 @@ const MODULES = [
     id:'lengua',
     icon:'LC',
     title:'Lengua Castellana',
-    desc:'Lectura, escritura y gramatica.',
+    desc:'Lectura, escritura y gramática.',
     testKey:'comunicacion',
     tasks:[
-      {id:'len-comprension', title:'Comprension lectora', detail:'Idea principal, informacion y deducciones.', tags:['lengua','contenidos'], note:'Lee el titulo, identifica el tema y busca en el texto la evidencia de cada respuesta.', example:'Si pregunta por una causa, localiza conectores como porque, debido a o ya que.'},
+      {id:'len-comprension', title:'Comprensión lectora', detail:'Idea principal, información y deducciones.', tags:['lengua','contenidos'], note:'Lee el título, identifica el tema y busca en el texto la evidencia de cada respuesta.', example:'Si pregunta por una causa, localiza conectores como porque, debido a o ya que.'},
       {id:'len-resumen', title:'Resumen', detail:'Ideas esenciales y orden.', tags:['lengua','redaccion'], note:'Elimina ejemplos secundarios y conserva tema, ideas principales y relacion entre ellas.', example:'Resume un texto de veinte lineas en cuatro o cinco frases propias.'},
-      {id:'len-gramatica', title:'Gramatica', detail:'Palabras, verbos y oraciones.', tags:['lengua','contenidos'], note:'Distingue categorias gramaticales y analiza sujeto, predicado y complementos basicos.', example:'En Los alumnos llegaron pronto, los alumnos es sujeto.'},
-      {id:'len-ortografia', title:'Ortografia', detail:'Tildes, puntuacion y escritura.', tags:['lengua','consulta'], note:'Revisa tildes, mayusculas, b/v, g/j y puntuacion. Lee la frase en voz alta para comprobar pausas.', example:'No se escribe coma entre sujeto y verbo.'},
-      {id:'len-redaccion', title:'Redaccion', detail:'Textos claros y organizados.', tags:['lengua','redaccion'], note:'Planifica inicio, desarrollo y cierre. Cada parrafo debe desarrollar una idea.', example:'Una carta formal incluye saludo, motivo, peticion y despedida.'},
+      {id:'len-gramatica', title:'Gramática', detail:'Palabras, verbos y oraciones.', tags:['lengua','contenidos'], note:'Distingue categorías gramaticales y analiza sujeto, predicado y complementos básicos.', example:'En Los alumnos llegaron pronto, los alumnos es sujeto.'},
+      {id:'len-ortografia', title:'Ortografía', detail:'Tildes, puntuación y escritura.', tags:['lengua','consulta'], note:'Revisa tildes, mayúsculas, b/v, g/j y puntuación. Lee la frase en voz alta para comprobar pausas.', example:'No se escribe coma entre sujeto y verbo.'},
+      {id:'len-redaccion', title:'Redacción', detail:'Textos claros y organizados.', tags:['lengua','redaccion'], note:'Planifica inicio, desarrollo y cierre. Cada párrafo debe desarrollar una idea.', example:'Una carta formal incluye saludo, motivo, petición y despedida.'},
       {id:'len-literatura', title:'Literatura', detail:'Generos, epocas y textos.', tags:['lengua','contenidos'], note:'Relaciona genero, autor, epoca y rasgos del fragmento sin memorizar listas aisladas.', example:'La narracion tiene narrador, personajes, tiempo, espacio y accion.'},
       {id:'len-textos-vida', title:'Textos de la vida diaria', detail:'Cartas, solicitudes, avisos y formularios.', tags:['lengua','redaccion'], note:'Identifica destinatario, finalidad, datos necesarios y tono adecuado en textos cotidianos y administrativos.', example:'Una solicitud debe indicar quien escribe, que pide, por que lo pide y como contactarle.'},
       {id:'len-medios', title:'Medios y textos digitales', detail:'Noticias, redes, publicidad y desinformacion.', tags:['lengua','datos'], note:'Distingue hechos, opiniones, fuentes, intencion persuasiva y riesgos de manipulacion o privacidad.', example:'Un titular llamativo no basta: hay que comprobar fuente, fecha y datos.'},
-      {id:'len-argumentacion', title:'Argumentacion', detail:'Opinion, razones y contraargumentos.', tags:['lengua','redaccion'], note:'Defiende una idea con tesis, argumentos, ejemplos y conclusion, evitando repetir sin justificar.', example:'Estoy a favor porque..., por ejemplo..., aunque..., en conclusion...'},
-      {id:'len-comentario', title:'Comentario de texto', detail:'Tema, estructura, lenguaje y valoracion.', tags:['lengua','contenidos'], note:'Analiza que dice el texto, como lo organiza, que recursos usa y que opinion razonada puedes aportar.', example:'Primero resume, despues localiza la idea central y finalmente comenta el punto de vista.'},
-      {id:'len-presentacion', title:'Presentacion y revision', detail:'Limpieza, orden y correccion final.', tags:['lengua','consulta'], note:'Cuida margenes, letra, separacion, puntuacion y una revision final de faltas antes de entregar.', example:'Una respuesta clara con buena presentacion puede evitar perder puntos por expresion.'}
+      {id:'len-argumentacion', title:'Argumentación', detail:'Opinión, razones y contraargumentos.', tags:['lengua','redaccion'], note:'Defiende una idea con tesis, argumentos, ejemplos y conclusión, evitando repetir sin justificar.', example:'Estoy a favor porque..., por ejemplo..., aunque..., en conclusión...'},
+      {id:'len-comentario', title:'Comentario de texto', detail:'Tema, estructura, lenguaje y valoración.', tags:['lengua','contenidos'], note:'Analiza qué dice el texto, cómo lo organiza, qué recursos usa y qué opinión razonada puedes aportar.', example:'Primero resume, después localiza la idea central y finalmente comenta el punto de vista.'},
+      {id:'len-presentacion', title:'Presentación y revisión', detail:'Limpieza, orden y corrección final.', tags:['lengua','consulta'], note:'Cuida márgenes, letra, separación, puntuación y una revisión final de faltas antes de entregar.', example:'Una respuesta clara con buena presentación puede evitar perder puntos por expresión.'}
     ]
   },
   {
@@ -5996,6 +6004,7 @@ const QUESTIONS = {
   ]
 };
 let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], monthlyProgress:{}, savedNotes:[], lessonNotes:{}, learningEvidence:{}, teacherChats:{}, testAttempts:{}, gameResults:{}, teacherOpen:false, libraryTab:'subjects', sessionDuration:null, activeSession:null, examMode:null, examPracticeType:'development', currentExamScope:null, activeModule:'lengua', activeTopic:null, activeLesson:null, activeTab:'contenidos', currentExam:'', currentExamTopics:[]};
+let esoStateETag=null, esoSaveFailed=false, esoSaveBlocked=false, esoPendingSaves=0, esoSaveStatusTimer=null;
 let gamification = {profile:null, config:null, lastError:'', loading:true};
 let deskRequestPending = false;
 const deskSyncChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('eso-adultos-desk') : null;
@@ -6088,13 +6097,18 @@ function init() {
   loadGamification();
 }
 async function backend(path, options={}) {
-  const res = await fetch(path, {credentials:'same-origin', ...options, headers:{'Content-Type':'application/json','X-Client-App':APP_KEY, ...(options.headers||{})}});
+  const savingState=path.split('?')[0]==='/api/state' && options.method==='POST';
+  const headers={'Content-Type':'application/json','X-Client-App':APP_KEY, ...(options.headers||{})};
+  if(savingState && esoStateETag)headers['If-Match']=esoStateETag;
+  const res = await fetch(path, {credentials:'same-origin', ...options, headers});
   if (res.status === 401) location.href = '/login?next=/eso-adultos';
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || data.ok === false) throw new Error(data.detail || data.error || 'No se pudo completar la accion.');
+  if (!res.ok || data.ok === false){const detail=data.detail;throw Object.assign(new Error(typeof detail==='string'?detail:detail?.message||data.error||'No se pudo completar la acción.'),{status:res.status,code:detail?.code});}
+  if(path.split('?')[0]==='/api/state' && res.headers.get('ETag'))esoStateETag=res.headers.get('ETag');
   return data;
 }
 async function loadState() {
+  if(esoSaveFailed || esoPendingSaves){showEsoSaveStatus('error','Hay cambios sin guardar. Descarga una copia antes de recargar el progreso.');return;}
   esoStateReady=false;
   for(const id of ['navHome','navModules','navExam','navGames','navProgress'])if($(id))$(id).disabled=true;
   try { state = {...state, ...(await backend('/api/state'))}; }
@@ -6136,6 +6150,7 @@ async function loadState() {
   state.activeLesson = Number.isInteger(state.activeLesson) && state.activeLesson >= 0 && state.activeLesson < lessonCount ? state.activeLesson : null;
   state.currentExam = typeof state.currentExam === 'string' ? state.currentExam : '';
   esoStateReady=true;
+  esoSaveBlocked=false;
   if($('esoLoadStatus'))$('esoLoadStatus').hidden=true;
   for(const id of ['navHome','navModules','navExam','navGames','navProgress'])if($(id))$(id).disabled=false;
   render();
@@ -6150,11 +6165,44 @@ async function loadOfficialResources() {
   } catch {}
 }
 let esoStateSaveQueue = Promise.resolve();
+function showEsoSaveStatus(kind,message){
+  const node=$('esoSaveStatus');if(!node)return;
+  clearTimeout(esoSaveStatusTimer);
+  node.hidden=false;node.className='eso-save-status '+kind;
+  node.replaceChildren();
+  const label=document.createElement('span');label.textContent=message;node.append(label);
+  if(kind==='error'){
+    const download=document.createElement('button');download.type='button';download.textContent='Descargar copia';download.onclick=downloadEsoProgress;node.append(download);
+    if(!esoSaveBlocked){const retry=document.createElement('button');retry.type='button';retry.textContent='Reintentar';retry.onclick=()=>saveState();node.append(retry);}
+    else{const reload=document.createElement('button');reload.type='button';reload.textContent='Recargar';reload.onclick=()=>location.reload();node.append(reload);}
+  }else if(kind==='saved')esoSaveStatusTimer=setTimeout(()=>{node.hidden=true;},2500);
+}
+function downloadEsoProgress(){
+  const data=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),link=document.createElement('a');
+  link.href=URL.createObjectURL(data);link.download='eso-adultos-progreso-pendiente.json';link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000);
+}
+window.addEventListener('beforeunload',event=>{if(esoSaveFailed||esoPendingSaves){event.preventDefault();event.returnValue='';}});
 function saveState() {
   if(!esoStateReady)return Promise.resolve(false);
+  if(esoSaveBlocked){showEsoSaveStatus('error','Otra pestaña guardó un progreso más reciente. Descarga tus cambios antes de recargar.');return Promise.resolve(false);}
   const snapshot = JSON.stringify(state);
+  esoPendingSaves++;
+  showEsoSaveStatus('pending','Guardando progreso…');
   esoStateSaveQueue = esoStateSaveQueue.catch(()=>false).then(async()=>{
-    try { await backend('/api/state', {method:'POST', body:snapshot}); return true; } catch { return false; }
+    try {
+      if(esoSaveBlocked){showEsoSaveStatus('error','Otra pestaña guardó un progreso más reciente. Descarga tus cambios antes de recargar.');return false;}
+      await backend('/api/state', {method:'POST', body:snapshot});
+      esoSaveFailed=false;
+      return true;
+    } catch(error) {
+      esoSaveFailed=true;
+      if(error.code==='state_conflict'||error.code==='state_version_required')esoSaveBlocked=true;
+      showEsoSaveStatus('error',esoSaveBlocked?'Otra pestaña guardó un progreso más reciente. No se ha sobrescrito. Descarga tus cambios antes de recargar.':'No se pudo guardar tu progreso. Tus cambios siguen en esta pantalla.');
+      return false;
+    } finally {
+      esoPendingSaves--;
+      if(!esoPendingSaves&&!esoSaveFailed)showEsoSaveStatus('saved','Progreso guardado.');
+    }
   });
   return esoStateSaveQueue;
 }
@@ -6830,19 +6878,19 @@ function renderModuleGrid() {
   const total = subjects.reduce((sum,m)=>sum+m.tasks.length,0);
   const done = subjects.reduce((sum,m)=>sum+taskDoneCount(m.id),0);
   const names = {lengua:'Lengua Castellana',ingles:'Inglés',geografia:'Geografía',historia:'Historia y Ciudadanía',matematicas:'Matemáticas',ciencias:'Ciencias y Tecnología'};
-  const symbols = {lengua:'Aa',ingles:'EN',geografia:'<svg viewBox="0 0 24 24"><path d="M12 22s8-8 8-14a8 8 0 0 0-16 0c0 6 8 14 8 14Z"/><circle cx="12" cy="8" r="3" fill="white"/></svg>',historia:'<svg viewBox="0 0 24 24"><path d="m2 7 10-5 10 5v2H2Zm2 4h3v8H4Zm7 0h3v8h-3Zm7 0h3v8h-3ZM2 21v-2h20v2Z"/></svg>',matematicas:'Σ',ciencias:'⚙'};
+  const icons = {lengua:'lengua',ingles:'ingles',geografia:'geografia',historia:'historia',matematicas:'matematicas',ciencias:'ciencias'};
   const colors = {lengua:'#1677ff',ingles:'#009d80',geografia:'#d57913',historia:'#d57913',matematicas:'#9454e9',ciencias:'#009d80'};
   const heading = state.libraryTab === 'resources' ? 'Recursos' : state.libraryTab === 'saved' ? 'Mis apuntes' : 'Asignaturas';
   const intro = state.libraryTab === 'subjects' ? 'Elige una materia para continuar.' : state.libraryTab === 'resources' ? 'Temario y enlaces oficiales.' : 'Tus notas, en un mismo lugar.';
-  const head = `<div class="subjects-heading"><div><span class="subjects-heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v16m0-16C8 2 3 3 3 3v16s5-1 9 2c4-3 9-2 9-2V3s-5-1-9 2Z"/></svg></span><h2>${heading}</h2><p>${intro}</p></div>${state.libraryTab === 'subjects' ? `<div class="subjects-summary"><span class="subjects-ring" style="--completion:${total ? done/total*100 : 0}%" aria-hidden="true"></span><span><strong>${done}/${total} temas completados</strong><small>Sigue aprendiendo a tu ritmo.</small></span></div>` : ''}</div>`;
+  const head = `<div class="subjects-heading"><div><span class="subjects-heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v16m0-16C8 2 3 3 3 3v16s5-1 9 2c4-3 9-2 9-2V3s-5-1-9 2Z"/></svg></span><h2>${heading}</h2><p>${intro}</p></div>${libraryTabsHtml()}${state.libraryTab === 'subjects' ? `<div class="subjects-summary"><span class="subjects-ring" style="--completion:${total ? done/total*100 : 0}%" aria-hidden="true"></span><span><strong>${done}/${total} temas completados</strong><small>Sigue aprendiendo a tu ritmo.</small></span></div>` : ''}</div>`;
   const body = state.libraryTab === 'resources'
     ? `<div class="simple-resource-list">${OFFICIAL_LINKS.map(link => `<a href="${link.url}" target="_blank" rel="noopener"><span><strong>${escapeHtml(link.title)}</strong><span>${escapeHtml(link.source)}</span></span><b>ABRIR</b></a>`).join('')}</div>`
     : state.libraryTab === 'saved' ? renderSavedNotesLibrary()
     : `<div class="subjects-cards">${subjects.map(m=>{
       const count=taskDoneCount(m.id), total=m.tasks.length, pct=total ? count/total*100 : 0;
-      return `<button class="subject-tile" type="button" style="--subject-tone:${colors[m.id] || '#1677ff'}" onclick="openModule('${m.id}')" aria-label="${escapeHtml(names[m.id] || m.title)}: ${count} de ${total} temas completados"><span class="subject-tile-icon" aria-hidden="true">${symbols[m.id] || '▤'}</span>${next?.module.id === m.id ? '<span class="subject-next">Siguiente</span>' : ''}<strong>${escapeHtml(names[m.id] || m.title)}</strong><span class="subject-description">${['geografia','ciencias'].includes(m.id) ? 'Repasa por temas.' : 'Temario y ejercicios.'}</span><span class="subject-tile-footer"><span class="subject-track" aria-hidden="true"><span style="width:${pct}%"></span></span><span>${count}/${total} temas</span><span class="subject-arrow" aria-hidden="true">›</span></span></button>`;
+      return `<button class="subject-tile" type="button" style="--subject-tone:${colors[m.id] || '#1677ff'}" onclick="openModule('${m.id}')" aria-label="${escapeHtml(names[m.id] || m.title)}: ${count} de ${total} temas completados"><span class="subject-tile-icon" aria-hidden="true"><img src="assets/subjects/${icons[m.id] || 'lengua'}.svg" alt="" width="52" height="52"></span>${next?.module.id === m.id ? '<span class="subject-next">Siguiente</span>' : ''}<strong>${escapeHtml(names[m.id] || m.title)}</strong><span class="subject-description">${['geografia','ciencias'].includes(m.id) ? 'Repasa por temas.' : 'Temario y ejercicios.'}</span><span class="subject-tile-footer"><span class="subject-track" aria-hidden="true"><span style="width:${pct}%"></span></span><span>${count}/${total} temas</span><span class="subject-arrow" aria-hidden="true">›</span></span></button>`;
     }).join('')}</div>`;
-  $('moduleGrid').innerHTML = head + libraryTabsHtml() + body;
+  $('moduleGrid').innerHTML = head + body;
 }
 function libraryTabsHtml() {
   return `<nav class="subject-library-toggle" aria-label="Secciones de la biblioteca">${[['subjects','Temario'],['resources','Recursos'],['saved','Mis apuntes']].map(([key,label])=>`<button type="button" class="${state.libraryTab === key ? 'active' : ''}" aria-pressed="${state.libraryTab === key}" onclick="setLibraryTab('${key}')">${label}</button>`).join('')}</nav>`;
@@ -7364,14 +7412,15 @@ function completeLesson(topicId,index) {
   render();
   saveState();
 }
-function saveLessonNotes(topicId,index,notify=true) {
+async function saveLessonNotes(topicId,index,notify=true) {
   const textarea = $('lessonAiNotes');
   if (!textarea) return;
   state.lessonNotes[lessonNoteKey(topicId,index)] = textarea.value.trim();
   if (notify) rememberSavedNote({kind:'apuntes', location:'app', topicId, lessonIndex:index});
-  if (notify && $('lessonAiStatus')) $('lessonAiStatus').textContent = 'Apuntes guardados.';
+  if (notify && $('lessonAiStatus')) $('lessonAiStatus').textContent = 'Guardando apuntes…';
   showLessonNotesPreview(textarea.value);
-  saveState();
+  const ok=await saveState();
+  if (notify && $('lessonAiStatus')) $('lessonAiStatus').textContent = ok?'Apuntes guardados.':'Los apuntes no se han guardado. Descarga una copia o pulsa Reintentar.';
 }
 function lessonNotesPreviewHtml(value) {
   return `<div class="ai-notes-preview-kicker">Apuntes para repasar</div><div class="ai-notes-paper teacher-rich">${formatStudyText(value)}</div>`;
@@ -7418,8 +7467,9 @@ async function generateLessonNotes(topicId,index,mode='generate') {
     state.lessonNotes[lessonNoteKey(topicId,index)] = textarea?.value.trim() || '';
     rememberSavedNote({kind:'apuntes', location:'ia', topicId, lessonIndex:index});
     showLessonNotesPreview(textarea?.value || '');
-    if (status) status.textContent = 'Apuntes generados y guardados.';
-    saveState();
+    if (status) status.textContent = 'Guardando apuntes generados…';
+    const ok=await saveState();
+    if (status) status.textContent = ok?'Apuntes generados y guardados.':'Los apuntes se han generado, pero no se han guardado. Descarga una copia o pulsa Reintentar.';
   } catch (e) {
     if (status) status.textContent = e.message;
   }

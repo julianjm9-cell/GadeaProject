@@ -19,7 +19,7 @@ const assert = require('node:assert/strict');
       state.students[2].notes = 'Una observación larga que se puede consultar completa desde el editor sin desplazar los demás controles.';
       render();
     });
-    assert.deepEqual((await page.locator('.home-primary-nav button').allTextContents()).map(s => s.trim()), ['Temario', 'Material']);
+    assert.deepEqual((await page.locator('.home-primary-nav button').allTextContents()).map(s => s.trim()), ['Temario', 'Material', 'Sesiones de juegos']);
     assert.equal(await page.locator('.home-nav .home-start').count(), 0);
     assert.equal(await page.locator('.home-nav .home-brand').getAttribute('data-id'), 'Inicio');
     assert.equal(await page.locator('.home-student-open').count(), 0);

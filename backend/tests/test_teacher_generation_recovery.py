@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from uuid import UUID, uuid4
 import httpx
@@ -355,7 +356,7 @@ def test_job_migration_is_idempotent_and_preserves_existing_tables(client):
     from alembic.operations import Operations
     _,factory=client
     seed_user(factory,product_codes=('PROFESOR_PARTICULAR',))
-    migration=runpy.run_path('alembic/versions/0014_teacher_generation_jobs.py')
+    migration=runpy.run_path(str(Path(__file__).parents[1] / 'alembic/versions/0014_teacher_generation_jobs.py'))
     with factory() as db:
         bind=db.connection()
         old_tables=set(inspect(bind).get_table_names())-{'profesor_generation_jobs'}
@@ -373,7 +374,7 @@ def test_attempt_counter_migration_is_idempotent(client):
     from alembic.migration import MigrationContext
     from alembic.operations import Operations
     _,factory=client
-    migration=runpy.run_path('alembic/versions/0017_teacher_generation_attempts.py')
+    migration=runpy.run_path(str(Path(__file__).parents[1] / 'alembic/versions/0017_teacher_generation_attempts.py'))
     with factory() as db:
         bind=db.connection()
         with Operations.context(MigrationContext.configure(bind)):

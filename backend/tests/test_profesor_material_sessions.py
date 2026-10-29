@@ -217,6 +217,17 @@ def test_error_correction_requires_selection_and_never_exposes_solution():
     assert grade({**question, "correctedSegment": ""}, {"selected": "trajistes", "correction": "trajiste"}) == "pending"
 
 
+def test_strict_error_correction_checks_accents_case_and_punctuation():
+    from app.api.profesor_material_sessions import grade
+
+    question = {"type": "error", "errorSegment": "Cuántos", "correctedSegment": "¿Cuántos", "strictCorrection": True}
+    assert grade(question, {"selected": "Cuántos", "correction": "¿Cuántos"}) == "correct"
+    assert grade(question, {"selected": "Cuántos", "correction": "Cuántos"}) == "incorrect"
+    question = {**question, "errorSegment": "mañana", "correctedSegment": "Mañana"}
+    assert grade(question, {"selected": "mañana", "correction": "Mañana"}) == "correct"
+    assert grade(question, {"selected": "mañana", "correction": "mañana"}) == "incorrect"
+
+
 def test_timeline_uses_dates_even_for_older_unsorted_materials():
     from app.api.profesor_material_sessions import grade, prepare
 

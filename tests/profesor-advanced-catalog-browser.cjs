@@ -15,12 +15,13 @@ const path = require('node:path');
 
     const advanced = page.locator('.advanced-family');
     assert.equal(await advanced.count(), 1);
-    assert.match(await advanced.locator('summary').innerText(), /Ejercicios avanzados/);
+    assert.match(await advanced.locator('summary').innerText(), /Juegos avanzados/);
     if (!await advanced.evaluate(element => element.open)) await advanced.locator('summary').click();
-    assert.deepEqual(await advanced.locator('[data-exercise]').evaluateAll(elements => elements.map(element => element.dataset.exercise)), ['pasapalabra', 'hangman']);
-    assert.equal(await page.locator('.playful-family [data-exercise="pasapalabra"], .playful-family [data-exercise="hangman"]').count(), 0);
-    assert.equal(await page.locator('[data-exercise="visualquiz"], [data-exercise="imagepoint"]').count(), 0);
-    assert.deepEqual(await advanced.locator('img').evaluateAll(images => images.map(image => image.getAttribute('src').split('/').pop())), ['pasapalabra.webp', 'hangman.webp']);
+    const types = await advanced.locator('[data-exercise]').evaluateAll(elements => elements.map(element => element.dataset.exercise));
+    for (const type of ['pasapalabra', 'hangman', 'wordsearch', 'memory', 'crossword', 'dragdrop', 'mystery', 'bingo', 'race']) assert.ok(types.includes(type), type + ' is available');
+    assert.equal(new Set(types).size, types.length, 'each advanced game appears once');
+    assert.equal(await advanced.locator('img').count(), types.length, 'each game has a preview image');
+    assert.equal(await advanced.locator('img').evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0)), true, 'all game previews load');
 
     await page.locator('#workshopCourse').selectOption('3.º ESO');
     await page.locator('#workshopSubject').selectOption('Lengua');
@@ -32,7 +33,7 @@ const path = require('node:path');
     await page.locator('.activity-edit-block:visible').first().waitFor();
     assert.match(await page.locator('.activity-edit-block:visible h3').innerText(), /Pasapalabra/);
     assert.deepEqual(errors, []);
-    console.log('PASS advanced catalog contains only Pasapalabra and Hangman and opens the editor');
+    console.log('PASS advanced catalog shows current games, loads previews and opens the editor');
   } finally {
     await browser.close();
   }

@@ -1,0 +1,126 @@
+/* Matemáticas: instrumentos y respuestas pertenecen al escenario de cada
+   misión. Se conserva el HTML del motor, su corrección y la navegación. */
+
+/* Los vagones son destinos, y las cargas siguen siendo piezas movibles. */
+:is(.play-question,.live-question)[data-public-scene="tren-decenas"] .match-scene-targets{
+  border-radius:13px;background-color:#ffffff36;
+  box-shadow:0 5px 18px #163b5140;
+}
+:is(.play-question,.live-question)[data-public-scene="tren-decenas"] .match-bank{
+  border:3px solid #b87754!important;border-radius:18px!important;
+  background:linear-gradient(135deg,#fff2d9f2,#f9d6b1ed)!important;
+  box-shadow:0 5px 0 #926047,0 10px 18px #4e322e35!important;
+}
+:is(.play-question,.live-question)[data-public-scene="tren-decenas"] .match-bank .match-piece{
+  border:2px solid #b87754!important;border-radius:8px!important;
+  background:repeating-linear-gradient(0deg,#fff9ec 0 17px,#e3c5a3 18px 19px)!important;
+  box-shadow:inset 0 -3px #e9cfac,0 3px #a77255!important;
+}
+
+/* Los retos por etapas mantienen formas distintas según el lugar. La pieza
+   seleccionada aparece en la propia balanza, lente, cabina o visor. */
+:is(.play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"],[data-public-scene="boveda-racionales"],[data-public-scene="mercado-porcentajes"],[data-public-scene="torre-radicales"],[data-public-scene="observatorio-complejos"],[data-public-scene="camara-matrices"]) .race-scene .race-answers button{
+  min-height:55px;transition:transform .17s ease,filter .17s ease,box-shadow .17s ease;
+}
+:is(.play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"],[data-public-scene="boveda-racionales"],[data-public-scene="mercado-porcentajes"],[data-public-scene="torre-radicales"],[data-public-scene="observatorio-complejos"],[data-public-scene="camara-matrices"]) .race-scene .race-answers button:hover:not(:disabled){
+  transform:translateY(-3px);filter:saturate(1.15);
+}
+:is(.play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"],[data-public-scene="boveda-racionales"],[data-public-scene="mercado-porcentajes"],[data-public-scene="torre-radicales"],[data-public-scene="observatorio-complejos"],[data-public-scene="camara-matrices"]) .race-scene .race-answers button.is-selected{
+  transform:translateY(-3px);filter:saturate(1.18);
+}
+:is(.play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"],[data-public-scene="boveda-racionales"],[data-public-scene="mercado-porcentajes"],[data-public-scene="torre-radicales"],[data-public-scene="observatorio-complejos"],[data-public-scene="camara-matrices"]) .race-scene-object.has-choice .race-scene-object-value{
+  display:block;padding:4px 7px;border-radius:7px;background:#fffdf1e8;
+  font-size:clamp(12px,1.2vw,16px);font-variant-numeric:tabular-nums;
+}
+
+/* La cocina usa un recetario con tres ingredientes base y seis cantidades. */
+:is(.play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table-wrap{
+  border:7px solid #9b6848!important;border-radius:20px!important;
+  background:linear-gradient(90deg,#fff2d5 0 49.7%,#d5b18b 49.8% 50.2%,#fff2d5 50.3%)!important;
+  box-shadow:inset 0 0 0 3px #ffe4b6,0 8px 0 #704c39,0 14px 23px #4630274f!important;
+}
+:is(.play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table{
+  border-spacing:0;border-collapse:separate;max-width:100%;min-width:0!important;table-layout:fixed;
+}
+:is(.play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table :is(th,td){
+  border:1px solid #e3bc8b!important;border-radius:10px!important;
+  background:repeating-linear-gradient(0deg,#fffaf0 0 22px,#ecd9bd 23px 24px)!important;
+  box-shadow:0 2px 0 #d5aa7d;
+}
+:is(.play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table thead th{
+  background:#eac894!important;color:#624127!important;text-align:center;
+}
+:is(.play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table tbody th{
+  color:#744a2e;font-size:clamp(18px,1.8vw,24px);text-align:center;
+}
+:is(.play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table td input{
+  border:2px solid #bd8455!important;border-radius:9px!important;
+  background:#fffefa!important;color:#543b27;text-align:center;
+  font-size:clamp(17px,1.5vw,21px);font-weight:850;
+}
+
+/* El observatorio submarino muestra cada conversión en una consola legible. */
+:is(.play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table-wrap{
+  border:8px ridge #5b97a4!important;border-radius:22px!important;
+  background:radial-gradient(circle at 12px 12px,#e2ce87 0 3px,transparent 4px) 0 0/40px 40px,#16465d!important;
+  box-shadow:inset 0 0 0 3px #c2e7dc,0 7px 0 #24546a,0 14px 24px #0c3a505c!important;
+}
+:is(.play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table{
+  border-spacing:0;border-collapse:separate;max-width:100%;min-width:0!important;table-layout:fixed;
+}
+:is(.play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table :is(th,td){
+  border:2px solid #70b8c6!important;border-radius:9px!important;
+  background:linear-gradient(145deg,#f1ffff,#d4f2ef)!important;
+}
+:is(.play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table thead th{
+  background:#9ed9df!important;color:#0d4960;text-align:center;
+}
+:is(.play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table tbody th{
+  color:#0d5268;font-size:clamp(18px,1.8vw,24px);text-align:center;
+}
+:is(.play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table td input{
+  border:2px solid #217b94!important;border-radius:7px!important;
+  background:#f8ffff!important;color:#11475c;text-align:center;
+  font-size:clamp(16px,1.4vw,20px);font-weight:850;font-variant-numeric:tabular-nums;
+}
+
+/* Radicales: las seis etapas son plantas de la torre; la respuesta escogida
+   aparece en la compuerta que abre la planta actual. */
+:is(.play-question,.live-question)[data-public-scene="torre-radicales"] .race-scene-workspace{
+  background:linear-gradient(160deg,#eaf4ffed,#b7c9e9e8 67%,#8c9cbeec)!important;
+}
+:is(.play-question,.live-question)[data-public-scene="torre-radicales"] .race-scene-workspace::before{
+  content:"";inset:0;background:repeating-linear-gradient(0deg,transparent 0 29px,#637ead33 30px 33px);opacity:.8;
+}
+:is(.play-question,.live-question)[data-public-scene="torre-radicales"] .race-scene-object{
+  top:22px;right:11%;width:148px;height:150px;border:7px solid #596c97;border-bottom-width:13px;border-radius:14px 14px 5px 5px;
+  background:linear-gradient(90deg,#7f94bc 0 12%,#e2e9f4 13% 49%,#6783ae 50% 52%,#e2e9f4 53% 87%,#7f94bc 88%);
+  box-shadow:inset 0 0 0 4px #e8e1c4,0 7px #3c507a,0 12px 24px #0a193c4d;
+}
+:is(.play-question,.live-question)[data-public-scene="torre-radicales"] .race-scene-object-mark{
+  display:grid;place-items:center;width:79px;height:82px;border:4px solid #bdab81;border-radius:40px 40px 5px 5px;
+  background:#263f71;color:#ffecae;font-size:56px;
+}
+:is(.play-question,.live-question)[data-public-scene="torre-radicales"] .race-track{
+  grid-template-columns:1fr!important;gap:5px!important;
+  background:linear-gradient(90deg,#253f6b,#5470a0 50%,#253f6b)!important;
+}
+:is(.play-question,.live-question)[data-public-scene="torre-radicales"] .race-track button{
+  display:flex;align-items:center;justify-content:flex-start;gap:9px;min-height:38px!important;padding:3px 8px!important;
+  border:2px solid #b6c7df!important;border-radius:5px!important;background:#f4f0e3!important;text-align:left;
+}
+:is(.play-question,.live-question)[data-public-scene="torre-radicales"] .race-answers button{
+  border-radius:8px 8px 18px 18px!important;background:#f9f5de!important;
+}
+
+@media(max-width:700px){
+  :is(.play-question,.live-question)[data-public-scene="torre-radicales"] .race-track{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+@media(max-width:700px){
+  :is(.play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table-wrap{border-width:4px!important}
+  :is(.play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table :is(th,td){padding:4px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  :is(.play-question,.live-question)[data-public-scene] .race-scene .race-answers button{transition:none}
+}

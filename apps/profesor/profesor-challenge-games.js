@@ -8,16 +8,16 @@
  const key=value=>String(value??'').trim().toLocaleLowerCase('es').replaceAll('ñ','\u0001').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replaceAll('\u0001','ñ');
  const copy=value=>JSON.parse(JSON.stringify(value));
  const raceScenes={
-  'mercado-monedas':['Puesto','Compra','Elige las monedas para esta compra','🛍','🪙'],
+  'mercado-monedas':['Puesto','Compra','Elige el importe o cambio correcto','🛍','🪙'],
   'observatorio-numeros':['Constelación','Telescopio','Enfoca la cifra correcta','✦','✧'],
   'laboratorio-mezclas':['Mesa','Muestra','Aplica el procedimiento adecuado','⚗','◈'],
   'feria-porcentajes':['Caseta','Premio','Escoge el resultado de la oferta','★','✦'],
   'ruta-bajo-cero':['Refugio','Teleférico','Sitúa la cabina en el nivel correcto','▲','◆'],
   'boveda-racionales':['Receta','Cocina','Ajusta la medida de la receta','✦','◉'],
   'mercado-porcentajes':['Encargo','Caja','Marca el importe del recibo','€','▣'],
-  'torre-radicales':['Planta','Compuerta','Introduce el resultado exacto','⌂','▣'],
+  'torre-radicales':['Planta','Compuerta','Elige el código exacto para abrirla','✦','√'],
   'pista-movimiento':['Tramo','Pista','Ajusta el marcador con su unidad','➜','●'],
-  'observatorio-complejos':['Cálculo','Plano complejo','Señala el resultado en el plano','✧','⊕'],
+  'observatorio-complejos':['Cálculo','Plano complejo','Selecciona el resultado exacto','✧','⊕'],
   'centro-cinematica':['Sensor','Laboratorio','Calibra el sensor de movimiento','◉','⌁'],
   'camara-matrices':['Puerta','Panel matricial','Activa la operación correcta','▦','◆'],
   'observatorio-ondas':['Estación','Banco de ondas','Calibra la señal','⌁','◉'],

@@ -71,7 +71,7 @@
     'central-mensajes':{icon:'✉️',title:'Central de mensajes',instruction:'Completa las partes de las dos comunicaciones.',piece:'Pistas de comunicación',object:'mensaje',icons:{'Emisor':'✍️','Receptor':'👤','Mensaje':'💬','Canal':'📡'}},
     'laboratorio-medidas':{icon:'🔬',title:'Mesa de medición',instruction:'Coloca cada instrumento en su estación de medida.',piece:'Instrumentos y mediciones',object:'estacion',icons:{'Longitud':'📏','Tiempo':'⏱️','Masa':'⚖️','Temperatura':'🌡️'}},
     'archivo-sintagmas':{icon:'🗂️',title:'Archivo gramatical',instruction:'Guarda cada ficha en el cajón de su sintagma.',piece:'Fichas por archivar',object:'cajon',icons:{'Nominal':'N','Adverbial':'ADV','Adjetival':'ADJ','Preposicional':'PREP'}},
-    'ciudad-economica':{icon:'🏙️',title:'Mapa de la ciudad',instruction:'Sitúa cada actividad en la zona económica correcta.',piece:'Actividades de la ciudad',object:'zona',icons:{'Primario':'🌾','Secundario':'🏭','Terciario':'🏪'}},
+    'ciudad-economica':{icon:'🏙️',title:'Mapa de los sectores',instruction:'Lleva cada actividad al campo, la fábrica o la zona de servicios.',piece:'Actividades por clasificar',object:'zona',icons:{'Primario':'🌾','Secundario':'🏭','Terciario':'🏪'}},
     'redaccion-compuesta':{icon:'🔗',title:'Taller de oraciones',instruction:'Conecta cada frase con su relación sintáctica.',piece:'Oraciones para conectar',object:'conexion',icons:{'Coordinada copulativa':'＋','Coordinada disyuntiva':'∨','Coordinada adversativa':'↔','Subordinada sustantiva':'↳'}},
     'atlas-registros':{icon:'📨',title:'Canales de comunicación',instruction:'Envía cada mensaje al canal de registro adecuado.',piece:'Mensajes pendientes',object:'canal',icons:{'Formal':'🏛️','Informal':'💬','Estándar':'📰'}},
     'hemeroteca-fuentes':{icon:'📚',title:'Hemeroteca histórica',instruction:'Coloca cada documento en la vitrina que le corresponde.',piece:'Documentos por catalogar',object:'vitrina',icons:{'Primaria':'✒️','Secundaria':'📖'}}
@@ -93,6 +93,9 @@
     const order=shuffled(config.items.map((_,i)=>i),config.seed),targets=shuffled([...new Set(config.targets)],config.seed&&config.seed+':targets');
     const sceneId=root.closest('[data-public-scene]')?.dataset.publicScene;
     const scene=matchingScenes[sceneId];
+    // El orden de los destinos sigue el paisaje: campo, industria y servicios.
+    if(sceneId==='ciudad-economica')targets.sort((a,b)=>['Primario','Secundario','Terciario'].indexOf(a)-['Primario','Secundario','Terciario'].indexOf(b));
+    if(sceneId==='hemeroteca-fuentes')targets.sort((a,b)=>['Primaria','Secundaria'].indexOf(a)-['Primaria','Secundaria'].indexOf(b));
     const transfer='application/x-profesor-match-'+Math.random().toString(36).slice(2);
     function changed(){results={};config.onChange?.(values.slice());draw();}
     function place(index,target){if(config.locked||!Number.isInteger(index)||index<0||index>=values.length)return;if(config.single)values=values.map(value=>value===target?'':value);values[index]=target;selected=null;changed();root.querySelector(`[data-match-bucket="${targets.indexOf(target)}"]`)?.focus({preventScroll:true});}

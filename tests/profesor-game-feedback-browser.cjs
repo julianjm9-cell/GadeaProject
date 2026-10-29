@@ -15,18 +15,17 @@ const assert=require('node:assert/strict'),{pathToFileURL}=require('node:url'),p
  for(const [a,b] of [[0,1],[2,3]]){await page.locator(`#memory-0 [data-card="${a}"]`).click();await page.locator(`#memory-0 [data-card="${b}"]`).click();}
  assert.equal(await page.locator('#memory-0 .matched').count(),4);
  await page.getByRole('button',{name:'Actividad siguiente'}).click();
- await page.locator('#puzzle-1 [data-clue="0"]').click();await page.keyboard.type('G');
- assert.equal(await page.locator('#puzzle-1 [data-clue="0"]').getAttribute('aria-invalid'),null);
- await page.keyboard.type('AAA');assert.equal(await page.locator('#puzzle-1 [data-clue="0"]').getAttribute('aria-invalid'),'true');
- for(const [n,word] of ['GATO','PATO','RATA'].entries()){await page.locator(`#puzzle-1 [data-clue="${n}"]`).click();await page.keyboard.type(word);}
- assert.equal(await page.locator('#puzzle-1 [data-clue].answer-right').count(),3);
+ for(const [n,word] of ['GATO','PATO','RATA'].entries()){await page.locator(`#puzzle-1 [data-cross-clue="${n}"]`).click();await page.keyboard.type(word);}
+ await page.locator('#puzzle-1 [data-board-check]').click();
+ assert.equal(await page.locator('#puzzle-1 [data-cross-result]').filter({hasText:'✓'}).count(),3);
  await page.getByRole('button',{name:'Actividad siguiente'}).click();
  assert.equal(await page.locator('.play-question:visible .katex').count(),1);
  await page.locator('#r-2').fill('5');await page.getByRole('button',{name:'Comprobar',exact:true}).click();
  await page.getByRole('button',{name:'Ver solución',exact:true}).click();assert.match(await page.locator('#feedback-2').innerText(),/Solución orientativa/);
  await page.locator('#r-2').fill('2');await page.locator('#r-2').press('Enter');
  await page.getByRole('button',{name:'Actividad siguiente'}).click();await page.getByRole('button',{name:'Terminar',exact:true}).click();
- assert.match(await page.locator('.practice-result').innerText(),/3\/4 correctas.*3 con ayuda.*1 sin completar/s);
+ await page.getByRole('button',{name:'Terminar material',exact:true}).click();
+ assert.match(await page.locator('#dialog').innerText(),/3\/4 correctas/);
  assert.equal(await page.locator('.play-question:visible').count(),0);
  await page.reload();const attempt=await page.evaluate(()=>state.activityAttempts.at(-1));assert.equal(attempt.firstGrades[0],'incorrect');assert.equal(attempt.practice[2].assisted,true);assert.equal(attempt.grades[3],'unanswered');
  assert.deepEqual(errors,[]);console.log('PASS Memory mismatch/match, crossword word-level correction, gap math, solution reveal, unfinished answers and persistence');

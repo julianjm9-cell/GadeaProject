@@ -8,11 +8,32 @@
  const select=(slug,prompt,rows,explanation)=>({id:`advanced-${slug}-1`,type:'multiselect',prompt,answer:'Completado',options:rows,explanation});
  const memory=(slug,prompt,rows,explanation)=>({id:`advanced-${slug}-1`,type:'memory',prompt,answer:'Completado',options:rows,explanation});
  const sceneArtwork={
+  'boveda-racionales':'public-boveda-racionales-scene.webp',
+  'mercado-porcentajes':'public-mercado-porcentajes-scene.webp',
+  'torre-radicales':'public-torre-radicales-scene.webp',
+  'observatorio-complejos':'public-observatorio-complejos-scene.webp',
+  'mapa-migraciones':'public-mapa-migraciones-scene.webp',
+  'ciudad-economica':'public-ciudad-economica-scene.webp',
+  'album-recuerdos':'public-album-recuerdos-scene.webp',
+  'laboratorio-medidas':'public-laboratorio-medidas-scene.webp',
+  'hospital-nutricion':'public-hospital-nutricion-scene.webp',
+  'centro-cinematica':'public-centro-cinematica-scene.webp',
+  'museo-expositivo':'public-museo-expositivo-scene.webp',
+  'archivo-sintagmas':'public-archivo-sintagmas-scene.webp',
+  'redaccion-compuesta':'public-redaccion-compuesta-scene.webp',
+  'atlas-registros':'public-atlas-registros-scene.webp',
+  'sala-comentario':'public-sala-comentario-scene.webp',
   'cine-pasado':'public-cine-pasado-scene.webp',
+  'diario-viajes':'public-diario-viajes-scene.webp',
+  'portal-condicional':'public-portal-condicional-scene.webp',
+  'estudio-advanced-tenses':'public-estudio-habitos.webp',
+  'biblioteca-inference':'public-biblioteca-inference-scene.webp',
+  'cronica-pasado':'public-cronica-pasado-scene.webp',
+  'consejo-modalidad':'public-consejo-modalidad-scene.webp',
+  'tribunal-ambiguedad':'public-tribunal-ambiguedad-scene.webp',
   'laboratorio-atomo':'public-laboratorio-atomo-scene.webp',
   'pista-movimiento':'public-pista-movimiento-scene.webp',
   'asamblea-revoluciones':'public-asamblea-revoluciones-scene.webp',
-  'centro-cinematica':'public-centro-cinematica-scene.webp',
   'archivo-contemporaneo':'public-archivo-contemporaneo-scene.webp',
   'camara-matrices':'public-camara-matrices-scene.webp',
   'observatorio-ondas':'public-observatorio-ondas-scene.webp',
@@ -44,7 +65,7 @@
   game('3-eso','3.º ESO','matematicas','Matemáticas','mercado-porcentajes','El mercado de los porcentajes','Fracciones, decimales y porcentajes','Resuelve descuentos, subidas y equivalencias para cerrar seis encargos.',race('mercado-porcentajes','Calcula el importe o porcentaje correcto de cada encargo.',[
    'Un artículo de 80 € tiene 25 % de descuento. Precio final: | 60 € | 55 € | 20 €','Una cantidad de 120 sube un 10 %. Resultado: | 132 | 130 | 12','¿Qué porcentaje es 18 de 60? | 30 % | 20 % | 40 %','¿Qué decimal equivale a 3/8? | 0,375 | 0,38 | 0,625','Un precio de 50 € sube un 20 %. Nuevo precio: | 60 € | 70 € | 55 €','¿Cuánto es el 15 % de 200? | 30 | 15 | 45'
   ],'Para calcular un porcentaje, multiplica la cantidad por la fracción decimal correspondiente.'),'public-feria-porcentajes.webp'),
-  game('3-eso','3.º ESO','lengua','Lengua','archivo-sintagmas','El archivo de los sintagmas','Oración simple y sintagmas','Clasifica las piezas subrayadas de ocho oraciones en el archivo gramatical.',match('archivo-sintagmas','Lleva cada grupo de palabras a su tipo de sintagma.',[
+  game('3-eso','3.º ESO','lengua','Lengua','archivo-sintagmas','El archivo de los sintagmas','Oración simple y sintagmas','Clasifica ocho grupos de palabras por el núcleo de cada sintagma.',match('archivo-sintagmas','Lleva cada grupo de palabras a su tipo de sintagma.',[
    'la casa azul | Nominal','mis viejos amigos | Nominal','muy lejos | Adverbial','bastante pronto | Adverbial','muy cansado | Adjetival','demasiado difícil | Adjetival','en el patio | Preposicional','con mucho cuidado | Preposicional'
   ],'El núcleo determina el tipo de sintagma; una preposición abre un sintagma preposicional.'),'public-agencia-oraciones.webp'),
   game('3-eso','3.º ESO','ingles','Inglés','diario-viajes','El diario de los viajes','Present perfect and past simple','Elige las entradas que sitúan bien cada experiencia en el tiempo.',select('diario-viajes','Marca solo las entradas correctas del diario.',[
@@ -60,7 +81,7 @@
    'Digestión | Transformación de los alimentos en sustancias aprovechables.','Absorción | Paso de nutrientes desde el intestino a la sangre.','Respiración | Intercambio de oxígeno y dióxido de carbono.','Circulación | Transporte de sustancias por la sangre.','Excreción | Eliminación de sustancias de desecho del organismo.','Estómago | Órgano donde el alimento se mezcla con jugos gástricos.','Intestino delgado | Lugar principal de absorción de nutrientes.','Pulmones | Órganos donde ocurre el intercambio de gases.','Riñones | Órganos que filtran la sangre y forman orina.'
   ],'La función de nutrición integra digestión, respiración, circulación y excreción.'),'public-atlas-cuerpo.webp'),
 
-  game('4-eso','4.º ESO','matematicas','Matemáticas','torre-radicales','El observatorio de radicales','Números reales y radicales','Resuelve raíces y simplificaciones para completar el mapa del observatorio.',race('torre-radicales','Selecciona el resultado exacto de cada estación.',[
+  game('4-eso','4.º ESO','matematicas','Matemáticas','torre-radicales','La torre de los radicales','Números reales y radicales','Abre las seis plantas resolviendo raíces y simplificaciones.',race('torre-radicales','Selecciona el resultado exacto para abrir cada planta.',[
    '√49 = | 7 | 6 | 8','√(9/16) = | 3/4 | 9/4 | 3/16','Simplifica √50. | 5√2 | 25√2 | 2√5','√2 · √8 = | 4 | 2√10 | √10','√81 + √16 = | 13 | 9 | 97','Simplifica √72. | 6√2 | 4√3 | 8√3'
   ],'Extrae factores que sean cuadrados perfectos y aplica √a·√b = √(ab) cuando procede.'),'public-observatorio-numeros.webp'),
   game('4-eso','4.º ESO','lengua','Lengua','redaccion-compuesta','La redacción de las compuestas','Oraciones compuestas','Clasifica las conexiones entre proposiciones de un periódico.',match('redaccion-compuesta','Coloca cada oración en su relación sintáctica.',[

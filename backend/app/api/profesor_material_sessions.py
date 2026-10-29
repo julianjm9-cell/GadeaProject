@@ -313,6 +313,9 @@ def grade(q: dict, value: object, part: int | None = None) -> str:
             return "unanswered"
         if not q.get("errorSegment") or not q.get("correctedSegment"):
             return "pending"
+        if q.get("strictCorrection"):
+            exact = lambda text: " ".join(text.strip().split())
+            return "correct" if exact(chosen) == exact(q["errorSegment"]) and exact(correction) == exact(q["correctedSegment"]) else "incorrect"
         marks = '.,;:!?«»“”"'
         return "correct" if norm(chosen.strip(marks)) == norm(q["errorSegment"].strip(marks)) and norm(correction.strip(marks)) == norm(q["correctedSegment"].strip(marks)) else "incorrect"
     if kind == "short" and len(str(q.get("answer", "")).split()) in (1, 2, 3) and not re.search(r"[;:]", q["answer"]):

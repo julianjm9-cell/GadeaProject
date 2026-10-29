@@ -168,6 +168,12 @@ def app_state_data(row: ClientState, app_key: str) -> dict:
     return data.get("__apps", {}).get(app_key, {}) if isinstance(data, dict) else {}
 
 
+def eso_state_etag(data: dict) -> str:
+    """A content revision for ESO that needs no database migration."""
+    canonical = json.dumps(data, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return '"eso-' + hashlib.sha256(canonical.encode("utf-8")).hexdigest() + '"'
+
+
 def set_app_state_data(row: ClientState, app_key: str, payload: dict) -> None:
     current = row.data or {}
     if app_key == "diplomator" and "__apps" not in current:
@@ -694,6 +700,13 @@ def diplomator_refresh_styles():
 
 @router.get("/assets/eso-final.css")
 @router.get("/assets/eso-games.js")
+@router.get("/assets/eso-english-missions.js")
+@router.get("/assets/eso-math-missions.js")
+@router.get("/assets/eso-language-missions.js")
+@router.get("/assets/eso-geography-missions.js")
+@router.get("/assets/eso-history-missions.js")
+@router.get("/assets/eso-science-missions.js")
+@router.get("/assets/eso-external-games.js")
 def eso_app_assets(request: Request):
     filename = request.url.path.rsplit("/", 1)[-1]
     static_path = STATIC_DIR / "assets" / filename
@@ -703,6 +716,18 @@ def eso_app_assets(request: Request):
         raise HTTPException(status_code=404, detail="Archivo no encontrado.")
     media_type = "text/css" if filename.endswith(".css") else "application/javascript"
     return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=3600"})
+
+
+@router.get("/assets/subjects/{filename}")
+def eso_subject_icon(filename: str):
+    if filename not in {"lengua.svg", "ingles.svg", "geografia.svg", "historia.svg", "matematicas.svg", "ciencias.svg"}:
+        raise HTTPException(status_code=404, detail="Icono no encontrado.")
+    static_path = STATIC_DIR / "assets" / "subjects" / filename
+    fallback = PROJECT_ROOT / "apps" / "e25" / "assets" / "subjects" / filename
+    path = static_path if static_path.exists() else fallback
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Icono no encontrado.")
+    return FileResponse(path, media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/profesor-temario.js")
@@ -727,6 +752,7 @@ def profesor_temario_catalogue():
 @router.get("/profesor-subjects.js")
 @router.get("/profesor-profile.js")
 @router.get("/profesor-public-games-extra.js")
+@router.get("/profesor-external-games.js")
 @router.get("/profesor-mini-games.js")
 @router.get("/profesor-activity-play.js")
 @router.get("/profesor-generator.js")
@@ -773,6 +799,11 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-appearance.css")
 @router.get("/assets/profesor-public-games.css")
 @router.get("/assets/profesor-public-games-extra.css")
+@router.get("/assets/profesor-public-english.css")
+@router.get("/assets/profesor-public-math.css")
+@router.get("/assets/profesor-public-language.css")
+@router.get("/assets/profesor-public-social-spanish.css")
+@router.get("/assets/profesor-external-games.css")
 @router.get("/assets/profesor-matching-scenes.css")
 @router.get("/assets/profesor-race-scenes.css")
 @router.get("/assets/profesor-bingo-scenes.css")
@@ -845,6 +876,9 @@ def profesor_game_illustration(filename: str):
         "timeline.webp",
         "uploaded-material.webp",
         "wordsearch.webp",
+        "eso-english-travel.webp",
+        "eso-english-desk.webp",
+        "eso-english-cafe.webp",
         "public-tren-decenas.webp",
         "public-fabrica-palabras.webp",
         "public-mochila-bilingue.webp",
@@ -1671,6 +1705,9 @@ def get_state(request: Request, response: Response, user: User = Depends(current
     app_key = request_app_key(request)
     row = state_row(db, user)
     saved = app_state_data(row, app_key)
+    if app_key == "eso_adultos":
+        response.headers["ETag"] = eso_state_etag(saved)
+        response.headers["Cache-Control"] = "private, no-store"
     if app_key != "profesor_particular":
         return saved
     response.headers["ETag"] = state_history.etag(row.profesor_revision)
@@ -1768,6 +1805,15 @@ def save_state(payload: dict, request: Request, response: Response, user: User =
         profile = payload.get("teacherProfile")
         payload["teacherProfile"] = {**(profile if isinstance(profile, dict) else {}), "plan": profesor_account_plan(license_obj)}
     row = state_row(db, user, for_update=True)
+    if app_key == "eso_adultos":
+        previous = app_state_data(row, app_key)
+        supplied = request.headers.get("if-match")
+        if supplied is None and previous:
+            raise HTTPException(428, detail={"code": "state_version_required", "message":
+                "Esta pestaña debe recargar el progreso antes de guardar. El progreso del servidor sigue intacto."})
+        if supplied is not None and supplied != eso_state_etag(previous):
+            raise HTTPException(409, detail={"code": "state_conflict", "message":
+                "Otra pestaña o dispositivo ha guardado un progreso más reciente. No se ha sobrescrito."})
     if app_key == "profesor_particular":
         expected = state_history.check_revision(row, request.headers.get("if-match"))
         state_history.validate_transition(app_state_data(row, app_key), payload,
@@ -1803,6 +1849,9 @@ def save_state(payload: dict, request: Request, response: Response, user: User =
         response.headers["ETag"] = state_history.etag(revision)
     else:
         set_app_state_data(row, app_key, payload)
+        if app_key == "eso_adultos":
+            response.headers["ETag"] = eso_state_etag(payload)
+            response.headers["Cache-Control"] = "private, no-store"
     db.commit()
     return {"ok": True, **({"revision": revision} if app_key == "profesor_particular" else {})}
 

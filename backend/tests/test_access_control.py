@@ -246,8 +246,10 @@ def test_deployment_smoke_check_routes(client, monkeypatch):
     test_client, db_factory = client
 
     def open_local(url, timeout=20):
-        if url == "http://admin/":
-            return BytesIO((Path(__file__).parents[2] / "admin" / "index.html").read_bytes())
+        if url.startswith("http://admin/"):
+            admin_root = Path(__file__).parents[2] / "admin"
+            relative = url.removeprefix("http://admin/") or "index.html"
+            return BytesIO((admin_root / relative).read_bytes())
         response = test_client.get(url.replace("http://127.0.0.1:8000", ""))
         if response.status_code >= 400:
             raise HTTPError(url, response.status_code, "HTTP error", response.headers, None)

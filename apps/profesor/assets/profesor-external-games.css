@@ -1,0 +1,9 @@
+.workspace-page .material-scope-catalog{flex-wrap:wrap}
+.material-hub-card.external-game-card{border:2px solid #64bfa9!important;background:linear-gradient(150deg,#f1fff9,#fff 66%)!important}
+.material-hub-card.external-game-card:hover,.material-hub-card.external-game-card:focus-within{border-color:#168866!important;box-shadow:0 12px 28px #0e80652b!important}
+.external-game-card .material-kind{background:#dcf7eb!important;color:#08734c!important}
+.external-game-card .material-card-foot{flex-wrap:wrap;gap:6px}
+.external-game-card .external-game-open{display:inline-flex;align-items:center;justify-content:center;min-height:35px;margin-left:auto;padding:7px 11px;border:1px solid #087e59;border-radius:9px;background:#0a8861;color:#fff;font-size:11px;font-weight:800;text-align:center;text-decoration:none;white-space:nowrap}
+.external-game-card .external-game-open:hover{background:#086c4e;color:#fff}
+.external-game-card .external-game-open:focus-visible{outline:3px solid #157fbe;outline-offset:2px}
+@media(max-width:580px){.external-game-card .external-game-open{width:100%;margin-left:0}.workspace-page .material-scope-catalog button{flex:1 0 auto}}

@@ -219,3 +219,190 @@
 .eso-quest-feedback.error{color:#a43f3f}
 @media(max-width:900px){.eso-quest-stations{grid-template-columns:1fr}.desktop-refresh .eso-quest-station{min-height:0}.eso-quest-bank-head{align-items:flex-start;flex-direction:column;gap:4px}}
 @media(max-width:600px){.eso-quest-content{padding:16px}.eso-quest-intro strong{font-size:20px}.eso-quest-station:not(.current){display:none}.eso-quest-pieces{grid-template-columns:1fr}.eso-quest-bank{padding:13px}.eso-game-card .game-card-art{height:90px}.eso-quest-backdrop{clip-path:inset(0 0 40% 0)}}
+
+/* Inglés: las respuestas son piezas del lugar, no un formulario sobre la ilustración. */
+.eso-english-game-card{border-color:#c8d8e8;background:linear-gradient(160deg,#fffdf7,#f3f8ff)}
+.eso-english-game-card .game-card-art{height:140px;object-position:center center;border:1px solid #d8e4eb}
+.eso-english-run{width:min(1120px,100%);background:#fffdf8;border-color:#d8e2ed}
+.eso-english-run .eso-game-progress{background:#e8e6dd}
+.eso-english-play-scene{position:relative;isolation:isolate;display:flex;flex-direction:column;min-height:570px;padding:18px;overflow:hidden;border:1px solid #c7d9e8;border-radius:21px;background:linear-gradient(145deg,#dbedfc,#f8e4c7)}
+.eso-english-backdrop{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;object-position:center center}
+.eso-english-play-scene:before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,#102b4c23 0%,transparent 22%,#fff9ed4d 48%,#08274744 100%)}
+.eso-english-scene-tag{position:relative;z-index:2;display:inline-flex;align-items:center;gap:8px;align-self:flex-start;max-width:100%;padding:8px 13px;border:1px solid #ffffffc9;border-radius:999px;background:#fffdf6ed;box-shadow:0 6px 22px #11314d1d;color:#15345d;font-size:12px;font-weight:850}
+.eso-english-scene-tag span{font-size:17px;color:#bb7930}
+.eso-english-play-scene .eso-game-question{position:relative;z-index:2;display:grid;gap:14px;align-content:end;min-height:495px;margin-top:auto;padding:0;border:0;background:none}
+.eso-english-prompt{width:min(660px,100%);padding:15px 19px;border:1px solid #ffffffd9;border-radius:17px;background:#fffdf7f2;box-shadow:0 10px 25px #14344f24;backdrop-filter:blur(7px)}
+.eso-english-prompt h3{margin:7px 0 0;font-size:clamp(17px,2vw,22px);line-height:1.35}
+.eso-english-run .eso-game-options{gap:12px}
+.desktop-refresh .eso-english-run .eso-game-options button{position:relative;align-items:flex-start;min-height:94px;padding:13px 16px;border:1px solid #fff9e8;border-left:5px solid #d4a76e;border-radius:10px 16px 16px 10px;background:#fffdf6f2;box-shadow:0 6px 0 #9c7849a8,0 11px 24px #0924422b;color:#16375c;backdrop-filter:blur(7px);font-size:14px;cursor:pointer;transition:transform .16s,box-shadow .16s,border-color .16s}
+.desktop-refresh .eso-english-run .eso-game-options button:hover:not(:disabled),.desktop-refresh .eso-english-run .eso-game-options button:focus-visible{transform:translateY(-3px);border-color:#55a4e9;box-shadow:0 9px 0 #9c7849a8,0 15px 28px #09244238}
+.eso-english-run .eso-game-options button b{width:32px;height:32px;border-radius:9px;background:#e7eff8;color:#1c5f9c;font-size:17px}
+.eso-english-run .eso-game-options button span{min-width:0;overflow-wrap:anywhere}
+.eso-english-run .eso-game-options button small{display:block;margin:0 0 4px;color:#80613d;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.desktop-refresh .eso-english-run .eso-game-options button.correct{border-color:#4eb580;border-left-color:#309963;background:#eaf9ef;box-shadow:0 6px 0 #53a77b}
+.desktop-refresh .eso-english-run .eso-game-options button.wrong{border-color:#dd8d82;border-left-color:#ca5f55;background:#fff2ee;box-shadow:0 6px 0 #ba756c}
+.eso-english-run .eso-game-feedback{min-height:0;margin:0;padding:10px 14px;border:1px solid #ffffffd9;border-radius:12px;background:#fffdf6f2;box-shadow:0 5px 18px #14344f22;backdrop-filter:blur(7px)}
+.eso-english-run .eso-game-next{margin-top:15px}
+.eso-english-pairs-scene .eso-game-question{min-height:495px}
+.eso-english-pairs-scene .eso-game-pairs{gap:11px}
+.desktop-refresh .eso-english-pairs-scene .eso-game-pairs button{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;min-width:0;min-height:94px;padding:8px 10px;border:1px solid #fff7e4;border-bottom:5px solid #cda36f;border-radius:13px;background:#fffdf4f0;box-shadow:0 8px 24px #09244235;color:#19446d;font-size:14px;line-height:1.2;overflow-wrap:anywhere;backdrop-filter:blur(6px)}
+.eso-english-pairs-scene .eso-game-pairs button small{font-size:10px;font-weight:850;letter-spacing:.07em;text-transform:uppercase;color:#8d6640}
+.eso-english-card-symbol{font-size:26px;line-height:1;color:#1f75bc}
+.desktop-refresh .eso-english-pairs-scene .eso-game-pairs button.revealed{border-color:#82b8df;background:#f3faff;color:#143b60}
+.desktop-refresh .eso-english-pairs-scene .eso-game-pairs button.matched{border-color:#74bd95;border-bottom-color:#4b9b73;background:#eaf9ef;color:#155a3b;box-shadow:0 5px 16px #1f7d5229}
+.eso-english-pairs-scene .eso-game-pairs-status{min-height:0;margin:0;padding:9px 13px;border-radius:10px;background:#fffdf6ee;color:#214666;font-weight:750}
+.eso-english-run[data-scene="travel"] .eso-game-options button,.eso-english-run[data-scene="travel"] .eso-game-pairs button{border-left-color:#4c91c9}
+.eso-english-run[data-scene="cafe"] .eso-game-options button,.eso-english-run[data-scene="cafe"] .eso-game-pairs button{border-left-color:#c58a53}
+.eso-english-run[data-scene="desk"] .eso-game-options button,.eso-english-run[data-scene="desk"] .eso-game-pairs button{border-left-color:#9672ae}
+.eso-english-quest-board{min-height:570px;background:#d9e8f5}
+.eso-english-quest-board .eso-quest-backdrop{clip-path:none}
+.eso-english-quest-board:before{background:linear-gradient(180deg,#10294391,transparent 42%,#0f2e53a3)}
+.eso-english-quest-board .eso-quest-content{display:flex;flex-direction:column;min-height:570px}
+.eso-english-quest-board .eso-quest-intro{align-self:flex-start;max-width:600px;margin-bottom:0;padding:13px 17px;border:1px solid #ffffff70;border-radius:14px;background:#102b4ba8;backdrop-filter:blur(7px)}
+.eso-english-quest-board .eso-quest-stations{position:relative;align-items:end;margin-top:auto;padding-top:55px}
+.eso-english-quest-board .eso-quest-stations:before{content:'';position:absolute;left:12%;right:12%;bottom:32px;border-top:3px dashed #fff8e5b8}
+.desktop-refresh .eso-english-quest-board .eso-quest-station{position:relative;min-height:204px;border:1px solid #fff8e7;border-bottom:6px solid #caa16f;background:#fffdf5f1;box-shadow:0 14px 29px #0a274a57;color:#183e66;backdrop-filter:blur(7px)}
+.desktop-refresh .eso-english-quest-board .eso-quest-station.complete{border-color:#61b88b;border-bottom-color:#3c9868;background:#ecfff1ef}
+.desktop-refresh .eso-english-quest-board .eso-quest-station.wrong{border-color:#d78079;border-bottom-color:#bc625b;background:#fff2edf5}
+.eso-english-station-place{display:inline-block;width:max-content;max-width:100%;padding:4px 8px;border-radius:999px;background:#e6f0f9;color:#235b93;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.07em}
+.eso-english-quest-run .eso-quest-bank{background:#fffaf0;border-color:#e9d7bb}
+.desktop-refresh .eso-english-quest-run .eso-quest-piece{border-color:#d5bfa4;border-left:4px solid #c38c52;background:#fffdf7;box-shadow:0 4px 0 #ddc8ab}
+.desktop-refresh .eso-english-quest-run .eso-quest-piece.selected{border-color:#2680d3;background:#eaf4ff;box-shadow:0 4px 0 #91c5fa}
+.desktop-refresh .eso-english-run button:focus-visible{outline:3px solid #1975d4;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.desktop-refresh .eso-english-run .eso-game-options button{transition:none}}
+@media(max-width:900px){.eso-english-quest-board .eso-quest-stations:before{display:none}.eso-english-quest-board .eso-quest-content{min-height:0}.eso-english-quest-board{min-height:0}.desktop-refresh .eso-english-quest-board .eso-quest-station{min-height:0}}
+@media(max-width:760px){.eso-english-run .eso-game-options{grid-template-columns:1fr}.eso-english-play-scene{min-height:0;padding:12px}.eso-english-play-scene .eso-game-question{min-height:0;padding-top:100px}.eso-english-pairs-scene .eso-game-question{padding-top:30px}.eso-english-run .eso-english-backdrop{object-position:center top}.eso-english-pairs-scene .eso-game-pairs{grid-template-columns:repeat(2,minmax(0,1fr))}.desktop-refresh .eso-english-run .eso-game-options button{min-height:73px}.eso-english-quest-board .eso-quest-content{padding-top:95px}}
+@media(max-width:500px){.eso-english-game-card .game-card-art{height:105px}.eso-english-prompt{padding:12px 14px}.eso-english-prompt h3{font-size:17px}.desktop-refresh .eso-english-pairs-scene .eso-game-pairs button{min-height:82px}.eso-english-quest-board .eso-quest-intro strong{font-size:18px}}
+
+/* Misiones de Inglés: las decisiones avanzan por lugares de una misma escena. */
+.eso-mission-scene{position:relative;isolation:isolate;min-height:520px;overflow:hidden;border:1px solid #c6d8e8;border-radius:21px;background:#dcecf7}
+.eso-mission-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.eso-mission-scene:before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,#132b4d81,#132b4d23 45%,#102c51aa)}
+.eso-mission-layout{position:relative;z-index:2;display:flex;flex-direction:column;gap:16px;min-height:520px;padding:19px}
+.eso-mission-header{display:flex;align-items:flex-start;gap:12px;align-self:flex-start;max-width:760px;padding:12px 16px;border:1px solid #ffffffb7;border-radius:17px;background:#fffdf4ed;box-shadow:0 9px 25px #17355438;color:#14345a}
+.eso-mission-symbol{display:grid;place-items:center;flex:none;width:45px;height:45px;border-radius:13px;background:#e5f3ff;color:#176ec0;font-size:24px}
+.eso-mission-header small{display:block;color:#426b92;font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.04em}
+.eso-mission-header h3{margin:2px 0 3px;font-size:clamp(19px,2vw,24px);line-height:1.2}
+.eso-mission-header p{margin:0;color:#45647f;font-size:13px;line-height:1.35}
+.eso-mission-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(940px,100%);margin-inline:auto}
+.eso-mission-steps span{display:flex;align-items:center;gap:7px;min-width:0;padding:7px 10px;border:1px solid #ffffffb5;border-radius:12px;background:#f8fbffe8;color:#425a75;font-size:12px;font-weight:750;overflow-wrap:anywhere}
+.eso-mission-steps b{display:grid;place-items:center;flex:none;width:23px;height:23px;border-radius:50%;background:#dbe7f4;color:#2c5d8b;font-size:11px}
+.eso-mission-steps span.current{background:#fff7dd;color:#5d471e;border-color:#f4ce74;box-shadow:0 3px 0 #a77b39}
+.eso-mission-steps span.current b{background:#d7982c;color:#fff}
+.eso-mission-steps span.complete{background:#e9f9ec;color:#1b6949;border-color:#92d4aa}
+.eso-mission-steps span.complete b{background:#229462;color:#fff}
+.eso-mission-panel{width:min(940px,100%);margin:auto auto 0;padding:16px;border:1px solid #ffffffc9;border-radius:19px;background:#fffdf5ed;box-shadow:0 15px 35px #09254069;color:#17365e;backdrop-filter:blur(6px)}
+.eso-mission-context{display:block;padding:10px 12px;border-left:4px solid #4b91c5;border-radius:8px;background:#edf6ff;color:#2c4f73;font-size:14px;line-height:1.45}
+.eso-mission-panel h4{margin:12px 0;font-size:clamp(17px,1.8vw,21px);line-height:1.3}
+.eso-mission-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.desktop-refresh .eso-mission-choices button{display:flex;align-items:center;gap:9px;min-width:0;min-height:72px;padding:9px 12px;border:1px solid #c1d9ee;border-bottom:5px solid #8daac7;border-radius:13px;background:#fff;color:#16385c;text-align:left;text-transform:none;white-space:normal;font-size:14px;line-height:1.3;overflow-wrap:anywhere;cursor:pointer}
+.eso-mission-choices button span{display:grid;place-items:center;flex:none;width:27px;height:27px;border-radius:8px;background:#e5f0fb;color:#2766a0;font-size:12px;font-weight:900}
+.desktop-refresh .eso-mission-choices button:hover:not(:disabled),.desktop-refresh .eso-mission-choices button:focus-visible{border-color:#3a89cf;background:#f0f8ff;transform:translateY(-2px)}
+.desktop-refresh .eso-mission-choices button.correct{border-color:#62b88b;border-bottom-color:#3d9669;background:#e7f8ec;color:#155b3d}
+.desktop-refresh .eso-mission-choices button.wrong{border-color:#d87d75;border-bottom-color:#b85953;background:#fff0ed;color:#8f3531}
+.desktop-refresh .eso-mission-choices button:disabled{cursor:default;opacity:1}
+.eso-mission-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:11px}
+.eso-mission-feedback{min-height:20px;margin:0;color:#416384;font-size:13px;line-height:1.4}
+.eso-mission-feedback.error{color:#a63832;font-weight:700}
+.eso-mission-feedback.success{color:#187347;font-weight:700}
+.desktop-refresh .eso-mission-bottom button{flex:none;padding:9px 15px;border-radius:10px}
+.eso-math-run{background:#fffdf7;border-color:#e8d5b4}
+.eso-math-run .eso-game-progress span{background:linear-gradient(90deg,#cb8738,#e4ae54)}
+.eso-math-run .eso-mission-scene:before{background:linear-gradient(180deg,#1c365377,#19304722 42%,#213652a3)}
+.eso-math-run .eso-mission-symbol{background:#fff0d3;color:#a66424}
+.eso-math-run .eso-mission-steps span.current{background:#fff0d3;border-color:#dbad6b}
+.eso-math-run .eso-mission-panel{border-color:#e9cfa7;background:#fffdf5f1}
+.eso-math-run .eso-mission-context{border-left-color:#cd904a;background-image:linear-gradient(#fffaf0e9,#fffaf0e9),repeating-linear-gradient(0deg,transparent 0 23px,#d3a96b78 23px 24px);color:#604826}
+.desktop-refresh .eso-math-run .eso-mission-choices button{border-color:#dfbd8e;border-bottom-color:#af7b48;background:#fffaf0;color:#4c3823}
+.desktop-refresh .eso-math-run .eso-mission-choices button:hover:not(:disabled){border-color:#bd7738;background:#fff0d6}
+.desktop-refresh .eso-math-run .eso-mission-choices button.correct{border-color:#62b88b;border-bottom-color:#3d9669;background:#e7f8ec;color:#155b3d}
+.desktop-refresh .eso-math-run .eso-mission-choices button.wrong{border-color:#d87d75;border-bottom-color:#b85953;background:#fff0ed;color:#8f3531}
+.eso-language-run{background:#fffdf9;border-color:#e5d5cc}
+.eso-language-run .eso-game-progress span{background:linear-gradient(90deg,#8d5d7f,#b8798b)}
+.eso-language-run .eso-mission-scene:before{background:linear-gradient(180deg,#2b21398c,#30213730 44%,#2d203dab)}
+.eso-language-run .eso-mission-symbol{background:#f7e8f0;color:#875777}
+.eso-language-run .eso-mission-steps span.current{background:#f9e9f1;border-color:#dbaec2;color:#743c5c;box-shadow:0 3px 0 #9c6682}
+.eso-language-run .eso-mission-steps span.current b{background:#995b7a;color:#fff}
+.eso-language-run .eso-mission-panel{border-color:#ead6df;background:#fffdf9f4}
+.eso-language-run .eso-mission-context{border-left-color:#a56b88;background-image:repeating-linear-gradient(0deg,#fffdf7 0 24px,#ead8e1 25px 26px);color:#593b52}
+.desktop-refresh .eso-language-run .eso-mission-choices button{border-color:#d9b8ca;border-bottom-color:#a87c9a;border-radius:6px 15px 15px 6px;background:#fffafc;color:#4d3048}
+.desktop-refresh .eso-language-run .eso-mission-choices button:hover:not(:disabled){border-color:#a16487;background:#fdf0f6}
+.desktop-refresh .eso-language-run .eso-mission-choices button.correct{border-color:#62b88b;border-bottom-color:#3d9669;background:#e7f8ec;color:#155b3d}
+.desktop-refresh .eso-language-run .eso-mission-choices button.wrong{border-color:#d87d75;border-bottom-color:#b85953;background:#fff0ed;color:#8f3531}
+.eso-geo-run{background:#f8fcfa;border-color:#b7d8cb}
+.eso-geo-run .eso-game-progress span{background:linear-gradient(90deg,#2c9b75,#68bda0)}
+.eso-geo-run .eso-mission-scene:before{background:linear-gradient(180deg,#143c3a99,#193e3933 45%,#113c48b3)}
+.eso-geo-run .eso-mission-symbol{background:#dff4e9;color:#1a795a}
+.eso-geo-run .eso-mission-steps span.current{background:#e4f7ec;border-color:#76b99a;color:#205b44;box-shadow:0 3px 0 #3e8565}
+.eso-geo-run .eso-mission-steps span.current b{background:#28835c;color:#fff}
+.eso-geo-run .eso-mission-panel{border-color:#a5d2bc;background:#fbfff9f2}
+.eso-geo-run .eso-mission-context{border-left-color:#329c70;background:#e9f7ee;color:#24543e}
+.desktop-refresh .eso-geo-run .eso-mission-choices button{border-color:#a7cfb8;border-bottom-color:#5f9a7b;background:#f9fff9;color:#244b3d}
+.desktop-refresh .eso-geo-run .eso-mission-choices button:hover:not(:disabled){border-color:#3a9e70;background:#edf9f1}
+.eso-history-run{background:#fffbf4;border-color:#e5c99e}
+.eso-history-run .eso-game-progress span{background:linear-gradient(90deg,#986535,#d6a260)}
+.eso-history-run .eso-mission-scene:before{background:linear-gradient(180deg,#3026149c,#34281735 45%,#302516b9)}
+.eso-history-run .eso-mission-symbol{background:#f9ebd5;color:#905e2a}
+.eso-history-run .eso-mission-steps span.current{background:#fff0d9;border-color:#d6af75;color:#704d25;box-shadow:0 3px 0 #a37846}
+.eso-history-run .eso-mission-steps span.current b{background:#a67037;color:#fff}
+.eso-history-run .eso-mission-panel{border-color:#e2c191;background:#fffcf5f4}
+.eso-history-run .eso-mission-context{border-left-color:#b68348;background:#fcf1de;color:#654723}
+.desktop-refresh .eso-history-run .eso-mission-choices button{border-color:#dfc39b;border-bottom-color:#ab8454;background:#fffcf5;color:#594227}
+.desktop-refresh .eso-history-run .eso-mission-choices button:hover:not(:disabled){border-color:#b6854c;background:#fff3df}
+.eso-science-run{background:#f8fcff;border-color:#add1e0}
+.eso-science-run .eso-game-progress span{background:linear-gradient(90deg,#147aab,#39b5c0)}
+.eso-science-run .eso-mission-scene:before{background:linear-gradient(180deg,#12364d9e,#123d4d32 45%,#133847b5)}
+.eso-science-run .eso-mission-symbol{background:#ddf4f8;color:#087c98}
+.eso-science-run .eso-mission-steps span.current{background:#e1f6fa;border-color:#75c3d0;color:#19586a;box-shadow:0 3px 0 #3e8a9c}
+.eso-science-run .eso-mission-steps span.current b{background:#1989a2;color:#fff}
+.eso-science-run .eso-mission-panel{border-color:#a4cfdc;background:#fafdfff3}
+.eso-science-run .eso-mission-context{border-left-color:#2797aa;background:#eaf8fb;color:#285368}
+.desktop-refresh .eso-science-run .eso-mission-choices button{border-color:#a7d2dd;border-bottom-color:#5d99a7;background:#fbfeff;color:#204e63}
+.desktop-refresh .eso-science-run .eso-mission-choices button:hover:not(:disabled){border-color:#2b9cac;background:#ebf9fc}
+@media(max-width:800px){.eso-mission-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.eso-mission-choices{grid-template-columns:1fr}.eso-mission-scene,.eso-mission-layout{min-height:0}.eso-mission-layout{padding:14px}.eso-mission-panel{margin-top:28px}.desktop-refresh .eso-mission-choices button{min-height:54px}.eso-mission-bottom{align-items:stretch;flex-direction:column}}
+@media(max-width:420px){.eso-mission-header{padding:9px;gap:8px}.eso-mission-symbol{width:35px;height:35px;font-size:18px}.eso-mission-steps span{padding:5px;font-size:10px}.eso-mission-steps b{width:20px;height:20px}}
+.eso-save-status{position:fixed;top:112px;left:50%;transform:translateX(-50%);z-index:96;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;width:min(620px,calc(100vw - 24px));padding:12px 16px;border:1px solid #c8ddf7;border-radius:14px;background:#f8fbff;color:#12315f;box-shadow:0 16px 35px #12315f24;font-size:14px;font-weight:700;text-align:center}
+.eso-save-status[hidden]{display:none!important}
+.eso-save-status.saved{border-color:#a8dabe;background:#effbf3;color:#136344}
+.eso-save-status.error{border-color:#e9b29d;background:#fff6f1;color:#8b321f}
+.eso-save-status button{padding:7px 11px;border:1px solid currentColor;border-radius:9px;background:#fff;color:inherit;font:inherit;cursor:pointer}
+@media(max-width:760px){.eso-save-status{top:82px}}
+
+/* Biblioteca: navegación secundaria alineada con el título y el progreso. */
+.desktop-refresh .subjects-heading{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:18px;margin-bottom:24px}
+.desktop-refresh .subjects-heading>div:first-child{min-width:0}
+.desktop-refresh .subjects-heading .subjects-summary{justify-self:end;min-width:0}
+.desktop-refresh .subject-library-toggle{display:flex;align-items:stretch;gap:6px;width:auto;max-width:100%;margin:0;padding:0 4px;border:0;border-bottom:2px solid #d7e4f4;border-radius:0;background:transparent;box-shadow:none}
+.desktop-refresh .subject-library-toggle button{position:relative;min-width:115px;min-height:48px;padding:11px 13px 12px;border:0;border-radius:11px 11px 0 0;background:transparent;box-shadow:none;color:#507199;font-size:14px;font-weight:750;transition:background .16s,color .16s}
+.desktop-refresh .subject-library-toggle button:hover{background:#eaf4ff;color:#075fc6}
+.desktop-refresh .subject-library-toggle button.active{border:0;border-radius:11px 11px 0 0;background:#eaf4ff;color:#075fc6;box-shadow:none}
+.desktop-refresh .subject-library-toggle button.active::after{content:'';position:absolute;right:10px;bottom:-2px;left:10px;height:3px;border-radius:3px;background:#1677ff}
+.desktop-refresh .subject-library-toggle button:focus-visible{outline:3px solid #73adf7;outline-offset:2px}
+.desktop-refresh .subject-tile-icon{width:72px;height:72px;border-radius:19px}
+.desktop-refresh .subject-tile-icon img{display:block;width:54px;height:54px;object-fit:contain}
+@media(max-width:1240px){
+ .desktop-refresh .subjects-heading{grid-template-columns:minmax(0,1fr) auto}
+ .desktop-refresh .subjects-heading .subject-library-toggle{grid-column:1/-1;grid-row:2;justify-self:center}
+ .desktop-refresh .subjects-heading .subjects-summary{grid-column:2;grid-row:1}
+}
+@media(max-width:700px){
+ .desktop-refresh .subjects-heading{display:flex;flex-direction:column;align-items:stretch;gap:14px}
+ .desktop-refresh .subjects-heading>div:first-child{order:1}
+ .desktop-refresh .subjects-heading .subjects-summary{order:2;width:100%}
+ .desktop-refresh .subjects-heading .subject-library-toggle{order:3;align-self:stretch;justify-content:space-between;width:100%;margin:0}
+ .desktop-refresh .subject-library-toggle button{flex:1;min-width:0;min-height:44px;padding:9px 5px;font-size:12px}
+ .desktop-refresh .subject-tile-icon{width:62px;height:62px}
+ .desktop-refresh .subject-tile-icon img{width:47px;height:47px}
+}
+@media(prefers-reduced-motion:reduce){.desktop-refresh .subject-library-toggle button{transition:none}}
+
+/* Cuarto acceso: el juego de terceros siempre se abre en su página original. */
+.eso-game-card .game-card-actions button:last-child{grid-column:auto}
+.desktop-refresh .eso-game-card .game-card-actions button:last-child{min-height:38px;border-color:#b7b0ef;background:#f0edff;color:#4937a3}
+.desktop-refresh .eso-game-card .game-card-actions button:nth-child(3){min-height:43px;border-color:#b7b0ef;background:#f0edff;color:#4937a3;font-weight:800}
+.desktop-refresh .eso-game-card .game-card-actions button:nth-child(3):hover{background:#e3ddff}
+.desktop-refresh .eso-game-card .game-card-actions .eso-external-game{display:flex;align-items:center;justify-content:center;gap:5px;min-height:43px;padding:6px 8px;border:1px solid #9bd9c0;border-radius:9px;background:#e7f8f0;color:#08734c;font-size:12px;font-weight:800;text-align:center;text-decoration:none}
+.desktop-refresh .eso-game-card .game-card-actions .eso-external-game:hover{background:#d9f2e7}
+.desktop-refresh .eso-game-card .game-card-actions .eso-external-game:focus-visible{outline:3px solid #0c9665;outline-offset:2px}
+.eso-external-game small{font-size:10px;font-weight:650;opacity:.75}
+@media(max-width:460px){.eso-game-card .game-card-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.eso-external-game small{display:none}}

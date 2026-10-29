@@ -45,19 +45,21 @@ const path = require('node:path');
     }
     await page.locator('[data-confirm-order]').click();await page.getByRole('button',{name:'Actividad siguiente'}).click();
     // A moved piece must leave its previous destination empty.
-    await page.locator('#puzzle-5 [data-item="0"]').dragTo(page.locator('#puzzle-5 [data-target="1"]'));
-    await page.locator('#puzzle-5 [data-item="0"]').click();
-    await page.locator('#puzzle-5 [data-target="0"]').click();
-    assert.match(await page.locator('#puzzle-5 [data-target="1"]').innerText(), /Suelta o toca aquí/);
-    for (const n of [1, 2]) {
-      await page.locator(`#puzzle-5 [data-item="${n}"]`).click();
-      await page.locator(`#puzzle-5 [data-target="${n}"]`).click();
-    }
+    const destination=label=>page.locator('#puzzle-5 [data-match-bucket]').filter({hasText:label});
+    await page.locator('#puzzle-5 [data-match-piece="0"]').dragTo(destination('Planeta'));
+    await page.locator('#puzzle-5 .match-bucket').filter({hasText:'Planeta'}).locator('[data-match-piece="0"]').click();
+    await destination('Estrella').click();
+    assert.equal(await page.locator('#puzzle-5 .match-bucket').filter({hasText:'Planeta'}).locator('[data-match-piece]').count(), 0);
+    await page.locator('#puzzle-5 .match-bank [data-match-piece="1"]').click();
+    await destination('Planeta').click();
+    await page.locator('#puzzle-5 .match-bank [data-match-piece="2"]').click();
+    await destination('Satélite').click();
     await page.getByRole('button',{name:'Actividad siguiente'}).click();
     await page.locator('#flip-6').click();
     await page.locator('#flash-assess-6 [data-flash="correct"]').click();
     await page.getByRole('button', { name: 'Terminar',exact:true }).click();
-    assert.match(await page.locator('#activityScore').innerText(), /7\/7 correctas/);
+    await page.getByRole('button', { name: 'Terminar material',exact:true }).click();
+    assert.match(await page.locator('#dialog').innerText(), /7\/7 correctas/);
     await page.screenshot({ path: 'tools/profesor-activity-play.png', fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2), false);

@@ -57,8 +57,9 @@ test('Editing a corrected exam preserves the previous result in history and hide
 });
 test('State is never saved before loading and successive snapshots are sent in order',async()=>{
  let release;const sent=[];
- const c=vm.createContext({esoStateReady:false,state:{currentExam:'Primero'},backend:async(_path,options)=>{sent.push(JSON.parse(options.body));if(sent.length===1)await new Promise(resolve=>{release=resolve})}});
+ const c=vm.createContext({esoStateReady:false,state:{currentExam:'Primero'},window:{addEventListener(){}},backend:async(_path,options)=>{sent.push(JSON.parse(options.body));if(sent.length===1)await new Promise(resolve=>{release=resolve})}});
  vm.runInContext(source.slice(source.indexOf('let esoStateSaveQueue'),source.indexOf('\nasync function loadGamification',source.indexOf('let esoStateSaveQueue'))),c);
+ vm.runInContext('showEsoSaveStatus=()=>{}; esoSaveFailed=false; esoSaveBlocked=false; esoPendingSaves=0;',c);
  assert.equal(await vm.runInContext('saveState()',c),false);assert.equal(sent.length,0);
  c.esoStateReady=true;const first=vm.runInContext('saveState()',c);await Promise.resolve();await Promise.resolve();
  c.state.currentExam='Segundo';const second=vm.runInContext('saveState()',c);assert.equal(sent.length,1);release();await first;await second;

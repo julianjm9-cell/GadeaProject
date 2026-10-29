@@ -34,7 +34,7 @@ const assert=require('node:assert/strict');
       };
     });
     await teacher.getByRole('button',{name:/Crear sesión/}).first().click();
-    await teacher.getByRole('button',{name:'Continuar'}).click();
+    await teacher.locator('[data-live-teacher="choose-material"]').first().click();
     await teacher.getByRole('button',{name:'Crear sesión y código'}).click();
     await teacher.locator('.live-join-code').waitFor();
     assert.match(await teacher.locator('.live-join-code').innerText(),/NEWC234567/);
@@ -44,7 +44,8 @@ const assert=require('node:assert/strict');
     let joined=false;
     await pupil.route('**/*',route=>{
       const url=new URL(route.request().url()),key=url.pathname;
-      const file=key==='/profesor/alumno'?'backend/app/static/profesor-alumno.html':key==='/profesor-live.js'?'apps/profesor/profesor-live.js':key==='/profesor-rich-text.js'?'apps/profesor/profesor-rich-text.js':key==='/assets/profesor-live.css'?'apps/profesor/assets/profesor-live.css':null;
+      const scripts=new Set(['/profesor-live.js','/profesor-live-sync.js','/profesor-rich-text.js','/profesor-puzzle-boards.js','/profesor-challenge-games.js','/profesor-mini-games.js','/profesor-sentence-board.js']);
+      const file=key==='/profesor/alumno'?'backend/app/static/profesor-alumno.html':scripts.has(key)?'apps/profesor/'+key.slice(1):key==='/assets/profesor-live.css'?'apps/profesor/assets/profesor-live.css':null;
       if(file)return route.fulfill({status:200,contentType:file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':'text/javascript',body:fs.readFileSync(path.resolve(file))});
       if(key==='/auth/profesor/student-me')return route.fulfill({status:joined?200:401,contentType:'application/json',body:JSON.stringify(joined?{student:{name:'María',course:'3.º ESO'},teacher:{name:'Profesor'},meet_uri:''}:{detail:'Sin sesión'})});
       if(key==='/auth/profesor/student-join'){joined=true;return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true}'});}

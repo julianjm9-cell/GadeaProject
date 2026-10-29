@@ -16,6 +16,12 @@
     'archivo-contemporaneo':['Archivo contemporáneo','Expediente histórico','Sella el proceso correspondiente','▤','ARCHIVO'],
     'sala-comentario':['Página de comentario','Nota al margen','Señala el recurso lingüístico','✒','NOTA']
   };
+  const circuitSymbols={
+    'Pila':'🔋','Cables':'〰️','Bombilla':'💡','Regla':'📏',
+    'Cobre':'🟠','Aluminio':'⚪','Hierro':'🔩','Goma':'🧽',
+    'Camino cerrado':'🔁','Cables unidos':'🔌','Interruptor cerrado':'🎚️','Cable desconectado':'⛔',
+    'Lámpara LED':'🔆','Linterna':'🔦','Ventilador':'🌀'
+  };
   const shuffle=(items,seed)=>items.map((value,index)=>{let hash=2166136261;for(const char of String(seed)+':'+index)hash=Math.imul(hash^char.charCodeAt(0),16777619);hash=Math.imul(hash^(hash>>>16),2246822507);return {value,rank:hash>>>0};}).sort((a,b)=>a.rank-b.rank).map(item=>item.value);
   const types=['mystery','intruder','bingo'];
   function validate(q){
@@ -57,7 +63,7 @@
 
   window.profesorMiniGame=(root,config)=>{
     const kind=config.kind,locked=!!config.locked;
-    const sceneId=kind==='bingo'?root.closest('[data-public-scene]')?.dataset.publicScene:'';
+    const sceneId=root.closest('[data-public-scene]')?.dataset.publicScene||'';
     const bingoScene=bingoScenes[sceneId];
     let value=kind==='mystery'?{answer:typeof config.value?.answer==='string'?config.value.answer:'',cluesUsed:Math.max(1,Math.min(3,Number(config.value?.cluesUsed)||1))}:kind==='bingo'?Array.from({length:9},(_,i)=>config.value?.[i]||''):typeof config.value==='string'?config.value:'';
     let result=config.result,parts={...(config.parts||{})},explanation=config.explanation||'',active=Math.max(0,Math.min(8,Number(config.focus)||0)),busy=false,message='';
@@ -93,7 +99,7 @@
         input.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();check();}};
         root.querySelector('[data-mystery-hint]').onclick=()=>{if(locked||busy||value.cluesUsed>=3)return;value.cluesUsed++;changed();draw();root.querySelector('[data-mystery-answer]').focus({preventScroll:true});};
       }else if(kind==='intruder'){
-        root.innerHTML=`<div class="mini-game-guide"><span aria-hidden="true">🔎</span><div><strong>Hay uno que no encaja</strong><p>Selecciona una tarjeta y comprueba tu elección.</p></div></div><div class="intruder-cards" role="group" aria-label="Conceptos: selecciona el intruso">${options.map((label,i)=>`<button type="button" data-intruder="${i}" aria-pressed="${value===label}" class="${value===label?'is-selected '+statusClass(result):''}" ${disabled}><b aria-hidden="true">${String.fromCharCode(65+i)}</b><span>${escape(label)}</span><small>${value===label?(result==='correct'?'✓ Correcto':result==='incorrect'?'× Revisa':'Seleccionado'):'Elegir'}</small></button>`).join('')}</div><div class="mini-game-bottom"><div class="mini-feedback ${result||''}" role="status">${escape(message||(result==='correct'?'✓ ¡Has encontrado al intruso!':result==='incorrect'?'× Ese concepto sí pertenece al grupo. Prueba otro.':'Busca qué comparten los demás.'))}${result==='correct'&&explanation?'<p>'+escape(explanation)+'</p>':''}</div>${locked?'':`<button type="button" class="mini-primary" data-mini-check ${disabled}>${busy?'Comprobando…':'Comprobar'}</button>`}</div>`;
+        root.innerHTML=`<div class="mini-game-guide"><span aria-hidden="true">🔎</span><div><strong>Hay uno que no encaja</strong><p>Selecciona una tarjeta y comprueba tu elección.</p></div></div><div class="intruder-cards" role="group" aria-label="Conceptos: selecciona el intruso">${options.map((label,i)=>`<button type="button" data-intruder="${i}" aria-pressed="${value===label}" class="${value===label?'is-selected '+statusClass(result):''}" ${disabled}><b aria-hidden="true">${String.fromCharCode(65+i)}</b>${sceneId==='taller-circuitos'?`<i class="intruder-object" aria-hidden="true">${circuitSymbols[label]||'⚡'}</i>`:''}<span>${escape(label)}</span><small>${value===label?(result==='correct'?'✓ Correcto':result==='incorrect'?'× Revisa':'Seleccionado'):'Elegir'}</small></button>`).join('')}</div><div class="mini-game-bottom"><div class="mini-feedback ${result||''}" role="status">${escape(message||(result==='correct'?'✓ ¡Has encontrado al intruso!':result==='incorrect'?'× Ese concepto sí pertenece al grupo. Prueba otro.':'Busca qué comparten los demás.'))}${result==='correct'&&explanation?'<p>'+escape(explanation)+'</p>':''}</div>${locked?'':`<button type="button" class="mini-primary" data-mini-check ${disabled}>${busy?'Comprobando…':'Comprobar'}</button>`}</div>`;
         root.querySelectorAll('[data-intruder]').forEach(button=>button.onclick=()=>{if(locked||busy)return;value=options[Number(button.dataset.intruder)];changed();draw();root.querySelector(`[data-intruder="${button.dataset.intruder}"]`)?.focus({preventScroll:true});});
       }else{
         const done=marks(),selected=value[active],currentResult=parts[active],lineCount=lines();

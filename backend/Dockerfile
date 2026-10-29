@@ -17,6 +17,14 @@ COPY apps/u25/index.html /app/app/static/universidad-adultos.html
 COPY apps/e25/index.html /app/app/static/eso-adultos.html
 COPY apps/e25/assets/eso-final.css /app/app/static/assets/eso-final.css
 COPY apps/e25/assets/eso-games.js /app/app/static/assets/eso-games.js
+COPY apps/e25/assets/eso-english-missions.js /app/app/static/assets/eso-english-missions.js
+COPY apps/e25/assets/eso-math-missions.js /app/app/static/assets/eso-math-missions.js
+COPY apps/e25/assets/eso-language-missions.js /app/app/static/assets/eso-language-missions.js
+COPY apps/e25/assets/eso-geography-missions.js /app/app/static/assets/eso-geography-missions.js
+COPY apps/e25/assets/eso-history-missions.js /app/app/static/assets/eso-history-missions.js
+COPY apps/e25/assets/eso-science-missions.js /app/app/static/assets/eso-science-missions.js
+COPY apps/e25/assets/eso-external-games.js /app/app/static/assets/eso-external-games.js
+COPY apps/e25/assets/subjects /app/app/static/assets/subjects
 COPY apps/ocr/index.html /app/app/static/ocr-facturas-app.html
 COPY apps/profesor/index.html /app/app/static/profesor-particular.html
 COPY apps/profesor/profesor-temario.js /app/app/static/assets/profesor-temario.js
@@ -37,6 +45,7 @@ COPY apps/profesor/profesor-notifications.js /app/app/static/assets/profesor-not
 COPY apps/profesor/profesor-subjects.js /app/app/static/assets/profesor-subjects.js
 COPY apps/profesor/profesor-profile.js /app/app/static/assets/profesor-profile.js
 COPY apps/profesor/profesor-public-games-extra.js /app/app/static/assets/profesor-public-games-extra.js
+COPY apps/profesor/profesor-external-games.js /app/app/static/assets/profesor-external-games.js
 COPY apps/profesor/profesor-mini-games.js /app/app/static/assets/profesor-mini-games.js
 COPY apps/profesor/profesor-live-sync.js /app/app/static/assets/profesor-live-sync.js
 COPY apps/profesor/profesor-live.js /app/app/static/assets/profesor-live.js

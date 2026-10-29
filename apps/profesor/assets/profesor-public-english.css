@@ -1,0 +1,123 @@
+/* Inglés: las respuestas forman parte de cada escenario. Todo el contenido y
+   los estados de corrección siguen siendo elementos HTML accesibles. */
+:is(.play-question,.live-question)[data-public-scene="mochila-bilingue"]{--english-surface:#e5fbff;--english-edge:#1698ad;--english-shadow:#0c657e}
+:is(.play-question,.live-question)[data-public-scene="safari"]{--english-surface:#f3f9d8;--english-edge:#548e47;--english-shadow:#416e42}
+:is(.play-question,.live-question)[data-public-scene="aeropuerto-habitos"]{--english-surface:#eaf9ff;--english-edge:#1689b2;--english-shadow:#216887}
+:is(.play-question,.live-question)[data-public-scene="ciudad-direcciones"]{--english-surface:#eaf3ff;--english-edge:#2769a5;--english-shadow:#27517f}
+:is(.play-question,.live-question)[data-public-scene="portal-pasado"]{--english-surface:#e7f5ff;--english-edge:#3776bd;--english-shadow:#364f9d}
+:is(.play-question,.live-question)[data-public-scene="estacion-tiempos"]{--english-surface:#e7f6ff;--english-edge:#286d9d;--english-shadow:#295376}
+:is(.play-question,.live-question)[data-public-scene="estudio-habitos"]{--english-surface:#eaf9fd;--english-edge:#317e95;--english-shadow:#23556f}
+:is(.play-question,.live-question)[data-public-scene="cine-pasado"]{--english-surface:#f6edda;--english-edge:#715d8d;--english-shadow:#342d5a}
+:is(.play-question,.live-question)[data-public-scene="diario-viajes"]{--english-surface:#fff9e7;--english-edge:#287d9d;--english-shadow:#24566e}
+:is(.play-question,.live-question)[data-public-scene="portal-condicional"]{--english-surface:#edf0ff;--english-edge:#5164a9;--english-shadow:#35437c}
+:is(.play-question,.live-question)[data-public-scene="estudio-advanced-tenses"]{--english-surface:#eaf5ff;--english-edge:#3f789e;--english-shadow:#294d76}
+:is(.play-question,.live-question)[data-public-scene="biblioteca-inference"]{--english-surface:#fff5df;--english-edge:#9b6a3d;--english-shadow:#634929}
+
+/* Mochila: las parejas se guardan como etiquetas de equipaje alrededor de la
+   ilustración. Portal: las dos caras de cada verbo son fichas de tiempo. */
+:is(.play-question,.live-question)[data-public-scene="mochila-bilingue"] .memory-board,
+:is(.play-question,.live-question)[data-public-scene="portal-pasado"] .memory-board{
+  position:relative;max-width:850px;margin-inline:auto;padding:13px!important;
+  background:#ffffff30!important;border:2px solid #ffffff9c!important;
+  backdrop-filter:blur(3px);grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-auto-rows:minmax(70px,1fr)!important;
+}
+:is(.play-question,.live-question)[data-public-scene="mochila-bilingue"] .memory-board{border-radius:34px!important}
+:is(.play-question,.live-question)[data-public-scene="portal-pasado"] .memory-board{border-radius:48% / 24%!important;box-shadow:inset 0 0 30px #a0dbff55,0 0 25px #6bbfff66!important}
+:is(.play-question,.live-question)[data-public-scene="mochila-bilingue"] .memory-card,
+:is(.play-question,.live-question)[data-public-scene="portal-pasado"] .memory-card{
+  min-width:0;min-height:70px!important;border:2px solid #fff!important;
+  box-shadow:0 5px 0 var(--english-shadow),0 9px 18px #123d5861!important;
+}
+:is(.play-question,.live-question)[data-public-scene="mochila-bilingue"] .memory-card:not(.revealed):not(.flipped):not(.matched){
+  border-radius:15px 15px 24px 24px!important;background:linear-gradient(145deg,#39bacd,#097295)!important;
+}
+:is(.play-question,.live-question)[data-public-scene="portal-pasado"] .memory-card:not(.revealed):not(.flipped):not(.matched){
+  border-radius:50% 50% 18px 18px!important;background:radial-gradient(circle at 50% 20%,#8fcbff,#3159a1 72%)!important;
+}
+:is(.play-question,.live-question)[data-public-scene="mochila-bilingue"] .memory-card:is(.revealed,.flipped,.matched),
+:is(.play-question,.live-question)[data-public-scene="portal-pasado"] .memory-card:is(.revealed,.flipped,.matched){
+  background:var(--english-surface)!important;border-color:var(--english-edge)!important;color:#123d56!important;
+}
+
+/* Safari, ciudad y estación: se completa la frase en el propio camino. */
+:is(.play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"]) .sentence-answer{
+  max-width:1000px;margin-inline:auto;border:2px solid var(--english-edge)!important;
+  background:linear-gradient(135deg,#fffdf4e9,var(--english-surface))!important;
+  box-shadow:0 6px 0 var(--english-shadow),0 15px 30px #23445135!important;
+}
+:is(.play-question,.live-question)[data-public-scene="safari"] .sentence-answer{border-radius:42px 42px 18px 18px!important}
+:is(.play-question,.live-question)[data-public-scene="ciudad-direcciones"] .sentence-answer{border-radius:12px!important}
+:is(.play-question,.live-question)[data-public-scene="estacion-tiempos"] .sentence-answer{border-radius:30px 30px 10px 10px!important}
+:is(.play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"]) .sentence-bank{
+  max-width:1000px;margin-inline:auto;border:2px solid #ffffffcf!important;
+  background:#fffdf3e8!important;box-shadow:0 9px 22px #12395838!important;
+}
+:is(.play-question,.live-question)[data-public-scene="safari"] .sentence-slots::before{height:7px!important;background:repeating-linear-gradient(90deg,#7fbd73 0 18px,#d3e8a0 18px 28px)!important}
+:is(.play-question,.live-question)[data-public-scene="ciudad-direcciones"] .sentence-slots::before{height:11px!important;background:repeating-linear-gradient(90deg,#6a768a 0 18px,#fff 18px 25px,#6a768a 25px 42px)!important}
+:is(.play-question,.live-question)[data-public-scene="estacion-tiempos"] .sentence-slots::before{height:12px!important;background:repeating-linear-gradient(90deg,#765c46 0 6px,#c8b9a4 6px 21px)!important;border-top:3px solid #5a6a7b!important;border-bottom:3px solid #5a6a7b!important}
+:is(.play-question,.live-question)[data-public-scene="safari"] .sentence-slot{border-radius:50% 50% 22px 22px!important;background:#f3f9d8ef!important}
+:is(.play-question,.live-question)[data-public-scene="ciudad-direcciones"] .sentence-slot{border-radius:8px!important;background:#f3f7ffef!important}
+:is(.play-question,.live-question)[data-public-scene="estacion-tiempos"] .sentence-slot{border-radius:19px 19px 8px 8px!important;background:#e8f7ffef!important}
+:is(.play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"]) .sentence-piece{
+  background:var(--english-surface)!important;border-color:var(--english-edge)!important;
+  box-shadow:0 4px 0 var(--english-shadow)!important;font-weight:800;
+}
+
+/* Aeropuerto: cada respuesta es una tarjeta del panel de salidas; la pista se
+   lee en la pantalla del mostrador. */
+:is(.play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-workbench{grid-template-columns:minmax(0,1.5fr) minmax(240px,.7fr)}
+:is(.play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-cards{
+  gap:7px!important;padding:13px!important;border:5px solid #1b6283!important;
+  border-radius:19px!important;background:#143f5fdf!important;box-shadow:0 12px 0 #12374f,0 22px 25px #122f4d50!important;
+}
+:is(.play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-cards button{
+  min-height:76px!important;padding:7px 8px!important;border:2px solid #9dd9ee!important;
+  border-radius:9px!important;background:linear-gradient(#e6f7ff,#bfe7f3)!important;
+  color:#173e62!important;box-shadow:inset 0 -4px #8ecada!important;
+}
+:is(.play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-cards button.is-found{background:#e2f8e5!important;border-color:#55b779!important}
+:is(.play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-clue-card{border:3px solid #3982a5!important;border-radius:16px!important;background:#f0fbffed!important;box-shadow:0 8px 0 #196080!important}
+
+/* Seleccionar frases equivale a marcar pistas de música, fotogramas, páginas
+   de diario, llaves de portal, marcas temporales o evidencias de biblioteca. */
+:is(.play-question,.live-question):is([data-public-scene="estudio-habitos"],[data-public-scene="cine-pasado"],[data-public-scene="diario-viajes"],[data-public-scene="portal-condicional"],[data-public-scene="estudio-advanced-tenses"],[data-public-scene="biblioteca-inference"]) .challenge-choices{
+  grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;padding:12px!important;
+  background:#ffffff47!important;border:2px solid #ffffffa8!important;backdrop-filter:blur(4px);
+}
+:is(.play-question,.live-question):is([data-public-scene="estudio-habitos"],[data-public-scene="cine-pasado"],[data-public-scene="diario-viajes"],[data-public-scene="portal-condicional"],[data-public-scene="estudio-advanced-tenses"],[data-public-scene="biblioteca-inference"]) .challenge-choice{
+  position:relative;min-width:0;min-height:100px;padding:13px 14px!important;
+  border:2px solid var(--english-edge)!important;border-radius:14px!important;
+  background:var(--english-surface)!important;box-shadow:0 5px 0 var(--english-shadow),0 9px 17px #12345032!important;
+  color:#173a58!important;transition:transform .16s ease,box-shadow .16s ease;
+}
+:is(.play-question,.live-question):is([data-public-scene="estudio-habitos"],[data-public-scene="cine-pasado"],[data-public-scene="diario-viajes"],[data-public-scene="portal-condicional"],[data-public-scene="estudio-advanced-tenses"],[data-public-scene="biblioteca-inference"]) .challenge-choice:hover{transform:translateY(-3px)}
+:is(.play-question,.live-question):is([data-public-scene="estudio-habitos"],[data-public-scene="cine-pasado"],[data-public-scene="diario-viajes"],[data-public-scene="portal-condicional"],[data-public-scene="estudio-advanced-tenses"],[data-public-scene="biblioteca-inference"]) .challenge-choice:has(input:checked){
+  border-color:#14669b!important;background:#dceeff!important;box-shadow:0 0 0 3px #fff,0 6px 0 #14669b!important;
+}
+:is(.play-question,.live-question):is([data-public-scene="estudio-habitos"],[data-public-scene="cine-pasado"],[data-public-scene="diario-viajes"],[data-public-scene="portal-condicional"],[data-public-scene="estudio-advanced-tenses"],[data-public-scene="biblioteca-inference"]) .challenge-choice.is-correct{border-color:#398a64!important;background:#e4f7e7!important;box-shadow:0 5px 0 #337452!important}
+:is(.play-question,.live-question):is([data-public-scene="estudio-habitos"],[data-public-scene="cine-pasado"],[data-public-scene="diario-viajes"],[data-public-scene="portal-condicional"],[data-public-scene="estudio-advanced-tenses"],[data-public-scene="biblioteca-inference"]) .challenge-choice.is-incorrect{border-color:#ba5d59!important;background:#fff0eb!important;box-shadow:0 5px 0 #a75c55!important}
+:is(.play-question,.live-question):is([data-public-scene="estudio-habitos"],[data-public-scene="cine-pasado"],[data-public-scene="diario-viajes"],[data-public-scene="portal-condicional"],[data-public-scene="estudio-advanced-tenses"],[data-public-scene="biblioteca-inference"]) .challenge-choice span{font-size:clamp(14px,1.2vw,18px);line-height:1.3}
+:is(.play-question,.live-question):is([data-public-scene="estudio-habitos"],[data-public-scene="cine-pasado"],[data-public-scene="diario-viajes"],[data-public-scene="portal-condicional"],[data-public-scene="estudio-advanced-tenses"],[data-public-scene="biblioteca-inference"]) .challenge-choice small{font-size:11px;line-height:1.2}
+[data-public-scene="estudio-habitos"] .challenge-choice{border-radius:14px 14px 5px 5px!important;background:repeating-linear-gradient(0deg,#f0fcff 0 20px,#c7e6ed 21px 22px)!important}
+[data-public-scene="cine-pasado"] .challenge-choice{border-radius:5px!important;background:#f8f2e9!important;border-top:9px dashed #423953!important;border-bottom:9px dashed #423953!important}
+[data-public-scene="diario-viajes"] .challenge-choice{border-radius:6px 20px 8px 8px!important;background:repeating-linear-gradient(0deg,#fffdf4 0 24px,#d6e5eb 25px 26px)!important;transform:rotate(-1deg)}
+[data-public-scene="diario-viajes"] .challenge-choice:nth-child(even){transform:rotate(1deg)}
+[data-public-scene="diario-viajes"] .challenge-choice:hover{transform:translateY(-3px) rotate(0)}
+[data-public-scene="portal-condicional"] .challenge-choice{border-radius:50% 50% 13px 13px!important;background:radial-gradient(circle at 50% 12%,#fff,#e5ebff 80%)!important}
+[data-public-scene="estudio-advanced-tenses"] .challenge-choice{border-radius:7px!important;background:repeating-linear-gradient(90deg,#f5fbff 0 17px,#d6e9f5 18px 19px)!important}
+[data-public-scene="biblioteca-inference"] .challenge-choice{border-radius:8px 18px 18px 8px!important;background:linear-gradient(90deg,#cda872 0 10px,#fff8e8 10px)!important}
+
+@media(min-width:701px) and (max-height:900px){
+  :is(.play-question,.live-question):is([data-public-scene="estudio-habitos"],[data-public-scene="cine-pasado"],[data-public-scene="diario-viajes"],[data-public-scene="portal-condicional"],[data-public-scene="estudio-advanced-tenses"],[data-public-scene="biblioteca-inference"]) .challenge-choice{min-height:80px;padding:8px 10px!important}
+  :is(.play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-cards button{min-height:64px!important}
+}
+@media(max-width:800px){
+  :is(.play-question,.live-question):is([data-public-scene="estudio-habitos"],[data-public-scene="cine-pasado"],[data-public-scene="diario-viajes"],[data-public-scene="portal-condicional"],[data-public-scene="estudio-advanced-tenses"],[data-public-scene="biblioteca-inference"]) .challenge-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
+  :is(.play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-workbench{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+  :is(.play-question,.live-question):is([data-public-scene="estudio-habitos"],[data-public-scene="cine-pasado"],[data-public-scene="diario-viajes"],[data-public-scene="portal-condicional"],[data-public-scene="estudio-advanced-tenses"],[data-public-scene="biblioteca-inference"]) .challenge-choices{grid-template-columns:1fr}
+  :is(.play-question,.live-question)[data-public-scene="mochila-bilingue"] .memory-board,
+  :is(.play-question,.live-question)[data-public-scene="portal-pasado"] .memory-board{grid-template-columns:repeat(3,minmax(0,1fr))!important;border-radius:22px!important}
+}
