@@ -170,8 +170,9 @@ def test_profesor_public_routes_and_landing_links(client):
     landing = test_client.get("/profesor")
     assert landing.status_code == 200
     assert '/auth/google/login?next=%2Fprofesor-particular' in landing.text
-    assert 'id="preview-juegos"' in landing.text
-    assert '<h2>Mis alumnos</h2>' not in landing.text
+    assert 'profesor-hero-app-v3.png' in landing.text
+    assert 'Temario listo para tus clases' in landing.text
+    assert 'Alumnos y sesiones' in landing.text
     assert '<link rel="canonical" href="https://educame.tech/profesor">' in landing.text
     assert 'href="/profesor"' in test_client.get("/").text
     assert test_client.get("/profesor-info", follow_redirects=False).headers["location"] == "/profesor"
