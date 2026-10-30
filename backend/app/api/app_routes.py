@@ -805,6 +805,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-public-social-spanish.css")
 @router.get("/assets/profesor-external-games.css")
 @router.get("/assets/profesor-matching-scenes.css")
+@router.get("/assets/profesor-matching-pack-one.css")
 @router.get("/assets/profesor-race-scenes.css")
 @router.get("/assets/profesor-bingo-scenes.css")
 @router.get("/assets/profesor-live.css")
@@ -880,6 +881,7 @@ def profesor_game_illustration(filename: str):
         "eso-english-desk.webp",
         "eso-english-cafe.webp",
         "public-tren-decenas.webp",
+        "public-tren-wagon-v2.png",
         "public-fabrica-palabras.webp",
         "public-mochila-bilingue.webp",
         "public-exploradores-sentidos.webp",
@@ -891,12 +893,14 @@ def profesor_game_illustration(filename: str):
         "public-biblioteca-secreta.webp",
         "public-aeropuerto-habitos.webp",
         "public-bosque-vivo.webp",
+        "public-bosque-fieldbook-v2.png",
         "public-cocina-fracciones.webp",
         "public-isla-tildes.webp",
         "public-ciudad-direcciones.webp",
         "public-laboratorio-mezclas.webp",
         "public-feria-porcentajes.webp",
         "public-redaccion-titulares.webp",
+        "public-redaccion-trays-v2.png",
         "public-portal-pasado.webp",
         "public-taller-circuitos.webp",
         "public-observatorio-decimales.webp",
@@ -905,6 +909,7 @@ def profesor_game_illustration(filename: str):
         "public-atlas-cuerpo.webp",
         "public-ruta-bajo-cero.webp",
         "public-central-mensajes.webp",
+        "public-central-dossier-v2.png",
         "public-estudio-habitos.webp",
         "public-invernadero-cientifico.webp",
         "public-atlas-explorador.webp",

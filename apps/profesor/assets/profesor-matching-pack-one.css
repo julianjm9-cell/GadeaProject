@@ -1,0 +1,159 @@
+/* Cuatro juegos destacados: la ilustración es el tablero, no un fondo de tarjeta.
+   Los destinos, las piezas y la corrección siguen siendo HTML accesible. */
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-one{
+  width:min(1120px,100%);margin-inline:auto;padding:8px!important;
+  border:0!important;background:transparent!important;box-shadow:none!important;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-one .matching-workbench{width:100%;align-items:stretch!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-one :is(.match-bank,.match-destinations){width:100%!important;min-width:0;align-self:stretch!important;flex:0 0 auto}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-one .match-destinations{
+  padding:6px!important;border:0!important;border-radius:18px!important;
+  background:#ffffff35!important;box-shadow:none!important;overflow:visible;
+}
+.matching-studio.match-pack-one .match-scene-heading{display:none}
+.matching-studio.match-pack-one .match-bucket>button small{display:none}
+.matching-studio.match-pack-one .match-object-symbol{display:none}
+.matching-studio.match-pack-one .match-bank{z-index:1}
+.matching-studio.match-pack-one .match-bank .match-pieces{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:stretch;gap:7px;height:auto!important}
+.matching-studio.match-pack-one .match-bank .match-piece{
+  flex:0 1 calc(25% - 7px);width:auto!important;max-width:none;min-height:46px!important;height:auto!important;padding:7px 10px!important;
+  border:2px solid #ffffff!important;border-radius:12px!important;background:#fffdf5!important;
+  box-shadow:0 3px 0 #71869a,0 7px 12px #18344c30!important;
+  color:#193753;font-size:clamp(11px,1.1vw,13px)!important;font-weight:750;
+}
+.matching-studio.match-pack-one .match-bank .match-piece:hover:not(:disabled){transform:translateY(-2px)}
+.matching-studio.match-pack-one .match-bank .match-piece.is-selected{outline:3px solid #ffcd50;outline-offset:1px}
+.matching-studio.match-pack-one .match-bucket .match-piece{
+  min-width:0;min-height:30px!important;padding:4px 6px!important;
+  border:1px solid #cad8e4!important;border-radius:8px!important;
+  background:#fffef8f2!important;color:#17334e;font-size:clamp(10px,1vw,12px)!important;
+  box-shadow:0 2px 5px #19344b21!important;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-one .match-bucket:is(.drag-over,:focus-within){
+  transform:translateY(-2px);outline:3px solid #f8c74d;outline-offset:-4px;box-shadow:0 8px 20px #122a4355!important;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-one .match-bucket.is-solved{
+  outline:3px solid #4ab577;outline-offset:-4px;background-color:#e4f9e32b!important;
+}
+.matching-studio.match-pack-one .match-bucket.has-error{outline:3px solid #d85060;outline-offset:-4px}
+.matching-studio.match-pack-one .match-bucket.is-solved>button strong::after{content:' ✓';color:#14784b}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-one .match-bucket::before,
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-one .match-bucket::after{content:none!important}
+
+/* Estación: cada vagón ilustrado recibe una única caja. */
+[data-public-scene="tren-decenas"] .matching-studio.match-pack-one .match-locomotive{display:none}
+:is(.activity-play .play-question,.live-question)[data-public-scene="tren-decenas"] .matching-studio.match-pack-one .match-scene-targets{
+  display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:3px!important;
+  max-width:1080px;margin:auto;padding:0 0 9px!important;
+  border-radius:15px;
+  background:linear-gradient(transparent 88%,#42576a 88% 91%,transparent 91%)!important;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="tren-decenas"] .matching-studio.match-pack-one .match-bucket{
+  position:relative;display:block;min-height:142px!important;padding:0!important;
+  border:0!important;border-radius:10px!important;background:transparent url('./games/public-tren-wagon-v2.png') center/100% 100% no-repeat!important;
+  box-shadow:none!important;overflow:hidden;
+}
+[data-public-scene="tren-decenas"] .matching-studio.match-pack-one .match-bucket>button{
+  position:absolute;z-index:2;left:26%;top:47%;width:48%!important;min-height:29px!important;padding:1px!important;
+  border:1px solid #f2d06c;border-radius:8px;background:#fff7d1e8;color:#123d68;
+}
+[data-public-scene="tren-decenas"] .matching-studio.match-pack-one .match-bucket>button strong{font-size:clamp(16px,1.8vw,23px)!important;line-height:1}
+[data-public-scene="tren-decenas"] .matching-studio.match-pack-one .match-bucket>div{
+  position:absolute;left:15%;right:15%;top:19%;height:29%;min-height:0;display:grid;place-items:center;margin:0;
+}
+[data-public-scene="tren-decenas"] .matching-studio.match-pack-one .match-bucket>div .match-piece{
+  width:100%;max-height:100%;overflow:auto;text-align:center;font-size:10px!important;line-height:1.12;
+}
+[data-public-scene="tren-decenas"] .matching-studio.match-pack-one .match-bucket>div:empty::after{content:'Coloca la carga';font:800 10px/1.1 Arial,sans-serif;color:#1f5066;text-align:center}
+
+/* Bosque: tres páginas del cuaderno son las zonas de clasificación. */
+:is(.activity-play .play-question,.live-question)[data-public-scene="bosque-vivo"] .matching-studio.match-pack-one .match-scene-targets{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0!important;
+  width:min(830px,100%);margin:auto;padding:0!important;
+  background:transparent url('./games/public-bosque-fieldbook-v2.png') center/100% 100% no-repeat!important;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="bosque-vivo"] .matching-studio.match-pack-one .match-bucket{
+  min-height:215px!important;padding:34px 17% 17px!important;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+}
+[data-public-scene="bosque-vivo"] .matching-studio.match-pack-one .match-bucket>button{min-height:38px!important;padding:0!important;border-bottom:2px solid #9a744b;color:#315b37}
+[data-public-scene="bosque-vivo"] .matching-studio.match-pack-one .match-bucket>button strong{font-size:clamp(15px,1.6vw,20px)!important}
+[data-public-scene="bosque-vivo"] .matching-studio.match-pack-one .match-bucket>div{display:grid;gap:4px;align-content:start;min-height:85px;width:100%;margin-top:5px}
+[data-public-scene="bosque-vivo"] .matching-studio.match-pack-one .match-bucket .match-piece{width:100%;line-height:1.1}
+
+/* Redacción: las dos bandejas ilustradas contienen los recortes. */
+:is(.activity-play .play-question,.live-question)[data-public-scene="redaccion-titulares"] .matching-studio.match-pack-one .match-scene-targets{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0!important;
+  width:min(780px,100%);margin:auto;padding:0!important;border:0!important;
+  background:transparent url('./games/public-redaccion-trays-v2.png') center/100% 100% no-repeat!important;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="redaccion-titulares"] .matching-studio.match-pack-one .match-bucket{
+  min-height:225px!important;padding:51px 16% 22px!important;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;transform:none;
+}
+[data-public-scene="redaccion-titulares"] .matching-studio.match-pack-one .match-bucket>button{min-height:36px!important;padding:0!important;border-bottom:2px solid #9c6c65;color:#463264}
+[data-public-scene="redaccion-titulares"] .matching-studio.match-pack-one .match-bucket>button strong{font-size:19px!important}
+[data-public-scene="redaccion-titulares"] .matching-studio.match-pack-one .match-bucket>div{display:grid;gap:3px;align-content:start;width:100%;margin-top:5px}
+[data-public-scene="redaccion-titulares"] .matching-studio.match-pack-one .match-bucket .match-piece{width:100%;text-align:center;font-family:Georgia,serif;font-weight:700}
+
+/* Central: emisor y mensaje ocupan páginas completas; receptor y canal,
+   las dos bandejas de la derecha. */
+:is(.activity-play .play-question,.live-question)[data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-scene-targets{
+  display:grid!important;grid-template-columns:34% 32% 34%!important;grid-template-rows:repeat(2,minmax(0,1fr));gap:0!important;
+  width:min(830px,100%);min-height:270px;margin:auto;padding:31px 7% 26px!important;
+  border-radius:16px;background:transparent url('./games/public-central-dossier-v2.png') center/100% 100% no-repeat!important;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket{
+  min-height:0!important;padding:9px 10px!important;border:0!important;border-radius:8px!important;
+  background:transparent!important;box-shadow:none!important;
+}
+[data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket[data-match-target="Emisor"]{grid-column:1;grid-row:1/3}
+[data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket[data-match-target="Mensaje"]{grid-column:2;grid-row:1/3}
+[data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket[data-match-target="Receptor"]{grid-column:3;grid-row:1}
+[data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket[data-match-target="Canal"]{grid-column:3;grid-row:2}
+[data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket>button{min-height:32px!important;padding:0!important;border-bottom:2px solid #738db2;color:#173d63}
+[data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket>button strong{font-size:clamp(14px,1.4vw,18px)!important}
+[data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket>div{display:grid;gap:4px;align-content:start;width:100%;margin-top:5px}
+[data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket .match-piece{width:100%;text-align:center}
+
+@media(max-width:760px){
+  .matching-studio.match-pack-one .match-bank .match-piece{flex-basis:calc(50% - 7px)}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="tren-decenas"] .matching-studio.match-pack-one .match-scene-targets{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="tren-decenas"] .matching-studio.match-pack-one .match-bucket{min-height:130px!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="bosque-vivo"] .matching-studio.match-pack-one .match-scene-targets{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="bosque-vivo"] .matching-studio.match-pack-one .match-bucket{min-height:220px!important;padding:29px 10% 12px!important}
+  [data-public-scene="bosque-vivo"] .matching-studio.match-pack-one .match-bucket>button strong{font-size:12px!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="redaccion-titulares"] .matching-studio.match-pack-one .match-bucket{min-height:235px!important;padding:50px 13% 20px!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-scene-targets{
+    width:min(520px,100%);min-height:500px;padding:55px 9% 45px!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:repeat(2,minmax(0,1fr));
+    background-size:100% 100%!important;
+  }
+  [data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket[data-match-target="Emisor"]{grid-column:1;grid-row:1}
+  [data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket[data-match-target="Mensaje"]{grid-column:2;grid-row:1}
+  [data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket[data-match-target="Receptor"]{grid-column:1;grid-row:2}
+  [data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket[data-match-target="Canal"]{grid-column:2;grid-row:2}
+}
+@media(max-width:480px){
+  .matching-studio.match-pack-one .match-bank .match-piece{flex-basis:calc(50% - 7px);font-size:11px!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="tren-decenas"] .matching-studio.match-pack-one .match-bucket{min-height:114px!important}
+  [data-public-scene="tren-decenas"] .matching-studio.match-pack-one .match-bucket>div:empty::after{content:'Carga';font-size:9px}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="bosque-vivo"] .matching-studio.match-pack-one .match-scene-targets{grid-template-columns:repeat(3,minmax(0,1fr))!important;width:100%;background-size:100% 100%!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="bosque-vivo"] .matching-studio.match-pack-one .match-bucket{min-height:235px!important;padding:38px 8% 12px!important}
+  [data-public-scene="bosque-vivo"] .matching-studio.match-pack-one .match-bucket>button strong{font-size:10px!important;hyphens:auto}
+  [data-public-scene="bosque-vivo"] .matching-studio.match-pack-one .match-bucket .match-piece{font-size:9px!important;padding:2px 3px!important;line-height:1.05}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="redaccion-titulares"] .matching-studio.match-pack-one .match-scene-targets{grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%;background-size:100% 100%!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="redaccion-titulares"] .matching-studio.match-pack-one .match-bucket{min-height:230px!important;padding:46px 10% 16px!important}
+  [data-public-scene="redaccion-titulares"] .matching-studio.match-pack-one .match-bucket>button strong{font-size:13px!important}
+  [data-public-scene="redaccion-titulares"] .matching-studio.match-pack-one .match-bucket .match-piece{font-size:9px!important;padding:2px 3px!important;line-height:1.05}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-scene-targets{min-height:0;padding:0!important;gap:6px!important;background:none!important}
+  [data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-scene-targets::before{content:'';display:block;grid-column:1/-1;grid-row:1;height:140px;background:url('./games/public-central-dossier-v2.png') center/contain no-repeat}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket{min-height:135px!important;padding:7px!important;border:2px solid #b8cde7!important;border-radius:13px!important;background:#fffdf4f2!important;box-shadow:0 4px #a3b8cc!important}
+  [data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket[data-match-target="Emisor"]{grid-column:1;grid-row:2}
+  [data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket[data-match-target="Mensaje"]{grid-column:2;grid-row:2}
+  [data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket[data-match-target="Receptor"]{grid-column:1;grid-row:3}
+  [data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket[data-match-target="Canal"]{grid-column:2;grid-row:3}
+  [data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket>button{background:#e7f1f9;border-radius:8px}
+  [data-public-scene="central-mensajes"] .matching-studio.match-pack-one .match-bucket .match-piece{font-size:10px!important}
+}
+@media(prefers-reduced-motion:reduce){.matching-studio.match-pack-one :is(.match-piece,.match-bucket){transition:none!important}}

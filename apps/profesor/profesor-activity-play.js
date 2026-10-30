@@ -108,6 +108,7 @@
     };
     const board=window.profesorMatchingBoard($('puzzle-'+index),{
       items:rows.map(row=>row[0]),targets,single:targets.length===rows.length,
+      expectedCounts:Object.fromEntries(targets.map(target=>[target,expected.filter(value=>value===target).length])),
       onChange(values){$('puzzle-'+index).closest('.play-question').removeAttribute('data-result');$('feedback-'+index).textContent='';update(values);},
       onCheck(values){if(isChecked())return;const grades=review(values);board.review(grades);values.forEach((value,n)=>{if(value)recordAnswer(index,n,grades[n]==='correct',value);});update(values);}
     });

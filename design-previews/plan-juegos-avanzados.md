@@ -1,12 +1,16 @@
 # Rediseño de los 61 juegos avanzados
 
+> Actualizado el 30 de octubre de 2026. Este inventario cubre los 61 juegos destacados de Profesor Particular. Los juegos 1, 12, 18 y 26 ya tienen un tablero ilustrado con respuestas integradas; las demás propuestas siguen pendientes. El plan de las 65 misiones de ESO Adultos y los criterios compartidos están en [plan-juegos-avanzados-profesor-eso.md](../docs/plan-juegos-avanzados-profesor-eso.md).
+
 ## Diagnóstico
 
-Los 61 juegos tienen contenido y respuestas definidos, pero la presentación se apoya en once mecánicas compartidas. El CSS cambia colores, rótulos y fondos; las respuestas siguen apareciendo en tarjetas genéricas. En varios juegos el escenario reutilizado tampoco representa la acción propuesta. Para convertirlos en juegos, el tablero debe contar visualmente qué se hace, dónde se responde y qué cambia al acertar.
+Los 61 juegos tienen contenido y respuestas definidos, pero la presentación se apoya en mecánicas compartidas. Ya hay fondos y objetos temáticos en parte del CSS y de los tableros. Aun así, muchas respuestas siguen apareciendo en tarjetas o paneles que podrían intercambiarse entre juegos. En algunos casos el escenario reutilizado no representa la acción propuesta. Para convertirlos en juegos, el tablero debe contar visualmente qué se hace, dónde se responde y qué cambia al acertar.
 
 Cada rediseño debe conservar la pregunta, la respuesta y la corrección existentes. Las imágenes serán escenarios sin texto ni respuestas impresas; las zonas interactivas serán HTML colocado sobre el escenario, con alternativa táctil y de teclado. El tablero tendrá un estado inicial, progreso visible, estados correcto/incorrecto, una pista breve y cierre. Se probará en la vista del profesor y en la sesión del alumno, en escritorio y móvil. Ninguna acción principal debe quedar debajo del pliegue en una ventana habitual de portátil.
 
 ## Bloque 1 · Colocar y clasificar (10)
+
+**Primer pack implementado:** juegos 1, 12, 18 y 26. Sus destinos ya se sitúan sobre vagones, cuaderno de campo, bandejas de redacción y dossier de comunicación. Comparten selección táctil o con teclado, arrastre, corrección y un diseño adaptado a móvil. Los otros seis juegos de este bloque siguen pendientes.
 
 Motor actual: arrastrar tarjetas a contenedores. Cambio común: los destinos pasan a ser objetos reconocibles del escenario, con selección por toque/clic además de arrastre.
 
@@ -36,7 +40,7 @@ Motor actual: seis paradas y tres respuestas genéricas. Cambio común: las para
 | 25 | La ruta bajo cero | Teleférico y montaña con una escala vertical de alturas positivas y negativas. Cada operación mueve la cabina al nivel elegido, con el cero marcado físicamente en la ladera. |
 | 30 | La cocina de los racionales | Recetario, ingredientes y recipientes medidos. Las respuestas modifican cantidades de una receta visible; completar una preparación abre la siguiente, sin convertir la cocina en una pista abstracta. |
 | 35 | El mercado de los porcentajes | Encargos comerciales con etiqueta original, descuento/impuesto y caja registradora. Se elige el importe en el terminal del puesto y se entrega un recibo correcto. Diferente del mercado infantil. |
-| 41 | El observatorio de radicales | Torre de observación con plantas numeradas por reto; simplificar radicales abre la compuerta de cada piso. Resultados y pasos se leen en un panel matemático, no flotando sobre la ilustración. |
+| 41 | La torre de los radicales | Torre de observación con plantas numeradas por reto; simplificar radicales abre la compuerta de cada piso. Resultados y pasos se leen en un panel matemático, no flotando sobre la ilustración. |
 | 44 | La pista del movimiento | Pista con tramos, distancia y tiempo señalados. La respuesta ajusta una magnitud en el marcador; un móvil recorre el tramo solo al escoger valor **y unidad** correctos. |
 | 46 | El observatorio complejo | Plano complejo con eje real e imaginario. Cada respuesta coloca el punto/resultado en el plano y desbloquea la siguiente operación; no reutilizar el observatorio infantil. |
 | 49 | La ruta de cinemática | Laboratorio de movimiento con sensores, cronómetro y gráfica. Cada valor calculado configura un sensor y dibuja el tramo de la gráfica; distinguirlo de la pista de 4.º ESO. |
