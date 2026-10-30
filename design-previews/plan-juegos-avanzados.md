@@ -1,6 +1,6 @@
 # Rediseño de los 61 juegos avanzados
 
-> Actualizado el 30 de octubre de 2026. Este inventario cubre los 61 juegos destacados de Profesor Particular. Los juegos 1, 12, 18, 26, 33, 36, 39 y 42 ya tienen un tablero ilustrado con respuestas integradas; las demás propuestas siguen pendientes. El plan de las 65 misiones de ESO Adultos y los criterios compartidos están en [plan-juegos-avanzados-profesor-eso.md](../docs/plan-juegos-avanzados-profesor-eso.md).
+> Actualizado el 30 de octubre de 2026. Este inventario cubre los 61 juegos destacados de Profesor Particular. Los juegos 1, 5, 9, 12, 18, 26, 33, 36, 39, 42, 47 y 55 ya tienen un tablero ilustrado con respuestas integradas; las demás propuestas siguen pendientes. El plan de las 65 misiones de ESO Adultos y los criterios compartidos están en [plan-juegos-avanzados-profesor-eso.md](../docs/plan-juegos-avanzados-profesor-eso.md).
 
 ## Diagnóstico
 
@@ -10,7 +10,7 @@ Cada rediseño debe conservar la pregunta, la respuesta y la corrección existen
 
 ## Bloque 1 · Colocar y clasificar (10)
 
-**Packs implementados:** juegos 1, 12, 18 y 26 sitúan sus destinos sobre vagones, cuaderno de campo, bandejas y dossier de comunicación. Los juegos 33, 36, 39 y 42 usan estaciones de medición, cajones, un mapa de actividades y diagramas de proposiciones. Comparten selección táctil o con teclado, arrastre, corrección y un diseño adaptado a móvil. Los juegos 47 y 55 de este bloque siguen pendientes.
+**Bloque completo:** juegos 1, 12, 18 y 26 sitúan sus destinos sobre vagones, cuaderno de campo, bandejas y dossier de comunicación. Los juegos 33, 36, 39 y 42 usan estaciones de medición, cajones, un mapa de actividades y diagramas de proposiciones. Los juegos 47 y 55 usan canales de comunicación y vitrinas de archivo. Comparten selección táctil o con teclado, arrastre, corrección y un diseño adaptado a móvil.
 
 Motor actual: arrastrar tarjetas a contenedores. Cambio común: los destinos pasan a ser objetos reconocibles del escenario, con selección por toque/clic además de arrastre.
 
@@ -28,6 +28,8 @@ Motor actual: arrastrar tarjetas a contenedores. Cambio común: los destinos pas
 | 55 | La hemeroteca de las fuentes | Archivo con vitrinas de fuente primaria, secundaria, escrita, oral o material. Cada documento se coloca en la vitrina adecuada y muestra su procedencia al acertar. |
 
 ## Bloque 2 · Recorrer, comprar y experimentar (15)
+
+**Primer pack implementado:** juegos 5 y 9. El mercado integra la selección en tres bandejas de monedas del puesto; el observatorio la integra en tres lentes del astrolabio. Ambos conservan seis paradas, corrección y navegación accesible.
 
 Motor actual: seis paradas y tres respuestas genéricas. Cambio común: las paradas serán lugares del escenario y la respuesta actuará sobre el objeto de la misión. No usar la misma «pista» dibujada para mercado, cocina y observatorio.
 

@@ -1,0 +1,52 @@
+/* Tercer pack: canales de comunicación, vitrinas, puesto de mercado y astrolabio. */
+:is(.activity-play .play-question,.live-question)[data-public-scene="atlas-registros"] .matching-studio.match-pack-three .match-scene-targets{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0!important;width:min(930px,100%);min-height:310px;margin:auto;padding:0!important;background:transparent url('./games/public-atlas-channels-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="atlas-registros"] .matching-studio.match-pack-three .match-bucket{min-height:310px!important;padding:132px 13% 20px!important}
+[data-public-scene="atlas-registros"] .matching-studio.match-pack-three .match-bucket>button{background:#fff9e6f2!important;border-color:#f5d589!important;color:#193d6b!important}
+[data-public-scene="atlas-registros"] .matching-studio.match-pack-three .match-bucket .match-piece{background:#ffffffed!important}
+
+:is(.activity-play .play-question,.live-question)[data-public-scene="hemeroteca-fuentes"] .matching-studio.match-pack-three .match-scene-targets{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0!important;width:min(900px,100%);min-height:310px;margin:auto;padding:0!important;border:0!important;background:transparent url('./games/public-hemeroteca-vitrines-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="hemeroteca-fuentes"] .matching-studio.match-pack-three .match-bucket{min-height:310px!important;padding:70px 16% 18px!important}
+[data-public-scene="hemeroteca-fuentes"] .matching-studio.match-pack-three .match-bucket>button{background:#fff3d7f2!important;border-color:#b98643!important;color:#553715!important}
+[data-public-scene="hemeroteca-fuentes"] .matching-studio.match-pack-three .match-bucket .match-piece{background:#fffdf1f5!important;border-color:#9f7954!important}
+
+/* Los valores se eligen dentro de los tres recipientes de cada instrumento. */
+:is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-scene-workspace{position:relative;min-height:255px;padding:10px;border:2px solid #fff9e8c9;box-shadow:0 8px 18px #0e274446!important;overflow:hidden}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-scene-workspace::before{content:'';position:absolute;inset:0!important;width:100%;height:100%!important;opacity:1!important;clip-path:none!important;background-position:center!important;background-size:100% 100%!important;background-repeat:no-repeat!important;pointer-events:none}
+[data-public-scene="mercado-monedas"] .race-scene .race-scene-workspace{background:linear-gradient(#a9d9eb,#f4dfa7 65%,#b27849)!important}
+[data-public-scene="mercado-monedas"] .race-scene .race-scene-workspace::before{background-image:url('./games/public-mercado-counter-v2.webp')!important}
+[data-public-scene="observatorio-numeros"] .race-scene .race-scene-workspace{background:radial-gradient(circle at 50% 70%,#526bb7,#162a61)!important}
+[data-public-scene="observatorio-numeros"] .race-scene .race-scene-workspace::before{background-image:url('./games/public-observatorio-astrolabe-v2.webp')!important}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-scene-workspace-title{position:absolute;z-index:3;top:8px;left:9px;max-width:32%;font-size:11px}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-scene-object{position:absolute;z-index:2;left:39%;right:auto;top:34%;width:22%;height:19%;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-scene-object-mark{display:none}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-scene-object-number{display:none}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-scene-object-value{font-size:clamp(13px,1.3vw,19px);color:#163862;text-shadow:0 1px #fff9e4}
+[data-public-scene="observatorio-numeros"] .race-scene .race-scene-object{top:12%!important;height:26%!important}
+[data-public-scene="observatorio-numeros"] .race-scene .race-scene-object-value{color:#fff6c6!important;text-shadow:0 2px #123674}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-answers{position:absolute;z-index:3;left:13%;right:13%;bottom:18%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:74%;gap:5%;margin:0}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-answers button{min-height:58px;aspect-ratio:auto!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;color:#163052!important;font-size:clamp(13px,1.5vw,19px);font-weight:900;text-shadow:0 1px #fff7d2}
+:is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-numeros"] .challenge-race.race-scene .race-answers button{color:#fff9db!important;text-shadow:0 2px 2px #071d57,0 0 8px #081c56!important}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-answers button:is(:hover:not(:disabled),:focus-visible,.is-selected){outline:3px solid #ffdc61;outline-offset:-5px;transform:scale(1.04)}
+
+@media(max-width:700px){
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="atlas-registros"],[data-public-scene="hemeroteca-fuentes"]) .matching-studio.match-pack-three .match-scene-targets{display:grid!important;grid-template-columns:1fr!important;gap:7px!important;width:100%!important;min-height:0!important;padding:0!important;background:none!important}
+  [data-public-scene="atlas-registros"] .matching-studio.match-pack-three .match-scene-targets::before{background-image:url('./games/public-atlas-channels-v2.webp')}
+  [data-public-scene="hemeroteca-fuentes"] .matching-studio.match-pack-three .match-scene-targets::before{background-image:url('./games/public-hemeroteca-vitrines-v2.webp')}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="atlas-registros"],[data-public-scene="hemeroteca-fuentes"]) .matching-studio.match-pack-three .match-bucket{min-height:84px!important;padding:6px!important}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-scene-workspace{min-height:255px;padding:126px 9px 8px}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-scene-workspace::before{height:160px!important;background-size:100% 100%!important;background-position:center top!important}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-answers{position:relative;left:auto;right:auto;bottom:auto;width:100%;gap:5px;margin-top:auto}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-answers button{min-height:48px;border:2px solid #e9c978!important;background:#fff9e9f0!important;color:#163052!important;text-shadow:none}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-scene-object{display:none}
+}
+@media(max-width:490px){
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-track{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:3px!important;padding:4px!important}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-track button{min-height:37px!important;padding:2px!important;border-width:2px!important}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-track button b{width:21px;height:21px;font-size:13px}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-track button span{font-size:0}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-scene-workspace{min-height:185px;padding:0}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-answers{position:absolute;top:78px;left:7%;right:7%;bottom:auto;width:86%;gap:2%;margin:0}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-answers button{min-height:48px;border:0!important;background:transparent!important;box-shadow:none!important;color:#17334f!important;font-size:clamp(10px,3vw,13px);line-height:1.1}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-numeros"] .challenge-race.race-scene .race-answers button{color:#fff9db!important;text-shadow:0 2px 2px #071d57,0 0 8px #081c56!important}
+}
+@media(prefers-reduced-motion:reduce){:is([data-public-scene="mercado-monedas"],[data-public-scene="observatorio-numeros"]) .race-scene .race-answers button{transition:none!important}}
