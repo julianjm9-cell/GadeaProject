@@ -1,0 +1,61 @@
+/* Segundo pack: las piezas se colocan sobre instrumentos, cajones, mapa y láminas. */
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-two{width:min(1120px,100%);margin-inline:auto;padding:8px!important;border:0!important;background:transparent!important;box-shadow:none!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-two .matching-workbench{width:100%;align-items:stretch!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-two :is(.match-bank,.match-destinations){width:100%!important;min-width:0;align-self:stretch!important;flex:0 0 auto}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-two .match-destinations{padding:5px!important;border:0!important;background:#ffffff30!important;box-shadow:none!important;overflow:visible}
+.matching-studio.match-pack-two :is(.match-scene-heading,.match-object-symbol){display:none}
+.matching-studio.match-pack-two .match-bucket>button small{display:none}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-two .match-bucket::before,
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-two .match-bucket::after{content:none!important}
+.matching-studio.match-pack-two .match-bank{z-index:1}
+.matching-studio.match-pack-two .match-bank .match-pieces{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:stretch;gap:6px;height:auto!important}
+.matching-studio.match-pack-two .match-bank .match-piece{flex:0 1 calc(25% - 6px);width:auto!important;min-height:43px!important;height:auto!important;padding:6px 9px!important;border:2px solid #fff!important;border-radius:10px!important;background:#fffdf6!important;box-shadow:0 3px #8fa0ae,0 6px 12px #18334b28!important;color:#17364f;font-size:12px!important;font-weight:750}
+.matching-studio.match-pack-two .match-bank .match-piece.is-selected{outline:3px solid #f4c756;outline-offset:1px}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-two .match-bucket{position:relative;min-width:0;border:0!important;border-radius:6px!important;background:transparent!important;box-shadow:none!important;transform:none}
+.matching-studio.match-pack-two .match-bucket>button{width:100%;min-height:32px!important;padding:2px 5px!important;border:1px solid #ffffffab;border-radius:8px;background:#fff8e7e8;color:#173b58;cursor:pointer}
+.matching-studio.match-pack-two .match-bucket>button strong{font-size:clamp(11px,1.1vw,15px)!important;line-height:1.1;overflow-wrap:anywhere}
+.matching-studio.match-pack-two .match-bucket>div{display:grid;gap:4px;align-content:start;width:100%;min-height:0;margin-top:4px}
+.matching-studio.match-pack-two .match-bucket>div::after{content:none!important}
+.matching-studio.match-pack-two .match-bucket .match-piece{width:100%;min-height:28px!important;padding:3px 5px!important;border:1px solid #c8d7e1!important;border-radius:7px!important;background:#fffef8f5!important;color:#18364d;font-size:clamp(10px,1vw,12px)!important;line-height:1.12;box-shadow:0 2px 5px #12314622!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-two .match-bucket:is(.drag-over,:focus-within){outline:3px solid #efc44f;outline-offset:-3px;z-index:1}
+:is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-two .match-bucket.is-solved{outline:3px solid #48b279;outline-offset:-3px;background:#e3fae42d!important}
+.matching-studio.match-pack-two .match-bucket.has-error{outline:3px solid #d74b61;outline-offset:-3px}
+.matching-studio.match-pack-two .match-bucket.is-solved>button strong::after{content:' ✓';color:#117749}
+
+/* Cuatro mesas de instrumentos: las respuestas se posan en la cartela de cada mesa. */
+:is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-medidas"] .matching-studio.match-pack-two .match-scene-targets{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:0!important;width:min(900px,100%);min-height:310px;margin:auto;padding:0!important;background:transparent url('./games/public-laboratorio-stations-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-medidas"] .matching-studio.match-pack-two .match-bucket{min-height:310px!important;padding:154px 8% 17px!important}
+
+/* Cuatro cajones abiertos reciben fichas del tipo de sintagma rotulado. */
+:is(.activity-play .play-question,.live-question)[data-public-scene="archivo-sintagmas"] .matching-studio.match-pack-two .match-scene-targets{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0!important;width:min(630px,100%);min-height:300px;margin:auto;padding:0!important;border:0!important;background:transparent url('./games/public-archivo-drawers-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="archivo-sintagmas"] .matching-studio.match-pack-two .match-bucket{min-height:150px!important;padding:30px 17% 8px!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="archivo-sintagmas"] .matching-studio.match-pack-two .match-bucket>div{margin-top:4px;padding-top:0;border-top:0}
+
+/* El mapa mantiene campo, fábrica y servicios en sus posiciones reales. */
+:is(.activity-play .play-question,.live-question)[data-public-scene="ciudad-economica"] .matching-studio.match-pack-two .match-scene-targets{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;width:min(950px,100%);min-height:300px;margin:auto;padding:0 4% 9px!important;border-radius:16px;background:#d5e5d3 url('./games/public-ciudad-economica-scene.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="ciudad-economica"] .matching-studio.match-pack-two .match-bucket{min-height:280px!important;padding:110px 7px 12px!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="ciudad-economica"] .matching-studio.match-scene.match-pack-two .match-bucket:nth-child(n){border:1px dashed #fffdf7ad!important;background:#ffffff38!important;box-shadow:none!important}
+[data-public-scene="ciudad-economica"] .matching-studio.match-pack-two .match-bucket>button{background:#fffdf1f2;border-color:#f5f0d5}
+
+/* Los diagramas de proposiciones reciben físicamente cada oración. */
+:is(.activity-play .play-question,.live-question)[data-public-scene="redaccion-compuesta"] .matching-studio.match-pack-two .match-scene-targets{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0!important;width:min(610px,100%);min-height:300px;margin:auto;padding:0!important;background:transparent url('./games/public-redaccion-diagrams-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="redaccion-compuesta"] .matching-studio.match-pack-two .match-bucket{min-height:150px!important;padding:31px 15% 8px!important}
+[data-public-scene="redaccion-compuesta"] .matching-studio.match-pack-two .match-bucket>button::before{content:none!important}
+
+@media(max-width:700px){
+  .matching-studio.match-pack-two .match-bank .match-piece{flex-basis:calc(50% - 5px);font-size:11px!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-two .match-scene-targets{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;width:100%!important;min-height:0!important;padding:0!important;background:none!important}
+  .matching-studio.match-pack-two .match-scene-targets::before{content:'';display:block;grid-column:1/-1;grid-row:1;height:128px;background-position:center;background-size:contain;background-repeat:no-repeat}
+  [data-public-scene="laboratorio-medidas"] .matching-studio.match-pack-two .match-scene-targets::before{background-image:url('./games/public-laboratorio-stations-v2.webp')}
+  [data-public-scene="archivo-sintagmas"] .matching-studio.match-pack-two .match-scene-targets::before{background-image:url('./games/public-archivo-drawers-v2.webp')}
+  [data-public-scene="ciudad-economica"] .matching-studio.match-pack-two .match-scene-targets::before{background-image:url('./games/public-ciudad-economica-scene.webp')}
+  [data-public-scene="redaccion-compuesta"] .matching-studio.match-pack-two .match-scene-targets::before{background-image:url('./games/public-redaccion-diagrams-v2.webp')}
+  :is(.activity-play .play-question,.live-question)[data-public-scene] .matching-studio.match-pack-two .match-bucket{min-height:115px!important;padding:6px!important;border:2px solid #d8c7a0!important;border-radius:11px!important;background:#fffdf4f2!important;box-shadow:0 4px #b7a98e!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="archivo-sintagmas"] .matching-studio.match-pack-two .match-bucket>div{border:0!important}
+  .matching-studio.match-pack-two .match-bucket>button strong{font-size:11px!important}
+  .matching-studio.match-pack-two .match-bucket .match-piece{font-size:10px!important;line-height:1.05}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="ciudad-economica"] .matching-studio.match-pack-two .match-scene-targets{grid-template-columns:1fr!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="ciudad-economica"] .matching-studio.match-pack-two .match-bucket{min-height:90px!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="ciudad-economica"] .matching-studio.match-pack-two .match-bucket:nth-child(n){border:2px solid #d8c7a0!important;background:#fffdf4f2!important;box-shadow:0 4px #b7a98e!important}
+}
+@media(prefers-reduced-motion:reduce){.matching-studio.match-pack-two :is(.match-piece,.match-bucket){transition:none!important}}
