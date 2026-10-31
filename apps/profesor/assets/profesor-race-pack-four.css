@@ -1,0 +1,35 @@
+/* Cuarto pack: la respuesta se elige sobre la bandeja, caseta o señal del paisaje. */
+:is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-scene-workspace{
+  position:relative;display:block;min-height:260px;height:260px;padding:0!important;border:2px solid #fffaf0!important;box-shadow:0 8px 20px #122b4960!important;overflow:hidden;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-scene-workspace::before{
+  content:'';position:absolute;inset:0!important;width:100%;height:100%!important;opacity:1!important;clip-path:none!important;transform:none!important;background-position:center!important;background-size:100% 100%!important;background-repeat:no-repeat!important;pointer-events:none;
+}
+[data-public-scene="laboratorio-mezclas"] .race-scene .race-scene-workspace{background:#b8e4e5!important}
+[data-public-scene="laboratorio-mezclas"] .race-scene .race-scene-workspace::before{background-image:url('./games/public-laboratorio-mixtures-board-v2.webp')!important}
+[data-public-scene="feria-porcentajes"] .race-scene .race-scene-workspace{background:#f8d3ad!important}
+[data-public-scene="feria-porcentajes"] .race-scene .race-scene-workspace::before{background-image:url('./games/public-feria-booth-board-v2.webp')!important}
+[data-public-scene="ruta-bajo-cero"] .race-scene .race-scene-workspace{background:#a3d2eb!important}
+[data-public-scene="ruta-bajo-cero"] .race-scene .race-scene-workspace::before{background-image:url('./games/public-ruta-cablecar-board-v2.webp')!important}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-scene-workspace-title{position:absolute;z-index:3;top:8px;left:8px;max-width:32%;padding:4px 7px;font-size:11px}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-scene-object{display:none!important}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-answers{position:absolute;z-index:4;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4%;width:90%;left:5%;right:auto;top:59%;bottom:auto;margin:0;padding:0}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-answers button{min-height:70px;height:clamp(70px,7vw,91px);padding:4px 7px;border:0!important;border-radius:10px!important;background:#fffdf00f!important;box-shadow:none!important;clip-path:none!important;color:#173b58!important;font-size:clamp(11px,1.15vw,16px);font-weight:900;line-height:1.12;text-shadow:0 1px #fff;transition:transform .15s,box-shadow .15s,background .15s}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-answers button:is(:hover:not(:disabled),:focus-visible,.is-selected){outline:3px solid #0b78de!important;outline-offset:-3px;background:#e4f4ff9c!important;transform:translateY(-2px)}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-answers button.is-selected.is-correct{outline-color:#1ca870!important;background:#d6ffe4ba!important}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-answers button.is-selected.is-incorrect{outline-color:#ce4a45!important;background:#ffe4ddbc!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-mezclas"] .race-scene .race-answers{top:51%;width:96%;left:2%;gap:1%}
+:is(.activity-play .play-question,.live-question)[data-public-scene="feria-porcentajes"] .race-scene .race-answers{top:46%;width:84%;left:8%;gap:3%}
+:is(.activity-play .play-question,.live-question)[data-public-scene="ruta-bajo-cero"] .race-scene .race-answers{top:54%;width:86%;left:12%;gap:7%}
+
+@media(max-width:800px){
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-scene-workspace{height:260px;min-height:260px}
+}
+@media(max-width:490px){
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-scene-workspace{height:295px;min-height:295px;background:#eaf5fa!important}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-scene-workspace::before{height:176px!important;background-size:100% 100%!important;background-position:center top!important}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-scene-workspace-title{top:5px;left:5px;max-width:52%;font-size:10px}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-answers{top:185px;left:3%;width:94%;gap:5px}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-answers button{height:97px;min-height:97px;padding:5px;border:2px solid #b8d6ee!important;border-radius:13px!important;background:#fffdf2!important;box-shadow:0 3px 0 #b7d2e7!important;color:#153652!important;font-size:11px;text-shadow:none}
+}
+@media(prefers-reduced-motion:reduce){:is([data-public-scene="laboratorio-mezclas"],[data-public-scene="feria-porcentajes"],[data-public-scene="ruta-bajo-cero"]) .race-scene .race-answers button{transition:none!important}}

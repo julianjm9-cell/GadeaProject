@@ -35,10 +35,10 @@ const assert=require('node:assert/strict');
   assert.equal(await page.getByRole('link',{name:/Anúnciate gratis/}).getAttribute('href'),'/profesor/anunciar');
   assert.equal(await page.locator('.quick-link').count(),3);
   assert.equal(await page.locator('.step').count(),3);
-  await page.waitForFunction(()=>[...document.images].every(image=>image.complete&&image.naturalWidth>0));
+  await page.waitForFunction(()=>[...document.images].filter(image=>image.getClientRects().length).every(image=>image.complete&&image.naturalWidth>0));
   assert.equal(await page.locator('.headline-play').evaluate(element=>element.getBoundingClientRect().height<=getComputedStyle(element).lineHeight.replace('px','')*1.1),true,'headline is one line on desktop');
   await page.screenshot({path:'tools/profesor-landing-new-desktop.png',fullPage:true});
-  for(const [zone,heading,detail] of [['game','Juegos interactivos','La ruta bajo cero'],['temario','Temario para tus clases','Bachillerato'],['alumnos','Alumnos y clases','Calendario']]){
+  for(const [zone,heading,detail] of [['game','Juegos interactivos','La ruta bajo cero'],['temario','Temario por curso','Bachillerato'],['alumnos','Alumnos y clases','Calendario']]){
    await page.mouse.move(10,10);
    await page.locator(`[data-hero-zone="${zone}"]`).hover();
    assert.equal(await page.locator('#heroPopover').isVisible(),true,`${zone} popover opens`);
@@ -51,13 +51,17 @@ const assert=require('node:assert/strict');
   for(const width of [1280,900,390,320]){
    await page.setViewportSize({width,height:844});
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false,`horizontal overflow at ${width}px`);
-   assert.equal(await page.locator('.hero-art img').isVisible(),true);
+   assert.equal(await page.locator('.hero-art-stage img').isVisible(),true);
   }
   await page.setViewportSize({width:390,height:844});
-  await page.locator('[data-hero-zone="game"]').click();
-  assert.equal(await page.locator('#heroPopover').isVisible(),true,'mobile tap opens popover');
-  await page.locator('.popover-close').click();
-  assert.equal(await page.locator('#heroPopover').isVisible(),false,'mobile close works');
+  for(const zone of ['game','temario','alumnos']){
+   await page.locator(`[data-hero-zone="${zone}"]`).click();
+   assert.equal(await page.locator('#heroPopover').isVisible(),true,`${zone}: mobile tap opens popover`);
+   await page.waitForFunction(zone=>{const image=document.querySelector(`[data-hero-panel="${zone}"] .popover-visual img`);return image?.complete&&image.naturalWidth>0},zone);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false,`${zone}: mobile horizontal overflow`);
+   await page.locator('.popover-close').click();
+   assert.equal(await page.locator('#heroPopover').isVisible(),false,`${zone}: mobile close works`);
+  }
   await page.screenshot({path:'tools/profesor-landing-new-mobile.png',fullPage:true});
   await page.getByText('¿Qué puedo hacer con Profesor Particular?').click();
   assert.equal(await page.locator('.faq details').first().getAttribute('open'),'');
