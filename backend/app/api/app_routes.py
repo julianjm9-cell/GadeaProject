@@ -809,6 +809,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-matching-pack-two.css")
 @router.get("/assets/profesor-matching-pack-three.css")
 @router.get("/assets/profesor-race-pack-four.css")
+@router.get("/assets/profesor-race-pack-five.css")
 @router.get("/assets/profesor-race-scenes.css")
 @router.get("/assets/profesor-bingo-scenes.css")
 @router.get("/assets/profesor-live.css")
@@ -895,6 +896,10 @@ def profesor_game_illustration(filename: str):
         "public-laboratorio-mixtures-board-v2.webp",
         "public-feria-booth-board-v2.webp",
         "public-ruta-cablecar-board-v2.webp",
+        "public-cocina-racionales-board-v2.webp",
+        "public-mercado-checkout-board-v2.webp",
+        "public-torre-radicales-board-v2.webp",
+        "public-pista-movimiento-board-v2.webp",
         "public-fabrica-palabras.webp",
         "public-mochila-bilingue.webp",
         "public-exploradores-sentidos.webp",

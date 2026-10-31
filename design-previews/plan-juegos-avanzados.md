@@ -1,6 +1,6 @@
 # Rediseño de los 61 juegos avanzados
 
-> Actualizado el 1 de noviembre de 2026. Este inventario cubre los 61 juegos destacados de Profesor Particular. Los juegos 1, 5, 9, 12, 16, 17, 18, 25, 26, 33, 36, 39, 42, 47 y 55 ya tienen un tablero ilustrado con respuestas integradas; las demás propuestas siguen pendientes. El plan de las 65 misiones de ESO Adultos y los criterios compartidos están en [plan-juegos-avanzados-profesor-eso.md](../docs/plan-juegos-avanzados-profesor-eso.md).
+> Actualizado el 1 de noviembre de 2026. Este inventario cubre los 61 juegos destacados de Profesor Particular. Los juegos 1, 5, 9, 12, 16, 17, 18, 25, 26, 30, 33, 35, 36, 39, 41, 42, 44, 47 y 55 ya tienen un tablero ilustrado con respuestas integradas; las demás propuestas siguen pendientes. El plan de las 65 misiones de ESO Adultos y los criterios compartidos están en [plan-juegos-avanzados-profesor-eso.md](../docs/plan-juegos-avanzados-profesor-eso.md).
 
 ## Diagnóstico
 
@@ -29,7 +29,7 @@ Motor actual: arrastrar tarjetas a contenedores. Cambio común: los destinos pas
 
 ## Bloque 2 · Recorrer, comprar y experimentar (15)
 
-**Dos packs implementados:** juegos 5, 9, 16, 17 y 25. El mercado integra la selección en bandejas de monedas; el observatorio, en lentes del astrolabio; el laboratorio, en bandejas de muestras; la feria, en carteles de su caseta; y la ruta bajo cero, en señales junto al teleférico. Todos conservan seis paradas, corrección y navegación accesible.
+**Tres packs implementados:** juegos 5, 9, 16, 17, 25, 30, 35, 41 y 44. La cocina coloca las fracciones sobre platos de receta; el mercado de porcentajes usa recibos de caja; la torre integra códigos en su compuerta; y la pista, marcadores sobre los carriles. Los anteriores mantienen sus tableros propios de mercado, observatorio, laboratorio, feria y teleférico. Todos conservan seis paradas, corrección y navegación accesible.
 
 Motor actual: seis paradas y tres respuestas genéricas. Cambio común: las paradas serán lugares del escenario y la respuesta actuará sobre el objeto de la misión. No usar la misma «pista» dibujada para mercado, cocina y observatorio.
 
