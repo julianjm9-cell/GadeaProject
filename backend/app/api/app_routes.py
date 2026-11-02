@@ -814,6 +814,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-race-scenes.css")
 @router.get("/assets/profesor-bingo-scenes.css")
 @router.get("/assets/profesor-bingo-pack-seven.css")
+@router.get("/assets/profesor-bingo-pack-eight.css")
 @router.get("/assets/profesor-live.css")
 @router.get("/assets/profesor-uploaded-topics.css")
 def profesor_final_styles(request: Request):
@@ -911,6 +912,13 @@ def profesor_game_illustration(filename: str):
         "public-aeropuerto-departures-board-v2.webp",
         "public-atlas-anatomy-board-v2.webp",
         "public-atlas-expedition-board-v2.webp",
+        "public-expositivo-magazine-board-v2.webp",
+        "public-migraciones-map-board-v2.webp",
+        "public-atomo-lab-board-v2.webp",
+        "public-nutricion-atlas-board-v2.webp",
+        "public-asamblea-cork-board-v2.webp",
+        "public-contemporaneo-archive-board-v2.webp",
+        "public-comentario-manuscript-board-v2.webp",
         "public-fabrica-palabras.webp",
         "public-mochila-bilingue.webp",
         "public-exploradores-sentidos.webp",

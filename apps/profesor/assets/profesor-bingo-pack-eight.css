@@ -1,0 +1,83 @@
+/* Siete láminas jugables: las respuestas ocupan las casillas dibujadas. */
+:is(.activity-play .play-question,.live-question)[data-public-scene="museo-expositivo"] .bingo-scene .bingo-cards{background:#f7e9cc url('./games/public-expositivo-magazine-board-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="mapa-migraciones"] .bingo-scene .bingo-cards{background:#174c72 url('./games/public-migraciones-map-board-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-atomo"] .bingo-scene .bingo-cards{background:#25406a url('./games/public-atomo-lab-board-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="hospital-nutricion"] .bingo-scene .bingo-cards{background:#c3eee8 url('./games/public-nutricion-atlas-board-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="asamblea-revoluciones"] .bingo-scene .bingo-cards{background:#633b28 url('./games/public-asamblea-cork-board-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="archivo-contemporaneo"] .bingo-scene .bingo-cards{background:#493224 url('./games/public-contemporaneo-archive-board-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="sala-comentario"] .bingo-scene .bingo-cards{background:#f3e3ef url('./games/public-comentario-manuscript-board-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="museo-expositivo"],[data-public-scene="mapa-migraciones"],[data-public-scene="laboratorio-atomo"],[data-public-scene="hospital-nutricion"],[data-public-scene="asamblea-revoluciones"],[data-public-scene="archivo-contemporaneo"],[data-public-scene="sala-comentario"]) .bingo-scene .bingo-scene-art{display:none}
+@media(min-width:801px){
+ :is(.activity-play .play-question,.live-question):is([data-public-scene="museo-expositivo"],[data-public-scene="mapa-migraciones"],[data-public-scene="laboratorio-atomo"],[data-public-scene="hospital-nutricion"],[data-public-scene="asamblea-revoluciones"],[data-public-scene="archivo-contemporaneo"],[data-public-scene="sala-comentario"]) .bingo-scene .bingo-cards{position:relative;display:block;height:314px;min-height:314px;padding:0}
+ :is(.activity-play .play-question,.live-question):is([data-public-scene="museo-expositivo"],[data-public-scene="mapa-migraciones"],[data-public-scene="laboratorio-atomo"],[data-public-scene="hospital-nutricion"],[data-public-scene="asamblea-revoluciones"],[data-public-scene="archivo-contemporaneo"],[data-public-scene="sala-comentario"]) .bingo-scene .bingo-cards button{position:absolute;min-height:0;padding:2px 4px;border:0!important;border-radius:8px!important;background:#fffdf435!important;box-shadow:none!important;transform:none!important;justify-content:center;align-items:center;text-align:center;overflow:hidden}
+ :is(.activity-play .play-question,.live-question):is([data-public-scene="museo-expositivo"],[data-public-scene="mapa-migraciones"],[data-public-scene="laboratorio-atomo"],[data-public-scene="hospital-nutricion"],[data-public-scene="asamblea-revoluciones"],[data-public-scene="archivo-contemporaneo"],[data-public-scene="sala-comentario"]) .bingo-scene .bingo-cards button>span{font:800 clamp(10px,1vw,14px)/1.12 Arial,sans-serif;overflow-wrap:anywhere}
+ :is(.activity-play .play-question,.live-question):is([data-public-scene="museo-expositivo"],[data-public-scene="mapa-migraciones"],[data-public-scene="laboratorio-atomo"],[data-public-scene="hospital-nutricion"],[data-public-scene="asamblea-revoluciones"],[data-public-scene="archivo-contemporaneo"],[data-public-scene="sala-comentario"]) .bingo-scene .bingo-cards button:is(:hover:not(:disabled),:focus-visible){outline:3px solid #ffce5e!important;outline-offset:0;background:#fff4bacc!important}
+ :is(.activity-play .play-question,.live-question):is([data-public-scene="mapa-migraciones"],[data-public-scene="laboratorio-atomo"],[data-public-scene="hospital-nutricion"],[data-public-scene="archivo-contemporaneo"],[data-public-scene="sala-comentario"]) .bingo-scene .bingo-cards button :is(.bingo-scene-card-code,small){display:none}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="museo-expositivo"] .bingo-scene .bingo-cards button{width:19.5%;height:21%;background:#fffbf344!important}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="museo-expositivo"] .bingo-scene .bingo-cards button:nth-of-type(3n + 1){left:20.3%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="museo-expositivo"] .bingo-scene .bingo-cards button:nth-of-type(3n + 2){left:40.6%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="museo-expositivo"] .bingo-scene .bingo-cards button:nth-of-type(3n){left:60.9%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="museo-expositivo"] .bingo-scene .bingo-cards button:nth-of-type(-n + 3){top:20%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="museo-expositivo"] .bingo-scene .bingo-cards button:nth-of-type(n + 4):nth-of-type(-n + 6){top:44%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="museo-expositivo"] .bingo-scene .bingo-cards button:nth-of-type(n + 7){top:67%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="mapa-migraciones"] .bingo-scene .bingo-cards button:nth-of-type(-n + 3){top:5%;width:23%;height:11%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="mapa-migraciones"] .bingo-scene .bingo-cards button:nth-of-type(1){left:10%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="mapa-migraciones"] .bingo-scene .bingo-cards button:nth-of-type(2){left:38%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="mapa-migraciones"] .bingo-scene .bingo-cards button:nth-of-type(3){left:66%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="mapa-migraciones"] .bingo-scene .bingo-cards button:nth-of-type(4){left:1%;top:44%;width:18%;height:12%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="mapa-migraciones"] .bingo-scene .bingo-cards button:nth-of-type(5){left:81%;top:44%;width:18%;height:12%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="mapa-migraciones"] .bingo-scene .bingo-cards button:nth-of-type(n + 6){top:83%;width:21%;height:11%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="mapa-migraciones"] .bingo-scene .bingo-cards button:nth-of-type(6){left:5%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="mapa-migraciones"] .bingo-scene .bingo-cards button:nth-of-type(7){left:29%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="mapa-migraciones"] .bingo-scene .bingo-cards button:nth-of-type(8){left:53%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="mapa-migraciones"] .bingo-scene .bingo-cards button:nth-of-type(9){left:77%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-atomo"] .bingo-scene .bingo-cards button:nth-of-type(-n + 3){top:5%;width:22%;height:13%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-atomo"] .bingo-scene .bingo-cards button:nth-of-type(1){left:8%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-atomo"] .bingo-scene .bingo-cards button:nth-of-type(2){left:37%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-atomo"] .bingo-scene .bingo-cards button:nth-of-type(3){left:70%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-atomo"] .bingo-scene .bingo-cards button:nth-of-type(4){left:4%;top:32%;width:22%;height:14%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-atomo"] .bingo-scene .bingo-cards button:nth-of-type(5){left:75%;top:32%;width:21%;height:14%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-atomo"] .bingo-scene .bingo-cards button:nth-of-type(6){left:4%;top:53%;width:22%;height:14%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-atomo"] .bingo-scene .bingo-cards button:nth-of-type(7){left:75%;top:53%;width:21%;height:14%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-atomo"] .bingo-scene .bingo-cards button:nth-of-type(8){left:20%;top:83%;width:24%;height:13%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="laboratorio-atomo"] .bingo-scene .bingo-cards button:nth-of-type(9){left:56%;top:83%;width:24%;height:13%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="hospital-nutricion"] .bingo-scene .bingo-cards button:nth-of-type(-n + 6){width:22%;height:14%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="hospital-nutricion"] .bingo-scene .bingo-cards button:nth-of-type(odd):nth-of-type(-n + 6){left:1.5%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="hospital-nutricion"] .bingo-scene .bingo-cards button:nth-of-type(even):nth-of-type(-n + 6){left:76.5%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="hospital-nutricion"] .bingo-scene .bingo-cards button:nth-of-type(-n + 2){top:9%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="hospital-nutricion"] .bingo-scene .bingo-cards button:nth-of-type(n + 3):nth-of-type(-n + 4){top:30%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="hospital-nutricion"] .bingo-scene .bingo-cards button:nth-of-type(n + 5):nth-of-type(-n + 6){top:52%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="hospital-nutricion"] .bingo-scene .bingo-cards button:nth-of-type(n + 7){top:76%;width:22%;height:14%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="hospital-nutricion"] .bingo-scene .bingo-cards button:nth-of-type(7){left:15%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="hospital-nutricion"] .bingo-scene .bingo-cards button:nth-of-type(8){left:39%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="hospital-nutricion"] .bingo-scene .bingo-cards button:nth-of-type(9){left:63%}
+ :is(.activity-play .play-question,.live-question):is([data-public-scene="asamblea-revoluciones"],[data-public-scene="archivo-contemporaneo"]) .bingo-scene .bingo-cards button{width:20%;height:20%;background:#fff7dd35!important}
+ :is(.activity-play .play-question,.live-question):is([data-public-scene="asamblea-revoluciones"],[data-public-scene="archivo-contemporaneo"]) .bingo-scene .bingo-cards button:nth-of-type(3n + 1){left:20%}
+ :is(.activity-play .play-question,.live-question):is([data-public-scene="asamblea-revoluciones"],[data-public-scene="archivo-contemporaneo"]) .bingo-scene .bingo-cards button:nth-of-type(3n + 2){left:40%}
+ :is(.activity-play .play-question,.live-question):is([data-public-scene="asamblea-revoluciones"],[data-public-scene="archivo-contemporaneo"]) .bingo-scene .bingo-cards button:nth-of-type(3n){left:60%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="asamblea-revoluciones"] .bingo-scene .bingo-cards button:nth-of-type(-n + 3){top:16%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="asamblea-revoluciones"] .bingo-scene .bingo-cards button:nth-of-type(n + 4):nth-of-type(-n + 6){top:39%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="asamblea-revoluciones"] .bingo-scene .bingo-cards button:nth-of-type(n + 7){top:62%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="archivo-contemporaneo"] .bingo-scene .bingo-cards button{width:23%;height:14%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="archivo-contemporaneo"] .bingo-scene .bingo-cards button:nth-of-type(3n + 1){left:13%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="archivo-contemporaneo"] .bingo-scene .bingo-cards button:nth-of-type(3n + 2){left:38%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="archivo-contemporaneo"] .bingo-scene .bingo-cards button:nth-of-type(3n){left:63%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="archivo-contemporaneo"] .bingo-scene .bingo-cards button:nth-of-type(-n + 3){top:37%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="archivo-contemporaneo"] .bingo-scene .bingo-cards button:nth-of-type(n + 4):nth-of-type(-n + 6){top:53%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="archivo-contemporaneo"] .bingo-scene .bingo-cards button:nth-of-type(n + 7){top:70%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="sala-comentario"] .bingo-scene .bingo-cards button:nth-of-type(-n + 6){width:19%;height:12%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="sala-comentario"] .bingo-scene .bingo-cards button:nth-of-type(odd):nth-of-type(-n + 6){left:1.5%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="sala-comentario"] .bingo-scene .bingo-cards button:nth-of-type(even):nth-of-type(-n + 6){left:79.5%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="sala-comentario"] .bingo-scene .bingo-cards button:nth-of-type(-n + 2){top:21%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="sala-comentario"] .bingo-scene .bingo-cards button:nth-of-type(n + 3):nth-of-type(-n + 4){top:40%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="sala-comentario"] .bingo-scene .bingo-cards button:nth-of-type(n + 5):nth-of-type(-n + 6){top:61%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="sala-comentario"] .bingo-scene .bingo-cards button:nth-of-type(n + 7){top:83%;width:19%;height:11%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="sala-comentario"] .bingo-scene .bingo-cards button:nth-of-type(7){left:20%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="sala-comentario"] .bingo-scene .bingo-cards button:nth-of-type(8){left:40.5%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="sala-comentario"] .bingo-scene .bingo-cards button:nth-of-type(9){left:61%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="sala-comentario"] .bingo-scene .bingo-cards button>span{font-size:clamp(10px,.85vw,12px)}
+}
+@media(max-width:800px){
+ :is(.activity-play .play-question,.live-question):is([data-public-scene="museo-expositivo"],[data-public-scene="mapa-migraciones"],[data-public-scene="laboratorio-atomo"],[data-public-scene="hospital-nutricion"],[data-public-scene="asamblea-revoluciones"],[data-public-scene="archivo-contemporaneo"],[data-public-scene="sala-comentario"]) .bingo-scene .bingo-cards{background-size:cover!important}
+ :is(.activity-play .play-question,.live-question):is([data-public-scene="museo-expositivo"],[data-public-scene="mapa-migraciones"],[data-public-scene="laboratorio-atomo"],[data-public-scene="hospital-nutricion"],[data-public-scene="asamblea-revoluciones"],[data-public-scene="archivo-contemporaneo"],[data-public-scene="sala-comentario"]) .bingo-scene .bingo-cards button{background:#fffdf4f0!important;transform:none!important}
+}

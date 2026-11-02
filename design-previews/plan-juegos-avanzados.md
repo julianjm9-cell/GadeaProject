@@ -1,6 +1,6 @@
 # Rediseño de los 61 juegos avanzados
 
-> Actualizado el 1 de noviembre de 2026. Este inventario cubre los 61 juegos destacados de Profesor Particular. Los juegos 1, 5, 9, 11, 12, 16, 17, 18, 24, 25, 26, 29, 30, 33, 35, 36, 39, 41, 42, 44, 46, 47, 49, 51, 54, 55, 58 y 60 ya tienen un tablero ilustrado con respuestas integradas; las demás propuestas siguen pendientes. El plan de las 65 misiones de ESO Adultos y los criterios compartidos están en [plan-juegos-avanzados-profesor-eso.md](../docs/plan-juegos-avanzados-profesor-eso.md).
+> Actualizado el 2 de noviembre de 2026. Este inventario cubre los 61 juegos destacados de Profesor Particular. Los bloques 1, 2 y 3 están completos: 35 juegos tienen un tablero ilustrado con respuestas integradas; quedan los 26 juegos de los bloques 4, 5 y 6. El plan de las 65 misiones de ESO Adultos y los criterios compartidos están en [plan-juegos-avanzados-profesor-eso.md](../docs/plan-juegos-avanzados-profesor-eso.md).
 
 ## Diagnóstico
 
@@ -53,7 +53,7 @@ Motor actual: seis paradas y tres respuestas genéricas. Cambio común: las para
 
 ## Bloque 3 · Tableros de pistas (10)
 
-**Primer pack implementado:** el aeropuerto usa un panel real de salidas, el atlas del cuerpo rodea una lámina anatómica y el atlas del explorador muestra un mapa con marcadores. Los nueve conceptos siguen siendo botones con corrección y acceso por teclado.
+**Bloque completo:** el aeropuerto usa un panel de salidas; los atlas muestran cuerpo y mapa; la página expositiva, el mapa de migraciones, el laboratorio atómico, la lámina de nutrición, la asamblea, el archivo y el manuscrito tienen nueve zonas de respuesta sobre sus objetos ilustrados. Los conceptos siguen siendo botones con corrección y acceso por teclado. En móvil se ordenan en una cuadrícula táctil.
 
 Motor actual: bingo 3 × 3. Cambio común: conservar la lógica de localizar conceptos, pero sustituir el mismo cartón por una superficie de búsqueda propia y fichas que se marcan dentro de ella.
 
