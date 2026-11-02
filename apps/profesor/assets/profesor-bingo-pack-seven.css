@@ -1,0 +1,25 @@
+/* Tres tableros de pistas: las casillas forman parte del panel, atlas y mapa. */
+:is(.activity-play .play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-scene .bingo-cards{background:#1a3a57 url('./games/public-aeropuerto-departures-board-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="atlas-cuerpo"] .bingo-scene .bingo-cards{background:#efe3c5 url('./games/public-atlas-anatomy-board-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="atlas-explorador"] .bingo-scene .bingo-cards{background:#c1dece url('./games/public-atlas-expedition-board-v2.webp') center/100% 100% no-repeat!important}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="aeropuerto-habitos"],[data-public-scene="atlas-cuerpo"],[data-public-scene="atlas-explorador"]) .bingo-scene .bingo-scene-art{display:none}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="atlas-cuerpo"],[data-public-scene="atlas-explorador"]) .bingo-scene .bingo-cards button{background:#fffdf5dc!important;backdrop-filter:blur(3px);box-shadow:0 3px 0 #25475e91!important}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="aeropuerto-habitos"],[data-public-scene="atlas-cuerpo"],[data-public-scene="atlas-explorador"]) .bingo-scene .bingo-cards button:is(:hover:not(:disabled),:focus-visible){outline:3px solid #ffd66b!important;outline-offset:0;filter:brightness(1.06)}
+@media(min-width:801px){
+ :is(.activity-play .play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-scene .bingo-cards{position:relative;display:block;height:278px;min-height:278px;padding:0}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-scene .bingo-cards button{position:absolute;width:25%;height:17%;min-height:0;padding:2px 4px;border:0!important;border-radius:7px!important;background:#eaf7f30c!important;box-shadow:none!important;font-size:12px}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-scene .bingo-cards button:nth-of-type(3n + 1){left:11%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-scene .bingo-cards button:nth-of-type(3n + 2){left:38%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-scene .bingo-cards button:nth-of-type(3n){left:65%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-scene .bingo-cards button:nth-of-type(-n + 3){top:20%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-scene .bingo-cards button:nth-of-type(n + 4):nth-of-type(-n + 6){top:39%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-scene .bingo-cards button:nth-of-type(n + 7){top:58%}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-scene .bingo-cards button>span{font-size:clamp(10px,.95vw,13px)}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-scene .bingo-cards button>small{display:none}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="atlas-cuerpo"] .bingo-scene .bingo-cards button{border-radius:10px!important}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="atlas-explorador"] .bingo-scene .bingo-cards button{border-radius:24px 24px 10px 10px!important}
+}
+@media(max-width:800px){
+ :is(.activity-play .play-question,.live-question):is([data-public-scene="aeropuerto-habitos"],[data-public-scene="atlas-cuerpo"],[data-public-scene="atlas-explorador"]) .bingo-scene .bingo-cards{background-size:cover!important}
+ :is(.activity-play .play-question,.live-question)[data-public-scene="aeropuerto-habitos"] .bingo-scene .bingo-cards button{background:#eaf7f3ef!important}
+}
