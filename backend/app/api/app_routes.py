@@ -815,6 +815,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-bingo-scenes.css")
 @router.get("/assets/profesor-bingo-pack-seven.css")
 @router.get("/assets/profesor-bingo-pack-eight.css")
+@router.get("/assets/profesor-choice-pack-nine.css")
 @router.get("/assets/profesor-live.css")
 @router.get("/assets/profesor-uploaded-topics.css")
 def profesor_final_styles(request: Request):
@@ -919,6 +920,10 @@ def profesor_game_illustration(filename: str):
         "public-asamblea-cork-board-v2.webp",
         "public-contemporaneo-archive-board-v2.webp",
         "public-comentario-manuscript-board-v2.webp",
+        "public-isla-signboards-v2.webp",
+        "public-habitos-studio-panels-v2.webp",
+        "public-cine-filmframes-v2.webp",
+        "public-viajes-diary-entries-v2.webp",
         "public-fabrica-palabras.webp",
         "public-mochila-bilingue.webp",
         "public-exploradores-sentidos.webp",
