@@ -821,6 +821,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-memory-pack-twelve.css")
 @router.get("/assets/profesor-order-pack-thirteen.css")
 @router.get("/assets/profesor-special-pack-fourteen.css")
+@router.get("/assets/profesor-special-pack-fifteen.css")
 @router.get("/assets/profesor-live.css")
 @router.get("/assets/profesor-uploaded-topics.css")
 def profesor_final_styles(request: Request):
@@ -971,6 +972,9 @@ def profesor_game_illustration(filename: str):
         "public-punctuation-detective-board-v2.webp",
         "public-secret-library-board-v2.webp",
         "public-grammar-agency-board-v2.webp",
+        "public-fraction-recipe-board-v2.webp",
+        "public-decimal-tanks-board-v2.webp",
+        "public-circuit-workbench-board-v2.webp",
         "public-estacion-tiempos.webp",
         "public-atlas-cuerpo.webp",
         "public-ruta-bajo-cero.webp",

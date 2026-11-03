@@ -1,0 +1,129 @@
+/* Las tablas se leen sobre las filas reales del recetario y del panel de tanques. */
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table{
+  display:block;width:100%;border:0;border-spacing:0;background:transparent;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table tbody{display:grid;gap:2px}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table tbody tr{
+  display:grid;grid-template-columns:29% repeat(2,minmax(0,1fr));align-items:center;min-width:0;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table tbody :is(th,td){
+  display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;height:100%;padding:4px 8px;
+  border:0!important;background:transparent!important;text-align:center;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table tbody th{font-size:clamp(17px,1.9vw,24px);font-weight:900}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table td::before{
+  content:attr(data-column);display:block;margin:0 0 3px;font-size:11px;font-weight:850;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table td input{
+  width:min(100%,130px);min-height:34px;padding:3px 8px;border:2px solid currentColor!important;border-radius:8px;
+  background:#fffdf1!important;color:inherit;font-size:clamp(16px,1.7vw,21px);text-align:center;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table td small{margin:2px 0 0;min-height:12px;font-size:10px}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table td small{display:none}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table td:is(.is-correct,.is-incorrect) small{display:block;position:absolute;z-index:3;bottom:-10px;padding:1px 4px;border-radius:5px;background:#fffdf0}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table td{position:relative}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-guide{
+  width:fit-content;max-width:100%;margin:0 auto;padding:5px 11px;border-radius:10px;background:#fffdf1eb;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-game progress{height:7px;margin:6px 0}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-bottom{
+  gap:8px;margin:6px 0 0;padding:5px 9px;border-radius:10px;background:#fffdf2eb;
+}
+
+:is(.activity-play .play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table-wrap{
+  position:relative;width:min(620px,100%);height:330px;min-height:0;margin:auto;padding:0;
+  border:3px solid #ba7645!important;border-radius:20px;
+  background:#fff5e3 url('./games/public-fraction-recipe-board-v2.webp') center/100% 100% no-repeat!important;
+  box-shadow:0 8px 22px #69402462!important;overflow:hidden;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table tbody{
+  position:absolute;inset:20% 0 14%;grid-template-rows:repeat(3,minmax(0,1fr));gap:0;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table tbody tr{min-height:0;grid-template-columns:45% 16% 16% 23%}
+:is(.activity-play .play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table tbody :is(th,td){padding:0 2px!important;box-shadow:none!important;border:0!important;background:transparent!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table tbody th{font-size:17px}
+:is(.activity-play .play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table td::before{font-size:10px}
+:is(.activity-play .play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table td input{width:86px;max-width:100%;min-height:32px;padding:2px 4px;font-size:15px}
+:is(.activity-play .play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table tbody th{color:#7d412d}
+:is(.activity-play .play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table td{color:#874b33}
+:is(.activity-play .play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table td input{border-color:#da865e!important;color:#6d372b}
+
+:is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table-wrap{
+  position:relative;width:min(620px,100%);height:330px;min-height:0;margin:auto;padding:0;
+  border:3px solid #4b9da9!important;border-radius:20px;
+  background:#b5eced url('./games/public-decimal-tanks-board-v2.webp') center/100% 100% no-repeat!important;
+  box-shadow:0 8px 22px #16425e69!important;overflow:hidden;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table tbody{
+  position:absolute;inset:45% 7% 6%;grid-template-rows:repeat(4,minmax(0,1fr));gap:0;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table tbody tr{min-height:0;grid-template-columns:repeat(3,minmax(0,1fr))}
+:is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table tbody :is(th,td){box-shadow:none!important;border:0!important;background:transparent!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table tbody :is(th,td){padding:2px 5px}
+:is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table tbody th{color:#14566b;font-size:19px}
+:is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table td{color:#14556b}
+:is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table td::before{margin:0;font-size:10px}
+:is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table td input{
+  min-height:24px;max-width:94px;padding:1px 7px;border-color:#5ea5b4!important;background:#f4ffffe8!important;font-size:14px;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table td small{min-height:10px;margin:0;font-size:9px}
+
+/* Las cuatro opciones ocupan bandejas del banco de circuitos. */
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder{
+  position:relative;width:min(1020px,100%);min-height:450px;padding:11px 18px;border:3px solid #c39755!important;
+  border-radius:20px;background:#d5f4e9 url('./games/public-circuit-workbench-board-v2.webp') center/cover no-repeat!important;
+  box-shadow:0 9px 23px #1c555e67!important;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder>.mini-game-guide{
+  width:fit-content;max-width:100%;margin:0;padding:5px 9px;border:2px solid #7ab4ad;
+  border-radius:10px;background:#f2fffaec;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder>.mini-game-guide p{font-size:12px}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder .intruder-cards{
+  position:absolute;left:6%;right:6%;bottom:53px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder .intruder-cards button{
+  min-height:100px;padding:5px 6px;gap:3px;border:3px solid #d9aa5e!important;border-radius:13px 13px 22px 22px!important;
+  background:#e9fffae8!important;box-shadow:0 5px 0 #346b70!important;color:#123a4e;
+  transition:transform .17s,box-shadow .17s;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder .intruder-cards button:hover:not(:disabled){transform:translateY(-4px)}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder .intruder-cards button.is-selected{border-color:#087c91!important;box-shadow:0 0 0 3px #fff,0 5px 0 #087c91!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder .intruder-cards button.answer-right{border-color:#2aa561!important;background:#e6ffdf!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder .intruder-cards button.answer-wrong{border-color:#d75d59!important;background:#fff1dd!important}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .intruder-cards button>b{display:none}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .intruder-cards button .intruder-object{font-size:26px;line-height:1}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .intruder-cards button>span{font-size:clamp(12px,1.3vw,16px)}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .intruder-cards button>small{font-size:10px}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder .mini-game-bottom{
+  position:absolute;left:6%;right:6%;bottom:7px;min-height:39px;margin:0;padding:2px 8px;border:0;border-radius:9px;
+  background:#f4fffae9;
+}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder .mini-game-bottom .mini-feedback{padding:2px 4px;font-size:12px}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder .mini-game-bottom .mini-primary{min-height:35px;padding:5px 12px}
+:is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder:has(.intruder-cards .answer-right)::after{
+  content:"";position:absolute;top:24%;left:59%;width:19%;height:24%;pointer-events:none;
+  border-radius:50%;background:radial-gradient(circle,#fff9a9a8 0,#ffed7570 37%,transparent 72%);
+  filter:blur(7px);
+}
+
+@media(max-width:700px){
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table-wrap{height:auto;min-height:0;padding:66px 9px 9px;background-size:cover!important;overflow:hidden}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table tbody,
+  :is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table tbody{position:static;display:grid;grid-template-rows:none;gap:7px}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="cocina-fracciones"] .challenge-table tbody tr,
+  :is(.activity-play .play-question,.live-question)[data-public-scene="observatorio-decimales"] .challenge-table tbody tr{min-height:0;grid-template-columns:repeat(2,minmax(0,1fr));margin:0;padding:5px;border:2px solid #ffffffba;border-radius:10px;background:#fffdf1f2;box-shadow:0 3px 8px #17384944}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table tbody th{grid-column:1/-1;min-height:25px;font-size:17px}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table tbody td{min-height:58px}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table td input{min-height:35px;font-size:16px}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="cocina-fracciones"],[data-public-scene="observatorio-decimales"]) .challenge-table td small{position:static!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder{min-height:0;padding:8px;background-size:auto 100%!important}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder>.mini-game-guide{margin-bottom:8px}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder .intruder-cards{position:static;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder .intruder-cards button{min-height:88px}
+  :is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .mini-intruder .mini-game-bottom{position:static;display:flex;flex-direction:column;align-items:stretch;margin-top:8px;padding:6px}
+}
+@media(prefers-reduced-motion:reduce){
+  :is(.activity-play .play-question,.live-question)[data-public-scene="taller-circuitos"] .intruder-cards button{transition:none}
+}
