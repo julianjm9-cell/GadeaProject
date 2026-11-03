@@ -1,6 +1,6 @@
 # Rediseño de los 61 juegos avanzados
 
-> Actualizado el 3 de noviembre de 2026. Este inventario cubre los 61 juegos destacados de Profesor Particular. Los bloques 1, 2 y 3 están completos y hay dos packs integrados del bloque 4: 43 juegos tienen un tablero ilustrado con respuestas sobre la escena; quedan 18 juegos de los bloques 4, 5 y 6. El plan de las 65 misiones de ESO Adultos y los criterios compartidos están en [plan-juegos-avanzados-profesor-eso.md](../docs/plan-juegos-avanzados-profesor-eso.md).
+> Actualizado el 3 de noviembre de 2026. Este inventario cubre los 61 juegos destacados de Profesor Particular. Los bloques 1, 2, 3 y 4 están completos: 45 juegos tienen un tablero ilustrado con respuestas sobre la escena; quedan 16 juegos de los bloques 5 y 6. El plan de las 65 misiones de ESO Adultos y los criterios compartidos están en [plan-juegos-avanzados-profesor-eso.md](../docs/plan-juegos-avanzados-profesor-eso.md).
 
 ## Diagnóstico
 
@@ -76,7 +76,9 @@ Motor actual: multiselección en tarjetas. Cambio común: situar cada alternativ
 
 **Primer pack completado:** isla de las tildes, estudio de los hábitos, cine del pasado y diario de viajes. Las seis opciones están sobre señales, pantallas, fotogramas y páginas ilustradas. En móvil se presentan en una columna legible y la corrección conserva los estados verde y rojo.
 
-**Segundo pack completado:** portal de los condicionales, estudio de los tiempos, biblioteca de inferencias y álbum de los recuerdos. Las opciones se leen en llaves, paneles temporales, notas de evidencia y pies de foto. Quedan el puente del subjuntivo y la redacción de las interpretaciones para cerrar este bloque.
+**Segundo pack completado:** portal de los condicionales, estudio de los tiempos, biblioteca de inferencias y álbum de los recuerdos. Las opciones se leen en llaves, paneles temporales, notas de evidencia y pies de foto.
+
+**Bloque completo:** el puente del subjuntivo y la redacción de las interpretaciones colocan sus seis frases en losas transitables y hojas de revisión. La selección y la corrección se prueban en escritorio, tableta y móvil.
 
 | N.º | Juego | Tablero y acción propuesta |
 | --- | --- | --- |

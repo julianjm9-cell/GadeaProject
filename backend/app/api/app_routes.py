@@ -817,6 +817,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-bingo-pack-eight.css")
 @router.get("/assets/profesor-choice-pack-nine.css")
 @router.get("/assets/profesor-choice-pack-ten.css")
+@router.get("/assets/profesor-choice-pack-eleven.css")
 @router.get("/assets/profesor-live.css")
 @router.get("/assets/profesor-uploaded-topics.css")
 def profesor_final_styles(request: Request):
@@ -929,6 +930,8 @@ def profesor_game_illustration(filename: str):
         "public-advanced-tenses-timeline-v2.webp",
         "public-inference-evidence-notes-v2.webp",
         "public-album-memory-captions-v2.webp",
+        "public-subjunctive-bridge-tablets-v2.webp",
+        "public-interpretation-editor-slips-v2.webp",
         "public-fabrica-palabras.webp",
         "public-mochila-bilingue.webp",
         "public-exploradores-sentidos.webp",
