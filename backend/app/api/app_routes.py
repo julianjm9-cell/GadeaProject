@@ -819,6 +819,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-choice-pack-ten.css")
 @router.get("/assets/profesor-choice-pack-eleven.css")
 @router.get("/assets/profesor-memory-pack-twelve.css")
+@router.get("/assets/profesor-order-pack-thirteen.css")
 @router.get("/assets/profesor-live.css")
 @router.get("/assets/profesor-uploaded-topics.css")
 def profesor_final_styles(request: Request):
@@ -937,6 +938,11 @@ def profesor_game_illustration(filename: str):
         "public-bilingual-backpack-cards-v2.webp",
         "public-past-portal-cards-v2.webp",
         "public-greetings-plaza-cards-v2.webp",
+        "public-safari-sentence-board-v2.webp",
+        "public-city-directions-board-v2.webp",
+        "public-tenses-station-board-v2.webp",
+        "public-butterfly-garden-board-v2.webp",
+        "public-greenhouse-notebook-board-v2.webp",
         "public-fabrica-palabras.webp",
         "public-mochila-bilingue.webp",
         "public-exploradores-sentidos.webp",

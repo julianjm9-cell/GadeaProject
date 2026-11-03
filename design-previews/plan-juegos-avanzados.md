@@ -1,6 +1,6 @@
 # Rediseño de los 61 juegos avanzados
 
-> Actualizado el 3 de noviembre de 2026. Este inventario cubre los 61 juegos destacados de Profesor Particular. Los bloques 1, 2, 3 y 4 están completos; cuatro juegos del bloque 5 también tienen un tablero integrado. En total son 49 juegos y quedan 12 de los bloques 5 y 6. El plan de las 65 misiones de ESO Adultos y los criterios compartidos están en [plan-juegos-avanzados-profesor-eso.md](../docs/plan-juegos-avanzados-profesor-eso.md).
+> Actualizado el 3 de noviembre de 2026. Este inventario cubre los 61 juegos destacados de Profesor Particular. Los bloques 1 a 5 están completos: 54 juegos tienen un tablero ilustrado con respuestas integradas; quedan los 7 juegos del bloque 6. El plan de las 65 misiones de ESO Adultos y los criterios compartidos están en [plan-juegos-avanzados-profesor-eso.md](../docs/plan-juegos-avanzados-profesor-eso.md).
 
 ## Diagnóstico
 
@@ -96,6 +96,8 @@ Motor actual: multiselección en tarjetas. Cambio común: situar cada alternativ
 ## Bloque 5 · Emparejar y ordenar (9)
 
 **Primer pack completado:** la fábrica, la mochila, el portal y la plaza usan respectivamente etiquetas de cinta transportadora, bolsillos, piedras temporales y bocadillos. Las doce tarjetas conservan el mismo motor de parejas y se leen dentro del escenario. En móvil pasan a una cuadrícula de dos columnas para mantener el tamaño táctil.
+
+**Bloque completo:** el safari y la ciudad sitúan las palabras en un cartel y una ruta; la estación coloca los verbos en el panel de salidas. Las etapas del jardín se ordenan sobre piedras y las del invernadero en un cuaderno de investigación. Las piezas se tocan o arrastran, se reordenan con teclado y conservan los estados de corrección.
 
 Motores actuales: memory, construcción de frases y líneas temporales. Cambio común: mover tarjetas y piezas a objetos narrativos reconocibles, sin perder la opción de teclado y táctil.
 

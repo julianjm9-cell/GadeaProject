@@ -1,0 +1,116 @@
+/* Las frases se colocan sobre el cartel, la ruta y los billetes. Las etapas
+   ocupan piedras del jardín o páginas del cuaderno; controles y texto son HTML. */
+:is(.activity-play .play-question,.live-question)[data-public-scene="safari"]{--order-art:url('./games/public-safari-sentence-board-v2.webp');--order-ink:#204829;--order-edge:#528c49;--slot-left:8%;--slot-right:8%;--slot-top:56%;--slot-height:23%}
+:is(.activity-play .play-question,.live-question)[data-public-scene="ciudad-direcciones"]{--order-art:url('./games/public-city-directions-board-v2.webp');--order-ink:#173f5c;--order-edge:#3289a8;--slot-left:6%;--slot-right:12%;--slot-top:72%;--slot-height:15%}
+:is(.activity-play .play-question,.live-question)[data-public-scene="estacion-tiempos"]{--order-art:url('./games/public-tenses-station-board-v2.webp');--order-ink:#204469;--order-edge:#3e8aa7;--slot-left:5%;--slot-right:5%;--slot-top:61%;--slot-height:22%}
+:is(.activity-play .play-question,.live-question)[data-public-scene="jardin-mariposa"]{--order-art:url('./games/public-butterfly-garden-board-v2.webp');--order-ink:#2c5d2e;--order-edge:#61a057;--slot-left:3%;--slot-right:3%;--slot-top:55%;--slot-height:22%}
+:is(.activity-play .play-question,.live-question)[data-public-scene="invernadero-cientifico"]{--order-art:url('./games/public-greenhouse-notebook-board-v2.webp');--order-ink:#28533d;--order-edge:#4e9668;--slot-left:6%;--slot-right:5%;--slot-top:45%;--slot-height:39%}
+
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-board{
+  flex:none;width:min(880px,100%);gap:7px;margin:0 auto;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-instruction{
+  width:fit-content;max-width:100%;margin:0 auto;padding:4px 12px;
+  border:1px solid #fff;border-radius:999px;background:#fffdf1ee;color:var(--order-ink);
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-board .sentence-bank{
+  flex:none;min-height:0;padding:8px 12px;gap:6px;
+  border:2px solid var(--order-edge);border-radius:15px;
+  background:#fffdf4f2;box-shadow:0 4px 0 #183e4870;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-bank .sentence-pieces{
+  display:flex;flex-wrap:wrap;min-height:42px;gap:6px;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-bank .sentence-piece{
+  flex:0 1 auto;min-height:36px;max-width:250px;padding:5px 10px;
+  border:2px solid var(--order-edge);border-radius:9px;
+  background:#e9f6e9;color:var(--order-ink);box-shadow:0 3px 0 #1b50603b;
+  font-size:clamp(12px,1.2vw,15px);line-height:1.13;text-align:center;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-bank .sentence-piece[hidden]{display:none!important}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-bank .timeline-event-icon{width:23px;height:23px;font-size:18px}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-board .sentence-answer{
+  position:relative;display:block;flex:none;width:min(760px,100%);
+  height:auto;min-height:0;aspect-ratio:1672/940;margin:0 auto;padding:0;
+  border:3px solid #fffdf2;border-radius:17px!important;
+  background:var(--order-art) center/100% 100% no-repeat!important;
+  box-shadow:0 6px 0 #234b5270,0 12px 25px #17394840!important;overflow:hidden;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-answer>.sentence-section-title{
+  position:absolute;z-index:2;top:7px;left:9px;max-width:calc(100% - 18px);
+  padding:4px 10px;border:1px solid #fff;border-radius:10px;
+  background:#fffdf1ef;color:var(--order-ink);box-shadow:0 3px 8px #163a3b35;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-answer>.timeline-direction{
+  position:absolute;z-index:2;top:38px;left:9px;right:9px;
+  color:#fff;font-weight:900;text-shadow:0 1px 3px #173f50;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-answer .sentence-slots{
+  position:absolute;z-index:1;left:var(--slot-left);right:var(--slot-right);
+  top:var(--slot-top);height:var(--slot-height);width:auto;min-height:0;
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  align-items:stretch;gap:1%;margin:0;padding:0;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-answer .sentence-slots:has(>.sentence-slot:nth-child(5)){grid-template-columns:repeat(5,minmax(0,1fr))}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-answer .sentence-slots:has(>.sentence-slot:nth-child(6)){grid-template-columns:repeat(6,minmax(0,1fr))}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-answer .sentence-slots:has(>.sentence-slot:nth-child(7)){grid-template-columns:repeat(7,minmax(0,1fr))}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-answer .sentence-slots::before{display:none}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-answer .sentence-slot{
+  flex:none;display:flex;width:100%;height:100%;min-width:0;min-height:0;
+  padding:9px 3px 4px;border:2px dashed #2d6f88a8;border-radius:9px;
+  background:#fffdf5a6!important;color:var(--order-ink);box-shadow:none;
+  font-size:clamp(11px,1.05vw,15px);font-weight:900;line-height:1.12;
+  text-align:center;overflow:hidden;overflow-wrap:anywhere;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-answer .sentence-slot.filled{
+  border-style:solid;border-color:var(--order-edge);background:#fffdf3e8!important;
+  box-shadow:inset 0 0 0 2px #ffffffb8;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-answer .sentence-slot.answer-right{border-color:#16834a;background:#d8f6d8f2!important;color:#145338}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-answer .sentence-slot.answer-wrong{border-color:#bf4b39;background:#ffe1d8f4!important;color:#892c26}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-bottom{min-height:36px}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-actions button{min-height:36px;padding:5px 12px}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .timeline-board .sentence-bank .sentence-pieces{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .timeline-board .sentence-bank .sentence-piece{
+  display:flex;flex-direction:row;align-items:center;width:100%;max-width:none;
+  min-height:52px!important;height:auto;padding:5px 7px;font-size:12px;
+}
+
+@media(min-width:701px) and (max-height:850px){
+  .activity-play:has(.play-question:is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]):not([hidden])){height:min(97dvh,940px)!important;max-height:97dvh!important}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-board .sentence-answer{width:min(580px,100%)}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-board .sentence-answer{width:min(520px,100%)}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-board .sentence-instruction{min-height:0;padding:2px 9px;font-size:12px}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-board .sentence-bank{padding:5px 9px;gap:3px}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-board .sentence-bank .sentence-piece{min-height:33px;padding:4px 8px}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-board .sentence-bottom{min-height:37px}
+}
+
+@media(max-width:700px){
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-board .sentence-answer{
+    width:100%;aspect-ratio:auto;min-height:360px;
+    background:var(--order-art) center/cover no-repeat!important;
+  }
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-answer .sentence-slots{
+    left:6%;right:6%;top:35%;height:auto;bottom:8%;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-auto-rows:minmax(45px,1fr);gap:5px;
+  }
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-answer .sentence-slot{
+    min-height:45px;padding:7px 5px 4px;border-color:#a7c9d6;
+    background:#fffdf3f5!important;font-size:12px;
+  }
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .timeline-board .sentence-bank .sentence-pieces{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px;
+  }
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .timeline-board .sentence-bank .sentence-piece{
+    min-height:72px!important;padding:6px;font-size:12px;line-height:1.2;
+    overflow-wrap:anywhere;
+  }
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-bank .sentence-piece{
+    flex:1 1 90px;min-width:0;max-width:none;font-size:13px;
+  }
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="safari"],[data-public-scene="ciudad-direcciones"],[data-public-scene="estacion-tiempos"],[data-public-scene="jardin-mariposa"],[data-public-scene="invernadero-cientifico"]) .sentence-bottom{flex-direction:column;align-items:stretch}
+}
