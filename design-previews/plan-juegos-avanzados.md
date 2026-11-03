@@ -1,6 +1,6 @@
 # Rediseño de los 61 juegos avanzados
 
-> Actualizado el 3 de noviembre de 2026. Este inventario cubre los 61 juegos destacados de Profesor Particular. Los bloques 1 a 5 están completos: 54 juegos tienen un tablero ilustrado con respuestas integradas; quedan los 7 juegos del bloque 6. El plan de las 65 misiones de ESO Adultos y los criterios compartidos están en [plan-juegos-avanzados-profesor-eso.md](../docs/plan-juegos-avanzados-profesor-eso.md).
+> Actualizado el 3 de noviembre de 2026. Este inventario cubre los 61 juegos destacados de Profesor Particular. Los bloques 1 a 5 están completos y el primer pack del bloque 6 también: 58 juegos tienen un tablero ilustrado con respuestas integradas; quedan 3 juegos del bloque 6. El plan de las 65 misiones de ESO Adultos y los criterios compartidos están en [plan-juegos-avanzados-profesor-eso.md](../docs/plan-juegos-avanzados-profesor-eso.md).
 
 ## Diagnóstico
 
@@ -116,6 +116,8 @@ Motores actuales: memory, construcción de frases y líneas temporales. Cambio c
 ## Bloque 6 · Mecánicas propias (7)
 
 Estas actividades no deberían heredar un tablero genérico. Cada una necesita una composición específica.
+
+**Primer pack completado:** los sentidos se resuelven en un cuaderno de exploración, los signos se editan sobre una hoja de pruebas, la biblioteca revela letras en seis libros y la agencia abre expedientes en una mesa de investigación. Las respuestas correctas e incorrectas se verificaron en escritorio y móvil.
 
 | N.º | Juego | Tablero y acción propuesta |
 | --- | --- | --- |
