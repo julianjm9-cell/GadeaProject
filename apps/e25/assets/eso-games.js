@@ -358,6 +358,10 @@ if (typeof window !== 'undefined') {
   }
 
   function renderStoryMission(root, head, run, total, progress) {
+    if (run.module.id === 'matematicas' && ['mat-numeros','mat-proporciones','mat-finanzas','mat-problemas'].includes(run.topic.id)) {
+      renderMathSceneMission(root, head, run, total, progress);
+      return;
+    }
     const scene = EsoAdultGames.englishScene(run.topic) || {kind:run.module.id,place:run.quest.place || 'Misión del tema',symbol:run.quest.symbol || '✦'};
     const stage = run.quest.stations[run.missionStep];
     const solved = Number.isInteger(run.questPlaced[stage.id]);
@@ -370,6 +374,25 @@ if (typeof window !== 'undefined') {
           <div class="eso-mission-panel"><span class="eso-mission-context">${escapeHtml(stage.context)}</span><h4>${escapeHtml(stage.prompt)}</h4><div class="eso-mission-choices">${stage.choices.map((choice,index)=>`<button type="button" class="${solved && index === stage.correct ? 'correct' : run.missionTried[stage.id]?.includes(index) ? 'wrong' : ''}" onclick="chooseMissionAnswer(${index})" ${solved || run.missionTried[stage.id]?.includes(index) ? 'disabled' : ''}><span aria-hidden="true">${String.fromCharCode(65+index)}</span>${escapeHtml(choice)}</button>`).join('')}</div><div class="eso-mission-bottom"><p class="eso-mission-feedback ${run.missionWrong !== null && !solved ? 'error' : solved ? 'success' : ''}" role="status" aria-live="polite">${escapeHtml(run.missionFeedback || 'Elige la respuesta que resuelve esta etapa.')}</p>${solved ? `<button type="button" class="primary" onclick="nextMissionStep()">${run.missionStep + 1 < total ? 'Siguiente etapa' : 'Ver resultado'} →</button>` : ''}</div></div>
         </div>
       </div>
+    </div>`;
+  }
+
+  function renderMathSceneMission(root, head, run, total, progress) {
+    const stage = run.quest.stations[run.missionStep];
+    const solved = Number.isInteger(run.questPlaced[stage.id]);
+    const art = EsoAdultGames.topicArt(run.topic, run.module);
+    const steps = run.quest.stations.map((item, index) => `<span class="${index === run.missionStep ? 'current' : index < run.missionStep ? 'complete' : ''}" ${index === run.missionStep ? 'aria-current="step"' : ''}><b>${index < run.missionStep ? '✓' : index + 1}</b>${escapeHtml(item.place)}</span>`).join('');
+    const choices = stage.choices.map((choice, index) => `<button type="button" class="${solved && index === stage.correct ? 'correct' : run.missionTried[stage.id]?.includes(index) ? 'wrong' : ''}" onclick="chooseMissionAnswer(${index})" ${solved || run.missionTried[stage.id]?.includes(index) ? 'disabled' : ''} aria-label="Opción ${String.fromCharCode(65 + index)}: ${escapeHtml(choice)}"><span aria-hidden="true">${String.fromCharCode(65 + index)}</span><strong>${escapeHtml(choice)}</strong></button>`).join('');
+    root.innerHTML = `<div class="eso-game-run eso-mission-run eso-math-run eso-math-illustrated" data-mission="${run.topic.id}">${head}
+      <div class="eso-game-progress" role="progressbar" aria-label="Etapas completadas" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${progress}"><span style="width:${progress / total * 100}%"></span></div>
+      <div class="eso-math-stage-rail" aria-label="Etapas de la misión">${steps}</div>
+      <div class="eso-math-board" data-stage="${run.missionStep + 1}" data-solved="${solved}">
+        <img class="eso-math-backdrop" src="${art}" alt="" width="1672" height="939">
+        <div class="eso-math-board-title"><span aria-hidden="true">${escapeHtml(run.quest.symbol)}</span><strong>${escapeHtml(run.quest.title)}</strong></div>
+        <div class="eso-math-ticket"><small>${escapeHtml(stage.place)} · etapa ${run.missionStep + 1} de ${total}</small><p>${escapeHtml(stage.context)}</p><h3>${escapeHtml(stage.prompt)}</h3></div>
+        <div class="eso-math-options" role="group" aria-label="Respuestas para ${escapeHtml(stage.place)}">${choices}</div>
+      </div>
+      <div class="eso-math-feedback-row"><p class="eso-mission-feedback ${run.missionWrong !== null && !solved ? 'error' : solved ? 'success' : ''}" role="status" aria-live="polite">${escapeHtml(run.missionFeedback || 'Elige la respuesta en el tablero.')}</p>${solved ? `<button type="button" class="primary" onclick="nextMissionStep()">${run.missionStep + 1 < total ? 'Siguiente etapa' : 'Ver resultado'} →</button>` : ''}</div>
     </div>`;
   }
 

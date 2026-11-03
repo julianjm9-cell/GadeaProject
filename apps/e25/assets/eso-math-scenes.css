@@ -1,0 +1,48 @@
+/* Cuatro misiones matemáticas: la pregunta se lee en el documento de la
+   escena y las respuestas se eligen en sus tres objetos inferiores. */
+.eso-math-illustrated{padding:14px}
+.eso-math-illustrated .eso-game-progress{width:min(650px,100%);margin:10px auto 8px}
+.eso-math-stage-rail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(650px,100%);margin:6px auto}
+.eso-math-stage-rail span{display:flex;align-items:center;gap:7px;min-width:0;padding:7px 10px;border:1px solid #d6c2a3;border-radius:11px;background:#fff9eb;color:#635437;font-size:12px;font-weight:750;overflow-wrap:anywhere}
+.eso-math-stage-rail b{display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:50%;background:#ede0c8;color:#785529;font-size:11px}
+.eso-math-stage-rail .current{border-color:#c89246;background:#ffedc5;box-shadow:0 3px 0 #ad7b3e}
+.eso-math-stage-rail .complete{border-color:#83c49c;background:#e8f8e9;color:#226145}
+.eso-math-stage-rail .complete b{background:#27865b;color:#fff}
+.eso-math-board{position:relative;isolation:isolate;width:min(650px,100%);aspect-ratio:1672/939;margin:auto;overflow:hidden;border:3px solid #c9a16a;border-radius:22px;background:#e9d6b1;box-shadow:0 13px 29px #25333d35}
+.eso-math-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.eso-math-board-title{position:absolute;z-index:2;top:2%;left:2%;display:flex;align-items:center;gap:7px;max-width:31%;padding:6px 11px;border:1px solid #fff8da;border-radius:999px;background:#fff9e7ed;color:#293f57;box-shadow:0 3px 10px #273b4b25;font-size:clamp(12px,1.1vw,16px)}
+.eso-math-board-title span{font-size:19px;color:#bc7132}
+.eso-math-ticket{position:absolute;z-index:2;top:var(--ticket-top,9%);left:var(--ticket-left,35%);width:var(--ticket-width,31%);height:var(--ticket-height,49%);display:flex;flex-direction:column;justify-content:center;gap:8px;padding:10px 12px;border-radius:10px;background:#fffdf4c4;color:#203752;text-align:center}
+.eso-math-ticket small{color:#825329;font-size:clamp(10px,.9vw,13px);font-weight:850;text-transform:uppercase;letter-spacing:.04em}
+.eso-math-ticket p{margin:0;font-size:clamp(11px,1.02vw,14px);line-height:1.3}
+.eso-math-ticket h3{margin:0;font-size:clamp(14px,1.2vw,17px);line-height:1.25}
+.eso-math-options{position:absolute;z-index:2;left:2.5%;right:2.5%;bottom:3.8%;height:23.5%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2.4%}
+.desktop-refresh .eso-math-options button{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;padding:5px 7px;border:3px solid transparent;border-radius:18px;background:#fffcf586;color:#173850;cursor:pointer;font-size:clamp(13px,1.15vw,16px);line-height:1.2;text-align:center;overflow-wrap:anywhere;transition:transform .16s,background .16s,box-shadow .16s}
+.eso-math-options button span{display:grid;place-items:center;flex:none;width:27px;height:27px;border-radius:50%;background:#ffffffde;color:#805229;font-size:13px;font-weight:900}
+.desktop-refresh .eso-math-options button:hover:not(:disabled),.desktop-refresh .eso-math-options button:focus-visible{transform:translateY(-4px);border-color:#297abc;background:#f4fbffe9;box-shadow:0 0 0 3px #ffffffd7}
+.desktop-refresh .eso-math-options button.correct{border-color:#2b9d65;background:#dcf8d9e8;color:#145038;box-shadow:0 0 15px #45d48b}
+.desktop-refresh .eso-math-options button.wrong{border-color:#c74e42;background:#ffe1dbe8;color:#8d332b}
+.desktop-refresh .eso-math-options button:disabled{cursor:default;opacity:1}
+.eso-math-board[data-solved="true"] .eso-math-ticket::after{content:'✓';position:absolute;top:-8px;right:-8px;display:grid;place-items:center;width:36px;height:36px;border:3px solid #fff;border-radius:50%;background:#26966a;color:#fff;font-size:23px;box-shadow:0 3px 9px #154c3880}
+.eso-math-feedback-row{display:flex;align-items:center;justify-content:space-between;gap:14px;width:min(650px,100%);min-height:57px;margin:9px auto 0;padding:10px 13px;border:1px solid #dfcaa9;border-radius:12px;background:#fffaf1}
+.eso-math-feedback-row p{margin:0}
+.desktop-refresh .eso-math-feedback-row button{flex:none}
+.eso-math-illustrated[data-mission="mat-proporciones"] .eso-math-ticket{--ticket-top:8%;--ticket-left:37%;--ticket-width:25%;--ticket-height:51%}
+.eso-math-illustrated[data-mission="mat-finanzas"] .eso-math-ticket{--ticket-top:7%;--ticket-left:34%;--ticket-width:34%;--ticket-height:50%}
+.eso-math-illustrated[data-mission="mat-problemas"] .eso-math-ticket{--ticket-top:13%;--ticket-left:29%;--ticket-width:42%;--ticket-height:45%}
+.eso-math-illustrated[data-mission="mat-problemas"] .eso-math-options{bottom:5.5%;height:22%}
+@media(max-width:800px){
+  .eso-math-stage-rail{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .eso-math-board{aspect-ratio:auto;min-height:0;padding:85px 11px 12px}
+  .eso-math-backdrop{object-position:center top}
+  .eso-math-board::before{content:'';position:absolute;z-index:1;inset:0;background:linear-gradient(180deg,#ffffff0d 0 75px,#fffaf1d4 150px,#fffaf1ed)}
+  .eso-math-board-title{top:9px;left:9px;max-width:calc(100% - 18px)}
+  .eso-math-ticket,.eso-math-illustrated[data-mission] .eso-math-ticket{position:relative;top:auto;left:auto;width:100%;height:auto;min-height:135px;margin:0 0 10px;padding:14px;background:#fffaf2f2;box-shadow:0 5px 14px #3d414136}
+  .eso-math-ticket small{font-size:11px}
+  .eso-math-ticket p{font-size:14px}
+  .eso-math-ticket h3{font-size:18px}
+  .eso-math-options,.eso-math-illustrated[data-mission] .eso-math-options{position:relative;left:auto;right:auto;bottom:auto;height:auto;grid-template-columns:1fr;gap:8px}
+  .desktop-refresh .eso-math-options button{min-height:58px;padding:10px 14px;border:2px solid #c6a16c;background:#fffaf2ed;font-size:16px;text-align:left;justify-content:flex-start}
+  .eso-math-feedback-row{align-items:stretch;flex-direction:column}
+}
+@media(prefers-reduced-motion:reduce){.desktop-refresh .eso-math-options button{transition:none}}

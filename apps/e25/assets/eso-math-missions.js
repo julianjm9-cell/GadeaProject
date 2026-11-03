@@ -5,7 +5,7 @@
   const step = (place, context, prompt, choices, correct, explanation) => ({place, context, prompt, choices, correct, explanation});
   const missions = {
     'mat-numeros': {
-      title:'La cuenta de la compra', place:'Mercado de números', symbol:'∑', art:'public-boveda-racionales-scene.webp',
+      title:'La cuenta de la compra', place:'Caja del mercado', symbol:'∑', art:'eso-math-market-checkout-v2.webp',
       brief:'Calcula una compra mezclando enteros, fracciones y decimales.', stages:[
         step('Estimación','Compras 3 cuadernos de 2 € cada uno.','¿Cuánto cuestan los tres?',['5 €','6 €','9 €'],1,'3 × 2 = 6.'),
         step('Descuento','Te descuentan la mitad de 6 €.','¿Cuánto pagas ahora?',['3 €','4 €','12 €'],0,'La mitad de 6 es 3.'),
@@ -14,7 +14,7 @@
       ]
     },
     'mat-proporciones': {
-      title:'Prepara un encargo', place:'Mercado de proporciones', symbol:'%', art:'public-mercado-porcentajes-scene.webp',
+      title:'Prepara un encargo', place:'Puesto de fruta', symbol:'%', art:'eso-math-fruit-order-v2.webp',
       brief:'Ajusta cantidades, descuento y escala antes de cerrar el pedido.', stages:[
         step('Precio por kilo','3 kg de fruta cuestan 6 €.','¿Cuánto cuesta 1 kg?',['2 €','3 €','6 €'],0,'6 ÷ 3 = 2 € por kilogramo.'),
         step('Pedido','Mantienes el mismo precio por kilo y compras 5 kg.','¿Cuál es el precio?',['8 €','10 €','15 €'],1,'5 × 2 = 10 €.'),
@@ -68,7 +68,7 @@
       ]
     },
     'mat-finanzas': {
-      title:'Revisa la factura', place:'Mesa de cuentas', symbol:'€', art:'public-mercado-porcentajes-scene.webp',
+      title:'Revisa la factura', place:'Mesa de facturas', symbol:'€', art:'eso-math-invoice-desk-v2.webp',
       brief:'Comprueba un descuento, un impuesto y el total a pagar.', stages:[
         step('Descuento','Un producto cuesta 80 € y tiene una rebaja del 25 %.','¿Cuál es el precio rebajado?',['60 €','20 €','100 €'],0,'El 25 % de 80 es 20; 80 − 20 = 60 €.'),
         step('Impuesto','A los 60 € se añade un IVA hipotético del 10 %.','¿Cuál es el subtotal con IVA?',['64 €','70 €','66 €'],2,'El 10 % de 60 es 6; 60 + 6 = 66 €.'),
@@ -77,7 +77,7 @@
       ]
     },
     'mat-problemas': {
-      title:'Una receta para seis', place:'Cocina de problemas', symbol:'◒', art:'public-boveda-racionales-scene.webp',
+      title:'Una receta para seis', place:'Cocina de proporciones', symbol:'◒', art:'eso-math-recipe-kitchen-v2.webp',
       brief:'Lee los datos, plantea la proporción y comprueba la respuesta.', stages:[
         step('Datos','La receta para 4 personas usa 300 g de arroz.','¿Cuántos gramos corresponden a una persona?',['75 g','100 g','120 g'],0,'300 ÷ 4 = 75 g por persona.'),
         step('Ajuste','Ahora cocinarás para 6 personas.','¿Cuánto arroz necesitas?',['350 g','450 g','600 g'],1,'6 × 75 = 450 g.'),

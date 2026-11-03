@@ -1,6 +1,6 @@
 # Plan de rediseño de juegos avanzados · Profesor Particular y ESO Adultos
 
-3 de noviembre de 2026 · **Los 61 juegos públicos destacados de Profesor Particular ya tienen tablero ilustrado. La siguiente fase abarca los formatos creados por profesores y las 65 misiones de ESO Adultos.**
+4 de noviembre de 2026 · **Los 61 juegos públicos destacados de Profesor Particular ya tienen tablero ilustrado. En ESO Adultos, las primeras cuatro misiones matemáticas están integradas en su escena; quedan 61 misiones por rediseñar.**
 
 ## Qué hay realmente
 
@@ -99,6 +99,8 @@ En estas tablas, **escena → respuesta** describe la ilustración necesaria y e
 | La canción del archivo | Fonoteca con letra/frase legible y ficha histórica. Se relaciona mensaje, contexto y límites de la fuente. No simular reproducción de audio si no se incorpora una pista sonora real. |
 
 ### E5 · Matemáticas (12)
+
+**Primer pack completado:** La cuenta de la compra, Prepara un encargo, Revisa la factura y Una receta para seis utilizan caja de mercado, puesto de fruta, documento de factura y recetario propios. Las tres respuestas están sobre etiquetas, líneas de factura o recipientes de la ilustración. Se conservan las cuatro etapas y la corrección; las partidas completas y los estados correcto/incorrecto se han comprobado en escritorio, tableta y móvil.
 
 | Misión | Escena → respuesta integrada |
 | --- | --- |
