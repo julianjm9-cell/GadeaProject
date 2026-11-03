@@ -1,10 +1,10 @@
 # Plan de rediseño de juegos avanzados · Profesor Particular y ESO Adultos
 
-30 de octubre de 2026 · **Planificación, con el primer pack de Profesor Particular ya implementado.**
+3 de noviembre de 2026 · **Los 61 juegos públicos destacados de Profesor Particular ya tienen tablero ilustrado. La siguiente fase abarca los formatos creados por profesores y las 65 misiones de ESO Adultos.**
 
 ## Qué hay realmente
 
-- **Profesor Particular:** 61 juegos públicos destacados con contenido y corrección definidos. El [inventario con una propuesta para cada uno](../design-previews/plan-juegos-avanzados.md) está organizado por mecánica. Hay fondos, colores y algunos objetos temáticos, pero el mismo componente de respuesta se repite en bastantes escenas. También hay **15 formatos avanzados** que un profesor puede crear: Pasapalabra, Ahorcado, Sopa de letras, Memory, Flashcards, Construye la frase, Línea temporal, Encuentra el error, Crucigrama, Arrastrar y soltar, Misterio, Intruso, Bingo, Descifra el mensaje y Carrera. Estos formatos no son otros 15 juegos públicos de contenido fijo: necesitan temas visuales adaptables a cualquier material.
+- **Profesor Particular:** los 61 juegos públicos destacados tienen escenas ilustradas con zonas de respuesta adaptadas a su mecánica. El [inventario por juego](../design-previews/plan-juegos-avanzados.md) recoge la propuesta y el estado de los seis bloques. También hay **15 formatos avanzados** que un profesor puede crear: Pasapalabra, Ahorcado, Sopa de letras, Memory, Flashcards, Construye la frase, Línea temporal, Encuentra el error, Crucigrama, Arrastrar y soltar, Misterio, Intruso, Bingo, Descifra el mensaje y Carrera. Estos formatos no son otros 15 juegos públicos de contenido fijo: necesitan temas visuales adaptables a cualquier material.
 - **ESO Adultos:** 65 misiones propias, una por tema, repartidas en Inglés (9), Lengua (11), Geografía (10), Historia y Ciudadanía (11), Matemáticas (12), y Ciencias y Tecnología (12). Cada misión tiene cuatro etapas y una respuesta comprobable. Las 56 misiones que declaran imagen propia usan 35 archivos diferentes; nueve misiones de Inglés toman el arte de su tema. Todas comparten en esencia un panel de tres respuestas sobre un fondo, así que la imagen aún no explica suficientemente la acción.
 - Los juegos externos enlazados y los dos juegos básicos por tema de ESO Adultos quedan fuera de este rediseño de **avanzados**. La corrección y los resultados actuales deben conservarse.
 
