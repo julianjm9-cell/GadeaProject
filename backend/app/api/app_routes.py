@@ -816,6 +816,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-bingo-pack-seven.css")
 @router.get("/assets/profesor-bingo-pack-eight.css")
 @router.get("/assets/profesor-choice-pack-nine.css")
+@router.get("/assets/profesor-choice-pack-ten.css")
 @router.get("/assets/profesor-live.css")
 @router.get("/assets/profesor-uploaded-topics.css")
 def profesor_final_styles(request: Request):
@@ -924,6 +925,10 @@ def profesor_game_illustration(filename: str):
         "public-habitos-studio-panels-v2.webp",
         "public-cine-filmframes-v2.webp",
         "public-viajes-diary-entries-v2.webp",
+        "public-portal-conditional-keys-v2.webp",
+        "public-advanced-tenses-timeline-v2.webp",
+        "public-inference-evidence-notes-v2.webp",
+        "public-album-memory-captions-v2.webp",
         "public-fabrica-palabras.webp",
         "public-mochila-bilingue.webp",
         "public-exploradores-sentidos.webp",
