@@ -1,0 +1,72 @@
+/* Cuatro misiones de memoria: las doce tarjetas son etiquetas, piedras y
+   bocadillos dentro del escenario. El contenido y la corrección siguen en HTML. */
+:is(.activity-play .play-question,.live-question)[data-public-scene="fabrica-palabras"]{--memory-scene:url('./games/public-word-factory-cards-v2.webp');--memory-card-color:#173b62;--memory-match:#17633d;--memory-cols:18.8%;--memory-col-gap:2%;--memory-rows:17%;--memory-row-gap:2%}
+:is(.activity-play .play-question,.live-question)[data-public-scene="mochila-bilingue"]{--memory-scene:url('./games/public-bilingual-backpack-cards-v2.webp');--memory-card-color:#113957;--memory-match:#17633d;--memory-cols:15%;--memory-col-gap:1.2%;--memory-rows:19%;--memory-row-gap:3%}
+:is(.activity-play .play-question,.live-question)[data-public-scene="portal-pasado"]{--memory-scene:url('./games/public-past-portal-cards-v2.webp');--memory-card-color:#1d3b69;--memory-match:#17633d;--memory-cols:17%;--memory-col-gap:1.5%;--memory-rows:20%;--memory-row-gap:2%}
+:is(.activity-play .play-question,.live-question)[data-public-scene="plaza-saludos"]{--memory-scene:url('./games/public-greetings-plaza-cards-v2.webp');--memory-card-color:#183d68;--memory-match:#17633d;--memory-cols:18%;--memory-col-gap:2%;--memory-rows:23%;--memory-row-gap:2%}
+
+:is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-stage{
+  width:min(830px,100%);justify-content:center;gap:7px;padding:9px 12px;
+  border:1px solid #fff9e9;border-radius:22px;background:#fffdf4e8;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-board{
+  display:grid!important;flex:none!important;grid-template-columns:repeat(4,var(--memory-cols))!important;
+  grid-template-rows:repeat(3,var(--memory-rows))!important;grid-auto-rows:unset!important;
+  column-gap:var(--memory-col-gap)!important;row-gap:var(--memory-row-gap)!important;
+  align-content:center;justify-content:center;width:min(780px,100%)!important;
+  height:auto!important;min-height:0!important;aspect-ratio:1672/940;
+  margin:0 auto!important;padding:0!important;box-sizing:border-box;
+  border:2px solid #fff9e9!important;border-radius:19px!important;
+  background:var(--memory-scene) center/100% 100% no-repeat!important;
+  box-shadow:0 7px 0 #153c6a58,0 14px 30px #14385f35!important;
+  backdrop-filter:none!important;overflow:hidden;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-card{
+  width:100%;height:100%;min-height:0!important;aspect-ratio:auto!important;
+  margin:0!important;padding:3px 5px!important;border:2px solid transparent!important;
+  border-radius:13px!important;background:transparent!important;background-image:none!important;
+  box-shadow:none!important;color:var(--memory-card-color)!important;
+  font-size:clamp(12px,1.25vw,17px)!important;font-weight:900!important;
+  line-height:1.12!important;text-shadow:0 1px #fff;transform:none!important;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-stage .memory-board .memory-card:not(.revealed):not(.flipped):not(.matched){
+  background:transparent!important;background-image:none!important;
+  border-color:transparent!important;box-shadow:none!important;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-card-mark{
+  width:34px;height:34px;border:2px solid #fff7df;border-radius:50%;
+  background:#1964a2e8;color:#fff;font-size:23px;box-shadow:0 3px 7px #173a6799;
+  text-shadow:none;transform:none;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-card:not(:disabled):hover{
+  border-color:#1386e8!important;background:#c6edff78!important;box-shadow:inset 0 0 0 2px #fff!important;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-card:is(.revealed,.flipped){
+  border-color:#1a84db!important;background:#fffcf3f0!important;box-shadow:inset 0 0 0 2px #fff!important;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-card.matched{
+  border-color:#278b5c!important;background:#d5f7dce8!important;
+  color:var(--memory-match)!important;box-shadow:inset 0 0 0 2px #fff!important;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-card.answer-wrong{
+  border-color:#c54842!important;background:#ffe1dadd!important;color:#8c292a!important;
+}
+:is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-card small{font-size:10px!important}
+
+@media(max-width:700px){
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-stage{flex:none;justify-content:flex-start;padding:8px;background:#fffaf1ed}
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-board{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:repeat(6,minmax(94px,auto))!important;
+    gap:8px!important;align-content:stretch;aspect-ratio:auto;height:auto!important;
+    padding:10px!important;background:var(--memory-scene) center/cover no-repeat!important;
+  }
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-card{
+    min-height:94px!important;padding:6px!important;border-color:#f7efd8!important;
+    background:#fffaf0ec!important;font-size:14px!important;box-shadow:0 3px 8px #173b6444!important;
+  }
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-stage .memory-board .memory-card:not(.revealed):not(.flipped):not(.matched){
+    border-color:#f7efd8!important;background:#fffaf0ed!important;
+    box-shadow:0 3px 8px #173b6444!important;
+  }
+  :is(.activity-play .play-question,.live-question):is([data-public-scene="fabrica-palabras"],[data-public-scene="mochila-bilingue"],[data-public-scene="portal-pasado"],[data-public-scene="plaza-saludos"]) .memory-card.matched{background:#d5f7dcef!important}
+}
