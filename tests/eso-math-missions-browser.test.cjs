@@ -18,6 +18,7 @@ test('las doce misiones de Matemáticas cargan y se completan con corrección y 
       await page.evaluate(id => startGame(id,'quest'),topicId);
       assert.equal(await page.locator('.eso-math-run .eso-mission-steps span,.eso-math-run .eso-math-stage-rail span').count(),4,`${topicId}: etapas`);
       const art = page.locator('.eso-mission-backdrop,.eso-math-backdrop');
+      await art.evaluate(image => image.decode().catch(() => {}));
       assert.equal(await art.evaluate(image => image.complete && image.naturalWidth > 0),true,`${topicId}: imagen`);
       const answers = await page.evaluate(id => EsoMathMissions[id].stages.map(stage => stage.correct),topicId);
       for (const answer of answers) {

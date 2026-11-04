@@ -1,0 +1,32 @@
+/* Lectura, vocabulario, gramática y correo: el texto va en el documento real
+   de cada escena, y las respuestas en fichas o bocadillos ilustrados. */
+.eso-english-illustrated{border-color:#b9d2e7;background:#f8fbff}
+.eso-english-illustrated .eso-game-progress span{background:linear-gradient(90deg,#3689ca,#75bfc3)}
+.eso-english-illustrated .eso-math-stage-rail span{border-color:#b9d2e7;background:#f3f9ff;color:#315979}
+.eso-english-illustrated .eso-math-stage-rail .current{border-color:#5ba4d8;background:#e1f3ff;box-shadow:0 3px 0 #5a97c2}
+.eso-english-illustrated .eso-math-board{border-color:#76acd0;background:#dbeaf5}
+.eso-english-illustrated .eso-math-board-title{background:#f4fbffed;border-color:#f5fdff;color:#15476d}
+.eso-english-illustrated .eso-math-board-title span{color:#237aa9}
+.eso-english-illustrated .eso-math-ticket{background:#fffdf3c9;color:#183a5a}
+.eso-english-illustrated .eso-math-ticket small{color:#226b92}
+.eso-english-illustrated .eso-math-options{bottom:5%;height:22%;gap:2.5%}
+.desktop-refresh .eso-english-illustrated .eso-math-options button{border-radius:14px;background:#fffdf67d;color:#143d5e;font-size:clamp(12px,1vw,14px)}
+.desktop-refresh .eso-english-illustrated .eso-math-options button:hover:not(:disabled),.desktop-refresh .eso-english-illustrated .eso-math-options button:focus-visible{border-color:#2284c1;background:#e8f6fff0}
+.desktop-refresh .eso-english-illustrated .eso-math-options button.correct{border-color:#2b9d65;background:#dcf8d9e8;color:#145038}
+.desktop-refresh .eso-english-illustrated .eso-math-options button.wrong{border-color:#c74e42;background:#ffe1dbe8;color:#8d332b}
+.eso-english-illustrated .eso-math-feedback-row{border-color:#c5d9e9;background:#f7fbff}
+.eso-english-illustrated[data-mission="ing-reading"] .eso-math-ticket{--ticket-top:6%;--ticket-left:27%;--ticket-width:46%;--ticket-height:39%}
+.eso-english-illustrated[data-mission="ing-vocabulary"] .eso-math-ticket{--ticket-top:10%;--ticket-left:36%;--ticket-width:28%;--ticket-height:39%}
+.eso-english-illustrated[data-mission="ing-grammar"] .eso-math-ticket{--ticket-top:15%;--ticket-left:24%;--ticket-width:52%;--ticket-height:42%}
+.eso-english-illustrated[data-mission="ing-writing"] .eso-math-ticket{--ticket-top:12%;--ticket-left:27%;--ticket-width:46%;--ticket-height:37%}
+.eso-english-illustrated[data-mission="ing-vocabulary"] .eso-math-ticket p{font-size:12px}
+.eso-english-illustrated[data-mission="ing-vocabulary"] .eso-math-ticket h3{font-size:15px}
+.eso-english-illustrated[data-mission="ing-vocabulary"] .eso-math-options{bottom:7%;height:23%}
+.eso-english-illustrated[data-mission="ing-writing"] .eso-math-board-title{top:2%;left:2%;max-width:26%}
+@media(max-width:800px){
+  .eso-english-illustrated[data-mission="ing-writing"] .eso-math-board-title{max-width:calc(100% - 18px)}
+  .eso-english-illustrated .eso-math-board::before{background:linear-gradient(180deg,#ffffff0d 0 75px,#f7fbffd9 150px,#f7fbfff0)}
+  .eso-english-illustrated[data-mission] .eso-math-ticket{position:relative;top:auto;left:auto;width:100%;height:auto;min-height:135px;margin:0 0 10px;padding:14px;background:#fffdf5f2}
+  .eso-english-illustrated[data-mission] .eso-math-options{position:relative;left:auto;right:auto;bottom:auto;height:auto;grid-template-columns:1fr;gap:8px}
+  .desktop-refresh .eso-english-illustrated .eso-math-options button{min-height:58px;background:#fffdf5ed;font-size:16px}
+}

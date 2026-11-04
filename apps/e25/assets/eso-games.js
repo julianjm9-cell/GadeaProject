@@ -146,13 +146,13 @@
     ciencias:'public-laboratorio-atomo.webp',
   };
 
-  // Las tres escenas de Inglés son fondos sin texto. Las piezas jugables y su
+  // Las escenas de Inglés son fondos sin texto. Las piezas jugables y su
   // corrección siguen siendo HTML para funcionar con ratón, teclado y táctil.
   const englishScenes = {
-    'ing-reading':{art:'eso-english-desk.webp',place:'Mesa de lectura',task:'Lee el texto y encuentra la pista',piece:'Fragmento',symbol:'▤',stations:['Texto','Pista','Conclusión'],kind:'desk'},
-    'ing-vocabulary':{art:'eso-english-cafe.webp',place:'Plaza de conversaciones',task:'Elige la expresión que encaja',piece:'Expresión',symbol:'◇',stations:['Situación','Expresión','Uso'],kind:'cafe'},
-    'ing-grammar':{art:'eso-english-desk.webp',place:'Mesa de estudio',task:'Elige la pieza que completa la idea',piece:'Ficha',symbol:'▣',stations:['Borrador','Revisión','Versión final'],kind:'desk'},
-    'ing-writing':{art:'eso-english-desk.webp',place:'Estudio de escritura',task:'Prepara el mensaje antes de enviarlo',piece:'Mensaje',symbol:'✉',stations:['Borrador','Mensaje','Envío'],kind:'desk'},
+    'ing-reading':{art:'eso-english-library-board-v2.webp',place:'Biblioteca',task:'Lee el texto y encuentra la pista',piece:'Fragmento',symbol:'▤',stations:['Texto','Pista','Conclusión'],kind:'desk'},
+    'ing-vocabulary':{art:'eso-english-city-board-v2.webp',place:'Ciudad',task:'Elige la expresión que encaja',piece:'Expresión',symbol:'◇',stations:['Situación','Expresión','Uso'],kind:'cafe'},
+    'ing-grammar':{art:'eso-english-calendar-board-v2.webp',place:'Calendario de Alex',task:'Elige la pieza que completa la idea',piece:'Ficha',symbol:'▣',stations:['Borrador','Revisión','Versión final'],kind:'desk'},
+    'ing-writing':{art:'eso-english-email-board-v2.webp',place:'Correo electrónico',task:'Prepara el mensaje antes de enviarlo',piece:'Mensaje',symbol:'✉',stations:['Borrador','Mensaje','Envío'],kind:'desk'},
     'ing-listening':{art:'eso-english-cafe.webp',place:'Café de la plaza',task:'Resuelve una situación cotidiana',piece:'Respuesta',symbol:'☕',stations:['Mostrador','Conversación','Salida'],kind:'cafe'},
     'ing-dialogues':{art:'eso-english-cafe.webp',place:'Café de la plaza',task:'Encuentra la respuesta apropiada',piece:'Diálogo',symbol:'❞',stations:['Saludo','Petición','Despedida'],kind:'cafe'},
     'ing-forms':{art:'eso-english-travel.webp',place:'Mostrador de información',task:'Localiza el dato que necesitas',piece:'Dato',symbol:'▤',stations:['Horario','Formulario','Confirmación'],kind:'travel'},
@@ -358,8 +358,8 @@ if (typeof window !== 'undefined') {
   }
 
   function renderStoryMission(root, head, run, total, progress) {
-    if (run.module.id === 'matematicas' && ['mat-numeros','mat-proporciones','mat-finanzas','mat-problemas'].includes(run.topic.id)) {
-      renderMathSceneMission(root, head, run, total, progress);
+    if (['mat-numeros','mat-proporciones','mat-finanzas','mat-problemas','ing-reading','ing-vocabulary','ing-grammar','ing-writing'].includes(run.topic.id)) {
+      renderIllustratedMission(root, head, run, total, progress);
       return;
     }
     const scene = EsoAdultGames.englishScene(run.topic) || {kind:run.module.id,place:run.quest.place || 'Misión del tema',symbol:run.quest.symbol || '✦'};
@@ -377,18 +377,20 @@ if (typeof window !== 'undefined') {
     </div>`;
   }
 
-  function renderMathSceneMission(root, head, run, total, progress) {
+  function renderIllustratedMission(root, head, run, total, progress) {
     const stage = run.quest.stations[run.missionStep];
     const solved = Number.isInteger(run.questPlaced[stage.id]);
     const art = EsoAdultGames.topicArt(run.topic, run.module);
+    const english = run.module.id === 'ingles';
+    const scene = english ? EsoAdultGames.englishScene(run.topic) : null;
     const steps = run.quest.stations.map((item, index) => `<span class="${index === run.missionStep ? 'current' : index < run.missionStep ? 'complete' : ''}" ${index === run.missionStep ? 'aria-current="step"' : ''}><b>${index < run.missionStep ? '✓' : index + 1}</b>${escapeHtml(item.place)}</span>`).join('');
     const choices = stage.choices.map((choice, index) => `<button type="button" class="${solved && index === stage.correct ? 'correct' : run.missionTried[stage.id]?.includes(index) ? 'wrong' : ''}" onclick="chooseMissionAnswer(${index})" ${solved || run.missionTried[stage.id]?.includes(index) ? 'disabled' : ''} aria-label="Opción ${String.fromCharCode(65 + index)}: ${escapeHtml(choice)}"><span aria-hidden="true">${String.fromCharCode(65 + index)}</span><strong>${escapeHtml(choice)}</strong></button>`).join('');
-    root.innerHTML = `<div class="eso-game-run eso-mission-run eso-math-run eso-math-illustrated" data-mission="${run.topic.id}">${head}
+    root.innerHTML = `<div class="eso-game-run eso-mission-run eso-illustrated-run ${english ? 'eso-english-run eso-english-illustrated' : 'eso-math-run eso-math-illustrated'}" data-mission="${run.topic.id}">${head}
       <div class="eso-game-progress" role="progressbar" aria-label="Etapas completadas" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${progress}"><span style="width:${progress / total * 100}%"></span></div>
       <div class="eso-math-stage-rail" aria-label="Etapas de la misión">${steps}</div>
       <div class="eso-math-board" data-stage="${run.missionStep + 1}" data-solved="${solved}">
         <img class="eso-math-backdrop" src="${art}" alt="" width="1672" height="939">
-        <div class="eso-math-board-title"><span aria-hidden="true">${escapeHtml(run.quest.symbol)}</span><strong>${escapeHtml(run.quest.title)}</strong></div>
+        <div class="eso-math-board-title"><span aria-hidden="true">${escapeHtml(scene?.symbol || run.quest.symbol || '✦')}</span><strong>${escapeHtml(run.quest.title)}</strong></div>
         <div class="eso-math-ticket"><small>${escapeHtml(stage.place)} · etapa ${run.missionStep + 1} de ${total}</small><p>${escapeHtml(stage.context)}</p><h3>${escapeHtml(stage.prompt)}</h3></div>
         <div class="eso-math-options" role="group" aria-label="Respuestas para ${escapeHtml(stage.place)}">${choices}</div>
       </div>

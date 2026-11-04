@@ -1,7 +1,7 @@
 /* Cuatro misiones matemáticas: la pregunta se lee en el documento de la
    escena y las respuestas se eligen en sus tres objetos inferiores. */
-.eso-math-illustrated{padding:14px}
-.eso-math-illustrated .eso-game-progress{width:min(650px,100%);margin:10px auto 8px}
+.eso-illustrated-run{padding:14px}
+.eso-illustrated-run .eso-game-progress{width:min(650px,100%);margin:10px auto 8px}
 .eso-math-stage-rail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(650px,100%);margin:6px auto}
 .eso-math-stage-rail span{display:flex;align-items:center;gap:7px;min-width:0;padding:7px 10px;border:1px solid #d6c2a3;border-radius:11px;background:#fff9eb;color:#635437;font-size:12px;font-weight:750;overflow-wrap:anywhere}
 .eso-math-stage-rail b{display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:50%;background:#ede0c8;color:#785529;font-size:11px}

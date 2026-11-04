@@ -1,6 +1,6 @@
 # Plan de rediseño de juegos avanzados · Profesor Particular y ESO Adultos
 
-4 de noviembre de 2026 · **Los 61 juegos públicos destacados de Profesor Particular ya tienen tablero ilustrado. En ESO Adultos, las primeras cuatro misiones matemáticas están integradas en su escena; quedan 61 misiones por rediseñar.**
+4 de noviembre de 2026 · **Los 61 juegos públicos destacados de Profesor Particular ya tienen tablero ilustrado. En ESO Adultos, ocho misiones están integradas en su escena: cuatro de Matemáticas y cuatro de Inglés. Quedan 57 misiones por rediseñar.**
 
 ## Qué hay realmente
 
@@ -38,6 +38,8 @@ Las 61 propuestas individuales están en el [plan detallado existente](../design
 En estas tablas, **escena → respuesta** describe la ilustración necesaria y el objeto exacto donde interactúa el usuario. Las cuatro etapas y la corrección existentes siguen siendo la fuente de contenido.
 
 ### E1 · Inglés (9)
+
+**Primer bloque terminado:** Reading, Vocabulario, Gramática y Writing tienen escenas propias de biblioteca, ciudad, calendario y correo. Los enunciados ocupan el documento de cada escena y las respuestas se eligen en sus fichas ilustradas. Las otras cinco misiones de Inglés siguen pendientes de esta integración.
 
 | Misión | Escena → respuesta integrada |
 | --- | --- |
