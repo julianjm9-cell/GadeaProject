@@ -59,13 +59,13 @@
   // Shared accessible placement board: drag, tap, or keyboard, with explicit undo.
   function placementBoard(root, items, targets, isChecked, changed, single = false) {
     const order = shuffle(items.map((_, n) => n)), assignments = items.map(() => null);
-    const transferType = 'application/x-profesor-piece-' + uid().toLowerCase();
+    const transferType = 'profesor-piece-' + uid().toLowerCase() + ':';
     let selected = null;
     function draw() {
       root.innerHTML = `<p class="play-hint">Elige una pieza y después su destino, o arrástrala. Pulsa × para devolverla.</p><div class="placement-bank" aria-label="Piezas pendientes">${order.filter(n => assignments[n] === null).map(n => `<button type="button" draggable="true" data-piece="${n}" aria-pressed="${selected === n}" class="${selected === n ? 'selected' : ''}">${escape(items[n])}</button>`).join('') || '<span>✓ Todas las piezas colocadas</span>'}</div><div class="placement-targets">${targets.map((target, n) => `<div class="placement-bucket"><button type="button" class="bucket-title" data-bucket="${n}" aria-label="Colocar en ${escape(target)}">${escape(target)}<small>${single ? 'Una pieza' : 'Coloca las piezas de este grupo'}</small></button><div>${assignments.flatMap((t, k) => t === n ? [`<button type="button" data-return="${k}" aria-label="Devolver ${escape(items[k])}">${escape(items[k])}<b aria-hidden="true">×</b></button>`] : []).join('')}</div></div>`).join('')}</div>`;
       root.querySelectorAll('[data-piece]').forEach(button => {
         button.onclick = () => { if (isChecked()) return; selected = Number(button.dataset.piece); draw(); root.querySelector(`[data-piece="${selected}"]`)?.focus({ preventScroll: true }); };
-        button.ondragstart = e => { if (isChecked()) return e.preventDefault(); e.dataTransfer.setData(transferType, button.dataset.piece); };
+        button.ondragstart = e => { if (isChecked()) return e.preventDefault(); e.dataTransfer.setData('text/plain', transferType + button.dataset.piece); };
       });
       root.querySelectorAll('[data-bucket]').forEach(button => {
         const place = source => { if (isChecked() || source === null || !Number.isInteger(source) || source < 0 || source >= items.length) return; const destination = Number(button.dataset.bucket); if (single) assignments.forEach((t, n) => { if (t === destination) assignments[n] = null; }); assignments[source] = destination; selected = null; draw(); changed(assignments.slice()); root.querySelector(`[data-bucket="${destination}"]`)?.focus({preventScroll:true}); };
@@ -73,7 +73,7 @@
         const bucket = button.parentElement;
         bucket.ondragover = e => { if (!isChecked()) { e.preventDefault(); bucket.classList.add('drag-over'); } };
         bucket.ondragleave = () => bucket.classList.remove('drag-over');
-        bucket.ondrop = e => { e.preventDefault(); const value = e.dataTransfer.getData(transferType); if (value !== '') place(Number(value)); };
+        bucket.ondrop = e => { e.preventDefault(); const value = e.dataTransfer.getData('text/plain'); if (value.startsWith(transferType)) place(Number(value.slice(transferType.length))); };
       });
       root.querySelectorAll('[data-return]').forEach(button => button.onclick = () => { if (isChecked()) return; assignments[Number(button.dataset.return)] = null; draw(); changed(assignments.slice()); });
     }
@@ -971,10 +971,10 @@
           else { picked = null; row.classList.remove('selected'); }
         };
         row.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); row.click(); } };
-        row.ondragstart = event => { event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('application/x-profesor-order-' + index, String(position)); };
+        row.ondragstart = event => { event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', 'profesor-order-' + index + ':' + position); };
         row.ondragover = event => { event.preventDefault(); row.classList.add('drag-over'); };
         row.ondragleave = () => row.classList.remove('drag-over');
-        row.ondrop = event => { event.preventDefault(); row.classList.remove('drag-over'); const value = event.dataTransfer.getData('application/x-profesor-order-' + index); const source = Number(value); if (value !== '' && Number.isInteger(source)) move(source, position); };
+        row.ondrop = event => { event.preventDefault(); row.classList.remove('drag-over'); const value = event.dataTransfer.getData('text/plain'), prefix = 'profesor-order-' + index + ':'; if (value.startsWith(prefix)) { const source = Number(value.slice(prefix.length)); if (Number.isInteger(source)) move(source, position); } };
       });
       root.querySelectorAll('[data-move]').forEach(button => button.onclick = () => move(Number(button.dataset.pos), Number(button.dataset.pos) + Number(button.dataset.move)));
       if (focusPosition !== null) root.querySelector(`[data-sequence-row="${focusPosition}"]`)?.focus();

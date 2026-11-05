@@ -87,11 +87,14 @@
 .pasapalabra-solution-shell>footer{display:flex;justify-content:flex-end;padding:14px 27px;border-top:1px solid #deebfa;background:#fff}
 .pasapalabra-solution-return{min-height:39px;padding:8px 17px;border:1px solid #0869e6;border-radius:10px;background:#0869e6;color:#fff;font-size:13px;font-weight:800}.pasapalabra-solution-return:hover{background:#0758c3;color:#fff}
 @media(max-height:820px) and (min-width:701px){
-  .activity-play [data-type="pasapalabra"] .rosco-layout{width:min(55dvh,430px)}
-  .activity-play [data-type="pasapalabra"] .pasapalabra-card{width:64%;height:56%}
+  .activity-play [data-type="pasapalabra"] [id^="puzzle-"]{gap:10px}
+  .activity-play [data-type="pasapalabra"] .rosco-layout{width:min(48dvh,390px)}
+  .activity-play [data-type="pasapalabra"] .pasapalabra-card{width:60%;height:52%}
 }
 @media(max-width:700px){
   .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])){width:98vw;height:95dvh;padding:10px 9px 7px;border-radius:15px;background-position:center}
+  .activity-play:has(.play-question[data-type="pasapalabra"]:not([hidden])) .play-content{overflow-y:auto}
+  .activity-play .play-question[data-type="pasapalabra"]{flex:none}
   .activity-play .play-question[data-type="pasapalabra"] .play-question-top{min-height:54px;padding:0 60px}
   .activity-play .play-question[data-type="pasapalabra"] .play-kind{min-width:115px;min-height:25px;padding:4px 7px;font-size:10px}
   .activity-play .play-question[data-type="pasapalabra"] .play-number{width:24px;height:24px;font-size:10px}

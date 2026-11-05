@@ -64,8 +64,7 @@
  .live-pasapalabra-stage{display:flex;flex-direction:column;gap:16px}.live-pasapalabra-stage .live-clue{position:static;transform:none;width:100%;height:auto;min-height:240px}.live-pasapalabra-stage .live-clue>p{min-height:70px;max-height:180px}
  .live-hangman-board{grid-template-columns:90px minmax(0,1fr);padding:12px;gap:12px}.live-hangman-figure{grid-row:1/3;padding:4px}.live-hangman-clue p{font-size:16px}.live-hangman-lives{grid-column:1/-1;justify-content:center}.live-hangman-word{grid-column:1/-1}.live-hangman-board .live-letters button{width:44px;height:44px}
  .live-wordsearch-board{grid-template-columns:1fr}.live-wordsearch-sidebar .live-words{display:flex;flex-wrap:wrap}.live-wordsearch-sidebar .live-words button{flex:1 1 100px}.live-wordsearch-sidebar{padding:12px}
- .activity-play [data-type="pasapalabra"] .rosco-layout{display:flex;flex-direction:column;gap:14px;width:min(100%,300px);aspect-ratio:auto}
- .activity-play [data-type="pasapalabra"] .pasapalabra-wheel{position:relative;width:100%;aspect-ratio:1;flex:none}
- .activity-play [data-type="pasapalabra"] .pasapalabra-card{position:static;transform:none;width:100%;height:240px;flex:none;padding:14px}
- .activity-play [data-type="pasapalabra"] .pasapalabra-card>span{font-size:17px}.activity-play [data-type="pasapalabra"] .pasapalabra-card input,.activity-play [data-type="pasapalabra"] .pasapalabra-card [data-answer]{min-height:44px;font-size:16px}
+ .activity-play [data-type="pasapalabra"] .pasapalabra-card>p{font-size:clamp(10px,2.9vw,12px);line-height:1.17}
+ .activity-play [data-type="pasapalabra"] .pasapalabra-card input{height:32px;min-height:32px;font-size:16px}
+ .activity-play [data-type="pasapalabra"] .pasapalabra-card [data-answer]{min-height:32px;font-size:12px}
 }
