@@ -2170,6 +2170,12 @@
     .exam-extra .toolbar { margin-top:12px; }
     .exam-flow { display:block; padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:var(--soft); color:var(--ink); font-size:13px; font-weight:700; }
     @media(max-width:600px) { .teacher-panel.collapsed { right:12px; bottom:12px; } }
+    /* Keep the app grid from inheriting the library tabs' minimum width on iOS. */
+    .app { grid-template-columns:minmax(0,1fr); }
+    .library-tabs { flex-wrap:wrap; justify-content:center; }
+    @media(max-width:520px) {
+      .library-tabs button { min-width:0; flex:1 1 110px; }
+    }
   </style>
 </head>
 <body>

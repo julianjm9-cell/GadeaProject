@@ -154,3 +154,44 @@ test('ESO Adultos and Profesor Particular work with WebKit touch and Chromium at
     }
   } finally { await site.close(); }
 });
+
+test('the four other suite apps render and navigate in WebKit and Chromium', { timeout:90000 }, async () => {
+  const site=await serve();
+  const apps=[
+    {id:'diplomator',ready:'showTab',nav:'[data-tab-btn="temas"]',selected:'#tab-temas'},
+    {id:'cambridge',ready:'showTab',nav:'[data-tab-btn="temas"]',selected:'#tab-temas'},
+    {id:'u25',ready:'openLibrary',nav:'#navModules',selected:'#moduleGrid'},
+    {id:'ocr',ready:'showView',nav:'#navArchivos',selected:'#viewArchivos'},
+  ];
+  try{
+    for(const [engine,name] of [[webkit,'WebKit'],[chromium,'Chromium']]){
+      const browser=await engine.launch(name==='Chromium'?{headless:true,channel:'msedge'}:{headless:true});
+      try{
+        for(const viewport of [{width:320,height:640},{width:390,height:844},{width:768,height:1024},{width:1366,height:768}]){
+          const page=await browser.newPage({viewport,hasTouch:true,isMobile:viewport.width<700});
+          for(const app of apps){
+            const errors=[];
+            const onError=error=>errors.push(error.message);
+            page.on('pageerror',onError);
+            await page.goto(`${site.origin}/apps/${app.id}/index.html`);
+            await page.waitForFunction(name=>typeof window[name]==='function',app.ready);
+            assert.ok((await page.title()).length>4,`${name} ${app.id} title`);
+            const before=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+            assert.ok(before<=2,`${name} ${app.id} ${viewport.width} horizontal overflow ${before}`);
+            if(await page.locator(app.nav).isVisible())await page.locator(app.nav).tap();
+            else if(app.id==='u25')await page.evaluate(()=>openLibrary());
+            else if(app.id==='ocr')await page.evaluate(()=>showView('archivos'));
+            else await page.evaluate(()=>showTab('temas',document.querySelector('[data-tab-btn="temas"]')));
+            assert.equal(await page.locator(app.selected).isVisible(),true,`${name} ${app.id} ${viewport.width} navigation`);
+            const after=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+            const overflowElements=after>2?await page.evaluate(()=>[...document.querySelectorAll('body *')].map(el=>({tag:el.tagName,cls:String(el.className).slice(0,80),id:el.id,right:Math.round(el.getBoundingClientRect().right),width:Math.round(el.getBoundingClientRect().width)})).filter(el=>el.right>innerWidth+2).sort((a,b)=>b.right-a.right).slice(0,8)):[];
+            assert.ok(after<=2,`${name} ${app.id} ${viewport.width} navigated overflow ${after}: ${JSON.stringify(overflowElements)}`);
+            assert.deepEqual(errors,[],`${name} ${app.id} ${viewport.width} page errors`);
+            page.off('pageerror',onError);
+          }
+          await page.close();
+        }
+      }finally{await browser.close();}
+    }
+  }finally{await site.close();}
+});

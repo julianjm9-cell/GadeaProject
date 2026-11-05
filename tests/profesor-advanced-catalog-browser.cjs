@@ -10,7 +10,7 @@ const path = require('node:path');
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
-    await page.locator('.home-primary-nav').getByRole('button', { name: 'Material' }).click();
+    await page.locator('.home-primary-nav').getByRole('button', { name: 'Juegos', exact: true }).click();
     await page.getByRole('button', { name: 'Crear material', exact: true }).click();
 
     const advanced = page.locator('.advanced-family');
@@ -21,7 +21,8 @@ const path = require('node:path');
     for (const type of ['pasapalabra', 'hangman', 'wordsearch', 'memory', 'crossword', 'dragdrop', 'mystery', 'bingo', 'race']) assert.ok(types.includes(type), type + ' is available');
     assert.equal(new Set(types).size, types.length, 'each advanced game appears once');
     assert.equal(await advanced.locator('img').count(), types.length, 'each game has a preview image');
-    assert.equal(await advanced.locator('img').evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0)), true, 'all game previews load');
+    const brokenPreviews = await advanced.locator('img').evaluateAll(async images => (await Promise.all(images.map(image => image.decode().then(() => null, () => image.src)))).filter(Boolean));
+    assert.deepEqual(brokenPreviews, [], 'all game previews load');
 
     await page.locator('#workshopCourse').selectOption('3.º ESO');
     await page.locator('#workshopSubject').selectOption('Lengua');
