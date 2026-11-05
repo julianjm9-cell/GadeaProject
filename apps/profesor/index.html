@@ -670,7 +670,7 @@ function materialPreviewText(m){if(m.activity?.questions?.length)return m.activi
 function legacyMaterialType(m){const kind=String(m.kind||'').toLocaleLowerCase();if(m.attachment&&/\.(png|jpe?g|webp)$/i.test(m.attachment.filename||''))return 'visualquiz';if(kind.includes('quiz')||kind.includes('test'))return 'quiz';if(kind.includes('completar'))return 'gaps';if(kind.includes('error'))return 'error';if(kind.includes('ejercicio'))return 'order';if(kind.includes('explicaci'))return 'reading';return ''}
 function materialTone(type){if(visualTypes.includes(type))return 'visual';if(['flashcard','memory','wordsearch','crossword','dragdrop','quiz','error','pasapalabra','hangman','mystery','intruder','bingo','cipher','race'].includes(type))return 'game';if(['pairs','order','classify','sentence','timeline'].includes(type))return 'organize';return type?'practice':'resource'}
 const materialArtworkFiles={pairs:'basic-pairs',gaps:'basic-gaps',multigaps:'basic-multigaps',numeric:'basic-numeric',quiz:'basic-quiz',short:'basic-short',order:'basic-order',classify:'basic-classify',boolean:'basic-boolean',reading:'basic-reading',problem:'basic-problem',flashcard:'flashcards',memory:'memory',sentence:'sentence',timeline:'timeline',error:'error',wordsearch:'wordsearch',crossword:'crossword',dragdrop:'dragdrop',pasapalabra:'pasapalabra',hangman:'hangman',mystery:'mystery',intruder:'intruder',bingo:'bingo',multiselect:'multiselect',table:'table',cipher:'cipher',race:'race'};
-function usesMatureArtwork(course='',subject=''){const normalized=String(subject).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().trim();return /\b(?:eso|bachillerato)\b/i.test(String(course))||normalized==='ingles'}
+function usesMatureArtwork(course=''){return /\b(?:eso|bachillerato)\b/i.test(String(course))}
 function activityArtworkUrl(type,course='',subject=''){const file=materialArtworkFiles[type]||'uploaded-material',prefix=file!=='uploaded-material'&&usesMatureArtwork(course,subject)?'mature-':'';return `./assets/games/${prefix}${file}.webp`}
 const publicAdvancedArtworkFiles=new Set(publicAdvancedGames.map(game=>game.artwork));
 function isAdvancedArtwork(m){return publicAdvancedArtworkFiles.has(m.artwork)}
@@ -1545,6 +1545,7 @@ init();
 <link rel="stylesheet" href="./assets/profesor-order-pack-thirteen.css?v=20261103-1">
 <link rel="stylesheet" href="./assets/profesor-special-pack-fourteen.css?v=20261103-1">
 <link rel="stylesheet" href="./assets/profesor-special-pack-fifteen.css?v=20261103-1">
+<link rel="stylesheet" href="./assets/profesor-game-ages.css?v=20261105-1">
 <script src="./profesor-state-history.js?v=20261016-daily-1"></script>
 <script src="./profesor-editor-recovery.js?v=20261018-3"></script></body>
 </html>

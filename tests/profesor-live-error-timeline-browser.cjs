@@ -10,7 +10,7 @@ const path=require('node:path');
     await page.setContent('<div id="studentWelcome"></div><div id="studentMaterialList"></div><section id="studentMaterials" hidden></section>');
     await page.evaluate(()=>{
       window.profesorStudentReady=true;
-      const session={id:'test',title:'Práctica',subject:'Historia',status:'in_progress',revision:1,questions:[
+      const session={id:'test',title:'Práctica',subject:'Historia',course:'3.º ESO',status:'in_progress',revision:1,questions:[
         {type:'timeline',prompt:'Ordena los acontecimientos.',options:['1945-05-08 – Rendición de Alemania','1945-09-02 – Rendición de Japón'],hints:[]},
         {type:'error',prompt:'Corrige: “Tú trajistes el libro.”',hints:[]}
       ],progress:{current_index:0,responses:{},grades:{},parts:{}}};
@@ -31,8 +31,11 @@ const path=require('node:path');
       };
     });
     await page.addScriptTag({path:path.resolve('apps/profesor/profesor-sentence-board.js')});
+    await page.addScriptTag({path:path.resolve('apps/profesor/profesor-puzzle-boards.js')});
+    await page.addScriptTag({path:path.resolve('apps/profesor/profesor-live-sync.js')});
     await page.addScriptTag({path:path.resolve('apps/profesor/profesor-live.js')});
     await page.locator('.timeline-board').waitFor();
+    assert.equal(await page.locator('.live-question[data-game-age="teen"]').count(),1);
     assert.doesNotMatch(await page.locator('.timeline-board').innerText(),/1945|05-08|09-02/);
     await page.getByRole('button',{name:'Añadir Rendición de Alemania',exact:true}).click();
     await page.getByRole('button',{name:'Añadir Rendición de Japón',exact:true}).click();
@@ -40,12 +43,14 @@ const path=require('node:path');
     assert.match(await page.locator('.timeline-board').innerText(),/1945-05-08|1945-09-02/);
     assert.equal(await page.locator('.sentence-slot.answer-right,.sentence-slot.answer-wrong').count(),2);
     await page.getByRole('button',{name:'Siguiente →'}).click();
+    assert.equal(await page.locator('.live-question[data-game-age="teen"]').count(),1);
     assert.equal(await page.getByRole('button',{name:'Corrige:',exact:false}).count(),0);
-    assert.equal(await page.locator('.live-error-words button').count(),4);
-    await page.getByRole('button',{name:'trajistes',exact:true}).click();
-    await page.locator('[data-live-field="error-correction"]').fill('trajiste');
-    await page.getByRole('button',{name:'Comprobar respuesta'}).click();
-    assert.equal(await page.locator('.live-error-words button.correct').count(),1);
+    assert.equal(await page.locator('[data-error-token]').count(),4);
+    await page.locator('[data-error-token="1"]').click();
+    const correction=page.locator('[data-shared-puzzle="error"] input');
+    await correction.fill('trajiste');
+    await page.locator('[data-shared-puzzle="error"] [data-board-check]').click();
+    assert.match(await page.locator('[data-shared-puzzle="error"]').innerText(),/trajiste/);
     assert.deepEqual(errors,[]);
     console.log('PASS student timeline reveals dates on check and error requires a correction');
   }finally{await browser.close()}

@@ -781,6 +781,7 @@ def profesor_support_script(request: Request):
 @router.get("/assets/profesor-temario.css")
 @router.get("/assets/profesor-activity-play.css")
 @router.get("/assets/profesor-game-theme.css")
+@router.get("/assets/profesor-game-ages.css")
 @router.get("/assets/profesor-pasapalabra-theme.css")
 @router.get("/assets/profesor-flashcard-theme.css")
 @router.get("/assets/profesor-game-usability.css")
@@ -863,6 +864,8 @@ def profesor_game_illustration(filename: str):
         "sentence-stage.png",
         "timeline-stage.png",
         "flashcard-stage.png",
+        "profesor-play-child-v1.webp",
+        "profesor-play-teen-v1.webp",
         "basic-boolean.webp",
         "basic-classify.webp",
         "basic-gaps.webp",

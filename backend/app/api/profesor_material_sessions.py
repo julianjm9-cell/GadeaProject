@@ -458,7 +458,7 @@ def public_session(row: ProfesorMaterialSession, *, teacher: bool = False) -> di
     questions = row.material_snapshot["questions"]
     progress = row.progress or {}
     completed = row.status == "completed"
-    return {"id": str(row.id), "title": row.title, "subject": row.subject, "status": "expired" if session_is_expired(row) else row.status, "revision": row.revision,
+    return {"id": str(row.id), "title": row.title, "subject": row.subject, "course": (row.material_snapshot or {}).get("course", ""), "status": "expired" if session_is_expired(row) else row.status, "revision": row.revision,
             "expires_at": row.expires_at.isoformat(),
             "created_at": row.created_at.isoformat(), "updated_at": row.updated_at.isoformat(), "questions": [safe_question(q, questions, completed or teacher, n in progress.get("reveals", []), progress.get("responses", {}).get(str(n)), progress.get('grades', {}).get(str(n)) == 'correct', progress.get('parts', {}).get(str(n), {})) for n, q in enumerate(questions)],
             "progress": progress, **({"join_code": visible_session_code(row)} if teacher else {})}

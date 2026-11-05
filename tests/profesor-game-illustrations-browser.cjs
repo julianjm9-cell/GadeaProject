@@ -11,7 +11,7 @@ const assert = require('node:assert/strict');
       const errors = [];
       page.on('pageerror', error => errors.push(error.message));
       await page.goto(pathToFileURL(resolve(__dirname, '../apps/profesor/index.html')).href);
-      await page.locator('.home-primary-nav').getByRole('button', {name:'Material'}).click();
+      await page.locator('.home-primary-nav').getByRole('button', {name:'Juegos', exact:true}).click();
       await page.getByRole('button', {name:'Crear material', exact:true}).click();
       for (const name of ['basic-family', 'advanced-family']) {
         const family = page.locator('.' + name);

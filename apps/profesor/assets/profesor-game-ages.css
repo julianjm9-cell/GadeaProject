@@ -1,0 +1,54 @@
+/* The same fifteen editable games have three visual treatments. All content and
+   answer controls stay in HTML; public curated scenes keep their own artwork. */
+:is(.activity-play .play-question,.live-question)[data-game-age]{
+  --game-accent:#2868ad;--game-soft:#edf5ff;--game-paper:#fffdfaef;
+  position:relative;isolation:isolate;min-width:0;overflow:hidden;
+  border:2px solid var(--game-accent);border-radius:22px;
+  background:linear-gradient(145deg,#f3f8ff,#fffdf8 68%);
+  box-shadow:0 13px 30px #1b456b20,inset 0 1px #fff;
+}
+:is(.activity-play .play-question,.live-question)[data-game-age="child"]{
+  --game-accent:#1277b8;--game-soft:#e4f8fc;--game-paper:#fffef4f2;
+  background-image:linear-gradient(90deg,#ffffff5c,#ffffffe6 17%,#fffffff0 50%,#ffffffe6 83%,#ffffff5c),url('./games/profesor-play-child-v1.webp')!important;
+  background-size:cover;background-position:center;
+}
+:is(.activity-play .play-question,.live-question)[data-game-age="teen"]{
+  --game-accent:#315683;--game-soft:#e9effa;--game-paper:#fffdf7ef;
+  background-image:linear-gradient(90deg,#ffffff70,#ffffffe9 18%,#fffffff0 50%,#ffffffe9 82%,#ffffff70),url('./games/profesor-play-teen-v1.webp')!important;
+  background-size:cover;background-position:center;
+}
+:is(.activity-play .play-question,.live-question)[data-game-age="neutral"]{
+  --game-accent:#5c7194;--game-soft:#f0f4fa;--game-paper:#fff;
+}
+
+/* Each mechanic has its own accent, while the age treatment changes the scene. */
+:is([data-type="pasapalabra"],[data-live-type="pasapalabra"])[data-game-age]{--game-accent:#386bb8;--game-soft:#e8f1ff}
+:is([data-type="hangman"],[data-live-type="hangman"])[data-game-age]{--game-accent:#5473a4;--game-soft:#e9f1fc}
+:is([data-type="wordsearch"],[data-live-type="wordsearch"])[data-game-age]{--game-accent:#5374b6;--game-soft:#eaf2ff}
+:is([data-type="memory"],[data-live-type="memory"])[data-game-age]{--game-accent:#7959b8;--game-soft:#f2ebff}
+:is([data-type="flashcard"],[data-live-type="flashcard"])[data-game-age]{--game-accent:#268e91;--game-soft:#e7f8f6}
+:is([data-type="sentence"],[data-live-type="sentence"])[data-game-age]{--game-accent:#608a50;--game-soft:#ecf8e7}
+:is([data-type="timeline"],[data-live-type="timeline"])[data-game-age]{--game-accent:#9b7042;--game-soft:#fcf1e4}
+:is([data-type="error"],[data-live-type="error"])[data-game-age]{--game-accent:#ae6262;--game-soft:#fff0ee}
+:is([data-type="crossword"],[data-live-type="crossword"])[data-game-age]{--game-accent:#5a67aa;--game-soft:#eef0ff}
+:is([data-type="dragdrop"],[data-live-type="dragdrop"])[data-game-age]{--game-accent:#3f8a73;--game-soft:#e7f8f0}
+:is([data-type="mystery"],[data-live-type="mystery"])[data-game-age]{--game-accent:#7862a9;--game-soft:#f1ecfc}
+:is([data-type="intruder"],[data-live-type="intruder"])[data-game-age]{--game-accent:#aa6949;--game-soft:#fff0e7}
+:is([data-type="bingo"],[data-live-type="bingo"])[data-game-age]{--game-accent:#278aab;--game-soft:#e8f7fc}
+:is([data-type="cipher"],[data-live-type="cipher"])[data-game-age]{--game-accent:#8061a2;--game-soft:#f2edfa}
+:is([data-type="race"],[data-live-type="race"])[data-game-age]{--game-accent:#b27837;--game-soft:#fff2df}
+
+:is(.activity-play .play-question,.live-question)[data-game-age] :is(.play-kind,.live-kind,.play-number,.game-timer){
+  border-color:color-mix(in srgb,var(--game-accent) 33%,white);background:var(--game-soft);color:var(--game-accent);
+}
+:is(.activity-play .play-question,.live-question)[data-game-age] :is(.puzzle-studio,.mini-game,.challenge-game,.memory-stage,.hangman-game,.error-studio,.crossword-workbench,.matching-workbench){
+  border-color:color-mix(in srgb,var(--game-accent) 25%,white);background:var(--game-paper);
+  box-shadow:0 9px 24px #233d5a20;
+}
+:is(.activity-play .play-question,.live-question)[data-game-age] :is(.puzzle-guide,.mini-game-guide,.challenge-guide,.memory-toolbar){
+  border-color:color-mix(in srgb,var(--game-accent) 25%,white);background:var(--game-soft);
+}
+:is(.activity-play .play-question,.live-question)[data-game-age] :is(button,input,textarea):focus-visible{outline:3px solid var(--game-accent);outline-offset:2px}
+@media(max-width:700px){
+  :is(.activity-play .play-question,.live-question)[data-game-age]{border-radius:15px;background-position:center;background-size:cover}
+}

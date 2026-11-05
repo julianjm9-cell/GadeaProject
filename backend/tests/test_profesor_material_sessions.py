@@ -46,6 +46,9 @@ def test_teacher_session_list_keeps_the_material_course_for_profile_filtering(cl
     assert saved.status_code == 200, saved.text
     created = web.post('/api/profesor/material-sessions', json={'material_id': 'm1'})
     assert created.status_code == 200, created.text
+    assert created.json()['session']['course'] == '2.º Primaria'
+    detail = web.get(f"/api/profesor/material-sessions/{created.json()['session']['id']}")
+    assert detail.json()['session']['course'] == '2.º Primaria'
     listed = web.get('/api/profesor/material-sessions').json()['sessions']
     assert listed[0]['material_id'] == 'm1'
     assert listed[0]['course'] == '2.º Primaria'
