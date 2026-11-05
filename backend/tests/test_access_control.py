@@ -702,6 +702,9 @@ def test_eso_desk_assets_are_served_for_the_production_page(client, filename):
 @pytest.mark.parametrize("path,content_type", [
     ("/assets/eso-games.js", "javascript"),
     ("/assets/eso-final.css", "text/css"),
+    ("/assets/eso-mission-boards.css", "text/css"),
+    ("/assets/games/eso-geo-valley-v1.webp", "image/webp"),
+    ("/assets/games/eso-digital-safety-v1.webp", "image/webp"),
 ])
 def test_eso_game_assets_are_served_for_the_production_page(client, path, content_type):
     test_client, _ = client

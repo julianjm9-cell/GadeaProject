@@ -1,0 +1,79 @@
+/* The mission text and answers are real controls placed on a contextual object.
+   Images stay decorative; the complete exercise works without them. */
+.eso-object-run{width:min(1180px,100%);padding:18px;background:#f8fbff}
+.eso-object-run .eso-game-progress{margin:11px 0 8px}
+.eso-object-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.eso-object-steps span{display:flex;align-items:center;gap:8px;min-width:0;padding:7px 10px;border:1px solid #d4dfec;border-radius:12px;background:#fff;color:#47617d;font-size:12px;font-weight:750}
+.eso-object-steps span span{display:block;overflow:hidden;padding:0;border:0;background:none;text-overflow:ellipsis;white-space:nowrap}
+.eso-object-steps b{display:grid;place-items:center;flex:none;width:25px;height:25px;border-radius:50%;background:#e3ebf5;color:#315a86}
+.eso-object-steps .current{border-color:#589bcb;background:#eaf7ff;color:#124c83;box-shadow:0 3px 0 #8fc1de}
+.eso-object-steps .complete{border-color:#87c9a7;background:#effaf3;color:#20734c}
+.eso-object-steps .complete b{background:#238b5b;color:#fff}
+.eso-object-board{--object-accent:#276b9a;position:relative;isolation:isolate;min-height:365px;height:clamp(365px,31vw,405px);overflow:hidden;border:2px solid #9ac1da;border-radius:22px;background:#dbe9ef;box-shadow:0 18px 35px #17426529}
+.eso-object-board>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.eso-object-board:before{content:'';position:absolute;z-index:1;inset:0;background:linear-gradient(90deg,#14314c25,#14314c08 50%,#14314c45),linear-gradient(180deg,#0e304d4c,transparent 25% 82%,#0e304d33);pointer-events:none}
+.eso-object-scene-title{position:absolute;z-index:2;top:13px;left:16px;display:flex;align-items:center;gap:10px;max-width:calc(100% - 32px);padding:7px 13px;border:1px solid #fff;border-radius:14px;background:#fffdf1ed;color:#143955;box-shadow:0 6px 16px #12395630}
+.eso-object-scene-title>span{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--object-accent);color:#fff;font-size:18px}
+.eso-object-scene-title small{display:block;color:#507391;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.eso-object-scene-title strong{display:block;font-size:15px;line-height:1.2}
+.eso-object-surface{position:absolute;z-index:2;top:20%;bottom:7%;left:4%;display:flex;flex-direction:column;justify-content:center;gap:12px;width:46%;padding:22px 24px;border:2px solid #fff9e9;border-radius:13px;background:#fffdf2f1;color:#183653;box-shadow:0 10px 0 #896d58a6,0 16px 27px #142f463e;transform:rotate(-1deg)}
+.eso-object-head{display:flex;align-items:flex-start;gap:12px}
+.eso-object-seal{display:grid;place-items:center;flex:none;width:38px;height:38px;border:2px solid #a4c9db;border-radius:50%;background:#e7f3f5;color:var(--object-accent);font-size:20px}
+.eso-object-head small{display:block;margin-bottom:8px;color:var(--object-accent);font-size:11px;font-weight:850;letter-spacing:.035em;text-transform:uppercase}
+.eso-object-head strong{display:block;font-size:clamp(16px,1.55vw,22px);line-height:1.27;overflow-wrap:anywhere}
+.eso-object-surface>p{margin:0;font-size:clamp(12px,1.05vw,15px);line-height:1.4;overflow-wrap:anywhere}
+.eso-object-detail{display:flex;gap:8px;margin-top:5px}
+.eso-object-detail i{display:block;height:5px;width:25%;border-radius:5px;background:#c3d2d7}
+.eso-object-detail i:nth-child(2){width:38%}.eso-object-detail i:nth-child(3){width:13%}
+.eso-object-answers{position:absolute;z-index:2;top:20%;right:4%;bottom:7%;display:flex;flex-direction:column;justify-content:center;gap:10px;width:42%;padding:15px;border:2px solid #ffffffdc;border-radius:18px;background:#eaf5f2d9;box-shadow:0 10px 24px #173a5336;backdrop-filter:blur(6px)}
+.eso-object-answers>small{display:block;color:#1c506e;font-size:11px;font-weight:850;letter-spacing:.03em;line-height:1.3}
+.desktop-refresh .eso-object-answers button{display:flex;align-items:center;gap:10px;min-height:60px;width:100%;padding:8px 12px;border:2px solid #b9d4dd;border-radius:12px;background:#fffdf4f2;color:#153b56;box-shadow:0 4px 0 #8cabb6;cursor:pointer;text-align:left;font-size:clamp(12px,1vw,15px);font-weight:700;line-height:1.24;overflow-wrap:anywhere;transition:transform .16s,box-shadow .16s,border-color .16s}
+.eso-object-answers button b{display:grid;place-items:center;flex:none;width:29px;height:29px;border-radius:8px;background:#e2edf4;color:var(--object-accent);font-size:13px}
+.desktop-refresh .eso-object-answers button:hover:not(:disabled),.desktop-refresh .eso-object-answers button:focus-visible{transform:translateY(-3px);border-color:#1176c5;box-shadow:0 6px 0 #5ba9d5;outline:2px solid #fff;outline-offset:1px}
+.desktop-refresh .eso-object-answers button.correct{border-color:#259060;background:#e4f8e8;color:#155d3b;box-shadow:0 4px 0 #59b687}
+.desktop-refresh .eso-object-answers button.wrong{border-color:#bd534c;background:#ffebe5;color:#863c35;box-shadow:0 4px 0 #db8e7f}
+.desktop-refresh .eso-object-answers button:disabled{opacity:1;cursor:default}
+.eso-object-board[data-solved="true"] .eso-object-surface:after{content:'✓';position:absolute;top:-15px;right:-15px;display:grid;place-items:center;width:43px;height:43px;border:3px solid #fff;border-radius:50%;background:#228e60;color:#fff;box-shadow:0 4px 13px #154e38a3;font-size:27px;transform:rotate(10deg)}
+.eso-object-feedback{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;margin-top:9px;padding:8px 12px;border:1px solid #d7e4ef;border-radius:13px;background:#fff}
+.eso-object-feedback p{margin:0;line-height:1.4}.eso-object-feedback button{flex:none}
+
+/* Eight objects with different geometry and controls, chosen for each topic. */
+.eso-object-run[data-board="document"] .eso-object-surface{background:repeating-linear-gradient(#fffdf7 0 37px,#dce9e8 38px,#fffdf7 39px);border-radius:5px 5px 17px 5px;transform:rotate(-2deg)}
+.eso-object-run[data-board="document"] .eso-object-answers{background:#f7f1e8e8;border-radius:5px;transform:rotate(1deg)}
+.eso-object-run[data-board="document"] .eso-object-answers button{border-radius:5px;box-shadow:0 3px 0 #b6a48f}
+.eso-object-run[data-board="map"] .eso-object-surface{background:linear-gradient(135deg,#e6f5e7f5,#fef5d9f5);border:3px solid #f9f2d3;clip-path:polygon(0 0,97% 2%,100% 97%,3% 100%)}
+.eso-object-run[data-board="map"] .eso-object-answers{background:#f1f8e9df}
+.eso-object-run[data-board="map"] .eso-object-answers button{border-radius:22px 10px 10px 22px}
+.eso-object-run[data-board="dialogue"] .eso-object-surface{top:24%;bottom:11%;border-radius:30px 30px 30px 7px;background:#fffdf7f4;transform:none}
+.eso-object-run[data-board="dialogue"] .eso-object-answers{background:#e7f6fcdd;border-radius:30px 10px 30px 10px}
+.eso-object-run[data-board="dialogue"] .eso-object-answers button{border-radius:20px 20px 20px 5px}
+.eso-object-run[data-board="lab"] .eso-object-surface{border:5px solid #a1bbc4;border-radius:14px;background:#e7f3f5f1;box-shadow:0 10px 0 #527785,0 18px 25px #14334f45;transform:none}
+.eso-object-run[data-board="lab"] .eso-object-answers{background:#daeef1e5;border-color:#b8d8df}
+.eso-object-run[data-board="lab"] .eso-object-answers button{border-left:9px solid #4392a7;border-radius:9px}
+.eso-object-run[data-board="route"] .eso-object-surface{top:23%;bottom:10%;background:#f7f0ddf1;border:3px dashed #fffdf3;border-radius:24px;transform:rotate(-1deg)}
+.eso-object-run[data-board="route"] .eso-object-answers{background:#edf5f0d9}
+.eso-object-run[data-board="route"] .eso-object-answers button{border-left:10px solid #65a779;border-radius:16px 9px 9px 16px}
+.eso-object-run[data-board="dashboard"] .eso-object-surface{border:7px solid #294e6a;border-radius:18px;background:#edf7f9f2;box-shadow:0 11px 0 #163b55,0 20px 30px #12334d49;transform:none}
+.eso-object-run[data-board="dashboard"] .eso-object-detail i{height:19px;border-radius:4px 4px 0 0;background:#87c3d9}.eso-object-run[data-board="dashboard"] .eso-object-detail i:nth-child(2){height:30px;background:#5d9bbf}
+.eso-object-run[data-board="dashboard"] .eso-object-answers{background:#e6f2f8e4;border-color:#bfd8e7}
+.eso-object-run[data-board="archive"] .eso-object-surface{top:23%;bottom:11%;border:3px solid #d7ba8c;border-radius:3px 17px 17px 3px;background:#fff9eaf4;box-shadow:-10px 0 #ae7c55,0 11px 0 #866345,0 18px 29px #20334449;transform:rotate(-1deg)}
+.eso-object-run[data-board="archive"] .eso-object-answers{background:#f3e7d3e6;border-color:#f5eddd}
+.eso-object-run[data-board="archive"] .eso-object-answers button{border-color:#d6b797;border-radius:4px 13px 13px 4px}
+.eso-object-run[data-board="ledger"] .eso-object-surface{top:18%;bottom:6%;left:10%;width:36%;border-radius:5px;background:repeating-linear-gradient(#fffdfa 0 33px,#dfe7e5 34px,#fffdfa 35px);transform:rotate(-2deg)}
+.eso-object-run[data-board="ledger"] .eso-object-answers{background:#eaf4f4e3}
+.eso-object-run[data-board="ledger"] .eso-object-answers button{border-radius:7px;background:#fffdf5}
+
+@media(max-width:800px){
+  .eso-object-run{padding:12px}.eso-object-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .eso-object-board{height:auto;min-height:0;padding:145px 10px 12px}
+  .eso-object-board>img{height:170px;object-position:center top}
+  .eso-object-board:before{background:linear-gradient(180deg,#122f4d2b 0,#dbe9f40c 130px,#ecf4f6 165px)}
+  .eso-object-scene-title{top:12px;left:12px;right:12px;max-width:none}
+  .eso-object-surface,.eso-object-run[data-board] .eso-object-surface{position:relative;top:auto;bottom:auto;left:auto;width:100%;min-height:0;margin-bottom:14px;padding:16px 17px;transform:none;clip-path:none;box-shadow:0 5px 13px #23455b2b}
+  .eso-object-head strong{font-size:17px}.eso-object-surface>p{font-size:14px}
+  .eso-object-answers,.eso-object-run[data-board] .eso-object-answers{position:relative;top:auto;right:auto;bottom:auto;width:100%;padding:11px;transform:none;backdrop-filter:none}
+  .desktop-refresh .eso-object-answers button{min-height:55px;font-size:14px}
+  .eso-object-feedback{align-items:stretch;flex-direction:column}
+}
+@media(max-width:420px){.eso-object-scene-title strong{font-size:13px}.eso-object-steps span{font-size:11px;padding:5px}.eso-object-head{gap:8px}.eso-object-seal{width:31px;height:31px;font-size:16px}}
+@media(prefers-reduced-motion:reduce){.desktop-refresh .eso-object-answers button{transition:none}}

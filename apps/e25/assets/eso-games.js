@@ -160,6 +160,73 @@
     'ing-exam-strategy':{art:'eso-english-desk.webp',place:'Mesa de examen',task:'Selecciona la mejor estrategia',piece:'Pista',symbol:'✓',stations:['Lectura','Respuesta','Revisión'],kind:'desk'},
   };
 
+  // A mission's answers belong to the object being used, not to a generic
+  // question card. The eight earlier illustrated boards keep their own layout.
+  const missionBoards = {
+    'ing-listening':['dialogue','Ventanilla de información'],
+    'ing-dialogues':['dialogue','Conversación'],
+    'ing-forms':['document','Formulario de viaje'],
+    'ing-connectors':['document','Mensaje en edición'],
+    'ing-exam-strategy':['archive','Hoja de examen'],
+    'len-comprension':['document','Texto y evidencias'],
+    'len-resumen':['document','Mesa de edición'],
+    'len-gramatica':['document','Oración en análisis'],
+    'len-ortografia':['document','Borrador'],
+    'len-redaccion':['document','Solicitud'],
+    'len-literatura':['archive','Libro abierto'],
+    'len-textos-vida':['document','Solicitud administrativa'],
+    'len-medios':['archive','Portada del periódico'],
+    'len-argumentacion':['dialogue','Mesa de debate'],
+    'len-comentario':['archive','Texto comentado'],
+    'len-presentacion':['document','Hoja de entrega'],
+    'geo-mapas':['map','Mapa del refugio'],
+    'geo-relieve':['map','Valle y montaña','eso-geo-valley-v1.webp'],
+    'geo-poblacion':['dashboard','Censo del barrio'],
+    'geo-economia':['map','Mapa de los oficios'],
+    'geo-global':['route','Ruta de la camiseta'],
+    'geo-espana-europa':['map','Mapa político'],
+    'geo-medioambiente':['lab','Plan del embalse','public-invernadero-cientifico.webp'],
+    'geo-fuentes':['dashboard','Informe de la comarca'],
+    'geo-ciudad':['map','Plano del barrio'],
+    'geo-trabajo':['ledger','Presupuesto del mes','eso-math-market-checkout-v2.webp'],
+    'his-antigua':['archive','Vitrina del museo'],
+    'his-medieval':['map','Ciudad medieval'],
+    'his-moderna':['archive','Imprenta de ideas'],
+    'his-contemporanea':['route','Ciudad industrial'],
+    'his-sigloxx':['route','Línea del tiempo'],
+    'his-ciudadania':['dialogue','Pleno municipal'],
+    'his-espana':['archive','Archivo de la Transición'],
+    'his-andalucia':['archive','Ficha de patrimonio'],
+    'his-valores':['dialogue','Mesa de mediación'],
+    'his-fuentes':['document','Documento histórico'],
+    'his-musica-cultura':['archive','Fonoteca histórica'],
+    'mat-algebra':['dashboard','Código de entrada'],
+    'mat-geometria':['map','Plano del jardín'],
+    'mat-funciones':['dashboard','Tarifa y gráfica'],
+    'mat-estadistica':['dashboard','Encuesta del barrio'],
+    'mat-medida':['route','Etiquetas de la mudanza'],
+    'mat-graficas-examen':['dashboard','Gráfica de visitantes'],
+    'mat-calculadora':['ledger','Recibo y calculadora','eso-math-invoice-desk-v2.webp'],
+    'mat-razonamiento':['lab','Laboratorio lógico'],
+    'cie-metodo':['lab','Cuaderno de ensayo'],
+    'cie-biologia':['route','Ruta del oxígeno'],
+    'cie-ecologia':['map','Red del ecosistema'],
+    'cie-materia':['lab','Mesa de mezclas','public-laboratorio-mezclas.webp'],
+    'cie-fisica':['route','Pista de bicicleta'],
+    'cie-tecnologia':['dashboard','Hoja de cálculo','eso-english-desk.webp'],
+    'cie-tierra':['map','Observatorio del planeta'],
+    'cie-cuerpo':['route','Recorrido del alimento'],
+    'cie-laboratorio':['lab','Informe de termómetros'],
+    'cie-sostenibilidad':['dashboard','Consumo del centro'],
+    'cie-digitalizacion':['dashboard','Seguridad de la cuenta','eso-digital-safety-v1.webp'],
+    'cie-proyecto':['lab','Taller de prototipos'],
+  };
+
+  function missionBoard(topic) {
+    const [kind, object, art] = missionBoards[topic?.id] || [];
+    return kind ? {kind, object, art} : null;
+  }
+
   function englishScene(topic) {
     return englishScenes[topic?.id] || null;
   }
@@ -170,7 +237,7 @@
   }
 
   function topicArt(topic, module) {
-    const file = englishScene(topic)?.art || missionFor(topic,module)?.art || topicArtNames[topic.id] || fallbackArt[module.id];
+    const file = missionBoard(topic)?.art || englishScene(topic)?.art || missionFor(topic,module)?.art || topicArtNames[topic.id] || fallbackArt[module.id];
     const localPreview = root.location?.protocol === 'file:' || root.location?.pathname?.includes('/apps/e25/');
     return `${localPreview ? '../profesor/assets/games/' : '/assets/games/'}${file}`;
   }
@@ -209,7 +276,7 @@
     return Math.max(0, 100 - Math.max(0, mistakes) * 20);
   }
 
-  const api = {topicQuiz, topicPairs, topicQuest, topicArt, englishScene, missionFor, pairsScore, questScore};
+  const api = {topicQuiz, topicPairs, topicQuest, topicArt, englishScene, missionFor, missionBoard, pairsScore, questScore};
   root.EsoAdultGames = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);
@@ -362,6 +429,11 @@ if (typeof window !== 'undefined') {
       renderIllustratedMission(root, head, run, total, progress);
       return;
     }
+    const board = EsoAdultGames.missionBoard(run.topic);
+    if (board) {
+      renderObjectMission(root, head, run, total, progress, board);
+      return;
+    }
     const scene = EsoAdultGames.englishScene(run.topic) || {kind:run.module.id,place:run.quest.place || 'Misión del tema',symbol:run.quest.symbol || '✦'};
     const stage = run.quest.stations[run.missionStep];
     const solved = Number.isInteger(run.questPlaced[stage.id]);
@@ -374,6 +446,24 @@ if (typeof window !== 'undefined') {
           <div class="eso-mission-panel"><span class="eso-mission-context">${escapeHtml(stage.context)}</span><h4>${escapeHtml(stage.prompt)}</h4><div class="eso-mission-choices">${stage.choices.map((choice,index)=>`<button type="button" class="${solved && index === stage.correct ? 'correct' : run.missionTried[stage.id]?.includes(index) ? 'wrong' : ''}" onclick="chooseMissionAnswer(${index})" ${solved || run.missionTried[stage.id]?.includes(index) ? 'disabled' : ''}><span aria-hidden="true">${String.fromCharCode(65+index)}</span>${escapeHtml(choice)}</button>`).join('')}</div><div class="eso-mission-bottom"><p class="eso-mission-feedback ${run.missionWrong !== null && !solved ? 'error' : solved ? 'success' : ''}" role="status" aria-live="polite">${escapeHtml(run.missionFeedback || 'Elige la respuesta que resuelve esta etapa.')}</p>${solved ? `<button type="button" class="primary" onclick="nextMissionStep()">${run.missionStep + 1 < total ? 'Siguiente etapa' : 'Ver resultado'} →</button>` : ''}</div></div>
         </div>
       </div>
+    </div>`;
+  }
+
+  function renderObjectMission(root, head, run, total, progress, board) {
+    const stage = run.quest.stations[run.missionStep];
+    const solved = Number.isInteger(run.questPlaced[stage.id]);
+    const art = EsoAdultGames.topicArt(run.topic, run.module);
+    const stepNames = run.quest.stations.map((item, index) => `<span class="${index === run.missionStep ? 'current' : index < run.missionStep ? 'complete' : ''}" ${index === run.missionStep ? 'aria-current="step"' : ''}><b>${index < run.missionStep ? '✓' : index + 1}</b><span>${escapeHtml(item.place)}</span></span>`).join('');
+    const choices = stage.choices.map((choice, index) => `<button type="button" class="${solved && index === stage.correct ? 'correct' : run.missionTried[stage.id]?.includes(index) ? 'wrong' : ''}" onclick="chooseMissionAnswer(${index})" ${solved || run.missionTried[stage.id]?.includes(index) ? 'disabled' : ''} aria-label="Opción ${String.fromCharCode(65 + index)}: ${escapeHtml(choice)}"><b aria-hidden="true">${String.fromCharCode(65 + index)}</b><span>${escapeHtml(choice)}</span></button>`).join('');
+    root.innerHTML = `<div class="eso-game-run eso-object-run" data-mission="${escapeHtml(run.topic.id)}" data-board="${board.kind}">${head}
+      <div class="eso-game-progress" role="progressbar" aria-label="Etapas completadas" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${progress}"><span style="width:${progress / total * 100}%"></span></div>
+      <div class="eso-object-steps" aria-label="Etapas de la misión">${stepNames}</div>
+      <div class="eso-object-board" data-solved="${solved}"><img src="${art}" alt="" width="1440" height="810">
+        <div class="eso-object-scene-title"><span aria-hidden="true">${escapeHtml(run.quest.symbol || '✦')}</span><div><small>${escapeHtml(run.quest.place)}</small><strong>${escapeHtml(run.quest.title)}</strong></div></div>
+        <div class="eso-object-surface"><div class="eso-object-head"><span class="eso-object-seal" aria-hidden="true">${escapeHtml(run.quest.symbol || '✦')}</span><div><small>${escapeHtml(board.object)} · ${escapeHtml(stage.place)}</small><strong>${escapeHtml(stage.prompt)}</strong></div></div><p>${escapeHtml(stage.context)}</p><div class="eso-object-detail" aria-hidden="true"><i></i><i></i><i></i></div></div>
+        <div class="eso-object-answers" role="group" aria-label="Respuestas de ${escapeHtml(stage.place)}"><small>${escapeHtml(board.object)} · elige la respuesta correcta</small>${choices}</div>
+      </div>
+      <div class="eso-object-feedback"><p class="eso-mission-feedback ${run.missionWrong !== null && !solved ? 'error' : solved ? 'success' : ''}" role="status" aria-live="polite">${escapeHtml(run.missionFeedback || 'Elige la respuesta en la escena.')}</p>${solved ? `<button type="button" class="primary" onclick="nextMissionStep()">${run.missionStep + 1 < total ? 'Siguiente etapa' : 'Ver resultado'} →</button>` : ''}</div>
     </div>`;
   }
 

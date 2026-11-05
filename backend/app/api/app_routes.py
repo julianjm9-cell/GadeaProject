@@ -701,6 +701,7 @@ def diplomator_refresh_styles():
 @router.get("/assets/eso-final.css")
 @router.get("/assets/eso-math-scenes.css")
 @router.get("/assets/eso-english-mission-scenes.css")
+@router.get("/assets/eso-mission-boards.css")
 @router.get("/assets/eso-games.js")
 @router.get("/assets/eso-english-missions.js")
 @router.get("/assets/eso-math-missions.js")
@@ -898,6 +899,8 @@ def profesor_game_illustration(filename: str):
         "wordsearch.webp",
         "eso-english-travel.webp",
         "eso-english-desk.webp",
+        "eso-geo-valley-v1.webp",
+        "eso-digital-safety-v1.webp",
         "eso-english-cafe.webp",
         "public-tren-decenas.webp",
         "public-tren-wagon-v2.png",

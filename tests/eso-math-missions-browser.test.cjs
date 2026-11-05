@@ -16,30 +16,27 @@ test('las doce misiones de Matemáticas cargan y se completan con corrección y 
     assert.equal(topicIds.length,12);
     for (const topicId of topicIds) {
       await page.evaluate(id => startGame(id,'quest'),topicId);
-      assert.equal(await page.locator('.eso-math-run .eso-mission-steps span,.eso-math-run .eso-math-stage-rail span').count(),4,`${topicId}: etapas`);
-      const art = page.locator('.eso-mission-backdrop,.eso-math-backdrop');
+      assert.equal(await page.locator('.eso-object-steps > span,.eso-math-stage-rail > span').count(),4,`${topicId}: etapas`);
+      const art = page.locator('.eso-object-board > img,.eso-math-backdrop');
       await art.evaluate(image => image.decode().catch(() => {}));
       assert.equal(await art.evaluate(image => image.complete && image.naturalWidth > 0),true,`${topicId}: imagen`);
       const answers = await page.evaluate(id => EsoMathMissions[id].stages.map(stage => stage.correct),topicId);
       for (const answer of answers) {
-        await page.locator('.eso-mission-choices button,.eso-math-options button').nth(answer).click();
+        await page.locator('.eso-object-answers button,.eso-math-options button').nth(answer).click();
         assert.match(await page.locator('.eso-mission-feedback').innerText(),/Correcto/,`${topicId}: corrección`);
         await page.getByRole('button',{name:/Siguiente etapa|Ver resultado/}).click();
       }
       assert.match(await page.locator('.eso-game-result').innerText(),/100 %/,`${topicId}: resultado`);
       assert.equal(await page.evaluate(id => state.gameResults[id]?.quest?.best,topicId),100,`${topicId}: progreso`);
-      if (topicId === 'mat-geometria') await page.screenshot({path:resolve(__dirname,'../tmp/eso-math-mission-result.png')});
     }
     await page.evaluate(() => startGame('mat-proporciones','quest'));
-    await page.screenshot({path:resolve(__dirname,'../tmp/eso-math-mission-desktop.png')});
     const wrong = await page.evaluate(() => (EsoMathMissions['mat-proporciones'].stages[0].correct + 1) % 3);
-    await page.locator('.eso-mission-choices button,.eso-math-options button').nth(wrong).click();
-    assert.equal(await page.locator('.eso-mission-choices button.wrong:disabled,.eso-math-options button.wrong:disabled').count(),1,'fallo marcado y bloqueado');
+    await page.locator('.eso-object-answers button,.eso-math-options button').nth(wrong).click();
+    assert.equal(await page.locator('.eso-object-answers button.wrong:disabled,.eso-math-options button.wrong:disabled').count(),1,'fallo marcado y bloqueado');
     assert.match(await page.locator('.eso-mission-feedback').innerText(),/no encaja/);
     await page.setViewportSize({width:390,height:844});
     await page.evaluate(() => startGame('mat-medida','quest'));
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),true,'sin desbordamiento horizontal en móvil');
-    await page.screenshot({path:resolve(__dirname,'../tmp/eso-math-mission-mobile.png')});
     assert.deepEqual(errors,[]);
   } finally {
     await browser.close();

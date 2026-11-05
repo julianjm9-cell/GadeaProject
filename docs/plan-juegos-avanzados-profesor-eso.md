@@ -1,11 +1,13 @@
 # Plan de rediseño de juegos avanzados · Profesor Particular y ESO Adultos
 
-4 de noviembre de 2026 · **Los 61 juegos públicos destacados de Profesor Particular ya tienen tablero ilustrado. En ESO Adultos, ocho misiones están integradas en su escena: cuatro de Matemáticas y cuatro de Inglés. Quedan 57 misiones por rediseñar.**
+5 de noviembre de 2026 · **Los 61 juegos públicos destacados de Profesor Particular tienen tablero ilustrado. Las 65 misiones de ESO Adultos tienen ahora respuestas jugables sobre su escena: ocho conservan su diseño individual y las otras 57 usan ocho objetos interactivos según el tema.**
+
+La entrega de ESO mantiene las cuatro etapas, la corrección y el progreso de cada misión. Se han añadido ilustraciones específicas para el valle y la seguridad digital. Los 57 tableros restantes comparten ocho componentes visuales adaptados al contexto; las propuestas de escenas únicas que figuran más abajo siguen siendo ideas para una personalización futura, no una descripción de 57 ilustraciones individuales ya hechas.
 
 ## Qué hay realmente
 
 - **Profesor Particular:** los 61 juegos públicos destacados tienen escenas ilustradas con zonas de respuesta adaptadas a su mecánica. El [inventario por juego](../design-previews/plan-juegos-avanzados.md) recoge la propuesta y el estado de los seis bloques. También hay **15 formatos avanzados** que un profesor puede crear: Pasapalabra, Ahorcado, Sopa de letras, Memory, Flashcards, Construye la frase, Línea temporal, Encuentra el error, Crucigrama, Arrastrar y soltar, Misterio, Intruso, Bingo, Descifra el mensaje y Carrera. Estos formatos no son otros 15 juegos públicos de contenido fijo: necesitan temas visuales adaptables a cualquier material.
-- **ESO Adultos:** 65 misiones propias, una por tema, repartidas en Inglés (9), Lengua (11), Geografía (10), Historia y Ciudadanía (11), Matemáticas (12), y Ciencias y Tecnología (12). Cada misión tiene cuatro etapas y una respuesta comprobable. Las 56 misiones que declaran imagen propia usan 35 archivos diferentes; nueve misiones de Inglés toman el arte de su tema. Todas comparten en esencia un panel de tres respuestas sobre un fondo, así que la imagen aún no explica suficientemente la acción.
+- **ESO Adultos:** 65 misiones propias, una por tema, repartidas en Inglés (9), Lengua (11), Geografía (10), Historia y Ciudadanía (11), Matemáticas (12), y Ciencias y Tecnología (12). Cada misión tiene cuatro etapas y una respuesta comprobable. Ocho escenas se diseñaron individualmente; las otras 57 usan un documento, mapa, diálogo, laboratorio, ruta, panel, archivo o libro de cuentas sobre ilustraciones contextuales. Cada objeto contiene la pregunta y las respuestas reales, utilizables con ratón, tacto y teclado.
 - Los juegos externos enlazados y los dos juegos básicos por tema de ESO Adultos quedan fuera de este rediseño de **avanzados**. La corrección y los resultados actuales deben conservarse.
 
 ## Patrón de entrega de cada juego
@@ -39,7 +41,7 @@ En estas tablas, **escena → respuesta** describe la ilustración necesaria y e
 
 ### E1 · Inglés (9)
 
-**Primer bloque terminado:** Reading, Vocabulario, Gramática y Writing tienen escenas propias de biblioteca, ciudad, calendario y correo. Los enunciados ocupan el documento de cada escena y las respuestas se eligen en sus fichas ilustradas. Las otras cinco misiones de Inglés siguen pendientes de esta integración.
+**Estado:** Reading, Vocabulario, Gramática y Writing tienen escenas propias de biblioteca, ciudad, calendario y correo. Las otras cinco misiones de Inglés usan los objetos interactivos de diálogo, formulario, documento y archivo sobre sus ilustraciones. Las escenas únicas propuestas a continuación son una posible ampliación visual.
 
 | Misión | Escena → respuesta integrada |
 | --- | --- |
