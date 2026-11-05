@@ -163,68 +163,68 @@
   // A mission's answers belong to the object being used, not to a generic
   // question card. The eight earlier illustrated boards keep their own layout.
   const missionBoards = {
-    'ing-listening':['dialogue','Ventanilla de información'],
-    'ing-dialogues':['dialogue','Conversación'],
-    'ing-forms':['document','Formulario de viaje'],
-    'ing-connectors':['document','Mensaje en edición'],
-    'ing-exam-strategy':['archive','Hoja de examen'],
-    'len-comprension':['document','Texto y evidencias'],
-    'len-resumen':['document','Mesa de edición'],
-    'len-gramatica':['document','Oración en análisis'],
-    'len-ortografia':['document','Borrador'],
-    'len-redaccion':['document','Solicitud'],
-    'len-literatura':['archive','Libro abierto'],
-    'len-textos-vida':['document','Solicitud administrativa'],
-    'len-medios':['archive','Portada del periódico'],
-    'len-argumentacion':['dialogue','Mesa de debate'],
-    'len-comentario':['archive','Texto comentado'],
-    'len-presentacion':['document','Hoja de entrega'],
-    'geo-mapas':['map','Mapa del refugio'],
+    'ing-listening':['dialogue','Ventanilla de información','eso-information-point-v1.webp','focus-right'],
+    'ing-dialogues':['dialogue','Conversación','public-greetings-plaza-cards-v2.webp'],
+    'ing-forms':['document','Formulario de viaje','eso-english-travel.webp'],
+    'ing-connectors':['document','Mensaje en edición','eso-english-desk.webp'],
+    'ing-exam-strategy':['archive','Hoja de examen','public-habitos-studio-panels-v2.webp'],
+    'len-comprension':['document','Texto y evidencias','public-biblioteca-inference-scene.webp'],
+    'len-resumen':['document','Mesa de edición','public-expositivo-magazine-board-v2.webp'],
+    'len-gramatica':['document','Oración en análisis','public-archivo-sintagmas-scene.webp'],
+    'len-ortografia':['document','Borrador','public-punctuation-detective-board-v2.webp'],
+    'len-redaccion':['document','Solicitud','public-redaccion-compuesta-scene.webp'],
+    'len-literatura':['archive','Libro abierto','public-secret-library-board-v2.webp'],
+    'len-textos-vida':['document','Solicitud administrativa','public-central-mensajes.webp'],
+    'len-medios':['archive','Portada del periódico','public-hemeroteca-vitrines-v2.webp'],
+    'len-argumentacion':['dialogue','Mesa de debate','public-tribunal-ambiguedad-scene.webp'],
+    'len-comentario':['archive','Texto comentado','public-comentario-manuscript-board-v2.webp'],
+    'len-presentacion':['document','Hoja de entrega','public-interpretation-editor-slips-v2.webp'],
+    'geo-mapas':['map','Mapa del refugio','public-atlas-expedition-board-v2.webp'],
     'geo-relieve':['map','Valle y montaña','eso-geo-valley-v1.webp'],
-    'geo-poblacion':['dashboard','Censo del barrio'],
-    'geo-economia':['map','Mapa de los oficios'],
-    'geo-global':['route','Ruta de la camiseta'],
-    'geo-espana-europa':['map','Mapa político'],
-    'geo-medioambiente':['lab','Plan del embalse','public-invernadero-cientifico.webp'],
-    'geo-fuentes':['dashboard','Informe de la comarca'],
-    'geo-ciudad':['map','Plano del barrio'],
+    'geo-poblacion':['dashboard','Censo del barrio','public-migraciones-map-board-v2.webp'],
+    'geo-economia':['map','Mapa de los oficios','public-ciudad-economica-scene.webp'],
+    'geo-global':['route','Ruta de la camiseta','public-atlas-channels-v2.webp'],
+    'geo-espana-europa':['map','Mapa político','eso-spain-europe-atlas-v1.webp','focus-right'],
+    'geo-medioambiente':['lab','Plan del embalse','eso-reservoir-v1.webp','focus-right'],
+    'geo-fuentes':['dashboard','Informe de la comarca','public-hemeroteca-fuentes-scene.webp'],
+    'geo-ciudad':['map','Plano del barrio','public-city-directions-board-v2.webp'],
     'geo-trabajo':['ledger','Presupuesto del mes','eso-math-market-checkout-v2.webp'],
-    'his-antigua':['archive','Vitrina del museo'],
-    'his-medieval':['map','Ciudad medieval'],
-    'his-moderna':['archive','Imprenta de ideas'],
-    'his-contemporanea':['route','Ciudad industrial'],
-    'his-sigloxx':['route','Línea del tiempo'],
-    'his-ciudadania':['dialogue','Pleno municipal'],
-    'his-espana':['archive','Archivo de la Transición'],
-    'his-andalucia':['archive','Ficha de patrimonio'],
-    'his-valores':['dialogue','Mesa de mediación'],
-    'his-fuentes':['document','Documento histórico'],
-    'his-musica-cultura':['archive','Fonoteca histórica'],
-    'mat-algebra':['dashboard','Código de entrada'],
-    'mat-geometria':['map','Plano del jardín'],
-    'mat-funciones':['dashboard','Tarifa y gráfica'],
-    'mat-estadistica':['dashboard','Encuesta del barrio'],
-    'mat-medida':['route','Etiquetas de la mudanza'],
-    'mat-graficas-examen':['dashboard','Gráfica de visitantes'],
+    'his-antigua':['archive','Vitrina del museo','public-museo-expositivo-scene.webp'],
+    'his-medieval':['map','Ciudad medieval','eso-medieval-city-v1.webp','focus-right'],
+    'his-moderna':['archive','Imprenta de ideas','public-cronica-pasado-scene.webp'],
+    'his-contemporanea':['route','Ciudad industrial','public-contemporaneo-archive-board-v2.webp'],
+    'his-sigloxx':['route','Línea del tiempo','public-cronica-diary-board-v2.webp'],
+    'his-ciudadania':['dialogue','Pleno municipal','public-asamblea-revoluciones-scene.webp'],
+    'his-espana':['archive','Archivo de la Transición','public-archivo-contemporaneo-scene.webp'],
+    'his-andalucia':['archive','Ficha de patrimonio','public-museo-expositivo.webp'],
+    'his-valores':['dialogue','Mesa de mediación','public-asamblea-cork-board-v2.webp'],
+    'his-fuentes':['document','Documento histórico','public-hemeroteca-fuentes.webp'],
+    'his-musica-cultura':['archive','Fonoteca histórica','eso-history-music-v1.webp','focus-right'],
+    'mat-algebra':['dashboard','Código de entrada','public-matrices-gate-board-v2.webp'],
+    'mat-geometria':['map','Plano del jardín','eso-garden-plan-v1.webp','focus-right'],
+    'mat-funciones':['dashboard','Tarifa y gráfica','eso-bike-rental-v1.webp','focus-right'],
+    'mat-estadistica':['dashboard','Encuesta del barrio','eso-neighborhood-survey-v1.webp','focus-right'],
+    'mat-medida':['route','Etiquetas de la mudanza','eso-moving-boxes-v1.webp','focus-right'],
+    'mat-graficas-examen':['dashboard','Gráfica de visitantes','public-observatorio-ondas-scene.webp'],
     'mat-calculadora':['ledger','Recibo y calculadora','eso-math-invoice-desk-v2.webp'],
-    'mat-razonamiento':['lab','Laboratorio lógico'],
-    'cie-metodo':['lab','Cuaderno de ensayo'],
-    'cie-biologia':['route','Ruta del oxígeno'],
-    'cie-ecologia':['map','Red del ecosistema'],
-    'cie-materia':['lab','Mesa de mezclas','public-laboratorio-mezclas.webp'],
-    'cie-fisica':['route','Pista de bicicleta'],
-    'cie-tecnologia':['dashboard','Hoja de cálculo','eso-english-desk.webp'],
-    'cie-tierra':['map','Observatorio del planeta'],
-    'cie-cuerpo':['route','Recorrido del alimento'],
-    'cie-laboratorio':['lab','Informe de termómetros'],
-    'cie-sostenibilidad':['dashboard','Consumo del centro'],
-    'cie-digitalizacion':['dashboard','Seguridad de la cuenta','eso-digital-safety-v1.webp'],
-    'cie-proyecto':['lab','Taller de prototipos'],
+    'mat-razonamiento':['lab','Laboratorio lógico','eso-logic-workbench-v1.webp','focus-right'],
+    'cie-metodo':['lab','Cuaderno de ensayo','public-laboratorio-stations-v2.webp'],
+    'cie-biologia':['route','Ruta del oxígeno','public-atlas-anatomy-board-v2.webp'],
+    'cie-ecologia':['map','Red del ecosistema','public-bosque-vivo.webp'],
+    'cie-materia':['lab','Mesa de mezclas','public-laboratorio-mixtures-board-v2.webp'],
+    'cie-fisica':['route','Pista de bicicleta','public-pista-movimiento-board-v2.webp'],
+    'cie-tecnologia':['dashboard','Hoja de cálculo','eso-spreadsheet-v1.webp','focus-right'],
+    'cie-tierra':['map','Observatorio del planeta','eso-earth-observatory-v1.webp','focus-right'],
+    'cie-cuerpo':['route','Recorrido del alimento','public-nutricion-atlas-board-v2.webp'],
+    'cie-laboratorio':['lab','Informe de termómetros','eso-thermometers-v1.webp','focus-right'],
+    'cie-sostenibilidad':['dashboard','Consumo del centro','eso-sustainable-center-v1.webp','focus-right'],
+    'cie-digitalizacion':['dashboard','Seguridad de la cuenta','eso-digital-safety-v1.webp','focus-right'],
+    'cie-proyecto':['lab','Taller de prototipos','public-circuit-workbench-board-v2.webp'],
   };
 
   function missionBoard(topic) {
-    const [kind, object, art] = missionBoards[topic?.id] || [];
-    return kind ? {kind, object, art} : null;
+    const [kind, object, art, layout] = missionBoards[topic?.id] || [];
+    return kind ? {kind, object, art, layout:layout || 'split'} : null;
   }
 
   function englishScene(topic) {
@@ -454,13 +454,19 @@ if (typeof window !== 'undefined') {
     const solved = Number.isInteger(run.questPlaced[stage.id]);
     const art = EsoAdultGames.topicArt(run.topic, run.module);
     const stepNames = run.quest.stations.map((item, index) => `<span class="${index === run.missionStep ? 'current' : index < run.missionStep ? 'complete' : ''}" ${index === run.missionStep ? 'aria-current="step"' : ''}><b>${index < run.missionStep ? '✓' : index + 1}</b><span>${escapeHtml(item.place)}</span></span>`).join('');
+    const artifact = run.quest.stations.map((item, index) => {
+      const complete = Number.isInteger(run.questPlaced[item.id]);
+      const current = index === run.missionStep;
+      const label = complete ? item.choices[item.correct] : item.place;
+      return `<span class="${complete ? 'complete' : current ? 'current' : ''}" aria-label="${escapeHtml(item.place)}: ${complete ? `completada, ${escapeHtml(label)}` : current ? 'etapa actual' : 'pendiente'}"><b aria-hidden="true">${complete ? '✓' : index + 1}</b><small title="${escapeHtml(label)}">${escapeHtml(label)}</small></span>`;
+    }).join('');
     const choices = stage.choices.map((choice, index) => `<button type="button" class="${solved && index === stage.correct ? 'correct' : run.missionTried[stage.id]?.includes(index) ? 'wrong' : ''}" onclick="chooseMissionAnswer(${index})" ${solved || run.missionTried[stage.id]?.includes(index) ? 'disabled' : ''} aria-label="Opción ${String.fromCharCode(65 + index)}: ${escapeHtml(choice)}"><b aria-hidden="true">${String.fromCharCode(65 + index)}</b><span>${escapeHtml(choice)}</span></button>`).join('');
-    root.innerHTML = `<div class="eso-game-run eso-object-run" data-mission="${escapeHtml(run.topic.id)}" data-board="${board.kind}">${head}
+    root.innerHTML = `<div class="eso-game-run eso-object-run" data-mission="${escapeHtml(run.topic.id)}" data-board="${board.kind}" data-layout="${board.layout}">${head}
       <div class="eso-game-progress" role="progressbar" aria-label="Etapas completadas" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${progress}"><span style="width:${progress / total * 100}%"></span></div>
       <div class="eso-object-steps" aria-label="Etapas de la misión">${stepNames}</div>
       <div class="eso-object-board" data-solved="${solved}"><img src="${art}" alt="" width="1440" height="810">
         <div class="eso-object-scene-title"><span aria-hidden="true">${escapeHtml(run.quest.symbol || '✦')}</span><div><small>${escapeHtml(run.quest.place)}</small><strong>${escapeHtml(run.quest.title)}</strong></div></div>
-        <div class="eso-object-surface"><div class="eso-object-head"><span class="eso-object-seal" aria-hidden="true">${escapeHtml(run.quest.symbol || '✦')}</span><div><small>${escapeHtml(board.object)} · ${escapeHtml(stage.place)}</small><strong>${escapeHtml(stage.prompt)}</strong></div></div><p>${escapeHtml(stage.context)}</p><div class="eso-object-detail" aria-hidden="true"><i></i><i></i><i></i></div></div>
+        <div class="eso-object-surface"><div class="eso-object-head"><span class="eso-object-seal" aria-hidden="true">${escapeHtml(run.quest.symbol || '✦')}</span><div><small>${escapeHtml(board.object)} · ${escapeHtml(stage.place)}</small><strong>${escapeHtml(stage.prompt)}</strong></div></div><p>${escapeHtml(stage.context)}</p><div class="eso-object-artefact" aria-label="Progreso en ${escapeHtml(board.object)}">${artifact}</div></div>
         <div class="eso-object-answers" role="group" aria-label="Respuestas de ${escapeHtml(stage.place)}"><small>${escapeHtml(board.object)} · elige la respuesta correcta</small>${choices}</div>
       </div>
       <div class="eso-object-feedback"><p class="eso-mission-feedback ${run.missionWrong !== null && !solved ? 'error' : solved ? 'success' : ''}" role="status" aria-live="polite">${escapeHtml(run.missionFeedback || 'Elige la respuesta en la escena.')}</p>${solved ? `<button type="button" class="primary" onclick="nextMissionStep()">${run.missionStep + 1 < total ? 'Siguiente etapa' : 'Ver resultado'} →</button>` : ''}</div>

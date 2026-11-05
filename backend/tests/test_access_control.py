@@ -705,6 +705,20 @@ def test_eso_desk_assets_are_served_for_the_production_page(client, filename):
     ("/assets/eso-mission-boards.css", "text/css"),
     ("/assets/games/eso-geo-valley-v1.webp", "image/webp"),
     ("/assets/games/eso-digital-safety-v1.webp", "image/webp"),
+    ("/assets/games/eso-medieval-city-v1.webp", "image/webp"),
+    ("/assets/games/eso-spreadsheet-v1.webp", "image/webp"),
+    ("/assets/games/eso-history-music-v1.webp", "image/webp"),
+    ("/assets/games/eso-earth-observatory-v1.webp", "image/webp"),
+    ("/assets/games/eso-reservoir-v1.webp", "image/webp"),
+    ("/assets/games/eso-garden-plan-v1.webp", "image/webp"),
+    ("/assets/games/eso-bike-rental-v1.webp", "image/webp"),
+    ("/assets/games/eso-neighborhood-survey-v1.webp", "image/webp"),
+    ("/assets/games/eso-moving-boxes-v1.webp", "image/webp"),
+    ("/assets/games/eso-thermometers-v1.webp", "image/webp"),
+    ("/assets/games/eso-information-point-v1.webp", "image/webp"),
+    ("/assets/games/eso-spain-europe-atlas-v1.webp", "image/webp"),
+    ("/assets/games/eso-logic-workbench-v1.webp", "image/webp"),
+    ("/assets/games/eso-sustainable-center-v1.webp", "image/webp"),
 ])
 def test_eso_game_assets_are_served_for_the_production_page(client, path, content_type):
     test_client, _ = client
