@@ -1082,6 +1082,7 @@ def eso_desk_asset(filename: str):
         "shelf-wood.png", "poster-focus.png", "poster-steps.png", "mug-steps.png",
         "plant-olive.png", "trophy-first.png",
         "globe-study.png", "clock-focus.png",
+        "rug-blue.webp", "rug-sand.webp", "books-study.webp", "books-reference.webp",
     }
     if filename not in allowed:
         raise HTTPException(status_code=404, detail="Asset no encontrado.")
@@ -1090,7 +1091,7 @@ def eso_desk_asset(filename: str):
     path = static_path if static_path.exists() else fallback
     if not path.exists():
         raise HTTPException(status_code=404, detail="Asset no encontrado.")
-    media_type = "image/png" if filename.endswith(".png") else "image/svg+xml"
+    media_type = "image/png" if filename.endswith(".png") else "image/webp" if filename.endswith(".webp") else "image/svg+xml"
     return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
 
 

@@ -178,6 +178,52 @@
 .exam-workspace .workspace-head{display:none!important}
 .exam-workspace .exam-home-options{margin-top:0}
 
+/* Escritorio final: inventario claro y objetos en posiciones constantes. */
+.next-ui .next-desk-layout{grid-template-columns:minmax(320px,.78fr) minmax(0,1.42fr);gap:18px}
+.next-ui .next-desk-inventory{padding:20px;background:linear-gradient(180deg,#fff,#f9fbff)}
+.next-desk-kicker{display:block;margin-bottom:4px;color:#1768d2;font-size:11px;font-weight:850;letter-spacing:.07em;text-transform:uppercase}
+.next-ui .next-desk-inventory-head{margin-bottom:11px}
+.next-ui .next-desk-inventory-head>span{white-space:nowrap}
+.next-desk-legend{display:flex;flex-wrap:wrap;gap:8px 12px;margin:0 0 14px;color:#536a87;font-size:11px;font-weight:700}
+.next-desk-legend span{display:inline-flex;align-items:center;gap:5px}
+.next-desk-legend i{width:9px;height:9px;border-radius:50%;background:#b8c9db}
+.next-desk-legend i.owned{background:#2b9a73}.next-desk-legend i.available{background:#2774d3}.next-desk-legend i.locked{background:#aab7c7}
+.next-ui .next-desk-inventory-list{gap:10px}
+.next-ui .next-desk-item{min-height:101px;padding:9px;border-color:#d9e6f3;background:#fff;transition:border-color .16s,box-shadow .16s,transform .16s}
+.next-ui .next-desk-item.is-owned{border-color:#b9e0cb;background:#f7fcf9}
+.next-ui .next-desk-item.is-available{border-color:#c7dcf6}
+.next-ui .next-desk-item.is-previewed{border-color:#1768d2;box-shadow:0 0 0 2px #c9e1ff,0 8px 22px #1a5daa18}
+.next-ui .next-desk-item-art{position:relative;display:block;flex:0 0 76px;width:76px;height:78px;min-height:0;padding:0;border:1px solid #e1eaf4;border-radius:10px;background:linear-gradient(145deg,#f4f8ff,#fdf7ec);overflow:hidden;box-shadow:none}
+.next-ui .next-desk-item-art img{width:100%;height:100%;object-fit:contain}
+.next-ui .next-desk-item-art span{position:absolute;right:4px;bottom:3px;padding:2px 4px;border-radius:4px;background:#ffffffdf;color:#1768d2;font-size:9px;font-weight:850}
+.next-ui .next-desk-item-art:hover{border-color:#1768d2;transform:translateY(-2px)}
+.next-ui .next-desk-item-copy strong{font-size:13px}
+.next-ui .next-desk-item-copy button{min-height:33px;padding:5px 9px;border-color:#a8c9ee;background:#edf5ff;color:#145eae;font-size:11px}
+.next-desk-scene-heading{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-top:22px}
+.next-desk-scene-heading h3{margin:0;color:#12315f;font-size:18px}
+.next-desk-scene-heading p{max-width:540px;margin:3px 0 0;color:#61748e;font-size:12px;line-height:1.4}
+.next-ui .next-desk-scene-heading button{width:auto;min-height:36px;padding:6px 10px;border-color:#b7d2ef;background:#fff;color:#1768d2;font-size:11px;white-space:nowrap}
+.next-ui .next-desk-scene-heading button[hidden]{display:none}
+.next-ui .next-desk-layout .next-desk-scene{aspect-ratio:1672/941;min-height:clamp(290px,34vw,485px);margin:12px 0 0;border:1px solid #cddded;border-radius:16px;background-position:center;background-size:cover;box-shadow:inset 0 0 0 1px #ffffffa3}
+.next-ui .next-desk-scene .desk-object{pointer-events:none;transition:opacity .2s,transform .2s}
+.next-ui .next-desk-scene .desk-object[data-category="rug"]{z-index:1;left:13%;bottom:-13%;width:75%;height:34%;filter:drop-shadow(0 4px 8px #39495a26)}
+.next-ui .next-desk-scene .desk-object[data-category="poster"]{z-index:2;right:39%;top:7%;width:16%;height:27%}
+.next-ui .next-desk-scene .desk-object[data-category="clock"]{z-index:2;right:30%;top:9%;width:11%;height:21%}
+.next-ui .next-desk-scene .desk-object[data-category="shelf"]{z-index:2;right:1%;top:7%;width:31%;height:34%}
+.next-ui .next-desk-scene .desk-object[data-category="desk"]{z-index:4;left:-2%;bottom:-18%;width:106%;height:110%}
+.next-ui .next-desk-scene .desk-object[data-category="chair"]{z-index:7;left:-6%;bottom:-19%;width:38%;height:91%}
+.next-ui .next-desk-scene .desk-object[data-category="lamp"]{z-index:6;left:23%;top:2%;width:25%;height:50%}
+.next-ui .next-desk-scene .desk-object[data-category="plant"]{z-index:5;right:-11%;top:32%;width:27%;height:64%}
+.next-ui .next-desk-scene .desk-object[data-category="books"]{z-index:6;left:40%;bottom:3%;width:13%;height:19%}
+.next-ui .next-desk-scene .desk-object[data-category="globe"]{z-index:6;right:22%;bottom:3%;width:15%;height:31%}
+.next-ui .next-desk-scene .desk-object[data-category="mug"]{z-index:6;left:24%;bottom:52%;width:7%;height:12%}
+.next-ui .next-desk-scene .desk-object[data-category="trophy"]{z-index:3;right:4%;top:16%;width:9%;height:20%}
+.desk-scene-flag{position:absolute;z-index:9;left:12px;top:12px;padding:6px 10px;border:1px solid #c9e2ff;border-radius:999px;background:#ffffffec;color:#1768d2;font-size:11px;font-weight:850;box-shadow:0 4px 12px #1c4d821f}
+.next-ui .next-desk-help{margin-top:10px}
+@media(max-width:1050px){.next-ui .next-desk-layout{grid-template-columns:1fr}.next-ui .next-desk-layout .next-progress-main{grid-row:1}.next-ui .next-desk-inventory-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.next-ui .next-desk-inventory-list{grid-template-columns:repeat(2,minmax(0,1fr))}.next-ui .next-desk-layout .next-desk-scene{min-height:270px}}
+@media(max-width:520px){.next-ui .next-desk-inventory-list{grid-template-columns:1fr}.next-ui .next-desk-layout .next-progress-main{padding:15px}.next-ui .next-desk-layout .next-desk-scene{min-height:245px}.next-desk-scene-heading{align-items:start;flex-direction:column}.next-ui .next-desk-inventory{padding:15px}}
+
 /* Juegos por tema: ilustraciones y tablero de respuestas integrado en la escena. */
 .eso-game-card{overflow:hidden}
 .eso-game-card .game-card-art{display:block;width:100%;height:120px;margin-bottom:14px;border-radius:12px;object-fit:cover;object-position:center top;background:#e8f2ff}

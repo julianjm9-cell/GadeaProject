@@ -8,7 +8,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.database.session import Base
 from app.models import Organization, User
-from app.services.gamification import award_event, equip_item, level_for_xp, profile_payload, purchase_item, validate_event
+from app.services.gamification import award_event, equip_item, get_or_create_profile, level_for_xp, profile_payload, purchase_item, validate_event
 
 
 class GamificationServiceTests(unittest.TestCase):
@@ -66,6 +66,27 @@ class GamificationServiceTests(unittest.TestCase):
             validate_event("FREE_COINS", "anything")
         with self.assertRaises(ValueError):
             validate_event("LESSON_COMPLETED", "invalid source with spaces")
+
+    def test_new_desk_objects_join_existing_profiles_without_changing_equipment(self) -> None:
+        profile = get_or_create_profile(self.db, self.user)
+        first = profile_payload(self.db, profile)
+        self.assertEqual(first["equipped_items"]["rug"], "rug_blue")
+        self.assertEqual(first["equipped_items"]["books"], "books_study")
+        self.assertIn("rug_sand", {item["id"] for item in first["catalog"]})
+        self.assertIn("books_reference", {item["id"] for item in first["catalog"]})
+
+        profile.coins = 500
+        profile.xp = 1000
+        self.db.commit()
+        purchase_item(self.db, self.user, "rug_sand")
+        equip_item(self.db, self.user, "rug_sand")
+        self.db.commit()
+
+        profile = get_or_create_profile(self.db, self.user)
+        second = profile_payload(self.db, profile)
+        self.assertEqual(second["equipped_items"]["rug"], "rug_sand")
+        self.assertEqual(second["equipped_items"]["books"], "books_study")
+        self.assertEqual(second["coins"], 370)
 
     def test_purchase_and_equipment_require_level_balance_and_ownership(self) -> None:
         for index in range(5):

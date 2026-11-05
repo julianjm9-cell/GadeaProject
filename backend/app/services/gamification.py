@@ -55,6 +55,8 @@ DESK_CATALOG = (
     {"id": "chair_basic", "name": "Silla azul", "category": "chair", "price": 0, "minimum_level": 1, "visual": "chair-blue", "is_default": True},
     {"id": "lamp_basic", "name": "Lámpara de estudio", "category": "lamp", "price": 0, "minimum_level": 1, "visual": "lamp-blue", "is_default": True},
     {"id": "plant_basic", "name": "Planta pequeña", "category": "plant", "price": 0, "minimum_level": 1, "visual": "plant-small", "is_default": True},
+    {"id": "rug_blue", "name": "Alfombra azul", "category": "rug", "price": 0, "minimum_level": 1, "visual": "rug-blue", "is_default": True},
+    {"id": "books_study", "name": "Libros de estudio", "category": "books", "price": 0, "minimum_level": 1, "visual": "books-study", "is_default": True},
     {"id": "desk_oak", "name": "Mesa de roble", "category": "desk", "price": 220, "minimum_level": 4, "visual": "desk-oak", "is_default": False},
     {"id": "chair_comfort", "name": "Silla cómoda", "category": "chair", "price": 250, "minimum_level": 5, "visual": "chair-comfort", "is_default": False},
     {"id": "lamp_warm", "name": "Lámpara cálida", "category": "lamp", "price": 90, "minimum_level": 2, "visual": "lamp-warm", "is_default": False},
@@ -67,6 +69,8 @@ DESK_CATALOG = (
     {"id": "trophy_first", "name": "Trofeo Primer tema", "category": "trophy", "price": 0, "minimum_level": 2, "visual": "trophy-first", "is_default": False, "unlock_condition": "first_topic"},
     {"id": "globe_study", "name": "Globo de exploración", "category": "globe", "price": 170, "minimum_level": 3, "visual": "globe-study", "is_default": False},
     {"id": "clock_focus", "name": "Reloj de constancia", "category": "clock", "price": 180, "minimum_level": 4, "visual": "clock-focus", "is_default": False},
+    {"id": "rug_sand", "name": "Alfombra cálida", "category": "rug", "price": 130, "minimum_level": 3, "visual": "rug-sand", "is_default": False},
+    {"id": "books_reference", "name": "Biblioteca de consulta", "category": "books", "price": 160, "minimum_level": 4, "visual": "books-reference", "is_default": False},
 )
 CATALOG_BY_ID = {item["id"]: item for item in DESK_CATALOG}
 

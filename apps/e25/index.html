@@ -3378,7 +3378,7 @@
 @media(max-width:760px){.desktop-refresh .exam-workspace #viewer{padding:16px}.exam-home-options{gap:12px}.desktop-refresh .exam-home-options>button{min-height:135px;padding:18px;grid-template-columns:44px minmax(0,1fr) 12px;gap:12px}.exam-home-options i{width:44px;height:44px;border-radius:13px;font-size:23px}.exam-home-options strong{font-size:17px}.exam-home-options small{font-size:12px}.exam-correction .ocr-row{grid-template-columns:1fr}.exam-section-head h3{font-size:22px}.exam-record{padding:16px;gap:12px}.exam-record button{font-size:12px}.exam-correction .exam-submit-row{grid-template-columns:1fr}.exam-correction-tools{align-items:flex-start}.exam-correction-tools>span{line-height:1.6}}
 @media(max-width:520px){.exam-home-options{grid-template-columns:1fr}.desktop-refresh .exam-home-options>button{min-height:107px}.exam-home-options strong{font-size:18px}.exam-home-options small{font-size:13px}.exam-record{align-items:flex-start;flex-direction:column}.exam-record button{align-self:flex-end}.exam-section-head{gap:14px}.exam-correction #correctionOutput{padding:16px}}
 
-</style><link rel="stylesheet" href="assets/eso-final.css?v=20261029-all-missions-1"><link rel="stylesheet" href="assets/eso-math-scenes.css?v=20261104-1"><link rel="stylesheet" href="assets/eso-english-mission-scenes.css?v=20261104-1"><link rel="stylesheet" href="assets/eso-mission-boards.css?v=20261105-individual-scenes-2"></head>
+</style><link rel="stylesheet" href="assets/eso-final.css?v=20261105-desk-1"><link rel="stylesheet" href="assets/eso-math-scenes.css?v=20261104-1"><link rel="stylesheet" href="assets/eso-english-mission-scenes.css?v=20261104-1"><link rel="stylesheet" href="assets/eso-mission-boards.css?v=20261105-individual-scenes-2"></head>
 <body>
 <div class="app">
   <header>
@@ -3479,7 +3479,7 @@
   </section>
 
   <section class="next-view next-ui" id="nextProgressView" tabindex="-1" aria-labelledby="nextProgressHeading" hidden>
-    <p class="next-eyebrow">Progreso personal</p><h2 class="next-heading" id="nextProgressHeading">Tu escritorio crece contigo</h2><p class="next-lede">Tu avance, de un vistazo.</p>
+    <p class="next-eyebrow">Progreso personal</p><h2 class="next-heading" id="nextProgressHeading">Tu escritorio</h2><p class="next-lede">Estudia, consigue objetos y crea un espacio a tu gusto.</p>
     <nav class="next-tabs" aria-label="Secciones de progreso"><button class="active" type="button" aria-pressed="true" data-next-tab="desk" onclick="setNextProgressTab('desk')">Escritorio</button><button type="button" aria-pressed="false" data-next-tab="stats" onclick="setNextProgressTab('stats')">Estadísticas</button></nav>
     <div id="nextProgressBody"></div><div class="next-message" id="nextDeskMessage" role="status" aria-live="polite"></div>
   </section>
@@ -6007,6 +6007,7 @@ let state = {done:{}, scores:[], attempts:[], mistakes:[], activityDates:[], mon
 let esoStateETag=null, esoSaveFailed=false, esoSaveBlocked=false, esoPendingSaves=0, esoSaveStatusTimer=null;
 let gamification = {profile:null, config:null, lastError:'', loading:true};
 let deskRequestPending = false;
+let deskPreviewItemId = '';
 const deskSyncChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('eso-adultos-desk') : null;
 if (deskSyncChannel) deskSyncChannel.addEventListener('message', event => {
   if (event.data?.type === 'profile-updated') void loadGamification(false);
@@ -6253,21 +6254,26 @@ function recentStudyDays() {
 }
 function deskAssetImage(visual, label='', className='', category='') {
   const safeVisual = String(visual || 'desk-light').replace(/[^a-z0-9-]/gi,'');
+  const extension = /^(rug-blue|rug-sand|books-study|books-reference)$/.test(safeVisual) ? 'webp' : 'png';
   const accessible = label ? `alt="${escapeHtml(label)}"` : 'alt="" aria-hidden="true"';
   const categoryAttr = category ? ` data-category="${escapeHtml(category)}"` : '';
-  return `<img class="${escapeHtml(className)}" src="assets/desk/${safeVisual}.png" data-visual="${safeVisual}"${categoryAttr} ${accessible} loading="${className ? 'eager' : 'lazy'}" decoding="async">`;
+  return `<img class="${escapeHtml(className)}" src="assets/desk/${safeVisual}.${extension}" data-visual="${safeVisual}"${categoryAttr} ${accessible} loading="${className ? 'eager' : 'lazy'}" decoding="async">`;
 }
-function deskSceneHtml(profile=gamification.profile, compact=false) {
+function deskSceneHtml(profile=gamification.profile, compact=false, previewItemId='') {
   const catalog = Array.isArray(profile?.catalog) ? profile.catalog : [];
-  const equipped = profile?.equipped_items || {};
-  const objects = Object.entries(equipped).map(([category,itemId]) => {
+  const equipped = {...(profile?.equipped_items || {})};
+  const preview = catalog.find(item => item.id === previewItemId);
+  if (preview) equipped[preview.category] = preview.id;
+  const sceneOrder = ['rug','poster','clock','shelf','desk','chair','lamp','plant','globe','trophy','books','mug'];
+  const objects = sceneOrder.map(category => {
+    const itemId = equipped[category];
     const item = catalog.find(entry => entry.id === itemId);
     if (!item) return '';
     return deskAssetImage(item.visual, '', 'desk-object', category);
   }).join('');
   const objectNames = Object.values(equipped).map(itemId => catalog.find(entry => entry.id === itemId)?.name).filter(Boolean);
-  const description = objectNames.length ? `Escritorio personalizado. Objetos equipados: ${objectNames.join(', ')}.` : 'Escritorio inicial, preparado para personalizar.';
-  return `<div class="next-desk-scene ${compact ? 'compact' : ''}" role="img" aria-label="${escapeHtml(description)}"><span class="next-scene-window"></span><span class="next-scene-screen"></span>${objects}</div>`;
+  const description = preview ? `Vista previa con ${preview.name}.` : objectNames.length ? `Escritorio personalizado. Objetos equipados: ${objectNames.join(', ')}.` : 'Escritorio inicial, preparado para personalizar.';
+  return `<div class="next-desk-scene ${compact ? 'compact' : ''}" role="img" aria-label="${escapeHtml(description)}"><span class="next-scene-window"></span><span class="next-scene-screen"></span>${objects}${preview ? '<span class="desk-scene-flag" aria-hidden="true">Vista previa</span>' : ''}</div>`;
 }
 function renderHomeDesk() {
   if (!$('homeDeskPreview')) return;
@@ -6276,9 +6282,11 @@ function renderHomeDesk() {
       {id:'desk_basic',name:'Mesa clara',visual:'desk-light'},
       {id:'chair_basic',name:'Silla azul',visual:'chair-blue'},
       {id:'lamp_basic',name:'Lámpara de estudio',visual:'lamp-blue'},
-      {id:'plant_basic',name:'Planta pequeña',visual:'plant-small'}
+      {id:'plant_basic',name:'Planta pequeña',visual:'plant-small'},
+      {id:'rug_blue',name:'Alfombra azul',visual:'rug-blue'},
+      {id:'books_study',name:'Libros de estudio',visual:'books-study'}
     ],
-    equipped_items:{desk:'desk_basic',chair:'chair_basic',lamp:'lamp_basic',plant:'plant_basic'}
+    equipped_items:{desk:'desk_basic',chair:'chair_basic',lamp:'lamp_basic',plant:'plant_basic',rug:'rug_blue',books:'books_study'}
   };
   $('homeDeskPreview').innerHTML = deskSceneHtml(gamification.profile || fallback);
 }
@@ -6300,6 +6308,30 @@ function setNextProgressTab(tab) {
   $('nextDeskMessage').textContent = '';
   renderNextProgress();
 }
+function deskPreviewText(item) {
+  if (!item) return 'Este es tu escritorio actual. Toca cualquier objeto de la izquierda para probarlo aquí.';
+  if (item.equipped) return `Vista previa: ${item.name}. Este objeto ya está en uso.`;
+  if (item.owned) return `Vista previa: ${item.name}. Pulsa «Equipar» para guardarlo en tu escritorio.`;
+  if (!item.unlocked) return `Vista previa: ${item.name}. Podrás conseguirlo al alcanzar el nivel ${item.minimum_level}${item.unlock_condition ? ' y completar un tema' : ''}.`;
+  return `Vista previa: ${item.name}. Cómpralo con monedas y después podrás equiparlo.`;
+}
+function previewDeskItem(itemId='') {
+  const profile = gamification.profile;
+  if (!profile) return;
+  deskPreviewItemId = profile.catalog?.some(item => item.id === itemId) && deskPreviewItemId !== itemId ? itemId : '';
+  const scene = $('nextProgressBody')?.querySelector('.next-desk-scene');
+  if (scene) scene.outerHTML = deskSceneHtml(profile,true,deskPreviewItemId);
+  const selected = profile.catalog?.find(item => item.id === deskPreviewItemId);
+  const note = $('deskPreviewNote');
+  if (note) note.textContent = deskPreviewText(selected);
+  const clear = $('clearDeskPreview');
+  if (clear) clear.hidden = !selected;
+  document.querySelectorAll('[data-preview-item]').forEach(button => {
+    const active = button.dataset.previewItem === deskPreviewItemId;
+    button.setAttribute('aria-pressed',String(active));
+    button.closest('.next-desk-item')?.classList.toggle('is-previewed',active);
+  });
+}
 async function buyDeskItem(itemId) {
   if (deskRequestPending) return;
   deskRequestPending = true;
@@ -6309,6 +6341,7 @@ async function buyDeskItem(itemId) {
   try {
     const data = await backend('/api/gamification/purchases', {method:'POST', body:JSON.stringify({item_id:itemId})});
     gamification.profile = data.profile;
+    deskPreviewItemId = itemId;
     const item = data.profile?.catalog?.find(entry => entry.id === itemId);
     renderNextExperience();
     if ($('nextDeskMessage')) $('nextDeskMessage').textContent = `Compra realizada: ${item?.name || 'objeto añadido al inventario'}. Ya puedes equiparlo.`;
@@ -6329,6 +6362,7 @@ async function equipDeskItem(itemId) {
   try {
     const data = await backend('/api/gamification/equipment', {method:'POST', body:JSON.stringify({item_id:itemId})});
     gamification.profile = data.profile;
+    deskPreviewItemId = '';
     const item = data.profile?.catalog?.find(entry => entry.id === itemId);
     renderNextExperience();
     if ($('nextDeskMessage')) $('nextDeskMessage').textContent = `${item?.name || 'El objeto'} aparece ahora en tu escritorio.`;
@@ -6341,7 +6375,7 @@ async function equipDeskItem(itemId) {
   }
 }
 function nextDeskItemHtml(item, coins) {
-  const categoryNames = {desk:'Mesa',chair:'Silla',lamp:'Lámpara',plant:'Planta',shelf:'Estantería',poster:'Póster',mug:'Taza',trophy:'Trofeo',globe:'Globo',clock:'Reloj'};
+  const categoryNames = {desk:'Mesa',chair:'Silla',lamp:'Lámpara',plant:'Planta',rug:'Alfombra',books:'Libros',shelf:'Estantería',poster:'Póster',mug:'Taza',trophy:'Trofeo',globe:'Globo',clock:'Reloj'};
   const state = item.equipped ? 'En uso' : item.owned ? 'Conseguido' : item.unlocked ? 'Disponible' : 'Bloqueado';
   let action = '';
   if (item.equipped) action = '<span class="next-desk-item-status">En uso</span>';
@@ -6349,7 +6383,7 @@ function nextDeskItemHtml(item, coins) {
   else if (!item.unlocked) action = `<span class="next-desk-item-status">${item.unlock_condition ? `Nivel ${item.minimum_level} y completa un tema` : `Desde el nivel ${item.minimum_level}`}</span>`;
   else if (coins < item.price) action = `<span class="next-desk-item-status">Faltan ${item.price - coins} monedas</span>`;
   else action = `<button type="button" onclick="buyDeskItem('${item.id}')">Comprar · ${item.price} monedas</button>`;
-  return `<article class="next-desk-item ${item.owned ? 'is-owned' : item.unlocked ? 'is-available' : 'is-locked'}" aria-label="${escapeHtml(item.name)}: ${state}"><div class="next-desk-item-art">${deskAssetImage(item.visual,item.name)}</div><div class="next-desk-item-copy"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(categoryNames[item.category] || item.category)} · ${state}</small>${action}</div></article>`;
+  return `<article class="next-desk-item ${item.owned ? 'is-owned' : item.unlocked ? 'is-available' : 'is-locked'} ${deskPreviewItemId === item.id ? 'is-previewed' : ''}" aria-label="${escapeHtml(item.name)}: ${state}"><button class="next-desk-item-art" type="button" data-preview-item="${escapeHtml(item.id)}" aria-label="Ver ${escapeHtml(item.name)} en el escritorio" aria-pressed="${deskPreviewItemId === item.id}" onclick="previewDeskItem('${item.id}')">${deskAssetImage(item.visual,item.name)}<span aria-hidden="true">Ver</span></button><div class="next-desk-item-copy"><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(categoryNames[item.category] || item.category)} · ${state}</small>${action}</div></article>`;
 }
 function renderNextHome() {
   if (!REDESIGN_MODE || !$('nextHomeView')) return;
@@ -6401,7 +6435,22 @@ function renderNextProgress() {
   const xpPct = nextMin ? Math.max(0,Math.min(100,Math.round((profile.xp-previousMin)/(nextMin-previousMin)*100))) : 100;
   const catalog = [...(profile.catalog || [])].sort((a,b) => Number(b.owned) - Number(a.owned) || Number(b.unlocked) - Number(a.unlocked));
   const ownedCount = catalog.filter(item => item.owned).length;
-  $('nextProgressBody').innerHTML = `<div class="next-progress-grid next-desk-layout"><aside class="next-card next-desk-inventory" aria-label="Todos los objetos del escritorio"><div class="next-desk-inventory-head"><div><h3>Objetos del escritorio</h3><p>Conseguidos, disponibles y bloqueados.</p></div><span>${ownedCount}/${catalog.length}</span></div><div class="next-desk-inventory-list">${catalog.map(item => nextDeskItemHtml(item,profile.coins)).join('') || '<p class="next-empty">No hay objetos disponibles.</p>'}</div></aside><article class="next-card next-progress-main"><div class="next-level-row"><div><span>Nivel del escritorio</span><strong>${level.level} · ${escapeHtml(level.name)}</strong></div><span class="next-coins">${profile.coins} monedas</span></div><div class="next-xp"><i style="width:${xpPct}%"></i></div><div class="next-xp-meta"><span>${profile.xp} XP</span><span>${nextMin ? `${nextMin-profile.xp} XP para el nivel ${level.level+1}` : 'Nivel máximo'}</span></div>${deskSceneHtml(profile,true)}<p class="next-desk-help">Elige «Equipar» en un objeto conseguido para verlo aquí. Estudia y juega para desbloquear los demás.</p></article></div>`;
+  const preview = catalog.find(item => item.id === deskPreviewItemId);
+  $('nextProgressBody').innerHTML = `<div class="next-progress-grid next-desk-layout">
+    <aside class="next-card next-desk-inventory" aria-label="Todos los objetos del escritorio">
+      <div class="next-desk-inventory-head"><div><span class="next-desk-kicker">Personaliza tu espacio</span><h3>Objetos del escritorio</h3><p>Toca una imagen para verla en tu escritorio.</p></div><span>${ownedCount}/${catalog.length} tuyos</span></div>
+      <div class="next-desk-legend"><span><i class="owned"></i> Conseguido</span><span><i class="available"></i> Disponible</span><span><i class="locked"></i> Bloqueado</span></div>
+      <div class="next-desk-inventory-list">${catalog.map(item => nextDeskItemHtml(item,profile.coins)).join('') || '<p class="next-empty">No hay objetos disponibles.</p>'}</div>
+    </aside>
+    <article class="next-card next-progress-main">
+      <div class="next-level-row"><div><span>Nivel del escritorio</span><strong>${level.level} · ${escapeHtml(level.name)}</strong></div><span class="next-coins">${profile.coins} monedas</span></div>
+      <div class="next-xp" role="progressbar" aria-label="Experiencia hacia el siguiente nivel" aria-valuenow="${xpPct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${xpPct}%"></i></div>
+      <div class="next-xp-meta"><span>${profile.xp} XP</span><span>${nextMin ? `${nextMin-profile.xp} XP para el nivel ${level.level+1}` : 'Nivel máximo'}</span></div>
+      <div class="next-desk-scene-heading"><div><h3>Así queda tu espacio</h3><p id="deskPreviewNote" aria-live="polite">${escapeHtml(deskPreviewText(preview))}</p></div><button id="clearDeskPreview" type="button" onclick="previewDeskItem()" ${preview ? '' : 'hidden'}>Volver al actual</button></div>
+      ${deskSceneHtml(profile,true,deskPreviewItemId)}
+      <p class="next-desk-help">Prueba cualquier combinación sin cambiar tu elección. Los objetos conseguidos se guardan con «Equipar».</p>
+    </article>
+  </div>`;
 }
 function renderNextExperience() { renderHomeDesk(); renderNextHome(); renderNextProgress(); }
 async function loadProfile() {
