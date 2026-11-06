@@ -1,0 +1,38 @@
+# Plan de cierre · Título de inglés
+
+**Objetivo:** convertir la app existente en un entrenador estable para B2 First, C1 Advanced y C2 Proficiency. El recorrido visible será: elegir nivel, estudiar un tema, practicar con un juego o una tarea, entender la corrección, retomar el trabajo y medir el avance. La cuenta y el progreso de CAMBRIDGE se conservan.
+
+**Situación comprobada el 6 de noviembre de 2026:** ING-01 a ING-04 del [plan de reactivación](plan-reactivacion-ingles.md) están implementados localmente. ING-05A (Writing) tiene borradores, versiones y corrección orientativa, pero su OCR requiere una foto real y una cuenta de prueba. ING-05B (Speaking) está implementado en local, con grabación y transcripción reales aún sin validar. Listening, simulacros, progreso ampliado y juegos específicos C1/C2 siguen pendientes.
+
+## Qué trasladamos de Profesor Particular y ESO Adultos
+
+| Patrón probado | Adaptación a inglés | Límite para no engañar al alumno |
+| --- | --- | --- |
+| Landing visual y demo jugable | Mostrar un reto B2 real, los niveles y las destrezas; acceso directo con Google | La demo no solicita datos ni finge guardar progreso. |
+| Biblioteca y tarjetas por tema | Un tema muestra objetivo, explicación, práctica, juego relacionado y revisión | Los rótulos genéricos del temario no se convierten automáticamente en ejercicios sin contenido revisado. |
+| Juegos avanzados con respuestas dentro de la escena | Fondos propios para lectura, vocabulario y escritura; controles HTML accesibles | Cada pregunta necesita solución y explicación comprobadas. Los juegos guiados no se presentan como simulacro oficial. |
+| Guardado visible y recuperación | Mantener ETag y copia local por cuenta; guardar intentos y borradores nuevos en el estado CAMBRIDGE | No reemplazar el estado antiguo ni mezclarlo con ESO o Profesor Particular. |
+| Navegación de exámenes y progreso | Partes por nivel, intentos reanudables y estadísticas por destreza | No mostrar puntuación global ni simulacro completo hasta tener todas sus partes y reglas verificadas. |
+| Perfil y acceso Google | Usar `/auth/google/login?next=%2Fcambridge`, existente en la suite | Una cuenta antigua se vincula por correo verificado; no se renuevan licencias ni créditos al entrar. |
+
+## Entregas
+
+| Bloque | Trabajo y comprobación de salida | Estado |
+| --- | --- | --- |
+| **ING-F1 · Landing y acceso** | Landing propia, rápida y adaptable; ilustración raster de biblioteca; demo B2 autocorregida; metadatos, FAQ y enlaces legales; botón Google con destino CAMBRIDGE. Verificar navegación, demo, imagen, móvil y estado de Google no disponible. | Implementado en local. El estado público de Google en producción indica `enabled: true`; falta probar la entrada completa con cuentas reales y la nueva landing desplegada. |
+| **ING-F2 · Juegos B2 por lección** | Las seis lecciones iniciales llevan a seis retos distintos. Añadir escenas de open cloze, word formation y registro de Writing; respuestas dentro de la escena, explicación, reintento y partida persistente. Comprobar que ninguna pregunta tiene dos soluciones válidas omitidas. | Implementado en local. Se comprobó error, acierto, avance y reanudación de una partida; faltan los recorridos completos y la revisión editorial de las seis. |
+| **ING-F3 · Speaking** | Preparación de consigna, permiso de micrófono, grabación, escucha, transcripción editable, feedback sobre texto y repetición. Diferenciar explícitamente lenguaje de pronunciación y evaluar con las señales disponibles. | Implementado en local: tres consignas por nivel, grabación con reproducción/descarga, transcripción revisable antes de añadirla, borrador persistente y aviso cuando cambia el texto tras recibir feedback. Navegación, cambio de nivel y recuperación del borrador probados en navegador. Falta probar micrófono, transcripción y revisión IA reales con una cuenta habilitada. |
+| **ING-F4 · Listening y exámenes** | Audio original con controles, transcripción en revisión y preguntas verificadas. Simulacros por parte con tiempo, navegación, guardado y resumen. Empezar por B2 y añadir las demás partes antes de anunciar simulacro completo. | Pendiente. |
+| **ING-F5 · Catálogos C1/C2** | Contenido y juegos propios por nivel, no cambio cosmético de B2. C1: inferencia, matiz, registro y discusión. C2: síntesis, fuentes y reformulación avanzada. Banco de soluciones y revisión de distractores. | Pendiente. |
+| **ING-F6 · Progreso, calidad y publicación** | Estadísticas por nivel y destreza, repaso de errores, intentos únicos y escritorio. Revisión de teclado/tacto/Safari, fotos, audio, caída de IA, cuentas antiguas, ETag y rutas públicas. Despliegue con comprobación de carga y guardado sin alterar licencias. | Pendiente. |
+
+## Criterios para declarar la app «final»
+
+1. Cada actividad visible tiene objetivo, respuesta o criterio de valoración, explicación y reintento; las tareas abiertas indican que su informe de IA es orientativo.
+2. B2, C1 y C2 muestran solamente contenido propio que se haya revisado. Si una destreza aún no tiene juego, la interfaz lo dice sin ofrecer un botón vacío.
+3. Un alumno puede retomar un borrador, una partida y un simulacro después de recargar o perder conexión; dos pestañas no pisan el progreso.
+4. La landing describe solo funciones que existen y se han probado. Google funciona con una cuenta nueva y una antigua sin duplicar usuario ni alterar licencias.
+5. En móvil y escritorio no hay controles cortados, scroll interno inútil ni respuestas tapadas; teclado, táctil y lector de pantalla pueden completar los juegos.
+6. Se prueba en producción una ruta completa por nivel y una foto y grabación reales antes de anunciar cierre comercial.
+
+**Assets creados en ING-F1/F2:** [hero de la landing](../marketing/app_landings_demo/assets/landing/cambridge-hero-v1.png) y escenas de [open cloze](../apps/cambridge/assets/games/open-cloze-editor-v1.png), [word formation](../apps/cambridge/assets/games/word-formation-forge-v1.png) y [Writing](../apps/cambridge/assets/games/writing-mailroom-v1.png). Generados con la herramienta integrada de imágenes mediante prompts de biblioteca y escenas de juego sin texto; las preguntas y los controles son HTML.

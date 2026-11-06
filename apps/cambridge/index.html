@@ -1361,6 +1361,7 @@
   #sessionActive > .chat-panel.compact,
   #tab-recitar .recite-layout > .chat-panel,
   #tab-temas .topics-side { display:none !important; }
+  #tab-recitar .recite-layout { grid-template-columns:minmax(0,1fr); max-width:1000px; }
   #sessionActive[style*="block"] { grid-template-columns:minmax(0,1fr); }
   .global-teacher { width:174px; height:60px; display:flex; justify-content:flex-start; gap:8px; padding:7px 10px; border-radius:12px; background:#1258d6; color:#fff; overflow:visible; }
   .global-teacher img { width:44px; height:44px; flex:0 0 44px; border-radius:8px; background:#eaf2ff; transform:none; }
@@ -1384,6 +1385,45 @@
   .english-icon { font-family:'Segoe UI Emoji','Segoe UI Symbol',sans-serif; font-size:25px; }
   @media(max-width:600px) { .global-teacher { right:12px; bottom:12px; } .english-teacher-panel { right:12px; bottom:80px; } .english-resume { flex-wrap:wrap; } .english-resume button { width:100%; } }
 </style>
+<style>
+.b2-intro{padding:28px 32px;margin:18px 0 22px;border-radius:24px;background:linear-gradient(120deg,#10396f,#246cc3);color:white}
+.b2-intro span{font-size:12px;font-weight:850;letter-spacing:.16em;color:#b9dcff}.b2-intro h2{margin:8px 0;font-size:clamp(25px,3vw,36px)}.b2-intro p{max-width:740px;margin:0;line-height:1.55}
+.b2-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:20px 0}
+.b2-card{padding:20px;border:1px solid #d1e1f5;border-radius:19px;background:#fff;box-shadow:0 10px 25px #15396b13}
+.b2-card h3{margin:7px 0;color:#113568}.b2-card p{color:#526984;line-height:1.5}.b2-card small{color:#1e6fc8;font-weight:800}
+.b2-card button,.b2-panel button{padding:10px 16px;border:1px solid #8fbcf0;border-radius:10px;background:#eaf4ff;color:#1554a2;font-weight:800;cursor:pointer}
+.b2-card button:hover,.b2-panel button:hover{background:#d6eaff}
+.b2-panel{margin:20px 0;padding:26px;border:1px solid #bfdbf7;border-radius:22px;background:#fff;box-shadow:0 16px 32px #15396b12}
+.b2-panel h2{margin:0 0 10px;color:#123568}.b2-panel p{line-height:1.6}.b2-panel blockquote{margin:18px 0;padding:16px 20px;border-left:4px solid #2c83d9;background:#f1f7ff;border-radius:9px}
+.b2-options{display:grid;gap:9px;margin:18px 0}.b2-panel .b2-option{display:block;text-align:left;width:100%;background:#f7fbff}
+.b2-panel .b2-option:disabled{opacity:1;cursor:default}.b2-panel .b2-option.correct{border-color:#39946d;background:#e7f7ee;color:#136341}.b2-panel .b2-option.incorrect{border-color:#d57368;background:#fff0ed;color:#9b342c}
+.b2-feedback{padding:12px 14px;border-radius:10px;background:#eaf4ff;color:#123568;line-height:1.5}
+.b2-board{position:relative;overflow:hidden;min-height:220px;padding:24px;margin:16px 0;border-radius:20px;background:linear-gradient(130deg,#d7edff,#fff4de)}
+.b2-board[data-kind="editor"]{background:repeating-linear-gradient(0deg,#fffaf0 0 35px,#e8dcc6 36px 37px)}
+.b2-board[data-kind="archive"]{background:linear-gradient(135deg,#ddc9a4,#f8edce)}
+.b2-board[data-kind="machine"]{background:radial-gradient(circle at 80% 20%,#53b4e3,#14366e)}
+.b2-board[data-kind="machine"] *{color:white}.b2-board p{position:relative;max-width:680px;font-size:18px;font-weight:700}
+.b2-panel input.b2-answer{width:100%;max-width:520px;padding:12px;border:1px solid #9ec5ec;border-radius:10px;font:inherit}
+.cambridge-header-level{display:grid;gap:3px;color:#52637c;font-size:11px;font-weight:800;white-space:nowrap}.cambridge-header-level select{min-width:132px;padding:8px 10px;border:1px solid #a4c7ea;border-radius:9px;background:white;color:#123568;font:inherit;font-size:13px}
+header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)}.main-actions{display:flex;justify-content:center;gap:4px;overflow-x:auto;grid-template-columns:none;width:100%;scrollbar-width:thin}.main-actions .nav-pill{flex:0 0 auto;white-space:nowrap}.header-right{grid-column:auto;grid-row:auto;justify-self:end}
+.b2-filters{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin:0 0 16px;padding:15px;border:1px solid #cddff4;border-radius:15px;background:#f7fbff}.b2-filters label{display:grid;gap:5px;min-width:140px;color:#254d79;font-size:12px;font-weight:800}.b2-filters input,.b2-filters select{min-height:40px;padding:8px 10px;border:1px solid #adc9e8;border-radius:9px;background:white;color:#123568;font:inherit;font-size:14px}.b2-filters input{min-width:230px}
+.b2-card{display:flex;flex-direction:column;align-items:flex-start;transition:transform .2s,box-shadow .2s}.b2-card:hover{transform:translateY(-3px);box-shadow:0 16px 34px #15396b20}.b2-card p{flex:1}.b2-card-status{display:block;margin:0 0 10px;color:#167457;font-size:12px;font-weight:800}.b2-empty{grid-column:1/-1;padding:24px;border:1px dashed #abc8e8;border-radius:15px;background:#f5faff;color:#234d79}
+.b2-game-top{display:flex;justify-content:space-between;align-items:center;gap:12px}.b2-game-top button{font-size:12px}.b2-game-progress{display:flex;gap:7px;margin:15px 0}.b2-game-progress span{width:42px;height:8px;border-radius:8px;background:#d7e6f6}.b2-game-progress span.on{background:#368ae4}
+.b2-board{min-height:310px;padding:19px;display:flex;flex-direction:column;gap:12px}.b2-scene-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 12px;border-radius:10px;background:#183763;color:#fff;font-size:14px;letter-spacing:.06em}.b2-scene-page{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;max-width:790px;width:100%;margin:auto;padding:22px;border-radius:13px;border:1px solid #c7b58e;background:#fffaf0;box-shadow:0 10px 0 #cfbb91,0 17px 25px #28436325}.b2-scene-page p{margin:0 0 18px;color:#153760;font-size:clamp(18px,2vw,24px)}.b2-scene-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.b2-panel .b2-scene-option{min-height:60px;background:white;color:#173d70;border:2px solid #8eb3d6;box-shadow:0 4px 0 #b6cbe1}.b2-panel .b2-scene-option:hover{transform:translateY(-2px);background:#eef7ff}.b2-panel .b2-scene-option:focus-visible{outline:3px solid #f4b83b;outline-offset:3px}.b2-panel .b2-scene-option.correct{background:#ddf7e8;border-color:#2d9d68;box-shadow:0 4px 0 #9bcfb2}.b2-panel .b2-scene-option.incorrect{background:#fff0ee;border-color:#d9685f;box-shadow:0 4px 0 #e9b8b4}
+.b2-board[data-kind="editor"]{background:linear-gradient(130deg,#92b3cb,#e3f1fa)}.b2-board[data-kind="editor"] .b2-scene-page{background:repeating-linear-gradient(0deg,#fffcf4 0 33px,#ebdfc4 34px 35px)}.b2-board[data-kind="archive"]{background:linear-gradient(140deg,#c5a474,#f0e1ba)}.b2-board[data-kind="archive"] .b2-scene-page{border-top:15px solid #ceac72;background:#fff8df}.b2-board[data-kind="machine"]{background:radial-gradient(circle at 20% 20%,#5db3e3,#16396e)}.b2-board[data-kind="machine"] .b2-scene-page{border:2px solid #92cbee;background:#effaff;box-shadow:0 0 0 8px #214e82,0 16px 30px #071d39}.b2-board[data-kind="machine"] .b2-scene-page *{color:#153760}.b2-machine-input{display:flex;flex-wrap:wrap;gap:9px}.b2-machine-input input{flex:1;min-width:180px}.b2-machine-input button{min-height:44px}
+.b2-board[data-kind="opencloze"],.b2-board[data-kind="forge"],.b2-board[data-kind="mailroom"]{min-height:410px;background-position:center;background-size:cover;border-radius:18px;justify-content:center}.b2-board[data-kind="opencloze"]{background-image:linear-gradient(#0b2a4654,#0b2a4654),url('/assets/cambridge-games/open-cloze-editor-v1.png')}.b2-board[data-kind="forge"]{background-image:linear-gradient(#0b2a4650,#0b2a4650),url('/assets/cambridge-games/word-formation-forge-v1.png')}.b2-board[data-kind="mailroom"]{background-image:linear-gradient(#0b2a4654,#0b2a4654),url('/assets/cambridge-games/writing-mailroom-v1.png')}.b2-board[data-kind="opencloze"] .b2-scene-page,.b2-board[data-kind="forge"] .b2-scene-page,.b2-board[data-kind="mailroom"] .b2-scene-page{flex:0 1 auto;max-width:650px;border:1px solid #fff9;background:#fffffff0;box-shadow:0 12px 0 #09385970,0 23px 34px #06192f70;backdrop-filter:blur(12px)}.b2-board[data-kind="opencloze"] .b2-scene-head,.b2-board[data-kind="forge"] .b2-scene-head,.b2-board[data-kind="mailroom"] .b2-scene-head{background:#102f4fdc}.b2-board[data-kind="opencloze"] .b2-scene-option,.b2-board[data-kind="forge"] .b2-scene-option,.b2-board[data-kind="mailroom"] .b2-scene-option{font-size:clamp(14px,1.6vw,18px)}
+.b2-game-thumb{display:grid;place-items:center;min-height:110px;margin:-15px -15px 14px;border-radius:13px 13px 9px 9px;background:linear-gradient(120deg,#cde9fc,#f8eddb);background-position:center;background-size:cover;overflow:hidden}.b2-game-thumb[data-kind="archive"]{background:linear-gradient(120deg,#9f7944,#ead8aa)}.b2-game-thumb[data-kind="machine"]{background:linear-gradient(120deg,#153a79,#53b9df)}.b2-game-thumb[data-kind="opencloze"]{background-image:url('/assets/cambridge-games/open-cloze-editor-v1.png')}.b2-game-thumb[data-kind="forge"]{background-image:url('/assets/cambridge-games/word-formation-forge-v1.png')}.b2-game-thumb[data-kind="mailroom"]{background-image:url('/assets/cambridge-games/writing-mailroom-v1.png')}.b2-game-thumb span{display:grid;place-items:center;width:54px;height:54px;border:1px solid #ffffffb8;border-radius:17px;background:#ffffffdf;box-shadow:0 8px 22px #0a31576b;font-size:28px}
+.writing-guide{margin:14px 0;padding:14px 16px;border:1px solid #cbdff5;border-radius:14px;background:#f0f7ff;color:#204a76;line-height:1.5}.writing-guide strong{display:block;color:#143968}.writing-guide small{display:block;margin-top:4px}.writing-prompt-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 18px}.writing-prompt-actions span{font-size:12px;color:#58708d}.writing-count{margin-top:7px;font-size:12px;font-weight:800;color:#526984}.writing-count.in-range{color:#147456}.writing-count.out-range{color:#af5e13}
+.writing-ocr-review{margin-top:14px;padding:16px;border:1px solid #b9d7f0;border-radius:13px;background:white}.writing-ocr-review[hidden]{display:none}.writing-ocr-review label{display:block;margin-bottom:8px;font-weight:800;color:#143968}.writing-ocr-review textarea{min-height:125px}.writing-ocr-review .writing-actions{margin-top:10px}
+.writing-report{white-space:pre-wrap}.writing-report-card{margin:10px 0;padding:14px;border:1px solid #d5e2f2;border-radius:13px;background:#fff}.writing-report-card h3{margin:0 0 8px;font-size:15px;color:#153c71}.writing-report-card p{margin:0;line-height:1.6;white-space:pre-wrap}.writing-report-scores{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.writing-report-score{padding:11px;border-radius:11px;background:#eaf4ff;color:#123968}.writing-report-score strong{display:block;font-size:18px}.writing-report-note{font-size:12px;color:#5c6d80}.writing-model{margin-top:16px;padding:14px;border:1px solid #cee0f4;border-radius:12px;background:#f8fbff}.writing-model[hidden]{display:none}.writing-model summary{cursor:pointer;font-weight:800;color:#1557a0}.writing-model #writingModelText{margin-top:12px;white-space:pre-wrap;line-height:1.65}
+.writing-versions{margin-top:20px;padding-top:17px;border-top:1px solid #d9e5f3}.writing-versions h3{margin:0 0 5px;color:#123968}.writing-versions p{color:#526984;line-height:1.5}.writing-compare-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}.writing-compare-controls select{min-height:39px;padding:7px 9px;border:1px solid #b7d0eb;border-radius:9px;background:#fff;color:#143968}.writing-compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.writing-compare article{min-width:0;padding:14px;border:1px solid #d5e2f2;border-radius:11px;background:#fff}.writing-compare h4{margin:0 0 9px;color:#164778}.writing-compare pre{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.6}
+@media(max-width:900px){.b2-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1400px){header{grid-template-columns:minmax(0,1fr) auto}.brand-area{grid-column:1;grid-row:1}.header-right{grid-column:2;grid-row:1}.main-actions{grid-column:1/-1;grid-row:2;justify-content:flex-start;width:100%}}
+.b2-game-thumb{width:calc(100% + 30px);flex:none}
+.speaking-task{margin:17px 0;padding:20px;border:1px solid #bfd6ee;border-radius:16px;background:linear-gradient(140deg,#f3f9ff,#fffaf1);box-shadow:0 11px 24px #143a6514}.speaking-task-head{display:flex;justify-content:space-between;gap:12px;color:#176ab5;font-size:12px;font-weight:900;letter-spacing:.07em;text-transform:uppercase}.speaking-task label{display:block;margin:15px 0 6px;color:#274d76;font-size:13px;font-weight:800}.speaking-task select{width:100%;min-height:44px;padding:9px 12px;border:1px solid #a9c7e9;border-radius:10px;background:#fff;color:#123763;font:inherit}.speaking-task h2{margin:16px 0 5px;color:#113568;font-size:clamp(20px,2vw,25px)}.speaking-task p{margin:0;color:#123763;font-size:17px;line-height:1.55}.speaking-task ul{display:grid;gap:6px;margin:13px 0;padding-left:21px;color:#365a80}.speaking-task small{color:#62748b;line-height:1.5}.recite-playback,.recite-review{display:grid;gap:10px;margin:14px 0;padding:16px;border:1px solid #c3daee;border-radius:13px;background:#f6fbff}.recite-playback[hidden],.recite-review[hidden],.recite-review [hidden],.recite-stale[hidden]{display:none}.recite-playback audio{display:block;width:100%;max-width:650px}.recite-playback button{justify-self:start}.recite-playback small{color:#60728a;line-height:1.5}.recite-review label{font-weight:800;color:#153b66}.recite-review textarea{width:100%;min-height:120px}.recite-review .recite-controls{margin:2px 0 0}.recite-limits{margin:10px 0;color:#59708a;font-size:13px;line-height:1.5}.recite-stale{margin:12px 0;padding:12px 14px;border:1px solid #e8c789;border-radius:10px;background:#fff8e6;color:#805213;font-size:13px;font-weight:750}
+@media(max-width:900px){.b2-scene-options{grid-template-columns:1fr}}
+@media(max-width:620px){.b2-grid{grid-template-columns:1fr}.b2-intro,.b2-panel{padding:19px}.b2-board{min-height:240px;padding:12px}.b2-scene-page{padding:15px}.b2-filters input{min-width:0}.b2-filters label{flex:1 1 145px}.writing-report-scores,.writing-compare{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 <div class="selection-toolbar" id="selectionToolbar" aria-label="Formato de texto">
@@ -1405,12 +1445,14 @@
   </div>
   <div class="main-actions">
     <button class="nav-pill active" data-tab-btn="sesion" onclick="showTab('sesion',this)">Inicio</button>
-    <button class="nav-pill" data-tab-btn="temas" onclick="showTab('temas',this)">Temas</button>
-    <button class="nav-pill" data-tab-btn="recitar" onclick="showTab('recitar',this)">Speaking</button>
-    <button class="nav-pill" data-tab-btn="escrita" onclick="showTab('escrita',this)">Writing</button>
+    <button class="nav-pill" data-tab-btn="temas" onclick="showTab('temas',this)">Biblioteca</button>
+    <button class="nav-pill" data-tab-btn="b2" onclick="showTab('b2',this)">Ruta B2</button>
+    <button class="nav-pill" data-tab-btn="entrenar" onclick="showTab('entrenar',this)">Entrenar</button>
+    <button class="nav-pill" data-tab-btn="juegos" onclick="showTab('juegos',this)">Juegos</button>
     <button class="nav-pill" data-tab-btn="progreso" onclick="showTab('progreso',this)">Progreso</button>
   </div>
   <div class="header-right">
+    <label class="cambridge-header-level" for="headerExamLevel">Nivel <select id="headerExamLevel" onchange="setExamLevel(this.value)"><option value="B2 First">B2 First</option><option value="C1 Advanced">C1 Advanced</option><option value="C2 Proficiency">C2 Proficiency</option></select></label>
     <div class="header-meta" id="headerMeta">Sesiones: 0<br>Temas: 0<br>Créditos: -</div>
     <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil',this)" title="Perfil" aria-label="Perfil">P</button>
   </div>
@@ -1423,6 +1465,7 @@
 </aside>
 
 <main>
+  <div id="cambridgeSaveStatus" role="status" aria-live="polite" style="display:none;margin:14px 0;padding:12px 16px;border:1px solid #b7d1f3;border-radius:12px;background:#f0f7ff;color:#123461"></div>
 
   <!-- TAB: SESIÓN -->
   <div id="tab-sesion" class="tab active">
@@ -1441,10 +1484,13 @@
       <div class="english-resume" id="englishResume" hidden><span><strong>Sesión en curso</strong><small id="englishResumeTopic"></small></span><button class="btn btn-outline" type="button" onclick="resumeEnglishSession()">Reanudar →</button></div>
       <div class="english-grid">
         <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">📚</span><div><h3>Biblioteca de temas</h3><p>Speaking, writing, grammar y vocabulario por niveles.</p></div><button class="english-link" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">Ver temas →</button></div><div class="english-topic-chips"><button type="button" onclick="openEnglishTopicGroup('Speaking')"><span aria-hidden="true">💬</span>Speaking</button><button type="button" onclick="openEnglishTopicGroup('Writing')"><span aria-hidden="true">✍️</span>Writing</button><button type="button" onclick="openEnglishTopicGroup('Use of English')"><span aria-hidden="true">Aa</span>Grammar</button><button type="button" onclick="openEnglishTopicGroup('Reading')"><span aria-hidden="true">📖</span>Reading</button></div></section>
+        <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">✦</span><div><h3>Ruta B2 First</h3><p>Seis lecciones breves con explicación y corrección.</p></div><button class="english-link" type="button" onclick="setExamLevel('B2 First');showTab('b2',document.querySelector('[data-tab-btn=&quot;b2&quot;]'))">Abrir ruta →</button></div><div class="english-card-steps"><span>Aprender</span><span>Comprobar</span><span>Repasar</span></div></section>
+        <section class="english-card"><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">◆</span><div><h3>Juegos B2</h3><p>Seis retos vinculados a la ruta de lectura, vocabulario, gramática y escritura.</p></div><button class="english-link" type="button" onclick="setExamLevel('B2 First');showTab('juegos',document.querySelector('[data-tab-btn=&quot;juegos&quot;]'))">Jugar →</button></div><div class="english-card-steps"><span>6 misiones</span><span>Corrección inmediata</span></div></section>
         <section class="english-card"><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">🎙️</span><div><h3>Speaking</h3><p>Prepara tu respuesta, grábate y recibe correcciones.</p></div><button class="english-link" type="button" onclick="showTab('recitar',document.querySelector('[data-tab-btn=&quot;recitar&quot;]'))">Practicar →</button></div><div class="english-card-steps"><span>Preparar</span><span>Grabar</span><span>Corregir</span></div></section>
         <section class="english-card"><div class="english-card-head"><span class="english-icon gold" aria-hidden="true">✍️</span><div><h3>Writing</h3><p>Escribe, genera un modelo y mejora tu texto con feedback.</p></div><button class="english-link" type="button" onclick="showTab('escrita',document.querySelector('[data-tab-btn=&quot;escrita&quot;]'))">Ir a writing →</button></div><div class="english-card-steps"><span>Redactar</span><span>Modelo</span><span>Corregir por foto</span></div></section>
         <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">📈</span><div><h3>Tu progreso</h3><p>Sesiones guardadas y temas completados.</p></div><button class="english-link" type="button" onclick="showTab('progreso',document.querySelector('[data-tab-btn=&quot;progreso&quot;]'))">Ver progreso →</button></div><div class="english-meter"><div class="english-meter-track"><span id="englishHomeBar"></span></div><strong id="englishHomePct">0%</strong></div><button class="english-next" type="button" onclick="continueEnglishStudy()"><span><strong>Siguiente tema</strong><small id="englishHomeNext">Busca tu próximo tema.</small></span><span aria-hidden="true">→</span></button></section>
       </div>
+      <div class="english-resume" id="englishWritingResume" hidden><span><strong>Borrador de Writing</strong><small id="englishWritingResumeText"></small></span><button class="btn btn-outline" type="button" onclick="showTab('escrita',document.querySelector('[data-tab-btn=&quot;escrita&quot;]'))">Continuar →</button></div>
     </div>
     <div id="sessionActive" class="session-active" style="display:none">
       <div class="session-header">
@@ -1520,9 +1566,18 @@
         <div class="recite-field">
           <label for="reciteTopicInput">Tema</label>
           <select class="recite-topic-select" id="reciteTopicInput" onchange="updateReciteTopic(this.value)"></select>
-          <div class="recite-topic-hint">Por defecto usa el tema que estas trabajando. Tambien puedes elegir otro de la lista.</div>
+          <div class="recite-topic-hint">Por defecto usa el tema que estás trabajando. También puedes elegir otro de la lista.</div>
         </div>
         <div class="recite-topic" id="reciteTopicLabel">Sin tema seleccionado</div>
+        <section class="speaking-task" aria-labelledby="speakingTaskTitle">
+          <div class="speaking-task-head"><span>Reto oral guiado</span><span id="speakingTaskLevel">B2 First</span></div>
+          <label for="speakingTaskSelect">Elige una consigna</label>
+          <select id="speakingTaskSelect" onchange="chooseSpeakingTask(this.value)"></select>
+          <h2 id="speakingTaskTitle">Tu consigna</h2>
+          <p id="speakingTaskPrompt"></p>
+          <ul id="speakingTaskSteps"></ul>
+          <small>Práctica orientativa. No es un simulacro ni una calificación oficial.</small>
+        </section>
         <div class="recite-stage">
           <div class="timer-display" id="reciteTimer">01:00</div>
           <div>
@@ -1537,7 +1592,13 @@
           <button class="btn btn-small btn-outline recite-pause-btn" id="pauseAudioBtn" onclick="toggleRecitePause()">Pausa</button>
         </div>
         <div class="recite-controls">
-          <button class="btn btn-small btn-outline" onclick="resetReciteFlow()">Reiniciar práctica</button>
+          <button class="btn btn-small btn-outline" onclick="resetReciteFlow()">Repetir grabación</button>
+        </div>
+        <div class="recite-playback" id="recitePlaybackWrap" hidden>
+          <strong>Escucha tu respuesta</strong>
+          <audio id="recitePlayback" controls preload="metadata"></audio>
+          <button class="btn btn-small btn-outline" type="button" onclick="downloadReciteAudio()">Descargar audio</button>
+          <small>El audio permanece en esta pestaña hasta que la cierres o recargues. Guarda una copia si quieres conservarlo; la transcripción sí se guarda en tu progreso.</small>
         </div>
         <div class="recite-field">
           <label for="reciteNotes">Notas</label>
@@ -1545,17 +1606,24 @@
         </div>
         <div class="recite-field">
           <label for="reciteTranscript">Transcripción</label>
-          <textarea class="recite-input recite-transcript" id="reciteTranscript" spellcheck="true" oninput="persistRecitePractice()" placeholder="La transcripción aparecerá aquí. También puedes pegar tu texto oral manualmente."></textarea>
+          <textarea class="recite-input recite-transcript" id="reciteTranscript" spellcheck="true" oninput="persistRecitePractice();renderReciteFeedbackFreshness()" placeholder="Escribe o pega aquí tu intervención. La transcripción automática se revisa antes de añadirla."></textarea>
         </div>
         <div class="recite-transcribe-box">
           <div class="recite-transcribe-title">Cuando termines de grabar</div>
-          <button class="btn btn-accept" id="transcribeAudioBtn" onclick="transcribeReciteAudio()">Haz click aquí para transcribir</button>
-          <div class="recite-transcribe-hint">Primero graba tu exposición. Cuando pares la grabación, este botón quedará listo para pasar el audio a texto.</div>
+          <button class="btn btn-accept" id="transcribeAudioBtn" type="button" onclick="transcribeReciteAudio()">Transcribir audio</button>
+          <div class="recite-transcribe-hint">Graba, detén el audio y revisa el texto reconocido antes de añadirlo. Tus notas y tu texto no se sustituyen automáticamente.</div>
+        </div>
+        <div class="recite-review" id="reciteTranscriptReview" hidden>
+          <label for="reciteReviewText">Revisa la transcripción</label>
+          <textarea class="recite-input" id="reciteReviewText" spellcheck="true"></textarea>
+          <div class="recite-controls"><button class="btn btn-small btn-accept" type="button" onclick="insertReciteTranscript(false)">Añadir al texto</button><button class="btn btn-small btn-outline" type="button" id="replaceReciteTranscriptBtn" onclick="insertReciteTranscript(true)">Sustituir texto</button><button class="btn btn-small btn-outline" type="button" onclick="discardReciteTranscript()">Descartar</button></div>
         </div>
         <div class="recite-controls">
-          <button class="btn btn-small btn-accept" onclick="correctRecitation()">Corregir recitación</button>
+          <button class="btn btn-small btn-accept" id="correctReciteBtn" onclick="correctRecitation()">Revisar mi texto</button>
         </div>
+        <p class="recite-limits">La revisión analiza el texto transcrito: estructura, vocabulario y gramática. No puede valorar pronunciación, entonación ni interacción con otra persona.</p>
         <div id="reciteStatus" class="db-notice" style="display:none;"></div>
+        <div id="reciteFeedbackStale" class="recite-stale" hidden>Has cambiado el texto, la consigna o el nivel desde esta revisión. Solicita otra revisión para valorar la versión actual.</div>
         <div id="reciteCorrection" class="notice" style="display:none;"></div>
       </div>
       <div class="chat-panel">
@@ -1596,7 +1664,13 @@
               <option value="C2 Proficiency">C2 Proficiency</option>
             </select>
           </div>
+          <div class="writing-field">
+            <label for="writingPart">Parte</label>
+            <select class="writing-select" id="writingPart" onchange="persistWritingPractice()"><option value="1">Parte 1</option><option value="2">Parte 2</option></select>
+          </div>
         </div>
+        <div class="writing-guide" id="writingGuide" role="status"></div>
+        <div class="writing-prompt-actions"><button class="btn btn-small btn-outline" type="button" onclick="loadWritingPrompt()">Probar una consigna de este tipo</button><span>La consigna se puede editar antes de empezar.</span></div>
         <div class="writing-ocr-box">
           <div class="writing-ocr-row">
             <div class="writing-field">
@@ -1616,7 +1690,8 @@
           <div class="writing-ocr-preview" id="writingImagePreviewBox">
             <img id="writingImagePreview" alt="Imagen seleccionada para OCR">
           </div>
-          <div class="writing-ocr-hint">PNG, JPG o WEBP. El texto detectado se a&ntilde;ade al campo seleccionado sin borrar lo que ya tengas escrito.</div>
+          <div class="writing-ocr-hint">PNG, JPG o WEBP. Podrás corregir el texto detectado antes de insertarlo en el campo seleccionado; lo que ya tengas escrito se conservará.</div>
+          <div class="writing-ocr-review" id="writingOcrReviewBox" hidden><label for="writingOcrReview">Revisa el texto detectado antes de insertarlo</label><textarea id="writingOcrReview" class="writing-textarea" oninput="persistWritingOcrReview()" placeholder="Corrige aquí lo que el OCR haya leído mal."></textarea><div class="writing-actions"><button class="btn btn-small btn-blue" type="button" onclick="insertWritingOcrReview()">Insertar texto revisado</button><button class="btn btn-small btn-outline" type="button" onclick="dismissWritingOcrReview()">Descartar detección</button></div></div>
         </div>
         <div class="writing-field">
           <label for="writingPrompt">Enunciado</label>
@@ -1625,19 +1700,43 @@
         <div class="writing-field">
           <label for="writingAnswer">Respuesta del alumno</label>
           <textarea class="writing-textarea answer" id="writingAnswer" oninput="persistWritingPractice()" placeholder="Write your answer here..."></textarea>
+          <div class="writing-count" id="writingWordCount" aria-live="polite">0 palabras</div>
         </div>
         <div class="writing-actions">
+          <button class="btn btn-small btn-outline" type="button" onclick="saveWritingVersion()">Guardar versión</button>
           <button class="btn btn-small btn-blue" onclick="generateWritingModel()">Generar modelo</button>
           <button class="btn btn-small btn-accept" onclick="correctWritingPractice()">Corregir writing</button>
-          <button class="btn btn-small btn-outline" onclick="clearWritingPractice()">Limpiar</button>
+          <button class="btn btn-small btn-outline" onclick="clearWritingPractice()">Nuevo borrador</button>
         </div>
       </div>
       <div class="writing-panel">
-        <div class="section-label">Informe Cambridge</div>
+        <div class="section-label">Informe orientativo de práctica</div>
         <div id="writingStatus" class="db-notice" style="display:none;"></div>
         <div id="writingFeedback" class="writing-report notice">El informe aparecerá aquí con valoración, errores prioritarios, versión mejorada y plan de mejora.</div>
+        <details class="writing-model" id="writingModelBox" hidden><summary>Ver respuesta modelo</summary><div id="writingModelText"></div></details>
+        <div class="writing-versions"><h3>Versiones de tu texto</h3><p>Compara tu borrador con una versión guardada. La corrección no modifica lo que escribiste.</p><div class="writing-compare-controls"><label for="writingCompareVersion">Versión anterior</label><select id="writingCompareVersion" onchange="renderWritingComparison()"></select></div><div id="writingComparison"></div></div>
       </div>
     </div>
+  </div>
+
+  <div id="tab-entrenar" class="tab">
+    <div class="b2-intro"><span>PRACTICA A TU RITMO</span><h2>Elige cómo entrenar hoy</h2><p>Usa tu nivel seleccionado en la cabecera. Puedes retomar una sesión, practicar speaking o seguir un borrador de writing.</p></div>
+    <div class="b2-grid">
+      <article class="b2-card"><small>SESIÓN GUIADA</small><h3>Práctica de hoy</h3><p>Elige 15, 30 o 45 minutos desde Inicio y continúa donde lo dejaste.</p><button type="button" onclick="showTab('sesion',document.querySelector('[data-tab-btn=&quot;sesion&quot;]'))">Ir a Inicio →</button></article>
+      <article class="b2-card"><small>PRODUCCIÓN ORAL</small><h3>Speaking</h3><p>Prepara tus ideas, grábate y revisa la respuesta.</p><button type="button" onclick="showTab('recitar')">Practicar speaking →</button></article>
+      <article class="b2-card"><small>PRODUCCIÓN ESCRITA</small><h3>Writing</h3><p>Escribe o retoma tu borrador y revisa los comentarios.</p><button type="button" onclick="showTab('escrita')">Practicar writing →</button></article>
+    </div>
+  </div>
+  <div id="tab-b2" class="tab">
+    <div class="b2-intro"><span>B2 FIRST</span><h2>Aprende, practica y comprueba</h2><p>Seis lecciones breves para preparar Reading, Writing y Use of English. Elige una tarjeta para abrir sus pasos.</p></div>
+    <div class="b2-filters" role="group" aria-label="Filtrar lecciones B2"><label>Buscar tema <input id="b2Search" type="search" placeholder="Tema o palabra clave" oninput="renderB2Lessons()"></label><label>Destreza <select id="b2SkillFilter" onchange="renderB2Lessons()"><option value="all">Todas</option><option value="Use of English">Use of English</option><option value="Reading">Reading</option><option value="Writing">Writing</option></select></label><label>Parte <select id="b2PartFilter" onchange="renderB2Lessons()"><option value="all">Todas</option><option value="1">Parte 1</option><option value="2">Parte 2</option><option value="3">Parte 3</option><option value="4">Parte 4</option><option value="5">Parte 5</option></select></label><label>Estado <select id="b2StatusFilter" onchange="renderB2Lessons()"><option value="all">Todos</option><option value="pending">Por practicar</option><option value="done">Completados</option></select></label></div>
+    <div id="b2LessonList" class="b2-grid"></div>
+    <div id="b2LessonDetail"></div>
+  </div>
+  <div id="tab-juegos" class="tab">
+    <div class="b2-intro"><span>JUEGOS B2</span><h2>Practica dentro de la historia</h2><p>Seis retos vinculados a las lecciones B2. Completa textos, descubre pistas, transforma frases y prepara mensajes para un lector.</p></div>
+    <div id="b2GameList" class="b2-grid"></div>
+    <div id="b2GameBoard"></div>
   </div>
 
   <!-- TAB: TEMAS -->
@@ -1928,7 +2027,7 @@ let state = {
   completedTopics: [],   // array of topic strings that have been saved
   history: [],
   currentSession: null,
-  recitePractice: { topic: '', notes: '', transcript: '', correction: '', selectedMode: 'prep' },
+  recitePractice: { topic: '', notes: '', transcript: '', correction: '', selectedMode: 'prep', promptId: '', feedbackFor: '' },
   writingPractice: { taskType: 'essay', level: 'C1 Advanced', prompt: '', answer: '', feedback: '' },
   topicChats: { session: [], recite: [], temas: [], profesor: [] },
   config: { numPoints: 5, numVocab: 5, profile: DEFAULT_PROFILE, pointFontSize: 13, vocabColumnWidth: 270 }
@@ -1954,6 +2053,10 @@ let reciteRecordingStartedAt = null;
 let reciteAudioDuration = 0;
 let reciteAudioType = 'audio/webm';
 let reciteRecordingToken = 0;
+let reciteAudioUrl = '';
+let recitePlaybackBlob = null;
+let reciteTranscribeBusy = false;
+let reciteCorrectionToken = 0;
 let writingImageDataUrl = '';
 let writingImageMime = '';
 const GROQ_TEXT_MODEL = 'openai/gpt-oss-120b';
@@ -1972,16 +2075,25 @@ function normalizeAppState() {
   state.config.vocabColumnWidth = state.config.vocabColumnWidth || 270;
   if (!state.completedTopics) state.completedTopics = [];
   if (!state.history) state.history = [];
+  if (!state.b2Progress || typeof state.b2Progress !== 'object') state.b2Progress = {};
+  if (!state.b2Games || typeof state.b2Games !== 'object') state.b2Games = {};
+  if (!state.b2GameRuns || typeof state.b2GameRuns !== 'object') state.b2GameRuns = {};
   if (!('currentSession' in state)) state.currentSession = null;
   state.lang = 'en';
   state.examLevel = ['B2 First','C1 Advanced','C2 Proficiency'].includes(state.examLevel) ? state.examLevel : 'C1 Advanced';
   if (!state.writingPractice) state.writingPractice = { taskType: 'essay', level: 'C1 Advanced', prompt: '', answer: '', feedback: '' };
+  if (!state.writingPractice.draftId) state.writingPractice.draftId = newWritingDraftId();
+  state.writingPractice.part = String(state.writingPractice.part || (state.writingPractice.taskType === 'essay' ? '1' : '2'));
+  if (!Array.isArray(state.writingPractice.versions)) state.writingPractice.versions = [];
+  state.writingPractice.ocrReview = String(state.writingPractice.ocrReview || '');
   state.recitePractice = {
     topic: '',
     notes: '',
     transcript: '',
     correction: '',
     selectedMode: 'prep',
+    promptId: '',
+    feedbackFor: '',
     ...(state.recitePractice || {})
   };
   state.topicChats = {
@@ -2152,15 +2264,18 @@ function getLangLabel() {
 function setExamLevel(level) {
   if (!['B2 First','C1 Advanced','C2 Proficiency'].includes(level)) return;
   state.examLevel = level;
-  state.writingPractice = {...(state.writingPractice || {}), level};
+  if (!state.writingPractice?.answer?.trim() && !state.writingPractice?.prompt?.trim()) state.writingPractice = {...(state.writingPractice || {}), level};
   const levelSelect = document.getElementById('examLevelSelect');
   if (levelSelect) levelSelect.value = level;
+  const headerLevel = document.getElementById('headerExamLevel');
+  if (headerLevel) headerLevel.value = level;
   currentCat = '';
   const writingLevel = document.getElementById('writingLevel');
-  if (writingLevel) writingLevel.value = level;
+  if (writingLevel) writingLevel.value = state.writingPractice?.level || level;
   const badge = document.getElementById('sessionLangBadge');
   if (badge) badge.textContent = level;
   renderTopicsTab();
+  if (document.getElementById('tab-recitar')?.classList.contains('active')) renderRecitePractice();
   persist();
 }
 
@@ -2407,21 +2522,28 @@ async function getDir() {
 
 async function readJSON(filename) {
   if (BACKEND_SUPPORTED && filename === 'state.json') {
-    try {
-      if (await loadBackendStatus()) return await backendRequest('/api/state');
-    } catch(e) {}
+    const response = await fetch('/api/state', {headers:{'X-Client-App':'cambridge'},credentials:'same-origin'});
+    if (!response.ok) throw new Error('No se pudo cargar el progreso del servidor.');
+    cambridgeStateETag = response.headers.get('ETag');
+    return response.json();
   }
   return lsFallbackRead('cambridge_trainer_state');
 }
 
 async function writeJSON(filename, data) {
   if (BACKEND_SUPPORTED && filename === 'state.json') {
-    try {
-      if (await loadBackendStatus()) {
-        await backendRequest('/api/state', { method: 'POST', body: JSON.stringify(data) });
-        return;
-      }
-    } catch(e) {}
+    if (cambridgeSaveBlocked) throw new Error('Recarga tu progreso antes de guardar.');
+    const response = await fetch('/api/state', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json','X-Client-App':'cambridge',...(cambridgeStateETag ? {'If-Match':cambridgeStateETag} : {})},
+      body:JSON.stringify(data)
+    });
+    if (!response.ok) {
+      if ([409,428].includes(response.status)) cambridgeSaveBlocked = true;
+      throw new Error(response.status === 409 ? 'Hay cambios más recientes en otra pestaña. Descarga este borrador antes de recargar.' : 'No se pudo guardar. Tus cambios siguen en este navegador.');
+    }
+    cambridgeStateETag = response.headers.get('ETag');
+    return;
   }
   lsFallbackWrite('cambridge_trainer_state', data);
 }
@@ -2479,18 +2601,80 @@ function lsFallbackWrite(key, data) { localStorage.setItem(key, JSON.stringify(d
 function lsFallbackRead(key) {
   try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch(e) { return {}; }
 }
+let cambridgeStateETag = null;
+let cambridgeSaveBlocked = false;
+let cambridgeSaveQueue = Promise.resolve(true);
+let cambridgeFlushRunning = null;
+let cambridgeQueuedSnapshot = null;
+let cambridgeSaveSerial = 0;
+let cambridgePendingKey = 'cambridge_trainer_pending_demo';
+function downloadCambridgePending() {
+  const pending = lsFallbackRead(cambridgePendingKey);
+  const data = pending.snapshot || (Object.keys(pending).length ? pending : state);
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'titulo-ingles-copia.json';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url),1000);
+}
+function offerCambridgePendingRecovery() {
+  const pending = lsFallbackRead(cambridgePendingKey);
+  if (!pending || !Object.keys(pending).length) return;
+  const canRestore = !cambridgeSaveBlocked && pending.baseETag && pending.baseETag === cambridgeStateETag && pending.snapshot;
+  showCambridgeSaveStatus(canRestore ? 'Hay un borrador sin guardar en este navegador.' : 'Hay una copia local pendiente. Descárgala antes de continuar; el servidor tiene una versión distinta.',true);
+  if (!canRestore) return;
+  const restore = document.createElement('button');
+  restore.type = 'button';
+  restore.textContent = 'Recuperar borrador';
+  restore.style.marginLeft = '8px';
+  restore.onclick = async () => {
+    state = {...state,...pending.snapshot};
+    normalizeAppState();
+    if (await persist()) location.reload();
+  };
+  document.getElementById('cambridgeSaveStatus').append(restore);
+}
+function showCambridgeSaveStatus(message, failed=false) {
+  const status = document.getElementById('cambridgeSaveStatus');
+  if (!status) return;
+  status.style.display = 'block';
+  status.style.borderColor = failed ? '#efb2a9' : '#b7d1f3';
+  status.style.background = failed ? '#fff3ef' : '#f0f7ff';
+  status.textContent = message;
+  if (failed) {
+    const download = document.createElement('button');
+    download.type = 'button';
+    download.textContent = 'Descargar copia';
+    download.style.marginLeft = '12px';
+    download.onclick = downloadCambridgePending;
+    status.append(download);
+    const retry = document.createElement('button');
+    retry.type='button';
+    retry.textContent='Reintentar';
+    retry.style.marginLeft='8px';
+    retry.onclick=()=>cambridgeSaveBlocked ? location.reload() : persist();
+    status.append(retry);
+  }
+}
 
 // ── INIT ─────────────────────────────────────────────────────────────────
 async function init() {
   let loaded = {};
   const backend = await loadBackendStatus();
-  if (backend) {
-    loaded = await readJSON('state.json');
+  if (backend?.user?.id) cambridgePendingKey = `cambridge_trainer_pending_${backend.user.id}`;
+  if (BACKEND_SUPPORTED && (backend || location.pathname === '/cambridge')) {
+    try { loaded = await readJSON('state.json'); }
+    catch (error) {
+      cambridgeSaveBlocked = true;
+      showCambridgeSaveStatus('No se pudo cargar tu progreso. Recarga la página para volver a intentarlo.',true);
+    }
   } else {
     loaded = lsFallbackRead('cambridge_trainer_state');
   }
 
   if (loaded && Object.keys(loaded).length > 0) state = { ...state, ...loaded };
+  if (BACKEND_SUPPORTED && location.pathname === '/cambridge') offerCambridgePendingRecovery();
 
   normalizeAppState();
 
@@ -2503,6 +2687,7 @@ async function init() {
   document.getElementById('numVocab').value       = state.config.numVocab;
   document.getElementById('profileContext').value = state.config.profile;
   document.getElementById('examLevelSelect').value = state.examLevel;
+  document.getElementById('headerExamLevel').value = state.examLevel;
   document.getElementById('writingLevel').value = state.examLevel;
   document.getElementById('pointFontSize').value  = state.config.pointFontSize;
   document.getElementById('pointSizeLabel').textContent = state.config.pointFontSize + 'px';
@@ -2513,12 +2698,13 @@ async function init() {
   document.getElementById('btnEN')?.classList.add('active');
 
   renderCambridgeIcons();
-  moveTranscribeButtonToHeader();
   renderTopicsTab();
   renderHistory();
   renderRecitePractice();
   renderAllChats();
   renderEnglishHomeSession();
+  renderB2Lessons();
+  renderB2Games();
   renderEnglishTeacher();
   refreshDriveStatus();
   selectEnglishDuration(englishDuration);
@@ -2530,8 +2716,49 @@ async function selectFolder() {
 }
 
 async function persist() {
-  if (BACKEND_SUPPORTED) await writeJSON('state.json', state);
-  lsFallbackWrite('cambridge_trainer_state', state);
+  if (cambridgeSaveBlocked) {
+    showCambridgeSaveStatus('La carga o la versión del progreso requiere recargar. Descarga antes una copia de los cambios pendientes.',true);
+    return false;
+  }
+  const snapshot = JSON.parse(JSON.stringify(state));
+  if (!BACKEND_SUPPORTED || location.pathname !== '/cambridge') {
+    lsFallbackWrite('cambridge_trainer_state', snapshot);
+    return true;
+  }
+  const serial = ++cambridgeSaveSerial;
+  try { lsFallbackWrite(cambridgePendingKey, {baseETag:cambridgeStateETag,snapshot}); }
+  catch (error) {
+    showCambridgeSaveStatus('No hay espacio para una copia local. Descarga el progreso antes de salir.',true);
+    return false;
+  }
+  showCambridgeSaveStatus('Guardando…');
+  cambridgeQueuedSnapshot = {snapshot,serial};
+  if (!cambridgeFlushRunning) {
+    cambridgeFlushRunning = (async () => {
+      while (cambridgeQueuedSnapshot) {
+        const job = cambridgeQueuedSnapshot;
+        cambridgeQueuedSnapshot = null;
+        try {
+          await writeJSON('state.json',job.snapshot);
+          if (cambridgeQueuedSnapshot) {
+            try { lsFallbackWrite(cambridgePendingKey,{baseETag:cambridgeStateETag,snapshot:cambridgeQueuedSnapshot.snapshot}); }
+            catch (_) { showCambridgeSaveStatus('No hay espacio para actualizar la copia local. Descárgala antes de salir.',true); }
+          }
+          if (job.serial === cambridgeSaveSerial) {
+            localStorage.removeItem(cambridgePendingKey);
+            showCambridgeSaveStatus('Guardado');
+          }
+        } catch (error) {
+          cambridgeQueuedSnapshot = null;
+          showCambridgeSaveStatus(error.message,true);
+          return false;
+        }
+      }
+      return true;
+    })().finally(() => { cambridgeFlushRunning = null; });
+    cambridgeSaveQueue = cambridgeFlushRunning;
+  }
+  return cambridgeFlushRunning;
 }
 
 function updateHeader() {
@@ -2645,6 +2872,7 @@ function showTab(name, btn) {
   document.getElementById('moreMenu')?.classList.remove('open');
   document.getElementById('tab-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
+  if (!btn && (name === 'recitar' || name === 'escrita')) document.querySelector('[data-tab-btn="entrenar"]')?.classList.add('active');
   if (name === 'sesion') {
     document.getElementById('sessionActive').style.display = 'none';
     document.getElementById('sessionEmpty').style.display = 'block';
@@ -2654,6 +2882,8 @@ function showTab(name, btn) {
     renderTopicsTab();
     ensureTopicPageChatToggle();
   }
+  if (name === 'b2') renderB2Lessons();
+  if (name === 'juegos') renderB2Games();
   if (name === 'historial') renderHistory();
   if (name === 'perfil') refreshProfile();
   if (name === 'recitar') renderRecitePractice();
@@ -2668,6 +2898,12 @@ function renderEnglishHomeSession() {
   const topic = state.currentSession?.topic;
   box.hidden = !topic;
   if (topic) document.getElementById('englishResumeTopic').textContent = topic;
+  const writing = document.getElementById('englishWritingResume');
+  const draft = state.writingPractice?.answer?.trim();
+  if (writing) {
+    writing.hidden = !draft;
+    if (draft) document.getElementById('englishWritingResumeText').textContent = draft.slice(0,90) + (draft.length>90?'…':'');
+  }
 }
 
 function resumeEnglishSession() {
@@ -2720,30 +2956,162 @@ async function askEnglishTeacher() {
   }
 }
 
+const WRITING_PROMPTS = {
+  'B2 First': {
+    essay:'Your English class has discussed whether school trips are the best way to learn outside the classroom. Write an essay using these ideas: learning by seeing places; learning with classmates. Add one idea of your own and give your opinion.',
+    article:'A student magazine wants an article about a place in your town that young people should discover. Describe the place, explain what visitors can do there and say why you recommend it.',
+    report:'Your language school wants to improve its study room. Write a report for the director describing how students use it now, identifying two problems and recommending practical changes.',
+    review:'An English-language website wants a review of a film or series that helped you understand another culture. Describe it without major spoilers and explain who would enjoy it.',
+    email:'A friend from another country is visiting your town for a weekend. Write an email suggesting two activities, explaining how to travel between them and asking one question about their interests.'
+  },
+  'C1 Advanced': {
+    essay:'Your class has discussed how cities can reduce traffic. Write an essay considering public transport and remote working. Explain which measure would be more effective and why.',
+    proposal:'Your college wants more students to use its library. Write a proposal for the principal assessing the current service and suggesting two improvements with expected benefits.',
+    report:'A local organisation asked you to evaluate a recent community event. Write a report describing participation, assessing what worked and recommending changes for next year.',
+    review:'An online magazine wants a review of a documentary that changed your view of a social issue. Evaluate its approach and recommend it to a specific audience.',
+    email:'You attended a professional workshop and the organiser has asked for feedback. Write a formal email evaluating two parts of the workshop and suggesting one improvement.'
+  },
+  'C2 Proficiency': {
+    essay:'Read these two short views. Text 1: Public libraries should focus on digital access because readers increasingly use electronic sources. Text 2: A library is valuable as a shared physical space where people encounter ideas and each other. Write an essay summarising and evaluating the key points of both texts and adding your own view.',
+    article:'A cultural journal invites an article on whether instant access to information has changed what it means to be knowledgeable. Develop a nuanced argument with examples for an educated general audience.',
+    report:'A city council has piloted late opening hours for museums. Write a report evaluating their effect on access and visitor experience, then recommend whether the scheme should continue.',
+    review:'A literary magazine asks for a review of a recent biography. Evaluate its interpretation of the subject and the quality of its evidence, then recommend a suitable readership.',
+    email:'A cultural foundation has asked for your views on a proposed public lecture series. Write a formal letter or email evaluating the programme and recommending changes to reach a wider audience.'
+  }
+};
+const WRITING_GENRES = {'B2 First':{1:['essay'],2:['article','email','report','review']},'C1 Advanced':{1:['essay'],2:['email','proposal','report','review']},'C2 Proficiency':{1:['essay'],2:['article','email','report','review']}};
+function newWritingDraftId() { return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+function writingFormat(level,part,taskType) {
+  const official = Boolean(WRITING_GENRES[level]?.[part]?.includes(taskType));
+  const range = level === 'B2 First' ? [140,190] : level === 'C1 Advanced' ? [220,260] : part === '1' ? [240,280] : [280,320];
+  return {official,range};
+}
+function writingWordCount(text) { return String(text||'').trim().split(/\s+/).filter(Boolean).length; }
+function renderWritingGuide() {
+  const level = document.getElementById('writingLevel')?.value || state.writingPractice.level;
+  const part = document.getElementById('writingPart')?.value || '1';
+  const taskType = document.getElementById('writingTaskType')?.value || 'essay';
+  const {official,range} = writingFormat(level,part,taskType);
+  const guide = document.getElementById('writingGuide');
+  if (guide) guide.innerHTML = `<strong>${official ? 'Formato del examen' : 'Práctica adicional'} · ${escHtml(level)} · parte ${part}</strong>${official ? `Objetivo: ${range[0]}–${range[1]} palabras.` : 'Esta combinación de género y parte no corresponde al examen seleccionado. Puedes practicarla, pero no la contaremos como simulacro.'}<small>La corrección de IA es orientativa; no es una calificación oficial.</small>`;
+  const count = document.getElementById('writingWordCount');
+  if (count) {
+    const words = writingWordCount(document.getElementById('writingAnswer')?.value || '');
+    count.textContent = `${words} palabras · objetivo ${range[0]}–${range[1]}`;
+    count.classList.toggle('in-range',words>=range[0]&&words<=range[1]);
+    count.classList.toggle('out-range',words>0&&(words<range[0]||words>range[1]));
+  }
+}
+function loadWritingPrompt() {
+  const level = document.getElementById('writingLevel').value;
+  const taskType = document.getElementById('writingTaskType').value;
+  const prompt = WRITING_PROMPTS[level]?.[taskType];
+  if (!prompt) return;
+  const field = document.getElementById('writingPrompt');
+  if (field.value.trim() && !confirm('¿Sustituir el enunciado actual? Tu respuesta y las versiones guardadas se conservarán.')) return;
+  field.value = prompt;
+  persistWritingPractice();
+}
 function renderWritingPractice() {
   const data = state.writingPractice || {};
   if (document.getElementById('writingTaskType')) document.getElementById('writingTaskType').value = data.taskType || 'essay';
-  if (document.getElementById('writingLevel')) document.getElementById('writingLevel').value = state.examLevel;
+  if (document.getElementById('writingLevel')) document.getElementById('writingLevel').value = data.level || state.examLevel;
+  if (document.getElementById('writingPart')) document.getElementById('writingPart').value = data.part || '1';
   if (document.getElementById('writingPrompt')) document.getElementById('writingPrompt').value = data.prompt || '';
   if (document.getElementById('writingAnswer')) document.getElementById('writingAnswer').value = data.answer || '';
-  const feedback = document.getElementById('writingFeedback');
-  if (feedback) feedback.textContent = data.feedback || 'El informe aparecerá aquí con valoración, errores prioritarios, versión mejorada y plan de mejora.';
+  const ocr = document.getElementById('writingOcrReview');
+  if (ocr) ocr.value = data.ocrReview || '';
+  const ocrBox = document.getElementById('writingOcrReviewBox');
+  if (ocrBox) ocrBox.hidden = !data.ocrReview;
+  renderWritingGuide();
+  renderWritingFeedback();
+  renderWritingComparison();
+  renderWritingVersions();
 }
 
 function persistWritingPractice() {
   state.writingPractice = {
+    ...(state.writingPractice || {}),
     taskType: document.getElementById('writingTaskType')?.value || 'essay',
     level: document.getElementById('writingLevel')?.value || 'C1 Advanced',
+    part: document.getElementById('writingPart')?.value || '1',
     prompt: document.getElementById('writingPrompt')?.value || '',
     answer: document.getElementById('writingAnswer')?.value || '',
     feedback: state.writingPractice?.feedback || ''
   };
+  renderWritingGuide();
+  renderWritingFeedback();
+  renderWritingComparison();
   const selectedLevel = state.writingPractice.level;
   if (selectedLevel !== state.examLevel) {
     setExamLevel(selectedLevel);
     return;
   }
   persist();
+}
+
+function saveWritingVersion(reason='Versión guardada') {
+  const data = state.writingPractice;
+  if (!data?.answer?.trim() && !data?.prompt?.trim()) {
+    setWritingStatus('Escribe un enunciado o una respuesta antes de guardar una versión.');
+    return null;
+  }
+  const sameReport = data.reportAnswer === data.answer && data.reportPrompt === data.prompt && data.reportLevel === data.level && data.reportPart === data.part && data.reportTaskType === data.taskType;
+  const version = {id:newWritingDraftId(),at:new Date().toISOString(),reason,level:data.level,part:data.part,taskType:data.taskType,prompt:data.prompt,answer:data.answer,report:sameReport ? data.report || null : null,feedback:sameReport ? data.feedback || '' : ''};
+  data.versions = Array.isArray(data.versions) ? data.versions : [];
+  data.versions.unshift(version);
+  persist();
+  renderWritingVersions();
+  if (reason === 'Versión guardada') setWritingStatus('Versión guardada. Puedes compararla con tu borrador actual.');
+  return version.id;
+}
+function renderWritingVersions() {
+  const picker = document.getElementById('writingCompareVersion');
+  if (!picker) return;
+  const versions = state.writingPractice?.versions || [];
+  const selected = picker.value;
+  picker.innerHTML = versions.map(version => `<option value="${escAttr(version.id)}">${escHtml(new Date(version.at).toLocaleString('es-ES'))} · ${escHtml(version.reason || 'Borrador')}</option>`).join('');
+  if (versions.some(version=>version.id===selected)) picker.value = selected;
+  renderWritingComparison();
+}
+function renderWritingComparison() {
+  const box = document.getElementById('writingComparison');
+  if (!box) return;
+  const id = document.getElementById('writingCompareVersion')?.value;
+  const version = state.writingPractice?.versions?.find(item=>item.id===id);
+  if (!version) { box.textContent = 'Aún no hay versiones guardadas.'; return; }
+  box.innerHTML = `<div class="writing-compare"><article><h4>${escHtml(version.reason || 'Versión')} · ${escHtml(version.level || '')}</h4><pre>${escHtml(version.answer || version.prompt || '')}</pre>${version.report?.summary?`<p><strong>Informe de esta versión:</strong> ${escHtml(version.report.summary)}</p>`:version.feedback?`<p><strong>Informe de esta versión:</strong> ${escHtml(version.feedback)}</p>`:''}</article><article><h4>Borrador actual</h4><pre>${escHtml(state.writingPractice.answer || state.writingPractice.prompt || 'Empieza un borrador nuevo.')}</pre></article></div>`;
+}
+function parseWritingReport(raw) {
+  const clean = String(raw||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
+  const data = JSON.parse(clean);
+  if (!data || typeof data !== 'object' || !data.scores || typeof data.scores !== 'object') throw new Error('Formato de informe inesperado');
+  const criteria = ['content','communicativeAchievement','organisation','language'];
+  const scores = {};
+  criteria.forEach(key => {
+    const item = data.scores[key];
+    const score = Number(item?.score);
+    if (!Number.isFinite(score) || score<0 || score>5) throw new Error('Puntuación de práctica no válida');
+    scores[key] = {score,comment:String(item?.comment||'').slice(0,1200)};
+  });
+  return {summary:String(data.summary||'').slice(0,1800),scores,corrections:(Array.isArray(data.corrections)?data.corrections:[]).slice(0,6).map(item=>({original:String(item.original||'').slice(0,300),improved:String(item.improved||'').slice(0,300),why:String(item.why||'').slice(0,700)})),improvedExcerpt:String(data.improvedExcerpt||'').slice(0,2500),nextSteps:(Array.isArray(data.nextSteps)?data.nextSteps:[]).slice(0,4).map(item=>String(item).slice(0,500))};
+}
+function renderWritingFeedback() {
+  const box = document.getElementById('writingFeedback');
+  const data = state.writingPractice || {};
+  if (!box) return;
+  const report = data.report;
+  if (report?.scores) {
+    const labels = {content:'Contenido',communicativeAchievement:'Adecuación comunicativa',organisation:'Organización',language:'Lengua'};
+    const stale = data.reportAnswer !== data.answer || data.reportPrompt !== data.prompt || data.reportLevel !== data.level || data.reportPart !== data.part || data.reportTaskType !== data.taskType;
+    box.innerHTML = `<p class="writing-report-note">${stale?'Este informe corresponde a una versión anterior. Guarda y corrige tu nueva respuesta para actualizarlo.':'Estimación orientativa para practicar; no es una nota oficial de Cambridge English.'}</p><div class="writing-report-card"><h3>Valoración general</h3><p>${escHtml(report.summary)}</p></div><div class="writing-report-scores">${Object.keys(labels).map(key=>`<div class="writing-report-score"><strong>${labels[key]} · ${Number(report.scores[key]?.score||0)}/5</strong>${escHtml(report.scores[key]?.comment||'')}</div>`).join('')}</div>${report.corrections?.length?`<div class="writing-report-card"><h3>Correcciones prioritarias</h3>${report.corrections.map(item=>`<p><b>Original:</b> ${escHtml(item.original)}<br><b>Mejor:</b> ${escHtml(item.improved)}<br>${escHtml(item.why)}</p>`).join('')}</div>`:''}${report.improvedExcerpt?`<div class="writing-report-card"><h3>Fragmento mejorado</h3><p>${escHtml(report.improvedExcerpt)}</p></div>`:''}${report.nextSteps?.length?`<div class="writing-report-card"><h3>Próximos pasos</h3><p>${report.nextSteps.map((step,i)=>`${i+1}. ${escHtml(step)}`).join('<br>')}</p></div>`:''}`;
+  } else {
+    box.textContent = data.feedback || 'Escribe tu respuesta y pulsa «Corregir writing» para recibir comentarios sobre contenido, adecuación comunicativa, organización y lengua.';
+  }
+  const modelBox = document.getElementById('writingModelBox');
+  if (modelBox) modelBox.hidden = !data.model;
+  const modelText = document.getElementById('writingModelText');
+  if (modelText) modelText.textContent = data.model ? `${data.modelPrompt && data.modelPrompt !== data.prompt ? 'Este modelo corresponde a un enunciado anterior.\n\n' : ''}${data.model}` : '';
 }
 
 function setWritingStatus(message) {
@@ -2806,21 +3174,32 @@ async function runWritingOcr() {
     return;
   }
   const target = document.getElementById('writingOcrTarget')?.value || 'answer';
+  const draftId = state.writingPractice.draftId;
+  const imageDataUrl = writingImageDataUrl;
+  const imageMime = writingImageMime;
   const button = document.getElementById('writingOcrBtn');
   setWritingStatus('Detectando texto en la imagen...');
   if (button) button.disabled = true;
   try {
     const data = await backendRequest('/api/ocr', {
       method: 'POST',
-      body: JSON.stringify({ image: writingImageDataUrl, mime_type: writingImageMime, target })
+      body: JSON.stringify({ image: imageDataUrl, mime_type: imageMime, target })
     });
-    const text = String(data.text || '').trim();
-    if (!text) {
-      setWritingStatus('No se detecto texto legible en la imagen.');
+    if (state.writingPractice.draftId !== draftId || writingImageDataUrl !== imageDataUrl) {
+      setWritingStatus('La imagen o el borrador cambiaron durante la lectura. Vuelve a detectar el texto si lo necesitas.');
       return;
     }
-    appendWritingText(target === 'prompt' ? 'writingPrompt' : 'writingAnswer', text);
-    setWritingStatus(`Texto detectado e insertado en ${target === 'prompt' ? 'el enunciado' : 'la respuesta'}.`);
+    const text = String(data.text || '').trim();
+    if (!text) {
+      setWritingStatus('No se detectó texto legible en la imagen. Puedes probar con otra foto.');
+      return;
+    }
+    state.writingPractice.ocrReview = text;
+    state.writingPractice.ocrTarget = target;
+    document.getElementById('writingOcrReview').value = text;
+    document.getElementById('writingOcrReviewBox').hidden = false;
+    persist();
+    setWritingStatus('Texto detectado. Revísalo y pulsa «Insertar texto revisado». Tu borrador sigue intacto.');
   } catch(e) {
     setWritingStatus(e.message);
   } finally {
@@ -2828,21 +3207,47 @@ async function runWritingOcr() {
   }
 }
 
+function persistWritingOcrReview() {
+  state.writingPractice.ocrReview = document.getElementById('writingOcrReview')?.value || '';
+  persist();
+}
+function insertWritingOcrReview() {
+  const text = document.getElementById('writingOcrReview')?.value.trim();
+  if (!text) { setWritingStatus('Corrige o descarta el texto detectado antes de continuar.'); return; }
+  appendWritingText(state.writingPractice.ocrTarget === 'prompt' ? 'writingPrompt' : 'writingAnswer',text);
+  state.writingPractice.ocrReview = '';
+  document.getElementById('writingOcrReviewBox').hidden = true;
+  persist();
+  setWritingStatus('Texto revisado insertado. Comprueba el resultado en el campo antes de corregir.');
+}
+function dismissWritingOcrReview() {
+  state.writingPractice.ocrReview = '';
+  document.getElementById('writingOcrReviewBox').hidden = true;
+  persist();
+  setWritingStatus('Detección descartada. Tu borrador no ha cambiado.');
+}
+
 async function generateWritingModel() {
   persistWritingPractice();
-  const data = state.writingPractice;
+  const data = {...state.writingPractice};
   const prompt = data.prompt.trim();
   if (!prompt) { alert('Escribe primero el enunciado.'); return; }
-  setWritingStatus('Generando modelo Cambridge...');
+  const {official,range} = writingFormat(data.level,data.part,data.taskType);
+  setWritingStatus('Generando modelo de práctica...');
   try {
     const model = await groqChat([
-      { role: 'system', content: `You are a Cambridge English writing preparation teacher for ${data.level}. Exam format: ${EXAM_BLUEPRINTS[data.level]}. Follow the task-specific word range. If the requested task is not part of this qualification, explain that it is additional practice. Respond in clear Spanish, but write model answers in English. Do not use markdown headings with ### or **.` },
-      { role: 'user', content: `Nivel: ${data.level}\nTipo de tarea: ${data.taskType}\nEnunciado:\n${prompt}\n\nGenera una respuesta modelo en inglés y después explica en español: estructura, registro, conectores útiles y 5 expresiones reutilizables.` }
+      { role: 'system', content: `You are an English writing tutor for ${data.level}. This is ${official?'an exam-format task':'extra practice outside the selected exam format'}. The target is ${range[0]}–${range[1]} words. The answer is a teaching example, not an official Cambridge model. Write the model in English, then explain in Spanish the structure, register and three reusable expressions. Do not use markdown.` },
+      { role: 'user', content: `Nivel: ${data.level}\nParte: ${data.part}\nGénero: ${data.taskType}\nEnunciado:\n${prompt}` }
     ], { max_tokens: 1900, temperature: 0.35 });
-    state.writingPractice.feedback = model;
-    document.getElementById('writingFeedback').textContent = model;
-    setWritingStatus('');
-    persistWritingPractice();
+    if (state.writingPractice.draftId !== data.draftId || state.writingPractice.prompt !== prompt || state.writingPractice.level !== data.level || state.writingPractice.part !== data.part || state.writingPractice.taskType !== data.taskType) {
+      setWritingStatus('Cambiaste de ejercicio durante la generación. El borrador actual no se ha modificado.');
+      return;
+    }
+    state.writingPractice.model = model;
+    state.writingPractice.modelPrompt = prompt;
+    renderWritingFeedback();
+    setWritingStatus('Modelo generado. Tu texto y el informe anterior se han conservado.');
+    persist();
   } catch(e) {
     setWritingStatus(e.message);
   }
@@ -2850,28 +3255,45 @@ async function generateWritingModel() {
 
 async function correctWritingPractice() {
   persistWritingPractice();
-  const data = state.writingPractice;
+  const data = {...state.writingPractice};
   if (!data.answer.trim()) { alert('Escribe o pega primero la respuesta del alumno.'); return; }
-  setWritingStatus('Corrigiendo writing...');
+  const versionId = saveWritingVersion('Antes de corrección');
+  const {official,range} = writingFormat(data.level,data.part,data.taskType);
+  setWritingStatus('Corrigiendo una copia de tu respuesta. El borrador seguirá editable.');
   try {
     const feedback = await groqChat([
-      { role: 'system', content: `You are a Cambridge English writing preparation teacher for ${data.level}. Exam format: ${EXAM_BLUEPRINTS[data.level]}. Assess Content, Communicative Achievement, Organisation and Language separately, each out of 5. Scores are practice estimates, not official certification. Do not invent requirements missing from the prompt; explicitly identify missing task information. Respond in Spanish and quote corrections in English. Do not use markdown headings with ### or **.` },
-      { role: 'user', content: `Nivel: ${data.level}\nTipo de tarea: ${data.taskType}\nEnunciado:\n${data.prompt}\n\nRespuesta del alumno:\n${data.answer}\n\nDevuelve exactamente este formato:\n\nVALORACIÓN CAMBRIDGE\n- Nivel aproximado y puntuación orientativa sobre 20.\n\nCUMPLIMIENTO DE TAREA\n- Qué cumple y qué falta.\n\nORGANIZACIÓN Y COHESIÓN\n- 3 mejoras concretas.\n\nERRORES MARCADOS\n- Lista los errores importantes así: Original: "..." / Mejor: "..." / Motivo: ...\n\nGRAMÁTICA Y VOCABULARIO\n- Errores prioritarios con corrección y alternativas naturales en inglés.\n\nVERSIÓN MEJORADA\nReescribe 1 o 2 fragmentos importantes en inglés.\n\nPLAN DE MEJORA\n- 3 acciones para la próxima redacción.` }
+      { role: 'system', content: `You are an English writing tutor for ${data.level}. Assess the provided text using four practice criteria: Content, Communicative Achievement, Organisation, Language, each from 0 to 5. This is an estimate, not an official Cambridge English score. The selected combination is ${official?'exam-format':'extra practice outside the selected exam format'}; target ${range[0]}–${range[1]} words. If the prompt is incomplete, say what cannot be assessed. Do not invent errors or requirements. Return ONLY valid JSON, no markdown, with exactly this structure: {"summary":"Spanish summary","scores":{"content":{"score":0,"comment":"Spanish explanation"},"communicativeAchievement":{"score":0,"comment":"Spanish explanation"},"organisation":{"score":0,"comment":"Spanish explanation"},"language":{"score":0,"comment":"Spanish explanation"}},"corrections":[{"original":"exact English excerpt","improved":"corrected English","why":"Spanish reason"}],"improvedExcerpt":"one or two improved English fragments","nextSteps":["Spanish action","Spanish action","Spanish action"]}.` },
+      { role: 'user', content: `Nivel: ${data.level}\nParte: ${data.part}\nGénero: ${data.taskType}\nEnunciado:\n${data.prompt || '(No se proporcionó enunciado)'}\n\nRespuesta del alumno (${writingWordCount(data.answer)} palabras):\n${data.answer}` }
     ], { max_tokens: 1900, temperature: 0.25 });
-    state.writingPractice.feedback = feedback;
-    document.getElementById('writingFeedback').textContent = feedback;
-    setWritingStatus('');
-    persistWritingPractice();
+    let report = null;
+    try { report = parseWritingReport(feedback); } catch (_) {}
+    const version = state.writingPractice.versions.find(item=>item.id===versionId);
+    if (version) { version.report = report; version.feedback = report ? '' : feedback; }
+    if (state.writingPractice.draftId === data.draftId && state.writingPractice.answer === data.answer && state.writingPractice.prompt === data.prompt && state.writingPractice.level === data.level && state.writingPractice.part === data.part && state.writingPractice.taskType === data.taskType) {
+      state.writingPractice.report = report;
+      state.writingPractice.feedback = report ? '' : feedback;
+      state.writingPractice.reportAnswer = data.answer;
+      state.writingPractice.reportPrompt = data.prompt;
+      state.writingPractice.reportLevel = data.level;
+      state.writingPractice.reportPart = data.part;
+      state.writingPractice.reportTaskType = data.taskType;
+      renderWritingFeedback();
+    }
+    renderWritingVersions();
+    setWritingStatus(report ? 'Informe orientativo listo. Tu respuesta original sigue intacta.' : 'La IA respondió en texto libre; se muestra completo y se guardó junto a tu versión.');
+    persist();
   } catch(e) {
     setWritingStatus(e.message);
   }
 }
 
 function clearWritingPractice() {
-  state.writingPractice = { taskType: 'essay', level: state.examLevel, prompt: '', answer: '', feedback: '' };
+  if ((state.writingPractice.prompt || state.writingPractice.answer) && !confirm('¿Empezar un borrador nuevo? Guardaremos una versión del texto actual antes de vaciarlo.')) return;
+  if (state.writingPractice.prompt || state.writingPractice.answer) saveWritingVersion('Antes de nuevo borrador');
+  state.writingPractice = {draftId:newWritingDraftId(),taskType:'essay',level:state.examLevel,part:'1',prompt:'',answer:'',feedback:'',report:null,model:'',ocrReview:'',versions:state.writingPractice.versions || []};
   renderWritingPractice();
   persist();
-  setWritingStatus('');
+  setWritingStatus('Borrador nuevo. Las versiones anteriores siguen disponibles debajo.');
 }
 
 function toggleMoreMenu(event) {
@@ -3817,9 +4239,17 @@ async function clearHistory() {
 
 async function resetAll() {
   if (!confirm('¿Reiniciar toda la aplicación?')) return;
+  if (!(await cambridgeSaveQueue.catch(()=>false))) {
+    showCambridgeSaveStatus('Hay cambios pendientes. Guárdalos o descarga una copia antes de reiniciar.',true);
+    return;
+  }
+  if (BACKEND_SUPPORTED && location.pathname === '/cambridge') {
+    const response = await fetch('/api/state',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Client-App':'cambridge','X-Confirm-Empty-State':'true',...(cambridgeStateETag ? {'If-Match':cambridgeStateETag}:{})},body:'{}'});
+    if (!response.ok) { showCambridgeSaveStatus('No se pudo reiniciar. Tu progreso sigue guardado.',true); return; }
+  }
   localStorage.removeItem('cambridge_trainer_state');
   localStorage.removeItem('cambridge_trainer_license');
-  if (BACKEND_SUPPORTED) await writeJSON('state.json', {});
+  localStorage.removeItem(cambridgePendingKey);
   location.reload();
 }
 
@@ -3923,20 +4353,68 @@ function fillReciteTopicSelect(selectedTopic = '') {
   }
 }
 
-function moveTranscribeButtonToHeader() {
-  const textarea = document.getElementById('reciteTranscript');
-  const button = document.getElementById('transcribeAudioBtn');
-  if (!textarea || !button || button.closest('.recite-field-head')) return;
-  const field = textarea.closest('.recite-field');
-  const label = field?.querySelector('label[for="reciteTranscript"]');
-  if (!field || !label) return;
-  const head = document.createElement('div');
-  head.className = 'recite-field-head';
-  label.replaceWith(head);
-  head.appendChild(label);
-  head.appendChild(button);
-  button.className = 'btn btn-small btn-accept';
-  button.textContent = 'Transcribir';
+const SPEAKING_TASKS = {
+  'B2 First': [
+    {id:'b2-study',title:'Aprender juntos',prompt:'Compare studying alone and studying with a friend. Which way helps you learn more effectively, and why?',steps:['Describe one advantage of each option.','Give a specific example.','Choose one option and explain your decision.']},
+    {id:'b2-place',title:'Un lugar para vivir',prompt:'Compare living in a busy city and living in a small town. Which would suit a student better?',steps:['Compare daily life in both places.','Mention one possible problem.','Make a clear choice.']},
+    {id:'b2-activity',title:'Tiempo libre',prompt:'Compare going to a concert and visiting a museum. Which activity would you recommend to a friend?',steps:['Say what someone could enjoy in each activity.','Explain who each option suits.','Give your recommendation.']}
+  ],
+  'C1 Advanced': [
+    {id:'c1-learning',title:'Aprendizaje permanente',prompt:'A community wants to encourage lifelong learning. Evaluate online courses and local workshops. Which would have a greater long-term impact?',steps:['Discuss the benefits and limits of both approaches.','Support your evaluation with an example.','Reach a justified conclusion.']},
+    {id:'c1-environment',title:'Cambios sostenibles',prompt:'How can a city best change everyday habits: by improving public transport or by supporting local food initiatives?',steps:['Consider who benefits from each measure.','Address a possible objection.','Prioritise one measure and explain why.']},
+    {id:'c1-work',title:'Futuro del trabajo',prompt:'To what extent do flexible working arrangements improve productivity and wellbeing?',steps:['Consider both employees and employers.','Give a concrete example.','Qualify your conclusion.']}
+  ],
+  'C2 Proficiency': [
+    {id:'c2-education',title:'Especialización y amplitud',prompt:'To what extent should education prioritise transferable skills over specialist knowledge?',steps:['Weigh the strongest argument on each side.','Explore one important exception.','Defend a nuanced conclusion.']},
+    {id:'c2-technology',title:'Tecnología y juicio',prompt:'Does easy access to information make people better informed, or does it weaken independent judgement?',steps:['Distinguish access from understanding.','Consider a counterexample.','Synthesize your position.']},
+    {id:'c2-culture',title:'Patrimonio vivo',prompt:'When preserving cultural traditions, how should communities balance authenticity with change?',steps:['Define the tension clearly.','Compare two possible approaches.','Explain where compromise is justified.']}
+  ]
+};
+
+function currentSpeakingTask() {
+  const tasks = SPEAKING_TASKS[state.examLevel] || SPEAKING_TASKS['B2 First'];
+  return tasks.find(task => task.id === state.recitePractice.promptId) || tasks[0];
+}
+
+function renderSpeakingTask() {
+  const tasks = SPEAKING_TASKS[state.examLevel] || SPEAKING_TASKS['B2 First'];
+  const selected = currentSpeakingTask();
+  state.recitePractice.promptId = selected.id;
+  const select = document.getElementById('speakingTaskSelect');
+  if (!select) return;
+  select.replaceChildren(...tasks.map(task => {
+    const option = document.createElement('option');
+    option.value = task.id;
+    option.textContent = task.title;
+    return option;
+  }));
+  select.value = selected.id;
+  document.getElementById('speakingTaskLevel').textContent = state.examLevel;
+  document.getElementById('speakingTaskTitle').textContent = selected.title;
+  document.getElementById('speakingTaskPrompt').textContent = selected.prompt;
+  document.getElementById('speakingTaskSteps').replaceChildren(...selected.steps.map(step => {
+    const item = document.createElement('li');
+    item.textContent = step;
+    return item;
+  }));
+  renderReciteFeedbackFreshness();
+}
+
+function chooseSpeakingTask(id) {
+  if (!(SPEAKING_TASKS[state.examLevel] || []).some(task => task.id === id)) return;
+  state.recitePractice.promptId = id;
+  renderSpeakingTask();
+  persistRecitePractice();
+}
+
+function reciteFeedbackKey(transcript = document.getElementById('reciteTranscript')?.value || '') {
+  return JSON.stringify([state.examLevel,currentSpeakingTask().id,document.getElementById('reciteTopicInput')?.value || '',transcript.trim()]);
+}
+
+function renderReciteFeedbackFreshness() {
+  const warning = document.getElementById('reciteFeedbackStale');
+  if (!warning) return;
+  warning.hidden = !state.recitePractice?.correction || state.recitePractice.feedbackFor === reciteFeedbackKey();
 }
 
 function setReciteTopic(topic, reset = true) {
@@ -3945,10 +4423,11 @@ function setReciteTopic(topic, reset = true) {
   const label = document.getElementById('reciteTopicLabel');
   fillReciteTopicSelect(value);
   if (input) input.value = value;
-  if (label) label.textContent = value || 'Sin tema seleccionado';
+  if (label) { label.textContent = value; label.hidden = !value; }
   state.recitePractice.topic = value;
   persist();
   if (reset) resetReciteFlow();
+  renderReciteFeedbackFreshness();
 }
 
 function updateReciteTopic(value) {
@@ -3959,8 +4438,10 @@ function persistRecitePractice() {
   state.recitePractice.topic = document.getElementById('reciteTopicInput')?.value || '';
   state.recitePractice.notes = document.getElementById('reciteNotes')?.value || '';
   state.recitePractice.transcript = document.getElementById('reciteTranscript')?.value || '';
-  state.recitePractice.correction = document.getElementById('reciteCorrection')?.innerHTML || '';
+  const correction = document.getElementById('reciteCorrection');
+  if (correction?.classList.contains('correction-report')) state.recitePractice.correction = correction.innerHTML;
   state.recitePractice.selectedMode = reciteSelectedMode;
+  state.recitePractice.promptId = currentSpeakingTask().id;
   persist();
 }
 
@@ -3972,8 +4453,9 @@ function renderRecitePractice() {
   const topic = saved.topic || session.topic || state.currentSession?.topic || '';
   fillReciteTopicSelect(topic);
   if (topicInput) topicInput.value = topic;
-  if (topicLabel) topicLabel.textContent = topic || 'Sin tema seleccionado';
+  if (topicLabel) { topicLabel.textContent = topic; topicLabel.hidden = !topic; }
   state.recitePractice.topic = topic;
+  renderSpeakingTask();
   const notes = document.getElementById('reciteNotes');
   const transcript = document.getElementById('reciteTranscript');
   const correction = document.getElementById('reciteCorrection');
@@ -3984,12 +4466,14 @@ function renderRecitePractice() {
     correction.className = 'notice correction-report';
     correction.innerHTML = saved.correction;
   }
+  renderReciteFeedbackFreshness();
   setRecitePhase(reciteSelectedMode, reciteSelectedMode === 'speak' ? 300 : 60);
   setAudioState(reciteAudioBlob ? 'ready' : 'idle');
 }
 
 function getSupportedAudioType() {
   if (!window.MediaRecorder) return '';
+  if (typeof MediaRecorder.isTypeSupported !== 'function') return '';
   const types = [
     'audio/webm;codecs=opus',
     'audio/webm',
@@ -4099,12 +4583,7 @@ function resetReciteFlow() {
   setRecitePhase('prep', 60);
   setAudioState('idle');
   setReciteStatus('');
-  const correction = document.getElementById('reciteCorrection');
-  if (correction) {
-    correction.style.display = 'none';
-    correction.className = 'notice';
-    correction.innerHTML = '';
-  }
+  discardReciteTranscript();
   persistRecitePractice();
 }
 
@@ -4128,7 +4607,7 @@ async function advanceRecitePhase() {
   pauseReciteTimer();
   if (recitePhase === 'prep') {
     setRecitePhase('done', 0);
-    setReciteStatus('Preparación terminada. Pulsa Grabar 5 min cuando estés lista.');
+    setReciteStatus('Preparación terminada. Pulsa Grabar 5 min cuando estés listo.');
     return;
   }
   if (recitePhase === 'speak') {
@@ -4188,28 +4667,26 @@ function finishReciteNow() {
 
 async function startReciteRecording() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    setReciteStatus('Este navegador no permite usar el micrófono aquí. Abre la app desde el ejecutable o pega la transcripción manualmente.');
-    setAudioState('error');
+    setReciteStatus('El micrófono no está disponible en este navegador o en esta conexión. Usa HTTPS o pega tu intervención manualmente.');
+    setAudioState(reciteAudioBlob ? 'ready' : 'error');
     return false;
   }
   if (!window.MediaRecorder) {
-    setReciteStatus('Este navegador no puede grabar audio. Prueba con Edge o Chrome actualizado.');
-    setAudioState('error');
+    setReciteStatus('Este navegador no puede grabar audio. Puedes escribir o pegar la intervención para recibir revisión.');
+    setAudioState(reciteAudioBlob ? 'ready' : 'error');
     return false;
   }
   if (reciteRecorder && reciteRecorder.state === 'recording') {
     setReciteStatus('El audio ya está grabando.');
     return true;
   }
-  reciteAudioBlob = null;
   reciteChunks = [];
   reciteStopPromise = null;
   reciteRecordingStartedAt = null;
-  reciteAudioDuration = 0;
   const recordingToken = ++reciteRecordingToken;
   setAudioState('starting');
   try {
-    reciteStream = await navigator.mediaDevices.getUserMedia({
+    const stream = await navigator.mediaDevices.getUserMedia({
       audio: {
         echoCancellation: true,
         noiseSuppression: true,
@@ -4217,46 +4694,54 @@ async function startReciteRecording() {
         channelCount: 1
       }
     });
+    if (recordingToken !== reciteRecordingToken) {
+      stream.getTracks().forEach(track => track.stop());
+      return false;
+    }
+    reciteStream = stream;
     const supportedType = getSupportedAudioType();
-    reciteAudioType = supportedType || 'audio/webm';
-    reciteRecorder = new MediaRecorder(
-      reciteStream,
+    const recorder = new MediaRecorder(
+      stream,
       supportedType ? { mimeType: supportedType } : undefined
     );
-    reciteRecorder.ondataavailable = e => { if (e.data.size > 0) reciteChunks.push(e.data); };
+    reciteRecorder = recorder;
+    reciteAudioType = recorder.mimeType || supportedType || 'audio/webm';
+    const chunks = [];
+    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
     reciteStopPromise = new Promise(resolve => {
-      reciteRecorder.onstop = () => {
+      recorder.onstop = () => {
         const isCurrentRecording = recordingToken === reciteRecordingToken;
-        reciteAudioDuration = reciteRecordingStartedAt ? Math.round((Date.now() - reciteRecordingStartedAt) / 1000) : 0;
-        if (isCurrentRecording && reciteChunks.length > 0) {
-          const finalType = reciteRecorder.mimeType || reciteAudioType || 'audio/webm';
-          reciteAudioBlob = new Blob(reciteChunks, { type: finalType });
+        if (isCurrentRecording && chunks.length > 0) {
+          const finalType = recorder.mimeType || reciteAudioType || 'audio/webm';
+          reciteAudioBlob = new Blob(chunks, { type: finalType });
+          reciteAudioDuration = Math.max(1,300 - reciteSeconds);
         }
-        reciteStream?.getTracks().forEach(track => track.stop());
-        reciteStream = null;
-        reciteRecorder = null;
+        stream.getTracks().forEach(track => track.stop());
+        if (reciteStream === stream) reciteStream = null;
+        if (reciteRecorder === recorder) reciteRecorder = null;
         if (isCurrentRecording) setAudioState(reciteAudioBlob ? 'ready' : 'idle');
-        resolve(reciteAudioBlob);
+        resolve(isCurrentRecording ? reciteAudioBlob : null);
       };
     });
-    reciteRecorder.onerror = () => {
+    recorder.onerror = () => {
       setReciteStatus('El micrófono ha dado un error. Cierra otras apps que usen audio y prueba otra vez.');
-      setAudioState('error');
+      if (recordingToken === reciteRecordingToken) setAudioState(reciteAudioBlob ? 'ready' : 'error');
     };
     reciteRecordingStartedAt = Date.now();
-    reciteRecorder.start(1000);
+    recorder.start(1000);
     setAudioState('recording');
     setReciteStatus('Grabando recitación...');
     return true;
   } catch(e) {
-    setAudioState('error');
-    const message = e && e.name === 'NotAllowedError'
-      ? 'Windows o el navegador han bloqueado el micrófono. Permite el micrófono para esta app y vuelve a pulsar Grabar 5 min.'
-      : 'No se pudo activar el micrófono. Cierra otras apps que usen audio o pega la transcripción manualmente.';
-    setReciteStatus(message);
     reciteStream?.getTracks().forEach(track => track.stop());
     reciteStream = null;
     reciteRecorder = null;
+    if (recordingToken !== reciteRecordingToken) return false;
+    setAudioState(reciteAudioBlob ? 'ready' : 'error');
+    const message = e && e.name === 'NotAllowedError'
+      ? 'El navegador ha bloqueado el micrófono. Activa el permiso para esta web o pega tu intervención manualmente.'
+      : 'No se pudo activar el micrófono. Cierra otras apps que usen audio o pega la transcripción manualmente.';
+    setReciteStatus(message);
     return false;
   }
 }
@@ -4265,7 +4750,14 @@ async function stopReciteRecording() {
   if (!reciteRecorder || reciteRecorder.state === 'inactive') return reciteAudioBlob;
   setAudioState('stopping');
   try { reciteRecorder.requestData?.(); } catch(e) {}
-  try { reciteRecorder.stop(); } catch(e) { setAudioState('error'); return reciteAudioBlob; }
+  try { reciteRecorder.stop(); } catch(e) {
+    reciteStream?.getTracks().forEach(track => track.stop());
+    reciteStream = null;
+    reciteRecorder = null;
+    setAudioState(reciteAudioBlob ? 'ready' : 'error');
+    setReciteStatus('No se pudo detener la grabación. Comprueba el micrófono antes de repetirla.');
+    return reciteAudioBlob;
+  }
   return await reciteStopPromise;
 }
 
@@ -4305,6 +4797,9 @@ function setAudioState(stateName) {
   } else if (stateName === 'stopping') {
     text.textContent = 'Guardando audio...';
     if (meta) meta.textContent = '';
+  } else if (stateName === 'transcribing') {
+    text.textContent = 'Transcribiendo audio';
+    if (meta) meta.textContent = 'Tu texto permanece disponible durante el proceso.';
   } else if (stateName === 'error') {
     text.textContent = 'Audio no disponible';
     if (meta) meta.textContent = '';
@@ -4323,7 +4818,55 @@ function setAudioState(stateName) {
     pauseBtn.style.display = isActiveRecording ? 'inline-flex' : 'none';
     pauseBtn.textContent = stateName === 'paused' ? 'Reanudar' : 'Pausa';
   }
-  if (transcribeBtn) transcribeBtn.disabled = !reciteAudioBlob || isActiveRecording || isBusy;
+  if (transcribeBtn) transcribeBtn.disabled = !reciteAudioBlob || isActiveRecording || isBusy || reciteTranscribeBusy;
+  syncRecitePlayback(!isActiveRecording && !isBusy);
+}
+
+function syncRecitePlayback(canPlay = true) {
+  const wrap = document.getElementById('recitePlaybackWrap');
+  const player = document.getElementById('recitePlayback');
+  if (!wrap || !player) return;
+  if (recitePlaybackBlob !== reciteAudioBlob) {
+    player.pause();
+    if (reciteAudioUrl) URL.revokeObjectURL(reciteAudioUrl);
+    reciteAudioUrl = reciteAudioBlob ? URL.createObjectURL(reciteAudioBlob) : '';
+    recitePlaybackBlob = reciteAudioBlob;
+    if (reciteAudioUrl) player.src = reciteAudioUrl;
+    else player.removeAttribute('src');
+  }
+  if (!canPlay) player.pause();
+  wrap.hidden = !reciteAudioBlob || !canPlay;
+}
+
+function downloadReciteAudio() {
+  if (!reciteAudioBlob) return;
+  const url = URL.createObjectURL(reciteAudioBlob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = getReciteAudioFilename();
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function discardReciteTranscript() {
+  const review = document.getElementById('reciteTranscriptReview');
+  const textarea = document.getElementById('reciteReviewText');
+  if (textarea) textarea.value = '';
+  if (review) review.hidden = true;
+}
+
+function insertReciteTranscript(replace = false) {
+  const review = document.getElementById('reciteReviewText');
+  const target = document.getElementById('reciteTranscript');
+  if (!review || !target || !review.value.trim()) return;
+  target.value = replace || !target.value.trim() ? review.value.trim() : `${target.value.trim()}\n\n${review.value.trim()}`;
+  discardReciteTranscript();
+  persistRecitePractice();
+  renderReciteFeedbackFreshness();
+  setReciteStatus('Transcripción añadida. Revísala y solicita una corrección cuando esté lista.');
+  target.focus();
 }
 
 function blobToDataUrl(blob) {
@@ -4336,6 +4879,7 @@ function blobToDataUrl(blob) {
 }
 
 async function transcribeReciteAudio() {
+  if (reciteTranscribeBusy) return;
   if (reciteRecorder && reciteRecorder.state !== 'inactive') await stopReciteRecording();
   if (!reciteAudioBlob && reciteStopPromise) await reciteStopPromise;
   if (!reciteAudioBlob) {
@@ -4346,55 +4890,86 @@ async function transcribeReciteAudio() {
     setReciteStatus('El audio guardado está vacío o es demasiado corto. Revisa el permiso de micrófono y graba de nuevo.');
     return;
   }
-  const license = await getCambridgeTrainerLicense();
-  if (!license) { alert('Introduce tu clave de acceso en Configuración.'); return; }
-  setReciteStatus('Transcribiendo audio...');
-  const filename = getReciteAudioFilename();
-  if (BACKEND_SUPPORTED && await loadBackendStatus()) {
-    try {
+  if (reciteAudioBlob.size > 20 * 1024 * 1024) {
+    setReciteStatus('El audio supera 20 MB. Descárgalo y graba una respuesta más corta para transcribirla.');
+    return;
+  }
+  const audio = reciteAudioBlob;
+  const recordingToken = reciteRecordingToken;
+  reciteTranscribeBusy = true;
+  setAudioState('transcribing');
+  setReciteStatus('Transcribiendo audio. Tu texto actual se conserva.');
+  try {
+    if (!await getCambridgeTrainerLicense()) throw new Error('No hay acceso activo para transcribir. Revisa tu cuenta.');
+    if (!BACKEND_SUPPORTED || !await loadBackendStatus()) throw new Error('No se pudo conectar con el servidor. Recarga la página o vuelve a iniciar sesión.');
       const data = await backendRequest('/api/transcribe', {
         method: 'POST',
         body: JSON.stringify({
-          audio: await blobToDataUrl(reciteAudioBlob),
-          filename,
-          contentType: reciteAudioBlob.type || 'audio/webm',
+          audio: await blobToDataUrl(audio),
+          filename: `recitation.${audioExtension(audio.type)}`,
+          contentType: audio.type || 'audio/webm',
           model: GROQ_TRANSCRIBE_MODEL,
           language: 'en'
         })
       });
-      document.getElementById('reciteTranscript').value = data.text || '';
-      setReciteStatus('Transcripción completada.');
-      persistRecitePractice();
-      return;
-    } catch(e) {
-      setReciteStatus('No se pudo transcribir: ' + e.message);
+    if (audio !== reciteAudioBlob || recordingToken !== reciteRecordingToken) {
+      setReciteStatus('Has grabado otra respuesta mientras se procesaba. Transcribe el audio nuevo si lo necesitas.');
       return;
     }
+    const recognized = String(data.text || '').trim();
+    if (!recognized) throw new Error('No se reconocieron palabras. Escucha el audio y prueba otra vez o escribe tu respuesta.');
+    document.getElementById('reciteReviewText').value = recognized;
+    document.getElementById('reciteTranscriptReview').hidden = false;
+    document.getElementById('replaceReciteTranscriptBtn').hidden = !document.getElementById('reciteTranscript').value.trim();
+    setReciteStatus('Transcripción lista para revisar. Añádela cuando hayas corregido posibles errores.');
+  } catch(e) {
+    setReciteStatus('No se pudo transcribir: ' + (e?.message || 'vuelve a intentarlo.'));
+  } finally {
+    reciteTranscribeBusy = false;
+    setAudioState(reciteAudioBlob ? 'ready' : 'idle');
   }
-  setReciteStatus('No se pudo conectar con el servidor. Recarga la pagina o vuelve a iniciar sesion.');
 }
 
 async function correctRecitation() {
   const transcript = document.getElementById('reciteTranscript').value.trim();
-  if (!transcript) { alert('Primero transcribe o pega tu recitación.'); return; }
+  if (!transcript) { setReciteStatus('Escribe o añade una transcripción antes de solicitar la revisión.'); return; }
   const topic = document.getElementById('reciteTopicInput').value.trim() || session.topic || '';
+  const task = currentSpeakingTask();
+  const feedbackFor = reciteFeedbackKey(transcript);
+  const requestToken = ++reciteCorrectionToken;
+  const previousReport = state.recitePractice.correction || '';
+  const button = document.getElementById('correctReciteBtn');
+  if (button) button.disabled = true;
   const box = document.getElementById('reciteCorrection');
   box.style.display = 'block';
   box.className = 'notice';
-  box.textContent = 'Corrigiendo recitación...';
-  const langName = 'English';
+  box.textContent = 'Revisando el texto transcrito...';
   try {
     const correction = await groqChat([
-      { role: 'system', content: `You are a Cambridge English ${langName} speaking preparation teacher for ${state.examLevel}. Follow this exam blueprint: ${EXAM_BLUEPRINTS[state.examLevel]}. You only receive a transcript: do not claim to assess pronunciation, intonation, real timing or interaction without audio or a partner exchange. Assess the available evidence and state those limitations briefly. Respond in clear Spanish. Quote improved English phrases. Do not use markdown symbols like ### or **.` },
-      { role: 'user', content: `Tema: ${topic}\nTranscripción:\n${transcript}\n\nDevuelve exactamente este formato, con títulos en mayúsculas y bullets claros:\n\nRESUMEN\n- Valoración global en 2 frases según criterios Cambridge.\n\nPUNTOS FUERTES\n- 2 o 3 cosas que ya funcionan.\n\nCORRECCIONES PRIORITARIAS\n- 3 a 5 mejoras concretas: estructura, gramática, vocabulario, pronunciación, interacción, cumplimiento de tarea o ritmo oral.\n\nVERSIÓN MEJORADA\nEscribe una versión mejorada de 1 o 2 fragmentos importantes de la respuesta, manteniendo el idioma de la exposición.\n\nPLAN PARA LA SIGUIENTE PRÁCTICA\n- 3 acciones concretas para repetir mejor la práctica Cambridge.` }
+      { role: 'system', content: `You are an English speaking practice teacher for ${state.examLevel}. Follow this exam blueprint: ${EXAM_BLUEPRINTS[state.examLevel]}. You only receive a transcript and a guided task, not audio or another speaker. Assess task coverage, organization, vocabulary and grammar using only evidence in the text. Never score or claim to assess pronunciation, intonation, oral timing, fluency, interaction or actual exam performance. If the transcript is too short, say the evidence is limited. Respond in clear Spanish, quote improved English phrases, do not invent details, and do not use markdown symbols like ### or **.` },
+      { role: 'user', content: `Consigna: ${task.prompt}\nPuntos esperados: ${task.steps.join('; ')}\nTema de apoyo: ${topic || 'ninguno'}\nTranscripción del alumno:\n${transcript}\n\nUsa este formato con títulos en mayúsculas y viñetas:\nRESUMEN\n- Valoración orientativa del texto en dos frases.\nPUNTOS FUERTES\n- Hasta 3 aciertos concretos observables.\nCORRECCIONES PRIORITARIAS\n- Hasta 4 mejoras concretas de tarea, organización, gramática o vocabulario.\nVERSIÓN MEJORADA\n- Reescribe 1 o 2 fragmentos importantes en inglés sin cambiar la idea del alumno.\nPLAN PARA LA SIGUIENTE PRÁCTICA\n- 3 acciones concretas para repetir el reto mejor.` }
     ], { max_tokens: 1800, temperature: 0.25 });
+    if (requestToken !== reciteCorrectionToken || feedbackFor !== reciteFeedbackKey()) {
+      box.className = previousReport ? 'notice correction-report' : 'notice';
+      box.innerHTML = previousReport;
+      box.style.display = previousReport ? 'block' : 'none';
+      setReciteStatus('Cambiaste la transcripción o la consigna durante la revisión. Solicita otra revisión para el texto actual.');
+      return;
+    }
+    if (!String(correction || '').trim()) throw new Error('La revisión llegó vacía. Inténtalo de nuevo.');
     box.className = 'notice correction-report';
     box.innerHTML = renderCorrectionReport(correction);
+    state.recitePractice.feedbackFor = feedbackFor;
+    state.recitePractice.lastReviewedAt = new Date().toISOString();
     persistRecitePractice();
+    renderReciteFeedbackFreshness();
   } catch(e) {
-    box.className = 'notice';
-    box.textContent = e.message;
-    persistRecitePractice();
+    box.className = previousReport ? 'notice correction-report' : 'notice';
+    box.innerHTML = previousReport;
+    box.style.display = previousReport ? 'block' : 'none';
+    setReciteStatus('No se pudo completar la revisión: ' + (e?.message || 'vuelve a intentarlo.'));
+  } finally {
+    if (button) button.disabled = false;
   }
 }
 
@@ -4427,7 +5002,7 @@ function titleCaseCorrection(title) {
   const labels = {
     'RESUMEN': 'Resumen',
     'PUNTOS FUERTES': 'Puntos fuertes',
-    'CORRECCIONES PRIORITARIAS': 'Correcciónes prioritarias',
+    'CORRECCIONES PRIORITARIAS': 'Correcciones prioritarias',
     'VERSIÓN MEJORADA': 'Versión mejorada',
     'PLAN PARA LA SIGUIENTE PRÁCTICA': 'Plan para la siguiente práctica',
     'CORRECCIÓN': 'Corrección'
@@ -4533,6 +5108,166 @@ function installFrontendErrorReporter() {
   const send = payload => fetch('/api/frontend-error', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json','X-Client-App':'cambridge'}, body:JSON.stringify({...payload, path:location.pathname})}).catch(()=>{});
   window.addEventListener('error', event => send({message:event.message, source:event.filename, line:event.lineno, column:event.colno}));
   window.addEventListener('unhandledrejection', event => send({message:String(event.reason?.message || event.reason || 'Unhandled rejection'), source:'promise'}));
+}
+const B2_LESSONS = [
+  {id:'collocations',title:'Collocations',skill:'Use of English',part:'1',idea:'Algunas palabras se combinan de forma habitual. Aprende la expresión completa y comprueba su sentido en la frase.',example:'We made a decision after reviewing the evidence.',question:'Which phrase is natural?',options:['make a decision','do a decision','take a decisioning'],correct:0,why:'Make a decision es la combinación habitual. Aprende make y decision juntos.'},
+  {id:'open-cloze',title:'Open cloze',skill:'Use of English',part:'2',idea:'Lee la oración completa antes de rellenar el hueco. Busca la relación gramatical entre las palabras de ambos lados.',example:'She has lived here ___ 2020. La fecha indica el inicio de un periodo.',question:'She has lived here ___ 2020.',options:['since','for','during'],correct:0,why:'Since introduce el punto inicial 2020. For introduce una duración.'},
+  {id:'word-formation',title:'Word formation',skill:'Use of English',part:'3',idea:'Identifica si el hueco pide un nombre, adjetivo, verbo o adverbio. Luego adapta la palabra dada.',example:'The exhibition was highly successful. El adverbio highly modifica el adjetivo successful.',question:'Her explanation was very ___. (HELP)',options:['helpful','help','helpfully'],correct:0,why:'Después de very y was hace falta un adjetivo. Helpful describe explanation.'},
+  {id:'transformations',title:'Key word transformations',skill:'Use of English',part:'4',idea:'Conserva el significado de la primera frase y utiliza la palabra clave sin modificarla.',example:'It is not necessary to wait. → You do not have to wait. La obligación desaparece, no la posibilidad.',question:'I last saw Ana in June. → I have not seen Ana ___ June.',options:['since','for','until'],correct:0,why:'Present perfect con since conserva el punto de inicio expresado por in June.'},
+  {id:'reading',title:'Reading con pruebas',skill:'Reading',part:'5',idea:'Para justificar una respuesta, localiza una frase o detalle del texto. Desconfía de las opciones que repiten una palabra pero cambian la idea.',example:'The museum opens at nine, but guided tours begin at ten.',question:'When do guided tours begin?',options:['At ten','At nine','The text does not say'],correct:0,why:'La segunda parte del aviso dice que las visitas guiadas comienzan a las diez.'},
+  {id:'writing',title:'Writing con propósito',skill:'Writing',part:'1',idea:'Antes de escribir, identifica destinatario, propósito y puntos obligatorios. Organiza el texto para que el lector pueda actuar.',example:'A formal request should make the reason and the action requested clear.',question:'Which opening fits a formal request?',options:['I am writing to enquire about the course.','Hey! Tell me about the course.','Course?'],correct:0,why:'La primera opción expresa propósito y mantiene un registro adecuado.'}
+];
+const B2_GAMES = [
+  {id:'editor',title:'La sala de edición',skill:'Use of English',intro:'Corrige los huecos del artículo para enviarlo a edición.',stages:[
+    {text:'The team ___ a decision after reading the report.',options:['made','did','took up'],correct:0,why:'Make a decision es la combinación natural.'},
+    {text:'They have worked on this project ___ March.',options:['since','for','during'],correct:0,why:'Since presenta el comienzo del periodo.'},
+    {text:'The results were ___ to the whole team. (HELP)',options:['helpful','helpfully','help'],correct:0,why:'Helpful es el adjetivo que describe results.'}
+  ]},
+  {id:'archive',title:'El archivo de pistas',skill:'Reading',intro:'Lee el aviso y señala la prueba exacta de cada conclusión.',stages:[
+    {text:'Aviso: The library closes at six, but book returns are accepted until seven. ¿Hasta cuándo se puede devolver un libro?',options:['Until seven','Until six','Until eight'],correct:0,why:'La segunda parte del aviso dice until seven.'},
+    {text:'Nota: Visitors must book online. Tickets cannot be purchased at the door. ¿Dónde se compran las entradas?',options:['Online','At the door','By phone'],correct:0,why:'Must book online expresa la única vía indicada.'},
+    {text:'Email: The workshop was postponed because the instructor was ill. ¿Por qué cambió la fecha?',options:['The instructor was ill','Nobody booked','The venue closed'],correct:0,why:'El motivo aparece tras because.'}
+  ]},
+  {id:'machine',title:'La máquina de reformular',skill:'Use of English · parte 4',intro:'Escribe la palabra o expresión que conserva el significado.',stages:[
+    {text:'I last saw Ana in June. → I have ___ June. (SINCE)',answers:['not seen Ana since'],why:'Not seen Ana since conserva el punto inicial y usa la palabra clave sin cambiarla.'},
+    {text:'It is not necessary to bring a pen. → You ___ a pen. (HAVE)',answers:['do not have to bring',"don't have to bring"],why:'Do not have to bring expresa ausencia de obligación.'},
+    {text:'This book is too difficult to read. → This book is ___ to read. (ENOUGH)',answers:['not easy enough'],why:'Not easy enough mantiene el significado de too difficult.'}
+  ]},
+  {id:'opencloze',title:'El texto incompleto',skill:'Use of English · parte 2',intro:'Coloca la palabra que conecta cada idea del texto. Es un entrenamiento guiado; en el examen no tendrás opciones.',stages:[
+    {text:'She has lived here ___ 2020.',options:['since','for','during'],correct:0,why:'Since introduce el momento en que empezó el periodo.'},
+    {text:'We have been waiting ___ two hours.',options:['since','for','during'],correct:1,why:'For introduce la duración: two hours.'},
+    {text:'The exhibition is open ___ everyone.',options:['for','to','at'],correct:1,why:'Open to everyone significa que cualquiera puede asistir.'}
+  ]},
+  {id:'forge',title:'La forja de palabras',skill:'Use of English · parte 3',intro:'Transforma la palabra base para completar cada ficha antes de enviarla a la forja.',stages:[
+    {text:'The plan was surprisingly ___. (EFFECT)',options:['effective','effectively','effect'],correct:0,why:'Después de was surprisingly se necesita un adjetivo: effective.'},
+    {text:'She handled the discussion with great ___. (CONFIDENT)',options:['confident','confidence','confidently'],correct:1,why:'Después de with great se necesita un sustantivo: confidence.'},
+    {text:'The instructions were too ___ to follow. (COMPLICATE)',options:['complication','complicating','complicated'],correct:2,why:'Complicated describe las instrucciones; too complicated to follow es natural.'}
+  ]},
+  {id:'mailroom',title:'El correo que decide',skill:'Writing · registro',intro:'Elige frases que cumplan el propósito y el tono antes de redactar tu propia respuesta.',stages:[
+    {text:'Quieres pedir información sobre el precio de un curso. ¿Qué apertura formal es más clara?',options:['Could you please tell me how much the course costs?','Hey, money?','You must send me the price.'],correct:0,why:'La primera frase indica el propósito con un tono cortés.'},
+    {text:'La directora pide una recomendación práctica para la sala de estudio. ¿Cuál responde a la petición?',options:['The room is a room.','I recommend adding more quiet desks near the windows.','Everyone knows rooms matter.'],correct:1,why:'La segunda opción propone una mejora concreta para la destinataria.'},
+    {text:'Escribes a un amigo que vendrá a visitarte. ¿Qué cierre resulta natural?',options:['Yours faithfully,','I hereby terminate this correspondence.','See you soon!'],correct:2,why:'See you soon! encaja con un correo informal a un amigo.'}
+  ]}
+];
+const B2_GAME_BY_LESSON = {collocations:'editor','open-cloze':'opencloze','word-formation':'forge',transformations:'machine',reading:'archive',writing:'mailroom'};
+let activeB2Game = null;
+let activeB2Stage = 0;
+function b2OptionOrder(count,offset) { return Array.from({length:count},(_,i)=>(i+offset)%count); }
+function renderB2Lessons() {
+  const list = document.getElementById('b2LessonList');
+  if (!list) return;
+  if (state.examLevel !== 'B2 First') {
+    list.innerHTML = '<div class="b2-empty">Esta primera ruta está preparada para B2 First. Selecciona B2 First en la cabecera para ver las lecciones.</div>';
+    document.getElementById('b2LessonDetail').innerHTML = '';
+    return;
+  }
+  const query = document.getElementById('b2Search')?.value.trim().toLocaleLowerCase() || '';
+  const skill = document.getElementById('b2SkillFilter')?.value || 'all';
+  const part = document.getElementById('b2PartFilter')?.value || 'all';
+  const status = document.getElementById('b2StatusFilter')?.value || 'all';
+  const selected = B2_LESSONS.filter(lesson =>
+    (!query || `${lesson.title} ${lesson.idea}`.toLocaleLowerCase().includes(query)) &&
+    (skill === 'all' || lesson.skill === skill) && (part === 'all' || lesson.part === part) &&
+    (status === 'all' || (status === 'done') === Boolean(state.b2Progress?.[lesson.id]?.completed)));
+  list.innerHTML = selected.length ? selected.map(lesson => `<article class="b2-card"><small>${escHtml(lesson.skill)} · parte ${lesson.part}</small><h3>${escHtml(lesson.title)}</h3><p>${escHtml(lesson.idea)}</p><span class="b2-card-status">${state.b2Progress?.[lesson.id]?.completed ? '✓ Completado' : 'Por practicar'}</span><button type="button" onclick="openB2Lesson('${lesson.id}')">${state.b2Progress?.[lesson.id]?.completed ? 'Revisar lección' : 'Abrir lección'}</button></article>`).join('') : '<p class="b2-empty">No hay lecciones para estos filtros.</p>';
+}
+function openB2Lesson(id) {
+  const lesson = B2_LESSONS.find(item => item.id === id);
+  if (!lesson) return;
+  const order = b2OptionOrder(lesson.options.length,(B2_LESSONS.findIndex(item=>item.id===id)+1)%lesson.options.length);
+  document.getElementById('b2LessonDetail').innerHTML = `<section class="b2-panel"><small>${escHtml(lesson.skill)} · parte ${lesson.part}</small><h2>${escHtml(lesson.title)}</h2><p>${escHtml(lesson.idea)}</p><blockquote>${escHtml(lesson.example)}</blockquote><h3>Comprueba lo aprendido</h3><p>${escHtml(lesson.question)}</p><div class="b2-options">${order.map(index => `<button class="b2-option" data-answer-index="${index}" type="button" onclick="answerB2Lesson('${id}',${index})">${escHtml(lesson.options[index])}</button>`).join('')}</div><div class="b2-feedback" id="b2LessonFeedback" role="status">${state.b2Progress?.[id]?.completed ? 'Ya la completaste. Puedes responder otra vez para repasarla.' : 'Elige una respuesta para comprobarla.'}</div><p><button type="button" onclick="openB2Game('${B2_GAME_BY_LESSON[id]}')">Practicar con un juego →</button></p></section>`;
+  document.getElementById('b2LessonDetail').scrollIntoView({block:'start',behavior:'smooth'});
+}
+function answerB2Lesson(id,index) {
+  const lesson = B2_LESSONS.find(item => item.id === id);
+  if (!lesson) return;
+  const correct = index === lesson.correct;
+  document.querySelectorAll('#b2LessonDetail .b2-option').forEach(button => { const i=Number(button.dataset.answerIndex); button.classList.toggle('correct',i===lesson.correct); button.classList.toggle('incorrect',i===index&&!correct); button.disabled = correct; });
+  document.getElementById('b2LessonFeedback').textContent = (correct ? 'Correcto. ' : 'Aún no. Inténtalo de nuevo. ') + lesson.why;
+  const previous = state.b2Progress[id] || {};
+  state.b2Progress[id] = {completed:correct || Boolean(previous.completed),attempts:(previous.attempts||0)+1,at:new Date().toISOString()};
+  persist();
+  renderB2Lessons();
+}
+function renderB2Games() {
+  const list = document.getElementById('b2GameList');
+  if (!list) return;
+  if (state.examLevel !== 'B2 First') {
+    list.innerHTML = '<div class="b2-empty">Los juegos nuevos son B2 First. Selecciona B2 First en la cabecera para jugarlos.</div>';
+    document.getElementById('b2GameBoard').innerHTML = '';
+    return;
+  }
+  const icons = {editor:'✍',archive:'⌕',machine:'⚙',opencloze:'✎',forge:'✦',mailroom:'✉'};
+  list.innerHTML = B2_GAMES.map(game => { const run = state.b2GameRuns?.[game.id]; return `<article class="b2-card"><div class="b2-game-thumb" data-kind="${game.id}" aria-hidden="true"><span>${icons[game.id]}</span></div><small>${escHtml(game.skill)}</small><h3>${escHtml(game.title)}</h3><p>${escHtml(game.intro)}</p><span class="b2-card-status">${run ? `Etapa ${run.stage+1}/${game.stages.length}` : state.b2Games?.[game.id] ? '✓ Completado' : 'Por jugar'}</span><button type="button" onclick="openB2Game('${game.id}')">${run ? 'Continuar' : state.b2Games?.[game.id] ? 'Volver a jugar' : 'Jugar'}</button></article>`; }).join('');
+}
+function openB2Game(id) {
+  const game = B2_GAMES.find(item => item.id === id);
+  if (!game) return;
+  showTab('juegos',document.querySelector('[data-tab-btn="juegos"]'));
+  activeB2Game = id;
+  activeB2Stage = Math.min(Number(state.b2GameRuns?.[id]?.stage || 0),game.stages.length-1);
+  state.b2GameRuns[id] = state.b2GameRuns[id] || {stage:0,mistakes:0,errors:[],updatedAt:new Date().toISOString()};
+  persist();
+  renderB2GameStage();
+  document.getElementById('b2GameBoard').scrollIntoView({block:'start',behavior:'smooth'});
+}
+function renderB2GameStage() {
+  const game = B2_GAMES.find(item => item.id === activeB2Game);
+  const stage = game?.stages[activeB2Stage];
+  if (!stage) return;
+  const response = stage.options ? `<div class="b2-scene-options">${b2OptionOrder(stage.options.length,(activeB2Stage+1)%stage.options.length).map(index => `<button class="b2-scene-option" data-answer-index="${index}" type="button" onclick="answerB2Game(${index})">${escHtml(stage.options[index])}</button>`).join('')}</div>` : '<label for="b2TypedAnswer">Completa el hueco con 2–5 palabras e incluye la palabra clave</label><div class="b2-machine-input"><input class="b2-answer" id="b2TypedAnswer" autocomplete="off" onkeydown="if(event.key===\'Enter\')answerB2Game()"><button type="button" onclick="answerB2Game()">Validar frase</button></div>';
+  const ornaments = {editor:'THE EDITOR’S DESK',archive:'CASE FILE · EVIDENCE',machine:'MEANING MACHINE',opencloze:'THE MISSING WORDS',forge:'WORD FORGE',mailroom:'THE MAILROOM'};
+  const ornament = `<span aria-hidden="true">✦</span><strong>${ornaments[game.id]}</strong><span aria-hidden="true">✦</span>`;
+  document.getElementById('b2GameBoard').innerHTML = `<section class="b2-panel"><div class="b2-game-top"><small>${escHtml(game.skill)} · etapa ${activeB2Stage+1}/${game.stages.length}</small><button type="button" onclick="restartB2Game()">Reiniciar reto</button></div><h2>${escHtml(game.title)}</h2><div class="b2-game-progress" aria-label="Etapa ${activeB2Stage+1} de ${game.stages.length}">${game.stages.map((_,i)=>`<span class="${i<=activeB2Stage?'on':''}"></span>`).join('')}</div><div class="b2-board" data-kind="${game.id}"><div class="b2-scene-head">${ornament}</div><div class="b2-scene-page"><p>${escHtml(stage.text)}</p>${response}</div></div><div class="b2-feedback" id="b2GameFeedback" role="status">Elige la respuesta en la escena para avanzar.</div><p id="b2GameNext"></p></section>`;
+}
+function answerB2Game(index) {
+  const game = B2_GAMES.find(item => item.id === activeB2Game);
+  const stage = game?.stages[activeB2Stage];
+  if (!stage) return;
+  const typed = document.getElementById('b2TypedAnswer')?.value.trim().replace(/\s+/g,' ').toLowerCase();
+  const correct = stage.options ? index === stage.correct : stage.answers.some(answer => answer.toLowerCase() === typed);
+  if (!correct) {
+    state.b2GameRuns[game.id].mistakes++;
+    state.b2GameRuns[game.id].errors = state.b2GameRuns[game.id].errors || [];
+    state.b2GameRuns[game.id].errors.push({stage:activeB2Stage,answer:stage.options ? stage.options[index] : typed || ''});
+    state.b2GameRuns[game.id].updatedAt = new Date().toISOString();
+    persist();
+    document.getElementById('b2GameFeedback').textContent = 'Todavía no. Revisa el texto y prueba otra opción.';
+    document.querySelectorAll('#b2GameBoard .b2-scene-option').forEach(button=>button.classList.toggle('incorrect',Number(button.dataset.answerIndex)===index));
+    return;
+  }
+  document.getElementById('b2GameFeedback').textContent = '¡Correcto! ' + stage.why;
+  document.querySelectorAll('#b2GameBoard .b2-scene-option').forEach(button=>{button.disabled=true;button.classList.toggle('correct',Number(button.dataset.answerIndex)===index);});
+  document.querySelectorAll('#b2GameBoard .b2-answer').forEach(control=>control.disabled=true);
+  document.getElementById('b2GameNext').innerHTML = `<button type="button" onclick="nextB2GameStage()">${activeB2Stage+1===game.stages.length?'Terminar partida':'Siguiente etapa →'}</button>`;
+}
+function nextB2GameStage() {
+  const game = B2_GAMES.find(item => item.id === activeB2Game);
+  if (++activeB2Stage < game.stages.length) {
+    state.b2GameRuns[game.id].stage = activeB2Stage;
+    state.b2GameRuns[game.id].updatedAt = new Date().toISOString();
+    persist();
+    renderB2GameStage();
+    renderB2Games();
+    return;
+  }
+  const mistakes = state.b2GameRuns[game.id]?.mistakes || 0;
+  const errors = state.b2GameRuns[game.id]?.errors || [];
+  delete state.b2GameRuns[game.id];
+  state.b2Games[game.id] = {completed:true,mistakes,errors,at:new Date().toISOString()};
+  persist();
+  const review = errors.length ? `<details class="b2-game-review"><summary>Revisar ${errors.length} ${errors.length===1?'intento':'intentos'}</summary>${errors.map(error => `<p><strong>Etapa ${error.stage+1}:</strong> ${escHtml(error.answer)}. ${escHtml(game.stages[error.stage]?.why || '')}</p>`).join('')}</details>` : '';
+  const writingLink = game.id === 'mailroom' ? `<button type="button" onclick="showTab('escrita')">Escribir mi correo completo →</button>` : '';
+  document.getElementById('b2GameBoard').innerHTML = `<section class="b2-panel"><h2>Reto completado</h2><p>Has resuelto las tres etapas de ${escHtml(game.title)}. ${mistakes ? `Hubo ${mistakes} ${mistakes===1?'intento para repasar':'intentos para repasar'}.` : '¡Sin errores!'}</p>${review}${writingLink}<button type="button" onclick="openB2Game('${game.id}')">Volver a jugar</button></section>`;
+  renderB2Games();
+}
+function restartB2Game() {
+  if (!activeB2Game) return;
+  state.b2GameRuns[activeB2Game] = {stage:0,mistakes:0,errors:[],updatedAt:new Date().toISOString()};
+  activeB2Stage = 0;
+  persist();
+  renderB2GameStage();
+  renderB2Games();
 }
 installFrontendErrorReporter();
 init();

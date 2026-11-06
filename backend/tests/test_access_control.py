@@ -661,6 +661,37 @@ def test_eso_landing_offers_google_as_its_only_sign_in(client):
     assert 'href="/e25/login"' not in page
 
 
+def test_cambridge_landing_has_direct_google_entry_and_working_assets(client):
+    test_client, _ = client
+    page = test_client.get("/cambridge-info").text
+    assert 'href="/auth/google/login?next=%2Fcambridge"' in page
+    assert 'id="demoOptions"' in page
+    assert "const challenges=[" in page
+    assert "https://educame.tech/cambridge-info" in test_client.get("/sitemap.xml").text
+    for path in (
+        "/assets/brand/ingles-simple.png",
+        "/assets/landing/cambridge-hero-v1.png",
+        "/assets/cambridge-games/open-cloze-editor-v1.png",
+        "/assets/cambridge-games/word-formation-forge-v1.png",
+        "/assets/cambridge-games/writing-mailroom-v1.png",
+    ):
+        response = test_client.get(path)
+        assert response.status_code == 200, path
+        assert response.headers["content-type"].startswith("image/png"), path
+
+
+def test_cambridge_game_illustration_uses_packaged_asset(client, tmp_path, monkeypatch):
+    image = tmp_path / "assets" / "cambridge-games" / "open-cloze-editor-v1.png"
+    image.parent.mkdir(parents=True)
+    image.write_bytes(b"\x89PNG\r\n\x1a\npackaged")
+    monkeypatch.setattr(app_routes, "PROJECT_ROOT", tmp_path / "no-source-checkout")
+    monkeypatch.setattr(app_routes, "STATIC_DIR", tmp_path)
+    test_client, _ = client
+    response = test_client.get("/assets/cambridge-games/open-cloze-editor-v1.png")
+    assert response.status_code == 200
+    assert response.content == image.read_bytes()
+
+
 def test_hazlotu_access_is_admin_managed_and_rotation_revokes_cookies(client):
     test_client, db_factory = client
     for path in ("/hazlo-tu", "/hazlatu", "/hazlatu.html"):
@@ -850,6 +881,34 @@ def test_app_state_is_separate_by_product(client):
     assert test_client.get("/api/state", headers={**headers, "X-Client-App": "cambridge"}).json() == {"app": "cambridge"}
     assert test_client.get("/api/state", headers={**headers, "X-Client-App": "universidad_adultos"}).json() == {"app": "universidad"}
     assert test_client.get("/api/state", headers={**headers, "X-Client-App": "eso_adultos"}).json() == {"app": "eso"}
+
+
+def test_cambridge_state_requires_current_version_and_preserves_other_apps(client):
+    test_client, db_factory = client
+    seed_user(db_factory, product_codes=("CAMBRIDGE", "ESO_ADULTOS"))
+    token = login(test_client).json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}", "X-Client-App": "cambridge"}
+    initial = test_client.get("/api/state", headers=headers)
+    assert initial.status_code == 200
+    first = test_client.post("/api/state", headers={**headers, "If-Match": initial.headers["etag"]}, json={"history": ["one"], "writingPractice": {"answer": "draft"}})
+    assert first.status_code == 200
+    assert first.headers["etag"] != initial.headers["etag"]
+    assert test_client.post("/api/state", headers={**headers, "If-Match": initial.headers["etag"]}, json={"history": []}).status_code == 409
+    assert test_client.post("/api/state", headers=headers, json={}).status_code == 428
+    assert test_client.post("/api/state", headers={**headers, "If-Match": first.headers["etag"]}, json={}).status_code == 409
+    saved = test_client.get("/api/state", headers=headers)
+    assert saved.json() == {"history": ["one"], "writingPractice": {"answer": "draft"}}
+    assert saved.headers["cache-control"] == "private, no-store"
+    assert test_client.get("/api/state", headers={**headers, "X-Client-App": "eso_adultos"}).json() == {}
+    seed_user(db_factory, email="second@example.com", product_codes=("CAMBRIDGE",))
+    second_token = login(test_client, email="second@example.com").json()["access_token"]
+    second_headers = {"Authorization": f"Bearer {second_token}", "X-Client-App": "cambridge"}
+    assert test_client.get("/api/state", headers=second_headers).json() == {}
+    assert test_client.post("/api/state", headers=second_headers, json={"history": ["other"]}).status_code == 200
+    assert test_client.get("/api/state", headers=headers).json() == saved.json()
+    reset = test_client.post("/api/state", headers={**headers, "If-Match": saved.headers["etag"], "X-Confirm-Empty-State": "true"}, json={})
+    assert reset.status_code == 200
+    assert test_client.get("/api/state", headers=headers).json() == {}
 
 
 def test_google_signup_excludes_manually_licensed_diplomator(client):

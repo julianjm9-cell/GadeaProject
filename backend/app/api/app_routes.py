@@ -174,6 +174,11 @@ def eso_state_etag(data: dict) -> str:
     return '"eso-' + hashlib.sha256(canonical.encode("utf-8")).hexdigest() + '"'
 
 
+def cambridge_state_etag(data: dict) -> str:
+    canonical = json.dumps(data, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return '"cambridge-' + hashlib.sha256(canonical.encode("utf-8")).hexdigest() + '"'
+
+
 def set_app_state_data(row: ClientState, app_key: str, payload: dict) -> None:
     current = row.data or {}
     if app_key == "diplomator" and "__apps" not in current:
@@ -563,6 +568,7 @@ def sitemap_xml():
         '  <url><loc>https://educame.tech/profesor/accesos-alumnos</loc></url>\n'
         '  <url><loc>https://educame.tech/profesor/anuncios</loc></url>\n'
         '  <url><loc>https://educame.tech/profesor/anunciar</loc></url>\n'
+        '  <url><loc>https://educame.tech/cambridge-info</loc></url>\n'
         '</urlset>\n'
     )
     return Response(xml, media_type="application/xml")
@@ -683,9 +689,21 @@ def marketing_asset(filename: str):
 
 @router.get("/assets/landing/{filename}")
 def eso_landing_asset(filename: str):
-    if filename not in {"eso-study-desk.png", "profesor-dashboard.png", "profesor-materiales.png", "profesor-clases-apoyo.png", "profesor-hero-app-v3.png", "profesor-hero-app-v4.png", "eso-dashboard.png", "eso-mobile.png", "profesor-mobile.png", "diplomator-dashboard.png", "diplomator-mobile.png", "facturas-dashboard.png", "facturas-mobile.png"}:
+    if filename not in {"cambridge-hero-v1.png", "eso-study-desk.png", "profesor-dashboard.png", "profesor-materiales.png", "profesor-clases-apoyo.png", "profesor-hero-app-v3.png", "profesor-hero-app-v4.png", "eso-dashboard.png", "eso-mobile.png", "profesor-mobile.png", "diplomator-dashboard.png", "diplomator-mobile.png", "facturas-dashboard.png", "facturas-mobile.png"}:
         raise HTTPException(status_code=404, detail="Asset no encontrado.")
     return marketing_file(f"assets/landing/{filename}", "image/png")
+
+
+@router.get("/assets/cambridge-games/{filename}")
+def cambridge_game_illustration(filename: str):
+    if filename not in {"open-cloze-editor-v1.png", "word-formation-forge-v1.png", "writing-mailroom-v1.png"}:
+        raise HTTPException(status_code=404, detail="Ilustración no encontrada.")
+    local_path = PROJECT_ROOT / "apps" / "cambridge" / "assets" / "games" / filename
+    static_path = STATIC_DIR / "assets" / "cambridge-games" / filename
+    path = local_path if local_path.exists() else static_path
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Ilustración no encontrada.")
+    return FileResponse(path, media_type="image/png", headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/assets/diplomator-refresh.css")
@@ -1814,6 +1832,9 @@ def get_state(request: Request, response: Response, user: User = Depends(current
     if app_key == "eso_adultos":
         response.headers["ETag"] = eso_state_etag(saved)
         response.headers["Cache-Control"] = "private, no-store"
+    if app_key == "cambridge":
+        response.headers["ETag"] = cambridge_state_etag(saved)
+        response.headers["Cache-Control"] = "private, no-store"
     if app_key != "profesor_particular":
         return saved
     response.headers["ETag"] = state_history.etag(row.profesor_revision)
@@ -1920,6 +1941,15 @@ def save_state(payload: dict, request: Request, response: Response, user: User =
         if supplied is not None and supplied != eso_state_etag(previous):
             raise HTTPException(409, detail={"code": "state_conflict", "message":
                 "Otra pestaña o dispositivo ha guardado un progreso más reciente. No se ha sobrescrito."})
+    if app_key == "cambridge":
+        previous = app_state_data(row, app_key)
+        supplied = request.headers.get("if-match")
+        if supplied is None and previous:
+            raise HTTPException(428, detail="Recarga tu progreso antes de guardar.")
+        if supplied is not None and supplied != cambridge_state_etag(previous):
+            raise HTTPException(409, detail="Hay cambios más recientes en otra pestaña. Tu borrador sigue en este navegador.")
+        if previous and not payload and request.headers.get("x-confirm-empty-state") != "true":
+            raise HTTPException(409, detail="Para vaciar el progreso debes confirmar el reinicio desde la aplicación.")
     if app_key == "profesor_particular":
         expected = state_history.check_revision(row, request.headers.get("if-match"))
         state_history.validate_transition(app_state_data(row, app_key), payload,
@@ -1957,6 +1987,9 @@ def save_state(payload: dict, request: Request, response: Response, user: User =
         set_app_state_data(row, app_key, payload)
         if app_key == "eso_adultos":
             response.headers["ETag"] = eso_state_etag(payload)
+            response.headers["Cache-Control"] = "private, no-store"
+        if app_key == "cambridge":
+            response.headers["ETag"] = cambridge_state_etag(payload)
             response.headers["Cache-Control"] = "private, no-store"
     db.commit()
     return {"ok": True, **({"revision": revision} if app_key == "profesor_particular" else {})}
