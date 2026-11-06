@@ -1355,9 +1355,16 @@
   .english-facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:18px; } .english-facts span { min-height:66px; display:grid; align-content:center; padding:8px; border-radius:7px; background:#f1f5fc; color:var(--muted); text-align:center; font-size:12px; } .english-facts strong { display:block; color:var(--ink); font-size:21px; }
   .english-skills { display:grid; gap:8px; margin-top:16px; } .english-skill { width:100%; min-height:43px; display:grid; grid-template-columns:minmax(90px,1fr) minmax(50px,1.3fr) auto; align-items:center; gap:10px; padding:5px 6px; border:0; border-bottom:1px solid var(--border); background:#fff; text-align:left; cursor:pointer; } .english-skill:last-child { border-bottom:0; } .english-skill:hover { background:#f5f9ff; } .english-skill > span:first-child { font-size:13px; font-weight:700; } .english-skill-meter { height:8px; overflow:hidden; border-radius:10px; background:#e2eaf5; } .english-skill-meter span { display:block; height:100%; border-radius:10px; background:var(--skill-color); } .english-skill strong { min-width:38px; text-align:right; font-size:12px; }
   .english-progress-action { display:flex; align-items:center; gap:15px; min-height:86px; padding:15px 20px; border:1px solid #c8eade; border-radius:8px; background:#eafaf4; } .english-progress-action > div { flex:1; } .english-progress-action strong, .english-progress-action small { display:block; } .english-progress-action small { margin-top:3px; font-size:18px; font-weight:700; } .english-progress-action button { min-height:48px; }
+  .english-route-progress-head { display:flex; justify-content:space-between; align-items:end; gap:12px; flex-wrap:wrap; } .english-route-progress-head h3 { font-size:22px; } .english-route-progress-head p { margin-top:5px; color:var(--muted); }
+  .english-route-progress-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; } .english-route-progress-card { min-width:0; padding:18px; border:1px solid var(--border); border-radius:12px; background:#fff; box-shadow:0 8px 24px rgba(18,58,115,.06); } .english-route-progress-card.current { border-color:#84b7f4; background:#f2f8ff; } .english-route-progress-card > div:first-child { display:flex; justify-content:space-between; align-items:center; gap:8px; } .english-route-progress-card h4 { font-size:19px; } .english-route-progress-card small { color:var(--muted); } .english-route-progress-card p { margin:9px 0 12px; color:var(--muted); font-size:13px; } .english-route-progress-card button, .english-error-card button { border:1px solid #a9cff7; border-radius:8px; padding:8px 12px; background:#fff; color:#145a9e; font-weight:700; cursor:pointer; } .english-route-progress-card button:hover, .english-error-card button:hover { background:#e4f1ff; } .english-route-progress-card .english-skill-meter { display:block; height:10px; margin-top:12px; } .english-route-progress-card .english-skill-meter span { background:#2475d1; }
+  .english-route-skill-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; } .english-route-skill-row span { padding:6px 9px; border-radius:20px; background:#e9f3ff; color:#23578f; font-size:12px; font-weight:700; }
+  .english-home-route-count { margin:10px 0 0; color:#27588e; font-size:13px; font-weight:700; }
+  .english-error-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; } .english-error-card { min-width:0; padding:14px; border:1px solid #dce7f5; border-radius:10px; background:#f7faff; } .english-error-card > small { display:block; margin-bottom:7px; } .english-error-card strong { display:block; } .english-error-card p { margin:7px 0; overflow-wrap:anywhere; } .english-error-card .english-error-answer { color:#9c3e2d; } .english-error-card .english-error-correct { color:#087457; } .english-error-empty { margin-top:12px; color:var(--muted); }
+  .english-practice-progress { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr)); gap:10px; margin-top:15px; } .english-practice-progress article { min-width:0; padding:14px; border:1px solid #dce7f5; border-radius:10px; background:#f7faff; } .english-practice-progress strong, .english-practice-progress span, .english-practice-progress small { display:block; } .english-practice-progress strong { font-size:16px; } .english-practice-progress span { margin-top:6px; color:#1b609d; font-weight:700; } .english-practice-progress small { margin-top:4px; color:var(--muted); } .english-practice-progress button { margin-top:12px; padding:7px 10px; border:1px solid #a9cff7; border-radius:8px; background:#fff; color:#145a9e; font-weight:700; cursor:pointer; } .english-practice-progress button:hover { background:#e4f1ff; }
   @media(max-width:1100px) { .english-session { grid-template-columns:1fr; } .english-start { width:100%; } .english-progress-overview-main { grid-template-columns:auto minmax(0,1fr); } .english-progress-level { grid-column:1/-1; min-height:0; padding:14px 0 0; border-left:0; border-top:1px solid #cbdcf6; } .english-progress-grid { grid-template-columns:1fr; } }
   @media(max-width:750px) { .english-grid { grid-template-columns:1fr; } .english-session { padding:16px; } .english-card-head { flex-wrap:wrap; } .english-card .english-link { margin-left:auto; } }
   @media(max-width:600px) { .main-actions { grid-template-columns:repeat(6,minmax(0,1fr)); gap:3px; } .main-actions .nav-pill:nth-child(-n+3) { grid-column:span 2; } .main-actions .nav-pill:nth-child(n+4) { grid-column:span 3; } .nav-pill { padding:8px 4px; font-size:.73rem; } #sessionEmpty { padding-top:8px; } .english-topic-chips { grid-template-columns:repeat(2,minmax(0,1fr)); } .english-progress-overview-main { grid-template-columns:1fr; } .english-progress-overview-main > .english-icon { display:none; } .english-progress-level { grid-column:auto; } .english-progress-action { flex-wrap:wrap; } .english-progress-action button { width:100%; } .official-english-links { grid-template-columns:1fr; } }
+  @media(max-width:800px) { .english-route-progress-cards, .english-practice-progress { grid-template-columns:1fr; } .english-error-list { grid-template-columns:1fr; } }
   #sessionActive > .chat-panel.compact,
   #tab-recitar .recite-layout > .chat-panel,
   #tab-temas .topics-side { display:none !important; }
@@ -1492,8 +1499,8 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
       <div class="english-resume" id="englishResume" hidden><span><strong>Sesión en curso</strong><small id="englishResumeTopic"></small></span><button class="btn btn-outline" type="button" onclick="resumeEnglishSession()">Reanudar →</button></div>
       <div class="english-grid">
         <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">📚</span><div><h3>Biblioteca de temas</h3><p>Speaking, writing, grammar y vocabulario por niveles.</p></div><button class="english-link" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">Ver temas →</button></div><div class="english-topic-chips"><button type="button" onclick="openEnglishTopicGroup('Speaking')"><span aria-hidden="true">💬</span>Speaking</button><button type="button" onclick="openEnglishTopicGroup('Writing')"><span aria-hidden="true">✍️</span>Writing</button><button type="button" onclick="openEnglishTopicGroup('Use of English')"><span aria-hidden="true">Aa</span>Grammar</button><button type="button" onclick="openEnglishTopicGroup('Reading')"><span aria-hidden="true">📖</span>Reading</button></div></section>
-        <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">✦</span><div><h3 id="englishHomeRouteTitle">Ruta B2 First</h3><p id="englishHomeRouteDescription">Seis lecciones breves con explicación y corrección.</p></div><button class="english-link" type="button" onclick="showTab('b2',document.querySelector('[data-tab-btn=&quot;b2&quot;]'))">Abrir ruta →</button></div><div class="english-card-steps"><span>Aprender</span><span>Comprobar</span><span>Repasar</span></div></section>
-        <section class="english-card"><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">◆</span><div><h3 id="englishHomeGameTitle">Juegos B2</h3><p id="englishHomeGameDescription">Seis retos vinculados a la ruta de lectura, vocabulario, gramática y escritura.</p></div><button class="english-link" type="button" onclick="showTab('juegos',document.querySelector('[data-tab-btn=&quot;juegos&quot;]'))">Ver juegos →</button></div><div class="english-card-steps"><span id="englishHomeGameCount">6 misiones</span><span id="englishHomeGameBenefit">Corrección inmediata</span></div></section>
+        <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">✦</span><div><h3 id="englishHomeRouteTitle">Ruta B2 First</h3><p id="englishHomeRouteDescription">Seis lecciones breves con explicación y corrección.</p></div><button class="english-link" type="button" onclick="showTab('b2',document.querySelector('[data-tab-btn=&quot;b2&quot;]'))">Abrir ruta →</button></div><div class="english-card-steps"><span>Aprender</span><span>Comprobar</span><span>Repasar</span></div><p class="english-home-route-count" id="englishHomeRouteProgress">0 lecciones completadas</p></section>
+        <section class="english-card"><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">◆</span><div><h3 id="englishHomeGameTitle">Juegos B2</h3><p id="englishHomeGameDescription">Seis retos vinculados a la ruta de lectura, vocabulario, gramática y escritura.</p></div><button class="english-link" type="button" onclick="showTab('juegos',document.querySelector('[data-tab-btn=&quot;juegos&quot;]'))">Ver juegos →</button></div><div class="english-card-steps"><span id="englishHomeGameCount">6 misiones</span><span id="englishHomeGameBenefit">Corrección inmediata</span></div><p class="english-home-route-count" id="englishHomeGameProgress">0 juegos terminados</p></section>
         <section class="english-card"><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">🎙️</span><div><h3>Speaking</h3><p>Prepara tu respuesta, grábate y recibe correcciones.</p></div><button class="english-link" type="button" onclick="showTab('recitar',document.querySelector('[data-tab-btn=&quot;recitar&quot;]'))">Practicar →</button></div><div class="english-card-steps"><span>Preparar</span><span>Grabar</span><span>Corregir</span></div></section>
         <section class="english-card"><div class="english-card-head"><span class="english-icon gold" aria-hidden="true">✍️</span><div><h3>Writing</h3><p>Escribe, genera un modelo y mejora tu texto con feedback.</p></div><button class="english-link" type="button" onclick="showTab('escrita',document.querySelector('[data-tab-btn=&quot;escrita&quot;]'))">Ir a writing →</button></div><div class="english-card-steps"><span>Redactar</span><span>Modelo</span><span>Corregir por foto</span></div></section>
         <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">📈</span><div><h3>Tu progreso</h3><p>Sesiones guardadas y temas completados.</p></div><button class="english-link" type="button" onclick="showTab('progreso',document.querySelector('[data-tab-btn=&quot;progreso&quot;]'))">Ver progreso →</button></div><div class="english-meter"><div class="english-meter-track"><span id="englishHomeBar"></span></div><strong id="englishHomePct">0%</strong></div><button class="english-next" type="button" onclick="continueEnglishStudy()"><span><strong>Siguiente tema</strong><small id="englishHomeNext">Busca tu próximo tema.</small></span><span aria-hidden="true">→</span></button></section>
@@ -1560,9 +1567,12 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   </div>
 
   <div id="tab-progreso" class="tab english-progress">
-    <div class="english-progress-heading"><h2>Tu progreso</h2><p>Cada práctica cuenta.</p></div>
+    <div class="english-progress-heading"><h2>Tu progreso</h2><p>Consulta tus sesiones, rutas y respuestas para repasar.</p></div>
     <section class="english-progress-overview" aria-label="Objetivo del mes"><div class="english-progress-overview-main"><span class="english-icon" aria-hidden="true">◎</span><div class="english-progress-copy"><span>Objetivo del mes</span><strong id="englishMonthCount">0 de 12 sesiones</strong><div class="english-progress-meter"><div role="progressbar" id="englishProgressTrack" aria-label="Sesiones guardadas este mes" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="englishProgressBar"></span></div><b id="englishProgressPct">0%</b></div></div><div class="english-progress-level"><span id="englishLevelBadge" class="pending" aria-hidden="true">★</span><div><strong id="englishLevel">Nivel inicial</strong><small id="englishLevelHint">Guarda tu primera sesión.</small></div></div></div><ol class="english-milestones" id="englishMilestones" aria-label="Hitos del mes"></ol></section>
     <div class="english-progress-grid"><section class="english-progress-panel"><h3>Actividad de la semana</h3><div class="english-week" id="englishWeek"></div><div class="english-facts" id="englishFacts"></div></section><section class="english-progress-panel"><h3>Por competencias</h3><div class="english-skills" id="englishSkills"></div></section></div>
+    <section aria-labelledby="englishRouteProgressTitle"><div class="english-route-progress-head"><div><h3 id="englishRouteProgressTitle">Tus rutas de examen</h3><p>Lecciones y juegos terminados en cada nivel. Cada actividad se cuenta una sola vez.</p></div></div><div class="english-route-progress-cards" id="englishRouteProgressCards"></div><div class="english-route-skill-row" id="englishRouteSkillRow" aria-label="Destrezas de la ruta elegida"></div></section>
+    <section class="english-progress-panel" aria-labelledby="englishPracticeProgressTitle"><h3 id="englishPracticeProgressTitle">Otras prácticas</h3><p>Writing y Speaking se registran como trabajo y revisión, sin convertir el informe de IA en una nota de examen. Listening por partes está disponible en B2.</p><div class="english-practice-progress" id="englishPracticeProgress"></div></section>
+    <section class="english-progress-panel" aria-labelledby="englishErrorReviewTitle"><h3 id="englishErrorReviewTitle">Repasa tus errores</h3><p>Respuestas de tu última partida en cada juego. La explicación te indica qué revisar antes de repetirlo.</p><div class="english-error-list" id="englishErrorReview"></div></section>
     <div class="english-progress-action"><span class="english-icon teal" aria-hidden="true">→</span><div><strong>Siguiente paso</strong><small id="englishProgressNext">Elige un tema para practicar.</small></div><button class="btn" type="button" onclick="continueEnglishStudy()">Continuar estudiando →</button></div>
   </div>
 
@@ -2301,6 +2311,7 @@ function setExamLevel(level) {
   const badge = document.getElementById('sessionLangBadge');
   if (badge) badge.textContent = level;
   updateEnglishRouteLabels();
+  renderEnglishHomeRouteProgress();
   activeB2Game = null;
   const gameBoard = document.getElementById('b2GameBoard');
   if (gameBoard) gameBoard.innerHTML = '';
@@ -2311,6 +2322,7 @@ function setExamLevel(level) {
   renderTopicsTab();
   if (document.getElementById('tab-recitar')?.classList.contains('active')) renderRecitePractice();
   if (document.getElementById('tab-examenes')?.classList.contains('active')) renderListeningTab();
+  if (document.getElementById('tab-progreso')?.classList.contains('active')) renderEnglishDashboard();
   persist();
 }
 
@@ -2844,6 +2856,84 @@ function openEnglishTopicGroup(group) {
   if (category) setCatTab(category);
 }
 
+function englishRouteProgressSummary(level) {
+  const lessons = level === 'B2 First' ? B2_LESSONS : level === 'C1 Advanced' ? C1_LESSONS : C2_LESSONS;
+  const games = level === 'B2 First' ? B2_GAMES : level === 'C1 Advanced' ? C1_GAMES : C2_GAMES;
+  const doneLessons = lessons.filter(item => state.b2Progress?.[item.id]?.completed).length;
+  const doneGames = games.filter(item => state.b2Games?.[item.id]?.completed).length;
+  const plays = games.reduce((sum,item) => {
+    const result = state.b2Games?.[item.id];
+    return sum + (result?.completed ? Math.max(1,Number(result.plays) || 1) : 0);
+  },0);
+  const skills = ['Reading','Use of English','Writing'].map(name => {
+    const items = [...lessons,...games].filter(item => String(item.skill || '').includes(name));
+    return {name,total:items.length,done:items.filter(item => item.stages ? state.b2Games?.[item.id]?.completed : state.b2Progress?.[item.id]?.completed).length};
+  }).filter(item => item.total);
+  return {level,lessons:lessons.length,games:games.length,doneLessons,doneGames,plays,skills};
+}
+
+function renderEnglishHomeRouteProgress() {
+  const route = englishRouteProgressSummary(state.examLevel);
+  document.getElementById('englishHomeRouteProgress').textContent = `${route.doneLessons}/${route.lessons} lecciones completadas`;
+  document.getElementById('englishHomeGameProgress').textContent = `${route.doneGames}/${route.games} juegos terminados`;
+}
+
+function openEnglishPractice(tab) {
+  showTab(tab,document.querySelector(`[data-tab-btn="${tab}"]`));
+}
+
+function renderEnglishPracticeProgress() {
+  const versions = Array.isArray(state.writingPractice?.versions) ? state.writingPractice.versions : [];
+  const savedVersions = versions.filter(item => item.level === state.examLevel).length;
+  const currentDraft = state.writingPractice?.level === state.examLevel && Boolean(state.writingPractice?.answer?.trim());
+  let reviewedLevel = '';
+  try { reviewedLevel = JSON.parse(state.recitePractice?.feedbackFor || '[]')[0] || ''; } catch (_) {}
+  const reviewed = reviewedLevel === state.examLevel && Boolean(state.recitePractice?.correction && state.recitePractice?.lastReviewedAt);
+  const listeningGroups = [state.listeningResults,state.listeningFillResults,state.listeningMatchResults,state.listeningInterviewResults,state.listeningMockResults];
+  const listeningCount = listeningGroups.reduce((sum,group) => sum + (Array.isArray(group) ? group.length : 0),0);
+  const mock = state.listeningMockResults?.[0];
+  document.getElementById('englishPracticeProgress').innerHTML = `<article><strong>Writing</strong><span>${savedVersions} ${savedVersions === 1 ? 'versión guardada' : 'versiones guardadas'}</span><small>${currentDraft ? 'Tienes un borrador en curso.' : 'Redacta una respuesta y guarda una versión para compararla.'}</small><button type="button" onclick="openEnglishPractice('escrita')">Abrir Writing →</button></article><article><strong>Speaking</strong><span>${reviewed ? 'Última revisión guardada' : 'Sin revisión guardada en este nivel'}</span><small>El informe valora el texto transcrito, no la pronunciación.</small><button type="button" onclick="openEnglishPractice('recitar')">Abrir Speaking →</button></article>${state.examLevel === 'B2 First' ? `<article><strong>Listening B2</strong><span>${listeningCount} ${listeningCount === 1 ? 'resultado guardado' : 'resultados guardados'}</span><small>${mock ? `Último recorrido integrado: ${Number(mock.score) || 0}/30.` : 'Cuatro partes y un recorrido integrado de 30 preguntas.'}</small><button type="button" onclick="openEnglishPractice('examenes')">Abrir Listening →</button></article>` : ''}`;
+}
+
+function openEnglishReviewGame(id) {
+  const level = C1_GAMES.some(game => game.id === id) ? 'C1 Advanced' : C2_GAMES.some(game => game.id === id) ? 'C2 Proficiency' : 'B2 First';
+  if (state.examLevel !== level) setExamLevel(level);
+  openB2Game(id);
+}
+
+function openEnglishLevelRoute() {
+  showTab('b2',document.querySelector('[data-tab-btn="b2"]'));
+}
+
+function renderEnglishRouteProgress() {
+  const levels = ['B2 First','C1 Advanced','C2 Proficiency'];
+  const summaries = levels.map(englishRouteProgressSummary);
+  const selected = summaries.find(item => item.level === state.examLevel);
+  document.getElementById('englishRouteProgressCards').innerHTML = summaries.map(item => {
+    const done = item.doneLessons + item.doneGames;
+    const total = item.lessons + item.games;
+    const current = item.level === state.examLevel;
+    return `<article class="english-route-progress-card ${current ? 'current' : ''}"><div><h4>${item.level}</h4><small>${current ? 'Nivel seleccionado' : 'Otra ruta'}</small></div><p>${item.doneLessons}/${item.lessons} lecciones · ${item.doneGames}/${item.games} juegos · ${item.plays} ${item.plays === 1 ? 'partida terminada' : 'partidas terminadas'}</p><span class="english-skill-meter" role="progressbar" aria-label="${item.level}: ${done} de ${total} actividades completadas" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${done}"><span style="width:${Math.round(done / total * 100)}%"></span></span><p><strong>${done}/${total}</strong> actividades distintas completadas</p><button type="button" onclick="${current ? 'openEnglishLevelRoute()' : `setExamLevel('${item.level}')`}">${current ? 'Abrir esta ruta →' : 'Ver este nivel'}</button></article>`;
+  }).join('');
+  document.getElementById('englishRouteSkillRow').innerHTML = selected.skills.map(item => `<span>${item.name}: ${item.done}/${item.total}</span>`).join('');
+  document.getElementById('englishErrorReviewTitle').textContent = `Repasa tus errores · ${state.examLevel.slice(0,2)}`;
+  const games = englishRouteGames();
+  const errors = games.flatMap(game => {
+    const result = state.b2Games?.[game.id];
+    const byStage = new Map();
+    if (Array.isArray(result?.errors)) result.errors.forEach(error => {
+      const stageIndex = Number(error?.stage);
+      if (Number.isInteger(stageIndex) && game.stages[stageIndex]) byStage.set(stageIndex,error);
+    });
+    return [...byStage].map(([stageIndex,error]) => ({game,stageIndex,error,at:Date.parse(result.at || '') || 0}));
+  }).sort((a,b) => b.at - a.at || a.stageIndex - b.stageIndex).slice(0,6);
+  document.getElementById('englishErrorReview').innerHTML = errors.length ? errors.map(({game,stageIndex,error}) => {
+    const stage = game.stages[stageIndex];
+    const answer = stage.options ? stage.options[stage.correct] : stage.answers?.[0] || '';
+    return `<article class="english-error-card"><small>${escHtml(game.title)} · etapa ${stageIndex+1}</small><strong>${escHtml(stage.text)}</strong><p class="english-error-answer">Tu respuesta: ${escHtml(error.answer) || 'sin respuesta'}</p><p class="english-error-correct">Respuesta: ${escHtml(answer)}</p><p>${escHtml(stage.why)}</p><button type="button" onclick="openEnglishReviewGame('${game.id}')">Volver al juego →</button></article>`;
+  }).join('') : '<p class="english-error-empty">Aún no hay errores en partidas terminadas de esta ruta. Puedes abrir un juego para practicar.</p>';
+}
+
 function renderEnglishDashboard() {
   const all = getAllTopics();
   const next = englishNextTopic();
@@ -2901,6 +2991,9 @@ function renderEnglishDashboard() {
   });
   const colors = {'Speaking':'#7555d9','Writing':'#edae30','Use of English':'#1479e7','Reading':'#059a75','Listening':'#0f766e','Preparación de examen':'#b74338'};
   document.getElementById('englishSkills').innerHTML = [...groups].map(([name,group]) => `<button class="english-skill" type="button" style="--skill-color:${colors[name]}" onclick="openEnglishTopicGroup('${name}')" aria-label="${name}: ${group.done} de ${group.total} temas completados"><span>${name}</span><span class="english-skill-meter" aria-hidden="true"><span style="width:${Math.round(group.done / group.total * 100)}%"></span></span><strong>${group.done}/${group.total}</strong></button>`).join('');
+  renderEnglishRouteProgress();
+  renderEnglishHomeRouteProgress();
+  renderEnglishPracticeProgress();
 }
 
 // ── TABS ────────────────────────────────────────────────────────────────
@@ -2932,6 +3025,7 @@ function showTab(name, btn) {
 }
 
 function renderEnglishHomeSession() {
+  renderEnglishHomeRouteProgress();
   const box = document.getElementById('englishResume');
   if (!box) return;
   const topic = state.currentSession?.topic;
@@ -5936,8 +6030,9 @@ function nextB2GameStage() {
   }
   const mistakes = state.b2GameRuns[game.id]?.mistakes || 0;
   const errors = state.b2GameRuns[game.id]?.errors || [];
+  const previous = state.b2Games[game.id];
   delete state.b2GameRuns[game.id];
-  state.b2Games[game.id] = {completed:true,mistakes,errors,at:new Date().toISOString()};
+  state.b2Games[game.id] = {completed:true,mistakes,errors,plays:(previous?.completed ? Math.max(1,Number(previous.plays) || 1) : 0) + 1,at:new Date().toISOString()};
   persist();
   const review = errors.length ? `<details class="b2-game-review"><summary>Revisar ${errors.length} ${errors.length===1?'intento':'intentos'}</summary>${errors.map(error => `<p><strong>Etapa ${error.stage+1}:</strong> ${escHtml(error.answer)}. ${escHtml(game.stages[error.stage]?.why || '')}</p>`).join('')}</details>` : '';
   const writingLink = game.id === 'mailroom' ? `<button type="button" onclick="showTab('escrita')">Escribir mi correo completo →</button>` : '';
