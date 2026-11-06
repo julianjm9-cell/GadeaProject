@@ -14,6 +14,7 @@ COPY apps/diplomator/index.html /app/app/static/student.html
 COPY apps/diplomator/assets/diplomator-refresh.css /app/app/static/assets/diplomator-refresh.css
 COPY apps/cambridge/index.html /app/app/static/cambridge.html
 COPY apps/cambridge/assets/games /app/app/static/assets/cambridge-games
+COPY apps/cambridge/assets/listening /app/app/static/assets/listening
 COPY apps/u25/index.html /app/app/static/universidad-adultos.html
 COPY apps/e25/index.html /app/app/static/eso-adultos.html
 COPY apps/e25/assets/eso-final.css /app/app/static/assets/eso-final.css

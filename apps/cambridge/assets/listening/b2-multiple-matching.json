@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "title": "Cinco maneras de aprender",
+  "level": "B2 First",
+  "source": "Guiones y preguntas originales de Profesor Particular. Grabaciones sintéticas en inglés estadounidense.",
+  "options": [
+    "Comments from other people changed the speaker's work.",
+    "Teaching someone else improved the speaker's own understanding.",
+    "A friend's recommendation made the speaker join the activity.",
+    "Broken equipment led the speaker to a useful new method.",
+    "Working more slowly improved the speaker's final result.",
+    "A strict deadline helped the speaker finish the project.",
+    "Short, regular practice was more effective than long sessions.",
+    "The speaker decided to study alone instead of attending lessons."
+  ],
+  "speakers": [
+    {
+      "id": "pottery",
+      "audio": "b2-matching-pottery.wav",
+      "transcript": "At the start of my pottery course, I saved all my practice for Sunday afternoons. That gave me plenty of time, but by the next week I had forgotten how to shape the clay. My teacher suggested spending just fifteen minutes at the wheel each evening. I was sceptical because it felt too little to matter. After a month, the movements had become much easier, and I no longer needed to look at my notes. Short, regular sessions worked far better for me than one long weekly session.",
+      "correct": 6,
+      "why": "Compara las largas sesiones de los domingos con quince minutos diarios y afirma que la práctica breve y regular funcionó mejor."
+    },
+    {
+      "id": "photography",
+      "audio": "b2-matching-photography.wav",
+      "transcript": "I planned to photograph a local market using my tripod, but one of its legs broke on the first morning. At first I thought I would have to cancel the project. Then I tried holding the camera and moving through the market instead. I could follow people more naturally and wait for moments I would never have noticed from a fixed position. My pictures were less formal, but they told a better story. Now I often choose that approach even when the tripod is working.",
+      "correct": 3,
+      "why": "La rotura del trípode le obligó a probar la fotografía cámara en mano; descubrió que contaba mejor la historia."
+    },
+    {
+      "id": "gardening",
+      "audio": "b2-matching-gardening.wav",
+      "transcript": "I had grown herbs on my balcony for years, so I agreed to show my younger neighbour how to start. She kept asking why I watered one plant more than another. I realised I could do it by instinct but could not explain it properly. I read about the different plants, made simple notes and tried answering her questions again. My own plants improved as a result. Helping her understand the basics taught me more than another season of gardening by myself would have done.",
+      "correct": 1,
+      "why": "Al enseñar a su vecina tuvo que investigar y explicar sus decisiones, y eso mejoró su propio aprendizaje."
+    },
+    {
+      "id": "music",
+      "audio": "b2-matching-music.wav",
+      "transcript": "I shared a short song at an online music workshop. I expected everyone to comment on the sound quality, because I had used a cheap microphone. Instead, several listeners said that the melody was difficult to follow in the middle. They pointed to the same section, so I knew I should listen carefully. I rewrote the chorus and played it again the following week. The response was much warmer. Letting other people hear the first version helped me notice a problem I had missed.",
+      "correct": 0,
+      "why": "Los comentarios del público señalaron un problema de melodía y le llevaron a reescribir el estribillo."
+    },
+    {
+      "id": "woodwork",
+      "audio": "b2-matching-woodwork.wav",
+      "transcript": "For my first woodwork project, I wanted to make a small box as quickly as possible. I cut the pieces before checking the measurements twice, and the sides did not fit together. My instructor did not give me a new design. She asked me to mark each cut carefully and stop whenever I felt rushed. The next box took much longer, but its corners finally matched. I had thought speed was a sign of progress. Now I know that accuracy matters more to me.",
+      "correct": 4,
+      "why": "Al dejar de apresurarse y comprobar las medidas, consiguió que las piezas encajaran mejor."
+    }
+  ]
+}

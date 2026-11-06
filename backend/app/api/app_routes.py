@@ -696,14 +696,32 @@ def eso_landing_asset(filename: str):
 
 @router.get("/assets/cambridge-games/{filename}")
 def cambridge_game_illustration(filename: str):
-    if filename not in {"open-cloze-editor-v1.png", "word-formation-forge-v1.png", "writing-mailroom-v1.png"}:
+    if filename not in {"open-cloze-editor-v1.png", "word-formation-forge-v1.png", "writing-mailroom-v1.png", "c1-research-desk-v1.webp"}:
         raise HTTPException(status_code=404, detail="Ilustración no encontrada.")
     local_path = PROJECT_ROOT / "apps" / "cambridge" / "assets" / "games" / filename
     static_path = STATIC_DIR / "assets" / "cambridge-games" / filename
     path = local_path if local_path.exists() else static_path
     if not path.exists():
         raise HTTPException(status_code=404, detail="Ilustración no encontrada.")
-    return FileResponse(path, media_type="image/png", headers={"Cache-Control": "public, max-age=86400"})
+    return FileResponse(path, media_type="image/webp" if filename.endswith(".webp") else "image/png", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@router.get("/assets/listening/{filename}")
+def cambridge_listening_asset(filename: str):
+    allowed = {"b2-short-extracts.json", "b2-sentence-completion.json", "b2-repair-workshop.wav", "b2-multiple-matching.json", "b2-interview.json", "b2-city-wildlife-interview.wav"} | {
+        f"b2-{name}.wav" for name in (
+            "museum", "station", "cookery", "volunteer", "concert", "science", "job", "library"
+        )
+    } | {f"b2-matching-{name}.wav" for name in ("pottery", "photography", "gardening", "music", "woodwork")}
+    if filename not in allowed:
+        raise HTTPException(status_code=404, detail="Audio no encontrado.")
+    local_path = PROJECT_ROOT / "apps" / "cambridge" / "assets" / "listening" / filename
+    static_path = STATIC_DIR / "assets" / "listening" / filename
+    path = local_path if local_path.exists() else static_path
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Audio no encontrado.")
+    media_type = "application/json" if filename.endswith(".json") else "audio/wav"
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/assets/diplomator-refresh.css")

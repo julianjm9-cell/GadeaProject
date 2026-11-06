@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "title": "The city wildlife project",
+  "level": "B2 First",
+  "source": "Entrevista y preguntas originales de Profesor Particular. Audio con voz sintética en inglés estadounidense.",
+  "audio": "b2-city-wildlife-interview.wav",
+  "turns": [
+    {"speaker": "Interviewer", "text": "Today I'm talking to photographer Maya Ellis about her city wildlife project. Maya, you weren't originally planning to photograph animals, were you?"},
+    {"speaker": "Maya", "text": "No. I was working on a series about old buildings. One afternoon, a child outside a school pointed to a fox crossing an empty playground. I had walked past that place for years without noticing any wildlife. That moment made me curious about what else I was missing. It wasn't a college assignment, and nobody had asked me to start a new project."},
+    {"speaker": "Interviewer", "text": "What was hardest when you began?"},
+    {"speaker": "Maya", "text": "I expected trouble with the camera because I was using an older model. It was fine. The real difficulty was recognising what I could hear. I would record a sound in a garden and then spend hours discovering whether it was a bird, an insect or even a machine nearby. Once I learned to listen more carefully, I stopped making so many wrong guesses."},
+    {"speaker": "Interviewer", "text": "Did your way of working change?"},
+    {"speaker": "Maya", "text": "Quite a lot. At first I visited the same places at lunchtime, when it was convenient for me. But people and traffic made some animals disappear. I began arriving shortly before sunrise instead. I kept using the same locations, so I could compare what I saw at different times. The earlier start was difficult, but it made the photographs much more useful."},
+    {"speaker": "Interviewer", "text": "You later invited local volunteers. Did they already know a lot about wildlife?"},
+    {"speaker": "Maya", "text": "I assumed experienced photographers would contribute the most. In fact, several complete beginners noticed details I had overlooked. One volunteer carefully wrote down where she had seen a small group of birds each morning. Her notes helped us find them again. The volunteers didn't need expensive equipment; their patient observations were the valuable part."},
+    {"speaker": "Interviewer", "text": "People share the photographs online. Is that useful?"},
+    {"speaker": "Maya", "text": "Yes, provided they include some context. A dramatic picture of a fox on a city street can make people think foxes are everywhere, even if it was a rare sight. So when I post an image, I add the date, the place and a short explanation of what happened before and after. I don't want to stop people sharing pictures. I want them to understand what one photograph can and cannot show."},
+    {"speaker": "Interviewer", "text": "You also run workshops in schools. What do you hope pupils take away?"},
+    {"speaker": "Maya", "text": "Some ask whether the workshop will teach them to be professional photographers. That's not its main purpose. We go outside, notice a few things and write down evidence before making a claim. Even if a pupil never picks up a camera again, that habit of careful observation is useful in science and in ordinary life."},
+    {"speaker": "Interviewer", "text": "And what happens next for the project?"},
+    {"speaker": "Maya", "text": "A publisher suggested a book, which was flattering, but that would only show a small selection of images. I'm building a public digital archive where residents can add their own notes beside the photographs. I still have to work out how to check those notes, so it won't launch immediately. But I think a shared record will tell a richer story than a book of my favourite pictures."},
+    {"speaker": "Interviewer", "text": "Maya Ellis, thank you for joining us."}
+  ],
+  "questions": [
+    {"prompt": "Why did Maya begin photographing city wildlife?", "options": ["A school asked her to document its playground.", "An unexpected sight made her realise how much she had missed.", "She needed a new subject for a college assignment."], "correct": 1, "why": "Un niño le señaló un zorro en un lugar por el que ella había pasado muchas veces; eso despertó su curiosidad."},
+    {"prompt": "What was Maya's main difficulty at the start?", "options": ["Identifying the sounds she recorded.", "Finding a camera that worked properly.", "Getting permission to visit gardens."], "correct": 0, "why": "Pensó que la cámara antigua daría problemas, pero lo difícil fue distinguir el origen de los sonidos."},
+    {"prompt": "How did Maya change her working routine?", "options": ["She moved to new locations outside the city.", "She asked volunteers to photograph the animals for her.", "She visited familiar places much earlier in the day."], "correct": 2, "why": "Mantuvo los mismos lugares, pero cambió las visitas del mediodía a poco antes del amanecer."},
+    {"prompt": "What surprised Maya about the volunteers?", "options": ["Beginners noticed useful details that she had missed.", "Most owned expensive photographic equipment.", "Experienced photographers refused to share notes."], "correct": 0, "why": "Esperaba mucho de los expertos, pero principiantes con notas pacientes aportaron observaciones valiosas."},
+    {"prompt": "What does Maya think about sharing wildlife photographs online?", "options": ["It should be avoided because photographs are misleading.", "Pictures are more helpful when accompanied by context.", "Only rare animal sightings should be shared."], "correct": 1, "why": "Le parece útil compartirlas si se añaden fecha, lugar y explicación para no exagerar lo que demuestra una sola imagen."},
+    {"prompt": "What is the main aim of Maya's school workshops?", "options": ["To recruit pupils for her photography project.", "To train pupils for professional photography.", "To develop careful observation before drawing conclusions."], "correct": 2, "why": "Quiere que los alumnos observen y anoten pruebas antes de afirmar algo, aunque no vuelvan a usar una cámara."},
+    {"prompt": "What is Maya planning to do next?", "options": ["Publish a book of her favourite pictures.", "Create a digital archive with contributions from residents.", "Launch a new exhibition immediately."], "correct": 1, "why": "Descarta por ahora el libro y prepara un archivo digital público con notas aportadas por residentes."}
+  ]
+}

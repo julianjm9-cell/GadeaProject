@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "title": "Ocho extractos breves",
+  "level": "B2 First",
+  "source": "Guiones y preguntas originales de Profesor Particular. Voz sintética en inglés estadounidense.",
+  "items": [
+    {
+      "id": "museum",
+      "title": "Una visita al museo",
+      "audio": "b2-museum.wav",
+      "transcript": "I originally booked our museum visit for Saturday, but my sister has to work that morning. Friday evening was the only time we could both go, so I changed the tickets. I was worried the exhibition might be crowded after work, yet the later opening hours should give us plenty of time. We are particularly looking forward to the photography section.",
+      "question": "Why did the speaker change the day of the visit?",
+      "options": ["The exhibition closes earlier on Saturdays.", "Her sister is unavailable on Saturday morning.", "Friday tickets cost less."],
+      "correct": 1,
+      "why": "La hermana trabaja el sábado por la mañana; por eso cambiaron las entradas al viernes. No se menciona un precio menor."
+    },
+    {
+      "id": "station",
+      "title": "Un aviso en la estación",
+      "audio": "b2-station.wav",
+      "transcript": "Passengers waiting for the ten forty-five service to Brighton, please note that your train will now leave from platform six, not platform two. Repair work is taking place beside the original platform. The departure time has not changed, and your existing tickets remain valid. Please allow a few extra minutes to reach the new platform safely.",
+      "question": "What has changed for passengers?",
+      "options": ["The train's departure platform.", "The departure time.", "The validity of their tickets."],
+      "correct": 0,
+      "why": "El tren sale del andén seis en vez del dos. El horario y las entradas siguen iguales."
+    },
+    {
+      "id": "cookery",
+      "title": "Un curso de cocina",
+      "audio": "b2-cookery.wav",
+      "transcript": "I nearly cancelled the cookery course because I already knew most of the recipes on the programme. What made it worthwhile was the instructor's advice about replacing ingredients you cannot find. Last night I made one of the dishes using vegetables I had at home, and it worked beautifully. The other students were friendly too, but that practical advice was the best part for me.",
+      "question": "What did the speaker value most about the course?",
+      "options": ["Learning completely new recipes.", "Meeting the other students.", "Learning to adapt recipes."],
+      "correct": 2,
+      "why": "Ya conocía las recetas; destaca los consejos para sustituir ingredientes y adaptar los platos."
+    },
+    {
+      "id": "volunteer",
+      "title": "Un día de voluntariado",
+      "audio": "b2-volunteer.wav",
+      "transcript": "When I signed up to help at the race, I imagined I would be outside directing the runners. Instead, the organisers asked me to work at the registration desk. It was very busy at first, especially when people arrived without their numbers, but the printed timetable made the rest of the morning much easier. I would certainly volunteer again.",
+      "question": "What surprised the speaker?",
+      "options": ["The job the organisers gave him.", "The number of people at the race.", "The length of the event."],
+      "correct": 0,
+      "why": "Esperaba dirigir a los corredores, pero le asignaron la mesa de inscripciones."
+    },
+    {
+      "id": "concert",
+      "title": "Un concierto al aire libre",
+      "audio": "b2-concert.wav",
+      "transcript": "The band had fantastic energy, and I could see the stage clearly from our first spot. Unfortunately, the speakers were much too loud there. We moved further back, where the music sounded more balanced, and I enjoyed the rest of the concert. It started a little late, but that did not bother me nearly as much as the volume near the stage.",
+      "question": "Why did the speaker move away from the stage?",
+      "options": ["She could not see the performers.", "The sound was too loud.", "The concert started late."],
+      "correct": 1,
+      "why": "Se movió por el volumen excesivo; podía ver bien el escenario y el retraso no fue el motivo."
+    },
+    {
+      "id": "science",
+      "title": "Una investigación sobre el sueño",
+      "audio": "b2-science.wav",
+      "transcript": "Our early results suggest that a regular sleep schedule may help people remember new information. However, the study involved only a small group, so we cannot recommend changes to anyone's routine yet. The pattern is encouraging, and a larger study is already under way. That should tell us whether the effect is as strong as it first appears.",
+      "question": "How does the researcher feel about the results?",
+      "options": ["Certain that the advice is ready for everyone.", "Disappointed that no pattern was found.", "Interested but careful about drawing conclusions."],
+      "correct": 2,
+      "why": "Los resultados le parecen prometedores, pero la muestra pequeña le impide sacar conclusiones firmes."
+    },
+    {
+      "id": "job",
+      "title": "Una oferta de trabajo",
+      "audio": "b2-job.wav",
+      "transcript": "The job sounded ideal at first. I liked the creative projects and the salary was better than I expected. But the office is on the other side of the city, which would mean nearly three hours of travel every day. They offered one day a week at home, but that was not enough to make the journey manageable. In the end, I turned it down.",
+      "question": "Why did the speaker reject the job?",
+      "options": ["The salary was too low.", "The daily journey would take too long.", "The projects were uninteresting."],
+      "correct": 1,
+      "why": "Le gustaban los proyectos y el sueldo, pero el trayecto diario era demasiado largo."
+    },
+    {
+      "id": "library",
+      "title": "Novedades en la biblioteca",
+      "audio": "b2-library.wav",
+      "transcript": "Since we introduced the library app, members can reserve books from home instead of coming to the desk. Some staff expected fewer people to visit the building. In fact, the number of visitors has stayed about the same, partly because our reading groups have become more popular. The app has made borrowing easier without replacing the library as a place to meet.",
+      "question": "What happened after the library introduced its app?",
+      "options": ["Visitor numbers stayed roughly the same.", "Reading groups were cancelled.", "Most members stopped borrowing books."],
+      "correct": 0,
+      "why": "La cifra de visitantes se mantuvo aproximadamente igual; los grupos de lectura incluso ganaron popularidad."
+    }
+  ]
+}

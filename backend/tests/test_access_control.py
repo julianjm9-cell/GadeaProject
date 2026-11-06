@@ -678,6 +678,10 @@ def test_cambridge_landing_has_direct_google_entry_and_working_assets(client):
         response = test_client.get(path)
         assert response.status_code == 200, path
         assert response.headers["content-type"].startswith("image/png"), path
+    c1_art = test_client.get('/assets/cambridge-games/c1-research-desk-v1.webp')
+    assert c1_art.status_code == 200
+    assert c1_art.headers['content-type'].startswith('image/webp')
+    assert c1_art.content.startswith(b'RIFF')
 
 
 def test_cambridge_game_illustration_uses_packaged_asset(client, tmp_path, monkeypatch):
@@ -690,6 +694,77 @@ def test_cambridge_game_illustration_uses_packaged_asset(client, tmp_path, monke
     response = test_client.get("/assets/cambridge-games/open-cloze-editor-v1.png")
     assert response.status_code == 200
     assert response.content == image.read_bytes()
+
+
+def test_cambridge_listening_assets_are_available_and_restricted(client):
+    test_client, _ = client
+    manifest = test_client.get('/assets/listening/b2-short-extracts.json')
+    assert manifest.status_code == 200
+    assert manifest.headers['content-type'].startswith('application/json')
+    items = manifest.json()['items']
+    assert len(items) == 8
+    assert len({item['id'] for item in items}) == 8
+    for item in items:
+        assert len(item['options']) == 3
+        assert 0 <= item['correct'] < 3
+        assert item['transcript'] and item['why']
+        audio = test_client.get('/assets/listening/' + item['audio'])
+        assert audio.status_code == 200
+        assert audio.headers['content-type'].startswith('audio/wav')
+        assert audio.content.startswith(b'RIFF')
+    assert test_client.get('/assets/listening/unknown.wav').status_code == 404
+
+    completion = test_client.get('/assets/listening/b2-sentence-completion.json')
+    assert completion.status_code == 200
+    task = completion.json()
+    assert len(task['items']) == 10
+    assert all(item['prompt'].count('____') == 1 and item['answers'] for item in task['items'])
+    assert all(answer.lower() in task['transcript'].lower() for item in task['items'] for answer in item['answers'][:1])
+    long_audio = test_client.get('/assets/listening/' + task['audio'])
+    assert long_audio.status_code == 200
+    assert long_audio.headers['content-type'].startswith('audio/wav')
+    assert long_audio.content.startswith(b'RIFF')
+
+    matching = test_client.get('/assets/listening/b2-multiple-matching.json')
+    assert matching.status_code == 200
+    task = matching.json()
+    assert len(task['options']) == 8
+    assert len(task['speakers']) == 5
+    assert len({speaker['correct'] for speaker in task['speakers']}) == 5
+    for speaker in task['speakers']:
+        assert 0 <= speaker['correct'] < 8
+        assert speaker['transcript'] and speaker['why']
+        audio = test_client.get('/assets/listening/' + speaker['audio'])
+        assert audio.status_code == 200
+        assert audio.headers['content-type'].startswith('audio/wav')
+        assert audio.content.startswith(b'RIFF')
+
+    interview = test_client.get('/assets/listening/b2-interview.json')
+    assert interview.status_code == 200
+    task = interview.json()
+    assert len(task['questions']) == 7
+    assert len(task['turns']) >= 10
+    assert {turn['speaker'] for turn in task['turns']} == {'Interviewer', 'Maya'}
+    for question in task['questions']:
+        assert len(question['options']) == 3
+        assert 0 <= question['correct'] < 3
+        assert question['why']
+    audio = test_client.get('/assets/listening/' + task['audio'])
+    assert audio.status_code == 200
+    assert audio.headers['content-type'].startswith('audio/wav')
+    assert audio.content.startswith(b'RIFF')
+
+
+def test_cambridge_listening_uses_packaged_asset(client, tmp_path, monkeypatch):
+    audio = tmp_path / 'assets' / 'listening' / 'b2-museum.wav'
+    audio.parent.mkdir(parents=True)
+    audio.write_bytes(b'RIFFpackaged')
+    monkeypatch.setattr(app_routes, 'PROJECT_ROOT', tmp_path / 'no-source-checkout')
+    monkeypatch.setattr(app_routes, 'STATIC_DIR', tmp_path)
+    test_client, _ = client
+    response = test_client.get('/assets/listening/b2-museum.wav')
+    assert response.status_code == 200
+    assert response.content == audio.read_bytes()
 
 
 def test_hazlotu_access_is_admin_managed_and_rotation_revokes_cookies(client):

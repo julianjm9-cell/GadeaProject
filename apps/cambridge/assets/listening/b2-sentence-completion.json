@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "title": "El taller que arregla cosas",
+  "level": "B2 First",
+  "audio": "b2-repair-workshop.wav",
+  "source": "Guion y preguntas originales de Profesor Particular. Voz sintética en inglés estadounidense.",
+  "transcript": "Hello, I'm Maya, and I help run a repair workshop in my neighbourhood. People often ask how it began. Three years ago, a few of us met in the old library to discuss what happened to broken household objects. We were surprised by how many people wanted to fix things but did not know where to start. At first, our volunteers met on Thursday evenings, after their usual jobs. We had one table, a box of tools and absolutely no idea how popular the project would become.\n\nBefore our first public session, we asked visitors to bring small appliances rather than large furniture. We wanted to make sure everything could fit safely on the tables. The first object we managed to repair was a desk lamp. Its owner had already bought a replacement, but she was delighted to take her old lamp home instead. That moment gave us the confidence to keep going.\n\nOf course, enthusiasm is not enough when electricity is involved. Every repair begins with a safety check. If an object might be dangerous, we do not open it until a qualified volunteer has looked at it. We also explain each step to the owner. The point is to help people learn, not simply to do the work for them. Small spare parts are kept in labelled drawers, so everyone can find what they need. Our tools have become more organised too. Visitors who are curious about electronics can learn to use a multimeter, which measures things such as voltage. No one is expected to arrive with technical knowledge. During a session, volunteers often ask the owner what happened just before the object stopped working. That simple question can save a lot of time. Sometimes the problem is only a loose connection or a worn cable. Other times, we decide that a repair is not practical, and we explain why. Learning when to stop is just as important as learning how to begin.\n\nThe people who visit us have changed over time. When we started, most were retired neighbours. They still come, but our most regular visitors are now university students. Some are saving money; others want to reduce waste. Many stay to help somebody else after their own item has been repaired. We keep a record of common faults so that new volunteers can learn from earlier repairs. We also invite visitors to write down one thing they learned before leaving. Those notes have shown us that even an unsuccessful repair can be useful if someone gains the confidence to try again safely.\n\nNext month, we plan to add a bicycle clinic. We have already found two volunteer mechanics, so we can offer basic checks and simple adjustments. We will still repair small electrical items at the usual tables. If you would like to attend, please book a place through the community website. You do not need to pay, though a small donation helps us buy replacement parts. And if you are not sure whether your item is suitable, send us a short description before you come. We look forward to meeting you.",
+  "items": [
+    {
+      "prompt": "The group first met in the ____ to discuss broken objects.",
+      "answers": [
+        "old library"
+      ],
+      "why": "Maya sitúa la primera reunión en 'the old library'."
+    },
+    {
+      "prompt": "At the beginning, the volunteers met on ____.",
+      "answers": [
+        "Thursday evenings"
+      ],
+      "why": "Al principio se reunían después del trabajo los jueves por la tarde."
+    },
+    {
+      "prompt": "Visitors were first asked to bring ____ instead of furniture.",
+      "answers": [
+        "small appliances"
+      ],
+      "why": "Pidieron objetos pequeños para que cupieran con seguridad sobre las mesas."
+    },
+    {
+      "prompt": "The first successful repair was a ____.",
+      "answers": [
+        "desk lamp"
+      ],
+      "why": "El primer objeto reparado fue una lámpara de escritorio."
+    },
+    {
+      "prompt": "Each repair starts with a ____.",
+      "answers": [
+        "safety check"
+      ],
+      "why": "La comprobación de seguridad se realiza antes de abrir el objeto."
+    },
+    {
+      "prompt": "Small spare parts are stored in ____.",
+      "answers": [
+        "labelled drawers",
+        "labeled drawers"
+      ],
+      "why": "Las piezas se organizan en cajones etiquetados. Se aceptan las grafías británica y estadounidense."
+    },
+    {
+      "prompt": "Visitors can learn to use a ____ to measure voltage.",
+      "answers": [
+        "multimeter"
+      ],
+      "why": "Maya menciona el multímetro como herramienta para medir, entre otras cosas, el voltaje."
+    },
+    {
+      "prompt": "The most regular visitors are now ____.",
+      "answers": [
+        "university students"
+      ],
+      "why": "Antes acudían sobre todo vecinos jubilados; ahora los visitantes más habituales son universitarios."
+    },
+    {
+      "prompt": "Next month the workshop plans to offer a ____.",
+      "answers": [
+        "bicycle clinic"
+      ],
+      "why": "La nueva actividad prevista es una sesión de revisión de bicicletas."
+    },
+    {
+      "prompt": "People should book a place through the ____.",
+      "answers": [
+        "community website"
+      ],
+      "why": "Las reservas se hacen a través de la web de la comunidad."
+    }
+  ]
+}
