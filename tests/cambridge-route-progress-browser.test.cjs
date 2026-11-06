@@ -61,7 +61,7 @@ test('el progreso de Inglés separa niveles, cuenta actividades únicas y explic
   }
 });
 
-test('las ocho misiones terminan, se reanudan y registran una sola actividad por juego', async () => {
+test('las diez misiones y dieciocho lecciones terminan y se reanudan por nivel', async () => {
   const browser = await browserType.launch(launchOptions);
   try {
     const page = await browser.newPage({viewport:{width:1280,height:900}});
@@ -71,9 +71,29 @@ test('las ocho misiones terminan, se reanudan y registran una sola actividad por
     await page.waitForFunction(() => typeof openB2Game === 'function');
     for (const level of ['B2 First','C1 Advanced','C2 Proficiency']) {
       await page.evaluate(value => setExamLevel(value),level);
+      const lessons = await page.evaluate(() => englishRouteLessons().map(lesson => ({id:lesson.id,correct:lesson.correct,options:lesson.options})));
+      assert.equal(lessons.length,6,`${level}: seis lecciones`);
+      for (const lesson of lessons) {
+        assert.equal(new Set(lesson.options).size,lesson.options.length,`${lesson.id}: respuestas distintas`);
+        assert.ok(lesson.correct >= 0 && lesson.correct < lesson.options.length,`${lesson.id}: solución válida`);
+        assert.ok(await page.evaluate(id => Boolean(B2_GAME_BY_LESSON[id] && englishRouteGames().some(game => game.id === B2_GAME_BY_LESSON[id])),lesson.id),`${lesson.id}: juego relacionado`);
+        await page.evaluate(id => openB2Lesson(id),lesson.id);
+        await page.evaluate(({id,correct}) => answerB2Lesson(id,correct),lesson);
+        assert.equal(await page.evaluate(id => state.b2Progress[id]?.completed,lesson.id),true,`${lesson.id}: lección completada`);
+      }
       const ids = await page.evaluate(() => englishRouteGames().map(game => game.id));
+      assert.equal(ids.length,level === 'B2 First' ? 6 : 2,`${level}: misiones`);
       for (const id of ids) {
         await page.evaluate(gameId => openB2Game(gameId),id);
+        if (process.env.CAMBRIDGE_GAME_SCREENSHOT_DIR && ['c1-debate','c2-press'].includes(id)) await page.locator('#b2GameBoard').screenshot({path:resolve(process.env.CAMBRIDGE_GAME_SCREENSHOT_DIR,`${id}.png`)});
+        assert.equal(await page.evaluate(async gameId => {
+          const name = ENGLISH_GAME_ART[gameId];
+          if (!name) return true;
+          const image = new Image();
+          image.src = cambridgeGameAsset(name);
+          await image.decode();
+          return image.naturalWidth > 0;
+        },id),true,`${id}: fondo disponible`);
         const stages = await page.evaluate(gameId => englishRouteGame(gameId).stages.map(stage => ({correct:stage.correct,options:stage.options?.length,answer:stage.answers?.[0]})),id);
         for (let index=0; index<stages.length; index++) {
           const stage = stages[index];
@@ -124,6 +144,8 @@ test('un juego se puede iniciar y avanzar con tacto y teclado en móvil', async 
     await page.getByRole('button',{name:'Siguiente etapa →'}).focus();
     await page.keyboard.press('Enter');
     assert.match(await page.locator('#b2GameBoard').innerText(),/etapa 2\/3/i);
+    await page.evaluate(() => { setExamLevel('C2 Proficiency'); openB2Game('c2-press'); });
+    assert.equal(await page.locator('#b2GameBoard .b2-scene-option').count(),3);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),true);
     assert.deepEqual(errors,[]);
   } finally {
