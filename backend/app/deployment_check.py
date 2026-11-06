@@ -53,11 +53,13 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/sitemap.xml": b"/profesor/juegos-interactivos",
         "/api/profesor/ads": b'"ads"',
         "/cambridge-info": b"/auth/google/login?next=%2Fcambridge",
+        "/api/public/app-availability": b'"CAMBRIDGE"',
         "/assets/landing/cambridge-hero-v1.png": b"\x89PNG\r\n\x1a\n",
         "/assets/cambridge-games/open-cloze-editor-v1.png": b"\x89PNG\r\n\x1a\n",
         "/assets/cambridge-games/word-formation-forge-v1.png": b"\x89PNG\r\n\x1a\n",
         "/assets/cambridge-games/writing-mailroom-v1.png": b"\x89PNG\r\n\x1a\n",
         "/assets/cambridge-games/c1-research-desk-v1.webp": b"RIFF",
+        "/assets/cambridge-games/c2-editorial-observatory-v1.webp": b"RIFF",
         "/assets/listening/b2-short-extracts.json": b"{",
         "/assets/listening/b2-museum.wav": b"RIFF",
         "/assets/listening/b2-sentence-completion.json": b"{",
@@ -285,20 +287,23 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/landing/profesor-hero-app-v4.png": b"\x89PNG\r\n\x1a\n",
     }
     for path, expected in checks.items():
-        with urlopen(base + path, timeout=20) as response:
-            data = response.read()
-            assert response.status == 200 and expected in data, f"Respuesta incorrecta: {path}"
-            if path == "/":
-                assert b'href="/profesor"' in data, "Falta Profesor Particular en la portada"
-            if path == "/profesor":
-                assert b"/assets/games/access-session.svg" in data, "Falta la ilustracion de accesos"
-                assert b'profesor-hero-app-v4.png' in data and b'Entrar con Google' in data, "Falta la nueva portada de Profesor Particular"
-            if path == "/profesor/accesos-alumnos":
-                assert b'perfil del alumno' not in data, "La página anuncia perfiles de alumnos retirados"
-            if path == "/profesor-particular":
-                assert "/login?next=/profesor-particular" in response.url, "La app no redirige al login"
-            if path == "/e25":
-                assert b'href="/e25/register"' not in data and b'href="/e25/login"' not in data, "La landing de ESO Adultos ofrece un acceso distinto de Google"
+        try:
+            with urlopen(base + path, timeout=20) as response:
+                data = response.read()
+                assert response.status == 200 and expected in data, f"Respuesta incorrecta: {path}"
+                if path == "/":
+                    assert b'href="/profesor"' in data, "Falta Profesor Particular en la portada"
+                if path == "/profesor":
+                    assert b"/assets/games/access-session.svg" in data, "Falta la ilustracion de accesos"
+                    assert b'profesor-hero-app-v4.png' in data and b'Entrar con Google' in data, "Falta la nueva portada de Profesor Particular"
+                if path == "/profesor/accesos-alumnos":
+                    assert b'perfil del alumno' not in data, "La página anuncia perfiles de alumnos retirados"
+                if path == "/profesor-particular":
+                    assert "/login?next=/profesor-particular" in response.url, "La app no redirige al login"
+                if path == "/e25":
+                    assert b'href="/e25/register"' not in data and b'href="/e25/login"' not in data, "La landing de ESO Adultos ofrece un acceso distinto de Google"
+        except HTTPError as exc:
+            raise AssertionError(f"No responde {path}: HTTP {exc.code}") from exc
         print(f"OK {path}")
     with urlopen(base + "/auth/profesor/signup-settings", timeout=20) as response:
         settings = json.load(response)

@@ -20,6 +20,7 @@ from app.config import get_settings
 from app.database.session import get_db
 from app.models import ProfesorMaterialSession, User
 from app.services.licenses import check_access, profesor_account_plan
+from app.services.app_availability import require_app_available
 
 router = APIRouter(tags=["profesor-student-access"])
 CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -31,6 +32,7 @@ class StudentCode(BaseModel):
 
 
 def teacher_premium(db: Session, user: User) -> None:
+    require_app_available(db, "PROFESOR_PARTICULAR")
     decision = check_access(db, user, "PROFESOR_PARTICULAR", require_credits=False)
     if not decision.ok or not decision.license:
         raise HTTPException(403, "Esta cuenta no tiene acceso a Profesor Particular.")

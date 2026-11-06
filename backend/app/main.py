@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
@@ -9,7 +10,8 @@ from app.api import teacher_recovery
 from app.api import profesor_notifications
 from app.config import get_settings
 from app.database.runtime_schema import ensure_runtime_schema
-from starlette.responses import JSONResponse
+from starlette.responses import HTMLResponse, JSONResponse
+from app.services.app_availability import PAUSE_MESSAGE
 
 
 settings = get_settings()
@@ -18,6 +20,18 @@ try:
 except Exception:
     pass
 app = FastAPI(title=settings.app_name)
+
+
+@app.exception_handler(HTTPException)
+async def paused_application_page(request: Request, exc: HTTPException):
+    if exc.status_code != 503 or exc.detail != PAUSE_MESSAGE or "text/html" not in request.headers.get("accept", ""):
+        return await http_exception_handler(request, exc)
+    html = ('<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+            '<meta name="robots" content="noindex,nofollow"><title>Volvemos pronto · Educame Tech</title>'
+            '<style>body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:linear-gradient(135deg,#e9f4ff,#f8fbff);font-family:system-ui,sans-serif;color:#0e2855}'
+            'main{max-width:460px;padding:36px;border:1px solid #c9def6;border-radius:24px;background:white;box-shadow:0 20px 60px #133d7120}span{font-size:36px}h1{margin:12px 0;font-size:27px}p{line-height:1.55;color:#546987}a{display:inline-block;margin-top:12px;padding:12px 18px;border-radius:10px;background:#086bf3;color:#fff;text-decoration:none;font-weight:700}</style>'
+            '</head><body><main><span aria-hidden="true">✦</span><h1>Volvemos pronto</h1><p>Esta aplicación está pausada temporalmente. Tu progreso y tus materiales siguen guardados. Podrás continuar cuando se reactive.</p><a href="/">Ver las aplicaciones</a></main></body></html>')
+    return HTMLResponse(html, status_code=503, headers={"Cache-Control": "no-store", "Retry-After": "3600", "X-Robots-Tag": "noindex, nofollow"})
 
 
 @app.middleware("http")

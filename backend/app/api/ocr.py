@@ -12,6 +12,7 @@ from app.database.session import get_db
 from app.models import User, UsageRecord
 from app.models.ocr import OcrJob
 from app.services.licenses import check_access
+from app.services.app_availability import require_app_available
 from app.services.ocr_storage import job_dir, model_config
 
 router = APIRouter(tags=["ocr"])
@@ -20,6 +21,7 @@ FIELDS = ("proveedor", "nif_cif", "empresa_receptora", "numero_factura", "fecha_
 
 
 def authorized(request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    require_app_available(db, "OCR_FACTURAS")
     if request.method != "GET" and request.headers.get("sec-fetch-site") == "cross-site":
         raise HTTPException(403, "Solicitud no permitida")
     decision = check_access(db, user, "OCR_FACTURAS", require_credits=False)

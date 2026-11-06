@@ -41,6 +41,7 @@ from app.services.audit import audit
 from app.services.gemini_native import chat_data as gemini_chat_data, failure_message as gemini_failure_message, generate_url as gemini_generate_url, is_auth_key as is_gemini_auth_key, post_with_retry as gemini_post_with_retry, request_body as gemini_request_body
 from app.services.licenses import PROFESOR_NORMAL_PLAN, PROFESOR_PREMIUM_PLAN, license_for_user, license_is_current, usage_count_for_license
 from app.services.resources import load_resource_catalog, save_resource_catalog
+from app.services.app_availability import PRODUCT_CODES as PAUSABLE_PRODUCTS, is_app_paused
 
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -95,6 +96,26 @@ def set_setting(db: Session, key: str, value: str) -> None:
         row.value = value
     else:
         db.add(AppSetting(key=key, value=value))
+
+
+@router.get("/app-availability")
+def app_availability(_: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    return {code: {"paused": is_app_paused(db, code)} for code in PAUSABLE_PRODUCTS}
+
+
+@router.patch("/app-availability/{product_code}")
+def update_app_availability(product_code: str, payload: dict, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
+    if product_code not in PAUSABLE_PRODUCTS:
+        raise HTTPException(404, "Aplicación no encontrada.")
+    if type(payload.get("paused")) is not bool:
+        raise HTTPException(422, "Indica paused como verdadero o falso.")
+    paused = payload["paused"]
+    previous = is_app_paused(db, product_code)
+    if previous != paused:
+        set_setting(db, f"app_paused:{product_code}", "1" if paused else "0")
+        audit(db, actor=actor, organization_id=actor.organization_id, action="app_paused" if paused else "app_resumed", entity_type="app_settings", entity_id=product_code, metadata={"previous_paused": previous})
+        db.commit()
+    return {"product_code": product_code, "paused": paused}
 
 
 @router.get("/hazlotu-access")

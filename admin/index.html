@@ -101,6 +101,14 @@
     .badge { display:inline-flex; align-items:center; border-radius:999px; padding:4px 8px; background:#eef3ff; color:var(--main); font-size:12px; font-weight:850; }
     .badge.off { background:#fff0ee; color:var(--red); }
     .badge.ok { background:#effaf6; color:var(--green); }
+    .availability-control{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:17px 19px;margin:12px 0 18px;border:1px solid var(--line);border-radius:14px;background:var(--soft)}
+    .availability-control strong{display:block;font-size:15px}.availability-control p{margin:5px 0 0;color:var(--muted);font-size:13px;line-height:1.45}
+    .availability-switch{position:relative;flex:none;width:58px;height:32px;border:0;border-radius:999px;background:#aab7c8;cursor:pointer;transition:background .2s}
+    .availability-switch:before{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 7px #182c4140;transition:transform .2s}
+    .availability-switch[aria-checked="true"]{background:#0a9f70}.availability-switch[aria-checked="true"]:before{transform:translateX(26px)}
+    .availability-switch:focus-visible{outline:3px solid #78baff;outline-offset:3px}
+    .availability-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}.availability-grid .availability-control{margin:7px 0 0;padding:11px 14px}.availability-grid .availability-control p{display:none}.availability-item{min-width:0}.availability-item h4{margin:0;font-size:13px;color:var(--muted)}
+    @media(max-width:720px){.availability-grid{grid-template-columns:1fr}}
     code { display:inline-block; max-width:240px; overflow:hidden; text-overflow:ellipsis; vertical-align:bottom; padding:2px 5px; border-radius:6px; background:#f5f7fb; border:1px solid var(--line); }
     .empty { border:1px dashed var(--line); border-radius:8px; padding:14px; color:var(--muted); background:#fbfcfd; font-size:13px; }
     .notice { border:1px solid #f0dfba; border-radius:8px; padding:12px; color:#7a520d; background:#fff8e8; font-size:13px; line-height:1.45; }
@@ -213,6 +221,7 @@
     <main class="layout">
     <section id="view-overview" class="card screen-card">
       <div class="grid five" id="globalMetrics"></div><section class="overview-note" aria-label="Estado operativo"><div class="row"><strong>Operación y preparación comercial</strong><button type="button" onclick="loadOperations()">Actualizar estado</button></div><div id="operationsStatus" role="status">Consultando procesos, copias y consumo de IA…</div></section>
+      <section style="margin-top:22px" aria-label="Pausar aplicaciones"><h3>Disponibilidad de las apps</h3><p class="muted">Pausa o reactiva cada aplicación. Los datos y accesos se conservan.</p><div class="availability-grid" id="availabilityOverview"></div></section>
     </section>
 
     <section id="view-notifications" class="card screen-card" hidden>
@@ -228,6 +237,7 @@
         <div><h2 id="appTitle">App</h2></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" id="appPublicLink" target="_blank" rel="noreferrer">Ver landing</a><a class="btn primary" id="appPrivateLink" target="_blank" rel="noreferrer">Abrir app</a></div>
       </div>
+      <div id="appAvailabilityControl"></div>
       <div class="grid three" id="appMetrics"></div>
       <div class="app-toolbar"><h3>Usuarios</h3><div class="section-actions"><input id="appUserSearch" aria-label="Buscar usuario" placeholder="Buscar usuario..." oninput="renderApp()"><button class="primary" type="button" onclick="toggleCreateUser()">+ Nuevo usuario</button></div></div>
       <form id="createUserForm" class="app-form" onsubmit="createAppUser(event)" hidden>
@@ -272,6 +282,7 @@
     </section>
     <section id="view-hazlotu" class="card screen-card" hidden>
       <div class="head"><h2>HazloTú</h2></div>
+      <div id="hazlotuAvailabilityControl"></div>
       <div class="app-form" style="max-width:580px">
         <p id="hazlotuAccessStatus" class="muted" aria-live="polite">Comprobando estado…</p>
         <form class="form-grid" onsubmit="saveHazlotuAccess(event)">
@@ -302,7 +313,7 @@ const PRODUCTS=[
 const PRODUCT_ORDER=['eso','profesor','diplomator','ocr','universidad','cambridge'];PRODUCTS.sort((a,b)=>PRODUCT_ORDER.indexOf(a.key)-PRODUCT_ORDER.indexOf(b.key));
 let aiApp='ESO_ADULTOS';const aiDrafts={};
 let token=localStorage.getItem('educa_admin_token')||'',view='overview',currentApp='universidad',selectedUserId='';
-let orgs=[],users=[],accounts=[],ai=null,ads=[];
+let orgs=[],users=[],accounts=[],ai=null,ads=[],appAvailability={};
 const $=id=>document.getElementById(id);
 function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3200)}
 function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -313,9 +324,11 @@ async function api(path,options={}){const headers={'Content-Type':'application/j
 function setLoginState(on){$('authScreen').hidden=!!on;$('adminPage').hidden=!on;$('loginStatus').textContent=on?'Sesion activa':'Introduce tus datos';$('loginStatus').classList.toggle('on',!!on)}
 async function login(event){event.preventDefault();try{const res=await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier:$('email').value.trim(),password:$('password').value})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'No se pudo entrar.');token=data.access_token;localStorage.setItem('educa_admin_token',token);setLoginState(true);await loadAll();toast('Panel cargado.')}catch(e){toast(e.message)}}
 function logout(){token='';localStorage.removeItem('educa_admin_token');setLoginState(false);toast('Sesion cerrada.')}
-async function loadAll(){if(!token){setLoginState(false);return}try{const [o,u,ac,a,h,ad]=await Promise.all([api('/admin/organizations'),api('/admin/users'),api('/admin/accounts'),api('/admin/ai-settings').catch(()=>null),api('/admin/hazlotu-access'),api('/admin/profesor-ads').catch(()=>({ads:[]}))]);orgs=o;users=u;accounts=ac.accounts||[];ai=a;hazlotuAccess=h;ads=ad.ads||[];setLoginState(true);renderAll()}catch(e){setLoginState(false);toast(e.message)}}
+async function loadAll(){if(!token){setLoginState(false);return}try{const [o,u,ac,a,h,ad,availability]=await Promise.all([api('/admin/organizations'),api('/admin/users'),api('/admin/accounts'),api('/admin/ai-settings').catch(()=>null),api('/admin/hazlotu-access'),api('/admin/profesor-ads').catch(()=>({ads:[]})),api('/admin/app-availability')]);orgs=o;users=u;accounts=ac.accounts||[];ai=a;hazlotuAccess=h;ads=ad.ads||[];appAvailability=availability;setLoginState(true);renderAll()}catch(e){setLoginState(false);toast(e.message)}}
 function setView(next){view=next;if(next==='notifications')window.adminNotifications.load();if(PRODUCTS.some(p=>p.key===next)){if(currentApp!==next)$('appUserSearch').value='';currentApp=next;closeUserEditor();toggleCreateUser(false)}document.body.dataset.app=PRODUCTS.some(p=>p.key===next)?next:'';document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active',b.dataset.view===next));renderAll()}
-function renderAll(){$('view-notifications').hidden=view!=='notifications';$('view-overview').hidden=view!=='overview';$('view-app').hidden=!PRODUCTS.some(p=>p.key===view);$('view-ai').hidden=view!=='ai';$('view-hazlotu').hidden=view!=='hazlotu';$('view-ads').hidden=view!=='ads';$('hazlotuAccessStatus').textContent=hazlotuAccess?.configured?'Contraseña configurada. La web está protegida.':'Sin contraseña configurada. La web permanece cerrada.';renderOverview();if(!$('view-app').hidden)renderApp();if(!$('view-ai').hidden)renderAI();if(view==='ads')renderAds()}
+function renderAll(){$('view-notifications').hidden=view!=='notifications';$('view-overview').hidden=view!=='overview';$('view-app').hidden=!PRODUCTS.some(p=>p.key===view);$('view-ai').hidden=view!=='ai';$('view-hazlotu').hidden=view!=='hazlotu';$('view-ads').hidden=view!=='ads';$('hazlotuAccessStatus').textContent=hazlotuAccess?.configured?'Contraseña configurada. La web está protegida.':'Sin contraseña configurada. La web permanece cerrada.';$('hazlotuAvailabilityControl').innerHTML=availabilityControl('HAZLOTU');renderOverview();if(!$('view-app').hidden)renderApp();if(!$('view-ai').hidden)renderAI();if(view==='ads')renderAds()}
+function availabilityControl(code){const paused=!!appAvailability[code]?.paused;const label=code==='HAZLOTU'?'HazloTú':productByKey(PRODUCTS.find(p=>p.code===code)?.key).label;return `<div class="availability-control"><div><strong>${paused?'Aplicación pausada':'Aplicación activa'}</strong><p>${paused?'El acceso está detenido temporalmente. Los datos y permisos se conservan.':'Puedes pausarla sin borrar cuentas, datos ni permisos.'}</p></div><button type="button" class="availability-switch" role="switch" aria-label="Disponibilidad de ${esc(label)}" aria-checked="${!paused}" onclick="toggleAppAvailability('${code}')"></button></div>`}
+async function toggleAppAvailability(code){const paused=!!appAvailability[code]?.paused;if(!paused&&!confirm('¿Pausar esta aplicación? Sus usuarios no podrán entrar ni guardar hasta que la reactives. No se borrará ningún dato.'))return;try{const result=await api('/admin/app-availability/'+code,{method:'PATCH',body:JSON.stringify({paused:!paused})});appAvailability[code]={paused:result.paused};renderAll();toast(result.paused?'Aplicación pausada.':'Aplicación reactivada.')}catch(e){toast(e.message)}}
 function renderAds(){$('adsTable').innerHTML=table(['Anuncio','Asignaturas','Estado','Denuncias','Acciones'],ads.map(a=>[`${a.image_url?`<img src="${esc(a.image_url)}" alt="" style="width:42px;height:42px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px">`:''}<strong>${esc(a.name)}</strong><br><small>${esc(a.location||'')}</small>`,esc(a.subjects),badge(a.status),String(a.reports||0),`<button type="button" onclick="viewAdReports('${esc(a.id)}')">Denuncias</button> <button type="button" class="${a.status==='removed'?'':'danger'}" onclick="changeAdStatus('${esc(a.id)}','${a.status==='removed'?'active':'removed'}')">${a.status==='removed'?'Restaurar':'Retirar'}</button> <button type="button" onclick="deleteAdForPrivacy('${esc(a.id)}')">Supresión verificada</button>`]))}
 async function loadAds(){try{ads=(await api('/admin/profesor-ads')).ads||[];renderAds();toast('Anuncios actualizados.')}catch(e){toast(e.message)}}
 async function deleteAdForPrivacy(id){const reason=prompt('Motivo de supresión. Registra la solicitud y verificación en el registro restringido de derechos.');if(!reason||!confirm('¿Has verificado la legitimidad de la solicitud? Se borrarán el anuncio, imagen y avisos.'))return;try{await api(`/admin/profesor-ads/${id}/delete`,{method:'POST',body:JSON.stringify({reason,verified:true})});await loadAds();$('adReports').hidden=true}catch(e){toast(e.message)}}
@@ -336,6 +349,7 @@ function appAccounts(key=currentApp){const code=productByKey(key).code;return ac
 function accessCredits(access){return access.unlimited?'Sin límite':String(access.available_credits)}
 function renderOverview(){
   loadOperations();
+  $('availabilityOverview').innerHTML=[...PRODUCTS,{code:'HAZLOTU',label:'HazloTú'}].map(product=>`<div class="availability-item"><h4>${esc(product.label)}</h4>${availabilityControl(product.code)}</div>`).join('');
   const capabilities=ai?.capabilities||[];
   const ready=capabilities.filter(capability=>capability.configured).length;
   $('globalMetrics').innerHTML=['eso','profesor','diplomator','ocr'].map(key=>{
@@ -355,6 +369,7 @@ function renderApp(){
   const active=accesses.filter(access=>access.effective_status==='active').length;
   const used=accesses.reduce((sum,access)=>sum+Number(access.used_credits||0),0);
   $('appTitle').textContent=product.label;
+  $('appAvailabilityControl').innerHTML=availabilityControl(product.code);
   const accountLabel='Usuarios';
   $('createAppName').textContent=product.label;
   $('appPublicLink').href=product.public;

@@ -661,6 +661,84 @@ def test_eso_landing_offers_google_as_its_only_sign_in(client):
     assert 'href="/e25/login"' not in page
 
 
+def test_admin_can_pause_and_resume_apps_without_changing_licenses_or_saved_state(client):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin", email="admin@example.com")
+    seed_user(db_factory, email="english@example.com", product_codes=("CAMBRIDGE", "ESO_ADULTOS"))
+    admin_token = login(test_client, email="admin@example.com").json()["access_token"]
+    user_token = login(test_client, email="english@example.com").json()["access_token"]
+    admin_headers = {"Authorization": f"Bearer {admin_token}"}
+    user_headers = {"Authorization": f"Bearer {user_token}"}
+    assert '/cambridge-info' in test_client.get('/').text
+    assert test_client.get('/api/public/app-availability').json()['apps']['CAMBRIDGE']['paused'] is False
+    assert test_client.get('/admin/app-availability', headers=user_headers).status_code == 403
+    assert test_client.patch('/admin/app-availability/CAMBRIDGE', headers=user_headers, json={'paused': True}).status_code == 403
+    assert test_client.patch('/admin/app-availability/CAMBRIDGE', headers=admin_headers, json={'paused': 'yes'}).status_code == 422
+    assert test_client.patch('/admin/app-availability/UNKNOWN', headers=admin_headers, json={'paused': True}).status_code == 404
+    saved = {'level': 'B2', 'draft': 'Conservado'}
+    assert test_client.post('/api/state?app=cambridge', headers=user_headers, json=saved).status_code == 200
+
+    assert test_client.patch('/admin/app-availability/CAMBRIDGE', headers=admin_headers, json={'paused': True}).json()['paused'] is True
+    assert test_client.get('/api/public/app-availability').json()['apps']['CAMBRIDGE']['paused'] is True
+    assert test_client.get('/cambridge-info').status_code == 200
+    assert test_client.get('/cambridge', headers=user_headers).status_code == 503
+    paused_page = test_client.get('/cambridge', headers={**user_headers, 'Accept': 'text/html'})
+    assert paused_page.status_code == 503 and 'Volvemos pronto' in paused_page.text
+    assert test_client.get('/auth/google/login?next=/cambridge', follow_redirects=False).status_code == 503
+    assert test_client.get('/api/state?app=cambridge', headers=user_headers).status_code == 503
+    assert test_client.post('/api/state?app=cambridge', headers=user_headers, json={}).status_code == 503
+    assert test_client.get('/api/state?app=eso_adultos', headers=user_headers).status_code == 200
+    apps = test_client.get('/api/apps', headers=user_headers).json()['apps']
+    assert next(item for item in apps if item['code'] == 'CAMBRIDGE')['paused'] is True
+
+    assert test_client.patch('/admin/app-availability/CAMBRIDGE', headers=admin_headers, json={'paused': False}).json()['paused'] is False
+    assert test_client.get('/cambridge', headers=user_headers).status_code == 200
+    assert test_client.get('/api/state?app=cambridge', headers=user_headers).json() == saved
+
+
+def test_superadmin_can_restore_access_when_every_app_is_paused(client):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin", email="admin@example.com")
+    admin_headers = {"Authorization": f"Bearer {login(test_client, email='admin@example.com').json()['access_token']}"}
+    for code in ("OCR_FACTURAS", "UNIVERSIDAD_ADULTOS", "ESO_ADULTOS", "CAMBRIDGE", "DIPLOMATOR", "PROFESOR_PARTICULAR", "HAZLOTU"):
+        assert test_client.patch(f'/admin/app-availability/{code}', headers=admin_headers, json={'paused': True}).status_code == 200
+    assert login(test_client, email="admin@example.com").status_code == 200
+    assert test_client.get('/admin/app-availability', headers=admin_headers).status_code == 200
+    assert test_client.get('/hazlo-tu').status_code == 503
+    assert test_client.patch('/admin/app-availability/CAMBRIDGE', headers=admin_headers, json={'paused': False}).status_code == 200
+    assert test_client.get('/api/public/app-availability').json()['apps']['CAMBRIDGE']['paused'] is False
+
+
+def test_google_callback_does_not_create_account_when_app_paused(client, monkeypatch):
+    test_client, db_factory = client
+    seed_user(db_factory, role="superadmin", email="admin@example.com")
+    admin_headers = {"Authorization": f"Bearer {login(test_client, email='admin@example.com').json()['access_token']}"}
+    test_client.patch('/admin/app-availability/CAMBRIDGE', headers=admin_headers, json={'paused': True})
+    test_client.cookies.set('diplomator_google_state', 'test')
+    monkeypatch.setattr(auth_api, 'decode_google_state', lambda _: {'purpose': 'login', 'next': '/cambridge'})
+    async def exchange(_):
+        raise AssertionError('No se debe completar OAuth con la app pausada')
+    monkeypatch.setattr(auth_api, 'exchange_google_code', exchange)
+    assert test_client.get('/auth/google/callback?code=test&state=test', follow_redirects=False).status_code == 503
+    with db_factory() as db:
+        assert db.scalar(select(User).where(User.email == 'google-paused@example.com')) is None
+
+
+def test_google_callback_opens_cambridge_and_grants_only_english_access(client, monkeypatch):
+    test_client, db_factory = client
+    test_client.cookies.set('diplomator_google_state', 'test')
+    monkeypatch.setattr(auth_api, 'decode_google_state', lambda _: {'purpose': 'login', 'next': '/cambridge'})
+    async def exchange(_):
+        return {'userinfo': {'email': 'english-google@example.com', 'sub': 'english-sub', 'name': 'English Learner', 'email_verified': True}}
+    monkeypatch.setattr(auth_api, 'exchange_google_code', exchange)
+    response = test_client.get('/auth/google/callback?code=test&state=test', follow_redirects=False)
+    assert response.status_code in {302, 303, 307} and response.headers['location'] == '/cambridge'
+    with db_factory() as db:
+        assert [row.product_code for row in db.query(License).all()] == ['CAMBRIDGE']
+    assert test_client.get('/cambridge').status_code == 200
+    assert test_client.get('/api/state?app=cambridge').status_code == 200
+
+
 def test_cambridge_landing_has_direct_google_entry_and_working_assets(client):
     test_client, _ = client
     page = test_client.get("/cambridge-info").text
@@ -682,6 +760,10 @@ def test_cambridge_landing_has_direct_google_entry_and_working_assets(client):
     assert c1_art.status_code == 200
     assert c1_art.headers['content-type'].startswith('image/webp')
     assert c1_art.content.startswith(b'RIFF')
+    c2_art = test_client.get('/assets/cambridge-games/c2-editorial-observatory-v1.webp')
+    assert c2_art.status_code == 200
+    assert c2_art.headers['content-type'].startswith('image/webp')
+    assert c2_art.content.startswith(b'RIFF')
 
 
 def test_cambridge_game_illustration_uses_packaged_asset(client, tmp_path, monkeypatch):
@@ -887,7 +969,7 @@ def test_browser_pages_redirect_to_login_when_not_authenticated(client, path, ne
     test_client, _ = client
     response = test_client.get(path, follow_redirects=False)
     assert response.status_code in {302, 307}
-    assert response.headers["location"] == f"/login?next={next_path}"
+    assert response.headers["location"] == ("/cambridge-info" if path == "/cambridge" else f"/login?next={next_path}")
 
 
 def test_wrong_password_is_rejected(client):

@@ -18,6 +18,9 @@ COPY apps/cambridge/assets/listening /app/app/static/assets/listening
 COPY apps/u25/index.html /app/app/static/universidad-adultos.html
 COPY apps/e25/index.html /app/app/static/eso-adultos.html
 COPY apps/e25/assets/eso-final.css /app/app/static/assets/eso-final.css
+COPY apps/e25/assets/eso-math-scenes.css /app/app/static/assets/eso-math-scenes.css
+COPY apps/e25/assets/eso-english-mission-scenes.css /app/app/static/assets/eso-english-mission-scenes.css
+COPY apps/e25/assets/eso-mission-boards.css /app/app/static/assets/eso-mission-boards.css
 COPY apps/e25/assets/eso-games.js /app/app/static/assets/eso-games.js
 COPY apps/e25/assets/eso-english-missions.js /app/app/static/assets/eso-english-missions.js
 COPY apps/e25/assets/eso-math-missions.js /app/app/static/assets/eso-math-missions.js

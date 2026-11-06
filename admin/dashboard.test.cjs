@@ -32,7 +32,22 @@ test('the overview does not duplicate app or user controls', () => {
   assert.match(element('globalMetrics').innerHTML, /ESO Adultos/);
   assert.match(element('globalMetrics').innerHTML, /1 usuario/);
   assert.match(element('globalMetrics').innerHTML, /Modelos de IA/);
+  assert.match(element('availabilityOverview').innerHTML, /CAMBRIDGE/);
+  assert.match(element('availabilityOverview').innerHTML, /HAZLOTU/);
   assert.doesNotMatch(fs.readFileSync(require('node:path').join(__dirname, 'index.html'), 'utf8'), /id="view-users"|id="appCards"|id="recentUsage"|id="alerts"/);
+});
+
+test('each app switch pauses and resumes only the selected product', async () => {
+  const { run } = loadDashboard();
+  run(`globalThis.confirm=()=>true;globalThis.calls=[];appAvailability={CAMBRIDGE:{paused:false},ESO_ADULTOS:{paused:false}};api=async(path,options)=>{const body=JSON.parse(options.body);calls.push({path,body});return {product_code:'CAMBRIDGE',paused:body.paused}};renderAll=()=>{}`);
+  assert.match(run(`availabilityControl('CAMBRIDGE')`), /aria-checked="true"/);
+  await run(`toggleAppAvailability('CAMBRIDGE')`);
+  assert.equal(run('calls[0].path'), '/admin/app-availability/CAMBRIDGE');
+  assert.equal(run('calls[0].body.paused'), true);
+  assert.equal(run('appAvailability.ESO_ADULTOS.paused'), false);
+  assert.match(run(`availabilityControl('CAMBRIDGE')`), /aria-checked="false"/);
+  await run(`toggleAppAvailability('CAMBRIDGE')`);
+  assert.equal(run('calls[1].body.paused'), false);
 });
 
 test('HazloTú password is sent only when both fields match', async () => {

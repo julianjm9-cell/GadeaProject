@@ -45,6 +45,7 @@ from app.services.ai_config import (
 from app.services.audit import audit
 from app.services.gemini_native import chat_data as gemini_chat_data, failure_message as gemini_failure_message, generate_url as gemini_generate_url, is_auth_key as is_gemini_auth_key, post_with_retry as gemini_post_with_retry, request_body as gemini_request_body
 from app.services.licenses import check_access, check_legacy_license, profesor_account_plan, usage_count_for_license
+from app.services.app_availability import PRODUCT_CODES as PAUSABLE_PRODUCTS, PAUSE_MESSAGE, is_app_paused, require_app_available
 from app.services.gamification import award_event, equip_item, get_or_create_profile, level_for_xp, profile_payload, public_config, purchase_item
 from app.services.resources import load_resource_catalog
 
@@ -143,6 +144,13 @@ def marketing_file(filename: str, media_type: str | None = None) -> FileResponse
 
 
 def page_user_or_redirect(request: Request, db: Session, next_path: str) -> User | RedirectResponse:
+    page_product = {
+        "/app": "DIPLOMATOR", "/cambridge": "CAMBRIDGE",
+        "/universidad-adultos": "UNIVERSIDAD_ADULTOS", "/eso-adultos": "ESO_ADULTOS",
+        "/profesor-particular": "PROFESOR_PARTICULAR", "/facturas": "OCR_FACTURAS",
+    }.get(next_path)
+    if page_product:
+        require_app_available(db, page_product)
     token = request.cookies.get("diplomator_access") or ""
     auth_header = request.headers.get("authorization") or ""
     if auth_header.lower().startswith("bearer "):
@@ -639,6 +647,7 @@ def hazlotu_gate(error: bool = False, configured: bool = True) -> HTMLResponse:
 def hazlatu_public_page(request: Request, db: Session = Depends(get_db)):
     if request.url.path != "/hazlo-tu":
         return RedirectResponse("/hazlo-tu", status_code=308)
+    require_app_available(db, "HAZLOTU")
     password_hash = setting_value(db, HAZLOTU_PASSWORD_KEY)
     if not password_hash or not hazlotu_access_valid(request.cookies.get(HAZLOTU_COOKIE, ""), password_hash):
         return hazlotu_gate(request.query_params.get("error") == "1", bool(password_hash))
@@ -649,6 +658,7 @@ def hazlatu_public_page(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/hazlo-tu/unlock")
 async def hazlotu_unlock(request: Request, db: Session = Depends(get_db)):
+    require_app_available(db, "HAZLOTU")
     rate_limit_key(f"hazlotu:{request.client.host if request.client else 'unknown'}", limit=15)
     body = await request.body()
     if len(body) > 4096:
@@ -696,7 +706,7 @@ def eso_landing_asset(filename: str):
 
 @router.get("/assets/cambridge-games/{filename}")
 def cambridge_game_illustration(filename: str):
-    if filename not in {"open-cloze-editor-v1.png", "word-formation-forge-v1.png", "writing-mailroom-v1.png", "c1-research-desk-v1.webp"}:
+    if filename not in {"open-cloze-editor-v1.png", "word-formation-forge-v1.png", "writing-mailroom-v1.png", "c1-research-desk-v1.webp", "c2-editorial-observatory-v1.webp"}:
         raise HTTPException(status_code=404, detail="Ilustración no encontrada.")
     local_path = PROJECT_ROOT / "apps" / "cambridge" / "assets" / "games" / filename
     static_path = STATIC_DIR / "assets" / "cambridge-games" / filename
@@ -1295,7 +1305,7 @@ def app_page(request: Request, db: Session = Depends(get_db)):
 def cambridge_page(request: Request, db: Session = Depends(get_db)):
     user = page_user_or_redirect(request, db, "/cambridge")
     if isinstance(user, RedirectResponse):
-        return user
+        return RedirectResponse("/cambridge-info", status_code=307)
     return static_html("cambridge.html", PROJECT_ROOT / "apps" / "cambridge" / "index.html")
 
 
@@ -1336,8 +1346,15 @@ def api_apps(user: User = Depends(current_user), db: Session = Depends(get_db)) 
     result = []
     for product in PRODUCTS.values():
         decision = check_access(db, user, product["code"], require_credits=product["code"] not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR", "OCR_FACTURAS"})
-        result.append({**product, "available": decision.ok, "message": decision.message})
+        paused = is_app_paused(db, product["code"])
+        result.append({**product, "available": decision.ok and not paused, "paused": paused, "message": PAUSE_MESSAGE if paused else decision.message})
     return {"ok": True, "apps": result}
+
+
+@router.get("/api/public/app-availability")
+def public_app_availability(response: Response, db: Session = Depends(get_db)) -> dict:
+    response.headers["Cache-Control"] = "no-store"
+    return {"apps": {code: {"paused": is_app_paused(db, code)} for code in PAUSABLE_PRODUCTS}}
 
 
 @router.get("/api/status")

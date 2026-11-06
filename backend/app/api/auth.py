@@ -28,6 +28,7 @@ from app.services.account_tokens import account_token, consume_account_token
 import logging
 from app.services.audit import audit
 from app.services.licenses import PROFESOR_PREMIUM_PLAN, check_access, license_for_user, profesor_account_plan
+from app.services.app_availability import require_app_available
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -388,6 +389,9 @@ def login(payload: LoginRequest, request: Request, response: Response, db: Sessi
         if user.is_active and org and org.status == "active":
             ensure_google_access(db, user, ("ESO_ADULTOS",))
             db.commit()
+    # Keep the admin dashboard reachable even if every product is paused.
+    if user.role == "superadmin" and user.is_active and user.organization.status == "active":
+        return issue_login_response(user, response, db=db)
     decision = check_access(db, user)
     for product_code in PRODUCT_CODES[1:]:
         if decision.ok:
@@ -401,8 +405,11 @@ def login(payload: LoginRequest, request: Request, response: Response, db: Sessi
 
 
 @router.get("/google/login")
-def google_login(next: str = "/apps"):
+def google_login(next: str = "/apps", db: Session = Depends(get_db)):
     next_path = clean_next_path(next)
+    login_product = {"/facturas": "OCR_FACTURAS", "/profesor-particular": "PROFESOR_PARTICULAR", "/eso-adultos": "ESO_ADULTOS", "/universidad-adultos": "UNIVERSIDAD_ADULTOS", "/cambridge": "CAMBRIDGE", "/app": "DIPLOMATOR"}.get(next_path.split("?")[0])
+    if login_product:
+        require_app_available(db, login_product)
     if not google_enabled():
         return RedirectResponse(f"/login?google_disabled=1&next={next_path}")
     return google_auth_redirect("login", next_path)
@@ -528,6 +535,10 @@ async def google_callback(request: Request, response: Response, code: str | None
         return RedirectResponse("/login?google_error=state")
     target = clean_next_path(str(payload.get("next") or "/apps"))
     purpose = str(payload.get("purpose") or "login")
+    if purpose == "login":
+        callback_product = {"/facturas": "OCR_FACTURAS", "/profesor-particular": "PROFESOR_PARTICULAR", "/eso-adultos": "ESO_ADULTOS", "/universidad-adultos": "UNIVERSIDAD_ADULTOS", "/cambridge": "CAMBRIDGE", "/app": "DIPLOMATOR"}.get(target.split("?")[0])
+        if callback_product:
+            require_app_available(db, callback_product)
     if error or not code:
         if purpose == "meet":
             return RedirectResponse("/profesor-particular?meet=cancelled#accesos")

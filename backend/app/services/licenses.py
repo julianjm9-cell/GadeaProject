@@ -8,6 +8,7 @@ from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models import License, Organization, UsageRecord, User
+from app.services.app_availability import is_app_paused, PAUSE_MESSAGE
 
 
 PRODUCT_CODE = "DIPLOMATOR"
@@ -69,6 +70,8 @@ def license_for_user(db: Session, user: User, product_code: str = PRODUCT_CODE) 
 
 
 def check_access(db: Session, user: User, product_code: str = PRODUCT_CODE, *, require_credits: bool = True) -> LicenseDecision:
+    if is_app_paused(db, product_code):
+        return LicenseDecision(False, PAUSE_MESSAGE)
     if not user.is_active:
         return LicenseDecision(False, "Usuario desactivado.")
     org = db.get(Organization, user.organization_id)

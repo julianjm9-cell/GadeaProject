@@ -12,6 +12,7 @@ from app.models import License, Organization, User
 from app.models.core import utcnow
 from app.security.sessions import authenticated_session
 from app.services.licenses import LicenseDecision, check_access
+from app.services.app_availability import require_app_available
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
@@ -72,6 +73,7 @@ def license_prefix(product_code: str) -> str:
 
 def current_license(request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)) -> License:
     product_code = product_code_from_request(request)
+    require_app_available(db, product_code)
     decision: LicenseDecision = check_access(db, user, product_code, require_credits=product_code not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR"})
     if decision.ok and not decision.license and user.role == "superadmin":
         now = utcnow()
