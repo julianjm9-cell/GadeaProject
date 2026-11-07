@@ -1723,8 +1723,8 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
         </div>
         <div class="writing-actions">
           <button class="btn btn-small btn-outline" type="button" onclick="saveWritingVersion()">Guardar versión</button>
-          <button class="btn btn-small btn-blue" onclick="generateWritingModel()">Generar modelo</button>
-          <button class="btn btn-small btn-accept" onclick="correctWritingPractice()">Corregir writing</button>
+          <button class="btn btn-small btn-blue" id="writingModelBtn" onclick="generateWritingModel()">Generar modelo</button>
+          <button class="btn btn-small btn-accept" id="correctWritingBtn" onclick="correctWritingPractice()">Corregir writing</button>
           <button class="btn btn-small btn-outline" onclick="clearWritingPractice()">Nuevo borrador</button>
         </div>
       </div>
@@ -2086,6 +2086,8 @@ let reciteTranscribeBusy = false;
 let reciteCorrectionToken = 0;
 let writingImageDataUrl = '';
 let writingImageMime = '';
+let writingModelBusy = false;
+let writingCorrectionBusy = false;
 const GROQ_TEXT_MODEL = 'openai/gpt-oss-120b';
 const GROQ_TRANSCRIBE_MODEL = 'whisper-large-v3-turbo';
 
@@ -2529,8 +2531,38 @@ async function backendRequest(path, options = {}) {
     if (location.pathname !== '/login') location.href = '/login?expired=1';
     throw new Error('Sesión caducada. Vuelve a iniciar sesión.');
   }
-  if (!res.ok || data.ok === false) throw new Error(data.error || data.detail || `HTTP ${res.status}`);
+  if (!res.ok || data.ok === false) {
+    const detail = data.error || data.detail;
+    const message = typeof detail === 'string' ? detail : typeof detail?.message === 'string' ? detail.message : `HTTP ${res.status}`;
+    const error = new Error(message);
+    error.status = res.status;
+    throw error;
+  }
   return data;
+}
+
+function canRetryCambridgeAi(error) {
+  return [429,502,503,504].includes(Number(error?.status)) || error instanceof TypeError;
+}
+
+function cambridgeAiFailureMessage(error) {
+  const message = String(error?.message || 'No se pudo completar la petición.');
+  if (!canRetryCambridgeAi(error)) return message;
+  const explanation = /^HTTP \d+$/.test(message) || error instanceof TypeError
+    ? 'El servicio de IA no responde en este momento.'
+    : message;
+  return `${explanation} Espera un momento y pulsa Reintentar. Tu trabajo actual se conserva.`;
+}
+
+function appendCambridgeRetry(status, action) {
+  if (typeof action !== 'function') return;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'btn btn-small btn-outline';
+  button.textContent = 'Reintentar';
+  button.style.marginLeft = '10px';
+  button.onclick = action;
+  status.append(button);
 }
 
 async function loadBackendStatus() {
@@ -3286,11 +3318,12 @@ function renderWritingFeedback() {
   if (modelText) modelText.textContent = data.model ? `${data.modelPrompt && data.modelPrompt !== data.prompt ? 'Este modelo corresponde a un enunciado anterior.\n\n' : ''}${data.model}` : '';
 }
 
-function setWritingStatus(message) {
+function setWritingStatus(message, retry) {
   const el = document.getElementById('writingStatus');
   if (!el) return;
   el.style.display = message ? 'block' : 'none';
   el.textContent = message || '';
+  if (message) appendCambridgeRetry(el,retry);
 }
 
 function handleWritingImage(input) {
@@ -3373,7 +3406,7 @@ async function runWritingOcr() {
     persist();
     setWritingStatus('Texto detectado. Revísalo y pulsa «Insertar texto revisado». Tu borrador sigue intacto.');
   } catch(e) {
-    setWritingStatus(e.message);
+    setWritingStatus(cambridgeAiFailureMessage(e),canRetryCambridgeAi(e) ? runWritingOcr : null);
   } finally {
     if (button) button.disabled = false;
   }
@@ -3405,17 +3438,26 @@ function dismissWritingOcrReview() {
 }
 
 async function generateWritingModel() {
+  if (writingModelBusy) return;
   persistWritingPractice();
   const data = {...state.writingPractice};
   const prompt = data.prompt.trim();
   if (!prompt) { alert('Escribe primero el enunciado.'); return; }
   const {official,range} = writingFormat(data.level,data.part,data.taskType);
+  writingModelBusy = true;
+  const button = document.getElementById('writingModelBtn');
+  if (button) button.disabled = true;
   setWritingStatus('Generando modelo de práctica...');
   try {
     const model = await groqChat([
       { role: 'system', content: `You are an English writing tutor for ${data.level}. This is ${official?'an exam-format task':'extra practice outside the selected exam format'}. The target is ${range[0]}–${range[1]} words. The answer is a teaching example, not an official Cambridge model. Write the model in English, then explain in Spanish the structure, register and three reusable expressions. Do not use markdown.` },
       { role: 'user', content: `Nivel: ${data.level}\nParte: ${data.part}\nGénero: ${data.taskType}\nEnunciado:\n${prompt}` }
     ], { max_tokens: 1900, temperature: 0.35 });
+    if (!String(model || '').trim()) {
+      const error = new Error('La IA devolvió un modelo vacío.');
+      error.status = 502;
+      throw error;
+    }
     if (state.writingPractice.draftId !== data.draftId || state.writingPractice.prompt !== prompt || state.writingPractice.level !== data.level || state.writingPractice.part !== data.part || state.writingPractice.taskType !== data.taskType) {
       setWritingStatus('Cambiaste de ejercicio durante la generación. El borrador actual no se ha modificado.');
       return;
@@ -3426,26 +3468,38 @@ async function generateWritingModel() {
     setWritingStatus('Modelo generado. Tu texto y el informe anterior se han conservado.');
     persist();
   } catch(e) {
-    setWritingStatus(e.message);
+    setWritingStatus(cambridgeAiFailureMessage(e),canRetryCambridgeAi(e) ? generateWritingModel : null);
+  } finally {
+    writingModelBusy = false;
+    if (button) button.disabled = false;
   }
 }
 
 async function correctWritingPractice() {
+  if (writingCorrectionBusy) return;
   persistWritingPractice();
   const data = {...state.writingPractice};
   if (!data.answer.trim()) { alert('Escribe o pega primero la respuesta del alumno.'); return; }
-  const versionId = saveWritingVersion('Antes de corrección');
   const {official,range} = writingFormat(data.level,data.part,data.taskType);
+  writingCorrectionBusy = true;
+  const button = document.getElementById('correctWritingBtn');
+  if (button) button.disabled = true;
   setWritingStatus('Corrigiendo una copia de tu respuesta. El borrador seguirá editable.');
   try {
     const feedback = await groqChat([
       { role: 'system', content: `You are an English writing tutor for ${data.level}. Assess the provided text using four practice criteria: Content, Communicative Achievement, Organisation, Language, each from 0 to 5. This is an estimate, not an official Cambridge English score. The selected combination is ${official?'exam-format':'extra practice outside the selected exam format'}; target ${range[0]}–${range[1]} words. If the prompt is incomplete, say what cannot be assessed. Do not invent errors or requirements. Return ONLY valid JSON, no markdown, with exactly this structure: {"summary":"Spanish summary","scores":{"content":{"score":0,"comment":"Spanish explanation"},"communicativeAchievement":{"score":0,"comment":"Spanish explanation"},"organisation":{"score":0,"comment":"Spanish explanation"},"language":{"score":0,"comment":"Spanish explanation"}},"corrections":[{"original":"exact English excerpt","improved":"corrected English","why":"Spanish reason"}],"improvedExcerpt":"one or two improved English fragments","nextSteps":["Spanish action","Spanish action","Spanish action"]}.` },
       { role: 'user', content: `Nivel: ${data.level}\nParte: ${data.part}\nGénero: ${data.taskType}\nEnunciado:\n${data.prompt || '(No se proporcionó enunciado)'}\n\nRespuesta del alumno (${writingWordCount(data.answer)} palabras):\n${data.answer}` }
     ], { max_tokens: 1900, temperature: 0.25 });
+    if (!String(feedback || '').trim()) {
+      const error = new Error('La IA devolvió una corrección vacía.');
+      error.status = 502;
+      throw error;
+    }
     let report = null;
     try { report = parseWritingReport(feedback); } catch (_) {}
-    const version = state.writingPractice.versions.find(item=>item.id===versionId);
-    if (version) { version.report = report; version.feedback = report ? '' : feedback; }
+    const version = {id:newWritingDraftId(),at:new Date().toISOString(),reason:'Antes de corrección',level:data.level,part:data.part,taskType:data.taskType,prompt:data.prompt,answer:data.answer,report,feedback:report ? '' : feedback};
+    state.writingPractice.versions = Array.isArray(state.writingPractice.versions) ? state.writingPractice.versions : [];
+    state.writingPractice.versions.unshift(version);
     if (state.writingPractice.draftId === data.draftId && state.writingPractice.answer === data.answer && state.writingPractice.prompt === data.prompt && state.writingPractice.level === data.level && state.writingPractice.part === data.part && state.writingPractice.taskType === data.taskType) {
       state.writingPractice.report = report;
       state.writingPractice.feedback = report ? '' : feedback;
@@ -3460,7 +3514,10 @@ async function correctWritingPractice() {
     setWritingStatus(report ? 'Informe orientativo listo. Tu respuesta original sigue intacta.' : 'La IA respondió en texto libre; se muestra completo y se guardó junto a tu versión.');
     persist();
   } catch(e) {
-    setWritingStatus(e.message);
+    setWritingStatus(cambridgeAiFailureMessage(e),canRetryCambridgeAi(e) ? correctWritingPractice : null);
+  } finally {
+    writingCorrectionBusy = false;
+    if (button) button.disabled = false;
   }
 }
 
@@ -4938,11 +4995,12 @@ async function stopReciteRecording() {
   return await reciteStopPromise;
 }
 
-function setReciteStatus(text) {
+function setReciteStatus(text, retry) {
   const el = document.getElementById('reciteStatus');
   if (!el) return;
   el.style.display = text ? 'block' : 'none';
   el.textContent = text || '';
+  if (text) appendCambridgeRetry(el,retry);
 }
 
 function setAudioState(stateName) {
@@ -5100,7 +5158,7 @@ async function transcribeReciteAudio() {
     document.getElementById('replaceReciteTranscriptBtn').hidden = !document.getElementById('reciteTranscript').value.trim();
     setReciteStatus('Transcripción lista para revisar. Añádela cuando hayas corregido posibles errores.');
   } catch(e) {
-    setReciteStatus('No se pudo transcribir: ' + (e?.message || 'vuelve a intentarlo.'));
+    setReciteStatus('No se pudo transcribir: ' + cambridgeAiFailureMessage(e),canRetryCambridgeAi(e) ? transcribeReciteAudio : null);
   } finally {
     reciteTranscribeBusy = false;
     setAudioState(reciteAudioBlob ? 'ready' : 'idle');
@@ -5144,7 +5202,7 @@ async function correctRecitation() {
     box.className = previousReport ? 'notice correction-report' : 'notice';
     box.innerHTML = previousReport;
     box.style.display = previousReport ? 'block' : 'none';
-    setReciteStatus('No se pudo completar la revisión: ' + (e?.message || 'vuelve a intentarlo.'));
+    setReciteStatus('No se pudo completar la revisión: ' + cambridgeAiFailureMessage(e),canRetryCambridgeAi(e) ? correctRecitation : null);
   } finally {
     if (button) button.disabled = false;
   }

@@ -95,8 +95,10 @@ test('Writing conserva el borrador y el destino del OCR al recargar', async () =
     await page.waitForFunction(() => typeof runWritingOcr === 'function');
     await page.evaluate(() => {
       showTab('escrita');
+      let calls = 0;
       backendRequest = async path => {
         if (path !== '/api/ocr') throw new Error(`Unexpected endpoint: ${path}`);
+        if (++calls === 1) { const error = new Error('El OCR está ocupado.'); error.status = 503; throw error; }
         return {text:'Write about a memorable journey.'};
       };
     });
@@ -104,6 +106,9 @@ test('Writing conserva el borrador y el destino del OCR al recargar', async () =
     await page.locator('#writingImageInput').setInputFiles({name:'sample.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/iXsAAAAASUVORK5CYII=','base64')});
     await page.waitForFunction(() => writingImageDataUrl.startsWith('data:image/png'));
     await page.getByRole('button',{name:'Detectar texto'}).click();
+    assert.match(await page.locator('#writingStatus').innerText(),/Reintentar/);
+    assert.equal(await page.locator('#writingAnswer').inputValue(),'My original answer.');
+    await page.locator('#writingStatus button').click();
     assert.equal(await page.locator('#writingOcrReview').inputValue(),'Write about a memorable journey.');
     await page.locator('#writingOcrReview').fill('Write about a journey you remember.');
     await page.locator('#writingOcrTarget').selectOption('prompt');
@@ -149,6 +154,62 @@ test('Speaking libera el micrófono y ofrece escritura si se deniega el permiso'
     assert.equal(result.stopped,true);
     assert.equal(result.denied,false);
     assert.match(result.status,/permiso|bloqueado/i);
+  } finally {
+    await browser.close();
+  }
+});
+
+test('Writing y Speaking permiten reintentar la IA sin perder el texto ni duplicar versiones', async () => {
+  const browser = await browserType.launch(launchOptions);
+  try {
+    const page = await browser.newPage();
+    await page.goto(pathToFileURL(resolve(__dirname,'../apps/cambridge/index.html')).href);
+    await page.waitForFunction(() => typeof correctWritingPractice === 'function');
+    await page.evaluate(() => {
+      showTab('escrita');
+      let calls = 0;
+      groqChat = async () => {
+        if (++calls === 1) { const error = new Error('La IA está ocupada.'); error.status = 429; throw error; }
+        return JSON.stringify({summary:'Buen comienzo.',scores:{content:{score:3,comment:'Idea clara.'},communicativeAchievement:{score:3,comment:'Registro adecuado.'},organisation:{score:3,comment:'Orden claro.'},language:{score:3,comment:'Lengua comprensible.'}},corrections:[],improvedExcerpt:'A better opening.',nextSteps:['Revisar el cierre.']});
+      };
+    });
+    await page.locator('#writingPrompt').fill('Write an essay about public transport.');
+    await page.locator('#writingAnswer').fill('Public transport can help many residents.');
+    await page.getByRole('button',{name:'Corregir writing'}).click();
+    assert.equal(await page.evaluate(() => state.writingPractice.versions.length),0);
+    assert.equal(await page.locator('#writingAnswer').inputValue(),'Public transport can help many residents.');
+    assert.match(await page.locator('#writingStatus').innerText(),/Reintentar/);
+    await page.locator('#writingStatus button').click();
+    assert.equal(await page.evaluate(() => state.writingPractice.versions.length),1);
+    assert.match(await page.locator('#writingFeedback').innerText(),/Buen comienzo/);
+    assert.equal(await page.locator('#writingAnswer').inputValue(),'Public transport can help many residents.');
+    const doubleClick = await page.evaluate(async () => {
+      let finish;
+      let calls = 0;
+      groqChat = async () => { calls++; return new Promise(resolve => { finish = resolve; }); };
+      const first = correctWritingPractice();
+      const second = correctWritingPractice();
+      const disabledWhileWaiting = document.getElementById('correctWritingBtn').disabled;
+      finish('Revisión textual sin formato estructurado.');
+      await Promise.all([first,second]);
+      return {calls,disabledWhileWaiting,enabledAfter:!document.getElementById('correctWritingBtn').disabled};
+    });
+    assert.deepEqual(doubleClick,{calls:1,disabledWhileWaiting:true,enabledAfter:true});
+    await page.evaluate(() => {
+      showTab('recitar');
+      let calls = 0;
+      groqChat = async () => {
+        if (++calls === 1) { const error = new Error('El proveedor tarda en responder.'); error.status = 503; throw error; }
+        return 'RESUMEN\n- Tu respuesta se entiende.\nPUNTOS FUERTES\n- Has dado un ejemplo.';
+      };
+    });
+    await page.locator('#reciteTranscript').fill('I would improve public transport because it helps people get to work.');
+    await page.locator('#correctReciteBtn').click();
+    assert.match(await page.locator('#reciteStatus').innerText(),/Reintentar/);
+    assert.equal(await page.locator('#reciteTranscript').inputValue(),'I would improve public transport because it helps people get to work.');
+    await page.locator('#reciteStatus button').click();
+    assert.match(await page.locator('#reciteCorrection').innerText(),/Tu respuesta se entiende/);
+    assert.equal(await page.locator('#reciteTranscript').inputValue(),'I would improve public transport because it helps people get to work.');
   } finally {
     await browser.close();
   }
