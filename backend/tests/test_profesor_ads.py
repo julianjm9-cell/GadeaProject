@@ -176,7 +176,7 @@ def test_ad_contact_accepts_free_text_and_remains_editable(client):
 
 def test_publication_management_and_public_visibility(client):
     web, factory = client
-    assert 'Anúnciate Gratis' in web.get('/profesor').text
+    assert 'href="/profesor/anunciar">Anúnciate gratis</a>' in web.get('/profesor').text
     assert 'Publica tu anuncio gratis' in web.get('/profesor/anunciar').text
     assert 'Tablón de profesores' in web.get('/profesor/anuncios').text
     assert web.get('/profesor/anunciar/gestionar').headers['x-robots-tag'] == 'noindex, nofollow'

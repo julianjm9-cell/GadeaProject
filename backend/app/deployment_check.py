@@ -53,6 +53,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/sitemap.xml": b"/profesor/juegos-interactivos",
         "/api/profesor/ads": b'"ads"',
         "/cambridge-info": b"/auth/google/login?next=%2Fcambridge",
+        "/cambridge": b"/auth/google/login?next=%2Fcambridge",
         "/api/public/app-availability": b'"CAMBRIDGE"',
         "/assets/landing/cambridge-hero-v1.png": b"\x89PNG\r\n\x1a\n",
         "/assets/cambridge-games/open-cloze-editor-v1.png": b"\x89PNG\r\n\x1a\n",
@@ -302,6 +303,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
                     assert b'perfil del alumno' not in data, "La página anuncia perfiles de alumnos retirados"
                 if path == "/profesor-particular":
                     assert "/login?next=/profesor-particular" in response.url, "La app no redirige al login"
+                if path == "/cambridge":
+                    assert response.url.endswith("/cambridge-info"), "Inglés no redirige a su landing al faltar sesión"
                 if path == "/e25":
                     assert b'href="/e25/register"' not in data and b'href="/e25/login"' not in data, "La landing de ESO Adultos ofrece un acceso distinto de Google"
         except HTTPError as exc:
@@ -310,14 +313,15 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
     with urlopen(base + "/auth/profesor/signup-settings", timeout=20) as response:
         settings = json.load(response)
         assert {"enabled", "credits", "days"} <= settings.keys(), "Registro sin configuración"
-    try:
-        urlopen(base + "/api/state?app=profesor_particular", timeout=20)
-    except HTTPError as exc:
-        assert exc.code == 401, "El estado privado debe requerir autenticación"
-        assert exc.headers.get("Cache-Control") == "private, no-store", "El estado privado permite caché"
-        assert exc.headers.get("X-Robots-Tag") == "noindex, nofollow", "El estado privado permite indexación"
-    else:
-        raise AssertionError("El estado privado no debe ser público")
+    for product in ("profesor_particular", "cambridge"):
+        try:
+            urlopen(base + f"/api/state?app={product}", timeout=20)
+        except HTTPError as exc:
+            assert exc.code == 401, f"El estado privado de {product} debe requerir autenticación"
+            assert exc.headers.get("Cache-Control") == "private, no-store", f"El estado privado de {product} permite caché"
+            assert exc.headers.get("X-Robots-Tag") == "noindex, nofollow", f"El estado privado de {product} permite indexación"
+        else:
+            raise AssertionError(f"El estado privado de {product} no debe ser público")
     with urlopen(admin + "/", timeout=20) as response:
         page = response.read()
         assert b"PROFESOR_PARTICULAR" in page and b"aiAppPicker" in page and b"view-ads" in page, "El dashboard no incluye anuncios y modelos"
