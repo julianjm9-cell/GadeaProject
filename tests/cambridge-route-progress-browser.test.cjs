@@ -61,6 +61,53 @@ test('dos pestañas conservan copias separadas si una guardó primero', async ()
   }
 });
 
+test('el progreso de Inglés se recupera entre navegadores de la misma cuenta', async () => {
+  const browser = await browserType.launch(launchOptions);
+  try {
+    const html = readFileSync(resolve(__dirname,'../apps/cambridge/index.html'),'utf8');
+    let serverState = {};
+    let revision = 0;
+    const serve = route => {
+      const request = route.request();
+      const path = new URL(request.url()).pathname;
+      const etag = `"cambridge-sync-${revision}"`;
+      if (path === '/cambridge') return route.fulfill({status:200,contentType:'text/html',body:html});
+      if (path === '/api/status') return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,user:{id:82,name:'Misma cuenta'}})});
+      if (path === '/api/state' && request.method() === 'GET') return route.fulfill({status:200,contentType:'application/json',headers:{ETag:etag},body:JSON.stringify(serverState)});
+      if (path === '/api/state' && request.method() === 'POST') {
+        if (request.headers()['if-match'] !== etag) return route.fulfill({status:409,contentType:'application/json',body:'{}'});
+        serverState = request.postDataJSON();
+        revision++;
+        return route.fulfill({status:200,contentType:'application/json',headers:{ETag:`"cambridge-sync-${revision}"`},body:'{"ok":true}'});
+      }
+      return route.fulfill({status:404,body:''});
+    };
+    const firstContext = await browser.newContext();
+    const secondContext = await browser.newContext();
+    await Promise.all([firstContext.route('http://cambridge.test/**',serve),secondContext.route('http://cambridge.test/**',serve)]);
+    const first = await firstContext.newPage();
+    await first.goto('http://cambridge.test/cambridge');
+    await first.waitForFunction(() => cambridgeStateETag !== null);
+    assert.equal(await first.evaluate(() => {
+      state.writingPractice.answer = 'Draft saved on device A';
+      state.b2Games.editor = {completed:true,plays:1};
+      return persist();
+    }),true);
+    const second = await secondContext.newPage();
+    await second.goto('http://cambridge.test/cambridge');
+    await second.waitForFunction(() => state.writingPractice.answer === 'Draft saved on device A');
+    assert.equal(await second.evaluate(() => state.b2Games.editor.completed),true);
+    assert.equal(await second.evaluate(() => cambridgePendingEntries().length),0);
+    assert.equal(await second.evaluate(() => { state.writingPractice.answer = 'Revised on device B'; return persist(); }),true);
+    await first.reload();
+    await first.waitForFunction(() => state.writingPractice.answer === 'Revised on device B');
+    assert.equal(await first.evaluate(() => state.b2Games.editor.completed),true);
+    assert.equal(revision,2);
+  } finally {
+    await browser.close();
+  }
+});
+
 test('Inglés bloquea el guardado si no puede identificar la cuenta', async () => {
   const browser = await browserType.launch(launchOptions);
   try {

@@ -706,7 +706,7 @@ def eso_landing_asset(filename: str):
 
 @router.get("/assets/cambridge-games/{filename}")
 def cambridge_game_illustration(filename: str):
-    if filename not in {"open-cloze-editor-v1.png", "word-formation-forge-v1.png", "writing-mailroom-v1.png", "c1-research-desk-v1.webp", "c2-editorial-observatory-v1.webp"}:
+    if filename not in {"open-cloze-editor-v1.png", "word-formation-forge-v1.png", "writing-mailroom-v1.png", "c1-research-desk-v1.webp", "c2-editorial-observatory-v1.webp", "c1-debate-room-v1.webp", "c2-precision-press-v1.webp"}:
         raise HTTPException(status_code=404, detail="Ilustración no encontrada.")
     local_path = PROJECT_ROOT / "apps" / "cambridge" / "assets" / "games" / filename
     static_path = STATIC_DIR / "assets" / "cambridge-games" / filename

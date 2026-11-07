@@ -739,6 +739,42 @@ def test_google_callback_opens_cambridge_and_grants_only_english_access(client, 
     assert test_client.get('/api/state?app=cambridge').status_code == 200
 
 
+def test_google_callback_preserves_existing_cambridge_account_progress_and_license(client, monkeypatch):
+    test_client, db_factory = client
+    email = 'english-existing@example.com'
+    _, original_id = seed_user(db_factory, email=email, product_codes=('CAMBRIDGE', 'ESO_ADULTOS'))
+    token = login(test_client, email=email).json()['access_token']
+    headers = {'Authorization': f'Bearer {token}', 'X-Client-App': 'cambridge'}
+    initial = test_client.get('/api/state', headers=headers)
+    progress = {'writingPractice': {'answer': 'My saved draft'}, 'b2Games': {'editor': {'completed': True}}}
+    saved = test_client.post('/api/state', headers={**headers, 'If-Match': initial.headers['etag']}, json=progress)
+    assert saved.status_code == 200
+    with db_factory() as db:
+        licence = license_for_user(db, db.get(User, UUID(original_id)), 'CAMBRIDGE')
+        licence.usage_limit = 17
+        original_expiry = licence.expires_at
+        db.commit()
+    test_client.cookies.set('diplomator_google_state', 'test')
+    monkeypatch.setattr(auth_api, 'decode_google_state', lambda _: {'purpose': 'login', 'next': '/cambridge'})
+    async def exchange(_):
+        return {'userinfo': {'email': email, 'sub': 'existing-english-sub', 'name': 'Existing learner', 'email_verified': True}}
+    monkeypatch.setattr(auth_api, 'exchange_google_code', exchange)
+    response = test_client.get('/auth/google/callback?code=test&state=test', follow_redirects=False)
+    assert response.status_code in {302, 303, 307} and response.headers['location'] == '/cambridge'
+    current = test_client.get('/api/state', headers={'X-Client-App': 'cambridge'})
+    assert current.status_code == 200 and current.json() == progress
+    assert current.headers['etag'] == saved.headers['etag']
+    with db_factory() as db:
+        users = db.query(User).filter(User.email == email).all()
+        assert len(users) == 1 and str(users[0].id) == original_id
+        assert users[0].google_sub == 'existing-english-sub'
+        licences = db.query(License).filter(License.user_id == users[0].id).all()
+        assert len(licences) == 2
+        cambridge = next(item for item in licences if item.product_code == 'CAMBRIDGE')
+        assert cambridge.usage_limit == 17
+        assert cambridge.expires_at == original_expiry
+
+
 def test_cambridge_landing_has_direct_google_entry_and_working_assets(client):
     test_client, _ = client
     page = test_client.get("/cambridge-info").text
@@ -756,14 +792,16 @@ def test_cambridge_landing_has_direct_google_entry_and_working_assets(client):
         response = test_client.get(path)
         assert response.status_code == 200, path
         assert response.headers["content-type"].startswith("image/png"), path
-    c1_art = test_client.get('/assets/cambridge-games/c1-research-desk-v1.webp')
-    assert c1_art.status_code == 200
-    assert c1_art.headers['content-type'].startswith('image/webp')
-    assert c1_art.content.startswith(b'RIFF')
-    c2_art = test_client.get('/assets/cambridge-games/c2-editorial-observatory-v1.webp')
-    assert c2_art.status_code == 200
-    assert c2_art.headers['content-type'].startswith('image/webp')
-    assert c2_art.content.startswith(b'RIFF')
+    for filename in (
+        'c1-research-desk-v1.webp',
+        'c1-debate-room-v1.webp',
+        'c2-editorial-observatory-v1.webp',
+        'c2-precision-press-v1.webp',
+    ):
+        art = test_client.get(f'/assets/cambridge-games/{filename}')
+        assert art.status_code == 200, filename
+        assert art.headers['content-type'].startswith('image/webp'), filename
+        assert art.content.startswith(b'RIFF'), filename
 
 
 def test_cambridge_game_illustration_uses_packaged_asset(client, tmp_path, monkeypatch):
