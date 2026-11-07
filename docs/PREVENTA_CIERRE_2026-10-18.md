@@ -82,6 +82,6 @@
 
 - Datos de la oferta individual: precio final, impuestos, duración, créditos, soporte, cancelación y derechos aplicables, comunicados antes de cobrar.
 - Aceptación y archivo de condiciones, facturación y encargo cuando el profesor/centro utiliza el servicio como responsable del tratamiento. Completar responsables, subencargados, ubicación y garantías reales de Hostinger/IA; esta entrega no acredita contratos que no se han facilitado.
-- Canal y responsable de atender alertas, ensayo real de restauración y medición gradual de capacidad. No se ha realizado una prueba de carga ni un ensayo sobre producción desde este entorno.
+- Canal y responsable de atender alertas, comprobación manual de documentos recuperados y sus permisos, y medición gradual de capacidad. El ensayo real de restauración pasó el 7 de noviembre; no se ha realizado una prueba de carga.
 
 Referencias primarias: [recuperación de contraseña, OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html), [AEPD, relación entre responsable y encargado](https://www.aepd.es/preguntas-frecuentes/2-tus-obligaciones-como-responsable-del-tratamiento/8-responsable-y-encargado-del-tratamiento), [TRLGDCU consolidado, BOE](https://www.boe.es/buscar/act.php?id=BOE-A-2007-20555).
