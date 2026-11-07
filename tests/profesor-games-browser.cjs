@@ -9,7 +9,7 @@ const path=require('node:path');
   const page=await browser.newPage({viewport:{width:1440,height:900}}),errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
-  await page.locator('.home-primary-nav').getByRole('button',{name:'Material'}).click();
+  await page.locator('.home-primary-nav').getByRole('button',{name:'Juegos',exact:true}).click();
   await page.getByRole('button',{name:'Crear material',exact:true}).click();
   const advanced=page.locator('.advanced-family');
   if(!await advanced.evaluate(node=>node.open))await advanced.locator('summary').click();
