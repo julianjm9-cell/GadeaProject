@@ -33,7 +33,7 @@
 - Premium por contacto y activación manual. Sin precios inventados, checkout, cargos ni renovaciones automáticos. Página `/profesor/planes` y texto de la app explican que «sin límite diario» no elimina los créditos ni los límites de capacidad.
 - Registro operativo de llamadas de generación de actividades, incluidos fallos y reintentos, separado de los créditos del cliente: modelo, proveedor, estado, duración y tokens disponibles. Coste desconocido si no se dispone de tarifa/uso, no un cero ficticio.
 - Dashboard administrativo y `python -m app.operation_check`: señales recientes del worker y copias, retrasos de respaldo, espacio, errores de IA y umbral de coste. El worker escribe alertas técnicas en sus registros; no se ha configurado un canal externo de avisos.
-- Ensayo de restauración disponible en `infra/test-restore-hostinger.sh`: base temporal, comprobación de contenido y lectura completa de cada documento archivado. No sustituye ni restaura sobre la base real. Todavía debe ejecutarse con una copia real en Hostinger.
+- Ensayo de restauración disponible en `infra/test-restore-hostinger.sh`: base temporal, comprobación de contenido y lectura completa de cada documento archivado. No sustituye ni restaura sobre la base real. Ejecutado el 7 de noviembre de 2026 con una copia real de Hostinger: 12 usuarios, 12 estados de cliente, 19 licencias, 35 instantáneas y 3 registros de documentos en la base restaurada; 19 archivos y 428191 bytes del archivo documental leídos por completo.
 - CI para pruebas de backend, interfaz, migraciones/conservación y avisos de dependencias. Pruebas obsoletas adaptadas al comportamiento actual.
 - Privacidad y almacenamiento local explican borradores, seguridad y metadatos operativos. Plantillas internas de oferta/encargo en `docs/PREMIUM_VENTA_ASISTIDA.md`; no se publican contratos con huecos como si estuvieran aceptados.
 
@@ -72,7 +72,7 @@
    bash infra/test-restore-hostinger.sh backups/deploy-CARPETA-REAL
    ```
 
-   Sustituir la carpeta por una existente. La prueba valida SQL/restauración y lee todos los bytes de los documentos archivados sin extraerlos sobre producción; falta comprobar manualmente algunos documentos recuperados y sus permisos antes de prometer un tiempo de recuperación.
+   Sustituir la carpeta por una existente. La prueba valida SQL/restauración y lee todos los bytes de los documentos archivados sin extraerlos sobre producción. La ejecución con copia real del 7 de noviembre pasó; falta comprobar manualmente algunos documentos recuperados y sus permisos antes de prometer un tiempo de recuperación.
 
 5. Opcionalmente definir `AI_MODEL_PRICES_JSON` con las tarifas reales por millón de tokens de cada modelo y `AI_MONTHLY_BUDGET_USD`. Contrastar los intentos sin uso conocido con la consola/factura del proveedor. Un umbral avisado no equivale a un bloqueo de gasto del proveedor.
 
