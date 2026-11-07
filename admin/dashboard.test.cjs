@@ -37,6 +37,21 @@ test('the overview does not duplicate app or user controls', () => {
   assert.doesNotMatch(fs.readFileSync(require('node:path').join(__dirname, 'index.html'), 'utf8'), /id="view-users"|id="appCards"|id="recentUsage"|id="alerts"/);
 });
 
+test('teacher ads render as separate responsive moderation cards', () => {
+  const { run, element } = loadDashboard();
+  run(`ads=[
+    {id:'ad-1',name:'Lucía',headline:'Clases de refuerzo',location:'Madrid',levels:'1.º ESO, 2.º ESO',subjects:'Matemáticas, Lengua',status:'active',reports:2,image_url:'/sample.webp'},
+    {id:'ad-2',name:'Álvaro',location:'Online',levels:'',subjects:'Inglés',status:'removed',reports:0}
+  ];renderAds()`);
+  const html = element('adsTable').innerHTML;
+  assert.equal((html.match(/class="ad-admin-card"/g) || []).length, 2);
+  assert.match(html, /<span>Cursos<\/span><p>1.º ESO, 2.º ESO<\/p>/);
+  assert.match(html, /<span>Asignaturas<\/span><p>Matemáticas, Lengua<\/p>/);
+  assert.match(html, /Ver denuncias/);
+  assert.match(html, /Restaurar/);
+  assert.doesNotMatch(html, /<table|<tr|<td/);
+});
+
 test('each app switch pauses and resumes only the selected product', async () => {
   const { run } = loadDashboard();
   run(`globalThis.confirm=()=>true;globalThis.calls=[];appAvailability={CAMBRIDGE:{paused:false},ESO_ADULTOS:{paused:false}};api=async(path,options)=>{const body=JSON.parse(options.body);calls.push({path,body});return {product_code:'CAMBRIDGE',paused:body.paused}};renderAll=()=>{}`);

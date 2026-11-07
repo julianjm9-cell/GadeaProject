@@ -174,6 +174,23 @@
 .key-state{font-size:10px;font-weight:700;white-space:nowrap}.key-state.ok{color:#15845c}.key-state.fail{color:#c33d50}.key-state.unknown{color:#9a6a23}
 .connection-detail{font-size:11px;line-height:1.35;color:#a83b4b;overflow-wrap:anywhere}
 .connection-detail.ok{color:#15845c}
+.ads-list{display:grid;gap:14px}
+.ad-admin-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px 22px;padding:18px;border:1px solid var(--line);border-radius:17px;background:#fff;box-shadow:0 10px 26px #2345710d;min-width:0}
+.ad-admin-identity{display:flex;align-items:center;gap:14px;min-width:0}
+.ad-admin-image{width:76px;height:76px;flex:none;object-fit:cover;border:1px solid var(--line);border-radius:13px;background:#f1f6fd}
+.ad-admin-heading{min-width:0;display:grid;gap:5px}
+.ad-admin-heading strong{font-size:17px;line-height:1.3;overflow-wrap:anywhere}
+.ad-admin-heading small{color:var(--muted);font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.ad-admin-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;grid-column:1/-1}
+.ad-admin-field{min-width:0;padding:11px 13px;border:1px solid #e5edf7;border-radius:11px;background:#f8fbff}
+.ad-admin-field span{display:block;margin-bottom:5px;color:#607593;font-size:10px;font-weight:850;letter-spacing:.06em;text-transform:uppercase}
+.ad-admin-field p{color:#203657;font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+.ad-admin-state{display:flex;align-items:center;justify-content:flex-end;gap:9px;align-self:start;white-space:nowrap}
+.ad-admin-count{color:var(--muted);font-size:12px;font-weight:750}
+.ad-admin-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;grid-column:1/-1;border-top:1px solid #edf2f8;padding-top:13px}
+.ad-admin-actions button{min-height:36px}
+.ad-admin-actions .ad-delete{margin-left:auto}
+@media(max-width:720px){.ad-admin-card{grid-template-columns:1fr;padding:14px}.ad-admin-image{width:62px;height:62px}.ad-admin-fields{grid-template-columns:1fr}.ad-admin-state{justify-content:flex-start}.ad-admin-actions{justify-content:flex-start}.ad-admin-actions .ad-delete{margin-left:0}}
 @media(max-width:1100px){.connection-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.connection-grid{grid-template-columns:1fr}}
 </style>
@@ -329,7 +346,17 @@ function setView(next){view=next;if(next==='notifications')window.adminNotificat
 function renderAll(){$('view-notifications').hidden=view!=='notifications';$('view-overview').hidden=view!=='overview';$('view-app').hidden=!PRODUCTS.some(p=>p.key===view);$('view-ai').hidden=view!=='ai';$('view-hazlotu').hidden=view!=='hazlotu';$('view-ads').hidden=view!=='ads';$('hazlotuAccessStatus').textContent=hazlotuAccess?.configured?'Contraseña configurada. La web está protegida.':'Sin contraseña configurada. La web permanece cerrada.';$('hazlotuAvailabilityControl').innerHTML=availabilityControl('HAZLOTU');renderOverview();if(!$('view-app').hidden)renderApp();if(!$('view-ai').hidden)renderAI();if(view==='ads')renderAds()}
 function availabilityControl(code){const paused=!!appAvailability[code]?.paused;const label=code==='HAZLOTU'?'HazloTú':productByKey(PRODUCTS.find(p=>p.code===code)?.key).label;return `<div class="availability-control"><div><strong>${paused?'Aplicación pausada':'Aplicación activa'}</strong><p>${paused?'El acceso está detenido temporalmente. Los datos y permisos se conservan.':'Puedes pausarla sin borrar cuentas, datos ni permisos.'}</p></div><button type="button" class="availability-switch" role="switch" aria-label="Disponibilidad de ${esc(label)}" aria-checked="${!paused}" onclick="toggleAppAvailability('${code}')"></button></div>`}
 async function toggleAppAvailability(code){const paused=!!appAvailability[code]?.paused;if(!paused&&!confirm('¿Pausar esta aplicación? Sus usuarios no podrán entrar ni guardar hasta que la reactives. No se borrará ningún dato.'))return;try{const result=await api('/admin/app-availability/'+code,{method:'PATCH',body:JSON.stringify({paused:!paused})});appAvailability[code]={paused:result.paused};renderAll();toast(result.paused?'Aplicación pausada.':'Aplicación reactivada.')}catch(e){toast(e.message)}}
-function renderAds(){$('adsTable').innerHTML=table(['Anuncio','Asignaturas','Estado','Denuncias','Acciones'],ads.map(a=>[`${a.image_url?`<img src="${esc(a.image_url)}" alt="" style="width:42px;height:42px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px">`:''}<strong>${esc(a.name)}</strong><br><small>${esc(a.location||'')}</small>`,esc(a.subjects),badge(a.status),String(a.reports||0),`<button type="button" onclick="viewAdReports('${esc(a.id)}')">Denuncias</button> <button type="button" class="${a.status==='removed'?'':'danger'}" onclick="changeAdStatus('${esc(a.id)}','${a.status==='removed'?'active':'removed'}')">${a.status==='removed'?'Restaurar':'Retirar'}</button> <button type="button" onclick="deleteAdForPrivacy('${esc(a.id)}')">Supresión verificada</button>`]))}
+function renderAds(){
+  $('adsTable').innerHTML=ads.length?`<div class="ads-list">${ads.map(a=>{
+    const id=esc(a.id),removed=a.status==='removed',title=a.headline||a.name;
+    return `<article class="ad-admin-card">
+      <div class="ad-admin-identity"><img class="ad-admin-image" src="${esc(a.image_url||'assets/brand/profesor-simple-v2.png')}" alt=""><div class="ad-admin-heading"><strong>${esc(title)}</strong>${a.headline&&a.name!==a.headline?`<small>Publicado por ${esc(a.name)}</small>`:''}<small>${esc(a.location||'Sin ubicación indicada')}</small></div></div>
+      <div class="ad-admin-state">${badge(removed?'Retirado':'Activo')}<span class="ad-admin-count">${esc(a.reports||0)} ${Number(a.reports)===1?'denuncia':'denuncias'}</span></div>
+      <div class="ad-admin-fields"><div class="ad-admin-field"><span>Cursos</span><p>${esc(a.levels||a.course||'Sin cursos indicados')}</p></div><div class="ad-admin-field"><span>Asignaturas</span><p>${esc(a.subjects||a.subject||'Sin asignaturas indicadas')}</p></div></div>
+      <div class="ad-admin-actions"><button type="button" onclick="viewAdReports('${id}')">Ver denuncias</button><button type="button" class="${removed?'':'danger'}" onclick="changeAdStatus('${id}','${removed?'active':'removed'}')">${removed?'Restaurar':'Retirar'}</button><button type="button" class="danger ad-delete" onclick="deleteAdForPrivacy('${id}')">Supresión verificada</button></div>
+    </article>`;
+  }).join('')}</div>`:'<div class="empty">Aún no hay anuncios de profesores.</div>';
+}
 async function loadAds(){try{ads=(await api('/admin/profesor-ads')).ads||[];renderAds();toast('Anuncios actualizados.')}catch(e){toast(e.message)}}
 async function deleteAdForPrivacy(id){const reason=prompt('Motivo de supresión. Registra la solicitud y verificación en el registro restringido de derechos.');if(!reason||!confirm('¿Has verificado la legitimidad de la solicitud? Se borrarán el anuncio, imagen y avisos.'))return;try{await api(`/admin/profesor-ads/${id}/delete`,{method:'POST',body:JSON.stringify({reason,verified:true})});await loadAds();$('adReports').hidden=true}catch(e){toast(e.message)}}
 let currentAdReports=[];
