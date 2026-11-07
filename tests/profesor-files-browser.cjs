@@ -1,4 +1,4 @@
-const {chromium}=require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('./browser-runtime.cjs');
 const assert=require('node:assert/strict'),path=require('node:path');
 const {pathToFileURL}=require('node:url');
 (async()=>{const browser=await chromium.launch({headless:true,channel:'msedge'});try{

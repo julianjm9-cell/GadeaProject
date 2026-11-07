@@ -9,6 +9,8 @@ GadeaProject_Data/
 Diplomator_Data/
 tools/
 *.log
+node_modules/
+.pytest_cache/
 *.tmp
 backups/
 .deploy-hostinger.lock

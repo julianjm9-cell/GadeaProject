@@ -406,6 +406,9 @@ def test_eso_gamification_reward_is_idempotent(client):
     assert initial.json()["profile"]["xp"] == 0
 
     payload = {"event_type": "LESSON_COMPLETED", "source_id": "mat-numeros:lesson:0"}
+    state_path='/api/state?app=eso_adultos'
+    lesson_keys=[f'mat-numeros:lesson:{index}' for index in range(4)]+['mat-proporciones:lesson:0']
+    test_client.post(state_path,json={'done':{**dict.fromkeys(lesson_keys,True),'mat-numeros':True}},headers={'If-Match':test_client.get(state_path).headers['etag']})
     first = test_client.post("/api/gamification/rewards", json=payload, headers=headers)
     duplicate = test_client.post("/api/gamification/rewards", json=payload, headers=headers)
 
@@ -418,8 +421,8 @@ def test_eso_gamification_reward_is_idempotent(client):
     assert duplicate.json()["profile"]["xp"] == 50
     assert duplicate.json()["profile"]["coins"] == 15
 
-    for index in range(1, 5):
-        lesson = {"event_type": "LESSON_COMPLETED", "source_id": f"mat-numeros:lesson:{index}"}
+    for key in lesson_keys[1:]:
+        lesson = {"event_type": "LESSON_COMPLETED", "source_id": key}
         assert test_client.post("/api/gamification/rewards", json=lesson, headers=headers).status_code == 200
     assert test_client.post("/api/gamification/rewards", json={"event_type": "TOPIC_COMPLETED", "source_id": "mat-numeros"}, headers=headers).status_code == 200
 

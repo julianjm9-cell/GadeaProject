@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="es">
 <head>
+<script src="/app-session.js?v=20261107-fixes-1"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ESO Adultos | Tu escritorio virtual</title>
@@ -3521,6 +3522,7 @@
 <script src="assets/eso-science-missions.js?v=20261029-1"></script>
 <script src="assets/eso-external-games.js?v=20261029-1"></script>
 <script src="assets/eso-games.js?v=20261105-individual-scenes-2"></script>
+<script src="assets/eso-state-recovery.js?v=20261107-fixes-1"></script>
 <script>
 const APP_KEY = 'eso_adultos';
 const REDESIGN_MODE = false;
@@ -6077,6 +6079,7 @@ const OFFICIAL_SIMULATORS = {
 let homeDuration = 30;
 let currentUser = null;
 let esoStateReady = false;
+let esoProfileReady = Promise.resolve();
 let currentView = 'home';
 const $ = id => document.getElementById(id);
 function init() {
@@ -6093,7 +6096,7 @@ function init() {
     document.body.classList.add('next-ui');
   }
   renderProfile();
-  loadProfile();
+  esoProfileReady = loadProfile();
   loadOfficialResources();
   loadState();
   loadGamification();
@@ -6151,11 +6154,17 @@ async function loadState() {
   const lessonCount = state.activeTopic ? subtopicsFor(activeModule.tasks.find(topic => topic.id === state.activeTopic)).length : 0;
   state.activeLesson = Number.isInteger(state.activeLesson) && state.activeLesson >= 0 && state.activeLesson < lessonCount ? state.activeLesson : null;
   state.currentExam = typeof state.currentExam === 'string' ? state.currentExam : '';
+  if(window.esoRecovery && location.pathname==='/eso-adultos') {
+    await esoProfileReady;
+    if(!currentUser?.id){if($('esoLoadStatus'))$('esoLoadStatus').textContent='No se ha podido identificar tu cuenta. Recarga la página antes de guardar cambios.';return;}
+  }
   esoStateReady=true;
   esoSaveBlocked=false;
   if($('esoLoadStatus'))$('esoLoadStatus').hidden=true;
   for(const id of ['navHome','navModules','navExam','navGames','navProgress'])if($(id))$(id).disabled=false;
   render();
+  if(window.esoRecovery && location.pathname==='/eso-adultos')esoRecovery.init(currentUser.id,esoStateETag,state);
+  if(state.pendingRewards?.length)void flushEsoRewards();
 }
 async function loadOfficialResources() {
   try {
@@ -6188,13 +6197,16 @@ function saveState() {
   if(!esoStateReady)return Promise.resolve(false);
   if(esoSaveBlocked){showEsoSaveStatus('error','Otra pestaña guardó un progreso más reciente. Descarga tus cambios antes de recargar.');return Promise.resolve(false);}
   const snapshot = JSON.stringify(state);
+  const recoverySerial = globalThis.esoRecovery?.capture(snapshot,esoStateETag);
   esoPendingSaves++;
   showEsoSaveStatus('pending','Guardando progreso…');
   esoStateSaveQueue = esoStateSaveQueue.catch(()=>false).then(async()=>{
     try {
       if(esoSaveBlocked){showEsoSaveStatus('error','Otra pestaña guardó un progreso más reciente. Descarga tus cambios antes de recargar.');return false;}
       await backend('/api/state', {method:'POST', body:snapshot});
+      globalThis.esoRecovery?.saved(recoverySerial,esoStateETag);
       esoSaveFailed=false;
+      if(globalThis.flushEsoRewards)setTimeout(()=>flushEsoRewards(),0);
       return true;
     } catch(error) {
       esoSaveFailed=true;
@@ -6227,16 +6239,28 @@ function publishDeskUpdate() {
   if (deskSyncChannel) deskSyncChannel.postMessage({type:'profile-updated'});
 }
 async function grantGamificationReward(eventType, sourceId, metadata={}) {
+  state.pendingRewards ??= [];
+  if(!state.pendingRewards.some(item=>item.event_type===eventType&&item.source_id===sourceId))state.pendingRewards.push({event_type:eventType,source_id:sourceId,metadata});
+  if(!await saveState())return null;
+  return flushEsoRewards();
+}
+let esoRewardFlush = false;
+async function flushEsoRewards() {
+  if(esoRewardFlush || !state.pendingRewards?.length || esoSaveFailed || !esoStateReady)return;
+  esoRewardFlush=true;
   try {
-    const data = await backend('/api/gamification/rewards', {method:'POST', body:JSON.stringify({event_type:eventType, source_id:sourceId, metadata})});
-    gamification = {...gamification, profile:data.profile || gamification.profile, lastError:''};
+    for(const item of [...state.pendingRewards]) {
+      const data = await backend('/api/gamification/rewards', {method:'POST', body:JSON.stringify(item)});
+      gamification = {...gamification, profile:data.profile || gamification.profile, lastError:''};
+      state.pendingRewards=state.pendingRewards.filter(row=>row.event_type!==item.event_type||row.source_id!==item.source_id);
+    }
     renderNextExperience();
-    return data;
+    await saveState();
   } catch (error) {
     gamification.lastError = error.message || 'No se pudo registrar la recompensa.';
     console.warn('Recompensa pendiente:', gamification.lastError);
     return null;
-  }
+  } finally {esoRewardFlush=false;}
 }
 function academicProgressPct() {
   const topics = studyTasks();

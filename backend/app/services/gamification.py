@@ -259,6 +259,7 @@ def _unlock_achievements(db: Session, profile: GamificationProfile, event_type: 
 def award_event(db: Session, user: User, event_type: str, source_id: str, metadata: dict | None = None) -> AwardResult:
     normalized_type, normalized_source = validate_event(event_type, source_id)
     profile = get_or_create_profile(db, user)
+    profile = db.scalar(select(GamificationProfile).where(GamificationProfile.id == profile.id).with_for_update())
     event_key = f"{normalized_type}:{normalized_source}"
     existing = db.scalar(select(GamificationRewardEvent).where(
         GamificationRewardEvent.profile_id == profile.id,

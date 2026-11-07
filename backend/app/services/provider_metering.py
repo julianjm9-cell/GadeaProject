@@ -17,6 +17,9 @@ def record_call(url, body, response, elapsed_ms):
     owner = context.get()
     if not owner:
         return
+    if 'pending' in owner:
+        owner.setdefault('calls', []).append((url, body, response, elapsed_ms))
+        return
     match=re.search(r'/models/([^:]+)',url)
     model = str(body.get('model') or (match.group(1) if match else 'unknown'))[:120]
     provider = 'gemini' if 'googleapis.com' in url else 'groq' if 'groq.com' in url else 'other'
@@ -37,7 +40,7 @@ def record_call(url, body, response, elapsed_ms):
             pass
     try:
         with Session(bind=owner['bind']) as db:
-            db.add(ProviderCall(user_id=owner['user_id'],organization_id=owner['organization_id'],request_id=owner['request_id'],
+            db.add(ProviderCall(user_id=owner['user_id'],organization_id=owner['organization_id'],request_id=owner['request_id'],product_code=owner.get('product_code','PROFESOR_PARTICULAR'),
                 model=model,provider=provider,status_code=code,input_tokens=sent,output_tokens=received,estimated_usd=cost,
                 duration_ms=max(0,int(elapsed_ms)),created_at=datetime.now(timezone.utc)))
             db.commit()

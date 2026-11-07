@@ -71,8 +71,9 @@ def run_session_cleanup_forever():
                 db.execute(delete(ProfesorEditorDraft).where(ProfesorEditorDraft.expires_at < utcnow()))
                 for model in (AccountToken, AuthSession):
                     db.execute(delete(model).where(model.expires_at < utcnow() - timedelta(days=1)))
-                from app.models import ProviderCall
+                from app.models import ProviderCall, AiRequest
                 db.execute(delete(ProviderCall).where(ProviderCall.created_at < utcnow() - timedelta(days=90)))
+                db.execute(delete(AiRequest).where(AiRequest.updated_at < utcnow() - timedelta(days=7)))
                 db.commit()
         except Exception:
             print("Session cleanup: temporal database failure", flush=True)

@@ -27,7 +27,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         connection.execute(text("SELECT id, user_id, revoked_at FROM auth_sessions LIMIT 0"))
         connection.execute(text("SELECT email_verified_at, requires_email_verification FROM users LIMIT 0"))
         connection.execute(text("SELECT id, expires_at FROM profesor_editor_drafts LIMIT 0"))
-        connection.execute(text("SELECT id, estimated_usd FROM profesor_provider_calls LIMIT 0"))
+        connection.execute(text("SELECT id, estimated_usd, product_code FROM profesor_provider_calls LIMIT 0"))
+        connection.execute(text("SELECT id, request_id, status FROM ai_requests LIMIT 0"))
         connection.execute(text("SELECT id, send_key, product_code FROM profesor_notifications LIMIT 0"))
         connection.execute(text("SELECT notification_id, user_id, read_at, dismissed_at FROM profesor_notification_recipients LIMIT 0"))
     checks = {
@@ -86,6 +87,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/profesor-notifications.js": b"data-teacher-notifications",
         "/assets/profesor-notifications.css": b"teacher-notifications-dialog",
         "/app-notifications.js": b"data-app-notifications",
+        "/app-session.js": b"educa-session-refresh",
+        "/assets/eso-state-recovery.js": b"eso.pending.",
         "/assets/app-notifications.css": b"app-notifications-dialog",
         "/profesor-subjects.js": b"teacherAllowsSubject",
         "/profesor-profile.js": b"teacher-settings-dialog",

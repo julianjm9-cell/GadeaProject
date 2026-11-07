@@ -26,7 +26,7 @@
       S('Derechos','Un grupo reclama que la ley limite el poder del rey.','¿Con qué cambio se relaciona?',['Restauración feudal','Revoluciones liberales','Revolución neolítica'],1,'Las revoluciones liberales cuestionaron el poder absoluto.'),
       S('Máquina','Una fábrica sustituye parte del trabajo manual por máquinas de vapor.','¿Qué proceso representa?',['Industrialización','Romanización','Descolonización del siglo XX'],0,'La mecanización y la fábrica son rasgos de la Revolución Industrial.'),
       S('Ciudad','Muchos trabajadores se trasladan del campo a la ciudad.','¿Qué fenómeno aumenta?',['Ruralización','Nomadismo antiguo','Urbanización'],2,'La industria concentró empleo y población en ciudades.'),
-      S('Trabajo','La jornada es larga y el salario bajo.','¿Qué respuesta histórica fue habitual?',['Prohibir toda asociación para siempre','Organización obrera y reivindicación laboral','Volver al Imperio romano'],1,'Los trabajadores se organizaron para reclamar mejores condiciones.')
+      S('Trabajo','La jornada es larga y el salario bajo.','¿Qué respuesta histórica fue habitual?',['Aceptar colectivamente las condiciones sin reivindicaciones','Organización obrera y reivindicación laboral','Sustituir las asociaciones por negociaciones individuales'],1,'Los trabajadores se organizaron para reclamar mejores condiciones.')
     ]),
     'his-sigloxx': M('La línea del tiempo reciente','Archivo del siglo XX','◴','public-cronica-pasado-scene.webp','Sitúa acontecimientos sin confundir épocas.',[
       S('Primera mitad','Un documento está fechado en 1914.','¿Con qué conflicto se relaciona el comienzo de ese año?',['Primera Guerra Mundial','Segunda Guerra Mundial','Guerra Fría'],0,'La Primera Guerra Mundial comenzó en 1914.'),

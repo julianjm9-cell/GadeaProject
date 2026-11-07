@@ -44,6 +44,9 @@ def signals(db, *, at=None):
     cost=db.scalar(select(func.sum(ProviderCall.estimated_usd)).where(ProviderCall.created_at>=month)) or Decimal(0)
     unknown=db.scalar(select(func.count()).select_from(ProviderCall).where(ProviderCall.created_at>=month,ProviderCall.estimated_usd.is_(None))) or 0
     total=db.scalar(select(func.count()).select_from(ProviderCall).where(ProviderCall.created_at>=month)) or 0
+    by_app=[{'product_code':product,'calls':calls,'estimated_usd':float(amount or 0),'unpriced_calls':unpriced}
+            for product,calls,amount,unpriced in db.execute(select(ProviderCall.product_code,func.count(),func.sum(ProviderCall.estimated_usd),
+                func.count().filter(ProviderCall.estimated_usd.is_(None))).where(ProviderCall.created_at>=month).group_by(ProviderCall.product_code))]
     if unknown:alert('unpriced_provider_calls','Hay llamadas sin coste estimable. Configura tarifas por modelo y contrasta la factura del proveedor; no se cuentan como coste cero.')
     if settings.ai_monthly_budget_usd and cost>=Decimal(str(settings.ai_monthly_budget_usd)):
         alert('ai_budget','El coste estimado registrado alcanza el umbral mensual configurado.',True)
@@ -51,5 +54,5 @@ def signals(db, *, at=None):
     return {'checked_at':now.isoformat(),'ok':not any(row['severity']=='critical' for row in alerts),'alerts':alerts,
         'workers':workers,'backup_schedule_day':schedule.value if schedule else None,
         'disk':{'free_bytes':disk.free,'free_percent':round(free_pct,1)},
-        'ai':{'period':'month_utc','calls':total,'estimated_usd':float(cost),'unpriced_calls':unknown,'budget_usd':settings.ai_monthly_budget_usd},
+        'ai':{'period':'month_utc','calls':total,'estimated_usd':float(cost),'unpriced_calls':unknown,'budget_usd':settings.ai_monthly_budget_usd,'by_app':by_app},
         'new_teacher_plan':settings.profesor_signup_plan}

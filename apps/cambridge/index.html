@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script src="/app-session.js?v=20261107-fixes-1"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Título de inglés | Tu escritorio virtual</title>
@@ -2530,7 +2531,7 @@ async function backendRequest(path, options = {}) {
   });
   const data = await res.json().catch(() => ({}));
   if (res.status === 401) {
-    if (location.pathname !== '/login') location.href = '/login?expired=1';
+    if (location.pathname !== '/login') location.href = '/login?expired=1&next=%2Fcambridge';
     throw new Error('Sesión caducada. Vuelve a iniciar sesión.');
   }
   if (!res.ok || data.ok === false) {

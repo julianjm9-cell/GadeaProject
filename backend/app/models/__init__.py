@@ -54,5 +54,5 @@ __all__ = [
 ]
 
 from app.models.ocr import OcrJob
-from app.models.teacher_generation import ProfesorGenerationJob, ProviderCall
+from app.models.teacher_generation import ProfesorGenerationJob, ProviderCall, AiRequest
 from app.models.profesor_notifications import ProfesorNotification, ProfesorNotificationRecipient

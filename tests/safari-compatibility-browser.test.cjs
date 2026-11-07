@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const { createServer } = require('node:http');
 const { readFile } = require('node:fs/promises');
 const { resolve, extname, sep } = require('node:path');
-const { chromium, webkit } = require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const { chromium, webkit } = require('./browser-runtime.cjs');
 
 const root = resolve(__dirname, '..');
 const mime = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.png':'image/png', '.webp':'image/webp', '.svg':'image/svg+xml', '.woff2':'font/woff2' };

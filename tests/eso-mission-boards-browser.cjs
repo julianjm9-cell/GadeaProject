@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const {resolve} = require('node:path');
 const {pathToFileURL} = require('node:url');
 const {existsSync} = require('node:fs');
-const {chromium} = require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium} = require('./browser-runtime.cjs');
 
 test('las 57 misiones restantes usan objetos jugables y mantienen su corrección', async () => {
   const browser = await chromium.launch({headless:true,channel:'msedge'});

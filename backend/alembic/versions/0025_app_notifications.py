@@ -8,8 +8,11 @@ branch_labels = depends_on = None
 
 
 def upgrade():
-    op.add_column('profesor_notifications', sa.Column('product_code', sa.String(40), nullable=False, server_default='PROFESOR_PARTICULAR'))
-    op.create_index('ix_profesor_notifications_product_code', 'profesor_notifications', ['product_code'])
+    inspector = sa.inspect(op.get_bind())
+    if 'product_code' not in {column['name'] for column in inspector.get_columns('profesor_notifications')}:
+        op.add_column('profesor_notifications', sa.Column('product_code', sa.String(40), nullable=False, server_default='PROFESOR_PARTICULAR'))
+    if 'ix_profesor_notifications_product_code' not in {index['name'] for index in inspector.get_indexes('profesor_notifications')}:
+        op.create_index('ix_profesor_notifications_product_code', 'profesor_notifications', ['product_code'])
 
 
 def downgrade():

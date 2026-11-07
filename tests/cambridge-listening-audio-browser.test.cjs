@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const { createServer } = require('node:http');
 const { readFileSync, readdirSync } = require('node:fs');
 const { resolve, basename } = require('node:path');
-const { chromium, webkit } = require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const { chromium, webkit } = require('./browser-runtime.cjs');
 
 const audioDir = resolve(__dirname, '../apps/cambridge/assets/listening');
 const files = new Set(readdirSync(audioDir));

@@ -3,6 +3,7 @@
 }
 
 {$SITE_ADDRESS::80} {
+	encode zstd gzip
 	redir /admin-dashboard /admin-dashboard/
 
 	handle_path /admin-dashboard/* {

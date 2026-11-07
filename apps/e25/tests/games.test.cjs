@@ -59,5 +59,5 @@ test('el mapa del tema ofrece tres destinos y respuestas únicas con distractore
   assert.equal(questScore(0), 100);
   assert.equal(questScore(1), 80);
   assert.equal(questScore(6), 0);
-  assert.equal(topicArt({id:'len-comprension'}, {id:'lengua'}), '/assets/games/public-biblioteca-inference.webp');
+  assert.equal(topicArt({id:'len-comprension'}, {id:'lengua'}), '/assets/games/public-biblioteca-inference-scene.webp');
 });

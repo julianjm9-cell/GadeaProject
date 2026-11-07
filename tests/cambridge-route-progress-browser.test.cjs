@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const {resolve} = require('node:path');
 const {pathToFileURL} = require('node:url');
 const {readFileSync} = require('node:fs');
-const {chromium,webkit} = require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium,webkit} = require('./browser-runtime.cjs');
 const browserType = process.env.CAMBRIDGE_BROWSER === 'webkit' ? webkit : chromium;
 const launchOptions = process.env.CAMBRIDGE_BROWSER === 'webkit' ? {headless:true} : {headless:true,channel:'msedge'};
 

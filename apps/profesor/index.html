@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="es">
 <head>
+<script src="/app-session.js?v=20261107-fixes-1"></script>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Profesor Particular | Tu escritorio de clases</title>
 <style>
@@ -229,8 +230,8 @@ function empty(text){return `<div class="empty">${text}</div>`}
 function notify(text){$('notice').textContent=text;clearTimeout(notify.timer);notify.timer=setTimeout(()=>$('notice').textContent='',5000)}
 let sessionRefresh=null;
 let stateETag=null,saveBlocked='';
-async function renewSession(){if(!sessionRefresh)sessionRefresh=fetch('/auth/refresh',{method:'POST',credentials:'same-origin'}).then(r=>r.ok).catch(()=>false).finally(()=>{sessionRefresh=null});return sessionRefresh}
-async function authenticatedFetch(url,options={}){const request={credentials:'same-origin',...options};let response=await fetch(url,request);if(response.status===401&&!String(url).startsWith('/auth/refresh')){if(!await renewSession())throw Error('Tu sesión ha caducado. Entra de nuevo con tu cuenta y vuelve a intentarlo.');response=await fetch(url,request)}return response}
+async function renewSession(){if(window.appSession)return window.appSession.refresh();if(!sessionRefresh)sessionRefresh=fetch('/auth/refresh',{method:'POST',credentials:'same-origin'}).then(r=>r.ok).catch(()=>false).finally(()=>{sessionRefresh=null});return sessionRefresh}
+async function authenticatedFetch(url,options={}){const request={credentials:'same-origin',...options};if(window.appSession)return window.appSession.fetch(url,request);let response=await fetch(url,request);if(response.status===401&&!String(url).startsWith('/auth/refresh')){if(!await renewSession())throw Error('Tu sesión ha caducado. Entra de nuevo con tu cuenta y vuelve a intentarlo.');response=await fetch(url,request)}return response}
 async function api(path,body,extraHeaders={}){
  if(path.startsWith('/api/profesor/images/'))await saveQueue;
  const isState=path.split('?')[0]==='/api/state',headers={...(body?{'Content-Type':'application/json'}:{}),...extraHeaders};

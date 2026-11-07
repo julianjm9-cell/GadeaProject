@@ -1,6 +1,6 @@
 let chromium;
 try { ({chromium} = require('playwright')); }
-catch { ({chromium} = require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')); }
+catch { ({chromium} = require('./browser-runtime.cjs')); }
 const assert = require('node:assert/strict');
 const http = require('node:http');
 const fs = require('node:fs');

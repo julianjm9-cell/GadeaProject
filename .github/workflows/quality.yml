@@ -7,14 +7,39 @@ on:
 permissions:
   contents: read
 jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+      - run: mkdir -p tmp
+      - run: npm test
+      - run: npm run test:browser
+      - run: CAMBRIDGE_BROWSER=webkit node --test tests/cambridge-route-progress-browser.test.cjs
   checks:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: quality
+          POSTGRES_PASSWORD: isolated-quality-only
+          POSTGRES_DB: quality
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U quality" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       ENVIRONMENT: test
       DATABASE_URL: sqlite:///./ci.sqlite
       JWT_SECRET: isolated-ci-test-signing-key-at-least-32-bytes
       COOKIE_SECURE: 'false'
+      AUDIT_POSTGRES_URL: postgresql+psycopg://quality:isolated-quality-only@127.0.0.1:5432/quality
     steps:
       - uses: actions/checkout@v6
         with:

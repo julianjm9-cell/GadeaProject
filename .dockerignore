@@ -1,4 +1,10 @@
 .git
+node_modules/
+tmp/
+juegos/
+.pytest_cache/
+backend/.pytest_cache/
+backend/data/
 .agents
 .codex
 .env

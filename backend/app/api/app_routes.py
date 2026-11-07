@@ -43,6 +43,7 @@ from app.services.ai_config import (
     valid_openai_key,
 )
 from app.services.audit import audit
+from app.services.ai_delivery import reliable_ai, provider_post, lock_account
 from app.services.gemini_native import chat_data as gemini_chat_data, failure_message as gemini_failure_message, generate_url as gemini_generate_url, is_auth_key as is_gemini_auth_key, post_with_retry as gemini_post_with_retry, request_body as gemini_request_body
 from app.services.licenses import check_access, check_legacy_license, profesor_account_plan, usage_count_for_license
 from app.services.app_availability import PRODUCT_CODES as PAUSABLE_PRODUCTS, PAUSE_MESSAGE, is_app_paused, require_app_available
@@ -141,6 +142,14 @@ def marketing_file(filename: str, media_type: str | None = None) -> FileResponse
             "Cache-Control": "public, max-age=300",
         },
     )
+
+
+def raster_response(path: Path, request: Request, *, max_age=86400):
+    variant = path.with_name(path.stem + '-optimized.webp')
+    if path.suffix == '.png' and 'image/webp' in request.headers.get('accept', '') and variant.exists():
+        path = variant
+    media = 'image/webp' if path.suffix == '.webp' else 'image/svg+xml' if path.suffix == '.svg' else 'image/png'
+    return FileResponse(path, media_type=media, headers={'Cache-Control':f'public, max-age={max_age}', 'Vary':'Accept'})
 
 
 def page_user_or_redirect(request: Request, db: Session, next_path: str) -> User | RedirectResponse:
@@ -409,7 +418,7 @@ def ensure_credit_balance(db: Session, user: User, license_obj: License, credit_
     if not license_obj.usage_limit:
         return
     # Serialize paid AI requests from the same account until usage is committed.
-    db.scalar(select(User).where(User.id == user.id).with_for_update())
+    lock_account(db, user)
     used = active_usage_count(db, user, license_obj)
     if used + credit_cost > license_obj.usage_limit:
         remaining = max(license_obj.usage_limit - used, 0)
@@ -435,13 +444,16 @@ def record_usage(db: Session, user: User, model: str, input_tokens: int, output_
 
 
 def provider_error(prefix: str, response: httpx.Response) -> HTTPException:
+    if response.status_code in {408,429,500,502,503,504}:
+        return HTTPException(503, 'La IA está ocupada temporalmente. Tus datos se conservan y no se han descontado créditos. Espera unos segundos y pulsa Reintentar.', headers={'Retry-After':'5'})
     if response.status_code in {401, 403}:
         detail = f"{prefix}: clave API no valida o proveedor mal seleccionado. Revisa Admin > IA."
     elif response.status_code == 404:
         detail = f"{prefix}: modelo o URL no disponible (404). En Admin > IA comprueba Gemini y selecciona {GEMINI_CHAT_DEFAULT} para Diplomator."
     else:
         detail = f"{prefix} ({response.status_code}). Revisa Admin > IA."
-    return HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
+    logger.warning('provider_error status=%s context=%s', response.status_code, prefix)
+    return HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail='El servicio de IA no está disponible en este momento. No se han descontado créditos. Tus datos se conservan; puedes reintentar más tarde o contactar con soporte.')
 
 
 DEFAULT_TOPIC_STYLE_GUIDE = """Treat the selected topic as a strict boundary. Build a coherent oral presentation from the few angles that directly answer that exact topic; never force a standard history, impact, controversy or future section when it is not relevant. Prefer specific explanations, mechanisms, examples and dates that help explain the subject. Every paragraph must earn its place: remove generic introductions, broad international-relations filler, moral conclusions and nearby subjects that were not requested. The student profile controls language and difficulty only; it is never source material. Use natural transitions and an informed C1/C2 tone. Include only facts you can state confidently and never invent dates, statistics, institutions or quotations."""
@@ -698,14 +710,14 @@ def marketing_asset(filename: str):
 
 
 @router.get("/assets/landing/{filename}")
-def eso_landing_asset(filename: str):
+def eso_landing_asset(filename: str, request: Request):
     if filename not in {"cambridge-hero-v1.png", "eso-study-desk.png", "profesor-dashboard.png", "profesor-materiales.png", "profesor-clases-apoyo.png", "profesor-hero-app-v3.png", "profesor-hero-app-v4.png", "eso-dashboard.png", "eso-mobile.png", "profesor-mobile.png", "diplomator-dashboard.png", "diplomator-mobile.png", "facturas-dashboard.png", "facturas-mobile.png"}:
         raise HTTPException(status_code=404, detail="Asset no encontrado.")
-    return marketing_file(f"assets/landing/{filename}", "image/png")
+    return raster_response(marketing_path(f"assets/landing/{filename}"), request, max_age=300)
 
 
 @router.get("/assets/cambridge-games/{filename}")
-def cambridge_game_illustration(filename: str):
+def cambridge_game_illustration(filename: str, request: Request):
     if filename not in {"open-cloze-editor-v1.png", "word-formation-forge-v1.png", "writing-mailroom-v1.png", "c1-research-desk-v1.webp", "c2-editorial-observatory-v1.webp", "c1-debate-room-v1.webp", "c2-precision-press-v1.webp"}:
         raise HTTPException(status_code=404, detail="Ilustración no encontrada.")
     local_path = PROJECT_ROOT / "apps" / "cambridge" / "assets" / "games" / filename
@@ -713,7 +725,7 @@ def cambridge_game_illustration(filename: str):
     path = local_path if local_path.exists() else static_path
     if not path.exists():
         raise HTTPException(status_code=404, detail="Ilustración no encontrada.")
-    return FileResponse(path, media_type="image/webp" if filename.endswith(".webp") else "image/png", headers={"Cache-Control": "public, max-age=86400"})
+    return raster_response(path, request)
 
 
 @router.get("/assets/listening/{filename}")
@@ -749,6 +761,7 @@ def diplomator_refresh_styles():
 @router.get("/assets/eso-english-mission-scenes.css")
 @router.get("/assets/eso-mission-boards.css")
 @router.get("/assets/eso-games.js")
+@router.get("/assets/eso-state-recovery.js")
 @router.get("/assets/eso-english-missions.js")
 @router.get("/assets/eso-math-missions.js")
 @router.get("/assets/eso-language-missions.js")
@@ -799,6 +812,7 @@ def profesor_temario_catalogue():
 @router.get("/profesor-challenge-games.js")
 @router.get("/profesor-notifications.js")
 @router.get("/app-notifications.js")
+@router.get("/app-session.js")
 @router.get("/profesor-subjects.js")
 @router.get("/profesor-profile.js")
 @router.get("/profesor-public-games-extra.js")
@@ -903,7 +917,7 @@ def profesor_study_room(request: Request):
 
 
 @router.get("/assets/games/{filename}")
-def profesor_game_illustration(filename: str):
+def profesor_game_illustration(filename: str, request: Request):
     base_files = {
         "access-session.svg",
         "pasapalabra-stage.png",
@@ -1071,7 +1085,7 @@ def profesor_game_illustration(filename: str):
     if not path.exists():
         raise HTTPException(status_code=404, detail="Ilustración de actividad no encontrada.")
     media_type = "image/svg+xml" if filename.endswith(".svg") else "image/png" if filename.endswith(".png") else "image/webp"
-    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
+    return raster_response(path, request)
 
 
 @router.get("/assets/vendor/katex/{filename:path}")
@@ -1904,6 +1918,8 @@ def grant_gamification_reward(payload: dict, request: Request, user: User = Depe
     if not isinstance(metadata, dict) or len(json.dumps(metadata, ensure_ascii=False)) > 4000:
         raise HTTPException(status_code=422, detail="Metadatos de recompensa no válidos.")
     try:
+        from app.services.study_rewards import validate_reward
+        validate_reward(db, user, str(payload.get('event_type', '')).strip().upper(), str(payload.get('source_id', '')).strip())
         result = award_event(db, user, payload.get("event_type", ""), payload.get("source_id", ""), metadata)
         db.commit()
         db.refresh(result.profile)
@@ -1987,6 +2003,10 @@ def save_state(payload: dict, request: Request, response: Response, user: User =
             raise HTTPException(409, detail="Hay cambios más recientes en otra pestaña. Tu borrador sigue en este navegador.")
         if previous and not payload and request.headers.get("x-confirm-empty-state") != "true":
             raise HTTPException(409, detail="Para vaciar el progreso debes confirmar el reinicio desde la aplicación.")
+    if app_key in {'eso_adultos', 'cambridge'}:
+        from app.services.study_state import validate_study_state
+        validate_study_state(app_state_data(row, app_key), payload,
+            confirm_empty=request.headers.get('x-confirm-empty-state') == 'true')
     if app_key == "profesor_particular":
         expected = state_history.check_revision(row, request.headers.get("if-match"))
         state_history.validate_transition(app_state_data(row, app_key), payload,
@@ -2550,6 +2570,7 @@ async def teacher_support(payload: dict, user: User = Depends(current_user), lic
 
 
 @router.post("/api/chat")
+@reliable_ai
 async def chat(payload: dict, request: Request, user: User = Depends(current_user), license_obj: License = Depends(current_license), db: Session = Depends(get_db), app_key_override: str | None = None):
     settings = get_settings()
     points_model_choice = payload.pop("points_model_choice", "auto")
@@ -2591,7 +2612,7 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
         if chat_provider == "gemini":
             res = await send_gemini()
         else:
-            res = await client.post(chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
+            res = await provider_post(client, chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=payload)
         if purpose == "points" and chat_provider == "gemini" and res.status_code == 404 and payload["model"].startswith("gemini-2.5-"):
             fallback_model = payload["model"]
             fallback_reason = "legacy_model"
@@ -2599,12 +2620,14 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
             payload["model"] = GEMINI_CHAT_DEFAULT
             res = await send_gemini()
     if res.status_code >= 400:
-        if native_gemini:
+        if native_gemini and purpose == 'points':
             raise HTTPException(status_code=502, detail=gemini_failure_message(res, api_key))
         raise provider_error("Error del proveedor IA", res)
     data = gemini_chat_data(res.json()) if native_gemini else res.json()
     choices = data.get("choices") or []
     content = choices[0].get("message", {}).get("content", "") if choices else ""
+    if not isinstance(content, str) or not content.strip():
+        raise HTTPException(502, 'La IA ha devuelto una respuesta vacía. No se han descontado créditos. Puedes reintentar sin perder tu trabajo.')
     input_tokens, output_tokens = token_usage(data)
     if purpose == "points":
         try:
@@ -2623,11 +2646,11 @@ async def chat(payload: dict, request: Request, user: User = Depends(current_use
     db.add(conv)
     db.flush()
     db.add(Message(conversation_id=conv.id, organization_id=user.organization_id, user_id=user.id, role="assistant", content=content[:20000]))
-    db.commit()
     return {"ok": True, "content": content, "provider": chat_provider, "model": payload["model"], "replaced_model": fallback_model, "fallback_reason": fallback_reason, "legacy_model_replaced": legacy_model_replaced}
 
 
 @router.post("/api/ocr")
+@reliable_ai
 async def ocr(payload: dict, request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db), app_key_override: str | None = None):
     ensure_credit_balance(db, user, _, 1)
     product = _.product_code
@@ -2657,18 +2680,20 @@ async def ocr(payload: dict, request: Request, user: User = Depends(current_user
         "temperature": 0,
     }
     async with httpx.AsyncClient(timeout=120) as client:
-        res = await client.post(chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=request_payload)
+        res = await provider_post(client, chat_url, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, json=request_payload)
     if res.status_code >= 400:
         raise provider_error("Error del proveedor OCR", res)
     body = res.json()
     text = body.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+    if not text:
+        raise HTTPException(502, 'No se ha detectado texto legible. No se han descontado créditos. Prueba con una imagen más clara.')
     input_tokens, output_tokens = token_usage(body)
     record_usage(db, user, model, input_tokens, output_tokens, product_code_for_app(app_key_override or request_app_key(request)))
-    db.commit()
     return {"ok": True, "text": text, "provider": provider, "model": model}
 
 
 @router.post("/api/transcribe")
+@reliable_ai
 async def transcribe(payload: dict, request: Request, user: User = Depends(current_user), _: License = Depends(current_license), db: Session = Depends(get_db), app_key_override: str | None = None):
     ensure_credit_balance(db, user, _, 1)
     settings = get_settings()
@@ -2676,19 +2701,23 @@ async def transcribe(payload: dict, request: Request, user: User = Depends(curre
     audio_b64 = str(payload.get("audio", ""))
     if "," in audio_b64:
         audio_b64 = audio_b64.split(",", 1)[1]
-    audio = base64.b64decode(audio_b64)
+    try:
+        audio = base64.b64decode(audio_b64, validate=True)
+    except (ValueError, __import__('binascii').Error) as exc:
+        raise HTTPException(422, 'El audio no es válido. Vuelve a grabarlo o selecciona otro archivo.') from exc
     if len(audio) > 25 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="Audio demasiado grande.")
     files = {"file": (payload.get("filename") or "audio.webm", audio, payload.get("contentType") or "audio/webm")}
     transcribe_model = normalize_transcribe_model(transcribe_provider, app_ai_override(db, _.product_code, "transcribe").get("model") or setting_value(db, "transcribe_model") or settings.transcribe_model or GROQ_TRANSCRIBE_DEFAULT)
     data = {"model": transcribe_model, "language": payload.get("language") or "en"}
     async with httpx.AsyncClient(timeout=180) as client:
-        res = await client.post(transcribe_url, headers={"Authorization": f"Bearer {api_key}"}, data=data, files=files)
+        res = await provider_post(client, transcribe_url, headers={"Authorization": f"Bearer {api_key}"}, data=data, files=files)
     if res.status_code >= 400:
         raise provider_error("Error del proveedor de transcripcion", res)
     body = res.json()
+    if not str(body.get('text') or '').strip():
+        raise HTTPException(422, 'No se ha detectado voz en el audio. No se han descontado créditos. Puedes volver a grabarlo.')
     record_usage(db, user, transcribe_model, 0, 0, product_code_for_app(app_key_override or request_app_key(request)))
-    db.commit()
     return {"ok": True, "text": body.get("text", "")}
 
 
@@ -2712,7 +2741,7 @@ async def legacy_chat(payload: dict, request: Request, db: Session = Depends(get
     if not decision.ok or not decision.license:
         raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=decision.message)
     user = db.scalar(select(User).where(User.organization_id == decision.license.organization_id, User.is_active.is_(True)))
-    return await chat(dict(payload.get("payload") or {}), request=request, user=user, _=decision.license, db=db, app_key_override=legacy_app_key(payload))
+    return await chat(dict(payload.get("payload") or {}), request=request, user=user, license_obj=decision.license, db=db, app_key_override=legacy_app_key(payload))
 
 
 @router.post("/ocr")

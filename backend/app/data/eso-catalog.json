@@ -1,0 +1,79 @@
+{
+  "lengua": [
+    "len-comprension",
+    "len-resumen",
+    "len-gramatica",
+    "len-ortografia",
+    "len-redaccion",
+    "len-literatura",
+    "len-textos-vida",
+    "len-medios",
+    "len-argumentacion",
+    "len-comentario",
+    "len-presentacion"
+  ],
+  "ingles": [
+    "ing-reading",
+    "ing-vocabulary",
+    "ing-grammar",
+    "ing-writing",
+    "ing-listening",
+    "ing-dialogues",
+    "ing-forms",
+    "ing-connectors",
+    "ing-exam-strategy"
+  ],
+  "geografia": [
+    "geo-mapas",
+    "geo-relieve",
+    "geo-poblacion",
+    "geo-economia",
+    "geo-global",
+    "geo-espana-europa",
+    "geo-medioambiente",
+    "geo-fuentes",
+    "geo-ciudad",
+    "geo-trabajo"
+  ],
+  "historia": [
+    "his-antigua",
+    "his-medieval",
+    "his-moderna",
+    "his-contemporanea",
+    "his-sigloxx",
+    "his-ciudadania",
+    "his-espana",
+    "his-andalucia",
+    "his-valores",
+    "his-fuentes",
+    "his-musica-cultura"
+  ],
+  "matematicas": [
+    "mat-numeros",
+    "mat-proporciones",
+    "mat-algebra",
+    "mat-geometria",
+    "mat-funciones",
+    "mat-estadistica",
+    "mat-medida",
+    "mat-finanzas",
+    "mat-problemas",
+    "mat-graficas-examen",
+    "mat-calculadora",
+    "mat-razonamiento"
+  ],
+  "ciencias": [
+    "cie-metodo",
+    "cie-biologia",
+    "cie-ecologia",
+    "cie-materia",
+    "cie-fisica",
+    "cie-tecnologia",
+    "cie-tierra",
+    "cie-cuerpo",
+    "cie-laboratorio",
+    "cie-sostenibilidad",
+    "cie-digitalizacion",
+    "cie-proyecto"
+  ]
+}

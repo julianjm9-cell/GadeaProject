@@ -36,6 +36,7 @@ class ProviderCall(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     organization_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey('organizations.id'), nullable=False)
     request_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    product_code: Mapped[str] = mapped_column(String(40), nullable=False, default='PROFESOR_PARTICULAR', index=True)
     model: Mapped[str] = mapped_column(String(120), nullable=False)
     provider: Mapped[str] = mapped_column(String(24), nullable=False)
     status_code: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -44,3 +45,15 @@ class ProviderCall(Base):
     estimated_usd: Mapped[float | None] = mapped_column(Numeric(14,8), nullable=True)
     duration_ms: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+
+
+class AiRequest(Base, TimestampMixin):
+    __tablename__ = 'ai_requests'
+    __table_args__ = (UniqueConstraint('user_id', 'request_id', name='uq_ai_request_owner'),)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=new_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), index=True)
+    request_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    product_code: Mapped[str] = mapped_column(String(40), nullable=False)
+    fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default='running')
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)

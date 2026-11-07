@@ -2,7 +2,7 @@ const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const {resolve} = require('node:path');
 const {pathToFileURL} = require('node:url');
-const {chromium} = require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium} = require('./browser-runtime.cjs');
 
 test('un juego solo confirma el guardado tras respuesta del servidor y permite reintentar', async () => {
   const browser = await chromium.launch({headless:true, channel:'msedge'});

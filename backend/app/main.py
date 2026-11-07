@@ -42,17 +42,21 @@ async def protect_ads(request, call_next):
         if origin and origin not in {*settings.cors_origin_list, settings.public_base_url.rstrip("/")}:
             return JSONResponse({"detail":"Origen no permitido."},status_code=403,headers={"Cache-Control":"private, no-store"})
     protected = path.startswith(("/api/profesor/ads", "/api/profesor/ad-", "/profesor/anunc", "/admin/profesor-ads"))
-    private_data = path in {"/api/state", "/api/profile"} or path.startswith(("/api/profesor/", "/api/app-notifications/", "/auth/", "/cuenta", "/admin/"))
+    private_data = path.startswith(("/api/", "/auth/", "/cuenta", "/admin/")) and not path.startswith(("/api/public/", "/api/profesor/ads", "/api/profesor/ad-policy"))
     limit = 512_000
     if path == "/api/state":
         limit = settings.max_state_bytes
+    elif path == '/api/transcribe':
+        limit = 36_000_000
+    elif path == '/api/ocr':
+        limit = 12_000_000
     elif path == "/api/profesor/materials":
         limit = 11_300_000  # Preserve existing 8 MiB uploads encoded as base64.
     elif protected:
         limit = 7_100_000
     elif path.startswith("/api/profesor/editor-drafts/"):
         limit = 1_100_000
-    bounded = protected or path == "/api/state" or path.startswith(("/auth/", "/api/profesor/", "/api/app-notifications/"))
+    bounded = protected or path in {"/api/state", "/api/chat", "/api/ocr", "/api/transcribe"} or path.startswith(("/auth/", "/api/profesor/", "/api/app-notifications/"))
     if bounded and request.method in {"POST", "PUT", "PATCH"}:
         body = bytearray()
         async for chunk in request.stream():
@@ -81,7 +85,8 @@ app.add_middleware(
     allow_origins=settings.cors_origin_list,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "X-Client-App", "If-Match", "X-Confirm-Empty-State", "Idempotency-Key"],
+    expose_headers=["ETag", "Retry-After"],
 )
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=[host.strip() for host in settings.allowed_hosts.split(",") if host.strip()], www_redirect=False)
 
