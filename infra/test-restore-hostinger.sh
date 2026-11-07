@@ -15,7 +15,6 @@ trap cleanup EXIT
 docker compose exec -T postgres sh -c 'pg_restore -U "$POSTGRES_USER" --no-owner --exit-on-error -d "$1"' sh "$CHECK_DB" < "$BACKUP_PATH/database.dump"
 docker compose exec -T -e RESTORE_CHECK_DATABASE="$CHECK_DB" backend python -m app.restore_check
 if [[ -f "$BACKUP_PATH/documents.tar" ]]; then
-  tar -tf "$BACKUP_PATH/documents.tar" > /dev/null
-  printf 'OK archivo de documentos legible (no se ha extraído sobre los documentos reales).\n'
+  python3 infra/verify-documents-archive.py "$BACKUP_PATH/documents.tar"
 fi
 printf 'Restauración SQL aislada comprobada. La base de producción no se ha sustituido.\n'
