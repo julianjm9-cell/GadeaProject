@@ -2,9 +2,157 @@ const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const {resolve} = require('node:path');
 const {pathToFileURL} = require('node:url');
+const {readFileSync} = require('node:fs');
 const {chromium,webkit} = require('C:/Users/julia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const browserType = process.env.CAMBRIDGE_BROWSER === 'webkit' ? webkit : chromium;
 const launchOptions = process.env.CAMBRIDGE_BROWSER === 'webkit' ? {headless:true} : {headless:true,channel:'msedge'};
+
+test('dos pestañas conservan copias separadas si una guardó primero', async () => {
+  const browser = await browserType.launch(launchOptions);
+  try {
+    const context = await browser.newContext();
+    const html = readFileSync(resolve(__dirname,'../apps/cambridge/index.html'),'utf8');
+    let serverState = {};
+    let etag = '"cambridge-test-0"';
+    let posts = 0;
+    let startFirst;
+    let releaseFirst;
+    let completeFirst;
+    const firstStarted = new Promise(resolve => { startFirst = resolve; });
+    const firstHold = new Promise(resolve => { releaseFirst = resolve; });
+    const firstCompleted = new Promise(resolve => { completeFirst = resolve; });
+    await context.route('http://cambridge.test/**',async route => {
+      const request = route.request();
+      const path = new URL(request.url()).pathname;
+      if (path === '/cambridge') return route.fulfill({status:200,contentType:'text/html',body:html});
+      if (path === '/api/status') return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,user:{id:77,name:'Prueba'}})});
+      if (path === '/api/state' && request.method() === 'GET') return route.fulfill({status:200,contentType:'application/json',headers:{ETag:etag},body:JSON.stringify(serverState)});
+      if (path === '/api/state' && request.method() === 'POST') {
+        const order = ++posts;
+        if (order === 1) { startFirst(); await firstHold; }
+        if (order === 2) await firstCompleted;
+        if (request.headers()['if-match'] !== etag) return route.fulfill({status:409,contentType:'application/json',body:'{}'});
+        serverState = request.postDataJSON();
+        etag = '"cambridge-test-1"';
+        if (order === 1) completeFirst();
+        return route.fulfill({status:200,contentType:'application/json',headers:{ETag:etag},body:'{"ok":true}'});
+      }
+      return route.fulfill({status:404,body:''});
+    });
+    const first = await context.newPage();
+    const second = await context.newPage();
+    await Promise.all([first.goto('http://cambridge.test/cambridge'),second.goto('http://cambridge.test/cambridge')]);
+    await Promise.all([first.waitForFunction(() => cambridgeStateETag !== null),second.waitForFunction(() => cambridgeStateETag !== null)]);
+    const firstSave = first.evaluate(() => { state.writingPractice.answer = 'Borrador de la primera pestaña'; return persist(); });
+    await firstStarted;
+    const secondSave = second.evaluate(() => { state.writingPractice.answer = 'Borrador de la segunda pestaña'; return persist(); });
+    await second.waitForFunction(() => cambridgePendingEntries().length === 2);
+    releaseFirst();
+    assert.equal(await firstSave,true);
+    assert.equal(await secondSave,false);
+    assert.equal(serverState.writingPractice.answer,'Borrador de la primera pestaña');
+    assert.deepEqual(await second.evaluate(() => cambridgePendingEntries().map(({pending}) => pending.snapshot.writingPractice.answer)),['Borrador de la segunda pestaña']);
+    await second.reload();
+    await second.waitForFunction(() => document.getElementById('cambridgeSaveStatus').textContent.includes('versión diferente'));
+    assert.equal(await second.getByRole('button',{name:'Descargar copia'}).count(),1);
+    assert.equal(await second.getByRole('button',{name:'Recuperar borrador'}).count(),0);
+  } finally {
+    await browser.close();
+  }
+});
+
+test('Inglés bloquea el guardado si no puede identificar la cuenta', async () => {
+  const browser = await browserType.launch(launchOptions);
+  try {
+    const context = await browser.newContext();
+    const html = readFileSync(resolve(__dirname,'../apps/cambridge/index.html'),'utf8');
+    let saves = 0;
+    await context.route('http://cambridge.test/**',route => {
+      const path = new URL(route.request().url()).pathname;
+      if (path === '/cambridge') return route.fulfill({status:200,contentType:'text/html',body:html});
+      if (path === '/api/status') return route.fulfill({status:503,contentType:'application/json',body:'{}'});
+      if (path === '/api/state' && route.request().method() === 'GET') return route.fulfill({status:200,contentType:'application/json',headers:{ETag:'"cambridge-test-0"'},body:'{}'});
+      if (path === '/api/state' && route.request().method() === 'POST') saves++;
+      return route.fulfill({status:404,body:''});
+    });
+    const page = await context.newPage();
+    await page.goto('http://cambridge.test/cambridge');
+    await page.waitForFunction(() => cambridgeStateETag !== null);
+    assert.equal(await page.evaluate(() => cambridgeSaveBlocked),true);
+    assert.equal(await page.evaluate(() => { state.writingPractice.answer = 'No debe enviarse sin cuenta'; return persist(); }),false);
+    assert.equal(saves,0);
+    assert.match(await page.locator('#cambridgeSaveStatus').innerText(),/identificar tu cuenta|carga o la versión/i);
+  } finally {
+    await browser.close();
+  }
+});
+
+test('Writing conserva el borrador y el destino del OCR al recargar', async () => {
+  const browser = await browserType.launch(launchOptions);
+  try {
+    const page = await browser.newPage();
+    await page.goto(pathToFileURL(resolve(__dirname,'../apps/cambridge/index.html')).href);
+    await page.waitForFunction(() => typeof runWritingOcr === 'function');
+    await page.evaluate(() => {
+      showTab('escrita');
+      backendRequest = async path => {
+        if (path !== '/api/ocr') throw new Error(`Unexpected endpoint: ${path}`);
+        return {text:'Write about a memorable journey.'};
+      };
+    });
+    await page.locator('#writingAnswer').fill('My original answer.');
+    await page.locator('#writingImageInput').setInputFiles({name:'sample.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/iXsAAAAASUVORK5CYII=','base64')});
+    await page.waitForFunction(() => writingImageDataUrl.startsWith('data:image/png'));
+    await page.getByRole('button',{name:'Detectar texto'}).click();
+    assert.equal(await page.locator('#writingOcrReview').inputValue(),'Write about a memorable journey.');
+    await page.locator('#writingOcrReview').fill('Write about a journey you remember.');
+    await page.locator('#writingOcrTarget').selectOption('prompt');
+    await page.reload();
+    await page.waitForFunction(() => typeof renderWritingPractice === 'function');
+    await page.evaluate(() => showTab('escrita'));
+    assert.equal(await page.locator('#writingOcrTarget').inputValue(),'prompt');
+    assert.equal(await page.locator('#writingOcrReview').inputValue(),'Write about a journey you remember.');
+    await page.getByRole('button',{name:'Insertar texto revisado'}).click();
+    assert.equal(await page.locator('#writingPrompt').inputValue(),'Write about a journey you remember.');
+    assert.equal(await page.locator('#writingAnswer').inputValue(),'My original answer.');
+  } finally {
+    await browser.close();
+  }
+});
+
+test('Speaking libera el micrófono y ofrece escritura si se deniega el permiso', async () => {
+  const browser = await browserType.launch(launchOptions);
+  try {
+    const page = await browser.newPage();
+    await page.goto(pathToFileURL(resolve(__dirname,'../apps/cambridge/index.html')).href);
+    await page.waitForFunction(() => typeof startReciteRecording === 'function');
+    const result = await page.evaluate(async () => {
+      let stopped = false;
+      const stream = {getTracks:() => [{stop:() => { stopped = true; }}]};
+      Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async () => stream}});
+      window.MediaRecorder = class {
+        static isTypeSupported() { return true; }
+        constructor() { this.state = 'inactive'; this.mimeType = 'audio/webm'; }
+        start() { this.state = 'recording'; }
+        requestData() { this.ondataavailable({data:new Blob(['a'.repeat(2048)],{type:'audio/webm'})}); }
+        stop() { this.state = 'inactive'; this.onstop(); }
+      };
+      const started = await startReciteRecording();
+      const blob = await stopReciteRecording();
+      reciteAudioBlob = null;
+      Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async () => { throw new DOMException('Denied','NotAllowedError'); }}});
+      const denied = await startReciteRecording();
+      return {started,size:blob?.size,stopped,denied,status:document.getElementById('reciteStatus').textContent};
+    });
+    assert.equal(result.started,true);
+    assert.ok(result.size >= 2048);
+    assert.equal(result.stopped,true);
+    assert.equal(result.denied,false);
+    assert.match(result.status,/permiso|bloqueado/i);
+  } finally {
+    await browser.close();
+  }
+});
 
 test('el progreso de Inglés separa niveles, cuenta actividades únicas y explica errores', async () => {
   const browser = await browserType.launch(launchOptions);

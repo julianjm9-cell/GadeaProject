@@ -1698,7 +1698,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
             </div>
             <div class="writing-field">
               <label for="writingOcrTarget">Insertar en</label>
-              <select class="writing-select" id="writingOcrTarget">
+              <select class="writing-select" id="writingOcrTarget" onchange="setWritingOcrTarget(this.value)">
                 <option value="prompt">Enunciado</option>
                 <option value="answer" selected>Respuesta</option>
               </select>
@@ -2655,33 +2655,62 @@ let cambridgeSaveQueue = Promise.resolve(true);
 let cambridgeFlushRunning = null;
 let cambridgeQueuedSnapshot = null;
 let cambridgeSaveSerial = 0;
-let cambridgePendingKey = 'cambridge_trainer_pending_demo';
-function downloadCambridgePending() {
-  const pending = lsFallbackRead(cambridgePendingKey);
+let cambridgePendingPrefix = 'cambridge_trainer_pending_demo';
+const cambridgeTabToken = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+let cambridgePendingKey = `${cambridgePendingPrefix}_${cambridgeTabToken}`;
+function cambridgePendingEntries() {
+  const entries = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key || (key !== cambridgePendingPrefix && !key.startsWith(`${cambridgePendingPrefix}_`))) continue;
+    const pending = lsFallbackRead(key);
+    if (pending && Object.keys(pending).length) entries.push({key,pending});
+  }
+  return entries;
+}
+function downloadCambridgePending(key = cambridgePendingKey) {
+  const pending = lsFallbackRead(key);
   const data = pending.snapshot || (Object.keys(pending).length ? pending : state);
   const url = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'titulo-ingles-copia.json';
+  link.download = `titulo-ingles-copia-${key.split('_').pop()}.json`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url),1000);
 }
 function offerCambridgePendingRecovery() {
-  const pending = lsFallbackRead(cambridgePendingKey);
-  if (!pending || !Object.keys(pending).length) return;
-  const canRestore = !cambridgeSaveBlocked && pending.baseETag && pending.baseETag === cambridgeStateETag && pending.snapshot;
-  showCambridgeSaveStatus(canRestore ? 'Hay un borrador sin guardar en este navegador.' : 'Hay una copia local pendiente. Descárgala antes de continuar; el servidor tiene una versión distinta.',true);
-  if (!canRestore) return;
-  const restore = document.createElement('button');
-  restore.type = 'button';
-  restore.textContent = 'Recuperar borrador';
-  restore.style.marginLeft = '8px';
-  restore.onclick = async () => {
-    state = {...state,...pending.snapshot};
-    normalizeAppState();
-    if (await persist()) location.reload();
-  };
-  document.getElementById('cambridgeSaveStatus').append(restore);
+  const entries = cambridgePendingEntries();
+  if (!entries.length) return;
+  showCambridgeSaveStatus(entries.length === 1 ? 'Hay una copia local pendiente en este navegador.' : `Hay ${entries.length} copias locales pendientes de distintas pestañas.`);
+  const status = document.getElementById('cambridgeSaveStatus');
+  entries.forEach(({key,pending},index) => {
+    const canRestore = !cambridgeSaveBlocked && Boolean(pending.baseETag && pending.baseETag === cambridgeStateETag && pending.snapshot);
+    const row = document.createElement('div');
+    row.style.marginTop = '8px';
+    const recoveryText = canRestore ? 'puedes recuperarla' : pending.baseETag !== cambridgeStateETag ? 'el servidor tiene una versión diferente; descárgala para revisarla' : 'no se puede restaurar automáticamente; descárgala antes de continuar';
+    row.textContent = `Copia ${index + 1}: ${recoveryText}. `;
+    const download = document.createElement('button');
+    download.type = 'button';
+    download.textContent = 'Descargar copia';
+    download.onclick = () => downloadCambridgePending(key);
+    row.append(download);
+    if (canRestore) {
+      const restore = document.createElement('button');
+      restore.type = 'button';
+      restore.textContent = 'Recuperar borrador';
+      restore.style.marginLeft = '8px';
+      restore.onclick = async () => {
+        state = {...state,...pending.snapshot};
+        normalizeAppState();
+        if (await persist()) {
+          localStorage.removeItem(key);
+          location.reload();
+        }
+      };
+      row.append(restore);
+    }
+    status.append(row);
+  });
 }
 function showCambridgeSaveStatus(message, failed=false) {
   const status = document.getElementById('cambridgeSaveStatus');
@@ -2709,8 +2738,16 @@ function showCambridgeSaveStatus(message, failed=false) {
 // ── INIT ─────────────────────────────────────────────────────────────────
 async function init() {
   let loaded = {};
-  const backend = await loadBackendStatus();
-  if (backend?.user?.id) cambridgePendingKey = `cambridge_trainer_pending_${backend.user.id}`;
+  let backend = await loadBackendStatus();
+  if (location.pathname === '/cambridge' && !backend?.user?.id) backend = await loadBackendStatus();
+  if (backend?.user?.id) {
+    cambridgePendingPrefix = `cambridge_trainer_pending_${backend.user.id}`;
+    cambridgePendingKey = `${cambridgePendingPrefix}_${cambridgeTabToken}`;
+  }
+  if (location.pathname === '/cambridge' && !backend?.user?.id) {
+    cambridgeSaveBlocked = true;
+    showCambridgeSaveStatus('No se pudo identificar tu cuenta. Recarga la página antes de editar o guardar el progreso.',true);
+  }
   if (BACKEND_SUPPORTED && (backend || location.pathname === '/cambridge')) {
     try { loaded = await readJSON('state.json'); }
     catch (error) {
@@ -3153,6 +3190,7 @@ function renderWritingPractice() {
   if (document.getElementById('writingPart')) document.getElementById('writingPart').value = data.part || '1';
   if (document.getElementById('writingPrompt')) document.getElementById('writingPrompt').value = data.prompt || '';
   if (document.getElementById('writingAnswer')) document.getElementById('writingAnswer').value = data.answer || '';
+  if (document.getElementById('writingOcrTarget')) document.getElementById('writingOcrTarget').value = data.ocrTarget || 'answer';
   const ocr = document.getElementById('writingOcrReview');
   if (ocr) ocr.value = data.ocrReview || '';
   const ocrBox = document.getElementById('writingOcrReviewBox');
@@ -3345,10 +3383,15 @@ function persistWritingOcrReview() {
   state.writingPractice.ocrReview = document.getElementById('writingOcrReview')?.value || '';
   persist();
 }
+function setWritingOcrTarget(target) {
+  state.writingPractice.ocrTarget = target === 'prompt' ? 'prompt' : 'answer';
+  persist();
+}
 function insertWritingOcrReview() {
   const text = document.getElementById('writingOcrReview')?.value.trim();
   if (!text) { setWritingStatus('Corrige o descarta el texto detectado antes de continuar.'); return; }
-  appendWritingText(state.writingPractice.ocrTarget === 'prompt' ? 'writingPrompt' : 'writingAnswer',text);
+  const target = document.getElementById('writingOcrTarget')?.value || state.writingPractice.ocrTarget;
+  appendWritingText(target === 'prompt' ? 'writingPrompt' : 'writingAnswer',text);
   state.writingPractice.ocrReview = '';
   document.getElementById('writingOcrReviewBox').hidden = true;
   persist();
@@ -4383,7 +4426,7 @@ async function resetAll() {
   }
   localStorage.removeItem('cambridge_trainer_state');
   localStorage.removeItem('cambridge_trainer_license');
-  localStorage.removeItem(cambridgePendingKey);
+  cambridgePendingEntries().forEach(({key}) => localStorage.removeItem(key));
   location.reload();
 }
 
