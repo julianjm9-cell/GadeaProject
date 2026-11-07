@@ -6,8 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Título de inglés | Tu escritorio virtual</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap');
-
   :root {
     --ink: #102a43;
     --muted: #526879;
@@ -1441,8 +1439,9 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 @media(max-width:620px){.b2-grid{grid-template-columns:1fr}.b2-intro,.b2-panel{padding:19px}.b2-board{min-height:240px;padding:12px}.b2-scene-page{padding:15px}.b2-filters input{min-width:0}.b2-filters label{flex:1 1 145px}.writing-report-scores,.writing-compare{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1">
+<link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261108-1">
 </head>
-<body>
+<body class="english-studio">
 <div class="selection-toolbar" id="selectionToolbar" aria-label="Formato de texto">
   <button type="button" title="Negrita" onmousedown="applySelectionFormat(event,'bold')">B</button>
   <button type="button" title="Cursiva" style="font-style:italic" onmousedown="applySelectionFormat(event,'italic')">I</button>
@@ -1489,10 +1488,9 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   <!-- TAB: SESIÓN -->
   <div id="tab-sesion" class="tab active">
     <div id="sessionEmpty" class="session-empty">
-      <h2>Tu escritorio virtual</h2>
-      <p class="desk-subtitle">Un paso cada día con tu inglés.</p>
+      <div class="studio-welcome"><div class="studio-welcome-copy"><span class="studio-eyebrow">Tu espacio de inglés</span><h2>Hoy, un paso más<br>con tu inglés.</h2><p class="desk-subtitle">Aprende por temas, ponte a prueba y descubre todo lo que ya sabes hacer.</p><div class="studio-levels" aria-label="Niveles de estudio"><span>B2 First</span><span>C1 Advanced</span><span>C2 Proficiency</span></div></div><div class="studio-welcome-scene"><img src="/assets/cambridge-studio/academy-v2.webp" width="1280" height="720" alt="Un espacio de estudio luminoso con vistas a un patio universitario" fetchpriority="high"><div class="studio-scene-note"><span aria-hidden="true">✓</span><span>Tu ritmo. Tu siguiente meta.</span></div></div></div>
       <div class="english-session">
-        <div class="english-session-title"><span class="english-icon" aria-hidden="true">📅</span><div><h3>Sesión diaria</h3><p>Elige nivel y tiempo para practicar el examen correcto.</p><div class="english-level-control"><label for="examLevelSelect">Nivel</label><select id="examLevelSelect" onchange="setExamLevel(this.value)"><option value="B2 First">B2 First</option><option value="C1 Advanced">C1 Advanced</option><option value="C2 Proficiency">C2 Proficiency</option></select></div></div></div>
+        <div class="english-session-title"><span class="english-icon" aria-hidden="true"><img src="/assets/cambridge-studio/route-card-v2.webp" width="80" height="80" alt=""></span><div><h3>Sesión diaria</h3><p>Elige nivel y tiempo para practicar el examen correcto.</p><div class="english-level-control"><label for="examLevelSelect">Nivel</label><select id="examLevelSelect" onchange="setExamLevel(this.value)"><option value="B2 First">B2 First</option><option value="C1 Advanced">C1 Advanced</option><option value="C2 Proficiency">C2 Proficiency</option></select></div></div></div>
         <div class="cambridge-duration-options" role="group" aria-label="Duración de la sesión">
           <button type="button" data-english-duration="15" onclick="selectEnglishDuration(15)"><strong>15 min</strong><span>Repaso rápido</span></button>
           <button type="button" data-english-duration="30" onclick="selectEnglishDuration(30)"><strong>30 min</strong><span>Estudio equilibrado</span></button>
@@ -1501,13 +1499,14 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
         <button class="btn english-start" type="button" onclick="startSessionForDuration(englishDuration)">Empezar sesión →</button>
       </div>
       <div class="english-resume" id="englishResume" hidden><span><strong>Sesión en curso</strong><small id="englishResumeTopic"></small></span><button class="btn btn-outline" type="button" onclick="resumeEnglishSession()">Reanudar →</button></div>
+      <div class="studio-section-label"><h3>¿Qué te apetece practicar?</h3><p>Elige una herramienta y empieza por ahí.</p></div>
       <div class="english-grid">
-        <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">📚</span><div><h3>Biblioteca de temas</h3><p>Speaking, writing, grammar y vocabulario por niveles.</p></div><button class="english-link" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">Ver temas →</button></div><div class="english-topic-chips"><button type="button" onclick="openEnglishTopicGroup('Speaking')"><span aria-hidden="true">💬</span>Speaking</button><button type="button" onclick="openEnglishTopicGroup('Writing')"><span aria-hidden="true">✍️</span>Writing</button><button type="button" onclick="openEnglishTopicGroup('Use of English')"><span aria-hidden="true">Aa</span>Grammar</button><button type="button" onclick="openEnglishTopicGroup('Reading')"><span aria-hidden="true">📖</span>Reading</button></div></section>
-        <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">✦</span><div><h3 id="englishHomeRouteTitle">Ruta B2 First</h3><p id="englishHomeRouteDescription">Seis lecciones breves con explicación y corrección.</p></div><button class="english-link" type="button" onclick="showTab('b2',document.querySelector('[data-tab-btn=&quot;b2&quot;]'))">Abrir ruta →</button></div><div class="english-card-steps"><span>Aprender</span><span>Comprobar</span><span>Repasar</span></div><p class="english-home-route-count" id="englishHomeRouteProgress">0 lecciones completadas</p></section>
-        <section class="english-card"><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">◆</span><div><h3 id="englishHomeGameTitle">Juegos B2</h3><p id="englishHomeGameDescription">Seis retos vinculados a la ruta de lectura, vocabulario, gramática y escritura.</p></div><button class="english-link" type="button" onclick="showTab('juegos',document.querySelector('[data-tab-btn=&quot;juegos&quot;]'))">Ver juegos →</button></div><div class="english-card-steps"><span id="englishHomeGameCount">6 misiones</span><span id="englishHomeGameBenefit">Corrección inmediata</span></div><p class="english-home-route-count" id="englishHomeGameProgress">0 juegos terminados</p></section>
-        <section class="english-card"><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">🎙️</span><div><h3>Speaking</h3><p>Prepara tu respuesta, grábate y recibe correcciones.</p></div><button class="english-link" type="button" onclick="showTab('recitar',document.querySelector('[data-tab-btn=&quot;recitar&quot;]'))">Practicar →</button></div><div class="english-card-steps"><span>Preparar</span><span>Grabar</span><span>Corregir</span></div></section>
-        <section class="english-card"><div class="english-card-head"><span class="english-icon gold" aria-hidden="true">✍️</span><div><h3>Writing</h3><p>Escribe, genera un modelo y mejora tu texto con feedback.</p></div><button class="english-link" type="button" onclick="showTab('escrita',document.querySelector('[data-tab-btn=&quot;escrita&quot;]'))">Ir a writing →</button></div><div class="english-card-steps"><span>Redactar</span><span>Modelo</span><span>Corregir por foto</span></div></section>
-        <section class="english-card"><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">📈</span><div><h3>Tu progreso</h3><p>Sesiones guardadas y temas completados.</p></div><button class="english-link" type="button" onclick="showTab('progreso',document.querySelector('[data-tab-btn=&quot;progreso&quot;]'))">Ver progreso →</button></div><div class="english-meter"><div class="english-meter-track"><span id="englishHomeBar"></span></div><strong id="englishHomePct">0%</strong></div><button class="english-next" type="button" onclick="continueEnglishStudy()"><span><strong>Siguiente tema</strong><small id="englishHomeNext">Busca tu próximo tema.</small></span><span aria-hidden="true">→</span></button></section>
+        <section class="english-card" data-feature="library"><div class="studio-card-art"><img src="/assets/cambridge-studio/academy-card-v2.webp" width="640" height="360" alt="" loading="lazy"><span class="studio-card-tag">Explora</span></div><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">📚</span><div><h3>Biblioteca de temas</h3><p>Speaking, writing, grammar y vocabulario por niveles.</p></div><button class="english-link" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">Ver temas →</button></div><div class="english-topic-chips"><button type="button" onclick="openEnglishTopicGroup('Speaking')"><span aria-hidden="true">💬</span>Speaking</button><button type="button" onclick="openEnglishTopicGroup('Writing')"><span aria-hidden="true">✍️</span>Writing</button><button type="button" onclick="openEnglishTopicGroup('Use of English')"><span aria-hidden="true">Aa</span>Grammar</button><button type="button" onclick="openEnglishTopicGroup('Reading')"><span aria-hidden="true">📖</span>Reading</button></div></section>
+        <section class="english-card" data-feature="route"><div class="studio-card-art"><img src="/assets/cambridge-studio/route-card-v2.webp" width="640" height="360" alt="" loading="lazy"><span class="studio-card-tag">Paso a paso</span></div><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">✦</span><div><h3 id="englishHomeRouteTitle">Ruta B2 First</h3><p id="englishHomeRouteDescription">Seis lecciones breves con explicación y corrección.</p></div><button class="english-link" type="button" onclick="showTab('b2',document.querySelector('[data-tab-btn=&quot;b2&quot;]'))">Abrir ruta →</button></div><div class="english-card-steps"><span>Aprender</span><span>Comprobar</span><span>Repasar</span></div><p class="english-home-route-count" id="englishHomeRouteProgress">0 lecciones completadas</p></section>
+        <section class="english-card" data-feature="games"><div class="studio-card-art"><img src="/assets/cambridge-studio/games-card-v2.webp" width="640" height="360" alt="" loading="lazy"><span class="studio-card-tag">Juega y aprende</span></div><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">◆</span><div><h3 id="englishHomeGameTitle">Juegos B2</h3><p id="englishHomeGameDescription">Seis retos vinculados a la ruta de lectura, vocabulario, gramática y escritura.</p></div><button class="english-link" type="button" onclick="showTab('juegos',document.querySelector('[data-tab-btn=&quot;juegos&quot;]'))">Ver juegos →</button></div><div class="english-card-steps"><span id="englishHomeGameCount">6 misiones</span><span id="englishHomeGameBenefit">Corrección inmediata</span></div><p class="english-home-route-count" id="englishHomeGameProgress">0 juegos terminados</p></section>
+        <section class="english-card" data-feature="speaking"><div class="studio-card-art"><img src="/assets/cambridge-studio/audio-card-v2.webp" width="640" height="360" alt="" loading="lazy"><span class="studio-card-tag">Habla con confianza</span></div><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">🎙️</span><div><h3>Speaking</h3><p>Prepara tu respuesta, grábate y recibe correcciones.</p></div><button class="english-link" type="button" onclick="showTab('recitar',document.querySelector('[data-tab-btn=&quot;recitar&quot;]'))">Practicar →</button></div><div class="english-card-steps"><span>Preparar</span><span>Grabar</span><span>Corregir</span></div></section>
+        <section class="english-card" data-feature="writing"><div class="studio-card-art"><img src="/assets/cambridge-studio/writing-card-v2.webp" width="640" height="360" alt="" loading="lazy"><span class="studio-card-tag">Dale forma a tus ideas</span></div><div class="english-card-head"><span class="english-icon gold" aria-hidden="true">✍️</span><div><h3>Writing</h3><p>Escribe, genera un modelo y mejora tu texto con feedback.</p></div><button class="english-link" type="button" onclick="showTab('escrita',document.querySelector('[data-tab-btn=&quot;escrita&quot;]'))">Ir a writing →</button></div><div class="english-card-steps"><span>Redactar</span><span>Modelo</span><span>Corregir por foto</span></div></section>
+        <section class="english-card" data-feature="progress"><div class="studio-card-art"><img src="/assets/cambridge-studio/progress-card-v2.webp" width="640" height="360" alt="" loading="lazy"><span class="studio-card-tag">Cada paso cuenta</span></div><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">📈</span><div><h3>Tu progreso</h3><p>Sesiones guardadas y temas completados.</p></div><button class="english-link" type="button" onclick="showTab('progreso',document.querySelector('[data-tab-btn=&quot;progreso&quot;]'))">Ver progreso →</button></div><div class="english-meter"><div class="english-meter-track"><span id="englishHomeBar"></span></div><strong id="englishHomePct">0%</strong></div><button class="english-next" type="button" onclick="continueEnglishStudy()"><span><strong>Siguiente tema</strong><small id="englishHomeNext">Busca tu próximo tema.</small></span><span aria-hidden="true">→</span></button></section>
       </div>
       <div class="english-resume" id="englishWritingResume" hidden><span><strong>Borrador de Writing</strong><small id="englishWritingResumeText"></small></span><button class="btn btn-outline" type="button" onclick="showTab('escrita',document.querySelector('[data-tab-btn=&quot;escrita&quot;]'))">Continuar →</button></div>
     </div>
@@ -1571,7 +1570,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   </div>
 
   <div id="tab-progreso" class="tab english-progress">
-    <div class="english-progress-heading"><h2>Tu progreso</h2><p>Consulta tus sesiones, rutas y respuestas para repasar.</p></div>
+    <div class="english-progress-heading studio-page-head"><div><span>CADA PASO CUENTA</span><h2>Tu progreso</h2><p>Consulta tus sesiones, rutas y respuestas para repasar.</p></div><img src="/assets/cambridge-studio/progress-card-v2.webp" width="160" height="90" alt="" loading="lazy"></div>
     <section class="english-progress-overview" aria-label="Objetivo del mes"><div class="english-progress-overview-main"><span class="english-icon" aria-hidden="true">◎</span><div class="english-progress-copy"><span>Objetivo del mes</span><strong id="englishMonthCount">0 de 12 sesiones</strong><div class="english-progress-meter"><div role="progressbar" id="englishProgressTrack" aria-label="Sesiones guardadas este mes" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="englishProgressBar"></span></div><b id="englishProgressPct">0%</b></div></div><div class="english-progress-level"><span id="englishLevelBadge" class="pending" aria-hidden="true">★</span><div><strong id="englishLevel">Nivel inicial</strong><small id="englishLevelHint">Guarda tu primera sesión.</small></div></div></div><ol class="english-milestones" id="englishMilestones" aria-label="Hitos del mes"></ol></section>
     <div class="english-progress-grid"><section class="english-progress-panel"><h3>Actividad de la semana</h3><div class="english-week" id="englishWeek"></div><div class="english-facts" id="englishFacts"></div></section><section class="english-progress-panel"><h3>Por competencias</h3><div class="english-skills" id="englishSkills"></div></section></div>
     <section aria-labelledby="englishRouteProgressTitle"><div class="english-route-progress-head"><div><h3 id="englishRouteProgressTitle">Tus rutas de examen</h3><p>Lecciones y juegos terminados en cada nivel. Cada actividad se cuenta una sola vez.</p></div></div><div class="english-route-progress-cards" id="englishRouteProgressCards"></div><div class="english-route-skill-row" id="englishRouteSkillRow" aria-label="Destrezas de la ruta elegida"></div></section>
@@ -1582,6 +1581,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 
   <!-- TAB: RECITAR -->
   <div id="tab-recitar" class="tab">
+    <div class="studio-page-head"><div><span>SPEAKING</span><h2>Hazte oír. Gana confianza.</h2><p>Prepara tus ideas, grábate y revisa el texto transcrito.</p></div><img src="/assets/cambridge-studio/audio-card-v2.webp" width="160" height="90" alt="" loading="lazy"></div>
     <div class="recite-layout">
       <div class="recite-panel">
         <div class="section-label">Práctica oral</div>
@@ -1663,6 +1663,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 
   <!-- TAB: ESCRITA -->
   <div id="tab-escrita" class="tab">
+    <div class="studio-page-head"><div><span>WRITING</span><h2>Dale forma a tus ideas.</h2><p>Escribe, revisa y compara versiones sin perder tu borrador.</p></div><img src="/assets/cambridge-studio/writing-card-v2.webp" width="160" height="90" alt="" loading="lazy"></div>
     <div class="writing-layout">
       <div class="writing-panel">
         <div class="section-label">Práctica escrita</div>
@@ -1744,10 +1745,10 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   <div id="tab-entrenar" class="tab">
     <div class="b2-intro"><span>PRACTICA A TU RITMO</span><h2>Elige cómo entrenar hoy</h2><p>Usa tu nivel seleccionado en la cabecera. Retoma una sesión o practica speaking, writing y listening.</p></div>
     <div class="b2-grid">
-      <article class="b2-card"><small>SESIÓN GUIADA</small><h3>Práctica de hoy</h3><p>Elige 15, 30 o 45 minutos desde Inicio y continúa donde lo dejaste.</p><button type="button" onclick="showTab('sesion',document.querySelector('[data-tab-btn=&quot;sesion&quot;]'))">Ir a Inicio →</button></article>
-      <article class="b2-card"><small>PRODUCCIÓN ORAL</small><h3>Speaking</h3><p>Prepara tus ideas, grábate y revisa la respuesta.</p><button type="button" onclick="showTab('recitar')">Practicar speaking →</button></article>
-      <article class="b2-card"><small>PRODUCCIÓN ESCRITA</small><h3>Writing</h3><p>Escribe o retoma tu borrador y revisa los comentarios.</p><button type="button" onclick="showTab('escrita')">Practicar writing →</button></article>
-      <article class="b2-card"><small>COMPRENSIÓN ORAL</small><h3>Listening B2</h3><p>Cuatro prácticas: extractos, frases, hablantes y una entrevista.</p><button type="button" onclick="showTab('examenes',document.querySelector('[data-tab-btn=&quot;examenes&quot;]'))">Practicar listening →</button></article>
+      <article class="b2-card studio-practice-card"><div class="studio-card-art"><img src="/assets/cambridge-studio/route-card-v2.webp" width="640" height="360" alt="" loading="lazy"></div><small>SESIÓN GUIADA</small><h3>Práctica de hoy</h3><p>Elige 15, 30 o 45 minutos desde Inicio y continúa donde lo dejaste.</p><button type="button" onclick="showTab('sesion',document.querySelector('[data-tab-btn=&quot;sesion&quot;]'))">Ir a Inicio →</button></article>
+      <article class="b2-card studio-practice-card"><div class="studio-card-art"><img src="/assets/cambridge-studio/audio-card-v2.webp" width="640" height="360" alt="" loading="lazy"></div><small>PRODUCCIÓN ORAL</small><h3>Speaking</h3><p>Prepara tus ideas, grábate y revisa la respuesta.</p><button type="button" onclick="showTab('recitar')">Practicar speaking →</button></article>
+      <article class="b2-card studio-practice-card"><div class="studio-card-art"><img src="/assets/cambridge-studio/writing-card-v2.webp" width="640" height="360" alt="" loading="lazy"></div><small>PRODUCCIÓN ESCRITA</small><h3>Writing</h3><p>Escribe o retoma tu borrador y revisa los comentarios.</p><button type="button" onclick="showTab('escrita')">Practicar writing →</button></article>
+      <article class="b2-card studio-practice-card"><div class="studio-card-art"><img src="/assets/cambridge-studio/audio-card-v2.webp" width="640" height="360" alt="" loading="lazy"></div><small>COMPRENSIÓN ORAL</small><h3>Listening B2</h3><p>Cuatro prácticas: extractos, frases, hablantes y una entrevista.</p><button type="button" onclick="showTab('examenes',document.querySelector('[data-tab-btn=&quot;examenes&quot;]'))">Practicar listening →</button></article>
     </div>
   </div>
   <div id="tab-examenes" class="tab">
@@ -1771,6 +1772,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 
   <!-- TAB: TEMAS -->
   <div id="tab-temas" class="tab">
+    <div class="studio-page-head"><div><span>TU BIBLIOTECA</span><h2>Un tema para cada siguiente paso.</h2><p>Busca una idea o elige una categoría del nivel que estás preparando.</p></div><img src="/assets/cambridge-studio/academy-card-v2.webp" width="160" height="90" alt="" loading="lazy"></div>
     <div class="topics-layout">
       <div class="topics-main">
         <div class="topics-search-bar">
@@ -1809,7 +1811,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
             <div class="chat-msg"><strong>Asistente:</strong> Pregúntame por ejemplos, enfoques, fechas o argumentos para cualquier tema.</div>
           </div>
           <div class="chat-row">
-            <textarea class="recite-input" id="topicPageChatInput" spellcheck="true" placeholder="Ej: Dame una estructura para Speaking Part 2 sobre educaci?n..."></textarea>
+            <textarea class="recite-input" id="topicPageChatInput" spellcheck="true" placeholder="Ej: Dame una estructura para Speaking Part 2 sobre educación..."></textarea>
             <button class="btn btn-small btn-blue" onclick="askTopicPageChat()">Enviar</button>
           </div>
         </div>
@@ -2750,6 +2752,7 @@ function offerCambridgePendingRecovery() {
 function showCambridgeSaveStatus(message, failed=false) {
   const status = document.getElementById('cambridgeSaveStatus');
   if (!status) return;
+  status.dataset.failed = String(failed);
   status.style.display = 'block';
   status.style.borderColor = failed ? '#efb2a9' : '#b7d1f3';
   status.style.background = failed ? '#fff3ef' : '#f0f7ff';
@@ -6061,6 +6064,10 @@ function updateEnglishRouteLabels() {
   if (routeIntro) routeIntro.innerHTML = level === 'C1 Advanced' ? '<span>C1 ADVANCED</span><h2>Lee entre líneas y argumenta con precisión</h2><p>Seis lecciones propias de Reading, Use of English, Writing y Speaking. Aprende la idea, compruébala y entra en el juego relacionado.</p>' : level === 'C2 Proficiency' ? '<span>C2 PROFICIENCY</span><h2>Sintetiza fuentes y defiende el matiz</h2><p>Seis lecciones propias para separar datos, elegir palabras precisas y responder con cautela en Writing y Speaking.</p>' : '<span>B2 FIRST</span><h2>Aprende, practica y comprueba</h2><p>Seis lecciones breves para preparar Reading, Writing y Use of English. Elige una tarjeta para abrir sus pasos.</p>';
   if (gamesIntro) gamesIntro.innerHTML = level === 'C1 Advanced' ? '<span>JUEGOS C1</span><h2>Investiga y debate</h2><p>Dos misiones con cinco decisiones cada una: distingue pruebas de inferencias y construye una propuesta conjunta.</p>' : level === 'C2 Proficiency' ? '<span>JUEGOS C2</span><h2>Observa y edita</h2><p>Dos misiones con cinco decisiones cada una: contrasta dossiers y afina el lenguaje antes de publicar.</p>' : '<span>JUEGOS B2</span><h2>Practica dentro de la historia</h2><p>Seis retos vinculados a las lecciones B2. Completa textos, descubre pistas, transforma frases y prepara mensajes para un lector.</p>';
 }
+function englishLessonArtwork(lesson) {
+  const scene = /Writing/.test(lesson.skill) ? 'writing' : /Speaking/.test(lesson.skill) ? 'audio' : /Reading/.test(lesson.skill) ? 'academy' : 'route';
+  return `<div class="studio-card-art"><img src="/assets/cambridge-studio/${scene}-card-v2.webp" width="640" height="360" alt="" loading="lazy"></div>`;
+}
 function renderB2Lessons() {
   const list = document.getElementById('b2LessonList');
   if (!list) return;
@@ -6073,7 +6080,7 @@ function renderB2Lessons() {
     (!query || `${lesson.title} ${lesson.idea}`.toLocaleLowerCase().includes(query)) &&
     (skill === 'all' || lesson.skill === skill) && (part === 'all' || lesson.part === part) &&
     (status === 'all' || (status === 'done') === Boolean(state.b2Progress?.[lesson.id]?.completed)));
-  list.innerHTML = selected.length ? selected.map(lesson => `<article class="b2-card"><small>${escHtml(lesson.skill)} · parte ${lesson.part}</small><h3>${escHtml(lesson.title)}</h3><p>${escHtml(lesson.idea)}</p><span class="b2-card-status">${state.b2Progress?.[lesson.id]?.completed ? '✓ Completado' : 'Por practicar'}</span><button type="button" onclick="openB2Lesson('${lesson.id}')">${state.b2Progress?.[lesson.id]?.completed ? 'Revisar lección' : 'Abrir lección'}</button></article>`).join('') : '<p class="b2-empty">No hay lecciones para estos filtros.</p>';
+  list.innerHTML = selected.length ? selected.map(lesson => `<article class="b2-card">${englishLessonArtwork(lesson)}<small>${escHtml(lesson.skill)} · parte ${lesson.part}</small><h3>${escHtml(lesson.title)}</h3><p>${escHtml(lesson.idea)}</p><span class="b2-card-status">${state.b2Progress?.[lesson.id]?.completed ? '✓ Completado' : 'Por practicar'}</span><button type="button" onclick="openB2Lesson('${lesson.id}')">${state.b2Progress?.[lesson.id]?.completed ? 'Revisar lección' : 'Abrir lección'}</button></article>`).join('') : '<p class="b2-empty">No hay lecciones para estos filtros.</p>';
 }
 function openB2Lesson(id) {
   const lessons = englishRouteLessons();
@@ -6099,7 +6106,7 @@ function renderB2Games() {
   if (!list) return;
   updateEnglishRouteLabels();
   const icons = {editor:'✍',archive:'⌕',machine:'⚙',opencloze:'✎',forge:'✦',mailroom:'✉','c1-research':'⌕','c1-debate':'◉','c2-observatory':'⌕','c2-press':'✒'};
-  list.innerHTML = englishRouteGames().map(game => { const run = state.b2GameRuns?.[game.id]; const art = ENGLISH_GAME_ART[game.id] ? `style="background-image:url('${cambridgeGameAsset(ENGLISH_GAME_ART[game.id])}')"` : ''; return `<article class="b2-card"><div class="b2-game-thumb" data-kind="${game.id}" ${art} aria-hidden="true"><span>${icons[game.id]}</span></div><small>${escHtml(game.skill)}</small><h3>${escHtml(game.title)}</h3><p>${escHtml(game.intro)}</p><span class="b2-card-status">${run ? `Etapa ${run.stage+1}/${game.stages.length}` : state.b2Games?.[game.id] ? '✓ Completado' : 'Por jugar'}</span><button type="button" onclick="openB2Game('${game.id}')">${run ? 'Continuar' : state.b2Games?.[game.id] ? 'Volver a jugar' : 'Jugar'}</button></article>`; }).join('');
+  list.innerHTML = englishRouteGames().map(game => { const run = state.b2GameRuns?.[game.id]; const art = ENGLISH_GAME_ART[game.id] ? `style="background-image:url('${cambridgeGameAsset(ENGLISH_GAME_ART[game.id])}')"` : `style="background-image:url('/assets/cambridge-studio/games-card-v2.webp')"`; return `<article class="b2-card"><div class="b2-game-thumb" data-kind="${game.id}" ${art} aria-hidden="true"><span>${icons[game.id]}</span></div><small>${escHtml(game.skill)}</small><h3>${escHtml(game.title)}</h3><p>${escHtml(game.intro)}</p><span class="b2-card-status">${run ? `Etapa ${run.stage+1}/${game.stages.length}` : state.b2Games?.[game.id] ? '✓ Completado' : 'Por jugar'}</span><button type="button" onclick="openB2Game('${game.id}')">${run ? 'Continuar' : state.b2Games?.[game.id] ? 'Volver a jugar' : 'Jugar'}</button></article>`; }).join('');
 }
 function openB2Game(id) {
   const game = englishRouteGames().find(item => item.id === id);

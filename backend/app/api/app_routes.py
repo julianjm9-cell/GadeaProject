@@ -728,6 +728,20 @@ def cambridge_game_illustration(filename: str, request: Request):
     return raster_response(path, request)
 
 
+@router.get("/assets/cambridge-studio/{filename}")
+def cambridge_studio_asset(filename: str):
+    if filename not in {'studio.css', 'landing.css', 'academy-v2.webp', 'academy-card-v2.webp', 'route-card-v2.webp',
+                        'games-card-v2.webp', 'writing-card-v2.webp', 'audio-card-v2.webp', 'progress-card-v2.webp'}:
+        raise HTTPException(404, 'Recurso no encontrado.')
+    local = PROJECT_ROOT / 'apps' / 'cambridge' / 'assets' / 'studio' / filename
+    packaged = STATIC_DIR / 'assets' / 'cambridge-studio' / filename
+    path = local if local.is_file() else packaged
+    if not path.is_file():
+        raise HTTPException(404, 'Recurso no encontrado.')
+    return FileResponse(path, media_type='text/css' if filename.endswith('.css') else 'image/webp',
+                        headers={'Cache-Control': 'public, max-age=86400'})
+
+
 @router.get("/assets/listening/{filename}")
 def cambridge_listening_asset(filename: str):
     allowed = {"b2-short-extracts.json", "b2-sentence-completion.json", "b2-repair-workshop.wav", "b2-multiple-matching.json", "b2-interview.json", "b2-city-wildlife-interview.wav"} | {
