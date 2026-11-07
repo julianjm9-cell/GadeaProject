@@ -1439,6 +1439,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 #b2LessonDetail,#b2GameBoard{scroll-margin-top:170px}
 @media(max-width:620px){.b2-grid{grid-template-columns:1fr}.b2-intro,.b2-panel{padding:19px}.b2-board{min-height:240px;padding:12px}.b2-scene-page{padding:15px}.b2-filters input{min-width:0}.b2-filters label{flex:1 1 145px}.writing-report-scores,.writing-compare{grid-template-columns:1fr}}
 </style>
+<link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1">
 </head>
 <body>
 <div class="selection-toolbar" id="selectionToolbar" aria-label="Formato de texto">
@@ -1470,6 +1471,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   <div class="header-right">
     <label class="cambridge-header-level" for="headerExamLevel">Nivel <select id="headerExamLevel" onchange="setExamLevel(this.value)"><option value="B2 First">B2 First</option><option value="C1 Advanced">C1 Advanced</option><option value="C2 Proficiency">C2 Proficiency</option></select></label>
     <div class="header-meta" id="headerMeta">Sesiones: 0<br>Temas: 0<br>Créditos: -</div>
+    <button type="button" data-app-notifications="CAMBRIDGE" data-app-label="Inglés" aria-label="Notificaciones"></button>
     <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil',this)" title="Perfil" aria-label="Perfil">P</button>
   </div>
 </header>
@@ -6172,6 +6174,7 @@ function restartB2Game() {
 installFrontendErrorReporter();
 init();
 </script>
+<script src="/app-notifications.js?v=20261107-1" defer></script>
 </body>
 </html>
 

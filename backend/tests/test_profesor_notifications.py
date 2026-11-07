@@ -2,7 +2,9 @@ from uuid import UUID, uuid4
 import importlib.util
 from pathlib import Path
 from unittest.mock import patch
-from sqlalchemy import func, select
+from sqlalchemy import create_engine, func, select, text
+from alembic.migration import MigrationContext
+from alembic.operations import Operations
 from test_access_control import client, login, seed_user
 from app.models import AuditLog, ClientState, License, ProfesorNotification, ProfesorNotificationRecipient, User
 from app.api.profesor_notifications import recipients
@@ -115,6 +117,32 @@ def test_paging_and_statistics_preserve_read_messages(client):
     assert all(m['read'] == 1 and m['delivered'] == 2 for m in history['messages'])
 
 
+def test_other_apps_have_separate_audiences_and_inboxes(client):
+    web, factory, teacher, other, a, b, admin = setup(client)
+    seed_user(factory, email='eso@example.com', product_codes=('ESO_ADULTOS',))
+    eso = {'Authorization': 'Bearer '+login(web, email='eso@example.com').json()['access_token']}
+    path = '/api/app-notifications/ESO_ADULTOS'
+    payload = {'send_key': str(uuid4()), 'title': 'Tema nuevo', 'body': 'Disponible en ESO Adultos.'}
+    result = web.post('/admin/app-notifications/ESO_ADULTOS', headers=admin, json=payload)
+    assert result.status_code == 200, result.text
+    notice_id = result.json()['id']
+    assert result.json()['delivered'] == 1
+    listing = web.get(path, headers=eso)
+    assert listing.headers['cache-control'] == 'private, no-store'
+    assert listing.json()['messages'][0]['title'] == 'Tema nuevo'
+    assert web.get('/api/profesor/notifications', headers=a).json()['messages'] == []
+    assert web.get(path, headers=a).status_code == 403
+    assert web.get('/admin/app-notifications/PROFESOR_PARTICULAR', headers=admin).json()['messages'] == []
+    assert web.post('/admin/app-notifications/PROFESOR_PARTICULAR', headers=admin, json=payload).status_code == 409
+    assert web.post('/api/app-notifications/PROFESOR_PARTICULAR/read', headers=a, json={'ids':[notice_id]}).json()['total'] == 0
+    assert web.post('/api/app-notifications/PROFESOR_PARTICULAR/'+notice_id+'/dismiss', headers=a).status_code == 404
+    assert web.post(path+'/read', headers=eso, json={'ids':[notice_id]}).json()['unread'] == 0
+    assert web.post(path+'/'+notice_id+'/dismiss', headers=eso).json()['total'] == 0
+    assert web.get('/admin/app-notifications/UNKNOWN', headers=admin).status_code == 404
+    for url in ('/app-notifications.js', '/assets/app-notifications.css'):
+        assert web.get(url).status_code == 200
+
+
 def test_migration_and_assets_are_packaged(client):
     web, factory = client
     root = Path(__file__).resolve().parents[2]
@@ -126,6 +154,21 @@ def test_migration_and_assets_are_packaged(client):
         module.upgrade()
     for url in ('/profesor-notifications.js', '/assets/profesor-notifications.css'):
         assert web.get(url).status_code == 200
+
+
+def test_app_notification_migration_preserves_old_teacher_messages():
+    root = Path(__file__).resolve().parents[2]
+    spec = importlib.util.spec_from_file_location('app_notification_migration', root/'backend/alembic/versions/0025_app_notifications.py')
+    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+    engine = create_engine('sqlite+pysqlite://')
+    with engine.begin() as connection:
+        connection.execute(text('CREATE TABLE profesor_notifications (id TEXT PRIMARY KEY, title TEXT NOT NULL)'))
+        connection.execute(text("INSERT INTO profesor_notifications (id, title) VALUES ('old', 'Aviso anterior')"))
+        operations = Operations(MigrationContext.configure(connection))
+        with patch.object(module, 'op', operations):
+            module.upgrade()
+        row = connection.execute(text("SELECT title, product_code FROM profesor_notifications WHERE id='old'")).one()
+        assert row == ('Aviso anterior', 'PROFESOR_PARTICULAR')
 
 
 def test_account_deletion_removes_only_its_recipient_records(client):

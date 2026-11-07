@@ -440,6 +440,7 @@ body{background:radial-gradient(circle at 92% 0,rgba(31,195,181,.08),transparent
 .dlg{border-radius:16px;padding:22px}.toast{border-radius:10px;padding:11px 16px}
 @media(max-width:900px){html,body{overflow:hidden}.topbar{min-height:68px;padding:8px 10px}.brand-block{min-width:154px}.logo-mark,.logo-mark img{width:36px;height:36px}.logo-wordmark{font-size:14px}.role-select{display:none!important}.client-tabs-wrap{min-height:44px}.topbar-right{display:none}.app-body{padding:8px;gap:8px;flex-direction:column}.sidebar{display:flex;width:100%;height:auto;min-height:48px;border-radius:12px;overflow:visible}.sidebar-head,#wsEmpresaBox,.sidebar-bottom{display:none!important}.sidebar-section{display:flex;gap:5px;overflow-x:auto;padding:5px}.sidebar-section>div{display:none}.nav-item{width:auto;min-width:max-content;min-height:36px;padding:6px 10px}.nav-badge{margin-left:4px}.main{flex:1;border-radius:12px}.toolbar{min-height:52px;border-radius:12px 12px 0 0;overflow-x:auto}.tb-title{font-size:16px}.fac-stats{display:none}.tbl-wrap{margin:0 6px 6px}.m-body{grid-template-columns:1fr}.body-resizer{display:none}.img-pane{grid-template-columns:1fr;grid-template-rows:auto minmax(160px,1fr) 140px}.img-tb{grid-column:1;grid-row:1}.img-wrap{grid-column:1;grid-row:2}.ocr-box{grid-column:1;grid-row:3;border-right:none;border-top:1px solid var(--border)}.ocr-resizer{display:none}.cfg-grid{grid-template-columns:1fr}}
 </style>
+<link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1">
 </head>
 <body>
 <div class="toast" id="toast"></div>
@@ -464,6 +465,8 @@ body{background:radial-gradient(circle at 92% 0,rgba(31,195,181,.08),transparent
     <button class="client-add" onclick="document.getElementById('wsDlg').classList.add('open');document.getElementById('wsNombre').value='';setTimeout(()=>document.getElementById('wsNombre').focus(),100)" title="Nuevo cliente">+</button>
   </div>
   <div class="topbar-right" style="padding-left:10px">
+    <button type="button" data-app-notifications="OCR_FACTURAS" data-app-label="Lector Facturas" aria-label="Notificaciones"></button>
+    <button type="button" class="ocr-account-button" onclick="toggleGlobalConfig()" title="Cuenta" aria-label="Cuenta"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg></button>
     <!-- Botón config global oculto -->
     <button onclick="toggleGlobalConfig()" title="Configuración global" style="height:28px;padding:0 8px;font-size:14px;background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text2);transition:all .15s" id="btnGlobalCfg">⚙️</button>
     <button class="dm-btn" onclick="toggleDark()" title="Tema">🌙</button>
@@ -2522,5 +2525,7 @@ async function añadirEjemploDesdeFactura(archivo, proveedor, workspace) {
   pollOllama();
 })();
 </script>
+<style>.ocr-account-button{width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text2);cursor:pointer}@media(max-width:900px){.topbar-right{display:flex!important;padding-left:0!important}.topbar-right #btnGlobalCfg,.topbar-right .dm-btn{display:none!important}}</style>
+<script src="/app-notifications.js?v=20261107-1" defer></script>
 </body>
 </html>

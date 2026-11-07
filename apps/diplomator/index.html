@@ -906,7 +906,7 @@
     .recite-stage { padding: 14px; }
   }
 </style>
-<style>.brand-area h1{font-family:Arial,sans-serif;text-transform:none;letter-spacing:-.04em;font-weight:800}.brand-word{color:#062653;gap:0}.brand-word .brand-initial{font-size:1em;font-style:normal;color:inherit}.brand-word:after{display:none}.diplomator-header-icon{box-shadow:none;border-radius:0}.profile-mini,.profile-avatar{background:#062653!important}.profile-mini img,.profile-avatar img{object-fit:contain;padding:4px}</style><link rel="icon" type="image/png" sizes="any" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="shortcut icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="apple-touch-icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="stylesheet" href="assets/diplomator-refresh.css?v=20261002"></head>
+<style>.brand-area h1{font-family:Arial,sans-serif;text-transform:none;letter-spacing:-.04em;font-weight:800}.brand-word{color:#062653;gap:0}.brand-word .brand-initial{font-size:1em;font-style:normal;color:inherit}.brand-word:after{display:none}.diplomator-header-icon{box-shadow:none;border-radius:0}.profile-mini,.profile-avatar{background:#062653!important}.profile-mini img,.profile-avatar img{object-fit:contain;padding:4px}</style><link rel="icon" type="image/png" sizes="any" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="shortcut icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="apple-touch-icon" href="/assets/brand/diplomator-simple-v2.png?v=20260928-3"><link rel="stylesheet" href="assets/diplomator-refresh.css?v=20261002"><link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1"></head>
 <body>
 <div class="selection-toolbar" id="selectionToolbar" aria-label="Formato de texto">
   <button type="button" title="Negrita" onmousedown="applySelectionFormat(event,'bold')">B</button>
@@ -934,6 +934,7 @@
   <div class="header-right">
     <div class="header-meta" id="headerMeta">Temas: 0 · Créditos: -</div>
     <button class="header-history" data-tab-btn="historial" onclick="showTab('historial',this)">◷&nbsp; Historial</button>
+    <button type="button" data-app-notifications="DIPLOMATOR" data-app-label="Diplomator" aria-label="Notificaciones"></button>
     <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil',this)" title="Perfil">Perfil</button>
   </div>
 </header>
@@ -4630,6 +4631,7 @@ function applyDiplomatorLocale() {
 installFrontendErrorReporter();
 init().then(() => applyDiplomatorLocale());
 </script>
+<script src="/app-notifications.js?v=20261107-1" defer></script>
 </body>
 </html>
 

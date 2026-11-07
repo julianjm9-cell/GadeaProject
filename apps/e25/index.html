@@ -3378,7 +3378,7 @@
 @media(max-width:760px){.desktop-refresh .exam-workspace #viewer{padding:16px}.exam-home-options{gap:12px}.desktop-refresh .exam-home-options>button{min-height:135px;padding:18px;grid-template-columns:44px minmax(0,1fr) 12px;gap:12px}.exam-home-options i{width:44px;height:44px;border-radius:13px;font-size:23px}.exam-home-options strong{font-size:17px}.exam-home-options small{font-size:12px}.exam-correction .ocr-row{grid-template-columns:1fr}.exam-section-head h3{font-size:22px}.exam-record{padding:16px;gap:12px}.exam-record button{font-size:12px}.exam-correction .exam-submit-row{grid-template-columns:1fr}.exam-correction-tools{align-items:flex-start}.exam-correction-tools>span{line-height:1.6}}
 @media(max-width:520px){.exam-home-options{grid-template-columns:1fr}.desktop-refresh .exam-home-options>button{min-height:107px}.exam-home-options strong{font-size:18px}.exam-home-options small{font-size:13px}.exam-record{align-items:flex-start;flex-direction:column}.exam-record button{align-self:flex-end}.exam-section-head{gap:14px}.exam-correction #correctionOutput{padding:16px}}
 
-</style><link rel="stylesheet" href="assets/eso-final.css?v=20261105-desk-1"><link rel="stylesheet" href="assets/eso-math-scenes.css?v=20261104-1"><link rel="stylesheet" href="assets/eso-english-mission-scenes.css?v=20261104-1"><link rel="stylesheet" href="assets/eso-mission-boards.css?v=20261105-individual-scenes-2"></head>
+</style><link rel="stylesheet" href="assets/eso-final.css?v=20261105-desk-1"><link rel="stylesheet" href="assets/eso-math-scenes.css?v=20261104-1"><link rel="stylesheet" href="assets/eso-english-mission-scenes.css?v=20261104-1"><link rel="stylesheet" href="assets/eso-mission-boards.css?v=20261105-individual-scenes-2"><link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1"></head>
 <body>
 <div class="app">
   <header>
@@ -3395,9 +3395,10 @@
       <button id="navExam" type="button" disabled onclick="openModule('exam')" aria-controls="workspace">Exámenes</button>
       <button id="navProgress" type="button" disabled onclick="showView('progress')" aria-controls="progressView nextProgressView">Progreso</button>
     </nav>
+    <div class="app-account-actions"><button type="button" data-app-notifications="ESO_ADULTOS" data-app-label="ESO Adultos" aria-label="Notificaciones"></button>
     <button class="profile-button" id="profileButton" type="button" onclick="toggleProfile()" title="Perfil" aria-label="Perfil" aria-expanded="false" aria-controls="profilePanel">
       <span class="profile-icon" id="profileIcon">E</span>
-    </button>
+    </button></div>
   </header>
 
   <div id="esoLoadStatus" class="message" role="status" aria-live="polite">Cargando tu progreso guardado…</div>
@@ -8273,5 +8274,6 @@ function installFrontendErrorReporter() {
 installFrontendErrorReporter();
 init();
 </script>
+<script src="/app-notifications.js?v=20261107-1" defer></script>
 </body>
 </html>

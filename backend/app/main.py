@@ -42,7 +42,7 @@ async def protect_ads(request, call_next):
         if origin and origin not in {*settings.cors_origin_list, settings.public_base_url.rstrip("/")}:
             return JSONResponse({"detail":"Origen no permitido."},status_code=403,headers={"Cache-Control":"private, no-store"})
     protected = path.startswith(("/api/profesor/ads", "/api/profesor/ad-", "/profesor/anunc", "/admin/profesor-ads"))
-    private_data = path in {"/api/state", "/api/profile"} or path.startswith(("/api/profesor/", "/auth/", "/cuenta", "/admin/"))
+    private_data = path in {"/api/state", "/api/profile"} or path.startswith(("/api/profesor/", "/api/app-notifications/", "/auth/", "/cuenta", "/admin/"))
     limit = 512_000
     if path == "/api/state":
         limit = settings.max_state_bytes
@@ -52,7 +52,7 @@ async def protect_ads(request, call_next):
         limit = 7_100_000
     elif path.startswith("/api/profesor/editor-drafts/"):
         limit = 1_100_000
-    bounded = protected or path == "/api/state" or path.startswith(("/auth/", "/api/profesor/"))
+    bounded = protected or path == "/api/state" or path.startswith(("/auth/", "/api/profesor/", "/api/app-notifications/"))
     if bounded and request.method in {"POST", "PUT", "PATCH"}:
         body = bytearray()
         async for chunk in request.stream():

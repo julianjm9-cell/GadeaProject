@@ -2177,6 +2177,7 @@
       .library-tabs button { min-width:0; flex:1 1 110px; }
     }
   </style>
+<link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1">
 </head>
 <body>
 <div class="app">
@@ -2193,9 +2194,10 @@
       <button id="navExam" type="button" onclick="openModule('exam')">Exámenes</button>
       <button id="navProgress" type="button" onclick="showView('progress')">Progreso</button>
     </nav>
+    <div class="app-account-actions"><button type="button" data-app-notifications="UNIVERSIDAD_ADULTOS" data-app-label="Universidad +25" aria-label="Notificaciones"></button>
     <button class="profile-button" id="profileButton" type="button" onclick="toggleProfile()" title="Perfil" aria-label="Perfil">
       <span class="profile-icon" id="profileIcon">U</span>
-    </button>
+    </button></div>
   </header>
 
   <section class="panel profile-panel" id="profilePanel" hidden>
@@ -4095,5 +4097,6 @@ function installFrontendErrorReporter() {
 installFrontendErrorReporter();
 init();
 </script>
+<script src="/app-notifications.js?v=20261107-1" defer></script>
 </body>
 </html>
