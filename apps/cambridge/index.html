@@ -1440,6 +1440,8 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 </style>
 <link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1">
 <link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261108-1">
+<link rel="stylesheet" href="/assets/cambridge-studio/games.css?v=20261108-1">
+<script src="/assets/cambridge-studio/games.js?v=20261108-1"></script>
 </head>
 <body class="english-studio">
 <div class="selection-toolbar" id="selectionToolbar" aria-label="Formato de texto">
@@ -2323,6 +2325,7 @@ function setExamLevel(level) {
   activeB2Game = null;
   const gameBoard = document.getElementById('b2GameBoard');
   if (gameBoard) gameBoard.innerHTML = '';
+  document.getElementById('tab-juegos')?.classList.remove('english-playing');
   const lessonDetail = document.getElementById('b2LessonDetail');
   if (lessonDetail) lessonDetail.innerHTML = '';
   if (document.getElementById('tab-b2')?.classList.contains('active')) renderB2Lessons();
@@ -6105,16 +6108,18 @@ function renderB2Games() {
   const list = document.getElementById('b2GameList');
   if (!list) return;
   updateEnglishRouteLabels();
+  if (!activeB2Game) document.getElementById('tab-juegos').classList.remove('english-playing');
   const icons = {editor:'✍',archive:'⌕',machine:'⚙',opencloze:'✎',forge:'✦',mailroom:'✉','c1-research':'⌕','c1-debate':'◉','c2-observatory':'⌕','c2-press':'✒'};
-  list.innerHTML = englishRouteGames().map(game => { const run = state.b2GameRuns?.[game.id]; const art = ENGLISH_GAME_ART[game.id] ? `style="background-image:url('${cambridgeGameAsset(ENGLISH_GAME_ART[game.id])}')"` : `style="background-image:url('/assets/cambridge-studio/games-card-v2.webp')"`; return `<article class="b2-card"><div class="b2-game-thumb" data-kind="${game.id}" ${art} aria-hidden="true"><span>${icons[game.id]}</span></div><small>${escHtml(game.skill)}</small><h3>${escHtml(game.title)}</h3><p>${escHtml(game.intro)}</p><span class="b2-card-status">${run ? `Etapa ${run.stage+1}/${game.stages.length}` : state.b2Games?.[game.id] ? '✓ Completado' : 'Por jugar'}</span><button type="button" onclick="openB2Game('${game.id}')">${run ? 'Continuar' : state.b2Games?.[game.id] ? 'Volver a jugar' : 'Jugar'}</button></article>`; }).join('');
+  list.innerHTML = englishRouteGames().map(game => { const run = state.b2GameRuns?.[game.id]; const art = game.id==='opencloze' ? `style="background-image:url('/assets/cambridge-studio/bridge-world-v1.webp')"` : ENGLISH_GAME_ART[game.id] ? `style="background-image:url('${cambridgeGameAsset(ENGLISH_GAME_ART[game.id])}')"` : `style="background-image:url('/assets/cambridge-studio/games-card-v2.webp')"`; return `<article class="b2-card"><div class="b2-game-thumb" data-kind="${game.id}" ${art} aria-hidden="true"><span>${icons[game.id]}</span>${window.EnglishMissionBoards ? `<small class="mission-card-tag">${escHtml(EnglishMissionBoards.themes[game.id].name)}</small>` : ''}</div><small>${escHtml(game.skill)}</small><h3>${escHtml(game.title)}</h3><p>${escHtml(game.intro)}</p><span class="b2-card-status">${run ? `Etapa ${run.stage+1}/${game.stages.length}` : state.b2Games?.[game.id] ? '✓ Completado' : 'Por jugar'}</span><button type="button" onclick="openB2Game('${game.id}')">${run ? 'Continuar' : state.b2Games?.[game.id] ? 'Volver a jugar' : 'Jugar'}</button></article>`; }).join('');
 }
 function openB2Game(id) {
   const game = englishRouteGames().find(item => item.id === id);
   if (!game) return;
   showTab('juegos',document.querySelector('[data-tab-btn="juegos"]'));
   activeB2Game = id;
-  activeB2Stage = Math.min(Number(state.b2GameRuns?.[id]?.stage || 0),game.stages.length-1);
+  activeB2Stage = Number.isInteger(state.b2GameRuns?.[id]?.stage) ? Math.min(Math.max(0,state.b2GameRuns[id].stage),game.stages.length-1) : 0;
   state.b2GameRuns[id] = state.b2GameRuns[id] || {stage:0,mistakes:0,errors:[],updatedAt:new Date().toISOString()};
+  state.b2GameRuns[id].stage = activeB2Stage;
   persist();
   renderB2GameStage();
   document.getElementById('b2GameBoard').scrollIntoView({block:'start',behavior:'smooth'});
@@ -6123,41 +6128,69 @@ function renderB2GameStage() {
   const game = englishRouteGame(activeB2Game);
   const stage = game?.stages[activeB2Stage];
   if (!stage) return;
+  if (window.EnglishMissionBoards) {
+    document.getElementById('tab-juegos').classList.add('english-playing');
+    const run=state.b2GameRuns[game.id];
+    document.getElementById('b2GameBoard').innerHTML=EnglishMissionBoards.render(game,activeB2Stage,run);
+    if(run.solvedStage===activeB2Stage)showB2GameSuccess(game,stage,stage.correct);
+    return;
+  }
   const response = stage.options ? `<div class="b2-scene-options">${b2OptionOrder(stage.options.length,(activeB2Stage+1)%stage.options.length).map(index => `<button class="b2-scene-option" data-answer-index="${index}" type="button" onclick="answerB2Game(${index})">${escHtml(stage.options[index])}</button>`).join('')}</div>` : '<label for="b2TypedAnswer">Completa el hueco con 2–5 palabras e incluye la palabra clave</label><div class="b2-machine-input"><input class="b2-answer" id="b2TypedAnswer" autocomplete="off" onkeydown="if(event.key===\'Enter\')answerB2Game()"><button type="button" onclick="answerB2Game()">Validar frase</button></div>';
   const ornaments = {editor:'THE EDITOR’S DESK',archive:'CASE FILE · EVIDENCE',machine:'MEANING MACHINE',opencloze:'THE MISSING WORDS',forge:'WORD FORGE',mailroom:'THE MAILROOM','c1-research':'THE RESEARCH DESK','c1-debate':'THE ROUND TABLE','c2-observatory':'THE EDITORIAL OBSERVATORY','c2-press':'THE PRECISION PRESS'};
   const ornament = `<span aria-hidden="true">✦</span><strong>${ornaments[game.id]}</strong><span aria-hidden="true">✦</span>`;
   const art = ENGLISH_GAME_ART[game.id] ? `style="background-image:linear-gradient(#0b2a4650,#0b2a4650),url('${cambridgeGameAsset(ENGLISH_GAME_ART[game.id])}')"` : '';
   document.getElementById('b2GameBoard').innerHTML = `<section class="b2-panel"><div class="b2-game-top"><small>${escHtml(game.skill)} · etapa ${activeB2Stage+1}/${game.stages.length}</small><button type="button" onclick="restartB2Game()">Reiniciar reto</button></div><h2>${escHtml(game.title)}</h2><div class="b2-game-progress" aria-label="Etapa ${activeB2Stage+1} de ${game.stages.length}">${game.stages.map((_,i)=>`<span class="${i<=activeB2Stage?'on':''}"></span>`).join('')}</div><div class="b2-board" data-kind="${game.id}" ${art}><div class="b2-scene-head">${ornament}</div><div class="b2-scene-page"><p>${escHtml(stage.text)}</p>${response}</div></div><div class="b2-feedback" id="b2GameFeedback" role="status">Elige la respuesta en la escena para avanzar.</div><p id="b2GameNext"></p></section>`;
+  if(state.b2GameRuns[game.id]?.solvedStage===activeB2Stage)showB2GameSuccess(game,stage,stage.correct);
 }
-function answerB2Game(index) {
-  const game = englishRouteGame(activeB2Game);
-  const stage = game?.stages[activeB2Stage];
-  if (!stage) return;
-  const typed = document.getElementById('b2TypedAnswer')?.value.trim().replace(/\s+/g,' ').toLowerCase();
-  const correct = stage.options ? index === stage.correct : stage.answers.some(answer => answer.toLowerCase() === typed);
-  if (!correct) {
-    state.b2GameRuns[game.id].mistakes++;
-    state.b2GameRuns[game.id].errors = state.b2GameRuns[game.id].errors || [];
-    state.b2GameRuns[game.id].errors.push({stage:activeB2Stage,answer:stage.options ? stage.options[index] : typed || ''});
-    state.b2GameRuns[game.id].updatedAt = new Date().toISOString();
-    persist();
-    document.getElementById('b2GameFeedback').textContent = 'Todavía no. Revisa el texto y prueba otra opción.';
-    document.querySelectorAll('#b2GameBoard .b2-scene-option').forEach(button=>button.classList.toggle('incorrect',Number(button.dataset.answerIndex)===index));
-    return;
-  }
+function normalizedEnglishGameAnswer(value) {
+  return String(value || '').normalize('NFKC').replace(/[‘’]/g,"'").replace(/\s+/g,' ').trim().toLowerCase();
+}
+function showB2GameSuccess(game,stage,index) {
   document.getElementById('b2GameFeedback').textContent = '¡Correcto! ' + stage.why;
   document.querySelectorAll('#b2GameBoard .b2-scene-option').forEach(button=>{button.disabled=true;button.classList.toggle('correct',Number(button.dataset.answerIndex)===index);});
   document.querySelectorAll('#b2GameBoard .b2-answer').forEach(control=>control.disabled=true);
   document.getElementById('b2GameNext').innerHTML = `<button type="button" onclick="nextB2GameStage()">${activeB2Stage+1===game.stages.length?'Terminar partida':'Siguiente etapa →'}</button>`;
+  window.EnglishMissionBoards?.result(true,index);
+}
+function answerB2Game(index) {
+  const game = englishRouteGame(activeB2Game);
+  const stage = game?.stages[activeB2Stage];
+  const run = game && state.b2GameRuns[game.id];
+  if (!stage || !run || run.stage!==activeB2Stage || run.solvedStage===activeB2Stage) return false;
+  const typed = normalizedEnglishGameAnswer(document.getElementById('b2TypedAnswer')?.value);
+  if(stage.options && (!Number.isInteger(index) || index<0 || index>=stage.options.length))return false;
+  if(!stage.options && !typed){document.getElementById('b2GameFeedback').textContent='Escribe la expresión antes de activar la máquina.';return false;}
+  const correct = stage.options ? index === stage.correct : stage.answers.some(answer => normalizedEnglishGameAnswer(answer) === typed);
+  if (!correct) {
+    run.mistakes=(Number.isFinite(run.mistakes)?Math.max(0,Math.trunc(run.mistakes)):0)+1;
+    run.errors = Array.isArray(run.errors) ? run.errors : [];
+    run.errors.push({stage:activeB2Stage,answer:stage.options ? stage.options[index] : typed});
+    run.updatedAt = new Date().toISOString();
+    persist();
+    document.getElementById('b2GameFeedback').textContent = 'Todavía no. Revisa el texto y prueba otra pieza.';
+    document.querySelectorAll('#b2GameBoard .b2-scene-option').forEach(button=>button.classList.toggle('incorrect',Number(button.dataset.answerIndex)===index));
+    window.EnglishMissionBoards?.result(false,index);
+    return false;
+  }
+  run.solvedStage=activeB2Stage;
+  run.updatedAt=new Date().toISOString();
+  persist();
+  showB2GameSuccess(game,stage,index);
+  return true;
 }
 function nextB2GameStage() {
   const game = englishRouteGame(activeB2Game);
+  const run=game && state.b2GameRuns[game.id];
+  if(!game || !run || run.solvedStage!==activeB2Stage){const feedback=document.getElementById('b2GameFeedback');if(feedback)feedback.textContent='Resuelve esta etapa antes de continuar.';return false;}
   if (++activeB2Stage < game.stages.length) {
+    delete run.solvedStage;
     state.b2GameRuns[game.id].stage = activeB2Stage;
     state.b2GameRuns[game.id].updatedAt = new Date().toISOString();
     persist();
     renderB2GameStage();
     renderB2Games();
+    document.getElementById('englishMissionTitle')?.focus({preventScroll:true});
+    document.getElementById('b2GameBoard').scrollIntoView({block:'start',behavior:'smooth'});
     return;
   }
   const mistakes = state.b2GameRuns[game.id]?.mistakes || 0;
@@ -6168,8 +6201,16 @@ function nextB2GameStage() {
   persist();
   const review = errors.length ? `<details class="b2-game-review"><summary>Revisar ${errors.length} ${errors.length===1?'intento':'intentos'}</summary>${errors.map(error => `<p><strong>Etapa ${error.stage+1}:</strong> ${escHtml(error.answer)}. ${escHtml(game.stages[error.stage]?.why || '')}</p>`).join('')}</details>` : '';
   const writingLink = game.id === 'mailroom' ? `<button type="button" onclick="showTab('escrita')">Escribir mi correo completo →</button>` : '';
-  document.getElementById('b2GameBoard').innerHTML = `<section class="b2-panel"><h2>Reto completado</h2><p>Has resuelto las ${game.stages.length} etapas de ${escHtml(game.title)}. ${mistakes ? `Hubo ${mistakes} ${mistakes===1?'intento para repasar':'intentos para repasar'}.` : '¡Sin errores!'}</p>${review}${writingLink}<button type="button" onclick="openB2Game('${game.id}')">Volver a jugar</button></section>`;
+  const finale=window.EnglishMissionBoards ? EnglishMissionBoards.complete(game,mistakes) : `<h2>Reto completado</h2><p>Has resuelto las ${game.stages.length} etapas de ${escHtml(game.title)}.</p>`;
+  document.getElementById('b2GameBoard').innerHTML = `<section class="b2-panel mission-panel">${finale}${review}${writingLink}<div class="mission-finale-actions"><button type="button" onclick="openB2Game('${game.id}')">Volver a jugar</button><button type="button" onclick="closeEnglishGame()">Ver todos los juegos</button></div></section>`;
   renderB2Games();
+}
+function closeEnglishGame() {
+  activeB2Game=null;
+  document.getElementById('tab-juegos').classList.remove('english-playing');
+  document.getElementById('b2GameBoard').innerHTML='';
+  renderB2Games();
+  document.getElementById('tab-juegos').scrollIntoView({block:'start',behavior:'smooth'});
 }
 function restartB2Game() {
   if (!activeB2Game) return;

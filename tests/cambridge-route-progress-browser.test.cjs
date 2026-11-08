@@ -302,8 +302,9 @@ test('el progreso de Inglés separa niveles, cuenta actividades únicas y explic
     assert.doesNotMatch(await page.locator('#englishPracticeProgress').innerText(),/Listening B2/);
     await page.evaluate(() => {
       state.b2GameRuns.opencloze = {stage:2,mistakes:0,errors:[]};
-      activeB2Game = 'opencloze';
-      activeB2Stage = 2;
+      setExamLevel('B2 First');
+      openB2Game('opencloze');
+      answerB2Game(englishRouteGame('opencloze').stages[2].correct);
       nextB2GameStage();
     });
     assert.equal(await page.evaluate(() => state.b2Games.opencloze.plays),2);
