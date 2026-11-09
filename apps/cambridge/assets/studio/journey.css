@@ -134,6 +134,39 @@
 .english-journey-stop:nth-child(5) { grid-area: 2 / 2; }
 .english-journey-stop:nth-child(6) { grid-area: 2 / 1; }
 .english-journey-stop:nth-child(4)::after, .english-journey-stop:nth-child(5)::after { content: ""; right: 100%; }
+.english-journey-chapter { margin: 22px 4px 0; font-size: 1.1rem; }
+@media (min-width: 761px) {
+  .english-journey-extension { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .english-journey-extension .english-journey-stop:nth-child(n) { grid-area: auto; }
+  .english-journey-extension .english-journey-stop:nth-child(-n+3)::after {
+    top: 47px;
+    left: 100%;
+    width: var(--route-column-gap);
+    height: 0;
+    border: 0;
+    border-top: 3px dashed var(--route-trail);
+  }
+  .english-journey-extension .english-journey-stop:last-child::after { content: none; }
+}
+.english-studio .english-lesson-tip {
+  padding: 11px 14px;
+  border-inline-start: 3px solid #218575;
+  border-radius: 0 10px 10px 0;
+  background: var(--study-panel, #eef7f4);
+}
+.english-lesson-tip strong { margin-inline-end: .45em; }
+.writing-prompt-actions select { max-width: 100%; min-height: 38px; }
+.listening-brief-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.listening-brief-form { display: grid; gap: 12px; margin-top: 16px; }
+.listening-brief-form > button { justify-self: start; }
+.listening-brief-question { min-inline-size: 0; margin: 0; padding: 10px; border: 1px solid #b7cce2; border-radius: 12px; }
+.listening-brief-question legend { padding: 0 5px; font-weight: 750; }
+.listening-brief-question label { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 5px 8px; border-radius: 7px; cursor: pointer; }
+.listening-brief-question label:hover { background: #c9e1f339; }
+.listening-brief-question input { flex: 0 0 auto; accent-color: #127ca6; }
+.listening-brief-question[data-result="correct"] { border-color: #419875; }
+.listening-brief-question[data-result="incorrect"] { border-color: #d08b63; }
+.listening-brief-question [data-listening-review] { margin: 8px 0 0; }
 .english-journey-stop article {
   position: relative;
   display: flex;

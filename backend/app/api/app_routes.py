@@ -735,7 +735,7 @@ def cambridge_game_illustration(filename: str, request: Request):
 def cambridge_studio_asset(filename: str):
     if filename not in {'studio.css', 'landing.css', 'landing-preview.js', 'word-bridge-preview-v1.webp',
                         'last-train-station-v1.webp', 'last-train-sprite-v1.webp',
-                        'games.css', 'games.js', 'journey.css', 'bridge-world-v1.webp', 'guide-v1.webp',
+                        'games.css', 'games.js', 'expansion.js', 'journey.css', 'bridge-world-v1.webp', 'guide-v1.webp',
                         'route-atlas-v1.webp', 'route-editor-v1.webp', 'route-archive-v1.webp', 'route-machine-v1.webp',
                         'route-forge-v1.webp', 'route-mailroom-v1.webp', 'route-research-v1.webp', 'route-debate-v1.webp',
                         'route-observatory-v1.webp', 'route-press-v1.webp',
@@ -777,7 +777,8 @@ def study_appearance_asset(filename: str):
 
 @router.get("/assets/listening/{filename}")
 def cambridge_listening_asset(filename: str):
-    allowed = {"b2-short-extracts.json", "b2-sentence-completion.json", "b2-repair-workshop.wav", "b2-multiple-matching.json", "b2-interview.json", "b2-city-wildlife-interview.wav"} | {
+    allowed = {"b2-short-extracts.json", "b2-sentence-completion.json", "b2-repair-workshop.wav", "b2-multiple-matching.json", "b2-interview.json", "b2-city-wildlife-interview.wav",
+               "b2-festival-brief.wav", "c1-library-brief.wav", "c2-metrics-brief.wav"} | {
         f"b2-{name}.wav" for name in (
             "museum", "station", "cookery", "volunteer", "concert", "science", "job", "library"
         )

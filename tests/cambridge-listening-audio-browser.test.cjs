@@ -36,7 +36,7 @@ for (const [name, engine, options] of [
   ['Chromium', chromium, { headless: true, channel: 'msedge' }],
   ['WebKit', webkit, { headless: true }],
 ]) {
-  test(`${name} decodifica, reproduce y pausa los cuatro tipos de audio B2`, { timeout: 120000 }, async () => {
+  test(`${name} decodifica, reproduce y pausa los audios de práctica`, { timeout: 120000 }, async () => {
     const server = createServer((request, response) => {
       const file = basename(new URL(request.url, 'http://localhost').pathname);
       if (file === 'test') {
@@ -60,7 +60,8 @@ for (const [name, engine, options] of [
       browser = await engine.launch(options);
       const page = await browser.newPage();
       await page.goto(`http://127.0.0.1:${server.address().port}/test`);
-      for (const file of ['b2-museum.wav', 'b2-repair-workshop.wav', 'b2-matching-pottery.wav', 'b2-city-wildlife-interview.wav']) {
+      for (const file of ['b2-museum.wav', 'b2-repair-workshop.wav', 'b2-matching-pottery.wav', 'b2-city-wildlife-interview.wav',
+        'b2-festival-brief.wav', 'c1-library-brief.wav', 'c2-metrics-brief.wav']) {
         const duration = await page.evaluate(async (url) => {
           const old = document.querySelector('audio');
           if (old) old.remove();

@@ -33,6 +33,54 @@
 .english-studio .mission-slot:hover{background:#e0f3fb}.mission-slot-plus{flex:none;font-size:23px;font-weight:400;line-height:1;color:#82a8b9}.mission-board[data-status=selected] .mission-slot{background:#fffdf0;border-color:#be9b4a;color:#315464;box-shadow:0 0 0 4px #fff8cf55}
 .mission-board[data-status=solved] .mission-slot{background:#e4f5e6;border-style:solid;border-color:#46986b;color:#236341}.mission-board[data-status=solved] .mission-slot-plus{display:none}.mission-board[data-status=retry] .mission-slot{border-color:#c97859;background:#fff1e8}
 .mission-object-caption{margin-top:19px;text-align:center;padding:7px 12px;font-size:11px;font-weight:750;color:#315d65;background:#ffffffbd;border-radius:8px;justify-self:center}
+.mission-scenario {
+  --scenario-accent: #b5dddb;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: end;
+  gap: 12px;
+  min-height: 290px;
+  padding: clamp(16px, 3vw, 30px);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #102b4a12 10%, #102b4acc 100%), var(--mission-backdrop) center 49% / cover;
+}
+.mission-scenario[data-scene="dispatch"] { --scenario-accent: #addcff; }
+.mission-scenario[data-scene="editorial"] { --scenario-accent: #f3ce93; }
+.mission-scenario-card, .mission-scenario-console { min-width: 0; padding: 15px; border-radius: 13px; }
+.mission-scenario-card {
+  border-top: 5px solid var(--scenario-accent);
+  background: #fffaf2;
+  color: #24394e;
+  box-shadow: 0 5px 0 #c6c6b7;
+}
+.mission-scenario-card > small { display: block; font-weight: 800; color: #4d625e; }
+.english-studio .mission-board .mission-scenario-card p {
+  margin: 6px 0 0;
+  max-width: none;
+  color: #1f344c;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+.mission-scenario-console { background: #142c41f5; border: 1px solid #d6e5eea6; color: #fff; }
+.mission-scenario-title { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; font-size: 13px; }
+.mission-scenario-title > span:first-child { color: var(--scenario-accent); font-size: 20px; }
+.mission-scenario-title > span:last-child { margin-inline-start: auto; color: var(--scenario-accent); font-size: 9px; font-weight: 800; }
+.english-studio .mission-scenario .mission-slot { background-color: #f0f5f9; }
+.english-studio .mission-board[data-status="selected"] .mission-scenario .mission-slot { background-color: #fff8d9; }
+.english-studio .mission-board[data-status="solved"] .mission-scenario .mission-slot { background-color: #dff5e5; }
+.mission-scenario-files { display: flex; flex-wrap: wrap; gap: 5px; margin: 9px 0 0; padding: 0; list-style: none; }
+.mission-scenario-files li { display: inline-flex; gap: 4px; align-items: center; padding: 4px 7px; border-radius: 6px; color: #d5e3ed; background: #334b60; font-size: 10px; }
+.mission-scenario-files li.current { color: #143149; background: var(--scenario-accent); }
+.mission-scenario-files li.filed { color: #123d34; background: #b6ebd5; }
+.english-studio .mission-hand .mission-piece-dispatch .mission-piece-mark { color: #064d80; background: #daf0ff; }
+.english-studio .mission-hand .mission-piece-editorial .mission-piece-mark { color: #693e06; background: #fae6c7; }
+.english-studio .mission-hand .mission-piece-evidence .mission-piece-mark { color: #155549; background: #d7efe9; }
+@media (max-width: 720px) {
+  .mission-scenario { grid-template-columns: minmax(0, 1fr); min-height: 0; padding: 55px 10px 10px; }
+  .mission-scenario-card, .mission-scenario-console { padding: 11px; }
+  .english-studio .mission-board .mission-scenario-card p { font-size: 14px; }
+}
 .mission-source-note{position:relative;padding:18px 22px;border-radius:4px 14px 14px 4px;background:#fffaf0;border-left:5px solid #c3a166;box-shadow:0 4px 12px #213a4f16;margin-bottom:18px}
 .mission-source-note small,.mission-evidence-sheet>small{display:block;font-size:9px;font-weight:850;letter-spacing:.1em;color:#8b7044;margin-bottom:9px}
 .english-studio .mission-board .mission-source-note p,.english-studio .mission-board .mission-evidence-sheet p{font-weight:600;font-size:15px;line-height:1.7;margin:0;color:#233e57;max-width:none}

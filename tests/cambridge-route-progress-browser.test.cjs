@@ -4,6 +4,7 @@ const {resolve} = require('node:path');
 const {pathToFileURL} = require('node:url');
 const {readFileSync} = require('node:fs');
 const {chromium,webkit} = require('./browser-runtime.cjs');
+const {fixture} = require('./cambridge-studio-fixture.cjs');
 const browserType = process.env.CAMBRIDGE_BROWSER === 'webkit' ? webkit : chromium;
 const launchOptions = process.env.CAMBRIDGE_BROWSER === 'webkit' ? {headless:true} : {headless:true,channel:'msedge'};
 
@@ -270,6 +271,7 @@ test('el progreso de Inglés separa niveles, cuenta actividades únicas y explic
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(pathToFileURL(resolve(__dirname,'../apps/cambridge/index.html')).href);
+    await page.addScriptTag({path:resolve(__dirname,'../apps/cambridge/assets/studio/expansion.js')});
     await page.waitForFunction(() => typeof renderEnglishDashboard === 'function' && document.getElementById('englishRouteProgressCards'));
     await page.evaluate(() => {
       state.b2Progress = {'open-cloze':{completed:true,attempts:3}};
@@ -282,9 +284,9 @@ test('el progreso de Inglés separa niveles, cuenta actividades únicas y explic
       showTab('progreso');
     });
     assert.equal(await page.locator('.english-route-progress-card').count(),3);
-    assert.equal(await page.locator('#englishHomeRouteProgress').innerText(),'1/6 lecciones completadas');
-    assert.equal(await page.locator('#englishHomeGameProgress').innerText(),'1/6 juegos terminados');
-    assert.match(await page.locator('.english-route-progress-card.current').innerText(),/2\/12 actividades distintas completadas/);
+    assert.equal(await page.locator('#englishHomeRouteProgress').innerText(),'1/10 lecciones completadas');
+    assert.equal(await page.locator('#englishHomeGameProgress').innerText(),'1/9 juegos terminados');
+    assert.match(await page.locator('.english-route-progress-card.current').innerText(),/2\/19 actividades distintas completadas/);
     assert.match(await page.locator('.english-route-progress-card.current').innerText(),/1 partida terminada/);
     assert.equal(await page.locator('.english-error-card').count(),1);
     assert.match(await page.locator('#englishPracticeProgress').innerText(),/1 versión guardada/);
@@ -319,36 +321,37 @@ test('el progreso de Inglés separa niveles, cuenta actividades únicas y explic
   }
 });
 
-test('las diez misiones y dieciocho lecciones terminan y se reanudan por nivel', async () => {
+test('las diecinueve misiones y treinta lecciones terminan y se reanudan por nivel', async () => {
   const browser = await browserType.launch(launchOptions);
   try {
     const page = await browser.newPage({viewport:{width:1280,height:900}});
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.goto(pathToFileURL(resolve(__dirname,'../apps/cambridge/index.html')).href);
-    await page.waitForFunction(() => typeof openB2Game === 'function');
+    await fixture(page);
+    await page.goto('http://studio.test/cambridge');
+    await page.waitForFunction(() => cambridgeStateETag !== null);
     for (const level of ['B2 First','C1 Advanced','C2 Proficiency']) {
       await page.evaluate(value => setExamLevel(value),level);
       const lessons = await page.evaluate(() => englishRouteLessons().map(lesson => ({id:lesson.id,correct:lesson.correct,options:lesson.options})));
-      assert.equal(lessons.length,6,`${level}: seis lecciones`);
+      assert.equal(lessons.length,10,`${level}: diez lecciones`);
       for (const lesson of lessons) {
         assert.equal(new Set(lesson.options).size,lesson.options.length,`${lesson.id}: respuestas distintas`);
         assert.ok(lesson.correct >= 0 && lesson.correct < lesson.options.length,`${lesson.id}: solución válida`);
-        assert.ok(await page.evaluate(id => Boolean(B2_GAME_BY_LESSON[id] && englishRouteGames().some(game => game.id === B2_GAME_BY_LESSON[id])),lesson.id),`${lesson.id}: juego relacionado`);
+        assert.ok(await page.evaluate(id => englishRouteGames().some(game => game.id === englishLessonMission(englishRouteLessons().find(lesson => lesson.id === id))),lesson.id),`${lesson.id}: juego relacionado`);
         await page.evaluate(id => openB2Lesson(id),lesson.id);
         await page.evaluate(({id,correct}) => answerB2Lesson(id,correct),lesson);
         assert.equal(await page.evaluate(id => state.b2Progress[id]?.completed,lesson.id),true,`${lesson.id}: lección completada`);
       }
       const ids = await page.evaluate(() => englishRouteGames().map(game => game.id));
-      assert.equal(ids.length,level === 'B2 First' ? 6 : 2,`${level}: misiones`);
+      assert.equal(ids.length,level === 'B2 First' ? 9 : 5,`${level}: misiones`);
       for (const id of ids) {
         await page.evaluate(gameId => openB2Game(gameId),id);
         if (process.env.CAMBRIDGE_GAME_SCREENSHOT_DIR && ['c1-debate','c2-press'].includes(id)) await page.locator('#b2GameBoard').screenshot({path:resolve(process.env.CAMBRIDGE_GAME_SCREENSHOT_DIR,`${id}.png`)});
         assert.equal(await page.evaluate(async gameId => {
-          const name = ENGLISH_GAME_ART[gameId];
-          if (!name) return true;
+          const game = englishRouteGame(gameId);
+          if (!game.scene && !ENGLISH_GAME_ART[gameId]) return true;
           const image = new Image();
-          image.src = cambridgeGameAsset(name);
+          image.src = game.scene ? '/assets/cambridge-studio/' + game.scene.art : cambridgeGameAsset(ENGLISH_GAME_ART[gameId]);
           await image.decode();
           return image.naturalWidth > 0;
         },id),true,`${id}: fondo disponible`);
@@ -377,10 +380,11 @@ test('las diez misiones y dieciocho lecciones terminan y se reanudan por nivel',
       answerB2Game(0);
       nextB2GameStage();
     });
+    await page.evaluate(() => cambridgeSaveQueue);
     await page.reload();
     await page.waitForFunction(() => typeof state !== 'undefined' && state.b2GameRuns?.editor?.stage === 1);
     await page.evaluate(() => openB2Game('editor'));
-    assert.match(await page.locator('#b2GameBoard').innerText(),/etapa 2\/3/i);
+    assert.match(await page.locator('#b2GameBoard').innerText(),/2\s*\/3/i);
     assert.deepEqual(errors,[]);
   } finally {
     await browser.close();

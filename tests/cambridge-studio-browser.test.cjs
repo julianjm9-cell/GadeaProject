@@ -96,17 +96,17 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
     await page.locator('[data-tab-btn="sesion"]').click();
     await page.locator('#englishWritingResume').getByRole('button',{name:'Continuar →'}).click();
     assert.match(await page.locator('#writingAnswer').inputValue(),/My writing stays here/);
-    for(const [level,count] of [['B2 First',6],['C1 Advanced',2],['C2 Proficiency',2]]){
+    for(const [level,count] of [['B2 First',9],['C1 Advanced',5],['C2 Proficiency',5]]){
      await page.locator('#headerExamLevel').selectOption(level);
      await page.locator('[data-tab-btn="juegos"]').click();
      assert.equal(await page.locator('#b2GameList .b2-card').count(),count);
      const routeImages=page.locator('.english-journey-art img');
-     assert.equal(await routeImages.count(),6);
+     assert.equal(await routeImages.count(),10);
      for(const image of await routeImages.all())await image.scrollIntoViewIfNeeded();
      await page.waitForFunction(()=>[...document.querySelectorAll('.english-journey-art img')].every(image=>image.complete&&image.naturalWidth>0));
      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),`route overflow ${width}px at ${level}`);
      await page.locator('[data-tab-btn="b2"]').click();
-     assert.equal(await page.locator('#b2LessonList .b2-card').count(),6);
+     assert.equal(await page.locator('#b2LessonList .b2-card').count(),10);
     }
     const practice=page.locator('#tab-entrenar');
     await page.locator('[data-tab-btn="entrenar"]').click();
@@ -129,7 +129,7 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
       await page.locator('#sessionEmpty').getByRole('button',{name:/Mi progreso/}).click();
      }else if(tab==='examenes'){
       await page.locator('[data-tab-btn="entrenar"]').click();
-      await page.locator('#tab-entrenar').getByRole('button',{name:/Listening B2/}).click();
+      await page.locator('#tab-entrenar').getByRole('button',{name:/Listening/}).click();
      }else await page.locator('[data-tab-btn="'+tab+'"]').click();
      assert.equal(await page.locator('#tab-'+tab).isVisible(),true);
      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
@@ -205,6 +205,48 @@ test('paused English disables every landing entry while keeping the public trial
  }finally{await browser.close();}
 });
 
+test('la nueva práctica de cada nivel se puede elegir, corregir y recuperar',async()=>{
+ const browser=await chromium.launch({headless:true,channel:'msedge'});
+ try{
+  const page=await browser.newPage({viewport:{width:390,height:844}});
+  await fixture(page);
+  await page.goto('http://studio.test/cambridge');
+  await page.waitForFunction(()=>cambridgeStateETag!==null);
+  for(const level of ['B2 First','C1 Advanced','C2 Proficiency']){
+   await page.locator('#headerExamLevel').selectOption(level);
+   await page.evaluate(()=>showTab('temas'));
+   const extra=await page.evaluate(()=>englishExpansion());
+   const [category,topics]=Object.entries(extra.topics)[0];
+   await page.locator('#topicCategorySelect').selectOption(category);
+   assert.equal(await page.locator('.topic-item').count(),topics.length);
+   await page.evaluate(()=>showTab('recitar'));
+   await page.locator('#speakingTaskSelect').selectOption(extra.speaking[0].id);
+   assert.equal(await page.locator('#speakingTaskPrompt').innerText(),extra.speaking[0].prompt);
+   await page.evaluate(()=>{state.writingPractice={...state.writingPractice,level:state.examLevel,part:'1',taskType:'essay',prompt:'',answer:'Draft'};showTab('escrita');});
+   await page.locator('#writingPromptExample').selectOption({label:extra.writing.essay[0]});
+   await page.getByRole('button',{name:'Usar una consigna de ejemplo'}).click();
+   assert.equal(await page.locator('#writingPrompt').inputValue(),extra.writing.essay[1]);
+   assert.equal(await page.locator('#writingAnswer').inputValue(),'Draft');
+   await page.evaluate(()=>openEnglishPractice('examenes'));
+   await page.getByRole('button',{name:'Abrir práctica →',exact:true}).click();
+   assert.equal(await page.locator('.listening-brief-form details').isVisible(),false);
+   for(const [index,question] of extra.listening.questions.entries()){
+    await page.locator(`input[name="question-${index}"][value="${question.correct}"]`).check();
+   }
+   await page.getByRole('button',{name:'Comprobar respuestas',exact:true}).click();
+   assert.equal(await page.locator('[data-listening-score]').innerText(),'3/3 respuestas correctas');
+   await page.getByText('Leer la transcripción',{exact:true}).click();
+   assert.equal(await page.locator('.listening-brief-form details p').innerText(),extra.listening.transcript);
+   await page.locator('#listeningBack').click();
+   assert.match(await page.locator('.listening-brief-card').innerText(),/Mejor resultado 3\/3/);
+  }
+  await page.evaluate(()=>cambridgeSaveQueue);
+  await page.reload();
+  await page.waitForFunction(()=>cambridgeStateETag!==null);
+  assert.deepEqual(Object.values(await page.evaluate(()=>state.listeningBriefScores)),[3,3,3]);
+ }finally{await browser.close();}
+});
+
 test('study and game modes share topics, unlock the next stop and restore each level',async()=>{
  const browser=await chromium.launch({headless:true,channel:'msedge'});
  try{
@@ -217,10 +259,10 @@ test('study and game modes share topics, unlock the next stop and restore each l
   const next=stops.filter({has:page.getByRole('button',{name:'Jugar →',exact:true})}).first();
   await page.locator('#headerExamLevel').selectOption('B2 First');
   await mode.tap();
-  assert.equal(await stops.count(),6);
+  assert.equal(await stops.count(),10);
   assert.equal(await stops.locator('button').count(),1);
   assert.match(await next.innerText(),/Collocations/);
-  assert.equal(await stops.filter({hasText:'Bloqueada'}).count(),5);
+  assert.equal(await stops.filter({hasText:'Bloqueada'}).count(),9);
   await page.locator('.english-journey-art img').first().evaluate(image=>image.decode());
   await page.screenshot({path:path.join(root,'tmp/ingles-mapa-ilustrado-390.png')});
   await next.getByRole('button').tap();
@@ -236,7 +278,7 @@ test('study and game modes share topics, unlock the next stop and restore each l
   assert.match(await page.locator('#b2LessonList').innerText(),/Collocations/);
   await page.locator('#headerExamLevel').selectOption('C1 Advanced');
   await mode.tap();
-  assert.match(await page.locator('.english-journey-meter').innerText(),/0\/6/);
+  assert.match(await page.locator('.english-journey-meter').innerText(),/0\/10/);
   await page.locator('[aria-current="step"] button').tap();
   for(let stage=0;stage<2;stage++){
    const correct=await page.evaluate(()=>englishRouteGame(activeB2Game).stages[activeB2Stage].correct);
@@ -252,7 +294,7 @@ test('study and game modes share topics, unlock the next stop and restore each l
   await page.waitForFunction(()=>cambridgeStateETag!==null);
   await page.locator('#headerExamLevel').selectOption('B2 First');
   await mode.tap();
-  assert.match(await page.locator('.english-journey-meter').innerText(),/1\/6/);
+  assert.match(await page.locator('.english-journey-meter').innerText(),/1\/10/);
   await page.setViewportSize({width:1440,height:960});
   await page.getByRole('button',{name:'Continuar recorrido →'}).waitFor();
   await page.locator('.english-journey-art img').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));

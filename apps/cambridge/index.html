@@ -1383,11 +1383,12 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 </style>
 <link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1">
 <link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261109-4">
-<link rel="stylesheet" href="/assets/cambridge-studio/games.css?v=20261109-1">
-<link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261109-4">
+<link rel="stylesheet" href="/assets/cambridge-studio/games.css?v=20261109-2">
+<link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261109-content-4">
 <link rel="stylesheet" href="/assets/study-appearance/appearance.css?v=2">
 <script defer src="/assets/study-appearance/appearance.js?v=1"></script>
-<script src="/assets/cambridge-studio/games.js?v=20261109-1"></script>
+<script src="/assets/cambridge-studio/games.js?v=20261109-2"></script>
+<script src="/assets/cambridge-studio/expansion.js?v=20261109-1"></script>
 </head>
 <body class="english-studio">
 <div class="selection-toolbar" id="selectionToolbar" aria-label="Formato de texto">
@@ -1454,8 +1455,8 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
       </section>
       <div class="quick-resume quick-draft" id="englishWritingResume" hidden><span><strong>Borrador de Writing</strong><small id="englishWritingResumeText"></small></span><button class="btn btn-outline" type="button" onclick="showTab('escrita')">Continuar →</button></div>
       <div class="quick-modes" aria-label="Modos de aprendizaje">
-        <button type="button" class="quick-mode" onclick="showTab('b2')"><img src="/assets/cambridge-studio/academy-card-v2.webp" width="128" height="90" alt=""><span><strong>Temario</strong><small id="englishHomeRouteProgress">0/6 lecciones completadas</small></span><span aria-hidden="true">›</span></button>
-        <button type="button" class="quick-mode" onclick="showTab('juegos')"><img src="/assets/cambridge-studio/games-card-v2.webp" width="128" height="90" alt=""><span><strong>Juegos</strong><small id="englishHomeGameProgress">0/6 juegos terminados</small></span><span aria-hidden="true">›</span></button>
+        <button type="button" class="quick-mode" onclick="showTab('b2')"><img src="/assets/cambridge-studio/academy-card-v2.webp" width="128" height="90" alt=""><span><strong>Temario</strong><small id="englishHomeRouteProgress">0/10 lecciones completadas</small></span><span aria-hidden="true">›</span></button>
+        <button type="button" class="quick-mode" onclick="showTab('juegos')"><img src="/assets/cambridge-studio/games-card-v2.webp" width="128" height="90" alt=""><span><strong>Juegos</strong><small id="englishHomeGameProgress">0/9 juegos terminados</small></span><span aria-hidden="true">›</span></button>
         <button type="button" class="quick-mode" onclick="showTab('progreso')"><img src="/assets/cambridge-studio/progress-card-v2.webp" width="128" height="90" alt=""><span><strong>Mi progreso</strong><small>Actividad y resultados</small></span><span aria-hidden="true">›</span></button>
       </div>
     </div>
@@ -1638,7 +1639,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
           </div>
         </div>
         <div class="writing-guide" id="writingGuide" role="status"></div>
-        <div class="writing-prompt-actions"><button class="btn btn-small btn-outline" type="button" onclick="loadWritingPrompt()">Usar una consigna de ejemplo</button></div>
+        <div class="writing-prompt-actions"><label for="writingPromptExample">Consigna</label><select id="writingPromptExample"></select><button class="btn btn-small btn-outline" type="button" onclick="loadWritingPrompt()">Usar una consigna de ejemplo</button></div>
         <details class="writing-ocr-box" id="writingOcrTools"><summary>Leer texto de una imagen</summary>
           <div class="writing-ocr-row">
             <div class="writing-field">
@@ -1705,7 +1706,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
         <button type="button" class="practice-option" onclick="showTab('examenes')" aria-labelledby="practiceListening" aria-describedby="practiceListeningHint">
           <img class="practice-art" src="/assets/cambridge-studio/audio-card-v2.webp" alt="" width="480" height="270">
           <span class="practice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v-3a9 9 0 0 1 18 0v3"/><rect x="3" y="12" width="5" height="8" rx="2"/><rect x="16" y="12" width="5" height="8" rx="2"/></svg></span>
-          <span class="practice-copy"><strong id="practiceListening">Listening B2</strong><small id="practiceListeningHint">Escucha y practica las cuatro partes del examen.</small></span>
+          <span class="practice-copy"><strong id="practiceListening">Listening</strong><small id="practiceListeningHint">Escucha y comprueba lo que has entendido.</small></span>
           <span class="practice-arrow" aria-hidden="true">→</span>
         </button>
       </div>
@@ -1713,7 +1714,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   </div>
   <div id="tab-examenes" class="tab">
     <div class="listening-shell">
-      <div class="workspace-page-head"><h2 data-workspace-title tabindex="-1">Listening B2</h2><button type="button" class="workspace-link" onclick="showTab('entrenar')">← Práctica</button></div>
+      <div class="workspace-page-head"><h2 id="listeningTitle" data-workspace-title tabindex="-1">Listening</h2><button type="button" class="workspace-link" onclick="showTab('entrenar')">← Práctica</button></div>
       <button id="listeningBack" class="btn btn-outline listening-back" type="button" onclick="openListeningView('hub')" hidden>← Todas las prácticas</button>
       <div id="listeningContent" aria-live="polite"></div>
     </div>
@@ -2066,6 +2067,7 @@ function normalizeAppState() {
   if (!Array.isArray(state.listeningInterviewResults)) state.listeningInterviewResults = [];
   if (!state.listeningMockRun || typeof state.listeningMockRun !== 'object' || !state.listeningMockRun.answers || !Array.isArray(state.listeningMockRun.answers.part1) || !Array.isArray(state.listeningMockRun.answers.part2) || !Array.isArray(state.listeningMockRun.answers.part3) || !Array.isArray(state.listeningMockRun.answers.part4)) state.listeningMockRun = null;
   if (!Array.isArray(state.listeningMockResults)) state.listeningMockResults = [];
+  if (!state.listeningBriefScores || typeof state.listeningBriefScores !== 'object' || Array.isArray(state.listeningBriefScores)) state.listeningBriefScores = {};
   if (!('currentSession' in state)) state.currentSession = null;
   state.lang = 'en';
   state.examLevel = ['B2 First','C1 Advanced','C2 Proficiency'].includes(state.examLevel) ? state.examLevel : 'C1 Advanced';
@@ -2115,7 +2117,7 @@ function getTopicGroups() {
       }
     }
   }
-  return groups;
+  return {...groups,...englishExpansion().topics};
 }
 
 function topicVisual(topic='', cat='') {
@@ -2793,8 +2795,8 @@ function openEnglishTopicGroup(group) {
 }
 
 function englishRouteProgressSummary(level) {
-  const lessons = level === 'B2 First' ? B2_LESSONS : level === 'C1 Advanced' ? C1_LESSONS : C2_LESSONS;
-  const games = level === 'B2 First' ? B2_GAMES : level === 'C1 Advanced' ? C1_GAMES : C2_GAMES;
+  const lessons = englishRouteLessons(level);
+  const games = englishRouteGames(level);
   const doneLessons = lessons.filter(item => state.b2Progress?.[item.id]?.completed).length;
   const doneGames = games.filter(item => state.b2Games?.[item.id]?.completed).length;
   const plays = games.reduce((sum,item) => {
@@ -2828,7 +2830,18 @@ function renderEnglishPracticeProgress() {
   const listeningGroups = [state.listeningResults,state.listeningFillResults,state.listeningMatchResults,state.listeningInterviewResults,state.listeningMockResults];
   const listeningCount = listeningGroups.reduce((sum,group) => sum + (Array.isArray(group) ? group.length : 0),0);
   const mock = state.listeningMockResults?.[0];
-  document.getElementById('englishPracticeProgress').innerHTML = `<article><strong>Writing</strong><span>${savedVersions} ${savedVersions === 1 ? 'versión guardada' : 'versiones guardadas'}</span><small>${currentDraft ? 'Tienes un borrador en curso.' : 'Redacta una respuesta y guarda una versión para compararla.'}</small><button type="button" onclick="openEnglishPractice('escrita')">Abrir Writing →</button></article><article><strong>Speaking</strong><span>${reviewed ? 'Última revisión guardada' : 'Sin revisión guardada en este nivel'}</span><small>El informe valora el texto transcrito, no la pronunciación.</small><button type="button" onclick="openEnglishPractice('recitar')">Abrir Speaking →</button></article>${state.examLevel === 'B2 First' ? `<article><strong>Listening B2</strong><span>${listeningCount} ${listeningCount === 1 ? 'resultado guardado' : 'resultados guardados'}</span><small>${mock ? `Último recorrido integrado: ${Number(mock.score) || 0}/30.` : 'Cuatro partes y un recorrido integrado de 30 preguntas.'}</small><button type="button" onclick="openEnglishPractice('examenes')">Abrir Listening →</button></article>` : ''}`;
+  const brief = englishExpansion().listening;
+  const briefBest = brief && state.listeningBriefScores[brief.id];
+  const isB2 = state.examLevel === 'B2 First';
+  const totalListeningResults = listeningCount + Number(Number.isInteger(briefBest));
+  const briefSummary = Number.isInteger(briefBest) ? `Mejor resultado breve: ${briefBest}/${brief.questions.length}.` : '';
+  const listeningProgress = isB2
+    ? `${totalListeningResults} ${totalListeningResults === 1 ? 'resultado guardado' : 'resultados guardados'}`
+    : briefSummary || 'Por empezar';
+  const listeningDetail = isB2
+    ? [mock ? `Último recorrido integrado: ${Number(mock.score) || 0}/30.` : 'Cuatro partes y un recorrido integrado de 30 preguntas.',briefSummary].filter(Boolean).join(' ')
+    : brief?.title || '';
+  document.getElementById('englishPracticeProgress').innerHTML = `<article><strong>Writing</strong><span>${savedVersions} ${savedVersions === 1 ? 'versión guardada' : 'versiones guardadas'}</span><small>${currentDraft ? 'Tienes un borrador en curso.' : 'Redacta una respuesta y guarda una versión para compararla.'}</small><button type="button" onclick="openEnglishPractice('escrita')">Abrir Writing →</button></article><article><strong>Speaking</strong><span>${reviewed ? 'Última revisión guardada' : 'Sin revisión guardada en este nivel'}</span><small>El informe valora el texto transcrito, no la pronunciación.</small><button type="button" onclick="openEnglishPractice('recitar')">Abrir Speaking →</button></article>${isB2 || brief ? `<article><strong>Listening ${state.examLevel.slice(0,2)}</strong><span>${listeningProgress}</span><small>${escHtml(listeningDetail)}</small><button type="button" onclick="openEnglishPractice('examenes')">Abrir Listening →</button></article>` : ''}`;
 }
 
 function openEnglishReviewGame(id) {
@@ -2942,6 +2955,7 @@ function selectEnglishNavigation(name) {
 function showTab(name) {
   const tab = document.getElementById('tab-' + name);
   if (!tab) return;
+  if (name !== 'examenes') document.querySelectorAll('#listeningContent audio').forEach(audio => audio.pause());
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   tab.classList.add('active');
   selectEnglishNavigation(name);
@@ -2996,7 +3010,7 @@ let englishTeacherFailure = '';
 let englishTeacherRequest = null;
 function englishTeacherContext() {
   const active = document.querySelector('.tab.active')?.id;
-  const labels = {'tab-sesion':'Sesión de hoy','tab-b2':'Temario','tab-juegos':'Juegos','tab-entrenar':'Práctica','tab-recitar':'Speaking','tab-escrita':'Writing','tab-examenes':'Listening B2','tab-temas':'Biblioteca','tab-progreso':'Mi progreso'};
+  const labels = {'tab-sesion':'Sesión de hoy','tab-b2':'Temario','tab-juegos':'Juegos','tab-entrenar':'Práctica','tab-recitar':'Speaking','tab-escrita':'Writing','tab-examenes':'Listening','tab-temas':'Biblioteca','tab-progreso':'Mi progreso'};
   const section = labels[active] || 'Inglés';
   const topic = active === 'tab-recitar' ? document.getElementById('reciteTopicInput').value :
     active === 'tab-sesion' ? state.currentSession?.topic : '';
@@ -3114,6 +3128,15 @@ function renderWritingGuide() {
   const {official,range} = writingFormat(level,part,taskType);
   const guide = document.getElementById('writingGuide');
   if (guide) guide.innerHTML = `<strong>${official ? 'Formato del examen' : 'Práctica adicional'} · ${escHtml(level)} · parte ${part}</strong>${official ? `Objetivo: ${range[0]}–${range[1]} palabras.` : 'Esta combinación de género y parte no corresponde al examen seleccionado. Puedes practicarla, pero no la contaremos como simulacro.'}<small>La corrección de IA es orientativa; no es una calificación oficial.</small>`;
+  const examples = document.getElementById('writingPromptExample');
+  const exampleKey = level + ':' + taskType;
+  if (examples && examples.dataset.key !== exampleKey) {
+    const choices = writingPromptExamples(level,taskType);
+    examples.replaceChildren(...choices.map(([title],index) => new Option(title,String(index))));
+    examples.dataset.key = exampleKey;
+    examples.disabled = !choices.length;
+    examples.parentElement.querySelector('button').disabled = !choices.length;
+  }
   const count = document.getElementById('writingWordCount');
   if (count) {
     const words = writingWordCount(document.getElementById('writingAnswer')?.value || '');
@@ -3122,10 +3145,16 @@ function renderWritingGuide() {
     count.classList.toggle('out-range',words>0&&(words<range[0]||words>range[1]));
   }
 }
+function writingPromptExamples(level,taskType) {
+  const first = WRITING_PROMPTS[level]?.[taskType];
+  const extra = englishExpansion(level).writing?.[taskType];
+  return [...(first ? [['Consigna inicial',first]] : []),...(extra ? [extra] : [])];
+}
 function loadWritingPrompt() {
   const level = document.getElementById('writingLevel').value;
   const taskType = document.getElementById('writingTaskType').value;
-  const prompt = WRITING_PROMPTS[level]?.[taskType];
+  const example = Number(document.getElementById('writingPromptExample').value);
+  const prompt = writingPromptExamples(level,taskType)[example]?.[1];
   if (!prompt) return;
   const field = document.getElementById('writingPrompt');
   if (field.value.trim() && !confirm('¿Sustituir el enunciado actual? Tu respuesta y las versiones guardadas se conservarán.')) return;
@@ -4489,13 +4518,16 @@ const SPEAKING_TASKS = {
   ]
 };
 
+function speakingTasksForLevel() {
+  return [...(SPEAKING_TASKS[state.examLevel] || SPEAKING_TASKS['B2 First']),...(englishExpansion().speaking || [])];
+}
 function currentSpeakingTask() {
-  const tasks = SPEAKING_TASKS[state.examLevel] || SPEAKING_TASKS['B2 First'];
+  const tasks = speakingTasksForLevel();
   return tasks.find(task => task.id === state.recitePractice.promptId) || tasks[0];
 }
 
 function renderSpeakingTask() {
-  const tasks = SPEAKING_TASKS[state.examLevel] || SPEAKING_TASKS['B2 First'];
+  const tasks = speakingTasksForLevel();
   const selected = currentSpeakingTask();
   state.recitePractice.promptId = selected.id;
   const select = document.getElementById('speakingTaskSelect');
@@ -4519,7 +4551,7 @@ function renderSpeakingTask() {
 }
 
 function chooseSpeakingTask(id) {
-  if (!(SPEAKING_TASKS[state.examLevel] || []).some(task => task.id === id)) return;
+  if (!speakingTasksForLevel().some(task => task.id === id)) return;
   state.recitePractice.promptId = id;
   renderSpeakingTask();
   persistRecitePractice();
@@ -5240,11 +5272,13 @@ function listeningAsset(name) {
   return new URL(base + name, location.href).href;
 }
 function openListeningView(view) {
-  if (!['hub','part1','part2','part3','part4','mock'].includes(view)) return;
+  if (!['hub','brief','part1','part2','part3','part4','mock'].includes(view)) return;
   listeningView = view;
   renderListeningTab();
 }
 function renderListeningTab() {
+  if (state.examLevel !== 'B2 First' && listeningView !== 'brief') listeningView = 'hub';
+  document.getElementById('listeningTitle').textContent = 'Listening ' + state.examLevel.slice(0,2);
   const back = document.getElementById('listeningBack');
   if (back) back.hidden = listeningView === 'hub';
   clearInterval(listeningTimerId); listeningTimerId = null;
@@ -5252,6 +5286,7 @@ function renderListeningTab() {
   clearInterval(listeningMatchTimerId); listeningMatchTimerId = null;
   clearInterval(listeningInterviewTimerId); listeningInterviewTimerId = null;
   clearInterval(listeningMockTimerId); listeningMockTimerId = null;
+  if (listeningView === 'brief') return renderListeningBrief();
   if (listeningView === 'part1') return renderListeningPart1Tab();
   if (listeningView === 'part2') return renderListeningFillTab();
   if (listeningView === 'part3') return renderListeningMatchTab();
@@ -5262,8 +5297,11 @@ function renderListeningTab() {
 function renderListeningHub() {
   const container = document.getElementById('listeningContent');
   if (!container) return;
+  const brief = englishExpansion().listening;
+  const best = brief && state.listeningBriefScores[brief.id];
+  const briefCard = brief ? `<article class="listening-panel listening-brief-card"><div><h3>${escHtml(brief.title)}</h3><p>${escHtml(brief.focus)}</p><div class="listening-meta"><span>3 preguntas</span><span>Audio breve</span>${Number.isInteger(best) ? `<span>Mejor resultado ${best}/3</span>` : ''}</div></div><button class="btn btn-blue" type="button" onclick="openListeningView('brief')">Abrir práctica →</button></article>` : '';
   if (state.examLevel !== 'B2 First') {
-    container.innerHTML = '<div class="listening-panel listening-locked"><h3>Elige B2 First para estas prácticas</h3><p>Estas cuatro actividades están preparadas para B2. Cambia el nivel en la cabecera para abrirlas; tus intentos seguirán guardados.</p><button class="btn btn-blue" type="button" onclick="setExamLevel(\'B2 First\')">Cambiar a B2 First</button></div>';
+    container.innerHTML = briefCard;
     return;
   }
   const part1 = state.listeningRun ? 'Intento en curso' : state.listeningResults.length ? `Último resultado: ${state.listeningResults[0].score}/8` : 'Por empezar';
@@ -5271,7 +5309,38 @@ function renderListeningHub() {
   const part3 = state.listeningMatchRun ? 'Intento en curso' : state.listeningMatchResults.length ? `Último resultado: ${state.listeningMatchResults[0].score}/5` : 'Por empezar';
   const part4 = state.listeningInterviewRun ? 'Intento en curso' : state.listeningInterviewResults.length ? `Último resultado: ${state.listeningInterviewResults[0].score}/7` : 'Por empezar';
   const mock = state.listeningMockRun ? 'Intento en curso' : state.listeningMockResults.length ? `Último resultado: ${state.listeningMockResults[0].score}/30` : 'Por empezar';
-  container.innerHTML = `<article class="listening-panel listening-mock-feature"><div><span class="section-label">RECORRIDO INTEGRADO · B2 LISTENING</span><h3>Las cuatro partes, un solo intento</h3><p>Práctica original con revisión por partes. No es un examen oficial.</p><div class="listening-meta"><span>30 preguntas</span><span>40 minutos</span><span>${escHtml(mock)}</span></div></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('mock')">${state.listeningMockRun ? 'Retomar' : 'Abrir'} recorrido →</button></div></article><div class="listening-hub"><article class="listening-panel"><span class="section-label">PARTE 1 · ELECCIÓN MÚLTIPLE</span><h3>Ocho extractos breves</h3><p>Elige una respuesta por audio. Al final verás las pistas y transcripciones.</p><div class="listening-meta"><span>8 preguntas</span><span>15 minutos</span><span>${escHtml(part1)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part1')">${state.listeningRun ? 'Retomar' : 'Abrir'} parte 1 →</button></div></article><article class="listening-panel"><span class="section-label">PARTE 2 · COMPLETAR FRASES</span><h3>El taller que arregla cosas</h3><p>Completa las frases en el orden del audio.</p><div class="listening-meta"><span>10 huecos</span><span>15 minutos</span><span>${escHtml(part2)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part2')">${state.listeningFillRun ? 'Retomar' : 'Abrir'} parte 2 →</button></div></article><article class="listening-panel"><span class="section-label">PARTE 3 · RELACIONAR HABLANTES</span><h3>Cinco maneras de aprender</h3><p>Relaciona cada hablante con una idea.</p><div class="listening-meta"><span>5 hablantes</span><span>8 opciones</span><span>${escHtml(part3)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part3')">${state.listeningMatchRun ? 'Retomar' : 'Abrir'} parte 3 →</button></div></article><article class="listening-panel"><span class="section-label">PARTE 4 · ENTREVISTA</span><h3>The city wildlife project</h3><p>Responde las preguntas y revisa la transcripción al entregar.</p><div class="listening-meta"><span>7 preguntas</span><span>15 minutos</span><span>${escHtml(part4)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part4')">${state.listeningInterviewRun ? 'Retomar' : 'Abrir'} parte 4 →</button></div></article></div>`;
+  container.innerHTML = briefCard + `<article class="listening-panel listening-mock-feature"><div><span class="section-label">RECORRIDO INTEGRADO · B2 LISTENING</span><h3>Las cuatro partes, un solo intento</h3><p>Práctica original con revisión por partes. No es un examen oficial.</p><div class="listening-meta"><span>30 preguntas</span><span>40 minutos</span><span>${escHtml(mock)}</span></div></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('mock')">${state.listeningMockRun ? 'Retomar' : 'Abrir'} recorrido →</button></div></article><div class="listening-hub"><article class="listening-panel"><span class="section-label">PARTE 1 · ELECCIÓN MÚLTIPLE</span><h3>Ocho extractos breves</h3><p>Elige una respuesta por audio. Al final verás las pistas y transcripciones.</p><div class="listening-meta"><span>8 preguntas</span><span>15 minutos</span><span>${escHtml(part1)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part1')">${state.listeningRun ? 'Retomar' : 'Abrir'} parte 1 →</button></div></article><article class="listening-panel"><span class="section-label">PARTE 2 · COMPLETAR FRASES</span><h3>El taller que arregla cosas</h3><p>Completa las frases en el orden del audio.</p><div class="listening-meta"><span>10 huecos</span><span>15 minutos</span><span>${escHtml(part2)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part2')">${state.listeningFillRun ? 'Retomar' : 'Abrir'} parte 2 →</button></div></article><article class="listening-panel"><span class="section-label">PARTE 3 · RELACIONAR HABLANTES</span><h3>Cinco maneras de aprender</h3><p>Relaciona cada hablante con una idea.</p><div class="listening-meta"><span>5 hablantes</span><span>8 opciones</span><span>${escHtml(part3)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part3')">${state.listeningMatchRun ? 'Retomar' : 'Abrir'} parte 3 →</button></div></article><article class="listening-panel"><span class="section-label">PARTE 4 · ENTREVISTA</span><h3>The city wildlife project</h3><p>Responde las preguntas y revisa la transcripción al entregar.</p><div class="listening-meta"><span>7 preguntas</span><span>15 minutos</span><span>${escHtml(part4)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part4')">${state.listeningInterviewRun ? 'Retomar' : 'Abrir'} parte 4 →</button></div></article></div>`;
+}
+function renderListeningBrief() {
+  const brief = englishExpansion().listening;
+  if (!brief) return openListeningView('hub');
+  const container = document.getElementById('listeningContent');
+  const questions = brief.questions.map(({text,options},index) => `<fieldset class="listening-brief-question"><legend>${index+1}. ${escHtml(text)}</legend>${options.map((option,i) => `<label><input type="radio" name="question-${index}" value="${i}" required>${escHtml(option)}</label>`).join('')}<p data-listening-review hidden></p></fieldset>`).join('');
+  container.innerHTML = `<article class="listening-panel"><h3>${escHtml(brief.title)}</h3><p>Escucha el audio y responde las tres preguntas. Puedes volver a escucharlo cuando quieras.</p><audio class="listening-audio" controls preload="none" aria-label="${escHtml(brief.title)}" src="${listeningAsset(brief.id + '.wav')}"></audio><small>Práctica breve con voz sintética.</small><form class="listening-brief-form">${questions}<button class="btn btn-blue" type="submit">Comprobar respuestas</button><p role="status" data-listening-score></p><details hidden><summary>Leer la transcripción</summary><p lang="en">${escHtml(brief.transcript)}</p></details></form></article>`;
+  const form = container.querySelector('form');
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    const answers = new FormData(form);
+    let score = 0;
+    form.querySelectorAll('fieldset').forEach((question,index) => {
+      const {correct,why,options} = brief.questions[index];
+      const gotIt = answers.get('question-' + index) === String(correct);
+      score += Number(gotIt);
+      question.dataset.result = gotIt ? 'correct' : 'incorrect';
+      const review = question.querySelector('[data-listening-review]');
+      review.textContent = (gotIt ? 'Correcto. ' : 'Respuesta: ' + options[correct] + ' ') + why;
+      review.hidden = false;
+    });
+    form.querySelector('[data-listening-score]').textContent = score + '/' + brief.questions.length + ' respuestas correctas';
+    form.querySelector('details').hidden = false;
+    const check = form.querySelector('button');
+    check.type = 'button';
+    check.textContent = 'Volver a intentar';
+    check.onclick = renderListeningBrief;
+    form.querySelectorAll('input').forEach(input => input.disabled = true);
+    state.listeningBriefScores[brief.id] = Math.max(score,state.listeningBriefScores[brief.id] || 0);
+    persist();
+  });
 }
 function loadListeningManifest() {
   if (!listeningManifestPromise) listeningManifestPromise = fetch(listeningAsset('b2-short-extracts.json')).then(response => {
@@ -5914,9 +5983,23 @@ let activeB2Game = null;
 let activeB2Stage = 0;
 let playingEnglishJourney = false;
 function b2OptionOrder(count,offset) { return Array.from({length:count},(_,i)=>(i+offset)%count); }
-function englishRouteLessons() { return state.examLevel === 'C2 Proficiency' ? C2_LESSONS : state.examLevel === 'C1 Advanced' ? C1_LESSONS : B2_LESSONS; }
-function englishRouteGames() { return state.examLevel === 'C2 Proficiency' ? C2_GAMES : state.examLevel === 'C1 Advanced' ? C1_GAMES : B2_GAMES; }
-function englishRouteGame(id) { return [...B2_GAMES,...C1_GAMES,...C2_GAMES].find(item => item.id === id); }
+function englishExpansion(level=state.examLevel) {
+  return window.EnglishExpansion?.[level] || {};
+}
+function englishRouteLessons(level=state.examLevel) {
+  const core = level === 'C2 Proficiency' ? C2_LESSONS : level === 'C1 Advanced' ? C1_LESSONS : B2_LESSONS;
+  return [...core,...(englishExpansion(level).lessons || [])];
+}
+function englishRouteGames(level=state.examLevel) {
+  const core = level === 'C2 Proficiency' ? C2_GAMES : level === 'C1 Advanced' ? C1_GAMES : B2_GAMES;
+  const extra = (englishExpansion(level).missions || []).map(game => ({...game,level}));
+  return [...core,...extra];
+}
+function englishRouteGame(id) { return englishRouteGames().find(item => item.id === id); }
+function englishLessonMission(lesson) { return lesson.mission || B2_GAME_BY_LESSON[lesson.id]; }
+function englishLessonSkill(lesson) {
+  return escHtml(lesson.skill) + (lesson.part ? ' · parte ' + lesson.part : '');
+}
 function cambridgeGameAsset(name) {
   const base = /^\/cambridge\/?$/.test(location.pathname) ? '/assets/cambridge-games/' : 'assets/games/';
   return new URL(base + name,location.href).href;
@@ -5944,7 +6027,7 @@ function renderB2Lessons() {
   list.innerHTML = selected.length ? selected.map(lesson => {
     const done = state.b2Progress?.[lesson.id]?.completed;
     const position = lessons.indexOf(lesson) + 1;
-    return `<article class="b2-card lesson-row"><button type="button" data-lesson-id="${lesson.id}" onclick="openB2Lesson('${lesson.id}')"><span class="lesson-index" aria-hidden="true">${String(position).padStart(2,'0')}</span><span class="lesson-copy"><small>${escHtml(lesson.skill)} · parte ${lesson.part}</small><strong>${escHtml(lesson.title)}</strong>${done ? '<small class="lesson-done">✓ Completada</small>' : ''}</span><span class="lesson-arrow" aria-hidden="true">→</span></button></article>`;
+    return `<article class="b2-card lesson-row"><button type="button" data-lesson-id="${lesson.id}" onclick="openB2Lesson('${lesson.id}')"><span class="lesson-index" aria-hidden="true">${String(position).padStart(2,'0')}</span><span class="lesson-copy"><small>${englishLessonSkill(lesson)}</small><strong>${escHtml(lesson.title)}</strong>${done ? '<small class="lesson-done">✓ Completada</small>' : ''}</span><span class="lesson-arrow" aria-hidden="true">→</span></button></article>`;
   }).join('') : '<p class="b2-empty">No hay lecciones para estos filtros.</p>';
 }
 function openB2Lesson(id) {
@@ -5953,7 +6036,7 @@ function openB2Lesson(id) {
   if (!lesson) return;
   const order = b2OptionOrder(lesson.options.length,(lessons.findIndex(item=>item.id===id)+1)%lesson.options.length);
   document.getElementById('b2LessonOverview').hidden = true;
-  document.getElementById('b2LessonDetail').innerHTML = `<div class="workspace-links"><button type="button" onclick="closeB2Lesson('${id}')">← Volver al temario</button></div><section class="b2-panel"><small>${escHtml(lesson.skill)} · parte ${lesson.part}</small><h2 data-workspace-title tabindex="-1">${escHtml(lesson.title)}</h2><p>${escHtml(lesson.idea)}</p><blockquote>${escHtml(lesson.example)}</blockquote><h3>Comprueba lo aprendido</h3><p>${escHtml(lesson.question)}</p><div class="b2-options">${order.map(index => `<button class="b2-option" data-answer-index="${index}" type="button" onclick="answerB2Lesson('${id}',${index})">${escHtml(lesson.options[index])}</button>`).join('')}</div><div class="b2-feedback" id="b2LessonFeedback" role="status">${state.b2Progress?.[id]?.completed ? 'Ya la completaste. Puedes responder otra vez para repasarla.' : 'Elige una respuesta para comprobarla.'}</div><p><button type="button" onclick="openB2Game('${B2_GAME_BY_LESSON[id]}')">Practicar con un juego →</button></p></section>`;
+  document.getElementById('b2LessonDetail').innerHTML = `<div class="workspace-links"><button type="button" onclick="closeB2Lesson('${id}')">← Volver al temario</button></div><section class="b2-panel"><small>${englishLessonSkill(lesson)}</small><h2 data-workspace-title tabindex="-1">${escHtml(lesson.title)}</h2><p>${escHtml(lesson.idea)}</p><blockquote>${escHtml(lesson.example)}</blockquote>${lesson.trap ? `<p class="english-lesson-tip"><strong>Fíjate</strong> ${escHtml(lesson.trap)}</p>` : ''}<h3>Comprueba lo aprendido</h3><p>${escHtml(lesson.question)}</p><div class="b2-options">${order.map(index => `<button class="b2-option" data-answer-index="${index}" type="button" onclick="answerB2Lesson('${id}',${index})">${escHtml(lesson.options[index])}</button>`).join('')}</div><div class="b2-feedback" id="b2LessonFeedback" role="status">${state.b2Progress?.[id]?.completed ? 'Ya la completaste. Puedes responder otra vez para repasarla.' : 'Elige una respuesta para comprobarla.'}</div><p><button type="button" onclick="openB2Game('${englishLessonMission(lesson)}')">Practicar con un juego →</button></p></section>`;
   document.querySelector('#b2LessonDetail [data-workspace-title]').focus({preventScroll:true});
   window.scrollTo({top:0,behavior:'auto'});
 }
@@ -5974,21 +6057,21 @@ function answerB2Lesson(id,index) {
   renderB2Lessons();
 }
 function englishJourneyChapters(game) {
-  const lessons = englishRouteLessons().filter(lesson => B2_GAME_BY_LESSON[lesson.id] === game.id);
-  return lessons.map((lesson, index) => ({lesson, end:ENGLISH_JOURNEY_BREAKS[game.id]?.[index] ?? game.stages.length}));
+  const lessons = englishRouteLessons().filter(lesson => englishLessonMission(lesson) === game.id);
+  return lessons.map((lesson, index) => ({lesson, end:(game.checkpoints || ENGLISH_JOURNEY_BREAKS[game.id])?.[index] ?? game.stages.length}));
 }
 function englishJourneyCheckpoint(game, stage) {
   return playingEnglishJourney && englishJourneyChapters(game).slice(0,-1).some(chapter => chapter.end === stage);
 }
 function englishJourneyArt(game) {
   const base = location.protocol === 'file:' ? 'assets/studio/' : '/assets/cambridge-studio/';
-  return `<img src="${base + ENGLISH_JOURNEY_ART[game.id]}" alt="" width="480" height="270" loading="lazy" decoding="async">`;
+  return `<img src="${base + (game.scene?.art || ENGLISH_JOURNEY_ART[game.id])}" alt="" width="480" height="270" loading="lazy" decoding="async">`;
 }
 function renderEnglishJourney() {
   const lessons = englishRouteLessons();
   const games = englishRouteGames();
   const stops = lessons.map(lesson => {
-    const game = games.find(item => item.id === B2_GAME_BY_LESSON[lesson.id]);
+    const game = games.find(item => item.id === englishLessonMission(lesson));
     const chapters = englishJourneyChapters(game);
     const chapter = chapters.findIndex(item => item.lesson.id === lesson.id);
     const done = state.b2Games[game.id]?.completed || (state.b2GameRuns[game.id]?.stage || 0) >= chapters[chapter].end;
@@ -6012,7 +6095,7 @@ function renderEnglishJourney() {
         </div>
       </article>
     </li>`;
-  }).join('');
+  });
   const upcoming = stops[next];
   const action = total || (upcoming && state.b2GameRuns[upcoming.game.id]) ? 'Continuar recorrido' : 'Empezar recorrido';
   const journey = document.getElementById('englishJourney');
@@ -6028,7 +6111,9 @@ function renderEnglishJourney() {
       <progress max="${stops.length}" value="${total}" aria-label="Paradas completadas"></progress>
     </div>
   </header>
-  <ol class="english-journey-path" aria-label="Recorrido de los temas">${nodes}</ol>`;
+  <ol class="english-journey-path" aria-label="Primer tramo">${nodes.slice(0,6).join('')}</ol>
+  ${nodes.length > 6 ? `<h3 class="english-journey-chapter">Nuevas misiones</h3>
+  <ol class="english-journey-path english-journey-extension" start="7" aria-label="Segundo tramo">${nodes.slice(6).join('')}</ol>` : ''}`;
 }
 function renderB2Games() {
   const list = document.getElementById('b2GameList');
@@ -6077,9 +6162,12 @@ function renderB2GameStage() {
   document.getElementById('tab-juegos').classList.add('english-playing');
   if (window.EnglishMissionBoards) {
     const run=state.b2GameRuns[game.id];
-    document.getElementById('b2GameBoard').innerHTML=EnglishMissionBoards.render(game,activeB2Stage,run);
-    if(run.solvedStage===activeB2Stage)showB2GameSuccess(game,stage,stage.correct);
-    return;
+    const board = EnglishMissionBoards.render(game,activeB2Stage,run);
+    if (board) {
+      document.getElementById('b2GameBoard').innerHTML=board;
+      if(run.solvedStage===activeB2Stage)showB2GameSuccess(game,stage,stage.correct);
+      return;
+    }
   }
   const response = stage.options ? `<div class="b2-scene-options">${b2OptionOrder(stage.options.length,(activeB2Stage+1)%stage.options.length).map(index => `<button class="b2-scene-option" data-answer-index="${index}" type="button" onclick="answerB2Game(${index})">${escHtml(stage.options[index])}</button>`).join('')}</div>` : '<label for="b2TypedAnswer">Completa el hueco con 2–5 palabras e incluye la palabra clave</label><div class="b2-machine-input"><input class="b2-answer" id="b2TypedAnswer" autocomplete="off" onkeydown="if(event.key===\'Enter\')answerB2Game()"><button type="button" onclick="answerB2Game()">Validar frase</button></div>';
   const ornaments = {editor:'THE EDITOR’S DESK',archive:'CASE FILE · EVIDENCE',machine:'MEANING MACHINE',opencloze:'THE MISSING WORDS',forge:'WORD FORGE',mailroom:'THE MAILROOM','c1-research':'THE RESEARCH DESK','c1-debate':'THE ROUND TABLE','c2-observatory':'THE EDITORIAL OBSERVATORY','c2-press':'THE PRECISION PRESS'};
