@@ -1439,9 +1439,9 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 @media(max-width:620px){.b2-grid{grid-template-columns:1fr}.b2-intro,.b2-panel{padding:19px}.b2-board{min-height:240px;padding:12px}.b2-scene-page{padding:15px}.b2-filters input{min-width:0}.b2-filters label{flex:1 1 145px}.writing-report-scores,.writing-compare{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1">
-<link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261108-1">
+<link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261109-2">
 <link rel="stylesheet" href="/assets/cambridge-studio/games.css?v=20261109-1">
-<link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261109-1">
+<link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261109-2">
 <script src="/assets/cambridge-studio/games.js?v=20261109-1"></script>
 </head>
 <body class="english-studio">
@@ -1454,28 +1454,20 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   <button type="button" title="Quitar formato" onmousedown="applySelectionFormat(event,'removeFormat')">Tx</button>
 </div>
 
-<header>
-  <div class="brand-area">
-    <div class="cambridge-header-icon" aria-hidden="true"><img src="assets/brand/ingles-simple.png" alt=""></div>
-    <h1>Título de inglés</h1>
-    <div class="lang-switcher">
-      <button class="lang-btn active" id="btnEN" title="English B2/C1/C2">EN</button>
-    </div>
-  </div>
-  <div class="main-actions">
-    <button class="nav-pill active" data-tab-btn="sesion" onclick="showTab('sesion',this)">Inicio</button>
-    <button class="nav-pill" data-tab-btn="temas" onclick="showTab('temas',this)">Biblioteca</button>
-    <button class="nav-pill" data-tab-btn="b2" onclick="showTab('b2',this)">Modo temario</button>
-    <button class="nav-pill" data-tab-btn="juegos" onclick="showTab('juegos',this)">Modo juegos</button>
-    <button class="nav-pill" data-tab-btn="entrenar" onclick="showTab('entrenar',this)">Entrenar</button>
-    <button class="nav-pill" data-tab-btn="examenes" onclick="showTab('examenes',this)">Exámenes</button>
-    <button class="nav-pill" data-tab-btn="progreso" onclick="showTab('progreso',this)">Progreso</button>
-  </div>
+<header class="workspace-header">
+  <button class="brand-area workspace-brand active" type="button" data-tab-btn="sesion" onclick="showTab('sesion')" aria-label="Inicio de Inglés" aria-current="page">
+    <img src="/assets/brand/ingles-simple.png" width="30" height="30" alt="">
+    <span>Inglés</span>
+  </button>
+  <nav class="main-actions" aria-label="Navegación de Inglés">
+    <button class="nav-pill" data-tab-btn="b2" onclick="showTab('b2')" aria-label="Modo temario">Temario</button>
+    <button class="nav-pill" data-tab-btn="juegos" onclick="showTab('juegos')" aria-label="Modo juegos">Juegos</button>
+    <button class="nav-pill" data-tab-btn="entrenar" onclick="showTab('entrenar')">Práctica</button>
+  </nav>
   <div class="header-right">
-    <label class="cambridge-header-level" for="headerExamLevel">Nivel <select id="headerExamLevel" onchange="setExamLevel(this.value)"><option value="B2 First">B2 First</option><option value="C1 Advanced">C1 Advanced</option><option value="C2 Proficiency">C2 Proficiency</option></select></label>
-    <div class="header-meta" id="headerMeta">Sesiones: 0<br>Temas: 0<br>Créditos: -</div>
+    <select id="headerExamLevel" aria-label="Nivel de inglés" onchange="setExamLevel(this.value)"><option value="B2 First">B2 First</option><option value="C1 Advanced">C1 Advanced</option><option value="C2 Proficiency">C2 Proficiency</option></select>
     <button type="button" data-app-notifications="CAMBRIDGE" data-app-label="Inglés" aria-label="Notificaciones"></button>
-    <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil',this)" title="Perfil" aria-label="Perfil">P</button>
+    <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil')" title="Perfil" aria-label="Perfil">P</button>
   </div>
 </header>
 <button class="global-teacher" type="button" onclick="toggleEnglishTeacher()" title="Profesor IA" aria-label="Abrir Profesor IA" aria-expanded="false" aria-controls="englishTeacherPanel"><img src="assets/brand/teacher-ai.png" alt=""><span>Profesor IA</span></button>
@@ -1491,37 +1483,52 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   <!-- TAB: SESIÓN -->
   <div id="tab-sesion" class="tab active">
     <div id="sessionEmpty" class="session-empty">
-      <div class="studio-welcome"><div class="studio-welcome-copy"><span class="studio-eyebrow">Tu espacio de inglés</span><h2>Hoy, un paso más<br>con tu inglés.</h2><p class="desk-subtitle">Aprende por temas, ponte a prueba y descubre todo lo que ya sabes hacer.</p><div class="studio-levels" aria-label="Niveles de estudio"><span>B2 First</span><span>C1 Advanced</span><span>C2 Proficiency</span></div></div><div class="studio-welcome-scene"><img src="/assets/cambridge-studio/academy-v2.webp" width="1280" height="720" alt="Un espacio de estudio luminoso con vistas a un patio universitario" fetchpriority="high"><div class="studio-scene-note"><span aria-hidden="true">✓</span><span>Tu ritmo. Tu siguiente meta.</span></div></div></div>
-      <div class="english-session">
-        <div class="english-session-title"><span class="english-icon" aria-hidden="true"><img src="/assets/cambridge-studio/route-card-v2.webp" width="80" height="80" alt=""></span><div><h3>Sesión diaria</h3><p>Elige nivel y tiempo para practicar el examen correcto.</p><div class="english-level-control"><label for="examLevelSelect">Nivel</label><select id="examLevelSelect" onchange="setExamLevel(this.value)"><option value="B2 First">B2 First</option><option value="C1 Advanced">C1 Advanced</option><option value="C2 Proficiency">C2 Proficiency</option></select></div></div></div>
-        <div class="cambridge-duration-options" role="group" aria-label="Duración de la sesión">
-          <button type="button" data-english-duration="15" onclick="selectEnglishDuration(15)"><strong>15 min</strong><span>Repaso rápido</span></button>
-          <button type="button" data-english-duration="30" onclick="selectEnglishDuration(30)"><strong>30 min</strong><span>Estudio equilibrado</span></button>
-          <button type="button" data-english-duration="45" onclick="selectEnglishDuration(45)"><strong>45 min</strong><span>Sesión completa</span></button>
+      <h1 class="workspace-title" tabindex="-1">¿Qué quieres practicar hoy?</h1>
+      <section class="quick-session" aria-labelledby="quickSessionTitle">
+        <div class="quick-session-main">
+          <h2 id="quickSessionTitle">Sesión de hoy</h2>
+          <div id="englishResume" class="quick-resume" hidden>
+            <p id="englishResumeTopic"></p>
+            <button type="button" class="btn btn-blue" onclick="resumeEnglishSession()">Reanudar sesión →</button>
+          </div>
+          <details id="englishSessionOptions" class="quick-session-options" open>
+            <summary hidden>Nueva sesión</summary>
+            <div class="quick-session-actions">
+              <div class="cambridge-duration-options" role="group" aria-label="Duración de la sesión">
+                <button type="button" data-english-duration="15" onclick="selectEnglishDuration(15)">15 min</button>
+                <button type="button" data-english-duration="30" onclick="selectEnglishDuration(30)">30 min</button>
+                <button type="button" data-english-duration="45" onclick="selectEnglishDuration(45)">45 min</button>
+              </div>
+              <button class="btn english-start" type="button" onclick="startSession(englishDuration)">Empezar sesión →</button>
+            </div>
+          </details>
         </div>
-        <button class="btn english-start" type="button" onclick="startSessionForDuration(englishDuration)">Empezar sesión →</button>
+        <img class="quick-session-art" src="/assets/cambridge-studio/route-card-v2.webp" width="320" height="180" alt="">
+      </section>
+      <div class="quick-resume quick-draft" id="englishWritingResume" hidden><span><strong>Borrador de Writing</strong><small id="englishWritingResumeText"></small></span><button class="btn btn-outline" type="button" onclick="showTab('escrita')">Continuar →</button></div>
+      <div class="quick-modes" aria-label="Modos de aprendizaje">
+        <button type="button" class="quick-mode" onclick="showTab('b2')"><img src="/assets/cambridge-studio/academy-card-v2.webp" width="128" height="90" alt=""><span><strong>Modo temario</strong><small id="englishHomeRouteProgress">0/6 lecciones completadas</small></span><span aria-hidden="true">›</span></button>
+        <button type="button" class="quick-mode" onclick="showTab('juegos')"><img src="/assets/cambridge-studio/games-card-v2.webp" width="128" height="90" alt=""><span><strong>Modo juegos</strong><small id="englishHomeGameProgress">0/6 juegos terminados</small></span><span aria-hidden="true">›</span></button>
       </div>
-      <div class="english-resume" id="englishResume" hidden><span><strong>Sesión en curso</strong><small id="englishResumeTopic"></small></span><button class="btn btn-outline" type="button" onclick="resumeEnglishSession()">Reanudar →</button></div>
-      <div class="studio-section-label"><h3>¿Qué te apetece practicar?</h3><p>Elige una herramienta y empieza por ahí.</p></div>
-      <div class="english-grid">
-        <section class="english-card" data-feature="library"><div class="studio-card-art"><img src="/assets/cambridge-studio/academy-card-v2.webp" width="640" height="360" alt="" loading="lazy"><span class="studio-card-tag">Explora</span></div><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">📚</span><div><h3>Biblioteca de temas</h3><p>Speaking, writing, grammar y vocabulario por niveles.</p></div><button class="english-link" type="button" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">Ver temas →</button></div><div class="english-topic-chips"><button type="button" onclick="openEnglishTopicGroup('Speaking')"><span aria-hidden="true">💬</span>Speaking</button><button type="button" onclick="openEnglishTopicGroup('Writing')"><span aria-hidden="true">✍️</span>Writing</button><button type="button" onclick="openEnglishTopicGroup('Use of English')"><span aria-hidden="true">Aa</span>Grammar</button><button type="button" onclick="openEnglishTopicGroup('Reading')"><span aria-hidden="true">📖</span>Reading</button></div></section>
-        <section class="english-card" data-feature="route"><div class="studio-card-art"><img src="/assets/cambridge-studio/route-card-v2.webp" width="640" height="360" alt="" loading="lazy"><span class="studio-card-tag">Paso a paso</span></div><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">✦</span><div><h3 id="englishHomeRouteTitle">Ruta B2 First</h3><p id="englishHomeRouteDescription">Seis lecciones breves con explicación y corrección.</p></div><button class="english-link" type="button" onclick="showTab('b2',document.querySelector('[data-tab-btn=&quot;b2&quot;]'))">Abrir ruta →</button></div><div class="english-card-steps"><span>Aprender</span><span>Comprobar</span><span>Repasar</span></div><p class="english-home-route-count" id="englishHomeRouteProgress">0 lecciones completadas</p></section>
-        <section class="english-card" data-feature="games"><div class="studio-card-art"><img src="/assets/cambridge-studio/games-card-v2.webp" width="640" height="360" alt="" loading="lazy"><span class="studio-card-tag">Juega y aprende</span></div><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">◆</span><div><h3 id="englishHomeGameTitle">Juegos B2</h3><p id="englishHomeGameDescription">Seis retos vinculados a la ruta de lectura, vocabulario, gramática y escritura.</p></div><button class="english-link" type="button" onclick="showTab('juegos',document.querySelector('[data-tab-btn=&quot;juegos&quot;]'))">Ver juegos →</button></div><div class="english-card-steps"><span id="englishHomeGameCount">6 misiones</span><span id="englishHomeGameBenefit">Corrección inmediata</span></div><p class="english-home-route-count" id="englishHomeGameProgress">0 juegos terminados</p></section>
-        <section class="english-card" data-feature="speaking"><div class="studio-card-art"><img src="/assets/cambridge-studio/audio-card-v2.webp" width="640" height="360" alt="" loading="lazy"><span class="studio-card-tag">Habla con confianza</span></div><div class="english-card-head"><span class="english-icon purple" aria-hidden="true">🎙️</span><div><h3>Speaking</h3><p>Prepara tu respuesta, grábate y recibe correcciones.</p></div><button class="english-link" type="button" onclick="showTab('recitar',document.querySelector('[data-tab-btn=&quot;recitar&quot;]'))">Practicar →</button></div><div class="english-card-steps"><span>Preparar</span><span>Grabar</span><span>Corregir</span></div></section>
-        <section class="english-card" data-feature="writing"><div class="studio-card-art"><img src="/assets/cambridge-studio/writing-card-v2.webp" width="640" height="360" alt="" loading="lazy"><span class="studio-card-tag">Dale forma a tus ideas</span></div><div class="english-card-head"><span class="english-icon gold" aria-hidden="true">✍️</span><div><h3>Writing</h3><p>Escribe, genera un modelo y mejora tu texto con feedback.</p></div><button class="english-link" type="button" onclick="showTab('escrita',document.querySelector('[data-tab-btn=&quot;escrita&quot;]'))">Ir a writing →</button></div><div class="english-card-steps"><span>Redactar</span><span>Modelo</span><span>Corregir por foto</span></div></section>
-        <section class="english-card" data-feature="progress"><div class="studio-card-art"><img src="/assets/cambridge-studio/progress-card-v2.webp" width="640" height="360" alt="" loading="lazy"><span class="studio-card-tag">Cada paso cuenta</span></div><div class="english-card-head"><span class="english-icon teal" aria-hidden="true">📈</span><div><h3>Tu progreso</h3><p>Sesiones guardadas y temas completados.</p></div><button class="english-link" type="button" onclick="showTab('progreso',document.querySelector('[data-tab-btn=&quot;progreso&quot;]'))">Ver progreso →</button></div><div class="english-meter"><div class="english-meter-track"><span id="englishHomeBar"></span></div><strong id="englishHomePct">0%</strong></div><button class="english-next" type="button" onclick="continueEnglishStudy()"><span><strong>Siguiente tema</strong><small id="englishHomeNext">Busca tu próximo tema.</small></span><span aria-hidden="true">→</span></button></section>
-      </div>
-      <div class="english-resume" id="englishWritingResume" hidden><span><strong>Borrador de Writing</strong><small id="englishWritingResumeText"></small></span><button class="btn btn-outline" type="button" onclick="showTab('escrita',document.querySelector('[data-tab-btn=&quot;escrita&quot;]'))">Continuar →</button></div>
+      <section class="quick-skills" aria-labelledby="quickSkillsTitle">
+        <h2 id="quickSkillsTitle">Práctica directa</h2>
+        <div class="quick-skill-grid">
+          <button type="button" onclick="showTab('recitar')">Speaking <span aria-hidden="true">›</span></button>
+          <button type="button" onclick="showTab('escrita')">Writing <span aria-hidden="true">›</span></button>
+          <button type="button" onclick="showTab('examenes')">Listening B2 <span aria-hidden="true">›</span></button>
+        </div>
+      </section>
+      <div class="workspace-links"><button type="button" onclick="showTab('temas')">Biblioteca</button><button type="button" onclick="showTab('progreso')">Mi progreso</button><button type="button" onclick="showTab('historial')">Historial</button></div>
     </div>
     <div id="sessionActive" class="session-active" style="display:none">
       <div class="session-header">
         <div>
           <div class="session-date" id="sessionDateLabel"></div>
-          <div class="session-topic" id="sessionTopicLabel"></div>
+          <div class="session-topic" id="sessionTopicLabel" tabindex="-1"></div>
           <div class="session-lang-badge" id="sessionLangBadge"></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
-          <button class="btn btn-outline btn-small" onclick="startSession()">Tema aleatorio</button>
+          <button class="btn btn-outline btn-small" onclick="startSession(session.duration)">Tema aleatorio</button>
           <button class="btn btn-outline btn-small" onclick="showTab('temas',document.querySelector('[data-tab-btn=&quot;temas&quot;]'))">Elegir tema →</button>
         </div>
       </div>
@@ -1573,25 +1580,23 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   </div>
 
   <div id="tab-progreso" class="tab english-progress">
-    <div class="english-progress-heading studio-page-head"><div><span>CADA PASO CUENTA</span><h2>Tu progreso</h2><p>Consulta tus sesiones, rutas y respuestas para repasar.</p></div><img src="/assets/cambridge-studio/progress-card-v2.webp" width="160" height="90" alt="" loading="lazy"></div>
+    <div class="workspace-page-head"><h2 data-workspace-title tabindex="-1">Mi progreso</h2></div>
     <section class="english-progress-overview" aria-label="Objetivo del mes"><div class="english-progress-overview-main"><span class="english-icon" aria-hidden="true">◎</span><div class="english-progress-copy"><span>Objetivo del mes</span><strong id="englishMonthCount">0 de 12 sesiones</strong><div class="english-progress-meter"><div role="progressbar" id="englishProgressTrack" aria-label="Sesiones guardadas este mes" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="englishProgressBar"></span></div><b id="englishProgressPct">0%</b></div></div><div class="english-progress-level"><span id="englishLevelBadge" class="pending" aria-hidden="true">★</span><div><strong id="englishLevel">Nivel inicial</strong><small id="englishLevelHint">Guarda tu primera sesión.</small></div></div></div><ol class="english-milestones" id="englishMilestones" aria-label="Hitos del mes"></ol></section>
     <div class="english-progress-grid"><section class="english-progress-panel"><h3>Actividad de la semana</h3><div class="english-week" id="englishWeek"></div><div class="english-facts" id="englishFacts"></div></section><section class="english-progress-panel"><h3>Por competencias</h3><div class="english-skills" id="englishSkills"></div></section></div>
-    <section aria-labelledby="englishRouteProgressTitle"><div class="english-route-progress-head"><div><h3 id="englishRouteProgressTitle">Tus rutas de examen</h3><p>Lecciones y juegos terminados en cada nivel. Cada actividad se cuenta una sola vez.</p></div></div><div class="english-route-progress-cards" id="englishRouteProgressCards"></div><div class="english-route-skill-row" id="englishRouteSkillRow" aria-label="Destrezas de la ruta elegida"></div></section>
-    <section class="english-progress-panel" aria-labelledby="englishPracticeProgressTitle"><h3 id="englishPracticeProgressTitle">Otras prácticas</h3><p>Writing y Speaking se registran como trabajo y revisión, sin convertir el informe de IA en una nota de examen. Listening por partes está disponible en B2.</p><div class="english-practice-progress" id="englishPracticeProgress"></div></section>
-    <section class="english-progress-panel" aria-labelledby="englishErrorReviewTitle"><h3 id="englishErrorReviewTitle">Repasa tus errores</h3><p>Respuestas de tu última partida en cada juego. La explicación te indica qué revisar antes de repetirlo.</p><div class="english-error-list" id="englishErrorReview"></div></section>
+    <section aria-labelledby="englishRouteProgressTitle"><div class="english-route-progress-head"><div><h3 id="englishRouteProgressTitle">Tus rutas de examen</h3><p>Lecciones y juegos completados por nivel.</p></div></div><div class="english-route-progress-cards" id="englishRouteProgressCards"></div><div class="english-route-skill-row" id="englishRouteSkillRow" aria-label="Destrezas de la ruta elegida"></div></section>
+    <section class="english-progress-panel" aria-labelledby="englishPracticeProgressTitle"><h3 id="englishPracticeProgressTitle">Otras prácticas</h3><p>Borradores, revisiones y resultados de Listening B2.</p><div class="english-practice-progress" id="englishPracticeProgress"></div></section>
+    <section class="english-progress-panel" aria-labelledby="englishErrorReviewTitle"><h3 id="englishErrorReviewTitle">Repasa tus errores</h3><p>Tus últimos intentos y la explicación de cada respuesta.</p><div class="english-error-list" id="englishErrorReview"></div></section>
     <div class="english-progress-action"><span class="english-icon teal" aria-hidden="true">→</span><div><strong>Siguiente paso</strong><small id="englishProgressNext">Elige un tema para practicar.</small></div><button class="btn" type="button" onclick="continueEnglishStudy()">Continuar estudiando →</button></div>
   </div>
 
   <!-- TAB: RECITAR -->
   <div id="tab-recitar" class="tab">
-    <div class="studio-page-head"><div><span>SPEAKING</span><h2>Hazte oír. Gana confianza.</h2><p>Prepara tus ideas, grábate y revisa el texto transcrito.</p></div><img src="/assets/cambridge-studio/audio-card-v2.webp" width="160" height="90" alt="" loading="lazy"></div>
+    <div class="workspace-page-head"><h2 data-workspace-title tabindex="-1">Speaking</h2> <button type="button" class="workspace-link" onclick="showTab('entrenar')">← Práctica</button></div>
     <div class="recite-layout">
       <div class="recite-panel">
-        <div class="section-label">Práctica oral</div>
         <div class="recite-field">
           <label for="reciteTopicInput">Tema</label>
           <select class="recite-topic-select" id="reciteTopicInput" onchange="updateReciteTopic(this.value)"></select>
-          <div class="recite-topic-hint">Por defecto usa el tema que estás trabajando. También puedes elegir otro de la lista.</div>
         </div>
         <div class="recite-topic" id="reciteTopicLabel">Sin tema seleccionado</div>
         <section class="speaking-task" aria-labelledby="speakingTaskTitle">
@@ -1666,10 +1671,9 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 
   <!-- TAB: ESCRITA -->
   <div id="tab-escrita" class="tab">
-    <div class="studio-page-head"><div><span>WRITING</span><h2>Dale forma a tus ideas.</h2><p>Escribe, revisa y compara versiones sin perder tu borrador.</p></div><img src="/assets/cambridge-studio/writing-card-v2.webp" width="160" height="90" alt="" loading="lazy"></div>
+    <div class="workspace-page-head"><h2 data-workspace-title tabindex="-1">Writing</h2> <button type="button" class="workspace-link" onclick="showTab('entrenar')">← Práctica</button></div>
     <div class="writing-layout">
       <div class="writing-panel">
-        <div class="section-label">Práctica escrita</div>
         <div class="writing-grid">
           <div class="writing-field">
             <label for="writingTaskType">Tarea</label>
@@ -1696,8 +1700,8 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
           </div>
         </div>
         <div class="writing-guide" id="writingGuide" role="status"></div>
-        <div class="writing-prompt-actions"><button class="btn btn-small btn-outline" type="button" onclick="loadWritingPrompt()">Probar una consigna de este tipo</button><span>La consigna se puede editar antes de empezar.</span></div>
-        <div class="writing-ocr-box">
+        <div class="writing-prompt-actions"><button class="btn btn-small btn-outline" type="button" onclick="loadWritingPrompt()">Usar una consigna de ejemplo</button></div>
+        <details class="writing-ocr-box" id="writingOcrTools"><summary>Leer texto de una imagen</summary>
           <div class="writing-ocr-row">
             <div class="writing-field">
               <label for="writingImageInput">Imagen para OCR</label>
@@ -1716,15 +1720,15 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
           <div class="writing-ocr-preview" id="writingImagePreviewBox">
             <img id="writingImagePreview" alt="Imagen seleccionada para OCR">
           </div>
-          <div class="writing-ocr-hint">PNG, JPG o WEBP. Podrás corregir el texto detectado antes de insertarlo en el campo seleccionado; lo que ya tengas escrito se conservará.</div>
+          <div class="writing-ocr-hint">PNG, JPG o WEBP. Revisa el texto antes de insertarlo.</div>
           <div class="writing-ocr-review" id="writingOcrReviewBox" hidden><label for="writingOcrReview">Revisa el texto detectado antes de insertarlo</label><textarea id="writingOcrReview" class="writing-textarea" oninput="persistWritingOcrReview()" placeholder="Corrige aquí lo que el OCR haya leído mal."></textarea><div class="writing-actions"><button class="btn btn-small btn-blue" type="button" onclick="insertWritingOcrReview()">Insertar texto revisado</button><button class="btn btn-small btn-outline" type="button" onclick="dismissWritingOcrReview()">Descartar detección</button></div></div>
-        </div>
+        </details>
         <div class="writing-field">
           <label for="writingPrompt">Enunciado</label>
           <textarea class="writing-textarea" id="writingPrompt" oninput="persistWritingPractice()" placeholder="Pega o escribe aquí el enunciado de Cambridge."></textarea>
         </div>
         <div class="writing-field">
-          <label for="writingAnswer">Respuesta del alumno</label>
+          <label for="writingAnswer">Tu respuesta</label>
           <textarea class="writing-textarea answer" id="writingAnswer" oninput="persistWritingPractice()" placeholder="Write your answer here..."></textarea>
           <div class="writing-count" id="writingWordCount" aria-live="polite">0 palabras</div>
         </div>
@@ -1738,7 +1742,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
       <div class="writing-panel">
         <div class="section-label">Informe orientativo de práctica</div>
         <div id="writingStatus" class="db-notice" style="display:none;"></div>
-        <div id="writingFeedback" class="writing-report notice">El informe aparecerá aquí con valoración, errores prioritarios, versión mejorada y plan de mejora.</div>
+        <div id="writingFeedback" class="writing-report notice">Aquí aparecerá la corrección de tu texto.</div>
         <details class="writing-model" id="writingModelBox" hidden><summary>Ver respuesta modelo</summary><div id="writingModelText"></div></details>
         <div class="writing-versions"><h3>Versiones de tu texto</h3><p>Compara tu borrador con una versión guardada. La corrección no modifica lo que escribiste.</p><div class="writing-compare-controls"><label for="writingCompareVersion">Versión anterior</label><select id="writingCompareVersion" onchange="renderWritingComparison()"></select></div><div id="writingComparison"></div></div>
       </div>
@@ -1746,25 +1750,30 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   </div>
 
   <div id="tab-entrenar" class="tab">
-    <div class="b2-intro"><span>PRACTICA A TU RITMO</span><h2>Elige cómo entrenar hoy</h2><p>Usa tu nivel seleccionado en la cabecera. Retoma una sesión o practica speaking, writing y listening.</p></div>
-    <div class="b2-grid">
-      <article class="b2-card studio-practice-card"><div class="studio-card-art"><img src="/assets/cambridge-studio/route-card-v2.webp" width="640" height="360" alt="" loading="lazy"></div><small>SESIÓN GUIADA</small><h3>Práctica de hoy</h3><p>Elige 15, 30 o 45 minutos desde Inicio y continúa donde lo dejaste.</p><button type="button" onclick="showTab('sesion',document.querySelector('[data-tab-btn=&quot;sesion&quot;]'))">Ir a Inicio →</button></article>
-      <article class="b2-card studio-practice-card"><div class="studio-card-art"><img src="/assets/cambridge-studio/audio-card-v2.webp" width="640" height="360" alt="" loading="lazy"></div><small>PRODUCCIÓN ORAL</small><h3>Speaking</h3><p>Prepara tus ideas, grábate y revisa la respuesta.</p><button type="button" onclick="showTab('recitar')">Practicar speaking →</button></article>
-      <article class="b2-card studio-practice-card"><div class="studio-card-art"><img src="/assets/cambridge-studio/writing-card-v2.webp" width="640" height="360" alt="" loading="lazy"></div><small>PRODUCCIÓN ESCRITA</small><h3>Writing</h3><p>Escribe o retoma tu borrador y revisa los comentarios.</p><button type="button" onclick="showTab('escrita')">Practicar writing →</button></article>
-      <article class="b2-card studio-practice-card"><div class="studio-card-art"><img src="/assets/cambridge-studio/audio-card-v2.webp" width="640" height="360" alt="" loading="lazy"></div><small>COMPRENSIÓN ORAL</small><h3>Listening B2</h3><p>Cuatro prácticas: extractos, frases, hablantes y una entrevista.</p><button type="button" onclick="showTab('examenes',document.querySelector('[data-tab-btn=&quot;examenes&quot;]'))">Practicar listening →</button></article>
+    <div class="workspace-page-head"><h2 data-workspace-title tabindex="-1">Práctica</h2></div>
+    <div class="practice-list">
+      <button type="button" class="quick-mode" onclick="showTab('recitar')"><img src="/assets/cambridge-studio/audio-card-v2.webp" width="128" height="90" alt=""><span><strong>Speaking</strong><small>Prepara y graba tu respuesta</small></span><span aria-hidden="true">›</span></button>
+      <button type="button" class="quick-mode" onclick="showTab('escrita')"><img src="/assets/cambridge-studio/writing-card-v2.webp" width="128" height="90" alt=""><span><strong>Writing</strong><small>Redacta y revisa tu texto</small></span><span aria-hidden="true">›</span></button>
+      <button type="button" class="quick-mode" onclick="showTab('examenes')"><img src="/assets/cambridge-studio/audio-card-v2.webp" width="128" height="90" alt=""><span><strong>Listening B2</strong><small>Cuatro partes y un recorrido completo</small></span><span aria-hidden="true">›</span></button>
     </div>
+    <div class="workspace-links"><button type="button" onclick="showTab('sesion')">Ir a la sesión de hoy →</button></div>
   </div>
   <div id="tab-examenes" class="tab">
     <div class="listening-shell">
-      <div class="b2-intro listening-intro"><span>PRÁCTICA DE EXAMEN</span><h2>Listening B2</h2><p>Practica las cuatro partes por separado o recórrelas juntas con un tiempo global. Son actividades originales, no pruebas oficiales.</p></div>
+      <div class="workspace-page-head"><h2 data-workspace-title tabindex="-1">Listening B2</h2><button type="button" class="workspace-link" onclick="showTab('entrenar')">← Práctica</button></div>
       <button id="listeningBack" class="btn btn-outline listening-back" type="button" onclick="openListeningView('hub')" hidden>← Todas las prácticas</button>
       <div id="listeningContent" aria-live="polite"></div>
     </div>
   </div>
   <div id="tab-b2" class="tab">
-    <div class="b2-intro" id="englishRouteIntro"><span>B2 FIRST</span><h2>Aprende, practica y comprueba</h2><p>Seis lecciones breves para preparar Reading, Writing y Use of English. Elige una tarjeta para abrir sus pasos.</p></div>
-    <div class="b2-filters" role="group" aria-label="Filtrar lecciones B2"><label>Buscar tema <input id="b2Search" type="search" placeholder="Tema o palabra clave" oninput="renderB2Lessons()"></label><label>Destreza <select id="b2SkillFilter" onchange="renderB2Lessons()"><option value="all">Todas</option><option value="Use of English">Use of English</option><option value="Reading">Reading</option><option value="Writing">Writing</option><option value="Speaking">Speaking</option></select></label><label>Parte <select id="b2PartFilter" onchange="renderB2Lessons()"><option value="all">Todas</option><option value="1">Parte 1</option><option value="2">Parte 2</option><option value="3">Parte 3</option><option value="4">Parte 4</option><option value="5">Parte 5</option></select></label><label>Estado <select id="b2StatusFilter" onchange="renderB2Lessons()"><option value="all">Todos</option><option value="pending">Por practicar</option><option value="done">Completados</option></select></label></div>
-    <div id="b2LessonList" class="b2-grid"></div>
+    <div id="b2LessonOverview">
+      <div class="workspace-page-head"><h2 data-workspace-title tabindex="-1">Temario</h2><button class="workspace-link" type="button" onclick="showTab('temas')">Biblioteca →</button></div>
+      <div class="b2-filters" role="group" aria-label="Filtrar lecciones B2">
+        <label>Buscar tema <input id="b2Search" type="search" placeholder="Tema o palabra clave" oninput="renderB2Lessons()"></label>
+        <details class="b2-filter-options"><summary>Más filtros</summary><div><label>Destreza <select id="b2SkillFilter" onchange="renderB2Lessons()"><option value="all">Todas</option><option value="Use of English">Use of English</option><option value="Reading">Reading</option><option value="Writing">Writing</option><option value="Speaking">Speaking</option></select></label><label>Parte <select id="b2PartFilter" onchange="renderB2Lessons()"><option value="all">Todas</option><option value="1">Parte 1</option><option value="2">Parte 2</option><option value="3">Parte 3</option><option value="4">Parte 4</option><option value="5">Parte 5</option></select></label><label>Estado <select id="b2StatusFilter" onchange="renderB2Lessons()"><option value="all">Todos</option><option value="pending">Por practicar</option><option value="done">Completados</option></select></label></div></details>
+      </div>
+      <div id="b2LessonList" class="b2-grid"></div>
+    </div>
     <div id="b2LessonDetail"></div>
   </div>
   <div id="tab-juegos" class="tab">
@@ -1778,7 +1787,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 
   <!-- TAB: TEMAS -->
   <div id="tab-temas" class="tab">
-    <div class="studio-page-head"><div><span>TU BIBLIOTECA</span><h2>Un tema para cada siguiente paso.</h2><p>Busca una idea o elige una categoría del nivel que estás preparando.</p></div><img src="/assets/cambridge-studio/academy-card-v2.webp" width="160" height="90" alt="" loading="lazy"></div>
+    <div class="workspace-page-head"><h2 data-workspace-title tabindex="-1">Biblioteca</h2></div>
     <div class="topics-layout">
       <div class="topics-main">
         <div class="topics-search-bar">
@@ -2071,7 +2080,7 @@ let state = {
   config: { numPoints: 5, numVocab: 5, profile: DEFAULT_PROFILE, pointFontSize: 13, vocabColumnWidth: 270 }
 };
 let accountUser = null;
-let englishDuration = 30;
+let englishDuration = 15;
 
 let session = {
   topic: null,
@@ -2304,7 +2313,6 @@ function updateTopicCount() {
 function setLang(lang) {
   state.lang = 'en';
   persist();
-  document.getElementById('btnEN')?.classList.add('active');
 }
 
 function getLangLabel() {
@@ -2315,8 +2323,6 @@ function setExamLevel(level) {
   if (!['B2 First','C1 Advanced','C2 Proficiency'].includes(level)) return;
   state.examLevel = level;
   if (!state.writingPractice?.answer?.trim() && !state.writingPractice?.prompt?.trim()) state.writingPractice = {...(state.writingPractice || {}), level};
-  const levelSelect = document.getElementById('examLevelSelect');
-  if (levelSelect) levelSelect.value = level;
   const headerLevel = document.getElementById('headerExamLevel');
   if (headerLevel) headerLevel.value = level;
   currentCat = '';
@@ -2331,8 +2337,7 @@ function setExamLevel(level) {
   const gameBoard = document.getElementById('b2GameBoard');
   if (gameBoard) gameBoard.innerHTML = '';
   document.getElementById('tab-juegos')?.classList.remove('english-playing');
-  const lessonDetail = document.getElementById('b2LessonDetail');
-  if (lessonDetail) lessonDetail.innerHTML = '';
+  closeB2Lesson();
   if (document.getElementById('tab-b2')?.classList.contains('active')) renderB2Lessons();
   if (document.getElementById('tab-juegos')?.classList.contains('active')) renderB2Games();
   renderTopicsTab();
@@ -2760,7 +2765,7 @@ function offerCambridgePendingRecovery() {
 function showCambridgeSaveStatus(message, failed=false) {
   const status = document.getElementById('cambridgeSaveStatus');
   if (!status) return;
-  status.dataset.failed = String(failed);
+  status.dataset.state = failed ? 'error' : message === 'Guardado' ? 'saved' : message === 'Guardando…' ? 'saving' : 'notice';
   status.style.display = 'block';
   status.style.borderColor = failed ? '#efb2a9' : '#b7d1f3';
   status.style.background = failed ? '#fff3ef' : '#f0f7ff';
@@ -2818,7 +2823,6 @@ async function init() {
   document.getElementById('numPoints').value      = state.config.numPoints;
   document.getElementById('numVocab').value       = state.config.numVocab;
   document.getElementById('profileContext').value = state.config.profile;
-  document.getElementById('examLevelSelect').value = state.examLevel;
   document.getElementById('headerExamLevel').value = state.examLevel;
   document.getElementById('writingLevel').value = state.examLevel;
   document.getElementById('pointFontSize').value  = state.config.pointFontSize;
@@ -2827,7 +2831,6 @@ async function init() {
   updateVocabColumnWidth(state.config.vocabColumnWidth, false);
 
   state.lang = 'en';
-  document.getElementById('btnEN')?.classList.add('active');
 
   renderCambridgeIcons();
   renderTopicsTab();
@@ -2896,10 +2899,6 @@ async function persist() {
 }
 
 function updateHeader() {
-  const all = getAllTopics();
-  const credits = remainingCredits(accountUser) ?? '-';
-  document.getElementById('headerMeta').innerHTML =
-    `Sesiones: ${state.history.length}<br>${state.completedTopics.length}/${all.length} completados<br>Créditos: ${credits}`;
   renderEnglishDashboard();
 }
 
@@ -3022,10 +3021,6 @@ function renderEnglishDashboard() {
   const all = getAllTopics();
   const next = englishNextTopic();
   const completed = all.filter(item => state.completedTopics.includes(item.topic)).length;
-  const topicPct = all.length ? Math.round(completed / all.length * 100) : 0;
-  document.getElementById('englishHomePct').textContent = topicPct + '%';
-  document.getElementById('englishHomeBar').style.width = topicPct + '%';
-  document.getElementById('englishHomeNext').textContent = next?.topic || 'Todos los temas completados: sigue practicando.';
   document.getElementById('englishProgressNext').textContent = next?.topic || 'Elige un tema para repasar.';
 
   const now = new Date();
@@ -3081,13 +3076,22 @@ function renderEnglishDashboard() {
 }
 
 // ── TABS ────────────────────────────────────────────────────────────────
-function showTab(name, btn) {
+function selectEnglishNavigation(name) {
+  const parent = {temas:'b2', recitar:'entrenar', escrita:'entrenar', examenes:'entrenar', config:'perfil'}[name] || name;
+  document.querySelectorAll('.workspace-header [data-tab-btn]').forEach(button => {
+    const active = button.dataset.tabBtn === parent;
+    button.classList.toggle('active', active);
+    if (active) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
+}
+
+function showTab(name) {
+  const tab = document.getElementById('tab-' + name);
+  if (!tab) return;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('[data-tab-btn]').forEach(b => b.classList.remove('active'));
-  document.getElementById('moreMenu')?.classList.remove('open');
-  document.getElementById('tab-' + name).classList.add('active');
-  if (btn) btn.classList.add('active');
-  if (!btn && (name === 'recitar' || name === 'escrita')) document.querySelector('[data-tab-btn="entrenar"]')?.classList.add('active');
+  tab.classList.add('active');
+  selectEnglishNavigation(name);
   if (name === 'sesion') {
     document.getElementById('sessionActive').style.display = 'none';
     document.getElementById('sessionEmpty').style.display = 'block';
@@ -3106,6 +3110,7 @@ function showTab(name, btn) {
   if (name === 'escrita') renderWritingPractice();
   if (name === 'progreso') renderEnglishDashboard();
   window.scrollTo({top:0,behavior:'auto'});
+  tab.querySelector('[data-workspace-title]:not([hidden]), .workspace-title')?.focus({preventScroll:true});
 }
 
 function renderEnglishHomeSession() {
@@ -3115,6 +3120,12 @@ function renderEnglishHomeSession() {
   const topic = state.currentSession?.topic;
   box.hidden = !topic;
   if (topic) document.getElementById('englishResumeTopic').textContent = topic;
+  const options = document.getElementById('englishSessionOptions');
+  if (options.dataset.hasSession !== String(Boolean(topic))) {
+    options.dataset.hasSession = String(Boolean(topic));
+    options.open = !topic;
+    options.querySelector('summary').hidden = !topic;
+  }
   const writing = document.getElementById('englishWritingResume');
   const draft = state.writingPractice?.answer?.trim();
   if (writing) {
@@ -3126,6 +3137,7 @@ function renderEnglishHomeSession() {
 function resumeEnglishSession() {
   renderCurrentSession();
   window.scrollTo({top:0,behavior:'auto'});
+  document.getElementById('sessionTopicLabel').focus({preventScroll:true});
 }
 
 let englishTeacherBusy = false;
@@ -3241,6 +3253,7 @@ function renderWritingPractice() {
   if (ocr) ocr.value = data.ocrReview || '';
   const ocrBox = document.getElementById('writingOcrReviewBox');
   if (ocrBox) ocrBox.hidden = !data.ocrReview;
+  if (data.ocrReview) document.getElementById('writingOcrTools').open = true;
   renderWritingGuide();
   renderWritingFeedback();
   renderWritingComparison();
@@ -3544,17 +3557,9 @@ function clearWritingPractice() {
   setWritingStatus('Borrador nuevo. Las versiones anteriores siguen disponibles debajo.');
 }
 
-function toggleMoreMenu(event) {
-  event.stopPropagation();
-  document.getElementById('moreMenu')?.classList.toggle('open');
-}
-
 function showUtilityTab(name) {
   showTab(name);
-  document.getElementById('moreMenu')?.classList.remove('open');
 }
-
-document.addEventListener('click', () => document.getElementById('moreMenu')?.classList.remove('open'));
 
 // ── SESSION ────────────────────────────────────────────────────────────
 function persistCurrentSession() {
@@ -3570,12 +3575,13 @@ function renderCurrentSession() {
   if (!state.currentSession || !state.currentSession.topic) return;
   session = {
     topic: state.currentSession.topic,
+    duration: state.currentSession.duration || null,
     aiPoints: state.currentSession.aiPoints || [],
     savedPoints: state.currentSession.savedPoints || []
   };
   document.getElementById('sessionEmpty').style.display = 'none';
   document.getElementById('sessionActive').style.display = 'block';
-  document.getElementById('sessionDateLabel').textContent = 'Sesión diaria';
+  document.getElementById('sessionDateLabel').textContent = session.duration ? `Sesión de ${session.duration} min` : 'Sesión diaria';
   document.getElementById('sessionTopicLabel').textContent = session.topic;
   document.getElementById('sessionLangBadge').textContent = getLangLabel();
   ensureSessionChatToggle();
@@ -3638,41 +3644,30 @@ function toggleReciteChat() {
   panel.classList.toggle('collapsed');
 }
 
-async function startSession() {
+async function startSession(duration = null) {
   const all = getAllTopics();
   if (all.length === 0) { alert('No hay temas disponibles.'); return; }
   // Prefer uncompleted topics
   const pending = all.filter(({ topic }) => !state.completedTopics.includes(topic));
   const pool = pending.length > 0 ? pending : all;
   const { topic } = pool[Math.floor(Math.random() * pool.length)];
-  await startSessionWithTopic(topic, false);
+  await startSessionWithTopic(topic, false, duration);
 }
 
-async function startSessionForDuration(minutes) {
-  state.currentSession = {
-    ...(state.currentSession || {}),
-    duration: minutes,
-    startedFromToday: true
-  };
-  persist();
-  await startSession();
-}
-
-async function startSessionWithTopic(topic, autoGenerate = false) {
-  session = { topic, aiPoints: [], savedPoints: [] };
-  state.currentSession = { ...session, duration: state.currentSession?.duration || null, lang: state.lang, date: new Date().toISOString() };
+async function startSessionWithTopic(topic, autoGenerate = false, duration = null) {
+  session = { topic, duration, aiPoints: [], savedPoints: [] };
+  state.currentSession = { ...session, lang: state.lang, date: new Date().toISOString() };
 
   // Switch to session tab
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('[data-tab-btn]').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-sesion').classList.add('active');
-  document.querySelector('[data-tab-btn="sesion"]')?.classList.add('active');
+  selectEnglishNavigation('sesion');
 
   document.getElementById('sessionEmpty').style.display = 'none';
   document.getElementById('sessionActive').style.display = 'block';
   ensureSessionChatToggle();
 
-  document.getElementById('sessionDateLabel').textContent = 'Sesión diaria';
+  document.getElementById('sessionDateLabel').textContent = duration ? `Sesión de ${duration} min` : 'Sesión diaria';
   document.getElementById('sessionTopicLabel').textContent = topic;
   document.getElementById('sessionLangBadge').textContent = getLangLabel();
   document.getElementById('aiPoints').innerHTML = '';
@@ -3683,6 +3678,8 @@ async function startSessionWithTopic(topic, autoGenerate = false) {
   document.getElementById('manualInfoInput').value = '';
   setReciteTopic(topic);
   persistCurrentSession();
+  window.scrollTo({top:0,behavior:'auto'});
+  document.getElementById('sessionTopicLabel').focus({preventScroll:true});
 
   if (autoGenerate) {
     await generateSession(topic);
@@ -5407,7 +5404,7 @@ function renderListeningHub() {
   const part3 = state.listeningMatchRun ? 'Intento en curso' : state.listeningMatchResults.length ? `Último resultado: ${state.listeningMatchResults[0].score}/5` : 'Por empezar';
   const part4 = state.listeningInterviewRun ? 'Intento en curso' : state.listeningInterviewResults.length ? `Último resultado: ${state.listeningInterviewResults[0].score}/7` : 'Por empezar';
   const mock = state.listeningMockRun ? 'Intento en curso' : state.listeningMockResults.length ? `Último resultado: ${state.listeningMockResults[0].score}/30` : 'Por empezar';
-  container.innerHTML = `<article class="listening-panel listening-mock-feature"><div><span class="section-label">RECORRIDO INTEGRADO · B2 LISTENING</span><h3>Las cuatro partes, un solo intento</h3><p>Resuelve 30 preguntas con un reloj de 40 minutos y recibe una revisión por partes. Es una adaptación de práctica con material original, no una prueba oficial ni una reproducción exacta de sus condiciones.</p><div class="listening-meta"><span>30 preguntas</span><span>40 minutos</span><span>${escHtml(mock)}</span></div></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('mock')">${state.listeningMockRun ? 'Retomar' : 'Abrir'} recorrido →</button></div></article><div class="listening-hub"><article class="listening-panel"><span class="section-label">PARTE 1 · ELECCIÓN MÚLTIPLE</span><h3>Ocho extractos breves</h3><p>Escucha situaciones diferentes y elige una de tres respuestas por audio. Después verás la pista y la transcripción.</p><div class="listening-meta"><span>8 preguntas</span><span>15 minutos</span><span>${escHtml(part1)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part1')">${state.listeningRun ? 'Retomar' : 'Abrir'} parte 1 →</button></div></article><article class="listening-panel"><span class="section-label">PARTE 2 · COMPLETAR FRASES</span><h3>El taller que arregla cosas</h3><p>Escucha un relato de unos tres minutos y escribe las palabras que faltan en diez frases. Las respuestas siguen el orden del audio.</p><div class="listening-meta"><span>10 huecos</span><span>15 minutos</span><span>${escHtml(part2)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part2')">${state.listeningFillRun ? 'Retomar' : 'Abrir'} parte 2 →</button></div></article><article class="listening-panel"><span class="section-label">PARTE 3 · RELACIONAR HABLANTES</span><h3>Cinco maneras de aprender</h3><p>Escucha cinco experiencias y asigna una idea a cada hablante. Tres opciones sobran.</p><div class="listening-meta"><span>5 hablantes</span><span>8 opciones</span><span>${escHtml(part3)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part3')">${state.listeningMatchRun ? 'Retomar' : 'Abrir'} parte 3 →</button></div></article><article class="listening-panel"><span class="section-label">PARTE 4 · ENTREVISTA</span><h3>The city wildlife project</h3><p>Escucha una entrevista y responde siete preguntas de elección múltiple. Revisa la transcripción al entregar.</p><div class="listening-meta"><span>7 preguntas</span><span>15 minutos</span><span>${escHtml(part4)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part4')">${state.listeningInterviewRun ? 'Retomar' : 'Abrir'} parte 4 →</button></div></article></div>`;
+  container.innerHTML = `<article class="listening-panel listening-mock-feature"><div><span class="section-label">RECORRIDO INTEGRADO · B2 LISTENING</span><h3>Las cuatro partes, un solo intento</h3><p>Práctica original con revisión por partes. No es un examen oficial.</p><div class="listening-meta"><span>30 preguntas</span><span>40 minutos</span><span>${escHtml(mock)}</span></div></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('mock')">${state.listeningMockRun ? 'Retomar' : 'Abrir'} recorrido →</button></div></article><div class="listening-hub"><article class="listening-panel"><span class="section-label">PARTE 1 · ELECCIÓN MÚLTIPLE</span><h3>Ocho extractos breves</h3><p>Elige una respuesta por audio. Al final verás las pistas y transcripciones.</p><div class="listening-meta"><span>8 preguntas</span><span>15 minutos</span><span>${escHtml(part1)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part1')">${state.listeningRun ? 'Retomar' : 'Abrir'} parte 1 →</button></div></article><article class="listening-panel"><span class="section-label">PARTE 2 · COMPLETAR FRASES</span><h3>El taller que arregla cosas</h3><p>Completa las frases en el orden del audio.</p><div class="listening-meta"><span>10 huecos</span><span>15 minutos</span><span>${escHtml(part2)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part2')">${state.listeningFillRun ? 'Retomar' : 'Abrir'} parte 2 →</button></div></article><article class="listening-panel"><span class="section-label">PARTE 3 · RELACIONAR HABLANTES</span><h3>Cinco maneras de aprender</h3><p>Relaciona cada hablante con una idea.</p><div class="listening-meta"><span>5 hablantes</span><span>8 opciones</span><span>${escHtml(part3)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part3')">${state.listeningMatchRun ? 'Retomar' : 'Abrir'} parte 3 →</button></div></article><article class="listening-panel"><span class="section-label">PARTE 4 · ENTREVISTA</span><h3>The city wildlife project</h3><p>Responde las preguntas y revisa la transcripción al entregar.</p><div class="listening-meta"><span>7 preguntas</span><span>15 minutos</span><span>${escHtml(part4)}</span></div><div class="listening-actions"><button class="btn btn-blue" type="button" onclick="openListeningView('part4')">${state.listeningInterviewRun ? 'Retomar' : 'Abrir'} parte 4 →</button></div></article></div>`;
 }
 function loadListeningManifest() {
   if (!listeningManifestPromise) listeningManifestPromise = fetch(listeningAsset('b2-short-extracts.json')).then(response => {
@@ -6055,24 +6052,8 @@ function updateEnglishRouteLabels() {
   const level = state.examLevel;
   const filters = document.querySelector('#tab-b2 .b2-filters');
   if (filters) filters.setAttribute('aria-label',`Filtrar lecciones ${level.slice(0,2)}`);
-  const homeRoute = document.getElementById('englishHomeRouteTitle');
-  const homeRouteDescription = document.getElementById('englishHomeRouteDescription');
-  const homeGame = document.getElementById('englishHomeGameTitle');
-  const homeGameDescription = document.getElementById('englishHomeGameDescription');
-  const homeGameCount = document.getElementById('englishHomeGameCount');
-  const homeGameBenefit = document.getElementById('englishHomeGameBenefit');
-  if (homeRoute) homeRoute.textContent = `Ruta ${level}`;
-  if (homeRouteDescription) homeRouteDescription.textContent = level === 'C1 Advanced' ? 'Seis lecciones de lectura crítica, argumentación y discusión.' : level === 'C2 Proficiency' ? 'Seis lecciones sobre fuentes, precisión lingüística y matiz.' : 'Seis lecciones breves con explicación y corrección.';
-  if (homeGame) homeGame.textContent = `Juegos ${level.slice(0,2)}`;
-  if (homeGameDescription) homeGameDescription.textContent = level === 'C1 Advanced' ? 'Dos misiones: investiga pruebas y participa en una mesa redonda.' : level === 'C2 Proficiency' ? 'Dos misiones: contrasta fuentes y afina cada frase en la imprenta.' : 'Seis retos de lectura, vocabulario, gramática y escritura.';
-  if (homeGameCount) homeGameCount.textContent = level === 'B2 First' ? '6 misiones' : '2 misiones';
-  if (homeGameBenefit) homeGameBenefit.textContent = 'Corrección inmediata';
-  const routeIntro = document.getElementById('englishRouteIntro');
-  if (routeIntro) routeIntro.innerHTML = level === 'C1 Advanced' ? '<span>C1 ADVANCED</span><h2>Lee entre líneas y argumenta con precisión</h2><p>Seis lecciones propias de Reading, Use of English, Writing y Speaking. Aprende la idea, compruébala y entra en el juego relacionado.</p>' : level === 'C2 Proficiency' ? '<span>C2 PROFICIENCY</span><h2>Sintetiza fuentes y defiende el matiz</h2><p>Seis lecciones propias para separar datos, elegir palabras precisas y responder con cautela en Writing y Speaking.</p>' : '<span>B2 FIRST</span><h2>Aprende, practica y comprueba</h2><p>Seis lecciones breves para preparar Reading, Writing y Use of English. Elige una tarjeta para abrir sus pasos.</p>';
-}
-function englishLessonArtwork(lesson) {
-  const scene = /Writing/.test(lesson.skill) ? 'writing' : /Speaking/.test(lesson.skill) ? 'audio' : /Reading/.test(lesson.skill) ? 'academy' : 'route';
-  return `<div class="studio-card-art"><img src="/assets/cambridge-studio/${scene}-card-v2.webp" width="640" height="360" alt="" loading="lazy"></div>`;
+  const heading = document.querySelector('#tab-b2 .workspace-page-head h2');
+  if (heading) heading.textContent = 'Temario ' + level.slice(0,2);
 }
 function renderB2Lessons() {
   const list = document.getElementById('b2LessonList');
@@ -6086,15 +6067,25 @@ function renderB2Lessons() {
     (!query || `${lesson.title} ${lesson.idea}`.toLocaleLowerCase().includes(query)) &&
     (skill === 'all' || lesson.skill === skill) && (part === 'all' || lesson.part === part) &&
     (status === 'all' || (status === 'done') === Boolean(state.b2Progress?.[lesson.id]?.completed)));
-  list.innerHTML = selected.length ? selected.map(lesson => `<article class="b2-card">${englishLessonArtwork(lesson)}<small>${escHtml(lesson.skill)} · parte ${lesson.part}</small><h3>${escHtml(lesson.title)}</h3><p>${escHtml(lesson.idea)}</p><span class="b2-card-status">${state.b2Progress?.[lesson.id]?.completed ? '✓ Completado' : 'Por practicar'}</span><button type="button" onclick="openB2Lesson('${lesson.id}')">${state.b2Progress?.[lesson.id]?.completed ? 'Revisar lección' : 'Abrir lección'}</button></article>`).join('') : '<p class="b2-empty">No hay lecciones para estos filtros.</p>';
+  list.innerHTML = selected.length ? selected.map(lesson => {
+    const done = state.b2Progress?.[lesson.id]?.completed;
+    return `<article class="b2-card lesson-row"><div><small>${escHtml(lesson.skill)} · parte ${lesson.part}</small><h3>${escHtml(lesson.title)}</h3></div><span class="b2-card-status">${done ? '✓ Completado' : 'Por practicar'}</span><button type="button" data-lesson-id="${lesson.id}" onclick="openB2Lesson('${lesson.id}')">${done ? 'Revisar' : 'Abrir'} →</button></article>`;
+  }).join('') : '<p class="b2-empty">No hay lecciones para estos filtros.</p>';
 }
 function openB2Lesson(id) {
   const lessons = englishRouteLessons();
   const lesson = lessons.find(item => item.id === id);
   if (!lesson) return;
   const order = b2OptionOrder(lesson.options.length,(lessons.findIndex(item=>item.id===id)+1)%lesson.options.length);
-  document.getElementById('b2LessonDetail').innerHTML = `<section class="b2-panel"><small>${escHtml(lesson.skill)} · parte ${lesson.part}</small><h2>${escHtml(lesson.title)}</h2><p>${escHtml(lesson.idea)}</p><blockquote>${escHtml(lesson.example)}</blockquote><h3>Comprueba lo aprendido</h3><p>${escHtml(lesson.question)}</p><div class="b2-options">${order.map(index => `<button class="b2-option" data-answer-index="${index}" type="button" onclick="answerB2Lesson('${id}',${index})">${escHtml(lesson.options[index])}</button>`).join('')}</div><div class="b2-feedback" id="b2LessonFeedback" role="status">${state.b2Progress?.[id]?.completed ? 'Ya la completaste. Puedes responder otra vez para repasarla.' : 'Elige una respuesta para comprobarla.'}</div><p><button type="button" onclick="openB2Game('${B2_GAME_BY_LESSON[id]}')">Practicar con un juego →</button></p></section>`;
-  document.getElementById('b2LessonDetail').scrollIntoView({block:'start',behavior:'smooth'});
+  document.getElementById('b2LessonOverview').hidden = true;
+  document.getElementById('b2LessonDetail').innerHTML = `<div class="workspace-links"><button type="button" onclick="closeB2Lesson('${id}')">← Volver al temario</button></div><section class="b2-panel"><small>${escHtml(lesson.skill)} · parte ${lesson.part}</small><h2 data-workspace-title tabindex="-1">${escHtml(lesson.title)}</h2><p>${escHtml(lesson.idea)}</p><blockquote>${escHtml(lesson.example)}</blockquote><h3>Comprueba lo aprendido</h3><p>${escHtml(lesson.question)}</p><div class="b2-options">${order.map(index => `<button class="b2-option" data-answer-index="${index}" type="button" onclick="answerB2Lesson('${id}',${index})">${escHtml(lesson.options[index])}</button>`).join('')}</div><div class="b2-feedback" id="b2LessonFeedback" role="status">${state.b2Progress?.[id]?.completed ? 'Ya la completaste. Puedes responder otra vez para repasarla.' : 'Elige una respuesta para comprobarla.'}</div><p><button type="button" onclick="openB2Game('${B2_GAME_BY_LESSON[id]}')">Practicar con un juego →</button></p></section>`;
+  document.querySelector('#b2LessonDetail [data-workspace-title]').focus({preventScroll:true});
+  window.scrollTo({top:0,behavior:'auto'});
+}
+function closeB2Lesson(id) {
+  document.getElementById('b2LessonDetail').innerHTML = '';
+  document.getElementById('b2LessonOverview').hidden = false;
+  if (id) document.querySelector(`[data-lesson-id="${id}"]`)?.focus();
 }
 function answerB2Lesson(id,index) {
   const lesson = englishRouteLessons().find(item => item.id === id);
@@ -6134,7 +6125,7 @@ function renderEnglishJourney() {
     const path = `${index ? `M36 0 Q${pin} 24 ${pin} 50` : `M${pin} 50`}${index < stops.length - 1 ? ' Q' + pin + ' 76 36 100' : ''}`;
     return `<li class="english-journey-stop ${done ? 'is-done' : current ? 'is-next' : ''}" ${current ? 'aria-current="step"' : ''}><svg class="english-journey-trail" viewBox="0 0 72 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="${path}" vector-effect="non-scaling-stroke"/></svg><span class="english-journey-pin" aria-hidden="true">${done ? '✓' : index+1}</span><article><small>${escHtml(lesson.skill)} · ${status}</small><h3>${escHtml(lesson.title)}</h3><p>${escHtml(game.title)}${chapters > 1 ? ` · capítulo ${chapter+1}/${chapters}` : ''}</p>${done || current ? `<button type="button" onclick="openB2Game('${game.id}',${current})">${play} →</button>` : ''}</article></li>`;
   }).join('');
-  document.getElementById('englishJourney').innerHTML = `<header class="english-journey-banner" data-level="${state.examLevel.slice(0,2)}"><div><span>MODO JUEGOS · ${escHtml(state.examLevel)}</span><h2>Tu mapa de misiones</h2><p>${next < 0 ? '¡Has completado el recorrido! Puedes volver a jugar cualquier misión.' : 'Supera cada parada para abrir la siguiente. El mapa guarda tu avance por nivel.'}</p></div><div class="english-journey-meter"><strong>${total}/${stops.length}</strong><span>paradas completadas</span><progress max="${stops.length}" value="${total}" aria-label="Paradas completadas"></progress></div></header><ol class="english-journey-path" aria-label="Recorrido de los temas">${nodes}</ol>`;
+  document.getElementById('englishJourney').innerHTML = `<header class="english-journey-banner" data-level="${state.examLevel.slice(0,2)}"><div><span>${escHtml(state.examLevel)}</span><h2 data-workspace-title tabindex="-1">Mapa de misiones</h2><p>${next < 0 ? '¡Has completado el recorrido! Puedes volver a jugar cualquier misión.' : 'Completa una parada para abrir la siguiente.'}</p></div><div class="english-journey-meter"><strong>${total}/${stops.length}</strong><span>paradas completadas</span><progress max="${stops.length}" value="${total}" aria-label="Paradas completadas"></progress></div></header><ol class="english-journey-path" aria-label="Recorrido de los temas">${nodes}</ol>`;
 }
 function renderB2Games() {
   const list = document.getElementById('b2GameList');

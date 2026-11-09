@@ -150,6 +150,7 @@ test('Writing conserva el borrador y el destino del OCR al recargar', async () =
       };
     });
     await page.locator('#writingAnswer').fill('My original answer.');
+    await page.locator('#writingOcrTools summary').click();
     await page.locator('#writingImageInput').setInputFiles({name:'sample.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/iXsAAAAASUVORK5CYII=','base64')});
     await page.waitForFunction(() => writingImageDataUrl.startsWith('data:image/png'));
     await page.getByRole('button',{name:'Detectar texto'}).click();
