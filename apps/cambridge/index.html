@@ -1441,7 +1441,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 <link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1">
 <link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261109-2">
 <link rel="stylesheet" href="/assets/cambridge-studio/games.css?v=20261109-1">
-<link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261109-2">
+<link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261109-3">
 <script src="/assets/cambridge-studio/games.js?v=20261109-1"></script>
 </head>
 <body class="english-studio">
@@ -6035,6 +6035,12 @@ const C2_GAMES = [
   ]}
 ];
 const ENGLISH_GAME_ART = {opencloze:'open-cloze-editor-v1.png',forge:'word-formation-forge-v1.png',mailroom:'writing-mailroom-v1.png','c1-research':'c1-research-desk-v1.webp','c1-debate':'c1-debate-room-v1.webp','c2-observatory':'c2-editorial-observatory-v1.webp','c2-press':'c2-precision-press-v1.webp'};
+const ENGLISH_JOURNEY_ART = {
+  editor:'route-editor-v1.webp', archive:'route-archive-v1.webp', machine:'route-machine-v1.webp',
+  opencloze:'word-bridge-preview-v1.webp', forge:'route-forge-v1.webp', mailroom:'route-mailroom-v1.webp',
+  'c1-research':'route-research-v1.webp', 'c1-debate':'route-debate-v1.webp',
+  'c2-observatory':'route-observatory-v1.webp', 'c2-press':'route-press-v1.webp'
+};
 const B2_GAME_BY_LESSON = {collocations:'editor','open-cloze':'opencloze','word-formation':'forge',transformations:'machine',reading:'archive',writing:'mailroom','c1-evidence':'c1-research','c1-hedging':'c1-research','c1-proposal':'c1-research','c1-concession':'c1-debate','c1-collaboration':'c1-debate','c1-essay-balance':'c1-debate','c2-synthesis':'c2-observatory','c2-scope':'c2-observatory','c2-reformulation':'c2-observatory','c2-lexical-nuance':'c2-press','c2-inversion':'c2-press','c2-spoken-qualification':'c2-press'};
 const ENGLISH_JOURNEY_BREAKS = {'c1-research':[2,3], 'c1-debate':[2,4], 'c2-observatory':[2,3], 'c2-press':[1,2]};
 let activeB2Game = null;
@@ -6105,6 +6111,10 @@ function englishJourneyChapters(game) {
 function englishJourneyCheckpoint(game, stage) {
   return playingEnglishJourney && englishJourneyChapters(game).slice(0,-1).some(chapter => chapter.end === stage);
 }
+function englishJourneyArt(game) {
+  const base = location.protocol === 'file:' ? 'assets/studio/' : '/assets/cambridge-studio/';
+  return `<img src="${base + ENGLISH_JOURNEY_ART[game.id]}" alt="" width="480" height="270" loading="lazy" decoding="async">`;
+}
 function renderEnglishJourney() {
   const lessons = englishRouteLessons();
   const games = englishRouteGames();
@@ -6119,13 +6129,38 @@ function renderEnglishJourney() {
   const total = stops.filter(stop => stop.done).length;
   const nodes = stops.map(({lesson, game, chapter, chapters, done}, index) => {
     const current = index === next;
-    const status = done ? 'Completada' : current ? 'Siguiente parada' : 'Por desbloquear';
+    const status = done ? 'Completada' : current ? 'Siguiente parada' : 'Bloqueada';
     const play = done && state.b2Games[game.id]?.completed ? 'Volver a jugar' : state.b2GameRuns[game.id] ? 'Continuar misión' : 'Jugar';
-    const pin = index % 2 ? 48 : 24;
-    const path = `${index ? `M36 0 Q${pin} 24 ${pin} 50` : `M${pin} 50`}${index < stops.length - 1 ? ' Q' + pin + ' 76 36 100' : ''}`;
-    return `<li class="english-journey-stop ${done ? 'is-done' : current ? 'is-next' : ''}" ${current ? 'aria-current="step"' : ''}><svg class="english-journey-trail" viewBox="0 0 72 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="${path}" vector-effect="non-scaling-stroke"/></svg><span class="english-journey-pin" aria-hidden="true">${done ? '✓' : index+1}</span><article><small>${escHtml(lesson.skill)} · ${status}</small><h3>${escHtml(lesson.title)}</h3><p>${escHtml(game.title)}${chapters > 1 ? ` · capítulo ${chapter+1}/${chapters}` : ''}</p>${done || current ? `<button type="button" onclick="openB2Game('${game.id}',${current})">${play} →</button>` : ''}</article></li>`;
+    return `<li class="english-journey-stop ${done ? 'is-done' : current ? 'is-next' : 'is-locked'}" ${current ? 'aria-current="step"' : ''}>
+      <span class="english-journey-pin" aria-hidden="true">${done ? '✓' : String(index+1).padStart(2,'0')}</span>
+      <article>
+        <div class="english-journey-art">${englishJourneyArt(game)}</div>
+        <div class="english-journey-stop-copy">
+          <div class="english-journey-stop-meta"><span class="english-journey-status">${status}</span><small>${escHtml(lesson.skill)}</small></div>
+          <h3 id="journey-stop-${lesson.id}">${escHtml(lesson.title)}</h3>
+          <p>${escHtml(game.title)}${chapters > 1 ? ` · capítulo ${chapter+1}/${chapters}` : ''}</p>
+          ${done || current ? `<button type="button" aria-describedby="journey-stop-${lesson.id}" onclick="openB2Game('${game.id}',${current})">${play} →</button>` : ''}
+        </div>
+      </article>
+    </li>`;
   }).join('');
-  document.getElementById('englishJourney').innerHTML = `<header class="english-journey-banner" data-level="${state.examLevel.slice(0,2)}"><div><span>${escHtml(state.examLevel)}</span><h2 data-workspace-title tabindex="-1">Mapa de misiones</h2><p>${next < 0 ? '¡Has completado el recorrido! Puedes volver a jugar cualquier misión.' : 'Completa una parada para abrir la siguiente.'}</p></div><div class="english-journey-meter"><strong>${total}/${stops.length}</strong><span>paradas completadas</span><progress max="${stops.length}" value="${total}" aria-label="Paradas completadas"></progress></div></header><ol class="english-journey-path" aria-label="Recorrido de los temas">${nodes}</ol>`;
+  const upcoming = stops[next];
+  const action = total || (upcoming && state.b2GameRuns[upcoming.game.id]) ? 'Continuar recorrido' : 'Empezar recorrido';
+  const journey = document.getElementById('englishJourney');
+  journey.dataset.level = state.examLevel.slice(0,2);
+  journey.innerHTML = `<header class="english-journey-banner">
+    <div class="english-journey-intro"><span class="english-journey-level">${escHtml(state.examLevel)}</span>
+      <h2 data-workspace-title tabindex="-1">Mapa de misiones</h2>
+      <p>${upcoming ? 'Próxima parada · ' + escHtml(upcoming.lesson.title) : '¡Recorrido completado! Puedes repetir tus misiones.'}</p>
+      ${upcoming ? `<button class="english-journey-start" type="button" onclick="openB2Game('${upcoming.game.id}',true)">${action} →</button>` : ''}
+    </div>
+    <div class="english-journey-meter">
+      <div><strong>${total}/${stops.length}</strong><span>paradas completadas</span></div>
+      <progress max="${stops.length}" value="${total}" aria-label="Paradas completadas"></progress>
+    </div>
+  </header>
+  <div class="english-journey-toolbar"><h3>Tu recorrido</h3><button type="button" onclick="showEnglishGameCatalog()">Ver catálogo de juegos ↓</button></div>
+  <ol class="english-journey-path" aria-label="Recorrido de los temas">${nodes}</ol>`;
 }
 function renderB2Games() {
   const list = document.getElementById('b2GameList');
@@ -6133,8 +6168,22 @@ function renderB2Games() {
   updateEnglishRouteLabels();
   if (!activeB2Game) document.getElementById('tab-juegos').classList.remove('english-playing');
   renderEnglishJourney();
-  const icons = {editor:'✍',archive:'⌕',machine:'⚙',opencloze:'✎',forge:'✦',mailroom:'✉','c1-research':'⌕','c1-debate':'◉','c2-observatory':'⌕','c2-press':'✒'};
-  list.innerHTML = englishRouteGames().map(game => { const run = state.b2GameRuns?.[game.id]; const art = game.id==='opencloze' ? `style="background-image:url('/assets/cambridge-studio/bridge-world-v1.webp')"` : ENGLISH_GAME_ART[game.id] ? `style="background-image:url('${cambridgeGameAsset(ENGLISH_GAME_ART[game.id])}')"` : `style="background-image:url('/assets/cambridge-studio/games-card-v2.webp')"`; return `<article class="b2-card"><div class="b2-game-thumb" data-kind="${game.id}" ${art} aria-hidden="true"><span>${icons[game.id]}</span>${window.EnglishMissionBoards ? `<small class="mission-card-tag">${escHtml(EnglishMissionBoards.themes[game.id].name)}</small>` : ''}</div><small>${escHtml(game.skill)}</small><h3>${escHtml(game.title)}</h3><p>${escHtml(game.intro)}</p><span class="b2-card-status">${run ? `Etapa ${run.stage+1}/${game.stages.length}` : state.b2Games?.[game.id] ? '✓ Completado' : 'Por jugar'}</span><button type="button" onclick="openB2Game('${game.id}')">${run ? 'Continuar' : state.b2Games?.[game.id] ? 'Volver a jugar' : 'Jugar'}</button></article>`; }).join('');
+  list.innerHTML = englishRouteGames().map(game => {
+    const run = state.b2GameRuns?.[game.id];
+    const completed = state.b2Games?.[game.id]?.completed;
+    return `<article class="b2-card english-catalog-card">
+      <div class="english-catalog-art">${englishJourneyArt(game)}</div>
+      <small>${escHtml(game.skill)}</small><h3>${escHtml(game.title)}</h3><p>${escHtml(game.intro)}</p>
+      <span class="b2-card-status">${run ? `Etapa ${run.stage+1}/${game.stages.length}` : completed ? '✓ Completado' : 'Por jugar'}</span>
+      <button type="button" onclick="openB2Game('${game.id}')">${run ? 'Continuar' : completed ? 'Volver a jugar' : 'Jugar'}</button>
+    </article>`;
+  }).join('');
+}
+function showEnglishGameCatalog() {
+  const catalog = document.getElementById('englishGameCatalog');
+  catalog.open = true;
+  catalog.querySelector('summary').focus({preventScroll:true});
+  catalog.scrollIntoView({block:'start'});
 }
 function openB2Game(id, fromJourney = false) {
   const game = englishRouteGames().find(item => item.id === id);
@@ -6241,10 +6290,9 @@ function closeEnglishGame(showCatalog = false) {
   document.getElementById('tab-juegos').classList.remove('english-playing');
   document.getElementById('b2GameBoard').innerHTML='';
   renderB2Games();
-  const catalog = document.getElementById('englishGameCatalog');
-  catalog.open = showCatalog;
-  const target = showCatalog ? catalog.querySelector('summary') :
-    document.querySelector('.english-journey-stop.is-next button') || document.querySelector('.english-journey-stop button');
+  if (showCatalog) return showEnglishGameCatalog();
+  document.getElementById('englishGameCatalog').open = false;
+  const target = document.querySelector('.english-journey-stop.is-next button') || document.querySelector('.english-journey-stop button');
   target?.focus({preventScroll:true});
   target?.scrollIntoView({block:'center'});
 }

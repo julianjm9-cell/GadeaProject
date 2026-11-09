@@ -81,6 +81,11 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
      await page.locator('#headerExamLevel').selectOption(level);
      await page.locator('[data-tab-btn="juegos"]').click();
      assert.equal(await page.locator('#b2GameList .b2-card').count(),count);
+     const routeImages=page.locator('.english-journey-art img');
+     assert.equal(await routeImages.count(),6);
+     for(const image of await routeImages.all())await image.scrollIntoViewIfNeeded();
+     await page.waitForFunction(()=>[...document.querySelectorAll('.english-journey-art img')].every(image=>image.complete&&image.naturalWidth>0));
+     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),`route overflow ${width}px at ${level}`);
      await page.locator('[data-tab-btn="b2"]').click();
      assert.equal(await page.locator('#b2LessonList .b2-card').count(),6);
     }
@@ -147,7 +152,9 @@ test('study and game modes share topics, unlock the next stop and restore each l
   assert.equal(await stops.count(),6);
   assert.equal(await stops.locator('button').count(),1);
   assert.match(await next.innerText(),/Collocations/);
-  await page.locator('#englishJourney').screenshot({path:path.join(root,'tmp/ingles-mapa-390.png')});
+  assert.equal(await stops.filter({hasText:'Bloqueada'}).count(),5);
+  await page.locator('.english-journey-art img').first().evaluate(image=>image.decode());
+  await page.screenshot({path:path.join(root,'tmp/ingles-mapa-ilustrado-390.png')});
   await next.getByRole('button').tap();
   for(let stage=0;stage<3;stage++){
    await page.locator('[data-mission-choice="0"]').tap();
@@ -179,8 +186,12 @@ test('study and game modes share topics, unlock the next stop and restore each l
   await mode.tap();
   assert.match(await page.locator('.english-journey-meter').innerText(),/1\/6/);
   await page.setViewportSize({width:1440,height:960});
-  await page.locator('#englishJourney').screenshot({path:path.join(root,'tmp/ingles-mapa-1440.png')});
-  await page.locator('#englishGameCatalog summary').click();
+  await page.getByRole('button',{name:'Continuar recorrido →'}).waitFor();
+  await page.locator('.english-journey-art img').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));
+  await page.screenshot({path:path.join(root,'tmp/ingles-mapa-ilustrado-1440.png')});
+  await page.getByRole('button',{name:'Ver catálogo de juegos ↓'}).click();
+  assert.equal(await page.locator('#englishGameCatalog summary').evaluate(summary=>summary===document.activeElement),true);
+  await page.locator('.english-catalog-art img').last().evaluate(image=>image.decode());
   assert.equal(await page.locator('#b2GameList .b2-card button').last().isVisible(),true);
  }finally{await browser.close();}
 });
