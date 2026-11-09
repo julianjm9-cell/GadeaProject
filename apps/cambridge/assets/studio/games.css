@@ -1,5 +1,5 @@
 /* Tactile mission objects, with native HTML controls for mouse, touch and keyboard. */
-.english-studio #tab-juegos.english-playing #b2GameList,.english-studio #tab-juegos.english-playing #englishGamesIntro{display:none}
+.english-studio #tab-juegos.english-playing #b2GameList{display:none}
 .english-studio #tab-juegos.english-playing #b2GameBoard{margin:0 auto;max-width:1180px;scroll-margin-top:115px}
 .english-studio .mission-panel{margin:0;padding:20px;border-radius:25px;background:#fff;box-shadow:0 10px 35px #15396b0d}
 .mission-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#62758d;font-size:11px}

@@ -16,7 +16,8 @@ async function serve() {
       response.end('{}');
       return;
     }
-    const file = resolve(root, '.' + pathname);
+    const assetPath = pathname.replace(/^\/assets\/cambridge-studio\//, '/apps/cambridge/assets/studio/');
+    const file = resolve(root, '.' + assetPath);
     if (!file.startsWith(root + sep)) { response.writeHead(403).end(); return; }
     try {
       const bytes = await readFile(file);

@@ -395,7 +395,7 @@ test('un juego se puede iniciar y avanzar con tacto y teclado en móvil', async 
     await page.goto(pathToFileURL(resolve(__dirname,'../apps/cambridge/index.html')).href);
     await page.waitForFunction(() => typeof showTab === 'function');
     await page.evaluate(() => { setExamLevel('B2 First'); showTab('juegos'); });
-    await page.locator('#b2GameList .b2-card').first().getByRole('button',{name:'Jugar'}).tap();
+    await page.locator('.english-journey-stop[aria-current="step"]').getByRole('button',{name:'Jugar'}).tap();
     await page.locator('#b2GameBoard [data-answer-index="0"]').tap();
     assert.match(await page.locator('#b2GameFeedback').innerText(),/Correcto/);
     await page.getByRole('button',{name:'Siguiente etapa →'}).focus();

@@ -730,7 +730,7 @@ def cambridge_game_illustration(filename: str, request: Request):
 
 @router.get("/assets/cambridge-studio/{filename}")
 def cambridge_studio_asset(filename: str):
-    if filename not in {'studio.css', 'landing.css', 'games.css', 'games.js', 'bridge-world-v1.webp', 'guide-v1.webp',
+    if filename not in {'studio.css', 'landing.css', 'games.css', 'games.js', 'journey.css', 'bridge-world-v1.webp', 'guide-v1.webp',
                         'academy-v2.webp', 'academy-card-v2.webp', 'route-card-v2.webp',
                         'games-card-v2.webp', 'writing-card-v2.webp', 'audio-card-v2.webp', 'progress-card-v2.webp'}:
         raise HTTPException(404, 'Recurso no encontrado.')
@@ -741,6 +741,17 @@ def cambridge_studio_asset(filename: str):
         raise HTTPException(404, 'Recurso no encontrado.')
     return FileResponse(path, media_type='text/css' if filename.endswith('.css') else 'text/javascript' if filename.endswith('.js') else 'image/webp',
                         headers={'Cache-Control': 'public, max-age=86400'})
+
+
+@router.get("/assets/lighthouse/{filename}")
+def lighthouse_asset(filename: str):
+    media_type = {"game.css": "text/css", "game.js": "text/javascript", "archipelago-v1.webp": "image/webp"}.get(filename)
+    if not media_type:
+        raise HTTPException(404, "Recurso no encontrado.")
+    path = STATIC_DIR / "assets" / "lighthouse" / filename
+    if not path.is_file():
+        raise HTTPException(404, "Recurso no encontrado.")
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/assets/listening/{filename}")

@@ -77,3 +77,56 @@ test('paused English disables every landing entry while keeping the public trial
   await page.locator('#demoOptions button').first().click();assert.match(await page.locator('#demoFeedback').textContent(),/Correcto/);
  }finally{await browser.close();}
 });
+
+test('study and game modes share topics, unlock the next stop and restore each level',async()=>{
+ const browser=await chromium.launch({headless:true,channel:'msedge'});
+ try{
+  const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,reducedMotion:'reduce'});
+  await fixture(page);
+  await page.goto('http://studio.test/cambridge');
+  await page.waitForFunction(()=>cambridgeStateETag!==null);
+  const mode=page.getByRole('button',{name:'Modo juegos',exact:true});
+  const stops=page.locator('.english-journey-stop');
+  const next=stops.filter({has:page.getByRole('button',{name:'Jugar →',exact:true})}).first();
+  await page.locator('#headerExamLevel').selectOption('B2 First');
+  await mode.tap();
+  assert.equal(await stops.count(),6);
+  assert.equal(await stops.locator('button').count(),1);
+  assert.match(await next.innerText(),/Collocations/);
+  await page.locator('#englishJourney').screenshot({path:path.join(root,'tmp/ingles-mapa-390.png')});
+  await next.getByRole('button').tap();
+  for(let stage=0;stage<3;stage++){
+   await page.locator('[data-mission-choice="0"]').tap();
+   await page.locator('[data-mission-place]').first().tap();
+   await page.locator('#b2GameNext button').tap();
+  }
+  await page.getByRole('button',{name:'Volver al recorrido →'}).tap();
+  assert.match(await stops.nth(0).innerText(),/Completada/);
+  assert.match(await stops.nth(1).getAttribute('aria-current'),/step/);
+  await page.getByRole('button',{name:'Modo temario',exact:true}).tap();
+  assert.match(await page.locator('#b2LessonList').innerText(),/Collocations/);
+  await page.locator('#headerExamLevel').selectOption('C1 Advanced');
+  await mode.tap();
+  assert.match(await page.locator('.english-journey-meter').innerText(),/0\/6/);
+  await page.locator('[aria-current="step"] button').tap();
+  for(let stage=0;stage<2;stage++){
+   const correct=await page.evaluate(()=>englishRouteGame(activeB2Game).stages[activeB2Stage].correct);
+   await page.locator(`[data-mission-choice="${correct}"]`).tap();
+   await page.locator('[data-mission-place]').first().tap();
+   await page.locator('#b2GameNext button').tap();
+  }
+  assert.match(await stops.nth(0).innerText(),/Completada/);
+  await page.locator('[aria-current="step"] button').tap();
+  assert.match(await page.locator('.mission-stage-count').innerText(),/3\/5/);
+  await page.evaluate(()=>cambridgeSaveQueue);
+  await page.reload();
+  await page.waitForFunction(()=>cambridgeStateETag!==null);
+  await page.locator('#headerExamLevel').selectOption('B2 First');
+  await mode.tap();
+  assert.match(await page.locator('.english-journey-meter').innerText(),/1\/6/);
+  await page.setViewportSize({width:1440,height:960});
+  await page.locator('#englishJourney').screenshot({path:path.join(root,'tmp/ingles-mapa-1440.png')});
+  await page.locator('#englishGameCatalog summary').click();
+  assert.equal(await page.locator('#b2GameList .b2-card button').last().isVisible(),true);
+ }finally{await browser.close();}
+});

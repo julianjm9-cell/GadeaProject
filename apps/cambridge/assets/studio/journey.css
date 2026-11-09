@@ -1,0 +1,142 @@
+/* The Cambridge mission map follows the same topics as the study mode. */
+.english-studio #tab-juegos.english-playing :is(#englishJourney, #englishGameCatalog) {
+  display: none;
+}
+.english-journey-banner {
+  --journey-scene: url('/assets/cambridge-studio/bridge-world-v1.webp');
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: clamp(20px, 4vw, 45px);
+  border-radius: 23px;
+  color: white;
+  background: linear-gradient(100deg, #10274cfa 0%, #123260d9 52%, #142e5244 100%),
+    var(--journey-scene) center 46% / cover;
+}
+.english-journey-banner[data-level="C1"] { --journey-scene: url('/assets/cambridge-games/c1-research-desk-v1.webp'); }
+.english-journey-banner[data-level="C2"] { --journey-scene: url('/assets/cambridge-games/c2-editorial-observatory-v1.webp'); }
+.english-journey-banner h2 {
+  margin: 5px 0 8px;
+  color: white;
+  font-size: clamp(26px, 4vw, 42px);
+  line-height: 1.13;
+}
+.english-journey-banner p { margin: 0; color: #e1eaff; }
+.english-journey-banner div > span:first-child {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  color: #bee7ff;
+}
+.english-journey-meter {
+  flex: 0 0 170px;
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 15px;
+  background: #0b2041d9;
+  border: 1px solid #bedfff70;
+  color: white;
+  font-size: 12px;
+}
+.english-journey-meter strong { font-size: 25px; }
+.english-journey-meter progress { width: 100%; height: 12px; accent-color: #65dabc; }
+.english-journey-path {
+  position: relative;
+  max-width: 850px;
+  margin: 18px auto;
+  padding: 8px 0;
+  list-style: none;
+}
+.english-journey-stop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr);
+  align-items: center;
+  position: relative;
+  padding: 6px 0;
+}
+.english-journey-trail {
+  position: absolute;
+  inset: 0 auto 0 calc(50% - 36px);
+  width: 72px;
+  height: 100%;
+  color: #cfddee;
+  pointer-events: none;
+}
+.english-journey-trail path { fill: none; stroke: currentColor; stroke-width: 5; }
+.english-journey-stop.is-done .english-journey-trail { color: #45a991; }
+.english-journey-pin {
+  z-index: 1;
+  grid-area: 1 / 2;
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  aspect-ratio: 1;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: #e4ebf3;
+  box-shadow: 0 3px 0 #bfcede;
+  color: #53657c;
+  font-size: 17px;
+  font-weight: 850;
+  transform: translateX(-12px);
+}
+.english-journey-stop:nth-child(even) .english-journey-pin { transform: translateX(12px); }
+.english-journey-stop.is-done .english-journey-pin { background: #167c6a; color: #fff; }
+.english-journey-stop.is-next .english-journey-pin {
+  background: #2056d2;
+  color: white;
+  box-shadow: 0 0 0 4px #b9cffc, 0 5px 0 #507ccd;
+}
+.english-journey-stop article {
+  grid-area: 1 / 1;
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  padding: 13px 16px;
+  border: 1px solid #d9e3ef;
+  border-radius: 15px;
+  background: #fff;
+}
+.english-journey-stop:nth-child(even) article { grid-column: 3; }
+.english-journey-stop.is-next article {
+  border-color: #6589e3;
+  box-shadow: 0 6px 20px #1d49b51c;
+}
+.english-journey-stop small { color: #49607c; font-size: 11px; font-weight: 750; }
+.english-journey-stop h3 { margin: 0; color: #17355c; font-size: clamp(15px, 2vw, 20px); }
+.english-journey-stop p { margin: 0; color: #49607c; font-size: 13px; }
+.english-journey-stop button {
+  margin-top: 4px;
+  min-height: 38px;
+  border: 0;
+  border-radius: 9px;
+  padding: 6px 12px;
+  background: #e9f1ff;
+  color: #18438e;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+}
+.english-journey-stop.is-next button { background: #2056d2; color: #fff; }
+.english-journey-stop button:focus-visible,
+.english-journey-catalog summary:focus-visible { outline: 3px solid #2056d2; outline-offset: 3px; }
+.english-journey-catalog {
+  padding: 14px;
+  border: 1px solid #d9e3ef;
+  border-radius: 15px;
+  background: #fff;
+}
+.english-journey-catalog summary { cursor: pointer; color: #21437a; font-weight: 800; }
+.english-journey-catalog[open] summary { margin-bottom: 16px; }
+@media (max-width: 650px) {
+  .english-journey-banner { align-items: stretch; flex-direction: column; gap: 14px; }
+  .english-journey-meter { flex: auto; }
+  .english-journey-stop { grid-template-columns: 54px minmax(0, 1fr); }
+  .english-journey-trail { left: 0; width: 54px; }
+  .english-journey-pin { grid-area: 1 / 1; width: 38px; transform: translateX(-7px); }
+  .english-journey-stop:nth-child(even) .english-journey-pin { transform: translateX(7px); }
+  .english-journey-stop article, .english-journey-stop:nth-child(even) article { grid-area: 1 / 2; }
+}

@@ -1,0 +1,138 @@
+.faro-card,
+.faro-dialog {
+  --faro-ink: #f5f8ff;
+  --faro-soft: #cfdfed;
+  --faro-gold: #ffd681;
+  color: var(--faro-ink);
+  background: #0d253c;
+}
+.faro-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 0 0 18px;
+  padding: 20px clamp(16px, 4vw, 32px);
+  border: 1px solid #416685;
+  border-radius: 18px;
+  background: linear-gradient(90deg, #0b253bea, #0c2949b8), url('/assets/lighthouse/archipelago-v1.webp') center 44% / cover, #0d253c;
+}
+.faro-card small,
+.faro-header small { color: var(--faro-gold); font-size: 11px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.faro-card h2,
+.faro-header h2 { margin: 4px 0; color: var(--faro-ink); font-size: clamp(23px, 3.5vw, 34px); line-height: 1.15; }
+.faro-card p { margin: 6px 0 0; color: var(--faro-soft); font-size: 14px; }
+.faro-card button,
+.faro-dialog button {
+  min-height: 42px;
+  padding: 7px 13px;
+  border: 1px solid #45667f;
+  border-radius: 9px;
+  background: #173851;
+  color: var(--faro-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.faro-card button,
+.faro-dialog [data-faro-next] { flex-shrink: 0; background: var(--faro-gold); border-color: #fff2c4; color: #212d3a; }
+.faro-dialog {
+  box-sizing: border-box;
+  width: min(690px, calc(100% - 24px));
+  max-width: none;
+  max-height: calc(100% - 24px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid #50799a;
+  border-radius: 20px;
+  box-shadow: 0 20px 75px #020812c7;
+  overflow: auto;
+  overscroll-behavior: contain;
+  font-family: system-ui, sans-serif;
+}
+.faro-dialog::backdrop { background: #091928bf; }
+.faro-dialog [hidden] { display: none; }
+.faro-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  min-height: 96px;
+  padding: 18px 22px;
+  background: linear-gradient(90deg, #0b223ad9, #0a213855), url('/assets/lighthouse/archipelago-v1.webp') center 43% / cover, #163650;
+}
+.faro-header button { min-width: 44px; background: #10263de8; }
+.faro-content { padding: clamp(10px, 3vw, 20px); }
+.faro-maps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.faro-maps button { display: grid; justify-items: center; gap: 4px; padding: 6px 3px; line-height: 1.2; }
+.faro-maps small { font-size: 10px; overflow-wrap: anywhere; }
+.faro-maps button[aria-pressed="true"] { border-color: #ffd681; color: #ffe3a4; background: #2b4356; }
+.faro-maps button:disabled { opacity: .55; cursor: default; }
+.faro-round { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 9px; margin: 14px 0 8px; }
+.faro-round h3 { flex: 1 0 140px; margin: 0; color: #fff; font-size: 15px; }
+.faro-round span { padding: 4px 6px; border-radius: 6px; background: #173851; color: #e7f4ff; font-size: 11px; }
+.faro-round span.is-over { background: #542738; color: #ffd6d6; }
+.faro-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--faro-columns), minmax(0, 1fr));
+  width: min(100%, calc(var(--faro-columns) * 68px));
+  margin: 0 auto;
+  padding: 3px;
+  border-radius: 12px;
+  border: 1px solid #466680;
+  background: #142f47;
+}
+.faro-grid .faro-tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px #34536b;
+  background: #1a3b54;
+  color: #9cb7ce;
+  line-height: 0;
+}
+.faro-grid .faro-rock { background: #0d2a42; color: #58758b; }
+.faro-grid .faro-source { background: #324a44; color: #ffe39f; }
+.faro-grid .faro-hazard { background: #382d42; color: #ffaca9; }
+.faro-grid .faro-hazard.is-live { background: #642936; color: #ffb3ae; }
+.faro-grid .faro-beacon.is-live { background: radial-gradient(circle, #65562b, #31504b); color: #ffdf89; }
+.faro-grid .faro-relay.is-live { background: #245762; color: #ffe1a0; }
+.faro-grid .faro-relay[aria-disabled="true"] { cursor: default; }
+.faro-tile svg { display: block; width: 100%; height: 100%; pointer-events: none; }
+.faro-tile svg :is(path, circle) { fill: none; stroke: currentColor; stroke-width: 6; stroke-linejoin: round; stroke-linecap: round; }
+.faro-relay svg circle { fill: #19374c; }
+.faro-relay svg .faro-wire-shadow { stroke: #112a3c; stroke-width: 16; stroke-linecap: butt; }
+.faro-relay svg .faro-wire { stroke-width: 8; stroke-linecap: butt; }
+.faro-rays { opacity: 0; }
+.faro-beacon.is-live .faro-rays { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .faro-beacon.is-live .faro-rays { animation: faro-signal 2s ease-in-out infinite; }
+  @keyframes faro-signal { 50% { opacity: .46; } }
+}
+.faro-dialog button:focus-visible,
+.faro-card button:focus-visible { z-index: 1; outline: 2px solid #fff1c8; outline-offset: 2px; }
+@media (hover: hover) {
+  .faro-grid .faro-relay:not([aria-disabled]):hover { box-shadow: inset 0 0 0 2px #b4d7e9; }
+  .faro-card button:hover, .faro-dialog [data-faro-next]:hover { background: #ffe5ad; }
+}
+.faro-status { min-height: 38px; margin: 12px 0 8px; padding: 9px 10px; border-radius: 8px; background: #18374e; color: #e4f1fa; font-size: 13px; font-weight: 750; }
+.faro-status[data-tone="win"] { background: #204a41; color: #c5f9de; }
+.faro-status[data-tone="warn"] { background: #542738; color: #ffd6d6; }
+.faro-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.faro-tip, .faro-best { margin: 7px 0 0; color: var(--faro-soft); font-size: 12px; line-height: 1.45; }
+.faro-best:empty { display: none; }
+@media (max-width: 500px) {
+  .faro-card { align-items: start; flex-direction: column; gap: 10px; }
+  .faro-header { min-height: 70px; padding: 12px; }
+}
+@media (max-height: 720px) and (min-width: 550px) {
+  .faro-grid { width: calc(var(--faro-columns) * 51px); }
+  .faro-header { min-height: 72px; padding-block: 12px; }
+}

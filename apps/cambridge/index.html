@@ -1440,8 +1440,9 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 </style>
 <link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1">
 <link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261108-1">
-<link rel="stylesheet" href="/assets/cambridge-studio/games.css?v=20261108-1">
-<script src="/assets/cambridge-studio/games.js?v=20261108-1"></script>
+<link rel="stylesheet" href="/assets/cambridge-studio/games.css?v=20261109-1">
+<link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261109-1">
+<script src="/assets/cambridge-studio/games.js?v=20261109-1"></script>
 </head>
 <body class="english-studio">
 <div class="selection-toolbar" id="selectionToolbar" aria-label="Formato de texto">
@@ -1464,10 +1465,10 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   <div class="main-actions">
     <button class="nav-pill active" data-tab-btn="sesion" onclick="showTab('sesion',this)">Inicio</button>
     <button class="nav-pill" data-tab-btn="temas" onclick="showTab('temas',this)">Biblioteca</button>
-    <button class="nav-pill" data-tab-btn="b2" onclick="showTab('b2',this)">Ruta B2</button>
+    <button class="nav-pill" data-tab-btn="b2" onclick="showTab('b2',this)">Modo temario</button>
+    <button class="nav-pill" data-tab-btn="juegos" onclick="showTab('juegos',this)">Modo juegos</button>
     <button class="nav-pill" data-tab-btn="entrenar" onclick="showTab('entrenar',this)">Entrenar</button>
     <button class="nav-pill" data-tab-btn="examenes" onclick="showTab('examenes',this)">Exámenes</button>
-    <button class="nav-pill" data-tab-btn="juegos" onclick="showTab('juegos',this)">Juegos</button>
     <button class="nav-pill" data-tab-btn="progreso" onclick="showTab('progreso',this)">Progreso</button>
   </div>
   <div class="header-right">
@@ -1767,8 +1768,11 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
     <div id="b2LessonDetail"></div>
   </div>
   <div id="tab-juegos" class="tab">
-    <div class="b2-intro" id="englishGamesIntro"><span>JUEGOS B2</span><h2>Practica dentro de la historia</h2><p>Seis retos vinculados a las lecciones B2. Completa textos, descubre pistas, transforma frases y prepara mensajes para un lector.</p></div>
-    <div id="b2GameList" class="b2-grid"></div>
+    <div id="englishJourney"></div>
+    <details class="english-journey-catalog" id="englishGameCatalog">
+      <summary>Elegir cualquier juego</summary>
+      <div id="b2GameList" class="b2-grid"></div>
+    </details>
     <div id="b2GameBoard"></div>
   </div>
 
@@ -2323,6 +2327,7 @@ function setExamLevel(level) {
   updateEnglishRouteLabels();
   renderEnglishHomeRouteProgress();
   activeB2Game = null;
+  playingEnglishJourney = false;
   const gameBoard = document.getElementById('b2GameBoard');
   if (gameBoard) gameBoard.innerHTML = '';
   document.getElementById('tab-juegos')?.classList.remove('english-playing');
@@ -6034,8 +6039,10 @@ const C2_GAMES = [
 ];
 const ENGLISH_GAME_ART = {opencloze:'open-cloze-editor-v1.png',forge:'word-formation-forge-v1.png',mailroom:'writing-mailroom-v1.png','c1-research':'c1-research-desk-v1.webp','c1-debate':'c1-debate-room-v1.webp','c2-observatory':'c2-editorial-observatory-v1.webp','c2-press':'c2-precision-press-v1.webp'};
 const B2_GAME_BY_LESSON = {collocations:'editor','open-cloze':'opencloze','word-formation':'forge',transformations:'machine',reading:'archive',writing:'mailroom','c1-evidence':'c1-research','c1-hedging':'c1-research','c1-proposal':'c1-research','c1-concession':'c1-debate','c1-collaboration':'c1-debate','c1-essay-balance':'c1-debate','c2-synthesis':'c2-observatory','c2-scope':'c2-observatory','c2-reformulation':'c2-observatory','c2-lexical-nuance':'c2-press','c2-inversion':'c2-press','c2-spoken-qualification':'c2-press'};
+const ENGLISH_JOURNEY_BREAKS = {'c1-research':[2,3], 'c1-debate':[2,4], 'c2-observatory':[2,3], 'c2-press':[1,2]};
 let activeB2Game = null;
 let activeB2Stage = 0;
+let playingEnglishJourney = false;
 function b2OptionOrder(count,offset) { return Array.from({length:count},(_,i)=>(i+offset)%count); }
 function englishRouteLessons() { return state.examLevel === 'C2 Proficiency' ? C2_LESSONS : state.examLevel === 'C1 Advanced' ? C1_LESSONS : B2_LESSONS; }
 function englishRouteGames() { return state.examLevel === 'C2 Proficiency' ? C2_GAMES : state.examLevel === 'C1 Advanced' ? C1_GAMES : B2_GAMES; }
@@ -6046,8 +6053,6 @@ function cambridgeGameAsset(name) {
 }
 function updateEnglishRouteLabels() {
   const level = state.examLevel;
-  const nav = document.querySelector('[data-tab-btn="b2"]');
-  if (nav) nav.textContent = `Ruta ${level.slice(0,2)}`;
   const filters = document.querySelector('#tab-b2 .b2-filters');
   if (filters) filters.setAttribute('aria-label',`Filtrar lecciones ${level.slice(0,2)}`);
   const homeRoute = document.getElementById('englishHomeRouteTitle');
@@ -6063,9 +6068,7 @@ function updateEnglishRouteLabels() {
   if (homeGameCount) homeGameCount.textContent = level === 'B2 First' ? '6 misiones' : '2 misiones';
   if (homeGameBenefit) homeGameBenefit.textContent = 'Corrección inmediata';
   const routeIntro = document.getElementById('englishRouteIntro');
-  const gamesIntro = document.getElementById('englishGamesIntro');
   if (routeIntro) routeIntro.innerHTML = level === 'C1 Advanced' ? '<span>C1 ADVANCED</span><h2>Lee entre líneas y argumenta con precisión</h2><p>Seis lecciones propias de Reading, Use of English, Writing y Speaking. Aprende la idea, compruébala y entra en el juego relacionado.</p>' : level === 'C2 Proficiency' ? '<span>C2 PROFICIENCY</span><h2>Sintetiza fuentes y defiende el matiz</h2><p>Seis lecciones propias para separar datos, elegir palabras precisas y responder con cautela en Writing y Speaking.</p>' : '<span>B2 FIRST</span><h2>Aprende, practica y comprueba</h2><p>Seis lecciones breves para preparar Reading, Writing y Use of English. Elige una tarjeta para abrir sus pasos.</p>';
-  if (gamesIntro) gamesIntro.innerHTML = level === 'C1 Advanced' ? '<span>JUEGOS C1</span><h2>Investiga y debate</h2><p>Dos misiones con cinco decisiones cada una: distingue pruebas de inferencias y construye una propuesta conjunta.</p>' : level === 'C2 Proficiency' ? '<span>JUEGOS C2</span><h2>Observa y edita</h2><p>Dos misiones con cinco decisiones cada una: contrasta dossiers y afina el lenguaje antes de publicar.</p>' : '<span>JUEGOS B2</span><h2>Practica dentro de la historia</h2><p>Seis retos vinculados a las lecciones B2. Completa textos, descubre pistas, transforma frases y prepara mensajes para un lector.</p>';
 }
 function englishLessonArtwork(lesson) {
   const scene = /Writing/.test(lesson.skill) ? 'writing' : /Speaking/.test(lesson.skill) ? 'audio' : /Reading/.test(lesson.skill) ? 'academy' : 'route';
@@ -6104,32 +6107,64 @@ function answerB2Lesson(id,index) {
   persist();
   renderB2Lessons();
 }
+function englishJourneyChapters(game) {
+  const lessons = englishRouteLessons().filter(lesson => B2_GAME_BY_LESSON[lesson.id] === game.id);
+  return lessons.map((lesson, index) => ({lesson, end:ENGLISH_JOURNEY_BREAKS[game.id]?.[index] ?? game.stages.length}));
+}
+function englishJourneyCheckpoint(game, stage) {
+  return playingEnglishJourney && englishJourneyChapters(game).slice(0,-1).some(chapter => chapter.end === stage);
+}
+function renderEnglishJourney() {
+  const lessons = englishRouteLessons();
+  const games = englishRouteGames();
+  const stops = lessons.map(lesson => {
+    const game = games.find(item => item.id === B2_GAME_BY_LESSON[lesson.id]);
+    const chapters = englishJourneyChapters(game);
+    const chapter = chapters.findIndex(item => item.lesson.id === lesson.id);
+    const done = state.b2Games[game.id]?.completed || (state.b2GameRuns[game.id]?.stage || 0) >= chapters[chapter].end;
+    return {lesson, game, chapter, chapters:chapters.length, done};
+  });
+  const next = stops.findIndex(stop => !stop.done);
+  const total = stops.filter(stop => stop.done).length;
+  const nodes = stops.map(({lesson, game, chapter, chapters, done}, index) => {
+    const current = index === next;
+    const status = done ? 'Completada' : current ? 'Siguiente parada' : 'Por desbloquear';
+    const play = done && state.b2Games[game.id]?.completed ? 'Volver a jugar' : state.b2GameRuns[game.id] ? 'Continuar misión' : 'Jugar';
+    const pin = index % 2 ? 48 : 24;
+    const path = `${index ? `M36 0 Q${pin} 24 ${pin} 50` : `M${pin} 50`}${index < stops.length - 1 ? ' Q' + pin + ' 76 36 100' : ''}`;
+    return `<li class="english-journey-stop ${done ? 'is-done' : current ? 'is-next' : ''}" ${current ? 'aria-current="step"' : ''}><svg class="english-journey-trail" viewBox="0 0 72 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="${path}" vector-effect="non-scaling-stroke"/></svg><span class="english-journey-pin" aria-hidden="true">${done ? '✓' : index+1}</span><article><small>${escHtml(lesson.skill)} · ${status}</small><h3>${escHtml(lesson.title)}</h3><p>${escHtml(game.title)}${chapters > 1 ? ` · capítulo ${chapter+1}/${chapters}` : ''}</p>${done || current ? `<button type="button" onclick="openB2Game('${game.id}',${current})">${play} →</button>` : ''}</article></li>`;
+  }).join('');
+  document.getElementById('englishJourney').innerHTML = `<header class="english-journey-banner" data-level="${state.examLevel.slice(0,2)}"><div><span>MODO JUEGOS · ${escHtml(state.examLevel)}</span><h2>Tu mapa de misiones</h2><p>${next < 0 ? '¡Has completado el recorrido! Puedes volver a jugar cualquier misión.' : 'Supera cada parada para abrir la siguiente. El mapa guarda tu avance por nivel.'}</p></div><div class="english-journey-meter"><strong>${total}/${stops.length}</strong><span>paradas completadas</span><progress max="${stops.length}" value="${total}" aria-label="Paradas completadas"></progress></div></header><ol class="english-journey-path" aria-label="Recorrido de los temas">${nodes}</ol>`;
+}
 function renderB2Games() {
   const list = document.getElementById('b2GameList');
   if (!list) return;
   updateEnglishRouteLabels();
   if (!activeB2Game) document.getElementById('tab-juegos').classList.remove('english-playing');
+  renderEnglishJourney();
   const icons = {editor:'✍',archive:'⌕',machine:'⚙',opencloze:'✎',forge:'✦',mailroom:'✉','c1-research':'⌕','c1-debate':'◉','c2-observatory':'⌕','c2-press':'✒'};
   list.innerHTML = englishRouteGames().map(game => { const run = state.b2GameRuns?.[game.id]; const art = game.id==='opencloze' ? `style="background-image:url('/assets/cambridge-studio/bridge-world-v1.webp')"` : ENGLISH_GAME_ART[game.id] ? `style="background-image:url('${cambridgeGameAsset(ENGLISH_GAME_ART[game.id])}')"` : `style="background-image:url('/assets/cambridge-studio/games-card-v2.webp')"`; return `<article class="b2-card"><div class="b2-game-thumb" data-kind="${game.id}" ${art} aria-hidden="true"><span>${icons[game.id]}</span>${window.EnglishMissionBoards ? `<small class="mission-card-tag">${escHtml(EnglishMissionBoards.themes[game.id].name)}</small>` : ''}</div><small>${escHtml(game.skill)}</small><h3>${escHtml(game.title)}</h3><p>${escHtml(game.intro)}</p><span class="b2-card-status">${run ? `Etapa ${run.stage+1}/${game.stages.length}` : state.b2Games?.[game.id] ? '✓ Completado' : 'Por jugar'}</span><button type="button" onclick="openB2Game('${game.id}')">${run ? 'Continuar' : state.b2Games?.[game.id] ? 'Volver a jugar' : 'Jugar'}</button></article>`; }).join('');
 }
-function openB2Game(id) {
+function openB2Game(id, fromJourney = false) {
   const game = englishRouteGames().find(item => item.id === id);
   if (!game) return;
   showTab('juegos',document.querySelector('[data-tab-btn="juegos"]'));
   activeB2Game = id;
+  playingEnglishJourney = fromJourney;
   activeB2Stage = Number.isInteger(state.b2GameRuns?.[id]?.stage) ? Math.min(Math.max(0,state.b2GameRuns[id].stage),game.stages.length-1) : 0;
   state.b2GameRuns[id] = state.b2GameRuns[id] || {stage:0,mistakes:0,errors:[],updatedAt:new Date().toISOString()};
   state.b2GameRuns[id].stage = activeB2Stage;
   persist();
   renderB2GameStage();
+  document.getElementById('englishMissionTitle')?.focus({preventScroll:true});
   document.getElementById('b2GameBoard').scrollIntoView({block:'start',behavior:'smooth'});
 }
 function renderB2GameStage() {
   const game = englishRouteGame(activeB2Game);
   const stage = game?.stages[activeB2Stage];
   if (!stage) return;
+  document.getElementById('tab-juegos').classList.add('english-playing');
   if (window.EnglishMissionBoards) {
-    document.getElementById('tab-juegos').classList.add('english-playing');
     const run=state.b2GameRuns[game.id];
     document.getElementById('b2GameBoard').innerHTML=EnglishMissionBoards.render(game,activeB2Stage,run);
     if(run.solvedStage===activeB2Stage)showB2GameSuccess(game,stage,stage.correct);
@@ -6149,7 +6184,10 @@ function showB2GameSuccess(game,stage,index) {
   document.getElementById('b2GameFeedback').textContent = '¡Correcto! ' + stage.why;
   document.querySelectorAll('#b2GameBoard .b2-scene-option').forEach(button=>{button.disabled=true;button.classList.toggle('correct',Number(button.dataset.answerIndex)===index);});
   document.querySelectorAll('#b2GameBoard .b2-answer').forEach(control=>control.disabled=true);
-  document.getElementById('b2GameNext').innerHTML = `<button type="button" onclick="nextB2GameStage()">${activeB2Stage+1===game.stages.length?'Terminar partida':'Siguiente etapa →'}</button>`;
+  const nextStage = activeB2Stage + 1;
+  const action = nextStage === game.stages.length ? 'Terminar partida' :
+    englishJourneyCheckpoint(game,nextStage) ? 'Ver la siguiente parada →' : 'Siguiente etapa →';
+  document.getElementById('b2GameNext').innerHTML = `<button type="button" onclick="nextB2GameStage()">${action}</button>`;
   window.EnglishMissionBoards?.result(true,index);
 }
 function answerB2Game(index) {
@@ -6187,6 +6225,7 @@ function nextB2GameStage() {
     state.b2GameRuns[game.id].stage = activeB2Stage;
     state.b2GameRuns[game.id].updatedAt = new Date().toISOString();
     persist();
+    if (englishJourneyCheckpoint(game,activeB2Stage)) return closeEnglishGame();
     renderB2GameStage();
     renderB2Games();
     document.getElementById('englishMissionTitle')?.focus({preventScroll:true});
@@ -6202,15 +6241,21 @@ function nextB2GameStage() {
   const review = errors.length ? `<details class="b2-game-review"><summary>Revisar ${errors.length} ${errors.length===1?'intento':'intentos'}</summary>${errors.map(error => `<p><strong>Etapa ${error.stage+1}:</strong> ${escHtml(error.answer)}. ${escHtml(game.stages[error.stage]?.why || '')}</p>`).join('')}</details>` : '';
   const writingLink = game.id === 'mailroom' ? `<button type="button" onclick="showTab('escrita')">Escribir mi correo completo →</button>` : '';
   const finale=window.EnglishMissionBoards ? EnglishMissionBoards.complete(game,mistakes) : `<h2>Reto completado</h2><p>Has resuelto las ${game.stages.length} etapas de ${escHtml(game.title)}.</p>`;
-  document.getElementById('b2GameBoard').innerHTML = `<section class="b2-panel mission-panel">${finale}${review}${writingLink}<div class="mission-finale-actions"><button type="button" onclick="openB2Game('${game.id}')">Volver a jugar</button><button type="button" onclick="closeEnglishGame()">Ver todos los juegos</button></div></section>`;
+  document.getElementById('b2GameBoard').innerHTML = `<section class="b2-panel mission-panel">${finale}${review}${writingLink}<div class="mission-finale-actions"><button type="button" onclick="closeEnglishGame()">Volver al recorrido →</button><button type="button" onclick="openB2Game('${game.id}')">Volver a jugar</button><button type="button" onclick="closeEnglishGame(true)">Ver todos los juegos</button></div></section>`;
   renderB2Games();
 }
-function closeEnglishGame() {
+function closeEnglishGame(showCatalog = false) {
   activeB2Game=null;
+  playingEnglishJourney=false;
   document.getElementById('tab-juegos').classList.remove('english-playing');
   document.getElementById('b2GameBoard').innerHTML='';
   renderB2Games();
-  document.getElementById('tab-juegos').scrollIntoView({block:'start',behavior:'smooth'});
+  const catalog = document.getElementById('englishGameCatalog');
+  catalog.open = showCatalog;
+  const target = showCatalog ? catalog.querySelector('summary') :
+    document.querySelector('.english-journey-stop.is-next button') || document.querySelector('.english-journey-stop button');
+  target?.focus({preventScroll:true});
+  target?.scrollIntoView({block:'center'});
 }
 function restartB2Game() {
   if (!activeB2Game) return;
