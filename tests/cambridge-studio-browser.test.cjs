@@ -9,25 +9,60 @@ fs.mkdirSync(path.join(root,'tmp'),{recursive:true});
 const {fixture}=require('./cambridge-studio-fixture.cjs');
 
 for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:'msedge'}],['WebKit',webkit,{headless:true}]]){
- test(name+': illustrated English landing and workspace keep their routes, drafts and responsive layout',{timeout:120000},async()=>{
+ test(name+': interactive English landing and workspace keep their routes, drafts and responsive layout',{timeout:120000},async()=>{
   const browser=await engine.launch(options);
   try{
    for(const width of [320,390,768,1440]){
     const page=await browser.newPage({viewport:{width,height:960},hasTouch:width<=768});const errors=[];
     page.on('pageerror',error=>errors.push(error.message));await fixture(page);
     await page.goto('http://studio.test/cambridge-info');
-    await page.locator('#demoOptions button').first().waitFor();
     assert.match(await page.locator('#googleEntry').getAttribute('href'),/next=%2Fcambridge/);
-    await page.locator('#demoOptions button').nth(1).click();assert.match(await page.locator('#demoFeedback').textContent(),/Casi/);
-    await page.locator('#demoOptions button').nth(0).click();assert.match(await page.locator('#demoFeedback').textContent(),/Correcto/);
-    await page.locator('#demoNext').click();assert.match(await page.locator('#demoProgress').textContent(),/2 de 3/);
+    await page.locator('.workspace-scene img').evaluate(img=>img.decode());
+    const game=page.locator('[data-preview-open="games"]');
+    const dialog=page.getByRole('dialog');
+    assert.equal(await dialog.isVisible(),false);
+    if(width===1440) {
+     await game.focus();
+     await page.keyboard.press('Enter');
+    } else await game.tap();
+    await dialog.waitFor();
+    await page.locator('#bridgeSlot').click();
+    assert.match(await page.locator('#bridgeFeedback').textContent(),/Primero elige/);
+    await dialog.getByRole('button',{name:'for',exact:true}).click();
+    await page.locator('#bridgeSlot').click();
+    assert.match(await page.locator('#bridgeFeedback').textContent(),/Prueba otra/);
+    for(const word of ['since','for','to']){
+     const piece=dialog.getByRole('button',{name:word,exact:true});
+     if(width===1440&&name==='Chromium'&&word==='since')await piece.dragTo(page.locator('#bridgeSlot'));
+     else {
+      await piece.click();
+      await page.locator('#bridgeSlot').click();
+     }
+     assert.equal(await page.locator('#bridgeBoard').getAttribute('data-state'),'solved');
+     if(name==='Chromium'&&width===390&&word==='since')await dialog.screenshot({path:path.join(root,'tmp/ingles-puente-demo.png')});
+     await page.locator('#bridgeNext').click();
+    }
+    assert.match(await page.locator('#bridgeProgress').textContent(),/1 de 3/);
+    await page.keyboard.press('Escape');
+    assert.equal(await dialog.isVisible(),false);
+    assert.equal(await game.evaluate(button=>button===document.activeElement),true);
+    await page.locator('[data-preview-open="lessons"]').click();
+    await dialog.getByRole('button',{name:'C2 Proficiency'}).click();
+    await page.locator('#sample-c2 summary').click();
+    assert.match(await page.locator('#sample-c2').innerText(),/Sugges/);
+    await dialog.getByRole('button',{name:'Cerrar vista interactiva'}).click();
+    await page.locator('[data-preview-open="practice"]').click();
+    assert.equal(await page.locator('#previewAudio').getAttribute('src'),'/assets/listening/b2-station.wav');
+    await dialog.getByRole('button',{name:'Writing',exact:true}).click();
+    await page.locator('#sampleAnswer').fill('I am writing to enquire.');
+    assert.match(await page.locator('#sampleWordCount').innerText(),/5 palabras/);
+    await dialog.getByRole('button',{name:'Cerrar vista interactiva'}).click();
     await page.locator('.faq details').nth(0).locator('summary').click();
     assert.equal(await page.locator('.faq details[open]').count(),1);
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2,'landing overflow '+width);
-    if(width===1440&&name==='Chromium'){
+    if([390,1440].includes(width)&&name==='Chromium'){
      fs.mkdirSync(path.join(root,'tmp'),{recursive:true});await page.evaluate(()=>window.scrollTo(0,0));
-     await page.screenshot({path:path.join(root,'tmp/ingles-landing-renovada.png'),fullPage:true});
-     await page.screenshot({path:path.join(root,'tmp/ingles-landing-portada.png')});
+     await page.screenshot({path:path.join(root,'tmp/ingles-landing-interactiva-'+width+'.png')});
     }
     await page.goto('http://studio.test/cambridge');await page.waitForFunction(()=>cambridgeStateETag!==null);
     assert.equal(await page.locator('.workspace-header nav button').count(),3);
@@ -89,8 +124,11 @@ test('paused English disables every landing entry while keeping the public trial
   const page=await browser.newPage();await fixture(page,{paused:true});await page.goto('http://studio.test/cambridge-info');
   await page.locator('#googleStatus').waitFor();
   assert.equal(await page.locator('.app-entry[href]').count(),0);
-  assert.equal(await page.locator('.app-entry[aria-disabled=true]').count(),8);
-  await page.locator('#demoOptions button').first().click();assert.match(await page.locator('#demoFeedback').textContent(),/Correcto/);
+  assert.equal(await page.locator('.app-entry[aria-disabled=true]').count(),1);
+  await page.locator('[data-preview-open="games"]').click();
+  await page.locator('#bridgePieces').getByRole('button',{name:'since'}).click();
+  await page.locator('#bridgeSlot').click();
+  assert.match(await page.locator('#bridgeFeedback').textContent(),/Correcto/);
  }finally{await browser.close();}
 });
 

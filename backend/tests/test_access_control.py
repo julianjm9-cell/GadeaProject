@@ -796,8 +796,8 @@ def test_cambridge_landing_has_direct_google_entry_and_working_assets(client):
     test_client, _ = client
     page = test_client.get("/cambridge-info").text
     assert 'href="/auth/google/login?next=%2Fcambridge"' in page
-    assert 'id="demoOptions"' in page
-    assert "const challenges=[" in page
+    assert 'id="previewDialog"' in page
+    assert page.count('data-preview-open=') == 3
     assert "https://educame.tech/cambridge-info" in test_client.get("/sitemap.xml").text
     for path in (
         "/assets/brand/ingles-simple.png",
@@ -809,6 +809,14 @@ def test_cambridge_landing_has_direct_google_entry_and_working_assets(client):
         response = test_client.get(path)
         assert response.status_code == 200, path
         assert response.headers["content-type"].startswith("image/png"), path
+    for path, mime in (
+        ("/assets/cambridge-studio/landing-preview.js", "text/javascript"),
+        ("/assets/cambridge-studio/word-bridge-preview-v1.webp", "image/webp"),
+        ("/assets/listening/b2-station.wav", "audio/wav"),
+    ):
+        response = test_client.get(path)
+        assert response.status_code == 200, path
+        assert response.headers["content-type"].startswith(mime), path
     for filename in (
         'c1-research-desk-v1.webp',
         'c1-debate-room-v1.webp',

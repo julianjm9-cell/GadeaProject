@@ -7,6 +7,11 @@ const { chromium, webkit } = require('./browser-runtime.cjs');
 
 const audioDir = resolve(__dirname, '../apps/cambridge/assets/listening');
 const files = new Set(readdirSync(audioDir));
+const landingFiles = {
+  'cambridge-info': ['text/html', resolve(__dirname, '../marketing/app_landings_demo/cambridge.html')],
+  'landing-preview.js': ['text/javascript', resolve(__dirname, '../apps/cambridge/assets/studio/landing-preview.js')],
+  'landing.css': ['text/css', resolve(__dirname, '../apps/cambridge/assets/studio/landing.css')],
+};
 
 test('todos los audios del recorrido B2 existen y tienen una duración válida', () => {
   for (const manifest of [...files].filter(name => name.endsWith('.json'))) {
@@ -37,6 +42,10 @@ for (const [name, engine, options] of [
       if (file === 'test') {
         response.writeHead(200, { 'content-type': 'text/html' });
         response.end('<button id="play" type="button">Play</button>');
+      } else if (Object.hasOwn(landingFiles, file)) {
+        const [mime, path] = landingFiles[file];
+        response.writeHead(200, { 'content-type': mime });
+        response.end(readFileSync(path));
       } else if (files.has(file) && file.endsWith('.wav')) {
         const bytes = readFileSync(resolve(audioDir, file));
         response.writeHead(200, { 'content-type': 'audio/wav', 'content-length': bytes.length });
@@ -72,6 +81,13 @@ for (const [name, engine, options] of [
         await page.evaluate(() => document.querySelector('audio').pause());
         assert.equal(await page.locator('audio').evaluate(audio => audio.paused), true);
       }
+      await page.goto(`http://127.0.0.1:${server.address().port}/cambridge-info`);
+      await page.locator('[data-preview-open="practice"]').click();
+      const audio = page.locator('#previewAudio');
+      await audio.evaluate(element => element.play());
+      await page.waitForFunction(() => document.getElementById('previewAudio').currentTime > 0.15);
+      await page.getByRole('button', {name:'Writing', exact:true}).click();
+      assert.equal(await audio.evaluate(element => element.paused), true);
     } finally {
       if (browser) await browser.close();
       await new Promise(done => server.close(done));

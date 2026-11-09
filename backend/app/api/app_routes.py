@@ -730,7 +730,8 @@ def cambridge_game_illustration(filename: str, request: Request):
 
 @router.get("/assets/cambridge-studio/{filename}")
 def cambridge_studio_asset(filename: str):
-    if filename not in {'studio.css', 'landing.css', 'games.css', 'games.js', 'journey.css', 'bridge-world-v1.webp', 'guide-v1.webp',
+    if filename not in {'studio.css', 'landing.css', 'landing-preview.js', 'word-bridge-preview-v1.webp',
+                        'games.css', 'games.js', 'journey.css', 'bridge-world-v1.webp', 'guide-v1.webp',
                         'academy-v2.webp', 'academy-card-v2.webp', 'route-card-v2.webp',
                         'games-card-v2.webp', 'writing-card-v2.webp', 'audio-card-v2.webp', 'progress-card-v2.webp'}:
         raise HTTPException(404, 'Recurso no encontrado.')
