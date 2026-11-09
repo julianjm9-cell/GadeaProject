@@ -18,6 +18,8 @@
   function showPreview(name) {
     choose(panels, 'previewPanel', 'preview-', name);
     byId('previewTitle').textContent = titles[name];
+    dialog.dataset.panel = name;
+    dialog.scrollTop = 0;
     if (name !== 'practice') audio.pause();
   }
 
@@ -47,105 +49,82 @@
     byId('sampleWordCount').textContent = `${words} ${words === 1 ? 'palabra' : 'palabras'}`;
   });
 
-  const stages = [
-    {before:'She has lived here', after:'2020.', pieces:['for', 'since', 'during'], answer:'since', clue:'Since indica el inicio de un periodo: 2020.'},
-    {before:'We have been waiting', after:'two hours.', pieces:['during', 'since', 'for'], answer:'for', clue:'For indica cuánto tiempo ha pasado: dos horas.'},
-    {before:'The exhibition is open', after:'everyone.', pieces:['to', 'of', 'by'], answer:'to', clue:'Open to everyone significa «abierta a todo el mundo».'}
+  const board = byId('stationBoard');
+  const desk = byId('stationDesk');
+  const spots = [...board.querySelectorAll('[data-station-spot]')];
+  const intro = byId('station-intro');
+  const progress = byId('stationProgress');
+  const plan = byId('stationPlan');
+  const form = byId('stationForm');
+  const feedback = byId('stationFeedback');
+  const result = byId('stationResult');
+  const found = new Set();
+  const itinerary = [
+    {field:'service', value:'22:00', hint:'Cruza la hora de llegada del panel con la cancelación del aviso.'},
+    {field:'platform', value:'6', hint:'El aviso actualiza el andén. El panel muestra el número anterior.'},
+    {field:'ticket', value:'use', hint:'Relee la taquilla para comprobar cuándo sigue siendo válido tu billete.'},
   ];
-  const slot = byId('bridgeSlot');
-  const board = byId('bridgeBoard');
-  const bank = byId('bridgePieces');
-  const feedback = byId('bridgeFeedback');
-  const next = byId('bridgeNext');
-  let step = 0;
-  let selected = null;
-  let solved = false;
 
-  function writeSentence(word) {
-    const {before, after} = stages[step];
-    const blank = document.createElement('b');
-    blank.textContent = word;
-    byId('bridgeSentence').replaceChildren(before + ' ', blank, ' ' + after);
+  function showClue(active) {
+    intro.hidden = Boolean(active);
+    spots.forEach((spot, index) => {
+      const name = spot.dataset.stationSpot;
+      const opened = found.has(name);
+      spot.toggleAttribute('data-found', opened);
+      spot.querySelector('b').textContent = opened ? '✓' : String(index + 1);
+      spot.setAttribute('aria-pressed', String(name === active));
+      byId('station-' + name + '-clue').hidden = name !== active;
+    });
+    if (board.dataset.stage !== 'arrived') progress.textContent = `${found.size}/${spots.length} pistas`;
+    plan.hidden = found.size !== spots.length || board.dataset.stage !== 'explore';
   }
 
-  function selectPiece(button) {
-    if (solved) return;
-    selected = button;
-    for (const piece of bank.children) piece.setAttribute('aria-pressed', String(piece === button));
-    slot.textContent = 'Colocar «' + button.textContent + '»';
-    board.dataset.state = 'ready';
-    feedback.textContent = 'Coloca la pieza en el puente.';
+  spots.forEach(spot => spot.addEventListener('click', () => {
+    found.add(spot.dataset.stationSpot);
+    showClue(spot.dataset.stationSpot);
+  }));
+
+  plan.addEventListener('click', () => {
+    board.dataset.stage = 'plan';
+    desk.classList.add('is-planning');
+    plan.hidden = true;
+    form.hidden = false;
+    byId('stationPlanTitle').focus();
+  });
+
+  function clearFeedback() {
+    form.querySelector('[aria-invalid]')?.removeAttribute('aria-invalid');
+    feedback.textContent = '';
   }
 
-  function placePiece() {
-    if (solved) return;
-    if (!selected) {
-      feedback.textContent = 'Primero elige una pieza.';
-      bank.firstElementChild.focus();
-      return;
-    }
-    const stage = stages[step];
-    if (selected.textContent !== stage.answer) {
-      board.dataset.state = 'try-again';
-      feedback.textContent = 'Esa pieza no encaja. Prueba otra.';
-      selected.setAttribute('aria-pressed', 'false');
-      selected.focus();
-      selected = null;
-      slot.textContent = 'Colocar pieza';
-      return;
-    }
-    solved = true;
-    const finished = step === stages.length - 1;
-    board.dataset.state = 'solved';
-    writeSentence(stage.answer);
-    slot.textContent = stage.answer;
-    slot.setAttribute('aria-disabled', 'true');
-    for (const piece of bank.children) piece.disabled = true;
-    feedback.textContent = (finished ? '¡Puente completo! ' : '¡Correcto! ') + stage.clue;
-    next.textContent = finished ? 'Volver a jugar' : 'Siguiente tramo →';
-    next.hidden = false;
-    next.focus();
-  }
-
-  function renderStage() {
-    solved = false;
-    selected = null;
-    board.dataset.state = 'waiting';
-    writeSentence('___');
-    byId('bridgeProgress').textContent = `${step+1} de ${stages.length}`;
-    slot.textContent = 'Colocar pieza';
-    slot.removeAttribute('aria-disabled');
-    next.hidden = true;
-    feedback.textContent = 'Elige la pieza que falta.';
-    bank.replaceChildren(...stages[step].pieces.map(word => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.lang = 'en';
-      button.textContent = word;
-      button.draggable = true;
-      button.setAttribute('aria-pressed', 'false');
-      button.addEventListener('click', () => selectPiece(button));
-      button.addEventListener('dragstart', event => {
-        if (solved) return event.preventDefault();
-        selectPiece(button);
-        event.dataTransfer.setData('text/plain', word);
-      });
-      return button;
-    }));
-  }
-
-  slot.addEventListener('click', placePiece);
-  slot.addEventListener('dragover', event => { if (selected && !solved) event.preventDefault(); });
-  slot.addEventListener('drop', event => {
+  form.addEventListener('change', clearFeedback);
+  form.addEventListener('submit', event => {
     event.preventDefault();
-    if (selected && event.dataTransfer.getData('text/plain') === selected.textContent) placePiece();
+    clearFeedback();
+    const mistake = itinerary.find(item => form.elements[item.field].value !== item.value);
+    if (mistake) {
+      const field = form.elements[mistake.field];
+      field.setAttribute('aria-invalid', 'true');
+      feedback.textContent = mistake.hint;
+      field.focus();
+      return;
+    }
+    board.dataset.stage = 'arrived';
+    desk.classList.remove('is-planning');
+    form.hidden = true;
+    result.hidden = false;
+    progress.textContent = 'Misión completada';
+    byId('stationArrival').focus();
   });
-  next.addEventListener('click', () => {
-    step = (step + 1) % stages.length;
-    renderStage();
-    bank.firstElementChild.focus();
+
+  byId('stationReplay').addEventListener('click', () => {
+    found.clear();
+    board.dataset.stage = 'explore';
+    result.hidden = true;
+    form.reset();
+    showClue();
+    spots[0].focus();
   });
-  renderStage();
 
   function status(path) {
     return fetch(path, {credentials:'same-origin'}).then(response => response.ok ? response.json() : null).catch(() => null);

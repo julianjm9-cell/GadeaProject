@@ -17,6 +17,9 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
     page.on('pageerror',error=>errors.push(error.message));await fixture(page);
     await page.goto('http://studio.test/cambridge-info');
     assert.match(await page.locator('#googleEntry').getAttribute('href'),/next=%2Fcambridge/);
+    assert.equal(await page.locator('.site-header').count(),0);
+    assert.equal(await page.getByText('Ver por dentro',{exact:true}).count(),0);
+    assert.equal(await page.locator('#level-title').innerText(),'NIVELES');
     await page.locator('.workspace-scene img').evaluate(img=>img.decode());
     const game=page.locator('[data-preview-open="games"]');
     const dialog=page.getByRole('dialog');
@@ -26,23 +29,38 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
      await page.keyboard.press('Enter');
     } else await game.tap();
     await dialog.waitFor();
-    await page.locator('#bridgeSlot').click();
-    assert.match(await page.locator('#bridgeFeedback').textContent(),/Primero elige/);
-    await dialog.getByRole('button',{name:'for',exact:true}).click();
-    await page.locator('#bridgeSlot').click();
-    assert.match(await page.locator('#bridgeFeedback').textContent(),/Prueba otra/);
-    for(const word of ['since','for','to']){
-     const piece=dialog.getByRole('button',{name:word,exact:true});
-     if(width===1440&&name==='Chromium'&&word==='since')await piece.dragTo(page.locator('#bridgeSlot'));
-     else {
-      await piece.click();
-      await page.locator('#bridgeSlot').click();
-     }
-     assert.equal(await page.locator('#bridgeBoard').getAttribute('data-state'),'solved');
-     if(name==='Chromium'&&width===390&&word==='since')await dialog.screenshot({path:path.join(root,'tmp/ingles-puente-demo.png')});
-     await page.locator('#bridgeNext').click();
+    const plan=dialog.getByRole('button',{name:'Preparar mi viaje →'});
+    assert.equal(await plan.isVisible(),false);
+    await page.waitForFunction(()=>document.querySelector('.station-train').naturalWidth>0);
+    for(const [index,label] of ['Aviso','Panel','Taquilla'].entries()){
+     const clue=dialog.getByRole('button',{name:label,exact:true});
+     if(width<=768)await clue.tap();
+     else {await clue.focus();await page.keyboard.press('Enter');}
+     assert.equal(await page.locator('#stationProgress').innerText(),`${index+1}/3 pistas`);
     }
-    assert.match(await page.locator('#bridgeProgress').textContent(),/1 de 3/);
+    await dialog.getByRole('button',{name:'Aviso',exact:true}).click();
+    assert.equal(await page.locator('#stationProgress').innerText(),'3/3 pistas');
+    await plan.click();
+    const departure=dialog.getByRole('combobox',{name:'Tren'}),platform=dialog.getByRole('combobox',{name:'Andén'}),ticket=dialog.getByRole('combobox',{name:'Billete'});
+    const board=dialog.getByRole('button',{name:'Embarcar →'});
+    await departure.selectOption('21:45');await platform.selectOption('4');await ticket.selectOption('exchange');
+    await board.click();
+    assert.match(await page.locator('#stationFeedback').innerText(),/cancelación/);
+    await departure.selectOption('22:00');await board.click();
+    assert.equal(await platform.getAttribute('aria-invalid'),'true');
+    await dialog.getByRole('button',{name:'Taquilla',exact:true}).click();
+    assert.equal(await departure.inputValue(),'22:00');
+    await platform.selectOption('6');await board.click();
+    assert.match(await page.locator('#stationFeedback').innerText(),/billete/);
+    await ticket.selectOption('use');
+    assert.ok(await dialog.evaluate(node=>node.scrollWidth-node.clientWidth<=2),'mission overflow '+width);
+    if(name==='Chromium'&&[390,1440].includes(width))await dialog.screenshot({path:path.join(root,`tmp/ingles-estacion-mision-${width}.png`),animations:'disabled'});
+    await board.click();
+    assert.equal(await page.locator('#stationBoard').getAttribute('data-stage'),'arrived');
+    assert.equal(await dialog.getByText('22:35 · Andén 6 · Billete válido').isVisible(),true);
+    await dialog.getByRole('button',{name:'Volver a jugar'}).click();
+    assert.equal(await page.locator('#stationProgress').innerText(),'0/3 pistas');
+    assert.equal(await plan.isVisible(),false);
     await page.keyboard.press('Escape');
     assert.equal(await dialog.isVisible(),false);
     assert.equal(await game.evaluate(button=>button===document.activeElement),true);
@@ -146,9 +164,8 @@ test('paused English disables every landing entry while keeping the public trial
   assert.equal(await page.locator('.app-entry[href]').count(),0);
   assert.equal(await page.locator('.app-entry[aria-disabled=true]').count(),1);
   await page.locator('[data-preview-open="games"]').click();
-  await page.locator('#bridgePieces').getByRole('button',{name:'since'}).click();
-  await page.locator('#bridgeSlot').click();
-  assert.match(await page.locator('#bridgeFeedback').textContent(),/Correcto/);
+  await page.getByRole('dialog').getByRole('button',{name:'Panel',exact:true}).click();
+  assert.equal(await page.locator('#stationProgress').innerText(),'1/3 pistas');
  }finally{await browser.close();}
 });
 

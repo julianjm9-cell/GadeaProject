@@ -85,6 +85,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/cambridge-studio/studio.css": b"English studio",
         "/assets/cambridge-studio/landing.css": b".hero-shell",
         "/assets/cambridge-studio/landing-preview.js": b"showPreview",
+        "/assets/cambridge-studio/last-train-station-v1.webp": b"RIFF",
+        "/assets/cambridge-studio/last-train-sprite-v1.webp": b"RIFF",
         "/assets/cambridge-studio/word-bridge-preview-v1.webp": b"RIFF",
         "/assets/cambridge-studio/academy-v2.webp": b"RIFF",
         "/assets/cambridge-studio/academy-card-v2.webp": b"RIFF",
