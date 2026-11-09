@@ -89,6 +89,21 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
      await page.locator('[data-tab-btn="b2"]').click();
      assert.equal(await page.locator('#b2LessonList .b2-card').count(),6);
     }
+    const practice=page.locator('#tab-entrenar');
+    await page.locator('[data-tab-btn="entrenar"]').click();
+    const practiceList=practice.locator('.practice-list');
+    const {x,width:practiceWidth}=await practiceList.boundingBox();
+    assert.ok(Math.abs(x+practiceWidth/2-width/2)<=2,'practice cards centered '+width);
+    assert.equal(await practiceList.evaluate(list=>getComputedStyle(list).gridTemplateColumns.split(' ').length),width<=620?1:3);
+    for(const [label,tab] of [['Speaking','recitar'],['Writing','escrita']]){
+     const option=practice.getByRole('button',{name:label,exact:true});
+     if(width<=620)await option.tap();
+     else {await option.focus();await page.keyboard.press('Enter');}
+     const destination=page.locator('#tab-'+tab);
+     assert.equal(await destination.getByRole('heading',{name:label,exact:true}).isVisible(),true);
+     await destination.getByRole('button',{name:'← Práctica',exact:true}).click();
+    }
+    if(name==='Chromium'&&[390,1440].includes(width))await page.screenshot({path:path.join(root,'tmp/ingles-practica-'+width+'.png')});
     for(const tab of ['temas','entrenar','examenes','progreso','perfil','sesion']){
      if(['temas','progreso'].includes(tab)){
       await page.locator('[data-tab-btn="sesion"]').click();

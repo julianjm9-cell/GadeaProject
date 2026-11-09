@@ -1439,7 +1439,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 @media(max-width:620px){.b2-grid{grid-template-columns:1fr}.b2-intro,.b2-panel{padding:19px}.b2-board{min-height:240px;padding:12px}.b2-scene-page{padding:15px}.b2-filters input{min-width:0}.b2-filters label{flex:1 1 145px}.writing-report-scores,.writing-compare{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1">
-<link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261109-2">
+<link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261109-3">
 <link rel="stylesheet" href="/assets/cambridge-studio/games.css?v=20261109-1">
 <link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261109-3">
 <script src="/assets/cambridge-studio/games.js?v=20261109-1"></script>
@@ -1750,13 +1750,28 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   </div>
 
   <div id="tab-entrenar" class="tab">
-    <div class="workspace-page-head"><h2 data-workspace-title tabindex="-1">Práctica</h2></div>
-    <div class="practice-list">
-      <button type="button" class="quick-mode" onclick="showTab('recitar')"><img src="/assets/cambridge-studio/audio-card-v2.webp" width="128" height="90" alt=""><span><strong>Speaking</strong><small>Prepara y graba tu respuesta</small></span><span aria-hidden="true">›</span></button>
-      <button type="button" class="quick-mode" onclick="showTab('escrita')"><img src="/assets/cambridge-studio/writing-card-v2.webp" width="128" height="90" alt=""><span><strong>Writing</strong><small>Redacta y revisa tu texto</small></span><span aria-hidden="true">›</span></button>
-      <button type="button" class="quick-mode" onclick="showTab('examenes')"><img src="/assets/cambridge-studio/audio-card-v2.webp" width="128" height="90" alt=""><span><strong>Listening B2</strong><small>Cuatro partes y un recorrido completo</small></span><span aria-hidden="true">›</span></button>
-    </div>
-    <div class="workspace-links"><button type="button" onclick="showTab('sesion')">Ir a la sesión de hoy →</button></div>
+    <section class="practice-picker" aria-labelledby="practiceTitle">
+      <h2 id="practiceTitle" data-workspace-title tabindex="-1">Práctica</h2>
+      <p>Elige qué quieres entrenar hoy.</p>
+      <div class="practice-list">
+        <button type="button" class="practice-option" onclick="showTab('recitar')" aria-labelledby="practiceSpeaking" aria-describedby="practiceSpeakingHint">
+          <span class="practice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 10.5v1a6.5 6.5 0 0 0 13 0v-1M12 18v3.5M9 21.5h6"/></svg></span>
+          <span class="practice-copy"><strong id="practiceSpeaking">Speaking</strong><small id="practiceSpeakingHint">Prepara y graba tu respuesta.</small></span>
+          <span class="practice-arrow" aria-hidden="true">→</span>
+        </button>
+        <button type="button" class="practice-option" onclick="showTab('escrita')" aria-labelledby="practiceWriting" aria-describedby="practiceWritingHint">
+          <span class="practice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 21H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h8m-5 5h4m-4 4h2m-2 4h2m3 0 1-4 6.5-6.5a1.4 1.4 0 0 1 2 2L15 15l-3 2Zm5.5-8.5 2 2"/></svg></span>
+          <span class="practice-copy"><strong id="practiceWriting">Writing</strong><small id="practiceWritingHint">Redacta un texto y pide una corrección.</small></span>
+          <span class="practice-arrow" aria-hidden="true">→</span>
+        </button>
+        <button type="button" class="practice-option" onclick="showTab('examenes')" aria-labelledby="practiceListening" aria-describedby="practiceListeningHint">
+          <span class="practice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v-3a9 9 0 0 1 18 0v3"/><rect x="3" y="12" width="5" height="8" rx="2"/><rect x="16" y="12" width="5" height="8" rx="2"/></svg></span>
+          <span class="practice-copy"><strong id="practiceListening">Listening B2</strong><small id="practiceListeningHint">Escucha y practica las cuatro partes del examen.</small></span>
+          <span class="practice-arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+      <button type="button" class="workspace-link practice-session-link" onclick="showTab('sesion')">Ir a la sesión de hoy →</button>
+    </section>
   </div>
   <div id="tab-examenes" class="tab">
     <div class="listening-shell">
