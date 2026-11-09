@@ -238,22 +238,32 @@ def test_profesor_signup_can_be_disabled(client, monkeypatch):
     assert test_client.get("/api/state?app=profesor_particular").status_code == 402
 
 
-def test_deployment_smoke_check_routes(client, monkeypatch):
+@pytest.mark.parametrize("case", ["active", "paused", "unexpected_503", "paused_with_unrelated_503"])
+def test_deployment_smoke_check_routes(client, monkeypatch, case):
     from io import BytesIO
+    import json
     from pathlib import Path
     from urllib.error import HTTPError
     from app import deployment_check
 
     test_client, db_factory = client
+    if case in {"paused", "paused_with_unrelated_503"}:
+        with db_factory() as db:
+            db.add(AppSetting(key="app_paused:OCR_FACTURAS", value="1"))
+            db.commit()
 
     def open_local(url, timeout=20):
         if url.startswith("http://admin/"):
             admin_root = Path(__file__).parents[2] / "admin"
             relative = url.removeprefix("http://admin/") or "index.html"
             return BytesIO((admin_root / relative).read_bytes())
-        response = test_client.get(url.replace("http://127.0.0.1:8000", ""))
+        path = url.removeprefix("http://127.0.0.1:8000")
+        if path == "/facturas" and case.endswith("_503"):
+            detail = deployment_check.PAUSE_MESSAGE if case == "unexpected_503" else "Unavailable"
+            raise HTTPError(url, 503, "HTTP error", {"Retry-After": "3600"}, BytesIO(json.dumps({"detail": detail}).encode()))
+        response = test_client.get(path)
         if response.status_code >= 400:
-            raise HTTPError(url, response.status_code, "HTTP error", response.headers, None)
+            raise HTTPError(url, response.status_code, "HTTP error", response.headers, BytesIO(response.content))
         result = BytesIO(response.content)
         result.status = response.status_code
         result.url = str(response.url)
@@ -261,7 +271,11 @@ def test_deployment_smoke_check_routes(client, monkeypatch):
 
     monkeypatch.setattr(deployment_check, "urlopen", open_local)
     monkeypatch.setattr(deployment_check, "engine", db_factory.kw["bind"])
-    deployment_check.check_deployment()
+    if case.endswith("_503"):
+        with pytest.raises(AssertionError, match="No responde /facturas: HTTP 503"):
+            deployment_check.check_deployment()
+    else:
+        deployment_check.check_deployment()
 
 
 def test_profesor_material_files_are_private_and_persistent(client, monkeypatch, tmp_path):

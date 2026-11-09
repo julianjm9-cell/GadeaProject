@@ -8,6 +8,25 @@ from urllib.request import urlopen
 from sqlalchemy import inspect, text
 
 from app.database.session import engine
+from app.services.app_availability import PAUSE_MESSAGE
+
+
+PAUSABLE_PATHS = {
+    "/facturas": "OCR_FACTURAS",
+    "/cambridge": "CAMBRIDGE",
+    "/profesor-particular": "PROFESOR_PARTICULAR",
+}
+
+
+def verify_expected_pause(exc: HTTPError, path: str, availability: dict) -> bool:
+    product = PAUSABLE_PATHS.get(path)
+    if exc.code != 503 or not product or availability.get(product, {}).get("paused") is not True:
+        return False
+    try:
+        with exc:
+            return bool(exc.headers.get("Retry-After")) and json.load(exc).get("detail") == PAUSE_MESSAGE
+    except (ValueError, AttributeError):
+        return False
 
 
 def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://admin") -> None:
@@ -55,7 +74,6 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/api/profesor/ads": b'"ads"',
         "/cambridge-info": b"/auth/google/login?next=%2Fcambridge",
         "/cambridge": b"/auth/google/login?next=%2Fcambridge",
-        "/api/public/app-availability": b'"CAMBRIDGE"',
         "/assets/landing/cambridge-hero-v1.png": b"\x89PNG\r\n\x1a\n",
         "/assets/cambridge-games/open-cloze-editor-v1.png": b"\x89PNG\r\n\x1a\n",
         "/assets/cambridge-games/word-formation-forge-v1.png": b"\x89PNG\r\n\x1a\n",
@@ -311,9 +329,16 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/landing/profesor-hero-app-v3.png": b"\x89PNG\r\n\x1a\n",
         "/assets/landing/profesor-hero-app-v4.png": b"\x89PNG\r\n\x1a\n",
     }
+    with urlopen(base + "/api/public/app-availability", timeout=20) as response:
+        availability = json.load(response)["apps"]
+    for product in PAUSABLE_PATHS.values():
+        assert isinstance(availability[product]["paused"], bool), f"Estado de pausa inválido: {product}"
+    print("OK /api/public/app-availability")
     for path, expected in checks.items():
         try:
             with urlopen(base + path, timeout=20) as response:
+                product = PAUSABLE_PATHS.get(path)
+                assert not product or not availability[product]["paused"], f"{path} responde aunque está pausada"
                 data = response.read()
                 assert response.status == 200 and expected in data, f"Respuesta incorrecta: {path}"
                 if path == "/":
@@ -330,6 +355,9 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
                 if path == "/e25":
                     assert b'href="/e25/register"' not in data and b'href="/e25/login"' not in data, "La landing de ESO Adultos ofrece un acceso distinto de Google"
         except HTTPError as exc:
+            if verify_expected_pause(exc, path, availability):
+                print(f"OK {path} (pausa configurada)")
+                continue
             raise AssertionError(f"No responde {path}: HTTP {exc.code}") from exc
         print(f"OK {path}")
     with urlopen(base + "/auth/profesor/signup-settings", timeout=20) as response:
