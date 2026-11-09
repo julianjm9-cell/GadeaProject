@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "test": "node tests/run-unit.cjs",
-    "test:browser": "node --test --test-concurrency=1 tests/safari-compatibility-browser.test.cjs tests/cambridge-route-progress-browser.test.cjs tests/cambridge-listening-audio-browser.test.cjs tests/cambridge-studio-browser.test.cjs tests/cambridge-missions-browser.test.cjs tests/eso-game-save-browser.test.cjs tests/eso-library-layout-browser.test.cjs tests/eso-recovery-browser.test.cjs tests/lighthouse-browser.test.cjs"
+    "test:browser": "node --test --test-concurrency=1 tests/safari-compatibility-browser.test.cjs tests/cambridge-route-progress-browser.test.cjs tests/cambridge-listening-audio-browser.test.cjs tests/cambridge-studio-browser.test.cjs tests/cambridge-missions-browser.test.cjs tests/eso-game-save-browser.test.cjs tests/eso-library-layout-browser.test.cjs tests/eso-recovery-browser.test.cjs tests/lighthouse-browser.test.cjs tests/study-appearance-browser.test.cjs"
   },
   "devDependencies": {"playwright": "1.62.1"}
 }

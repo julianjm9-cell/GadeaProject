@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-study-app="cambridge">
 <head>
 <script src="/app-session.js?v=20261107-fixes-1"></script>
 <meta charset="UTF-8">
@@ -1442,6 +1442,8 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 <link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261109-3">
 <link rel="stylesheet" href="/assets/cambridge-studio/games.css?v=20261109-1">
 <link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261109-3">
+<link rel="stylesheet" href="/assets/study-appearance/appearance.css?v=1">
+<script defer src="/assets/study-appearance/appearance.js?v=1"></script>
 <script src="/assets/cambridge-studio/games.js?v=20261109-1"></script>
 </head>
 <body class="english-studio">
@@ -1902,6 +1904,10 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
         </div>
       </div>
     </div>
+    <section class="study-look-setting" aria-labelledby="studyLookSetting">
+      <div><h3 id="studyLookSetting">Apariencia</h3><p data-study-look-label>Estilo original</p></div>
+      <button class="study-look-open" type="button" data-study-appearance-open aria-haspopup="dialog" hidden>Cambiar estilo</button>
+    </section>
     <div class="notice" id="accessKeyHelp">
       Tu cuenta activa la IA automaticamente al entrar. Usa la clave manual solo si trabajas sin sesion web.
     </div>

@@ -56,7 +56,7 @@ async def protect_ads(request, call_next):
         limit = 7_100_000
     elif path.startswith("/api/profesor/editor-drafts/"):
         limit = 1_100_000
-    bounded = protected or path in {"/api/state", "/api/chat", "/api/ocr", "/api/transcribe"} or path.startswith(("/auth/", "/api/profesor/", "/api/app-notifications/"))
+    bounded = protected or path in {"/api/state", "/api/study-appearance", "/api/chat", "/api/ocr", "/api/transcribe"} or path.startswith(("/auth/", "/api/profesor/", "/api/app-notifications/"))
     if bounded and request.method in {"POST", "PUT", "PATCH"}:
         body = bytearray()
         async for chunk in request.stream():

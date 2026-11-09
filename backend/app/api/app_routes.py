@@ -180,9 +180,12 @@ def request_app_key(request: Request) -> str:
 
 def app_state_data(row: ClientState, app_key: str) -> dict:
     data = row.data or {}
-    if app_key == "diplomator":
-        return data.get("__apps", {}).get("diplomator", data) if isinstance(data, dict) else {}
-    return data.get("__apps", {}).get(app_key, {}) if isinstance(data, dict) else {}
+    if not isinstance(data, dict):
+        return {}
+    apps = data.get("__apps")
+    if isinstance(apps, dict):
+        return apps.get(app_key, {})
+    return data if app_key == "diplomator" else {}
 
 
 def eso_state_etag(data: dict) -> str:
@@ -754,6 +757,19 @@ def lighthouse_asset(filename: str):
         raise HTTPException(404, "Recurso no encontrado.")
     path = STATIC_DIR / "assets" / "lighthouse" / filename
     if not path.is_file():
+        raise HTTPException(404, "Recurso no encontrado.")
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
+
+
+@router.get("/assets/study-appearance/{filename}")
+def study_appearance_asset(filename: str):
+    media_type = {
+        "appearance.css": "text/css", "appearance.js": "text/javascript",
+        "english-club-v1.webp": "image/webp", "english-library-v1.webp": "image/webp",
+        "eso-courtyard-v1.webp": "image/webp", "eso-observatory-v1.webp": "image/webp",
+    }.get(filename)
+    path = STATIC_DIR / "assets" / "study-appearance" / filename
+    if not media_type or not path.is_file():
         raise HTTPException(404, "Recurso no encontrado.")
     return FileResponse(path, media_type=media_type, headers={"Cache-Control": "public, max-age=86400"})
 
@@ -1903,6 +1919,37 @@ async def upload_drive_document(
     db.add(Document(organization_id=user.organization_id, user_id=user.id, filename=filename, storage_path=drive_ref))
     db.commit()
     return {"ok": True, "file_id": data.get("id"), "webViewLink": data.get("webViewLink")}
+
+
+STUDY_APPEARANCES = {"cambridge": ("original", "london", "library"), "eso_adultos": ("original", "courtyard", "observatory")}
+
+
+def study_appearance_app(request: Request) -> str:
+    app_key = request_app_key(request)
+    if app_key not in STUDY_APPEARANCES:
+        raise HTTPException(404, "Apariencia no disponible para esta aplicación.")
+    return app_key
+
+
+@router.get("/api/study-appearance")
+def get_study_appearance(request: Request, user: User = Depends(current_user), _license: License = Depends(current_license), db: Session = Depends(get_db)):
+    app_key = study_appearance_app(request)
+    look_column = ClientState.data["__apps"][f"{app_key}_appearance"]["look"].as_string()
+    look = db.scalar(select(look_column).where(ClientState.organization_id == user.organization_id, ClientState.user_id == user.id))
+    return {"look": look if look in STUDY_APPEARANCES[app_key] else "original"}
+
+
+@router.post("/api/study-appearance")
+def save_study_appearance(payload: dict, request: Request, user: User = Depends(current_user), _license: License = Depends(current_license), db: Session = Depends(get_db)):
+    app_key = study_appearance_app(request)
+    look = payload.get("look")
+    if look not in STUDY_APPEARANCES[app_key]:
+        raise HTTPException(422, "Elige un estilo disponible para esta aplicación.")
+    # Keep appearance outside the academic payload and its revision.
+    row = state_row(db, user, for_update=True)
+    set_app_state_data(row, f"{app_key}_appearance", {"look": look})
+    db.commit()
+    return {"look": look}
 
 
 @router.get("/api/state")
