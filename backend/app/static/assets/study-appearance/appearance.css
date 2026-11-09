@@ -1,25 +1,25 @@
 /* Theme tokens also paint the miniatures in the appearance picker. */
 :is(html[data-study-look="london"], [data-look-preview="london"]) {
   --study-room: url('./english-club-v1.webp');
-  --study-wash: #e5f6f280;
+  --study-wash: #e1f3ee89;
   --study-ink: #123d42;
   --study-muted: #3b605f;
   --study-edge: #a0c6bd;
-  --study-card: #f5fcf9;
-  --study-soft: #deefe8;
+  --study-card: #f4fbf8;
+  --study-soft: #e0f0e9;
   --study-accent: #17635d;
-  --study-nav: #eaf7f2;
-  --study-nav-ink: #164942;
-  --study-nav-tab: #d8ece4;
-  --study-nav-active: #17635d;
-  --study-nav-active-ink: #fff;
+  --study-nav: #143f43;
+  --study-nav-ink: #ecfaf4;
+  --study-nav-tab: #205258;
+  --study-nav-active: #cce9de;
+  --study-nav-active-ink: #153e42;
   --study-radius: 22px;
   --study-button-radius: 14px;
   --study-shadow: 0 8px 24px #143d4030;
 }
 :is(html[data-study-look="library"], [data-look-preview="library"]) {
   --study-room: url('./english-library-v1.webp');
-  --study-wash: #f7e9d4a8;
+  --study-wash: #f2e0c9a8;
   --study-ink: #41292a;
   --study-muted: #604a44;
   --study-edge: #c6a674;
@@ -33,7 +33,7 @@
   --study-nav-active-ink: #4e2b32;
   --study-radius: 10px;
   --study-button-radius: 7px;
-  --study-shadow: 0 4px 0 #89613544, 0 10px 24px #30213a2b;
+  --study-shadow: 0 3px 0 #89613555, 0 10px 24px #30213a2b;
   --study-heading: Georgia, serif;
 }
 :is(html[data-study-look="courtyard"], [data-look-preview="courtyard"]) {
@@ -99,7 +99,8 @@ html[data-study-look] :is(.english-studio .workspace-header .nav-pill, .desktop-
   color: var(--study-nav-ink);
   border-radius: var(--study-button-radius);
 }
-html[data-study-look] :is(.english-studio .workspace-header .nav-pill, .desktop-refresh header .screen-nav button):is(.active, :hover:not(:disabled)),
+html[data-study-look] .english-studio .workspace-header .nav-pill.active,
+html[data-study-look] .desktop-refresh header .screen-nav button:is(.active, :hover:not(:disabled)),
 html[data-study-look] .english-studio .workspace-brand.active {
   background: var(--study-nav-active);
   color: var(--study-nav-active-ink);
@@ -107,7 +108,7 @@ html[data-study-look] .english-studio .workspace-brand.active {
 
 /* Only the surrounding workspace takes the theme. Game scenes and answer states keep their own palette. */
 html[data-study-look] .english-studio :is(
-  .quick-session, .quick-mode, .quick-draft, .quick-skill-grid button, .b2-card, .b2-filters, .b2-panel,
+  .quick-session, .quick-mode, .quick-draft, .b2-card, .b2-filters, .b2-panel,
   .practice-option, .profile-card, .writing-panel, .recite-panel, .listening-panel, .topic-card, .topic-detail-panel,
   .english-progress-card, .english-journey-catalog, .english-journey-stop article
 ),
@@ -141,24 +142,49 @@ html[data-study-look] .english-studio #sessionEmpty .cambridge-duration-options 
   color: var(--study-accent);
 }
 html[data-study-look] .desktop-refresh :is(.primary:not(.complete), .eso-game-card .game-card-actions button:first-child, .eso-games-filters button.active),
-html[data-study-look] .english-studio :is(.btn:not(.btn-outline):not(.btn-danger):not(.btn-accept), .english-start, .b2-card > button) {
+html[data-study-look] .english-studio :is(.btn:not(.btn-outline):not(.btn-danger):not(.btn-accept), .english-start, .b2-card:not(.lesson-row) > button) {
   background: var(--study-accent);
   border-color: var(--study-accent);
   border-radius: var(--study-button-radius);
   color: #fff;
 }
-html[data-study-look] :is(.english-studio .workspace-page-head h2, .english-studio .practice-picker h2, .english-studio .b2-card h3,
-  .english-studio .english-journey-toolbar h3, .desktop-refresh .subjects-heading h2, .desktop-refresh .today-session h2,
+html[data-study-look] :is(.english-studio .workspace-page-head h2, .english-studio .b2-card h3,
+  .desktop-refresh .subjects-heading h2, .desktop-refresh .today-session h2,
   .desktop-refresh .next-heading, .desktop-refresh .eso-game-subject-head h3, .study-look-setting h3) {
   color: var(--study-ink);
   font-family: var(--study-heading, inherit);
 }
-html[data-study-look] :is(.practice-picker > p, .practice-copy small, .study-look-setting p, .desktop-refresh .shortcut-description,
+html[data-study-look] :is(.practice-copy small, .study-look-setting p, .desktop-refresh .shortcut-description,
   .desktop-refresh .subjects-heading p, .desktop-refresh .next-lede) { color: var(--study-muted); }
 html[data-study-look] :is(.english-studio .workspace-link, .desktop-refresh .next-link) { color: var(--study-accent); }
 html[data-study-look] .english-studio .practice-option:hover { border-color: var(--study-accent); }
 html[data-study-look] .english-studio .english-journey-stop.is-next article { border-color: var(--journey-line); }
 html[data-study-look] .english-studio .english-journey-stop.is-done article { border-color: #78a993; }
+
+/* English styles use different geometry and typography as well as scenery. */
+html[data-study-look="london"] .english-studio :is(.library-toolbar, #topicsgrid-all .topic-item, .english-teacher-panel) { border-radius: 20px; }
+html[data-study-look="london"] .english-studio .quick-session { background: linear-gradient(115deg, #f6fcfa, #dceee8); }
+html[data-study-look="london"] .english-studio .english-teacher-head { background: #143f43; color: #ecfaf4; }
+html[data-study-look="library"] .english-studio :is(.quick-session, .library-toolbar, #topicsgrid-all .topic-item, .practice-option, .lesson-row, .english-teacher-panel) {
+  border-radius: 10px;
+  background: linear-gradient(130deg, #fffaf0, #fbefd9);
+  box-shadow: inset 0 0 0 2px #fffaf0, inset 0 0 0 3px #ead3a9, var(--study-shadow);
+}
+html[data-study-look="library"] .english-studio :is(.quick-session h1, .practice-copy strong, .library-topic-name strong, .lesson-copy strong, .english-teacher-head h2, .english-journey-banner h2, .writing-panel-title) {
+  font-family: var(--study-heading);
+  letter-spacing: -.015em;
+}
+html[data-study-look="library"] .english-studio :is(.english-game-switch, .practice-icon, .lesson-index, #topicsgrid-all .topic-icon, .library-toolbar :is(input,select)) { border-radius: 6px; }
+html[data-study-look="library"] .english-studio .english-teacher-head { background: #532b3b; color: #fff1d9; }
+html[data-study-app="cambridge"][data-study-look] .english-teacher-head p { color: var(--study-nav-ink); }
+@media (hover: hover) {
+  html[data-study-app="cambridge"][data-study-look] .english-studio .workspace-header .nav-pill:not(.active):hover { color: var(--study-nav-ink); }
+}
+html[data-study-app="cambridge"][data-study-look] :is(#headerExamLevel, #profileHeaderBtn) {
+  border-color: var(--study-edge);
+  background: var(--study-soft);
+  color: var(--study-ink);
+}
 
 /* Account control and shared chooser. */
 .study-look-setting {

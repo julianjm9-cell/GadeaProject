@@ -1180,49 +1180,6 @@
     font-size:14px;
     font-weight:650;
   }
-  .global-teacher {
-    position:fixed;
-    right:18px;
-    bottom:18px;
-    z-index:40;
-    width:70px;
-    height:70px;
-    border:1px solid #c9d8ec;
-    border-radius:24px;
-    background:linear-gradient(145deg,#ffffff,#eaf3ff);
-    color:#fff;
-    box-shadow:0 16px 40px rgba(18,58,115,.18);
-    display:grid;
-    place-items:center;
-    cursor:pointer;
-    overflow:hidden;
-  }
-  .global-teacher strong {
-    font-size:16px;
-    line-height:1;
-  }
-  .global-teacher img {
-    width:100%;
-    height:100%;
-    display:block;
-    object-fit:contain;
-    object-position:center top;
-    transform:scale(1.08);
-  }
-  .global-teacher span {
-    position:absolute;
-    right:-6px;
-    top:-6px;
-    width:20px;
-    height:20px;
-    display:grid;
-    place-items:center;
-    border-radius:999px;
-    background:#2563eb;
-    color:#fff;
-    font-weight:900;
-    font-size:12px;
-  }
   #tab-temas,
   #tab-sesion,
   #tab-recitar,
@@ -1266,7 +1223,6 @@
     .cambridge-duration-options {
       grid-template-columns:1fr;
     }
-    .global-teacher { right:18px; bottom:18px; }
     .writing-ocr-row,
     .writing-ocr-row .btn:nth-of-type(1),
     .writing-ocr-row .btn:nth-of-type(2),
@@ -1365,22 +1321,9 @@
   @media(max-width:600px) { .main-actions { grid-template-columns:repeat(6,minmax(0,1fr)); gap:3px; } .main-actions .nav-pill:nth-child(-n+3) { grid-column:span 2; } .main-actions .nav-pill:nth-child(n+4) { grid-column:span 3; } .nav-pill { padding:8px 4px; font-size:.73rem; } #sessionEmpty { padding-top:8px; } .english-topic-chips { grid-template-columns:repeat(2,minmax(0,1fr)); } .english-progress-overview-main { grid-template-columns:1fr; } .english-progress-overview-main > .english-icon { display:none; } .english-progress-level { grid-column:auto; } .english-progress-action { flex-wrap:wrap; } .english-progress-action button { width:100%; } .official-english-links { grid-template-columns:1fr; } }
   @media(max-width:800px) { .english-route-progress-cards, .english-practice-progress { grid-template-columns:1fr; } .english-error-list { grid-template-columns:1fr; } }
   #sessionActive > .chat-panel.compact,
-  #tab-recitar .recite-layout > .chat-panel,
-  #tab-temas .topics-side { display:none !important; }
+  #tab-recitar .recite-layout > .chat-panel { display:none !important; }
   #tab-recitar .recite-layout { grid-template-columns:minmax(0,1fr); max-width:1000px; }
   #sessionActive[style*="block"] { grid-template-columns:minmax(0,1fr); }
-  .global-teacher { width:174px; height:60px; display:flex; justify-content:flex-start; gap:8px; padding:7px 10px; border-radius:12px; background:#1258d6; color:#fff; overflow:visible; }
-  .global-teacher img { width:44px; height:44px; flex:0 0 44px; border-radius:8px; background:#eaf2ff; transform:none; }
-  .global-teacher span { position:static; width:auto; height:auto; display:block; border-radius:0; background:none; color:inherit; font-size:13px; font-weight:800; white-space:nowrap; }
-  .global-teacher:focus-visible { outline:3px solid #93c5fd; outline-offset:3px; }
-  .english-teacher-panel { position:fixed; right:18px; bottom:88px; z-index:41; width:min(390px,calc(100vw - 24px)); max-height:calc(100vh - 108px); display:grid; grid-template-rows:auto minmax(130px,1fr) auto; overflow:hidden; border:1px solid #c9d8ec; border-radius:12px; background:#fff; box-shadow:0 22px 55px rgba(18,58,115,.2); }
-  .english-teacher-panel[hidden] { display:none; }
-  .english-teacher-head { min-height:52px; display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#1258d6; color:#fff; }
-  .english-teacher-head button { width:30px; height:30px; border:0; border-radius:6px; background:rgba(255,255,255,.16); color:#fff; font-size:22px; cursor:pointer; }
-  .english-teacher-log { min-height:150px; max-height:min(350px,calc(100vh - 255px)); overflow:auto; padding:14px; font-size:13px; line-height:1.5; }
-  .english-teacher-log .chat-msg { margin-bottom:12px; }
-  .english-teacher-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:end; padding:12px; border-top:1px solid var(--border); }
-  .english-teacher-row textarea { min-width:0; min-height:54px; resize:vertical; }
   .english-resume { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; padding:12px 16px; border:1px solid var(--border); border-radius:8px; background:#fff; text-align:left; }
   .english-resume[hidden] { display:none; }
   .english-resume strong, .english-resume small { display:block; }
@@ -1389,7 +1332,7 @@
   #sessionEmpty, #sessionEmpty .english-session, #sessionEmpty .english-grid { width:100%; max-width:none; margin-inline:0; min-width:0; }
   @media(max-width:1500px) { #sessionEmpty .english-session { grid-template-columns:minmax(0,1fr); } #sessionEmpty .english-start { width:100%; min-width:0; } }
   .english-icon { font-family:'Segoe UI Emoji','Segoe UI Symbol',sans-serif; font-size:25px; }
-  @media(max-width:600px) { .global-teacher { right:12px; bottom:12px; } .english-teacher-panel { right:12px; bottom:80px; } .english-resume { flex-wrap:wrap; } .english-resume button { width:100%; } }
+  @media(max-width:600px) { .english-resume { flex-wrap:wrap; } .english-resume button { width:100%; } }
 </style>
 <style>
 .b2-intro{padding:28px 32px;margin:18px 0 22px;border-radius:24px;background:linear-gradient(120deg,#10396f,#246cc3);color:white}
@@ -1439,10 +1382,10 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 @media(max-width:620px){.b2-grid{grid-template-columns:1fr}.b2-intro,.b2-panel{padding:19px}.b2-board{min-height:240px;padding:12px}.b2-scene-page{padding:15px}.b2-filters input{min-width:0}.b2-filters label{flex:1 1 145px}.writing-report-scores,.writing-compare{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1">
-<link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261109-3">
+<link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261109-4">
 <link rel="stylesheet" href="/assets/cambridge-studio/games.css?v=20261109-1">
-<link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261109-3">
-<link rel="stylesheet" href="/assets/study-appearance/appearance.css?v=1">
+<link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261109-4">
+<link rel="stylesheet" href="/assets/study-appearance/appearance.css?v=2">
 <script defer src="/assets/study-appearance/appearance.js?v=1"></script>
 <script src="/assets/cambridge-studio/games.js?v=20261109-1"></script>
 </head>
@@ -1465,6 +1408,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
     <button class="nav-pill" data-tab-btn="b2" onclick="showTab('b2')" aria-label="Modo temario">Temario</button>
     <button class="nav-pill" data-tab-btn="juegos" onclick="showTab('juegos')" aria-label="Modo juegos">Juegos</button>
     <button class="nav-pill" data-tab-btn="entrenar" onclick="showTab('entrenar')">Práctica</button>
+    <button class="nav-pill" data-tab-btn="temas" onclick="showTab('temas')">Biblioteca</button>
   </nav>
   <div class="header-right">
     <select id="headerExamLevel" aria-label="Nivel de inglés" onchange="setExamLevel(this.value)"><option value="B2 First">B2 First</option><option value="C1 Advanced">C1 Advanced</option><option value="C2 Proficiency">C2 Proficiency</option></select>
@@ -1472,11 +1416,13 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
     <button class="profile-mini" id="profileHeaderBtn" data-tab-btn="perfil" onclick="showTab('perfil')" title="Perfil" aria-label="Perfil">P</button>
   </div>
 </header>
-<button class="global-teacher" type="button" onclick="toggleEnglishTeacher()" title="Profesor IA" aria-label="Abrir Profesor IA" aria-expanded="false" aria-controls="englishTeacherPanel"><img src="assets/brand/teacher-ai.png" alt=""><span>Profesor IA</span></button>
-<aside class="english-teacher-panel" id="englishTeacherPanel" aria-label="Profesor IA" hidden>
-  <div class="english-teacher-head"><strong>Profesor IA</strong><button type="button" onclick="toggleEnglishTeacher()" aria-label="Cerrar Profesor IA">&times;</button></div>
+<button class="global-teacher" type="button" onclick="toggleEnglishTeacher()" title="Profesor IA" aria-label="Abrir Profesor IA" aria-expanded="false" aria-controls="englishTeacherPanel"><span class="english-teacher-avatar" aria-hidden="true"><img src="/assets/brand/teacher-ai.png" alt="" width="36" height="36"></span><span class="english-teacher-label">Profesor IA</span></button>
+<aside class="english-teacher-panel" id="englishTeacherPanel" aria-labelledby="englishTeacherTitle" onkeydown="if(event.key==='Escape'){event.stopPropagation();toggleEnglishTeacher()}" hidden>
+  <div class="english-teacher-head"><img src="/assets/brand/teacher-ai.png" width="40" height="40" alt=""><div><h2 id="englishTeacherTitle">Profesor IA</h2><p id="englishTeacherContext"></p></div><button id="englishTeacherClose" type="button" onclick="toggleEnglishTeacher()" aria-label="Cerrar Profesor IA">&times;</button></div>
+  <div class="english-teacher-intro" id="englishTeacherIntro"><p>¿En qué te ayudo con tu inglés?</p><div class="english-teacher-prompts"><button type="button" onclick="draftEnglishTeacher('¿Puedes revisar una frase que he escrito?')">Revisar una frase</button><button type="button" onclick="draftEnglishTeacher('Dame una consigna breve de Speaking para mi nivel.')">Practicar Speaking</button><button type="button" onclick="draftEnglishTeacher('¿Qué puedo practicar hoy en 15 minutos?')">Preparar una sesión</button></div></div>
   <div class="english-teacher-log" id="englishTeacherLog" role="log" aria-live="polite"></div>
-  <div class="english-teacher-row"><textarea id="englishTeacherInput" aria-label="Pregunta al Profesor IA" placeholder="Pregunta sobre tu estudio o un tema..."></textarea><button class="btn btn-blue" type="button" onclick="askEnglishTeacher()">Enviar</button></div>
+  <div class="english-teacher-status" id="englishTeacherStatus" hidden><p id="englishTeacherStatusText" role="status"></p><button id="englishTeacherRetry" type="button" onclick="askEnglishTeacher(true)" hidden>Reintentar</button></div>
+  <form class="english-teacher-row" onsubmit="event.preventDefault();askEnglishTeacher()"><textarea id="englishTeacherInput" rows="2" aria-label="Pregunta al Profesor IA" placeholder="Escribe tu pregunta…" oninput="updateEnglishTeacherSend()" onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();this.form.requestSubmit()}"></textarea><button id="englishTeacherSend" type="submit" aria-label="Enviar mensaje" title="Enviar mensaje" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></form>
 </aside>
 
 <main>
@@ -1485,10 +1431,9 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   <!-- TAB: SESIÓN -->
   <div id="tab-sesion" class="tab active">
     <div id="sessionEmpty" class="session-empty">
-      <h1 class="workspace-title" tabindex="-1">¿Qué quieres practicar hoy?</h1>
       <section class="quick-session" aria-labelledby="quickSessionTitle">
         <div class="quick-session-main">
-          <h2 id="quickSessionTitle">Sesión de hoy</h2>
+          <h1 id="quickSessionTitle" data-workspace-title tabindex="-1">Sesión de hoy</h1>
           <div id="englishResume" class="quick-resume" hidden>
             <p id="englishResumeTopic"></p>
             <button type="button" class="btn btn-blue" onclick="resumeEnglishSession()">Reanudar sesión →</button>
@@ -1509,18 +1454,10 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
       </section>
       <div class="quick-resume quick-draft" id="englishWritingResume" hidden><span><strong>Borrador de Writing</strong><small id="englishWritingResumeText"></small></span><button class="btn btn-outline" type="button" onclick="showTab('escrita')">Continuar →</button></div>
       <div class="quick-modes" aria-label="Modos de aprendizaje">
-        <button type="button" class="quick-mode" onclick="showTab('b2')"><img src="/assets/cambridge-studio/academy-card-v2.webp" width="128" height="90" alt=""><span><strong>Modo temario</strong><small id="englishHomeRouteProgress">0/6 lecciones completadas</small></span><span aria-hidden="true">›</span></button>
-        <button type="button" class="quick-mode" onclick="showTab('juegos')"><img src="/assets/cambridge-studio/games-card-v2.webp" width="128" height="90" alt=""><span><strong>Modo juegos</strong><small id="englishHomeGameProgress">0/6 juegos terminados</small></span><span aria-hidden="true">›</span></button>
+        <button type="button" class="quick-mode" onclick="showTab('b2')"><img src="/assets/cambridge-studio/academy-card-v2.webp" width="128" height="90" alt=""><span><strong>Temario</strong><small id="englishHomeRouteProgress">0/6 lecciones completadas</small></span><span aria-hidden="true">›</span></button>
+        <button type="button" class="quick-mode" onclick="showTab('juegos')"><img src="/assets/cambridge-studio/games-card-v2.webp" width="128" height="90" alt=""><span><strong>Juegos</strong><small id="englishHomeGameProgress">0/6 juegos terminados</small></span><span aria-hidden="true">›</span></button>
+        <button type="button" class="quick-mode" onclick="showTab('progreso')"><img src="/assets/cambridge-studio/progress-card-v2.webp" width="128" height="90" alt=""><span><strong>Mi progreso</strong><small>Actividad y resultados</small></span><span aria-hidden="true">›</span></button>
       </div>
-      <section class="quick-skills" aria-labelledby="quickSkillsTitle">
-        <h2 id="quickSkillsTitle">Práctica directa</h2>
-        <div class="quick-skill-grid">
-          <button type="button" onclick="showTab('recitar')">Speaking <span aria-hidden="true">›</span></button>
-          <button type="button" onclick="showTab('escrita')">Writing <span aria-hidden="true">›</span></button>
-          <button type="button" onclick="showTab('examenes')">Listening B2 <span aria-hidden="true">›</span></button>
-        </div>
-      </section>
-      <div class="workspace-links"><button type="button" onclick="showTab('temas')">Biblioteca</button><button type="button" onclick="showTab('progreso')">Mi progreso</button><button type="button" onclick="showTab('historial')">Historial</button></div>
     </div>
     <div id="sessionActive" class="session-active" style="display:none">
       <div class="session-header">
@@ -1585,9 +1522,9 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
     <div class="workspace-page-head"><h2 data-workspace-title tabindex="-1">Mi progreso</h2></div>
     <section class="english-progress-overview" aria-label="Objetivo del mes"><div class="english-progress-overview-main"><span class="english-icon" aria-hidden="true">◎</span><div class="english-progress-copy"><span>Objetivo del mes</span><strong id="englishMonthCount">0 de 12 sesiones</strong><div class="english-progress-meter"><div role="progressbar" id="englishProgressTrack" aria-label="Sesiones guardadas este mes" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="englishProgressBar"></span></div><b id="englishProgressPct">0%</b></div></div><div class="english-progress-level"><span id="englishLevelBadge" class="pending" aria-hidden="true">★</span><div><strong id="englishLevel">Nivel inicial</strong><small id="englishLevelHint">Guarda tu primera sesión.</small></div></div></div><ol class="english-milestones" id="englishMilestones" aria-label="Hitos del mes"></ol></section>
     <div class="english-progress-grid"><section class="english-progress-panel"><h3>Actividad de la semana</h3><div class="english-week" id="englishWeek"></div><div class="english-facts" id="englishFacts"></div></section><section class="english-progress-panel"><h3>Por competencias</h3><div class="english-skills" id="englishSkills"></div></section></div>
-    <section aria-labelledby="englishRouteProgressTitle"><div class="english-route-progress-head"><div><h3 id="englishRouteProgressTitle">Tus rutas de examen</h3><p>Lecciones y juegos completados por nivel.</p></div></div><div class="english-route-progress-cards" id="englishRouteProgressCards"></div><div class="english-route-skill-row" id="englishRouteSkillRow" aria-label="Destrezas de la ruta elegida"></div></section>
-    <section class="english-progress-panel" aria-labelledby="englishPracticeProgressTitle"><h3 id="englishPracticeProgressTitle">Otras prácticas</h3><p>Borradores, revisiones y resultados de Listening B2.</p><div class="english-practice-progress" id="englishPracticeProgress"></div></section>
-    <section class="english-progress-panel" aria-labelledby="englishErrorReviewTitle"><h3 id="englishErrorReviewTitle">Repasa tus errores</h3><p>Tus últimos intentos y la explicación de cada respuesta.</p><div class="english-error-list" id="englishErrorReview"></div></section>
+    <section aria-labelledby="englishRouteProgressTitle"><div class="english-route-progress-head"><h3 id="englishRouteProgressTitle">Rutas de examen</h3></div><div class="english-route-progress-cards" id="englishRouteProgressCards"></div><div class="english-route-skill-row" id="englishRouteSkillRow" aria-label="Destrezas de la ruta elegida"></div></section>
+    <section class="english-progress-panel" aria-labelledby="englishPracticeProgressTitle"><h3 id="englishPracticeProgressTitle">Prácticas</h3><div class="english-practice-progress" id="englishPracticeProgress"></div></section>
+    <section class="english-progress-panel" aria-labelledby="englishErrorReviewTitle"><h3 id="englishErrorReviewTitle">Repasa tus errores</h3><div class="english-error-list" id="englishErrorReview"></div></section>
     <div class="english-progress-action"><span class="english-icon teal" aria-hidden="true">→</span><div><strong>Siguiente paso</strong><small id="englishProgressNext">Elige un tema para practicar.</small></div><button class="btn" type="button" onclick="continueEnglishStudy()">Continuar estudiando →</button></div>
   </div>
 
@@ -1602,7 +1539,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
         </div>
         <div class="recite-topic" id="reciteTopicLabel">Sin tema seleccionado</div>
         <section class="speaking-task" aria-labelledby="speakingTaskTitle">
-          <div class="speaking-task-head"><span>Reto oral guiado</span><span id="speakingTaskLevel">B2 First</span></div>
+          <span id="speakingTaskLevel" class="workspace-sr-only">B2 First</span>
           <label for="speakingTaskSelect">Elige una consigna</label>
           <select id="speakingTaskSelect" onchange="chooseSpeakingTask(this.value)"></select>
           <h2 id="speakingTaskTitle">Tu consigna</h2>
@@ -1641,7 +1578,6 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
           <textarea class="recite-input recite-transcript" id="reciteTranscript" spellcheck="true" oninput="persistRecitePractice();renderReciteFeedbackFreshness()" placeholder="Escribe o pega aquí tu intervención. La transcripción automática se revisa antes de añadirla."></textarea>
         </div>
         <div class="recite-transcribe-box">
-          <div class="recite-transcribe-title">Cuando termines de grabar</div>
           <button class="btn btn-accept" id="transcribeAudioBtn" type="button" onclick="transcribeReciteAudio()">Transcribir audio</button>
           <div class="recite-transcribe-hint">Graba, detén el audio y revisa el texto reconocido antes de añadirlo. Tus notas y tu texto no se sustituyen automáticamente.</div>
         </div>
@@ -1735,14 +1671,13 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
           <div class="writing-count" id="writingWordCount" aria-live="polite">0 palabras</div>
         </div>
         <div class="writing-actions">
-          <button class="btn btn-small btn-outline" type="button" onclick="saveWritingVersion()">Guardar versión</button>
-          <button class="btn btn-small btn-blue" id="writingModelBtn" onclick="generateWritingModel()">Generar modelo</button>
           <button class="btn btn-small btn-accept" id="correctWritingBtn" onclick="correctWritingPractice()">Corregir writing</button>
-          <button class="btn btn-small btn-outline" onclick="clearWritingPractice()">Nuevo borrador</button>
+          <button class="btn btn-small btn-outline" type="button" onclick="saveWritingVersion()">Guardar versión</button>
+          <details class="writing-more"><summary>Más acciones</summary><div><button class="btn btn-small btn-outline" id="writingModelBtn" type="button" onclick="generateWritingModel()">Generar modelo</button><button class="btn btn-small btn-outline" type="button" onclick="clearWritingPractice()">Nuevo borrador</button></div></details>
         </div>
       </div>
       <div class="writing-panel">
-        <div class="section-label">Informe orientativo de práctica</div>
+        <h3 class="writing-panel-title">Corrección</h3>
         <div id="writingStatus" class="db-notice" style="display:none;"></div>
         <div id="writingFeedback" class="writing-report notice">Aquí aparecerá la corrección de tu texto.</div>
         <details class="writing-model" id="writingModelBox" hidden><summary>Ver respuesta modelo</summary><div id="writingModelText"></div></details>
@@ -1753,26 +1688,27 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 
   <div id="tab-entrenar" class="tab">
     <section class="practice-picker" aria-labelledby="practiceTitle">
-      <h2 id="practiceTitle" data-workspace-title tabindex="-1">Práctica</h2>
-      <p>Elige qué quieres entrenar hoy.</p>
+      <h2 class="workspace-sr-only" id="practiceTitle" data-workspace-title tabindex="-1">Práctica</h2>
       <div class="practice-list">
         <button type="button" class="practice-option" onclick="showTab('recitar')" aria-labelledby="practiceSpeaking" aria-describedby="practiceSpeakingHint">
+          <img class="practice-art" src="/assets/cambridge-studio/route-debate-v1.webp" alt="" width="480" height="270">
           <span class="practice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 10.5v1a6.5 6.5 0 0 0 13 0v-1M12 18v3.5M9 21.5h6"/></svg></span>
           <span class="practice-copy"><strong id="practiceSpeaking">Speaking</strong><small id="practiceSpeakingHint">Prepara y graba tu respuesta.</small></span>
           <span class="practice-arrow" aria-hidden="true">→</span>
         </button>
         <button type="button" class="practice-option" onclick="showTab('escrita')" aria-labelledby="practiceWriting" aria-describedby="practiceWritingHint">
+          <img class="practice-art" src="/assets/cambridge-studio/route-editor-v1.webp" alt="" width="480" height="270">
           <span class="practice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 21H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h8m-5 5h4m-4 4h2m-2 4h2m3 0 1-4 6.5-6.5a1.4 1.4 0 0 1 2 2L15 15l-3 2Zm5.5-8.5 2 2"/></svg></span>
           <span class="practice-copy"><strong id="practiceWriting">Writing</strong><small id="practiceWritingHint">Redacta un texto y pide una corrección.</small></span>
           <span class="practice-arrow" aria-hidden="true">→</span>
         </button>
         <button type="button" class="practice-option" onclick="showTab('examenes')" aria-labelledby="practiceListening" aria-describedby="practiceListeningHint">
+          <img class="practice-art" src="/assets/cambridge-studio/audio-card-v2.webp" alt="" width="480" height="270">
           <span class="practice-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v-3a9 9 0 0 1 18 0v3"/><rect x="3" y="12" width="5" height="8" rx="2"/><rect x="16" y="12" width="5" height="8" rx="2"/></svg></span>
           <span class="practice-copy"><strong id="practiceListening">Listening B2</strong><small id="practiceListeningHint">Escucha y practica las cuatro partes del examen.</small></span>
           <span class="practice-arrow" aria-hidden="true">→</span>
         </button>
       </div>
-      <button type="button" class="workspace-link practice-session-link" onclick="showTab('sesion')">Ir a la sesión de hoy →</button>
     </section>
   </div>
   <div id="tab-examenes" class="tab">
@@ -1784,7 +1720,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   </div>
   <div id="tab-b2" class="tab">
     <div id="b2LessonOverview">
-      <div class="workspace-page-head"><h2 data-workspace-title tabindex="-1">Temario</h2><button class="workspace-link" type="button" onclick="showTab('temas')">Biblioteca →</button></div>
+      <h2 class="workspace-sr-only" id="englishSyllabusTitle" data-workspace-title tabindex="-1">Temario</h2>
       <div class="b2-filters" role="group" aria-label="Filtrar lecciones B2">
         <label>Buscar tema <input id="b2Search" type="search" placeholder="Tema o palabra clave" oninput="renderB2Lessons()"></label>
         <details class="b2-filter-options"><summary>Más filtros</summary><div><label>Destreza <select id="b2SkillFilter" onchange="renderB2Lessons()"><option value="all">Todas</option><option value="Use of English">Use of English</option><option value="Reading">Reading</option><option value="Writing">Writing</option><option value="Speaking">Speaking</option></select></label><label>Parte <select id="b2PartFilter" onchange="renderB2Lessons()"><option value="all">Todas</option><option value="1">Parte 1</option><option value="2">Parte 2</option><option value="3">Parte 3</option><option value="4">Parte 4</option><option value="5">Parte 5</option></select></label><label>Estado <select id="b2StatusFilter" onchange="renderB2Lessons()"><option value="all">Todos</option><option value="pending">Por practicar</option><option value="done">Completados</option></select></label></div></details>
@@ -1794,61 +1730,35 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
     <div id="b2LessonDetail"></div>
   </div>
   <div id="tab-juegos" class="tab">
+    <div class="english-game-switch" role="group" aria-label="Vista de juegos">
+      <button type="button" aria-pressed="true" aria-controls="englishJourney" onclick="showEnglishGameCatalog(false)">Recorrido</button>
+      <button type="button" aria-pressed="false" aria-controls="englishGameCatalog" onclick="showEnglishGameCatalog(true)">Catálogo</button>
+    </div>
     <div id="englishJourney"></div>
-    <details class="english-journey-catalog" id="englishGameCatalog">
-      <summary>Elegir cualquier juego</summary>
+    <section class="english-journey-catalog" id="englishGameCatalog" aria-labelledby="englishCatalogTitle" hidden>
+      <h2 class="workspace-sr-only" id="englishCatalogTitle" data-workspace-title tabindex="-1">Catálogo de juegos</h2>
       <div id="b2GameList" class="b2-grid"></div>
-    </details>
+    </section>
     <div id="b2GameBoard"></div>
   </div>
 
   <!-- TAB: TEMAS -->
   <div id="tab-temas" class="tab">
-    <div class="workspace-page-head"><h2 data-workspace-title tabindex="-1">Biblioteca</h2></div>
-    <div class="topics-layout">
-      <div class="topics-main">
-        <div class="topics-search-bar">
-          <input type="text" id="topicSearchInput" placeholder="🔍 Buscar en todos los temas..." oninput="onTopicSearch(this.value)">
-          <span class="topic-count" id="topicCount"></span>
-        </div>
-
-        <!-- Search results (shown when searching) -->
-        <div id="searchResults" style="display:none;">
-          <div class="topics-grid" id="searchGrid"></div>
-        </div>
-
-        <div id="topicsContainer">
-          <div class="topic-filter-row">
-            <label for="topicCategorySelect">Categoría</label>
-            <select id="topicCategorySelect" class="topic-category-select" onchange="setCategoryFromSelect(this.value)"></select>
-          </div>
-
-          <div class="cat-tabs" id="cattabs-all"></div>
-          <div class="topics-grid" id="topicsgrid-all"></div>
-        </div>
-        <details class="official-english-resources">
-          <summary>Recursos oficiales de Cambridge English</summary>
-          <div class="official-english-links">
-            <a href="https://www.cambridgeenglish.org/exams-and-tests/qualifications/first/preparation/" target="_blank" rel="noopener"><strong>B2 First: pruebas de muestra</strong><small>Formato, sample tests, soluciones y materiales oficiales.</small></a>
-            <a href="https://www.cambridgeenglish.org/exams-and-tests/qualifications/advanced/preparation/" target="_blank" rel="noopener"><strong>C1 Advanced: pruebas de muestra</strong><small>Modelos digitales y en papel, claves y criterios.</small></a>
-            <a href="https://www.cambridgeenglish.org/exams-and-tests/qualifications/proficiency/preparation/" target="_blank" rel="noopener"><strong>C2 Proficiency: preparación</strong><small>Formato, handbook y recursos oficiales del nivel.</small></a>
-          </div>
-        </details>
-      </div>
-
-      <aside class="topics-side">
-        <div class="chat-panel">
-          <div class="section-label">Chat rápido sobre temas</div>
-          <div class="chat-log" id="topicPageChatLog">
-            <div class="chat-msg"><strong>Asistente:</strong> Pregúntame por ejemplos, enfoques, fechas o argumentos para cualquier tema.</div>
-          </div>
-          <div class="chat-row">
-            <textarea class="recite-input" id="topicPageChatInput" spellcheck="true" placeholder="Ej: Dame una estructura para Speaking Part 2 sobre educación..."></textarea>
-            <button class="btn btn-small btn-blue" onclick="askTopicPageChat()">Enviar</button>
-          </div>
-        </div>
-      </aside>
+    <h2 class="workspace-sr-only" data-workspace-title tabindex="-1">Biblioteca</h2>
+    <div class="library-toolbar" role="group" aria-label="Filtros de biblioteca">
+      <label class="library-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 4 4" stroke-linecap="round"/></svg><span class="workspace-sr-only">Buscar tema</span><input type="search" id="topicSearchInput" placeholder="Buscar tema…" oninput="renderTopicGrid()"></label>
+      <label class="library-category"><span class="workspace-sr-only">Categoría</span><select id="topicCategorySelect" class="topic-category-select" onchange="renderTopicGrid()"></select></label>
     </div>
+    <p class="library-count" id="topicCount" role="status"></p>
+    <div class="topics-grid" id="topicsgrid-all"></div>
+    <details class="official-english-resources">
+      <summary>Recursos oficiales de Cambridge English</summary>
+      <div class="official-english-links">
+        <a href="https://www.cambridgeenglish.org/exams-and-tests/qualifications/first/preparation/" target="_blank" rel="noopener"><strong>B2 First: pruebas de muestra</strong><small>Formato, sample tests, soluciones y materiales oficiales.</small></a>
+        <a href="https://www.cambridgeenglish.org/exams-and-tests/qualifications/advanced/preparation/" target="_blank" rel="noopener"><strong>C1 Advanced: pruebas de muestra</strong><small>Modelos digitales y en papel, claves y criterios.</small></a>
+        <a href="https://www.cambridgeenglish.org/exams-and-tests/qualifications/proficiency/preparation/" target="_blank" rel="noopener"><strong>C2 Proficiency: preparación</strong><small>Formato, handbook y recursos oficiales del nivel.</small></a>
+      </div>
+    </details>
   </div>
 
   <!-- TAB: HISTORIAL -->
@@ -1869,7 +1779,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 
   <!-- TAB: PERFIL -->
   <div id="tab-perfil" class="tab">
-    <div class="section-label">Perfil</div>
+    <h2 class="workspace-sr-only" data-workspace-title tabindex="-1">Perfil</h2>
     <div class="profile-card">
       <div class="profile-avatar" id="profileAvatar"></div>
       <div>
@@ -1895,8 +1805,8 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
           <button class="btn btn-small btn-outline" onclick="toggleProfileHistory()">Historial</button>
           <button class="btn btn-small btn-outline btn-danger" onclick="logoutWeb()">Cerrar sesión</button>
         <div class="profile-history-panel" id="profileHistoryPanel">
-          <div class="section-label" style="margin-bottom:10px;">Registro de estudio</div>
           <div id="profileHistoryContent"></div>
+          <button class="workspace-link" type="button" onclick="showTab('historial')">Ver historial completo →</button>
         </div>
         </div>
         <div class="utility-links">
@@ -2133,8 +2043,6 @@ const GROQ_TEXT_MODEL = 'openai/gpt-oss-120b';
 const GROQ_TRANSCRIBE_MODEL = 'whisper-large-v3-turbo';
 
 // ── TOPICS UI ──────────────────────────────────────────────────────────
-let currentCat = '';
-let topicSearchVal = '';
 
 function normalizeAppState() {
   if (!state.config) state.config = {};
@@ -2186,9 +2094,8 @@ function normalizeAppState() {
 }
 
 function renderTopicsTab() {
-  renderTopicPanel();
   renderCategorySelect();
-  updateTopicCount();
+  renderTopicGrid();
 }
 
 function getTopicGroups() {
@@ -2223,111 +2130,35 @@ function topicVisual(topic='', cat='') {
   return 'C1';
 }
 
-function renderTopicPanel() {
-  const groups = getTopicGroups();
-  const cats = Object.keys(groups);
-  if (!currentCat || !cats.includes(currentCat)) currentCat = cats[0] || '';
-
-  // Category tabs
-  const ctEl = document.getElementById('cattabs-all');
-  ctEl.innerHTML = '';
-  cats.forEach(cat => {
-    const b = document.createElement('button');
-    b.className = 'cat-tab-btn' + (currentCat === cat ? ' active' : '');
-    // Count done in this cat
-    const topics = groups[cat];
-    const doneCount = topics.filter(t => state.completedTopics.includes(t)).length;
-    b.innerHTML = `<span class="cat-tab-icon">${escHtml(topicVisual('', cat))}</span>${escHtml(cat)} (${doneCount}/${topics.length})`;
-    b.onclick = () => setCatTab(cat);
-    ctEl.appendChild(b);
-  });
-
-  renderTopicGrid();
-}
-
-function setCatTab(cat) {
-  currentCat = cat;
-  document.querySelectorAll('#cattabs-all .cat-tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('#cattabs-all .cat-tab-btn').forEach(b => {
-    if (b.textContent.includes(`${cat} (`)) b.classList.add('active');
-  });
-  renderCategorySelect();
-  renderTopicGrid();
-}
-
 function renderCategorySelect() {
   const select = document.getElementById('topicCategorySelect');
-  if (!select) return;
-  const groups = getTopicGroups();
-  const cats = Object.keys(groups);
-  if (!cats.length) return;
-  if (!currentCat || !cats.includes(currentCat)) currentCat = cats[0];
-  select.innerHTML = cats.map(cat => {
-    const topics = groups[cat] || [];
-    const doneCount = topics.filter(t => state.completedTopics.includes(t)).length;
-    return `<option value="${escAttr(cat)}">${escHtml(cat)} (${doneCount}/${topics.length})</option>`;
-  }).join('');
-  select.value = currentCat;
-}
-
-function setCategoryFromSelect(cat) {
-  setCatTab(cat);
+  const categories = Object.keys(getTopicGroups());
+  const previous = select.value;
+  select.innerHTML = '<option value="all">Todas las categorías</option>' + categories.map(cat =>
+    `<option value="${escAttr(cat)}">${escHtml(cat)}</option>`).join('');
+  select.value = previous === 'all' || categories.includes(previous) ? previous : categories[0] || 'all';
 }
 
 function renderTopicGrid() {
-  const groups = getTopicGroups();
-  const cat = currentCat || Object.keys(groups)[0] || '';
-  const topics = groups[cat] || [];
+  const category = document.getElementById('topicCategorySelect').value;
+  const query = document.getElementById('topicSearchInput').value.trim().toLocaleLowerCase();
+  const topics = category === 'all' ? getAllTopics() : (getTopicGroups()[category] || []).map(topic => ({topic,cat:category}));
+  const results = topics.filter(({topic}) => !query || topic.toLocaleLowerCase().includes(query));
+  const completed = new Set(state.completedTopics);
+  const doneCount = results.filter(({topic}) => completed.has(topic)).length;
+  document.getElementById('topicCount').textContent = `${results.length} ${results.length === 1 ? 'tema' : 'temas'} · ${doneCount} completados`;
   const grid = document.getElementById('topicsgrid-all');
-  grid.innerHTML = '';
-  topics.forEach((t, i) => {
-    const done = state.completedTopics.includes(t);
-    const div = document.createElement('div');
-    div.className = 'topic-item' + (done ? ' done' : '');
-    div.title = done ? 'Completado — clic para estudíar de nuevo' : 'Clic para estudíar este tema';
-    div.innerHTML = `<span class="topic-icon">${escHtml(done ? 'OK' : topicVisual(t, cat))}</span><span class="topic-num">${String(i+1).padStart(3,'0')}</span><span>${escHtml(t)}</span>`;
-    div.onclick = () => startSessionWithTopic(t);
-    grid.appendChild(div);
+  const cards = results.map(({topic, cat}) => {
+    const done = completed.has(topic);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'topic-item' + (done ? ' done' : '');
+    button.innerHTML = `<span class="topic-icon" aria-hidden="true">${escHtml(done ? '✓' : topicVisual(topic, cat))}</span><span class="library-topic-name"><strong>${escHtml(topic)}</strong>${category === 'all' ? `<small>${escHtml(cat)}</small>` : ''}</span>${done ? '<span class="workspace-sr-only">Completado</span>' : ''}<span class="library-topic-arrow" aria-hidden="true">→</span>`;
+    button.onclick = () => startSessionWithTopic(topic);
+    return button;
   });
-}
-
-function onTopicSearch(val) {
-  topicSearchVal = val.trim().toLowerCase();
-  const searchEl = document.getElementById('searchResults');
-  const topicsEl = document.getElementById('topicsContainer');
-  if (!topicSearchVal) {
-    searchEl.style.display = 'none';
-    topicsEl.style.display = '';
-    updateTopicCount();
-    return;
-  }
-  searchEl.style.display = '';
-  topicsEl.style.display = 'none';
-
-  const all = getAllTopics();
-  const results = all.filter(({ topic }) => topic.toLowerCase().includes(topicSearchVal));
-  const grid = document.getElementById('searchGrid');
-  grid.innerHTML = '';
-  results.forEach(({ topic, cat }, index) => {
-    const done = state.completedTopics.includes(topic);
-    const div = document.createElement('div');
-    div.className = 'topic-item' + (done ? ' done' : '');
-    div.innerHTML = `
-      <span class="topic-icon">${escHtml(done ? 'OK' : topicVisual(topic, cat))}</span>
-      <span class="topic-num">${String(index + 1).padStart(3,'0')}</span>
-      <span style="flex:1">${escHtml(topic)}</span>
-      <span style="font-size:0.55rem;color:#aaa;flex-shrink:0;">${escHtml(cat)}</span>`;
-    div.onclick = () => startSessionWithTopic(topic);
-    grid.appendChild(div);
-  });
-
-  document.getElementById('topicCount').textContent = `${results.length} resultados`;
-}
-
-function updateTopicCount() {
-  const all = getAllTopics();
-  const done = state.completedTopics.length;
-  document.getElementById('topicCount').textContent = `${done} completados / ${all.length} temas`;
+  grid.replaceChildren(...cards);
+  if (!cards.length) grid.innerHTML = '<p class="b2-empty">No hay temas para esta búsqueda. Prueba otra palabra o categoría.</p>';
 }
 
 // ── LANGUAGE ────────────────────────────────────────────────────────────
@@ -2346,7 +2177,7 @@ function setExamLevel(level) {
   if (!state.writingPractice?.answer?.trim() && !state.writingPractice?.prompt?.trim()) state.writingPractice = {...(state.writingPractice || {}), level};
   const headerLevel = document.getElementById('headerExamLevel');
   if (headerLevel) headerLevel.value = level;
-  currentCat = '';
+  document.getElementById('topicCategorySelect').value = '';
   const writingLevel = document.getElementById('writingLevel');
   if (writingLevel) writingLevel.value = state.writingPractice?.level || level;
   const badge = document.getElementById('sessionLangBadge');
@@ -2365,6 +2196,7 @@ function setExamLevel(level) {
   if (document.getElementById('tab-recitar')?.classList.contains('active')) renderRecitePractice();
   if (document.getElementById('tab-examenes')?.classList.contains('active')) renderListeningTab();
   if (document.getElementById('tab-progreso')?.classList.contains('active')) renderEnglishDashboard();
+  updateEnglishTeacherContext();
   persist();
 }
 
@@ -2956,8 +2788,8 @@ function openEnglishTopicGroup(group) {
   showTab('temas', document.querySelector('[data-tab-btn="temas"]'));
   const search = document.getElementById('topicSearchInput');
   if (search) search.value = '';
-  onTopicSearch('');
-  if (category) setCatTab(category);
+  if (category) document.getElementById('topicCategorySelect').value = category;
+  renderTopicGrid();
 }
 
 function englishRouteProgressSummary(level) {
@@ -3098,7 +2930,7 @@ function renderEnglishDashboard() {
 
 // ── TABS ────────────────────────────────────────────────────────────────
 function selectEnglishNavigation(name) {
-  const parent = {temas:'b2', recitar:'entrenar', escrita:'entrenar', examenes:'entrenar', config:'perfil'}[name] || name;
+  const parent = {recitar:'entrenar', escrita:'entrenar', examenes:'entrenar', config:'perfil', historial:'perfil'}[name] || name;
   document.querySelectorAll('.workspace-header [data-tab-btn]').forEach(button => {
     const active = button.dataset.tabBtn === parent;
     button.classList.toggle('active', active);
@@ -3118,10 +2950,7 @@ function showTab(name) {
     document.getElementById('sessionEmpty').style.display = 'block';
     renderEnglishHomeSession();
   }
-  if (name === 'temas') {
-    renderTopicsTab();
-    ensureTopicPageChatToggle();
-  }
+  if (name === 'temas') renderTopicsTab();
   if (name === 'b2') renderB2Lessons();
   if (name === 'juegos') renderB2Games();
   if (name === 'examenes') renderListeningTab();
@@ -3131,7 +2960,8 @@ function showTab(name) {
   if (name === 'escrita') renderWritingPractice();
   if (name === 'progreso') renderEnglishDashboard();
   window.scrollTo({top:0,behavior:'auto'});
-  tab.querySelector('[data-workspace-title]:not([hidden]), .workspace-title')?.focus({preventScroll:true});
+  [...tab.querySelectorAll('[data-workspace-title]')].find(title => !title.closest('[hidden]'))?.focus({preventScroll:true});
+  updateEnglishTeacherContext();
 }
 
 function renderEnglishHomeSession() {
@@ -3162,43 +2992,83 @@ function resumeEnglishSession() {
 }
 
 let englishTeacherBusy = false;
+let englishTeacherFailure = '';
+let englishTeacherRequest = null;
+function englishTeacherContext() {
+  const active = document.querySelector('.tab.active')?.id;
+  const labels = {'tab-sesion':'Sesión de hoy','tab-b2':'Temario','tab-juegos':'Juegos','tab-entrenar':'Práctica','tab-recitar':'Speaking','tab-escrita':'Writing','tab-examenes':'Listening B2','tab-temas':'Biblioteca','tab-progreso':'Mi progreso'};
+  const section = labels[active] || 'Inglés';
+  const topic = active === 'tab-recitar' ? document.getElementById('reciteTopicInput').value :
+    active === 'tab-sesion' ? state.currentSession?.topic : '';
+  return {section,topic};
+}
+function updateEnglishTeacherContext() {
+  document.getElementById('englishTeacherContext').textContent = `${state.examLevel} · ${englishTeacherContext().section}`;
+}
 function toggleEnglishTeacher() {
   const panel = document.getElementById('englishTeacherPanel');
   panel.hidden = !panel.hidden;
   const trigger = document.querySelector('.global-teacher');
   trigger.setAttribute('aria-expanded', String(!panel.hidden));
-  trigger.setAttribute('aria-label', panel.hidden ? 'Abrir Profesor IA' : 'Cerrar Profesor IA');
+  trigger.hidden = !panel.hidden;
   if (!panel.hidden) {
     renderEnglishTeacher();
-    document.getElementById('englishTeacherInput').focus();
-  }
+    document.getElementById('englishTeacherClose').focus({preventScroll:true});
+  } else trigger.focus({preventScroll:true});
+}
+function updateEnglishTeacherSend() {
+  document.getElementById('englishTeacherSend').disabled = englishTeacherBusy || !document.getElementById('englishTeacherInput').value.trim();
+}
+function draftEnglishTeacher(question) {
+  const input = document.getElementById('englishTeacherInput');
+  if (!input.value.trim()) input.value = question;
+  updateEnglishTeacherSend();
+  input.focus();
 }
 
 function renderEnglishTeacher() {
   const log = document.getElementById('englishTeacherLog');
-  if (!log) return;
   const messages = state.topicChats?.profesor || [];
-  log.innerHTML = `<div class="chat-msg"><strong>Profesor:</strong> Pregúntame sobre un tema, speaking, writing o tu sesión.</div>${messages.map(msg => `<div class="chat-msg"><strong>${msg.role === 'user' ? 'Tú' : 'Profesor'}:</strong> ${escHtml(msg.text).replace(/\n/g,'<br>')}</div>`).join('')}${englishTeacherBusy ? '<div class="chat-msg"><strong>Profesor:</strong> Pensando...</div>' : ''}`;
+  document.getElementById('englishTeacherIntro').hidden = Boolean(messages.length);
+  log.hidden = !messages.length;
+  log.innerHTML = messages.map(msg => `<div class="english-teacher-message ${msg.role === 'user' ? 'is-user' : 'is-tutor'}"><span class="workspace-sr-only">${msg.role === 'user' ? 'Tú: ' : 'Profesor IA: '}</span>${escHtml(msg.text)}</div>`).join('');
+  const status = document.getElementById('englishTeacherStatus');
+  status.hidden = !englishTeacherBusy && !englishTeacherFailure;
+  status.classList.toggle('is-error', Boolean(englishTeacherFailure));
+  document.getElementById('englishTeacherStatusText').textContent = englishTeacherBusy ? 'Preparando la respuesta…' : englishTeacherFailure;
+  document.getElementById('englishTeacherRetry').hidden = !englishTeacherFailure || !englishTeacherRequest;
+  updateEnglishTeacherContext();
+  updateEnglishTeacherSend();
   log.scrollTop = log.scrollHeight;
 }
 
-async function askEnglishTeacher() {
+async function askEnglishTeacher(retry = false) {
   if (englishTeacherBusy) return;
   const input = document.getElementById('englishTeacherInput');
-  const question = input.value.trim();
-  if (!question) return;
-  input.value = '';
-  state.topicChats.profesor.push({role:'user', text:question});
+  if (retry) {
+    if (!englishTeacherFailure || !englishTeacherRequest) return;
+  } else {
+    const question = input.value.trim();
+    if (!question) return;
+    input.value = '';
+    state.topicChats.profesor.push({role:'user', text:question});
+    const {section,topic} = englishTeacherContext();
+    const context = `Sección: ${section}.${topic ? ` Tema: ${topic}.` : ''}`;
+    const recent = state.topicChats.profesor.slice(-8).map(msg => ({role:msg.role, content:msg.text}));
+    englishTeacherRequest = [{role:'system', content:`You are a helpful Cambridge English tutor for a Spanish-speaking adult preparing ${state.examLevel}. Explain in Spanish when useful, but give English examples and corrections in English. Follow this official exam blueprint: ${EXAM_BLUEPRINTS[state.examLevel]}. Be concise and specific. Write in short plain-text paragraphs. ${context}`}, ...recent];
+  }
   englishTeacherBusy = true;
+  englishTeacherFailure = '';
   renderEnglishTeacher();
-  const active = document.querySelector('.tab.active')?.id || 'tab-sesion';
-  const context = `Sección: ${active}. Tema actual: ${state.currentSession?.topic || 'sin tema seleccionado'}.`;
-  const recent = state.topicChats.profesor.slice(-8).map(msg => ({role:msg.role, content:msg.text}));
+  input.focus({preventScroll:true});
   try {
-    const answer = await groqChat([{role:'system', content:`You are a helpful Cambridge English tutor for a Spanish-speaking adult preparing ${state.examLevel}. Explain in Spanish when useful, but give English examples and corrections in English. Follow this official exam blueprint: ${EXAM_BLUEPRINTS[state.examLevel]}. Be concise and specific. ${context}`}, ...recent], {max_tokens:1000, temperature:0.3});
+    const answer = await groqChat(englishTeacherRequest, {max_tokens:1000, temperature:0.3});
+    if (!answer.trim()) throw Object.assign(new Error('No llegó una respuesta. Puedes volver a intentarlo.'), {status:502});
     state.topicChats.profesor.push({role:'assistant', text:answer});
+    englishTeacherRequest = null;
   } catch (error) {
-    state.topicChats.profesor.push({role:'assistant', text:error.message || 'No se pudo responder. Inténtalo de nuevo.'});
+    englishTeacherFailure = error.message || 'No se pudo responder. Puedes volver a intentarlo.';
+    if (!canRetryCambridgeAi(error)) englishTeacherRequest = null;
   } finally {
     englishTeacherBusy = false;
     renderEnglishTeacher();
@@ -3625,24 +3495,6 @@ function ensureSessionChatToggle() {
 
 function toggleSessionChat() {
   const panel = document.querySelector('#sessionActive > .chat-panel.compact');
-  if (!panel) return;
-  panel.classList.toggle('collapsed');
-}
-
-function ensureTopicPageChatToggle() {
-  const panel = document.querySelector('#tab-temas .topics-side .chat-panel');
-  if (!panel || panel.querySelector('.session-chat-toggle')) return;
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'session-chat-toggle';
-  btn.textContent = 'Chat de temas';
-  btn.onclick = toggleTopicPageChat;
-  panel.prepend(btn);
-  panel.classList.add('collapsed');
-}
-
-function toggleTopicPageChat() {
-  const panel = document.querySelector('#tab-temas .topics-side .chat-panel');
   if (!panel) return;
   panel.classList.toggle('collapsed');
 }
@@ -5291,7 +5143,6 @@ function renderChat(logId, key, fallbackText) {
 function renderAllChats() {
   renderChat('sessionChatLog', 'session', 'Pregúntame dudas concretas sobre el tema de hoy.');
   renderChat('topicChatLog', 'recite', 'Pregúntame dudas concretas sobre el tema seleccionado.');
-  renderChat('topicPageChatLog', 'temas', 'Pregúntame por ejemplos, enfoques, fechas o argumentos para cualquier tema.');
 }
 
 async function askTopicChatFrom(inputId, logId, chatKey, topic) {
@@ -5331,11 +5182,6 @@ async function askTopicChat() {
 async function askSessionChat() {
   const topic = session.topic || document.getElementById('sessionTopicLabel')?.textContent || 'tema de hoy';
   await askTopicChatFrom('sessionChatInput', 'sessionChatLog', 'session', topic);
-}
-
-async function askTopicPageChat() {
-  const topic = document.getElementById('topicSearchInput')?.value.trim() || session.topic || 'temas de la base';
-  await askTopicChatFrom('topicPageChatInput', 'topicPageChatLog', 'temas', topic);
 }
 
 function buildEntryTxt(entry) {
@@ -6079,7 +5925,7 @@ function updateEnglishRouteLabels() {
   const level = state.examLevel;
   const filters = document.querySelector('#tab-b2 .b2-filters');
   if (filters) filters.setAttribute('aria-label',`Filtrar lecciones ${level.slice(0,2)}`);
-  const heading = document.querySelector('#tab-b2 .workspace-page-head h2');
+  const heading = document.getElementById('englishSyllabusTitle');
   if (heading) heading.textContent = 'Temario ' + level.slice(0,2);
 }
 function renderB2Lessons() {
@@ -6090,13 +5936,15 @@ function renderB2Lessons() {
   const skill = document.getElementById('b2SkillFilter')?.value || 'all';
   const part = document.getElementById('b2PartFilter')?.value || 'all';
   const status = document.getElementById('b2StatusFilter')?.value || 'all';
-  const selected = englishRouteLessons().filter(lesson =>
+  const lessons = englishRouteLessons();
+  const selected = lessons.filter(lesson =>
     (!query || `${lesson.title} ${lesson.idea}`.toLocaleLowerCase().includes(query)) &&
     (skill === 'all' || lesson.skill === skill) && (part === 'all' || lesson.part === part) &&
     (status === 'all' || (status === 'done') === Boolean(state.b2Progress?.[lesson.id]?.completed)));
   list.innerHTML = selected.length ? selected.map(lesson => {
     const done = state.b2Progress?.[lesson.id]?.completed;
-    return `<article class="b2-card lesson-row"><div><small>${escHtml(lesson.skill)} · parte ${lesson.part}</small><h3>${escHtml(lesson.title)}</h3></div><span class="b2-card-status">${done ? '✓ Completado' : 'Por practicar'}</span><button type="button" data-lesson-id="${lesson.id}" onclick="openB2Lesson('${lesson.id}')">${done ? 'Revisar' : 'Abrir'} →</button></article>`;
+    const position = lessons.indexOf(lesson) + 1;
+    return `<article class="b2-card lesson-row"><button type="button" data-lesson-id="${lesson.id}" onclick="openB2Lesson('${lesson.id}')"><span class="lesson-index" aria-hidden="true">${String(position).padStart(2,'0')}</span><span class="lesson-copy"><small>${escHtml(lesson.skill)} · parte ${lesson.part}</small><strong>${escHtml(lesson.title)}</strong>${done ? '<small class="lesson-done">✓ Completada</small>' : ''}</span><span class="lesson-arrow" aria-hidden="true">→</span></button></article>`;
   }).join('') : '<p class="b2-empty">No hay lecciones para estos filtros.</p>';
 }
 function openB2Lesson(id) {
@@ -6170,7 +6018,7 @@ function renderEnglishJourney() {
   const journey = document.getElementById('englishJourney');
   journey.dataset.level = state.examLevel.slice(0,2);
   journey.innerHTML = `<header class="english-journey-banner">
-    <div class="english-journey-intro"><span class="english-journey-level">${escHtml(state.examLevel)}</span>
+    <div class="english-journey-intro">
       <h2 data-workspace-title tabindex="-1">Mapa de misiones</h2>
       <p>${upcoming ? 'Próxima parada · ' + escHtml(upcoming.lesson.title) : '¡Recorrido completado! Puedes repetir tus misiones.'}</p>
       ${upcoming ? `<button class="english-journey-start" type="button" onclick="openB2Game('${upcoming.game.id}',true)">${action} →</button>` : ''}
@@ -6180,7 +6028,6 @@ function renderEnglishJourney() {
       <progress max="${stops.length}" value="${total}" aria-label="Paradas completadas"></progress>
     </div>
   </header>
-  <div class="english-journey-toolbar"><h3>Tu recorrido</h3><button type="button" onclick="showEnglishGameCatalog()">Ver catálogo de juegos ↓</button></div>
   <ol class="english-journey-path" aria-label="Recorrido de los temas">${nodes}</ol>`;
 }
 function renderB2Games() {
@@ -6200,11 +6047,14 @@ function renderB2Games() {
     </article>`;
   }).join('');
 }
-function showEnglishGameCatalog() {
+function showEnglishGameCatalog(showCatalog) {
   const catalog = document.getElementById('englishGameCatalog');
-  catalog.open = true;
-  catalog.querySelector('summary').focus({preventScroll:true});
-  catalog.scrollIntoView({block:'start'});
+  document.getElementById('englishJourney').hidden = showCatalog;
+  catalog.hidden = !showCatalog;
+  const visiblePanel = showCatalog ? catalog.id : 'englishJourney';
+  document.querySelectorAll('.english-game-switch button').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.getAttribute('aria-controls') === visiblePanel));
+  });
 }
 function openB2Game(id, fromJourney = false) {
   const game = englishRouteGames().find(item => item.id === id);
@@ -6311,8 +6161,12 @@ function closeEnglishGame(showCatalog = false) {
   document.getElementById('tab-juegos').classList.remove('english-playing');
   document.getElementById('b2GameBoard').innerHTML='';
   renderB2Games();
-  if (showCatalog) return showEnglishGameCatalog();
-  document.getElementById('englishGameCatalog').open = false;
+  showEnglishGameCatalog(showCatalog);
+  if (showCatalog) {
+    const switchButton = document.querySelector('[aria-controls="englishGameCatalog"]');
+    switchButton.focus();
+    return;
+  }
   const target = document.querySelector('.english-journey-stop.is-next button') || document.querySelector('.english-journey-stop button');
   target?.focus({preventScroll:true});
   target?.scrollIntoView({block:'center'});

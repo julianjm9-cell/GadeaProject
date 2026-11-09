@@ -14,7 +14,7 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
   try{
    for(const width of [320,390,768,1440]){
     const page=await browser.newPage({viewport:{width,height:960},hasTouch:width<=768});const errors=[];
-    page.on('pageerror',error=>errors.push(error.message));await fixture(page);
+    page.on('pageerror',error=>errors.push(error.message));await fixture(page,{licenseKey:'CAMB-TRIAL'});
     await page.goto('http://studio.test/cambridge-info');
     assert.match(await page.locator('#googleEntry').getAttribute('href'),/next=%2Fcambridge/);
     assert.equal(await page.locator('.site-header').count(),0);
@@ -83,14 +83,15 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
      await page.screenshot({path:path.join(root,'tmp/ingles-landing-interactiva-'+width+'.png')});
     }
     await page.goto('http://studio.test/cambridge');await page.waitForFunction(()=>cambridgeStateETag!==null);
-    assert.equal(await page.locator('.workspace-header nav button').count(),3);
+    assert.equal(await page.locator('.workspace-header nav button').count(),4);
     assert.equal(await page.locator('.studio-welcome').count(),0);
     for(const img of await page.locator('.quick-mode img').filter({visible:true}).all())await img.evaluate(image=>image.decode());
     assert.equal(await page.getByRole('button',{name:'15 min',exact:true}).getAttribute('aria-pressed'),'true');
     const brand=await page.locator('.brand-area').boundingBox(),account=await page.locator('.header-right').boundingBox();
     assert.ok(brand.x+brand.width<=account.x+2,'header overlap '+width);
     if(name==='Chromium'&&[390,1440].includes(width))await page.screenshot({path:path.join(root,'tmp/ingles-inicio-simple-'+width+'.png')});
-    await page.locator('.quick-skills').getByRole('button',{name:'Writing'}).click();
+    await page.locator('[data-tab-btn="entrenar"]').click();
+    await page.locator('#tab-entrenar').getByRole('button',{name:'Writing'}).click();
     await page.locator('#writingAnswer').fill('My writing stays here when I explore the new interface.');
     await page.locator('[data-tab-btn="sesion"]').click();
     await page.locator('#englishWritingResume').getByRole('button',{name:'Continuar →'}).click();
@@ -123,9 +124,9 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
     }
     if(name==='Chromium'&&[390,1440].includes(width))await page.screenshot({path:path.join(root,'tmp/ingles-practica-'+width+'.png')});
     for(const tab of ['temas','entrenar','examenes','progreso','perfil','sesion']){
-     if(['temas','progreso'].includes(tab)){
+     if(tab==='progreso'){
       await page.locator('[data-tab-btn="sesion"]').click();
-      await page.locator('#sessionEmpty .workspace-links').getByRole('button',{name:tab==='temas'?'Biblioteca':'Mi progreso'}).click();
+      await page.locator('#sessionEmpty').getByRole('button',{name:/Mi progreso/}).click();
      }else if(tab==='examenes'){
       await page.locator('[data-tab-btn="entrenar"]').click();
       await page.locator('#tab-entrenar').getByRole('button',{name:/Listening B2/}).click();
@@ -137,6 +138,41 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
      assert.ok(layout.overflow<=2,'app '+tab+' overflow '+width+' '+JSON.stringify(layout));
     }
     if(width===390){
+     const libraryNav=page.getByRole('navigation',{name:'Navegación de Inglés'}).getByRole('button',{name:'Biblioteca'});
+     await libraryNav.click();
+     assert.equal(await libraryNav.getAttribute('aria-current'),'page');
+     const library=page.locator('#tab-temas'),topics=library.locator('.topic-item');
+     assert.equal(await library.getByRole('combobox',{name:'Categoría'}).count(),1);
+     assert.equal(await library.locator('.cat-tab-btn').count(),0);
+     const firstTopic=await topics.first().locator('strong').innerText();
+     await library.getByRole('searchbox',{name:'Buscar tema'}).fill(firstTopic);
+     assert.equal(await topics.count(),1);
+     await library.getByRole('searchbox',{name:'Buscar tema'}).fill('no existe 123');
+     await library.getByText('No hay temas para esta búsqueda.',{exact:false}).waitFor();
+     await library.getByRole('searchbox',{name:'Buscar tema'}).clear();
+     let chatCalls=0;
+     await page.route('**/api/chat',route=>{
+      chatCalls++;
+      const messages=route.request().postDataJSON().messages;
+      assert.match(messages[0].content,/Biblioteca/);
+      assert.equal(messages.filter(message=>message.role==='user').length,1);
+      return chatCalls===1 ? route.fulfill({status:503,json:{detail:'Servicio ocupado'}}) : route.fulfill({json:{content:'Describe a place that inspires you.'}});
+     });
+     const chatTrigger=page.getByRole('button',{name:'Abrir Profesor IA'});
+     await chatTrigger.click();
+     const tutor=page.locator('#englishTeacherPanel'),input=tutor.getByRole('textbox',{name:'Pregunta al Profesor IA'});
+     await tutor.getByRole('button',{name:'Practicar Speaking'}).click();
+     assert.match(await input.inputValue(),/consigna breve/);
+     assert.equal(chatCalls,0);
+     await input.press('Enter');
+     await tutor.getByRole('button',{name:'Reintentar'}).click();
+     await tutor.getByText('Describe a place that inspires you.').waitFor();
+     assert.equal(await tutor.locator('.english-teacher-message.is-user').count(),1);
+     assert.equal(chatCalls,2);
+     assert.ok(await tutor.evaluate(node=>node.scrollWidth<=node.clientWidth+2));
+     await tutor.getByRole('button',{name:'Cerrar Profesor IA'}).press('Escape');
+     assert.equal(await tutor.isVisible(),false);
+     assert.equal(await chatTrigger.evaluate(node=>node===document.activeElement),true);
      await page.locator('#headerExamLevel').selectOption('B2 First');await page.locator('[data-tab-btn="sesion"]').click();
      await page.getByRole('button',{name:'Empezar sesión →'}).click();
      assert.equal(await page.evaluate(()=>state.currentSession.duration),15);
@@ -221,8 +257,10 @@ test('study and game modes share topics, unlock the next stop and restore each l
   await page.getByRole('button',{name:'Continuar recorrido →'}).waitFor();
   await page.locator('.english-journey-art img').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));
   await page.screenshot({path:path.join(root,'tmp/ingles-mapa-ilustrado-1440.png')});
-  await page.getByRole('button',{name:'Ver catálogo de juegos ↓'}).click();
-  assert.equal(await page.locator('#englishGameCatalog summary').evaluate(summary=>summary===document.activeElement),true);
+  const catalog=page.getByRole('button',{name:'Catálogo',exact:true});
+  await catalog.click();
+  assert.equal(await catalog.getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('#englishJourney').isVisible(),false);
   await page.locator('.english-catalog-art img').last().evaluate(image=>image.decode());
   assert.equal(await page.locator('#b2GameList .b2-card button').last().isVisible(),true);
  }finally{await browser.close();}

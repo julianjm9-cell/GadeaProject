@@ -1,5 +1,28 @@
 /* Illustrated mission map. The DOM follows the route in play order. */
-.english-studio #tab-juegos.english-playing :is(#englishJourney, #englishGameCatalog) { display: none; }
+.english-studio #tab-juegos.english-playing :is(#englishJourney, #englishGameCatalog, .english-game-switch) { display: none; }
+.english-game-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  width: min(280px, 100%);
+  margin: 0 auto 12px;
+  padding: 4px;
+  border: 1px solid var(--ui-edge);
+  border-radius: 12px;
+  background: var(--ui-card);
+  box-shadow: var(--ui-shadow);
+}
+.english-game-switch button {
+  min-height: 40px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+}
+.english-game-switch button[aria-pressed="true"] { border-color: var(--ui-edge); background: var(--ui-soft); color: var(--ui-accent); }
 #englishJourney {
   --journey-accent: #174fb5;
   --journey-soft: #eaf2ff;
@@ -28,7 +51,7 @@
   align-items: end;
   justify-content: space-between;
   gap: 14px;
-  min-height: 190px;
+  min-height: 172px;
   padding: clamp(17px, 2.7vw, 31px);
   border: 1px solid #173955;
   border-radius: 20px;
@@ -37,24 +60,13 @@
     var(--journey-scene) var(--journey-position, center 49%) / cover, #122f49;
   box-shadow: 0 9px 25px #143c651c;
 }
-.english-journey-level {
-  display: inline-flex;
-  padding: 3px 8px;
-  border: 1px solid #bfd6f978;
-  border-radius: 7px;
-  color: #e5f1ff;
-  background: #0d2649cb;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .045em;
-}
 .english-journey-banner h2 {
   margin: 6px 0 4px;
   color: #fff;
   font-size: clamp(24px, 3.5vw, 41px);
 }
 .english-journey-banner p { margin: 0; color: #e4edfb; font-size: 14px; font-weight: 650; }
-.english-journey-start, .english-journey-toolbar button, .english-journey-stop button {
+.english-journey-start, .english-journey-stop button {
   min-height: 42px;
   padding: 7px 11px;
   border: 1px solid transparent;
@@ -80,24 +92,13 @@
 .english-journey-meter strong { font-size: 22px; line-height: 1.1; }
 .english-journey-meter span { font-size: 11px; color: #e1eefe; }
 .english-journey-meter progress { width: 100%; height: 9px; accent-color: #71dfbe; }
-.english-journey-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 13px 0 7px;
-}
-.english-journey-toolbar h3 { margin: 0; color: #193c63; font-size: 20px; }
-.english-journey-toolbar button { background: #fff; color: var(--journey-accent); border-color: #d5e2f3; }
-.english-journey-toolbar button:hover { background: var(--journey-soft); }
 .english-journey-path {
   --route-column-gap: 24px;
   --route-row-gap: 24px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--route-row-gap) var(--route-column-gap);
-  margin: 0 0 14px;
+  margin: 12px 0 14px;
   padding: 14px;
   border: 1px solid #d8e5f4;
   border-radius: 17px;
@@ -191,8 +192,6 @@
   background: #fff;
   scroll-margin-top: 14px;
 }
-.english-journey-catalog summary { min-height: 28px; cursor: pointer; color: #21437a; font-weight: 800; }
-.english-journey-catalog[open] summary { margin-bottom: 13px; }
 .english-catalog-art { height: 125px; overflow: hidden; margin: -19px -19px 12px; background: #dae8fa; }
 @media (hover: hover) {
   .english-journey-stop:not(.is-locked) article:hover {
@@ -241,6 +240,4 @@
   .english-journey-start { margin-top: 7px; }
   .english-journey-meter { width: min(220px, 100%); padding: 6px 8px; }
   .english-journey-meter strong { font-size: 19px; }
-  .english-journey-toolbar h3 { font-size: 17px; }
-  .english-journey-toolbar button { font-size: 11px; padding-inline: 8px; }
 }
