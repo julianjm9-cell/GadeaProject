@@ -23,6 +23,97 @@ for (const [name, engine, viewport] of [
   ['Chromium escritorio', chromium, { width: 1440, height: 950 }],
   ['WebKit móvil', webkit, { width: 390, height: 844 }],
 ]) {
+  test(`Operación y uso de Codex en ${name}`, { timeout: 35_000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
+    const server = await listen(t, directory, { codex: {
+      status: async () => ({ ready: true, message: 'Sesión local activa' }),
+      usage: async () => ({ windows: [{ usedPercent: 22, durationMinutes: 300, resetsAt: 1900000000 }],
+        limitsFresh: true, accountTokens: 1234, tokensFresh: true }),
+    } });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    t.after(() => browser.close());
+    const page = await browser.newPage({ viewport });
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    const base = 'http://127.0.0.1:' + server.address().port;
+    const revision = '1'.repeat(40);
+    const previous = '2'.repeat(40);
+    const pull = { number: 9, title: 'Un cambio para revisar', branch: 'codex/example', base: 'main', head: revision, open: true,
+      mergeable: true, url: 'https://github.com/educame/test/pull/9', checks: { rows: [{ name: 'Pruebas', conclusion: 'success' }], ready: true },
+      files: [{ name: 'app.js', additions: 1, deletions: 0, patch: '+nuevo' }] };
+    const target = 'educame-vps';
+    let job, deploymentCount = 0, paused = false, signed = false;
+    const account = { id: 'fixture', full_name: 'Docente de ensayo', email: 'docente@example.invalid', role: 'user',
+      is_active: true, organization_name: 'Ensayo', accesses: [] };
+    await page.route('**/api/operacion/**', route => {
+      const path = new URL(route.request().url()).pathname.replace('/api/operacion/', '');
+      let json;
+      if (path === 'github') json = { connected: true, repository: 'educame/test', branches: [] };
+      if (path === 'github/lista') json = [pull];
+      if (path === 'github/detalle') json = pull;
+      if (path === 'hostinger/estado') json = { target, job, history: job ? [job] : [] };
+      if (path === 'hostinger/preparar') json = { id: 'fixture', revision, before: previous, target, ciChecked: true };
+      if (path === 'hostinger/desplegar') {
+        const request = route.request().postDataJSON();
+        if (request.confirm !== '1111111') return route.fulfill({ status: 400, json: { error: 'Código incorrecto.' } });
+        assert.equal(request.revision, revision);
+        deploymentCount++;
+        job = { revision, state: 'completed', startedAt: new Date().toISOString(), logs: ['[5/5] Comprobado'] };
+        json = job;
+      }
+      if (path === 'admin') json = signed ? { connected: true, accounts: [account], organizations: [], apps: { CAMBRIDGE: { paused } } } : { connected: false };
+      if (path === 'admin/login') { signed = true; json = { connected: true }; }
+      if (path === 'admin/logout') { signed = false; json = { connected: false }; }
+      if (path === 'admin/pause') { paused = route.request().postDataJSON().paused; json = { paused }; }
+      assert.ok(json, path);
+      return route.fulfill({ json });
+    });
+    await page.route('**/api/cambios/sincronizar', route => route.fulfill({ json: {} }));
+    await page.route('**/api/cambios?*', route => route.fulfill({ json: { upstream: revision, commits: [] } }));
+    await page.goto(base + '/#control');
+    await page.getByRole('link', { name: 'Codex · 78 % disponible' }).waitFor();
+    await page.getByRole('button', { name: '#9 · Un cambio para revisar' }).click();
+    await page.getByText('app.js', { exact: false }).click();
+    await page.getByText('+nuevo', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Fusionar en main' }).click();
+    await page.getByRole('dialog', { name: 'Fusionar en GitHub' }).waitFor();
+    await page.getByRole('button', { name: 'Cancelar' }).click();
+
+    await page.getByRole('button', { name: 'Hostinger', exact: true }).click();
+    await page.getByText('Conexión configurada · educame-vps').waitFor();
+    await page.getByRole('button', { name: 'Preparar despliegue' }).click();
+    const confirm = page.getByRole('dialog', { name: 'Desplegar en Hostinger' });
+    await confirm.getByRole('textbox').fill('incorrecto');
+    await confirm.getByRole('button', { name: 'Desplegar', exact: true }).click();
+    await confirm.getByText('Código incorrecto.').waitFor();
+    assert.equal(deploymentCount, 0);
+    await confirm.getByRole('textbox').fill('1111111');
+    await confirm.getByRole('button', { name: 'Desplegar', exact: true }).click();
+    await page.getByText('[5/5] Comprobado', { exact: true }).waitFor();
+    assert.equal(deploymentCount, 1);
+
+    await page.getByRole('button', { name: 'Cuentas y apps' }).click();
+    await page.getByLabel('Correo del administrador').fill('admin@example.invalid');
+    await page.getByLabel('Contraseña', { exact: true }).fill('fixture-password');
+    await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+    await page.getByRole('button', { name: 'Docente de ensayo' }).click();
+    await page.getByRole('heading', { name: 'Licencias' }).waitFor();
+    await page.getByRole('button', { name: 'Pausar', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Pausar Inglés' }).getByRole('button', { name: 'Pausar', exact: true }).click();
+    await page.getByRole('button', { name: 'Reactivar', exact: true }).waitFor();
+    assert.equal(paused, true);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
+    await page.getByLabel('Correo del administrador').waitFor();
+    assert.equal(await page.getByText('Docente de ensayo').count(), 0);
+
+    await page.getByRole('link', { name: 'Codex · 78 % disponible' }).click();
+    await page.getByRole('heading', { name: 'Uso de Codex' }).waitFor();
+    await page.getByText('Total informado por Codex').waitFor();
+    await page.getByText('Encargos de Educame').waitFor();
+    assert.deepEqual(errors, []);
+  });
+
   test(`Cambios y vistas locales en ${name}`, { timeout: 45_000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
     const server = await listen(t, directory, { codex: { status: async () => ({ ready: false }) } });

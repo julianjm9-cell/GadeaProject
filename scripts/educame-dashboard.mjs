@@ -13,6 +13,10 @@ import { openPanelStore } from './educame-dashboard/store.mjs';
 import { createRunner, RunnerError } from './educame-dashboard/runner.mjs';
 import { createImplementation, ImplementationError } from './educame-dashboard/implementation.mjs';
 import { researchRole } from './educame-dashboard/research.mjs';
+import { OperationError } from './educame-dashboard/operations.mjs';
+import { githubOperations } from './educame-dashboard/github-operations.mjs';
+import { hostingerOperations } from './educame-dashboard/hostinger-operations.mjs';
+import { adminOperations } from './educame-dashboard/admin-operations.mjs';
 
 const assets = new Map([
   ['/', ['index.html', 'text/html']],
@@ -21,6 +25,9 @@ const assets = new Map([
   ['/workspace.js', ['workspace.js', 'text/javascript']],
   ['/workspace.css', ['workspace.css', 'text/css']],
   ['/changes.js', ['changes.js', 'text/javascript']],
+  ['/operations.js', ['operations.js', 'text/javascript']],
+  ['/admin-panel.js', ['admin-panel.js', 'text/javascript']],
+  ['/operations.css', ['operations.css', 'text/css']],
   ['/icons.js', ['icons.js', 'text/javascript']],
   ['/icons.svg', ['icons.svg', 'image/svg+xml']],
   ['/theory.js', ['theory.js', 'text/javascript']],
@@ -173,6 +180,7 @@ export async function createDashboard({
   codex = createCodex(),
   repositoryRoot = fileURLToPath(new URL('../', import.meta.url)),
   implementationOptions,
+  ssh,
 } = {}) {
   await mkdir(directory, { recursive: true });
   const connections = await createConnections(directory, fetchImpl);
@@ -180,6 +188,9 @@ export async function createDashboard({
   const previews = createPreviews(repositoryRoot);
   const activeApiKey = () => connections.openaiKey() || apiKey;
   const store = openPanelStore(directory, { memory: [], revision: 0, tasks: [], links: initialLinks, reviews: {}, pushes: {} });
+  const github = githubOperations(changes, connections, store, fetchImpl);
+  const hostinger = hostingerOperations(store, changes, github, ssh);
+  const admin = adminOperations(fetchImpl);
   const implementation = createImplementation(repositoryRoot, directory, codex, implementationOptions);
   const implementationPreviews = new Map();
   const runner = createRunner(store, directory, {
@@ -246,6 +257,39 @@ export async function createDashboard({
       const origin = `http://${host}`;
       const url = new URL(request.url, origin);
       const path = url.pathname;
+      if (path.startsWith('/api/operacion/')) {
+        const route = path.slice('/api/operacion/'.length);
+        if (request.method === 'GET') {
+          const reads = {
+            'github': github.status, 'github/lista': github.list,
+            'github/detalle': () => github.detail(url.searchParams.get('numero')),
+            'hostinger': hostinger.status, 'hostinger/estado': hostinger.readRemote,
+            'admin': () => admin.handle('state', request.headers.cookie, {}, response),
+          };
+          if (Object.hasOwn(reads, route)) return json(200, await reads[route]());
+        }
+        if (request.method === 'POST') {
+          if (request.headers.origin !== origin || request.headers['content-type']?.split(';')[0] !== 'application/json') {
+            throw new OperationError(403, 'Realiza la operación desde el Centro de mando local.');
+          }
+          const payload = await bodyJson(request);
+          if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new OperationError(400, 'Formulario no válido.');
+          const writes = {
+            'github/conectar': () => github.connect(payload.token), 'github/desconectar': github.disconnect,
+            'github/crear': () => github.create(payload.branch), 'github/fusionar': () => github.merge(payload),
+            'hostinger/conectar': () => hostinger.connect(payload.target),
+            'hostinger/preparar': () => hostinger.prepare(payload.revision), 'hostinger/desplegar': () => hostinger.start(payload),
+          };
+          if (Object.hasOwn(writes, route)) return json(200, await writes[route]());
+          const action = route.match(/^admin\/(login|logout|pause|create-account|account|license)$/)?.[1];
+          if (action) {
+            const result = await admin.handle(action, request.headers.cookie, payload, response);
+            if (action === 'pause') availabilityExpiry = 0;
+            return json(200, result);
+          }
+        }
+        throw new OperationError(404, 'Operación no disponible.');
+      }
       const implementedPreview = path.match(/^\/vista-encargo\/([a-z0-9][a-z0-9-]{0,63})$/);
       if (request.method === 'GET' && implementedPreview) {
         const id = implementedPreview[1];
@@ -302,6 +346,12 @@ export async function createDashboard({
           model, apiReady: Boolean(activeApiKey()), concurrency, maxTasks, fixture, projectProfiles, memoryTopics });
       }
       if (request.method === 'GET' && path === '/api/codex') return json(200, await codex.status(url.searchParams.has('actualizar')));
+      if (request.method === 'GET' && path === '/api/codex/uso') {
+        const [account, history] = await Promise.all([codex.usage?.(url.searchParams.has('actualizar')), deliveries()]);
+        const records = history.filter(item => item.model === 'Codex local' && Number.isFinite(item.usage?.total_tokens));
+        return json(200, { ...account, local: { records: records.length,
+          tokens: records.reduce((sum, item) => sum + item.usage.total_tokens, 0) } });
+      }
       if (request.method === 'GET' && path === '/api/apps/estado') return json(200, await publicAppStatus());
       if (request.method === 'PUT' && path === '/api/panel') {
         const { revision, tasks, links } = await bodyJson(request);
@@ -367,14 +417,15 @@ export async function createDashboard({
       throw new PanelError(404, 'Página no encontrada.');
     } catch (error) {
       if (!(error instanceof PanelError || error instanceof ConnectionError || error instanceof ChangesError ||
-            error instanceof RunnerError || error instanceof ImplementationError)) console.error('Error del panel:', error.code || error.name);
+            error instanceof RunnerError || error instanceof ImplementationError ||
+            error instanceof OperationError)) console.error('Error del panel:', error.code || error.name);
       json(error.status || 500, { error: error.status ? error.message : 'No se pudo completar la operación local.' });
     }
   });
   server.on('close', () => {
     previews.close();
     for (const view of implementationPreviews.values()) view.close();
-    Promise.resolve(runner.wait()).finally(store.close).catch(() => {});
+    Promise.allSettled([runner.wait(), hostinger.wait()]).finally(store.close).catch(() => {});
   });
   return server;
 }

@@ -46,7 +46,7 @@ Educame reúne herramientas para profesores particulares y para personas que pre
 
 En paralelo, Juegos y Marketing pueden avanzar con entradas independientes. Si Marketing va a mostrar un juego nuevo, su versión revisada es una entrada del guion. Cuando dos cambios tocan la misma pantalla o el mismo formato de datos, acuerda el alcance antes de integrar.
 
-En el Centro de mando, los cinco roles de implementación trabajan en copias Git aisladas. Registra los archivos y las pruebas ejecutadas. La aprobación corresponde al commit revisado y la subida crea una rama de trabajo. Hostinger se actualiza después de integrar los cambios en `main`. Copiador entrega análisis para revisión. Adapta los patrones al público y a las reglas de la app, separando lo observado de la propuesta. Conserva la fuente para poder comprobarlo.
+En el Centro de mando, los cinco roles de implementación trabajan en copias Git aisladas. Registra los archivos y las pruebas ejecutadas. La aprobación corresponde al commit revisado y la subida crea una rama de trabajo. La fusión en GitHub y el despliegue en Hostinger tienen confirmaciones separadas, cada una vinculada a un commit. Si la revisión cambia entre la confirmación y la ejecución, el panel debe pedir que se revise de nuevo. Copiador entrega análisis para revisión. Adapta los patrones al público y a las reglas de la app, separando lo observado de la propuesta. Conserva la fuente para poder comprobarlo.
 
 ## Cómo incorporar lo aprendido
 

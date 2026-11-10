@@ -10,6 +10,37 @@ Ejecuta el siguiente comando desde la raíz del proyecto y abre [Educame en tu n
 node scripts/educame-dashboard.mjs
 ```
 
+En Windows, crea **Centro de mando Educame** en el escritorio con
+`powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File scripts/educame-dashboard/install-shortcut.ps1`.
+El acceso directo inicia el panel si hace falta y abre Agentes. Los registros de arranque están en `.educame-agents/`.
+
+**Uso de Codex** muestra el porcentaje disponible y la fecha de renovación de
+cada ventana que devuelve la sesión de Codex CLI. Se actualiza cada minuto
+mientras el panel está visible y también bajo demanda. El total informado por
+Codex y los tokens registrados en los encargos de Educame son cifras separadas.
+Si una consulta falla, el último dato disponible aparece con su fecha.
+
+### Operación
+
+1. En **GitHub**, conecta un token de acceso limitado al repositorio de Educame
+   con **Checks** de lectura, **Contents** de lectura y escritura y **Pull
+   requests** de lectura y escritura. Abre una solicitud desde una entrega ya
+   subida o selecciona una existente. Revisa los archivos, espera a que se
+   completen las pruebas y confirma el código corto para fusionar ese commit.
+2. En **Hostinger**, introduce un alias de OpenSSH de Windows o
+   `usuario@servidor`. El VPS debe reconocer la clave del equipo y OpenSSH debe
+   tener verificada la identidad del servidor. **Probar conexión** consulta la
+   instalación. **Preparar despliegue** muestra la revisión actual y la revisión
+   elegida de `main`. Tras confirmar, el VPS ejecuta
+   [el procedimiento de actualización](../infra/HOSTINGER_UPDATE.md) y conserva
+   el estado del intento aunque cierres el panel. Puedes seguir usando
+   **Cambios → Generar comando** para la consola de Hostinger.
+3. En **Cuentas y apps**, entra con tu cuenta de superadministración de Educame.
+   Busca una cuenta para editar sus datos y licencias, o abre la disponibilidad
+   de las aplicaciones para pausar o reactivar una. La sesión local caduca a los
+   30 minutos como máximo y el panel usa los mismos permisos y registros de
+   auditoría que la administración online.
+
 - **Agentes.** Selecciona la app, los agentes y el resultado que buscas. **Implementar con Codex** usa la sesión local de Codex CLI para editar una copia Git aislada. Con Juegos puedes crear, mejorar o combinar ambas acciones en un pack de hasta diez juegos. **Preparar borrador** usa Codex en modo de lectura u OpenAI API. **Simular** prueba el flujo sin hacer llamadas. Para un lote con instrucciones distintas por agente, edita cada encargo en **Cola de trabajo**.
 - **Memoria.** Consulta la ficha de cada app con público, estética, funcionalidades, prioridades, reglas, errores a evitar y comprobaciones. Añade criterios sobre didáctica, accesibilidad, marketing, operación u otras categorías de la ficha. Un agente puede sugerir un aprendizaje. Para incorporarlo, pulsa **Usar propuesta del agente**, ajusta el texto y guarda la revisión con la casilla de Memoria marcada. Las notas y propuestas sin confirmar se quedan en su entrega. Edita o archiva criterios desde Memoria.
 - **Entregas.** Abre el resultado, consulta sus archivos y pruebas, y guarda tu decisión. Una implementación completada tiene un commit y una vista local de la app cuando está disponible. Tras aprobarla, **Subir a GitHub** publica esa revisión en su rama `codex/educame-…` y ofrece abrir la comparación para crear una solicitud de cambios. Un borrador de Marketing aprobado se puede llevar al editor de publicaciones.

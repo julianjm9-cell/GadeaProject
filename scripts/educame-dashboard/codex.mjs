@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { draftRequest, parseDraft, parseResearch } from '../educame-agents.mjs';
 import { researchRole } from './research.mjs';
+import { createCodexUsage } from './codex-usage.mjs';
 
 const workspace = fileURLToPath(new URL('../../', import.meta.url));
 const stdoutLimit = 1_000_000;
@@ -125,5 +126,5 @@ ${JSON.stringify(input)}`;
     }
   }
 
-  return { status, generate, implement: (task, cwd, allowed) => generate(task, cwd, allowed) };
+  return { status, usage: createCodexUsage(executable), generate, implement: (task, cwd, allowed) => generate(task, cwd, allowed) };
 }

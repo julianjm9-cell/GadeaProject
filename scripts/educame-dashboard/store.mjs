@@ -60,6 +60,8 @@ export function openPanelStore(directory, defaults) {
   });
   return {
     board, transaction,
+    operation: key => decode(get.get(key)),
+    writeOperation: (key, value) => set.run(key, JSON.stringify(value)),
     writeBoard: value => set.run('board', JSON.stringify(value)),
     latest: () => decode(latestBatch.get()),
     recent: () => recentBatches.all().map(decode),

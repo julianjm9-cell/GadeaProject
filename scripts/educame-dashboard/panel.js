@@ -3,6 +3,7 @@ import { setupChanges } from './changes.js';
 import { mountIcons } from './icons.js';
 import { setupTheory } from './theory.js';
 import { setupMemory } from './memory.js';
+import { setupOperations } from './operations.js';
 
 const agents = {
   mantenimiento: ['Mantenimiento', 'Corrige fallos y comprueba que se resuelven.'],
@@ -28,6 +29,7 @@ let reviewing;
 let poll;
 let workspace;
 let changes;
+let operations;
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -83,8 +85,9 @@ function showPage() {
   });
   window.scrollTo(0, 0);
   if (page === 'cambios') changes?.load();
+  if (page === 'control') operations?.load();
   if (page === 'teoria') theory.openTrack(development);
-  if (page === 'agentes') memory.renderAgentHint();
+  if (page === 'agentes') { memory.renderAgentHint(); operations?.refreshQuota(); }
 }
 
 function taskRow(task, index) {
@@ -518,5 +521,7 @@ const memory = setupMemory({ api, getState: () => state, setBoard: board => { st
 workspace = setupWorkspace({ agents, element, button, api, feedback, formMessage, selectOption, badge, saveBoard, refresh,
   getState: () => state, renderPanel: () => { if (state) render(); } });
 changes = setupChanges({ api, element });
+operations = setupOperations({ api, element, button, feedback });
 showPage();
+operations.refreshQuota();
 refresh().catch(error => feedback(error.message, true));

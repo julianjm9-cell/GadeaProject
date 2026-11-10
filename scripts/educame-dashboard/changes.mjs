@@ -53,6 +53,7 @@ export function createChanges(cwd) {
     }
   };
   const readRef = async ref => (await git(['rev-parse', '--verify', ref]).catch(() => '')).trim();
+  const repository = async () => githubUrl(await git(['remote', 'get-url', 'origin']));
   let syncing;
   let syncedAt = null;
   async function sync() {
@@ -123,5 +124,5 @@ export function createChanges(cwd) {
       'bash infra/deploy-hostinger.sh';
     return { revision, command };
   }
-  return { history, sync, deploy };
+  return { history, sync, deploy, repository };
 }

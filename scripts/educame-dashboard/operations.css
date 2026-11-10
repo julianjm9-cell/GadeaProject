@@ -1,0 +1,51 @@
+.operation-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.operation-tabs [aria-pressed="true"], .operation-list [aria-pressed="true"] {
+  border-color: #4b9a77; background: #e0f6e9; color: #164b38;
+}
+.operation-panel, .operation-admin-content { display: grid; gap: 14px; min-width: 0; }
+.operation-panel .card-heading { flex-wrap: wrap; }
+.operation-panel h4 { margin: 4px 0 0; }
+.operation-panel .muted { font-size: .88rem; overflow-wrap: anywhere; }
+.operation-form { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px; margin: 0; }
+.operation-form > label { flex: 1 1 180px; min-width: 0; margin: 0; }
+.operation-form > button { margin: 0; }
+.operation-form input, .operation-form select { width: 100%; min-width: 0; }
+.operation-split {
+  display: grid; grid-template-columns: minmax(160px, .7fr) minmax(0, 1.6fr); align-items: start; gap: 14px;
+}
+.operation-list { display: grid; align-content: start; gap: 7px; min-width: 0; }
+.operation-list button { justify-content: start; text-align: start; overflow-wrap: anywhere; }
+.operation-detail {
+  min-width: 0; display: grid; gap: 9px; padding: 15px; border: 1px solid var(--line);
+  border-radius: 12px; background: #f7faf8; overflow-wrap: anywhere;
+}
+.operation-detail > button { justify-self: start; }
+.operation-file, #admin-create {
+  padding: 8px 11px; border: 1px solid var(--line); border-radius: 9px; background: #fff; min-width: 0;
+}
+.operation-file summary, #admin-create summary, #hostinger-history summary { cursor: pointer; font-weight: 680; }
+#admin-create[open] summary { margin-bottom: 10px; }
+.operation-detail pre {
+  margin: 6px 0 0; padding: 10px; max-width: 100%; white-space: pre-wrap; overflow-wrap: anywhere;
+  background: #eaf2ed; border-radius: 6px; font: .8rem/1.45 ui-monospace, Consolas, monospace;
+}
+.operation-prose { white-space: pre-wrap; }
+.operation-apps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 9px; }
+.operation-app {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
+  padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; background: #fff;
+}
+.operation-license { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.operation-license-fields { display: grid; gap: 8px; }
+#operation-confirm form { display: grid; gap: 13px; }
+.quota-panel { margin-bottom: 16px; }
+.quota-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 10px; }
+.quota-metric { display: grid; gap: 5px; padding: 12px; background: #eef7f1; border: 1px solid #d8eadd; border-radius: 10px; }
+.quota-metric strong { font-size: 1.25rem; color: #144e39; overflow-wrap: anywhere; }
+.quota-progress { width: 100%; height: 9px; accent-color: #23734e; }
+@media (max-width: 700px) {
+  .operation-split { grid-template-columns: minmax(0, 1fr); }
+  .operation-panel .card-heading h2 { font-size: 1.22rem; }
+  .operation-form > label { flex-basis: 100%; }
+  .quota-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
