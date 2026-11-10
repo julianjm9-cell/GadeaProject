@@ -127,7 +127,11 @@ export function setupOperations({ api, element, button, feedback, openCommand })
     if (item.fileCount > item.files.length) panel.append(link('Ver todos los archivos ↗', item.url + '/files'));
     if (item.merged) {
       panel.append(element('p', 'badge ready', 'Fusionada'));
-      if (item.localOnly) panel.append(element('p', 'muted', 'Aplica la entrega en este equipo para actualizar LA TERRAZA.'));
+      if (item.localOnly && item.deliveryKey) {
+        const next = element('a', 'button primary', 'Volver a la entrega de LA TERRAZA');
+        next.href = '#entregas/' + item.deliveryKey.split('/')[1];
+        panel.append(next);
+      }
       else if (item.deliveryKey || item.mergeCommit) {
         const next = button('Continuar a Hostinger', event => busy(event.currentTarget, async () => {
           const result = item.deliveryKey

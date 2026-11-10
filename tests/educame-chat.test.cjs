@@ -33,7 +33,7 @@ test('Chat usa el modelo elegido y aplica una revisión del panel solo después 
     implement: async (task, cwd) => {
       received.push(task);
       const target = task.encargo === 'Cambia la app pública' ? 'apps/demo.js' : file;
-      await writeFile(join(cwd, target), '/* Cambio propuesto */\n');
+      await writeFile(join(cwd, target), task.id === 'publicado' ? '/* Cambio desde GitHub */\n' : '/* Cambio propuesto */\n');
       return { draft: { resumen: 'Una propuesta de prueba.', entrega: 'Ajusta los estilos.', comprobaciones: [], pendientes: [] },
         checks: [{ command: 'node --test', passed: true }] };
     },
@@ -41,7 +41,8 @@ test('Chat usa el modelo elegido y aplica una revisión del panel solo después 
   const servers = new Set();
   let restartCount = 0;
   const start = async () => {
-    const server = await createDashboard({ directory, repositoryRoot: root, codex, apiKey: '', restartProcess: () => { restartCount++; } });
+    const server = await createDashboard({ directory, repositoryRoot: root, codex, apiKey: '',
+      implementationOptions: { localRemote: true }, restartProcess: () => { restartCount++; } });
     servers.add(server);
     server.listen(0, '127.0.0.1');
     await once(server, 'listening');
@@ -110,4 +111,29 @@ test('Chat usa el modelo elegido y aplica una revisión del panel solo después 
   assert.equal(restored.needsRestart, false);
   assert.equal(restored.messages[2].state, 'applied');
   assert.equal(restored.messages[0].reply, 'Una respuesta de prueba.');
+
+  const remote = join(temporary, 'origin.git');
+  await git('init', '--bare', remote);
+  await git('remote', 'add', 'origin', remote);
+  await git('push', 'origin', 'main');
+  const request = (path, body) => fetch(restarted.base + path, body ? { method: 'POST',
+    headers: { Origin: restarted.base, 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : undefined);
+  const tasks = [{ id: 'publicado', agente: 'codex', app: 'control', encargo: 'Actualiza el tema del panel.' }];
+  assert.equal((await request('/api/encargos', { tasks, mode: 'implementacion', engine: 'codex' })).status, 202);
+  let panel;
+  for (let i = 0; i < 250; i++) {
+    panel = await request('/api/panel').then(response => response.json());
+    if (!panel.batch.running) break;
+    await new Promise(resolve => setTimeout(resolve, 40));
+  }
+  const delivery = panel.history.find(item => item.id === 'publicado');
+  const { commit } = delivery.implementation;
+  const { key } = delivery;
+  assert.equal((await request('/api/revisar', { key, commit, decision: 'aprobada', note: '', revision: panel.board.revision })).status, 200);
+  assert.equal((await request('/api/encargos/publicar', { key, commit })).status, 200);
+  assert.equal((await request('/api/encargos/aplicar', { key, commit, fromGithub: true })).status, 409);
+  await git('push', 'origin', commit + ':main');
+  assert.equal((await request('/api/encargos/aplicar', { key, commit, fromGithub: true }).then(response => response.json())).needsRestart, true);
+  assert.equal(await git('rev-parse', 'HEAD'), commit);
+  assert.match(await readFile(join(root, file), 'utf8'), /Cambio desde GitHub/);
 });

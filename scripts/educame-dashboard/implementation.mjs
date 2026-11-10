@@ -10,7 +10,8 @@ const sha = /^[a-f0-9]{40}$/;
 const safeId = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const commonPaths = ['backend/app/', 'backend/tests/', 'tests/', 'docs/'];
 const terracePaths = ['scripts/educame-dashboard/', 'scripts/educame-dashboard.mjs', 'scripts/educame-agents.mjs',
-  'docs/agentes-educame.md', 'tests/educame-dashboard.test.cjs', 'tests/educame-dashboard-browser.test.cjs', 'tests/educame-chat.test.cjs'];
+  'docs/agentes-educame.md', 'tests/educame-dashboard.test.cjs', 'tests/educame-dashboard-browser.test.cjs',
+  'tests/educame-chat.test.cjs', 'tests/educame-operations.test.cjs', 'tests/educame-changes.test.cjs'];
 const terraceFile = file => terracePaths.some(path => path.endsWith('/') ? file.startsWith(path) : file === path) && !excluded.test(file);
 const excluded = /(^|\/)(\.env(?:\.|$)|\.git(?:\/|$)|\.educame-agents(?:\/|$)|(?:credentials|secrets)(?:\.|\/|$))|\.(pem|key|p12|pfx|sqlite|dump)$/i;
 const credential = /^\+(?!\+\+).*?(?:-----BEGIN [A-Z ]*PRIVATE KEY-----|(?:sk-|ghp_|github_pat_|AIza)[A-Za-z0-9_-]{20,})/m;
@@ -230,18 +231,22 @@ export function createImplementation(root, directory, codex, { localRemote = fal
       !(await git(['status', '--porcelain'], cwd)).trim();
   }
 
-  async function applyTerrace(artifact) {
+  async function applyTerrace(artifact, published) {
     await terraceRevision(artifact);
     const head = await base();
     if ((await git(['branch', '--show-current'])).trim() !== 'main') {
       throw new ImplementationError(409, 'Abre la rama main del proyecto antes de aplicar la propuesta.');
     }
-    if (await git(['merge-base', '--is-ancestor', artifact.commit, head]).then(() => true, () => false)) return;
-    if (head !== artifact.base) throw new ImplementationError(409, 'La revisión local cambió. Pide una propuesta nueva sobre el código actual.');
+    const target = published || artifact.commit;
+    if (await git(['merge-base', '--is-ancestor', target, head]).then(() => true, () => false)) return;
+    if (published && await ref('refs/remotes/origin/main').catch(() => '') !== published) {
+      throw new ImplementationError(409, 'La versión de GitHub cambió. Vuelve a comprobar la entrega.');
+    }
+    if (!published && head !== artifact.base) throw new ImplementationError(409, 'La revisión local cambió. Fusiona la entrega en GitHub y actualiza desde allí, o pide una propuesta sobre el código actual.');
     if ((await git(['status', '--porcelain', '--untracked-files=no'])).trim()) {
       throw new ImplementationError(409, 'Hay cambios de Git sin guardar. Guarda tu trabajo antes de aplicar la propuesta.');
     }
-    try { await git(['merge', '--ff-only', artifact.commit]); }
+    try { await git(['merge', '--ff-only', target]); }
     catch { throw new ImplementationError(409, 'Git no pudo aplicar esta revisión. Comprueba la rama y los archivos locales.'); }
     return true;
   }

@@ -106,7 +106,7 @@ La copia aislada parte del `HEAD` confirmado en Git al iniciar el lote. Los camb
 
 Desde **Revisar solicitud**, comprueba el estado de GitHub y confirma la fusión cuando sus pruebas estén listas. **Continuar a Hostinger** selecciona una revisión de `main` que contiene la entrega. Puedes desplegar por SSH con confirmación o usar **Generar comando** para la consola. Si usas GitHub en el navegador, abre la comparación y usa **Comprobar fusión** en la entrega una vez integrada.
 
-En una entrega de LA TERRAZA puedes **Aplicar en este equipo** tras aprobar el cambio y reiniciar desde el mismo diálogo. El panel conserva la opción de preparar la solicitud en GitHub para versionar la entrega. Los cambios de LA TERRAZA se cargan al reiniciar el programa local.
+En una entrega de LA TERRAZA puedes **Aplicar en este equipo** tras aprobar el cambio y reiniciar desde el mismo diálogo. Si ya está integrada, **Actualizar LA TERRAZA desde GitHub** trae la versión verificada de `main` cuando Git permite avanzar sin sobrescribir el trabajo local. Los cambios de LA TERRAZA se cargan al reiniciar el programa local.
 
 Desde la raíz del proyecto, abre la vista previa del lote. Usa Node.js 24, igual que las pruebas del repositorio.
 

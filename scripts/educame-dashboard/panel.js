@@ -95,9 +95,8 @@ function showPage() {
   window.scrollTo(0, 0);
   if (page === 'cambios') changes?.load();
   if (page === 'control') operations?.open(operation?.[1], operation?.[2]);
-  if (deliveryId && state) openLinkedDelivery();
+  if (page === 'entregas' && state) refresh().then(openLinkedDelivery).catch(error => feedback(error.message, true));
   if (page === 'chat') chat.open();
-  if (page === 'entregas' && state && !deliveryId) refresh().catch(error => feedback(error.message, true));
   if (page === 'teoria') theory.openTrack(development);
   if (page === 'agentes') { memory.renderAgentHint(); operations?.refreshQuota(); }
 }
@@ -458,12 +457,15 @@ function deliveryFlow(delivery, verdict) {
   if (approved) {
     if (local) {
       if (state.terraceNeedsRestart) action('Reiniciar LA TERRAZA', 'Reiniciando…', () => chat.restart(), true);
-      else action('Aplicar en este equipo', 'Aplicando…', async () => {
-        const result = await api('/api/encargos/aplicar', 'POST', payload);
+      else action(integrated ? 'Actualizar LA TERRAZA desde GitHub' : 'Aplicar en este equipo', 'Aplicando…', async () => {
+        const result = await api('/api/encargos/aplicar', 'POST', {
+          ...payload, fromGithub: Boolean(integrated), pull: pushed?.pull?.number,
+        });
         await refresh();
         if (dialog.open && reviewing.key === delivery.key) openDelivery(delivery);
         feedback(result.needsRestart ? 'Cambio aplicado. Reinicia LA TERRAZA para cargarlo.' : 'La revisión ya está aplicada.');
       }, true);
+      if (integrated && !state.terraceNeedsRestart) box.append(element('p', 'muted', 'La actualización trae la versión de main a este equipo.'));
     }
     if (pushed?.pull || integrated) {
       if (pushed.pull) link('Revisar solicitud #' + pushed.pull.number, '#control/github/' + pushed.pull.number);
@@ -486,8 +488,13 @@ function deliveryFlow(delivery, verdict) {
       if (pushed?.url) {
         link('Abrir propuesta en GitHub', pushed.url, true);
         link('Conectar GitHub', '#control/github');
-        if (!local) action('Comprobar fusión', 'Consultando GitHub…', async () => {
+        action('Comprobar fusión', 'Consultando GitHub…', async () => {
           const result = await api('/api/encargos/verificar-publicacion', 'POST', payload);
+          if (local) {
+            await refresh();
+            if (dialog.open && reviewing.key === delivery.key) openDelivery(delivery);
+            return;
+          }
           dialog.close();
           location.hash = 'control/hostinger/' + result.revision;
         });

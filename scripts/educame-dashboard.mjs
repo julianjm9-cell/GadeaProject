@@ -309,6 +309,21 @@ export async function createDashboard({
     return { ...updated, key: 'implementacion/' + delivery.id, mode: 'implementacion', canRevalidate: canRevalidate(updated) };
   }
 
+  async function publicationRevision(key, delivery, pull) {
+    let revision = delivery.implementation?.commit;
+    if (store.board().pushes?.[key]?.commit !== revision || !delivery.implementation?.verified) {
+      throw new PanelError(409, 'La entrega debe estar publicada en GitHub.');
+    }
+    if (pull !== undefined) {
+      const merged = await github.detail(pull);
+      if (merged.deliveryKey !== key || !merged.merged || merged.head !== revision || merged.base !== 'main') {
+        throw new PanelError(409, 'GitHub aún no confirma la fusión de esta revisión en main.');
+      }
+      revision = merged.mergeCommit;
+    }
+    return changes.integrated(revision);
+  }
+
   const server = createServer(async (request, response) => {
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('X-Content-Type-Options', 'nosniff');
@@ -356,21 +371,14 @@ export async function createDashboard({
         if (request.headers.origin !== origin) throw new OperationError(403, 'Realiza esta acción desde LA TERRAZA.');
         const { key, pull } = await bodyJson(request);
         const delivery = await implementationDelivery(key);
-        if (delivery.app === 'control' || store.board().pushes?.[key]?.commit !== delivery.implementation?.commit ||
-            !delivery.implementation?.verified) throw new PanelError(409, 'La entrega debe estar publicada en GitHub.');
-        let revision = delivery.implementation.commit;
-        if (pull !== undefined) {
-          const merged = await github.detail(pull);
-          if (merged.deliveryKey !== key || !merged.merged || merged.head !== revision || merged.base !== 'main') {
-            throw new PanelError(409, 'GitHub aún no confirma la fusión de esta revisión en main.');
-          }
-          revision = merged.mergeCommit;
-        }
-        return json(200, await changes.integrated(revision));
+        const publication = await publicationRevision(key, delivery, pull);
+        const pushed = store.board().pushes[key];
+        savePush(key, { ...pushed, integratedRevision: publication.revision });
+        return json(200, publication);
       }
       if (request.method === 'POST' && ['/api/encargos/comprobar', '/api/encargos/publicar', '/api/encargos/aplicar'].includes(path)) {
         if (request.headers.origin !== origin) throw new OperationError(403, 'Realiza esta acción desde LA TERRAZA.');
-        const { key, commit } = await bodyJson(request);
+        const { key, commit, fromGithub, pull } = await bodyJson(request);
         const delivery = await implementationDelivery(key);
         if (path === '/api/encargos/comprobar' && delivery.implementation?.verified) {
           return json(200, { ...delivery, key, mode: 'implementacion', canRevalidate: false });
@@ -384,7 +392,8 @@ export async function createDashboard({
           if (path === '/api/encargos/comprobar') return revalidate(delivery);
           if (path === '/api/encargos/aplicar') {
             if (delivery.app !== 'control') throw new PanelError(409, 'Esta acción solo actualiza LA TERRAZA.');
-            if (await implementation.applyTerrace(delivery.implementation)) terraceNeedsRestart = true;
+            const publication = fromGithub === true ? await publicationRevision(key, delivery, pull) : null;
+            if (await implementation.applyTerrace(delivery.implementation, publication?.revision)) terraceNeedsRestart = true;
             return { needsRestart: terraceNeedsRestart };
           }
           const { commit, branch } = delivery.implementation;
