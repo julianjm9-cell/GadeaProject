@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Educame · Centro de mando</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/panel.css">
+  <link rel="stylesheet" href="/workspace.css">
+  <script type="module" src="/panel.js"></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#inicio" aria-label="Educame, inicio"><img class="brand-icon" src="/icon.svg" alt="" width="35" height="35"><span>Educame<small>Centro de mando</small></span></a>
+    <nav aria-label="Secciones del panel">
+      <a href="#inicio" data-icon="home">Inicio</a>
+      <a href="#agentes" data-icon="sparkles">Agentes</a>
+      <a href="#publicar" data-icon="send">Publicar</a>
+      <a href="#video" data-icon="video">Vídeo</a>
+      <a href="#estadisticas" data-icon="chart">Estadísticas</a>
+      <a href="#conexiones" data-icon="network">Conexiones</a>
+      <a href="#apps" data-icon="apps">Apps</a>
+      <a href="#teoria" data-icon="book">Teoría</a>
+      <small class="nav-group">Trabajo</small>
+      <a href="#memoria" data-icon="book">Memoria</a>
+      <a href="#cambios" data-icon="history">Cambios</a>
+      <a href="#entregas" data-icon="file">Entregas</a>
+      <a href="#operaciones" data-icon="queue">Cola de trabajo</a>
+    </nav>
+    <a class="admin-link icon-label" data-icon="external" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noreferrer">Administración online</a>
+  </aside>
+
+  <main id="main">
+    <header class="topline"><span id="page-location" aria-hidden="true">Espacio local</span><a class="status-chip" id="api-status" href="#conexiones" data-open-connection="ia">Comprobando Codex</a></header>
+    <div id="feedback" class="feedback" role="status" hidden><span id="feedback-text"></span><button type="button" class="feedback-close" aria-label="Cerrar aviso">×</button></div>
+
+    <section data-page="inicio" aria-labelledby="home-title">
+      <div class="page-heading heading-actions home-hero"><h1 id="home-title">Centro de mando</h1><div class="actions"><a class="button home-study" href="#teoria" data-icon="book">Aprender</a><a class="button primary" href="#agentes" data-icon="plus">Nuevo encargo</a></div></div>
+      <div class="home-grid">
+        <section class="card home-activity" aria-labelledby="home-work"><div class="card-heading"><h2 id="home-work">Trabajo reciente</h2><a class="text-link" href="#entregas">Ver entregas →</a></div><div id="home-activity" class="item-list"></div></section>
+        <section class="card home-activity" aria-labelledby="quick-title"><h2 id="quick-title">Acciones rápidas</h2><div class="quick-grid">
+          <a class="quick-card" href="#cambios"><span class="tile-icon blue" data-icon="history"></span><strong>Revisar cambios</strong><span aria-hidden="true">›</span></a>
+          <a class="quick-card" href="#publicar"><span class="tile-icon coral" data-icon="send"></span><strong>Preparar publicación</strong><span aria-hidden="true">›</span></a>
+          <a class="quick-card" href="#video"><span class="tile-icon violet" data-icon="video"></span><strong>Crear vídeo</strong><span aria-hidden="true">›</span></a>
+          <a class="quick-card" href="#estadisticas"><span class="tile-icon green" data-icon="chart"></span><strong>Consultar estadísticas</strong><span aria-hidden="true">›</span></a>
+        </div></section>
+      </div>
+      <div class="section-heading home-app-heading"><h2>Tus apps</h2><a class="text-link" href="#apps">Todos los accesos →</a></div>
+      <div class="product-grid" id="workspace-apps"></div>
+    </section>
+
+    <section data-page="memoria" aria-labelledby="memory-title" hidden>
+      <div class="page-heading heading-actions"><h1 id="memory-title">Memoria de las apps</h1><a class="button secondary" href="#agentes" data-icon="sparkles">Abrir Agentes</a></div>
+      <p class="muted">Cada encargo usa la ficha de su app y los criterios confirmados más pertinentes.</p>
+      <div class="memory-layout">
+        <section class="card compose-card" aria-labelledby="memory-profile-title">
+          <div class="card-heading"><h2 class="icon-label" id="memory-profile-title" data-icon="apps">Ficha del producto</h2></div>
+          <label>Aplicación<select id="memory-app"></select></label>
+          <div id="memory-profile" class="memory-profile"></div>
+        </section>
+        <section class="card compose-card" aria-labelledby="memory-rules-title">
+          <div class="card-heading"><h2 class="icon-label" id="memory-rules-title" data-icon="check">Criterios confirmados</h2></div>
+          <p class="inline-hint">Los criterios de todo Educame pueden acompañar a cualquier app. Archiva los que ya no aplican.</p>
+          <details id="memory-editor"><summary>Añadir criterio</summary>
+            <form id="memory-form">
+              <label>Tema<select name="tema" required></select></label>
+              <label>Criterio<textarea name="criterio" rows="2" required maxlength="420" placeholder="Ejemplo: en los juegos de tren, cada vagón indica dónde se coloca la respuesta."></textarea></label>
+              <label>Cómo comprobarlo<textarea name="comprobacion" rows="2" required maxlength="240" placeholder="Ejemplo: probar un acierto y un error en móvil."></textarea></label>
+              <p class="inline-hint">Escribe una regla reutilizable y evita datos personales o claves. El motor elegido puede recibir este texto.</p>
+              <p class="form-message" role="alert" hidden></p>
+              <div class="actions"><button type="submit" class="button primary">Guardar criterio</button><button type="button" id="memory-cancel" class="button secondary" hidden>Cancelar edición</button></div>
+            </form>
+          </details>
+          <label class="check-label"><input type="checkbox" id="memory-archived"> Mostrar archivados</label>
+          <div id="memory-rules" class="item-list"></div>
+        </section>
+      </div>
+    </section>
+
+    <section data-page="teoria" aria-labelledby="theory-title" hidden>
+      <header class="theory-hero">
+        <div><h1 id="theory-title">Teoría</h1><p>Aprende cómo funciona Educame con ejemplos de tus propias apps.</p></div>
+        <div class="theory-track">
+          <ol aria-label="Recorrido de un cambio"><li data-icon="monitor">Tu equipo</li><li data-icon="github">GitHub</li><li data-icon="globe">Hostinger</li></ol>
+          <span id="theory-progress-text" role="status"></span>
+          <progress id="theory-progress" aria-label="Lecciones aprendidas" value="0" max="1"></progress>
+          <span id="theory-storage-status" role="status"></span>
+        </div>
+      </header>
+      <section class="card theory-browser" aria-labelledby="theory-topics-title">
+        <div class="theory-tracks actions" role="group" aria-label="Rutas de Teoría">
+          <a class="button secondary" data-theory-track="guide" data-icon="book" href="#teoria">Guía de Educame</a>
+          <a class="button secondary" data-theory-track="development" data-icon="terminal" href="#teoria/desarrollo">Ruta de desarrollo</a>
+        </div>
+        <p class="muted theory-route-description" id="theory-route-description" hidden>Seis etapas para pasar de las herramientas básicas a un cambio propio en el panel.</p>
+        <div class="theory-toolbar">
+          <h2 id="theory-topics-title">Explora por tema</h2>
+          <label class="theory-search"><span class="theory-search-icon" data-icon="search"></span><input id="theory-search" type="search" aria-label="Buscar en Teoría" placeholder="Busca Git, copias, IA…"></label>
+        </div>
+        <div class="theory-categories" id="theory-categories" role="group" aria-label="Categorías de Teoría"></div>
+      </section>
+      <p class="muted theory-results" id="theory-results" role="status"></p>
+      <div class="theory-content" id="theory-content"></div>
+      <p class="card theory-empty" id="theory-empty" hidden>Prueba con otra palabra o elige una categoría.</p>
+    </section>
+
+    <section data-page="apps" aria-labelledby="apps-title" hidden>
+      <div class="page-heading heading-actions"><h1 id="apps-title">Apps y administración</h1><a class="button primary" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noreferrer">Abrir dashboard online ↗</a></div>
+      <div class="product-grid" id="directory-apps"></div>
+      <div class="section-heading home-app-heading"><h2>Accesos guardados</h2><a class="text-link" href="#enlaces">Gestionar enlaces →</a></div>
+    </section>
+
+    <section data-page="cambios" aria-labelledby="changes-title" hidden>
+      <div class="page-heading heading-actions"><h1 id="changes-title">Cambios</h1><button class="button secondary" id="changes-sync" type="button" data-icon="github">Sincronizar GitHub</button></div>
+      <p id="changes-status" class="muted" role="status"></p>
+      <div class="changes-grid">
+        <section class="card changes-card" aria-labelledby="changes-local-title">
+          <div class="card-heading"><h2 class="icon-label" id="changes-local-title"><span class="tile-icon blue" data-icon="monitor"></span>Vista local</h2><span class="badge ready" id="changes-branch" hidden></span></div>
+          <p>Abre tu versión actual con datos de ensayo. Recarga la pestaña para ver lo último que hayas guardado.</p>
+          <label for="changes-preview">Aplicación</label>
+          <div class="preview-product"><span id="changes-preview-logo" class="tile-icon blue" hidden></span><select id="changes-preview"></select></div>
+          <div class="actions"><a class="button primary" id="changes-open-app" data-icon="external" target="_blank" rel="noopener noreferrer" hidden>Abrir app local</a><a class="button secondary" id="changes-open-landing" data-icon="globe" target="_blank" rel="noopener noreferrer" hidden>Abrir landing local</a></div>
+          <details id="changes-dirty" hidden><summary></summary><ul class="changes-files"></ul><p class="muted" hidden></p></details>
+        </section>
+        <section class="card changes-card" aria-labelledby="changes-deploy-title">
+          <div class="card-heading"><h2 class="icon-label" id="changes-deploy-title"><span class="tile-icon violet" data-icon="hostinger"></span>Hostinger</h2><a class="text-link icon-label" id="changes-repo" data-icon="github" target="_blank" rel="noopener noreferrer" hidden>GitHub</a></div>
+          <p id="changes-release">Consultando la revisión de GitHub…</p>
+          <p id="changes-divergence" class="muted"></p>
+          <div class="actions"><button class="button primary" type="button" id="changes-deploy" data-icon="terminal" disabled>Generar comando</button></div>
+        </section>
+      </div>
+      <section class="card changes-history" aria-labelledby="changes-history-title">
+        <div class="card-heading"><h2 class="icon-label" id="changes-history-title" data-icon="history">Historial Git</h2><div class="changes-filters">
+          <label for="changes-app">Aplicación<select id="changes-app"><option value="all">Todas</option></select></label>
+          <label for="changes-source">Origen<select id="changes-source"><option value="all">Todos</option><option value="github">En GitHub</option><option value="local">Solo commits locales</option></select></label>
+        </div></div>
+        <div id="changes-entries" aria-busy="false"></div>
+        <div class="actions changes-pagination" id="changes-pagination" hidden><button class="button secondary" id="changes-prev" type="button">Anterior</button><span id="changes-page"></span><button class="button secondary" id="changes-next" type="button">Siguiente</button></div>
+      </section>
+    </section>
+
+    <section data-page="agentes" aria-labelledby="compose-title" hidden>
+      <div class="page-heading heading-actions"><h1 id="compose-title">Nuevo encargo</h1><a class="text-link" href="#operaciones">Abrir cola →</a></div>
+      <form id="agent-compose" class="compose-layout">
+        <section class="card compose-card">
+          <div class="card-heading"><h2>Agentes</h2><button class="button secondary" id="select-team" type="button" aria-pressed="false">Seleccionar a todos</button></div>
+          <div class="team-grid" id="team-picker" role="group" aria-label="Agentes"></div>
+          <p class="inline-hint" id="team-review-hint" hidden>Revisión trabajará sobre la entrega de Juegos si lo has seleccionado, o sobre la del primer agente de la selección.</p>
+        </section>
+        <section class="card compose-card">
+          <h2>Encargo</h2>
+          <label>App o proyecto<select name="app" id="agent-app"></select></label>
+          <div class="memory-inline"><span id="agent-memory-status"></span><a class="text-link" href="#memoria" id="agent-memory-link">Ver contexto</a></div>
+          <label>¿Qué necesitas?<textarea name="objective" rows="3" required maxlength="2000" placeholder="Ejemplo: diseña un juego de fracciones que se pueda jugar en el móvil."></textarea></label>
+          <fieldset id="game-pack" hidden><legend>Pack de juegos</legend>
+            <div class="actions">
+              <label>Trabajo<select name="gameWork"><option value="Crear">Crear</option><option value="Mejorar">Mejorar</option><option value="Crear y mejorar">Crear y mejorar</option></select></label>
+              <label>Cantidad<input name="gameCount" type="number" min="1" max="10" value="1"></label>
+            </div>
+          </fieldset>
+          <details><summary>Añadir contexto o criterios de entrega</summary><label>Contexto<textarea name="context" rows="3" maxlength="7500" placeholder="Nivel, público, restricciones o pasos para reproducir un fallo."></textarea></label></details>
+          <p class="inline-hint" id="team-summary" role="status"></p>
+          <div class="actions"><button class="button primary" type="submit" value="implementacion" disabled>Implementar con Codex</button><button class="button secondary" type="submit" value="real" disabled>Preparar borrador</button><button class="button secondary" type="submit" value="prueba" disabled>Simular</button><button class="button subtle" type="submit" value="queue" disabled>Añadir a la cola</button></div>
+          <details id="engine-options" hidden><summary>Motor de ejecución</summary><label>Motor<select name="engine"><option value="codex">Codex local</option><option value="openai">OpenAI API</option></select></label></details>
+          <p class="form-message" role="alert" hidden></p>
+          <p class="inline-hint" id="team-setup" hidden>Para ejecutar encargos, <a class="text-link" href="#conexiones" data-open-connection="ia">conecta Codex</a>. Puedes usar la simulación mientras tanto.</p>
+        </section>
+      </form>
+      <section class="card compose-card" id="team-activity" hidden aria-label="Último envío"></section>
+    </section>
+
+    <section data-page="publicar" aria-labelledby="publish-title" hidden>
+      <div class="page-heading heading-actions"><h1 id="publish-title">Publicar en redes</h1><a class="text-link" href="#video">Crear un vídeo →</a></div>
+      <div class="publish-layout">
+        <form class="card compose-card" id="publish-form">
+          <h2>Tu publicación</h2>
+          <label>App o proyecto<select name="app" id="publish-app"></select></label>
+          <label>Texto<textarea name="text" rows="5" maxlength="5000" placeholder="Escribe el texto que acompañará a tu publicación."></textarea></label>
+          <label>Formato<select name="mediaType"><option value="none">Solo texto</option><option value="image">Imagen</option><option value="video">Vídeo</option></select></label>
+          <label id="media-field" hidden>URL pública del archivo<input type="url" name="mediaUrl" maxlength="2048" placeholder="https://…"><small>Buffer recibe el archivo desde una URL HTTPS de acceso público.</small></label>
+          <fieldset id="network-options" hidden><legend>Opciones de vídeo o foto</legend>
+            <label id="publication-title-field" hidden>Título<input name="title" maxlength="90"></label>
+            <label id="publication-kids-field" hidden>¿El vídeo de YouTube está dirigido a niños?<select name="kids"><option value="">Selecciona una opción</option><option value="yes">Sí</option><option value="no">No</option></select></label>
+            <label class="check-label" id="publication-ai-field" hidden><input type="checkbox" name="ai"> El contenido multimedia se ha generado con IA</label>
+          </fieldset>
+          <fieldset><legend>Perfiles de destino</legend><div id="publication-channels" class="channel-grid"></div></fieldset>
+          <label>Cuándo<select name="mode"><option value="addToQueue">Añadir a la cola de Buffer</option><option value="shareNow">Solicitar publicación ahora</option></select></label>
+          <div class="actions"><button class="button primary" type="submit" disabled>Revisar envío</button><a class="text-link" href="#conexiones">Gestionar perfiles →</a></div>
+          <p class="form-message" role="alert" hidden></p>
+        </form>
+        <aside class="card compose-card publish-preview" aria-label="Vista previa de publicación">
+          <span class="tile-icon coral" aria-hidden="true">↗</span><h2>Vista previa</h2><p id="preview-app" class="badge"></p>
+          <p id="preview-copy" class="publication-copy"></p>
+          <p id="preview-media" class="inline-hint" hidden></p>
+          <div class="social-labels" id="preview-destinations" aria-label="Redes seleccionadas" hidden></div>
+          <p class="inline-hint">La apariencia final depende del perfil y la red de destino.</p>
+        </aside>
+      </div>
+      <section class="card compose-card" aria-labelledby="publication-history-title"><h2 id="publication-history-title">Historial de envíos</h2><div id="publication-history" class="item-list"></div></section>
+    </section>
+
+    <section data-page="video" aria-labelledby="video-title" hidden>
+      <div class="page-heading heading-actions"><h1 id="video-title">Crear vídeo</h1><a class="text-link" href="#conexiones" data-open-connection="video">Conexión de vídeo →</a></div>
+      <div class="publish-layout">
+        <form class="card compose-card" id="video-form">
+          <label>Describe el clip<textarea name="prompt" rows="5" required maxlength="1000" placeholder="Ejemplo: un tren de juguete cruza un tablero de vocabulario, plano cenital, colores suaves."></textarea></label>
+          <label>Formato<select name="ratio"><option value="720:1280">Vertical · 9:16</option><option value="1280:720">Horizontal · 16:9</option></select></label>
+          <p class="inline-hint">Runway Gen-4.5 · 5 segundos. Generar un clip consume créditos de Runway.</p>
+          <button class="button primary" type="submit" disabled>Generar vídeo</button>
+          <p class="form-message" role="alert" hidden></p><p class="inline-hint" id="video-setup"></p>
+        </form>
+        <section class="card compose-card" aria-labelledby="video-list-title"><h2 id="video-list-title">Vídeos recientes</h2><div id="video-list" class="item-list"></div></section>
+      </div>
+    </section>
+
+    <section data-page="conexiones" aria-labelledby="connections-title" hidden>
+      <div class="page-heading"><h1 id="connections-title">Conexiones</h1></div>
+      <div class="connection-nav actions" role="group" aria-label="Tipos de conexión">
+        <button type="button" class="button secondary" data-connection="redes" data-icon="network" aria-pressed="true">Redes sociales</button>
+        <button type="button" class="button secondary" data-connection="video" data-icon="video" aria-pressed="false">Generadores de vídeo</button>
+        <button type="button" class="button secondary" data-connection="ia" data-icon="sparkles" aria-pressed="false">Agentes e IA</button>
+        <button type="button" class="button secondary" data-connection="stats" data-icon="chart" aria-pressed="false">Estadísticas</button>
+        <button type="button" class="button secondary" data-connection="apps" data-icon="apps" aria-pressed="false">Apps y dashboard</button>
+      </div>
+      <div class="connections-grid" data-connection-panel="redes">
+        <section class="card compose-card provider-card"><div class="provider-head"><span class="tile-icon coral" data-icon="buffer"></span><span class="badge" id="buffer-status">Comprobando</span></div>
+          <h2>Buffer</h2><p>Vincula tus perfiles para publicar desde el panel.</p>
+          <div class="social-labels"><span data-network-icon="instagram">Instagram</span><span data-network-icon="facebook">Facebook</span><span data-network-icon="tiktok">TikTok</span><span data-network-icon="youtube">YouTube</span></div>
+          <a class="text-link" href="https://publish.buffer.com/" target="_blank" rel="noreferrer">Abrir Buffer para vincular perfiles ↗</a>
+          <form id="buffer-form"><label>Clave API de Buffer<input type="password" name="key" maxlength="1000" autocomplete="off" required></label><div class="actions"><button class="button primary" type="submit">Conectar Buffer</button><a class="text-link" href="https://publish.buffer.com/settings/api" target="_blank" rel="noreferrer">Obtener clave ↗</a></div><p class="form-message" role="alert" hidden></p></form>
+          <div class="actions"><button class="button subtle" type="button" data-disconnect="buffer" hidden>Desconectar</button></div>
+        </section>
+        <section class="card compose-card provider-card" aria-labelledby="connected-title">
+          <div class="card-heading"><h2 class="icon-label" id="connected-title" data-icon="network">Perfiles conectados</h2><button class="button secondary" type="button" data-reload-connections hidden>Actualizar perfiles</button></div>
+          <div id="connected-channels" class="channel-grid" aria-live="polite"><p class="empty channel-empty">Consultando perfiles…</p></div>
+          <div class="actions"><a class="button primary" id="publish-from-connections" href="#publicar" data-icon="send" hidden>Preparar publicación</a></div>
+        </section>
+      </div>
+      <div class="connections-grid" data-connection-panel="video" hidden>
+        <section class="card compose-card provider-card"><div class="provider-head"><span class="tile-icon violet" data-icon="video"></span><span class="badge" id="runway-status">Comprobando</span></div>
+          <h2>Runway</h2><p>Genera clips desde una descripción y descarga el resultado.</p>
+          <form id="runway-form"><label>Clave API de Runway<input type="password" name="key" maxlength="1000" autocomplete="off" required></label><div class="actions"><button class="button primary" type="submit">Conectar Runway</button><a class="text-link" href="https://dev.runwayml.com/" target="_blank" rel="noreferrer">Obtener clave ↗</a></div><p class="form-message" role="alert" hidden></p></form>
+          <div class="actions" id="runway-actions" hidden><a class="button primary" href="#video">Crear vídeo</a><button class="button subtle" type="button" data-disconnect="runway">Desconectar</button></div>
+        </section>
+      </div>
+      <div class="connections-grid" data-connection-panel="stats" hidden>
+        <section class="card compose-card provider-card"><div class="provider-head"><span class="tile-icon green" data-icon="chart"></span><span class="badge" id="google-status">Comprobando</span></div>
+          <h2>Google Search Console</h2><p>Consulta cómo encuentran tus páginas en Google.</p>
+          <details><summary>Configurar el cliente de Google</summary>
+            <p>Habilita Search Console API en Google Cloud, crea un cliente OAuth de tipo web y registra esta URL de retorno.</p>
+            <label>URL de retorno<input id="google-redirect" readonly></label>
+            <p>Si el proyecto está en pruebas, añade tu cuenta de Google como usuario de prueba.</p>
+            <a class="text-link" href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer">Abrir Google Cloud ↗</a>
+          </details>
+          <form id="google-form"><label>ID de cliente OAuth<input name="clientId" required maxlength="250" autocomplete="off"></label><label>Secreto del cliente<input type="password" name="clientSecret" required maxlength="250" autocomplete="off"></label><button class="button primary" type="submit">Autorizar con Google</button><p class="form-message" role="alert" hidden></p></form>
+          <button class="button subtle" type="button" data-disconnect="google" hidden>Desconectar en este equipo</button>
+        </section>
+      </div>
+      <div class="connections-grid" data-connection-panel="ia" hidden>
+        <section class="card compose-card provider-card"><div class="provider-head"><span class="tile-icon green" data-icon="terminal"></span><span class="badge" id="codex-status">Comprobando</span></div>
+          <h2>Codex local</h2><p>Usa la sesión de este equipo. Puede preparar borradores o implementar y probar cambios en una copia Git aislada.</p>
+          <p class="inline-hint" id="codex-detail"></p>
+          <div class="actions"><button class="button secondary" type="button" id="check-codex">Comprobar sesión</button><a class="text-link" href="#agentes">Nuevo encargo →</a></div>
+        </section>
+        <section class="card compose-card provider-card"><div class="provider-head"><span class="tile-icon violet" data-icon="sparkles"></span><span class="badge" id="openai-status">Comprobando</span></div>
+          <h2>OpenAI API</h2><p>Motor alternativo para generar borradores desde el contexto del encargo.</p>
+          <form id="openai-form"><label>Clave API de OpenAI<input type="password" name="key" maxlength="1000" autocomplete="off" required></label><div class="actions"><button class="button primary" type="submit">Guardar clave</button><a class="text-link" href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">Obtener clave ↗</a></div><p class="form-message" role="alert" hidden></p></form>
+          <button class="button subtle" type="button" data-disconnect="openai" hidden>Quitar clave del panel</button>
+        </section>
+      </div>
+      <div class="connections-grid" data-connection-panel="apps" hidden>
+        <section class="card compose-card provider-card"><div class="provider-head"><span class="tile-icon blue" data-icon="apps"></span><span class="badge">Acceso web</span></div>
+          <h2>Educame</h2><p>Entra con tu sesión habitual para abrir o administrar los productos.</p>
+          <div class="actions"><a class="button primary" href="#apps">Ver las apps</a><a class="button secondary" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noreferrer">Abrir dashboard ↗</a></div>
+        </section>
+      </div>
+    </section>
+
+    <section data-page="estadisticas" aria-labelledby="stats-title" hidden>
+      <div class="page-heading"><h1 id="stats-title">Estadísticas</h1></div>
+      <div class="stats-nav actions" role="group" aria-label="Fuente de las estadísticas"><button class="button secondary" data-stat="google" aria-pressed="true">Google</button><button class="button secondary" data-stat="social" aria-pressed="false">Redes</button><button class="button secondary" data-stat="local" aria-pressed="false">Actividad local</button></div>
+      <section class="card compose-card" data-stat-panel="google" aria-label="Rendimiento en Google">
+        <form id="search-stats" class="stat-form"><label>Propiedad<select name="property" required></select></label><label>App<select name="app" id="stats-app"></select></label><label>Periodo<select name="days"><option value="7">7 días</option><option value="28" selected>28 días</option><option value="90">90 días</option></select></label><button class="button primary" type="submit" disabled>Consultar</button></form>
+        <p class="inline-hint" id="search-setup"></p><div id="search-results" aria-live="polite"></div>
+      </section>
+      <section class="card compose-card" data-stat-panel="social" aria-label="Rendimiento en redes" hidden>
+        <form id="social-stats" class="stat-form"><label>Perfil<select name="channel" required></select></label><label>Periodo<select name="days"><option value="7">7 días</option><option value="28" selected>28 días</option><option value="90">90 días</option></select></label><button class="button primary" type="submit" disabled>Consultar</button></form>
+        <p class="inline-hint" id="social-setup"></p><div id="social-results" aria-live="polite"></div>
+      </section>
+      <section class="card compose-card" data-stat-panel="local" aria-label="Actividad local" hidden><h2>Actividad reciente</h2><p class="inline-hint">Últimas 100 entregas de agentes y 50 envíos a Buffer.</p><div class="stat-metrics" id="local-metrics"></div></section>
+    </section>
+
+    <section data-page="operaciones" aria-labelledby="operaciones-title" hidden>
+      <div class="page-heading heading-actions"><h1 id="operaciones-title">Cola de trabajo</h1><button class="button primary" type="button" data-action="new-task" disabled>+ Añadir encargo</button></div>
+      <section class="card" aria-labelledby="lote-title">
+        <div class="card-heading">
+          <div><h2 id="lote-title">Encargos preparados</h2><p id="limits"></p></div>
+          <button class="button subtle" type="button" data-action="example" disabled>Cargar ejemplo</button>
+        </div>
+        <div class="run-bar">
+          <p id="run-status" role="status">Cargando tu espacio local…</p>
+          <div class="actions">
+            <button type="button" class="button secondary" data-run="prueba" disabled>Simular lote</button>
+            <button type="button" class="button primary" data-run="implementacion" disabled>Implementar lote</button>
+            <button type="button" class="button primary" data-resume-batch hidden>Retomar lote</button>
+          </div>
+        </div>
+        <div id="task-list" class="item-list"></div>
+      </section>
+      <section class="card run-history" aria-labelledby="run-history-title"><h2 id="run-history-title">Lotes guardados</h2><div id="run-history" class="item-list"></div></section>
+    </section>
+
+    <section data-page="entregas" aria-labelledby="entregas-title" hidden>
+      <div class="page-heading"><h1 id="entregas-title">Entregas</h1></div>
+      <section class="card" aria-label="Historial de entregas">
+        <div class="card-heading"><h2>Historial</h2>
+          <label class="compact-label">Mostrar<select id="history-filter"><option value="todas">Todas</option><option value="pendientes">Por revisar</option><option value="implementacion">Implementaciones</option><option value="real">Borradores</option><option value="prueba">Simulaciones</option></select></label>
+        </div>
+        <div id="history" class="item-list"></div>
+      </section>
+    </section>
+
+    <section data-page="enlaces" aria-labelledby="enlaces-title" hidden>
+      <div class="page-heading heading-actions"><h1 id="enlaces-title">Accesos guardados</h1><a class="text-link" href="#apps">Volver a apps →</a></div>
+      <section class="card" aria-labelledby="links-title">
+        <div class="card-heading"><h2 id="links-title">Enlaces</h2><button class="button primary" type="button" data-action="new-link" disabled>+ Añadir enlace</button></div>
+        <div id="links" class="link-grid"></div>
+      </section>
+    </section>
+
+  </main>
+  <dialog id="changes-command-dialog" aria-labelledby="changes-command-title">
+    <div class="dialog-content changes-command">
+      <div class="card-heading"><h2 id="changes-command-title">Comando para Hostinger</h2><button class="button secondary" type="button" data-close aria-label="Cerrar comando">×</button></div>
+      <p id="changes-command-note"></p>
+      <label for="changes-command-code">Pega este bloque en la consola del VPS</label>
+      <textarea id="changes-command-code" rows="8" readonly spellcheck="false"></textarea>
+      <div class="actions"><button class="button primary" id="changes-copy" type="button" data-icon="copy">Copiar comando</button><span id="changes-copy-status" role="status"></span></div>
+    </div>
+  </dialog>
+
+  <dialog id="publish-dialog" aria-labelledby="publish-confirm-title">
+    <form method="dialog" id="publish-confirm">
+      <div class="dialog-heading"><h2 id="publish-confirm-title">Confirma el envío</h2><button class="icon-button" type="button" data-close aria-label="Cerrar">×</button></div>
+      <p id="publish-confirm-copy"></p><p class="form-message" role="alert" hidden></p>
+      <div class="actions"><button class="button secondary" type="button" data-close>Volver a editar</button><button class="button primary" type="submit">Confirmar envío</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="task-dialog" aria-labelledby="task-dialog-title">
+    <form id="task-form" method="dialog">
+      <div class="dialog-heading"><h2 id="task-dialog-title">Nuevo encargo</h2><button class="icon-button" type="button" data-close aria-label="Cerrar">×</button></div>
+      <input type="hidden" name="id">
+      <label>Agente<select name="agente" required></select></label>
+      <label>App o proyecto<select name="app" required></select></label>
+      <label>Encargo<textarea name="encargo" rows="3" maxlength="2000" required placeholder="Describe qué necesitas y cómo debe ser la entrega."></textarea></label>
+      <label>Contexto <span class="muted">(opcional)</span><textarea name="contexto" rows="4" maxlength="8000" placeholder="Añade el nivel, la app, los pasos del fallo o las funciones confirmadas."></textarea></label>
+      <label id="depends-field" hidden>Entrega que debe revisar<select name="revisar"></select></label>
+      <p class="form-message" role="alert" hidden></p>
+      <div class="actions"><button class="button secondary" type="button" data-close>Cancelar</button><button class="button primary" type="submit">Guardar encargo</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="link-dialog" aria-labelledby="link-dialog-title">
+    <form id="link-form" method="dialog">
+      <div class="dialog-heading"><h2 id="link-dialog-title">Añadir enlace</h2><button class="icon-button" type="button" data-close aria-label="Cerrar">×</button></div>
+      <input type="hidden" name="id">
+      <label>Nombre<input name="name" maxlength="80" required></label>
+      <label>Dirección<input name="url" type="url" maxlength="1500" required placeholder="https://"></label>
+      <label>Categoría<select name="kind"><option>App</option><option>Repositorio</option><option>Red social</option><option>Otro</option></select></label>
+      <p class="form-message" role="alert" hidden></p>
+      <div class="actions"><button class="button secondary" type="button" data-close>Cancelar</button><button class="button primary" type="submit">Guardar enlace</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="delivery-dialog" class="delivery-dialog" aria-labelledby="delivery-title">
+    <div class="dialog-heading"><h2 id="delivery-title">Entrega</h2><button class="icon-button" type="button" data-close aria-label="Cerrar">×</button></div>
+    <p id="delivery-meta" class="muted"></p>
+    <div id="delivery-body"></div>
+    <form id="review-form" method="dialog" hidden>
+      <label>Nota de revisión <span class="muted">(opcional)</span><textarea name="note" rows="2" maxlength="2000" placeholder="Qué has comprobado o qué hace falta ajustar."></textarea></label>
+      <details id="review-memory">
+        <summary>Conservar un aprendizaje en Memoria</summary>
+        <p class="inline-hint" id="review-memory-existing" hidden></p>
+        <button type="button" class="button secondary" id="review-memory-suggest" hidden>Usar propuesta del agente</button>
+        <label class="check-label"><input name="learn" type="checkbox"> Guardar este criterio al registrar la revisión</label>
+        <label>Aplicación<select name="app"></select></label>
+        <label>Tema<select name="tema"></select></label>
+        <label>Criterio<textarea name="criterio" rows="2" maxlength="420" placeholder="Una decisión útil en futuros encargos."></textarea></label>
+        <label>Cómo comprobarlo<textarea name="comprobacion" rows="2" maxlength="240" placeholder="Una prueba que demuestre que se cumple."></textarea></label>
+        <p class="inline-hint">El criterio confirmado puede enviarse al motor. La nota de revisión queda en la entrega.</p>
+      </details>
+      <p class="form-message" role="alert" hidden></p>
+      <div class="actions"><button class="button secondary" type="submit" name="decision" value="cambios">Pedir cambios</button><button class="button primary" type="submit" name="decision" value="aprobada">Aprobar borrador</button></div>
+    </form>
+  </dialog>
+</body>
+</html>

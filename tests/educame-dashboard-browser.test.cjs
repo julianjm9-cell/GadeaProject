@@ -1,0 +1,280 @@
+const assert = require('node:assert/strict');
+const { once } = require('node:events');
+const { mkdtemp, rm } = require('node:fs/promises');
+const { tmpdir } = require('node:os');
+const { join, relative, resolve } = require('node:path');
+const { test } = require('node:test');
+const { chromium, webkit } = require('./browser-runtime.cjs');
+
+async function listen(t, directory, options) {
+  const { createDashboard } = await import('../scripts/educame-dashboard.mjs');
+  const server = await createDashboard({ directory, apiKey: '', ...options });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  t.after(async () => {
+    await new Promise(resolve => server.close(resolve));
+    assert.match(relative(resolve(tmpdir()), resolve(directory)), /^educame-(?:changes-)?browser-[\w-]+$/);
+    await rm(directory, { recursive: true, force: true });
+  });
+  return server;
+}
+
+for (const [name, engine, viewport] of [
+  ['Chromium escritorio', chromium, { width: 1440, height: 950 }],
+  ['WebKit móvil', webkit, { width: 390, height: 844 }],
+]) {
+  test(`Cambios y vistas locales en ${name}`, { timeout: 45_000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
+    const server = await listen(t, directory, { codex: { status: async () => ({ ready: false }) } });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    t.after(() => browser.close());
+    const page = await browser.newPage({ viewport });
+    const base = 'http://127.0.0.1:' + server.address().port;
+    const revision = '1'.repeat(40);
+    const command = `cd /opt/educa-suite && git merge --ff-only ${revision} && bash infra/deploy-hostinger.sh`;
+    await page.route('**/api/cambios?*', route => {
+      const app = new URL(route.request().url()).searchParams.get('app');
+      return route.fulfill({ json: {
+        products: [{ key: 'profesor', name: 'Profesor Particular', app: true, landing: true },
+          { key: 'ingles', name: 'Inglés', app: true, landing: true }],
+        head: revision, upstream: revision, branch: 'main', local: { total: 1, count: 1, files: [{ file: 'apps/cambridge/index.html', status: ' M' }] },
+        commits: [{ sha: revision, date: '2026-11-10T12:00:00Z', subject: app === 'ingles' ? 'Misión inglesa' : 'Revisión general',
+          scopes: ['ingles'], files: ['apps/cambridge/index.html'], fileCount: 1, online: true }], more: false,
+      } });
+    });
+    await page.route('**/api/cambios/hostinger', route => {
+      assert.deepEqual(route.request().postDataJSON(), { revision });
+      return route.fulfill({ json: { revision, command } });
+    });
+    await page.goto(base + '/#cambios');
+    await page.getByRole('heading', { name: 'Revisión general' }).waitFor();
+    await page.locator('#changes-app').selectOption('ingles');
+    await page.getByRole('heading', { name: 'Misión inglesa' }).waitFor();
+    assert.equal(await page.locator('#changes-preview').inputValue(), 'ingles');
+    await page.waitForFunction(() => document.querySelector('#changes-preview-logo img')?.naturalWidth > 0);
+    await page.getByText('1 archivo local sin commit', { exact: true }).click();
+    assert.match(await page.locator('#changes-dirty').innerText(), /apps\/cambridge\/index.html/);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.getByRole('button', { name: 'Generar comando' }).click();
+    await page.getByRole('dialog', { name: 'Comando para Hostinger' }).waitFor();
+    assert.equal(await page.locator('#changes-command-code').inputValue(), command);
+    await page.getByRole('button', { name: 'Copiar comando' }).click();
+    await page.getByText(/Comando copiado|Comando seleccionado/).waitFor();
+    await page.getByRole('button', { name: 'Cerrar comando' }).click();
+    const opened = page.waitForEvent('popup');
+    await page.getByRole('link', { name: 'Abrir app local' }).click();
+    const preview = await opened;
+    await preview.locator('[data-tab-btn="juegos"]').click();
+    await preview.locator('#tab-juegos').waitFor();
+    assert.notEqual(new URL(preview.url()).origin, base);
+    const audio = await preview.request.get(new URL('/assets/listening/b2-museum.wav', preview.url()).href, { headers: { Range: 'bytes=0-15' } });
+    assert.equal(audio.status(), 206);
+    assert.equal((await audio.body()).length, 16);
+    await preview.close();
+
+    const routes = {
+      profesor: ['#main', 'Mis alumnos'],
+      eso: ['#navGames', 'Juegos'],
+      diplomator: ['body', 'Diplomator'],
+      universidad: ['body', 'Universidad'],
+      facturas: ['#currentUserBox', 'ensayo@example.invalid'],
+      dashboard: ['#adminPage', 'Disponibilidad de las apps'],
+    };
+    for (const [key, [selector, expected]] of Object.entries(routes)) {
+      const current = await browser.newPage({ viewport });
+      const errors = [];
+      current.on('pageerror', error => errors.push(error.message));
+      const response = await current.goto(base + '/vista-local/' + key + '/app');
+      assert.equal(response.status(), 200);
+      await current.locator(selector).getByText(expected, { exact: false }).first().waitFor({ timeout: 5000 })
+        .catch(async () => assert.match(await current.locator(selector).innerText(), new RegExp(expected, 'i'), key));
+      assert.deepEqual(errors, [], key);
+      await current.close();
+    }
+    const response = await page.request.get(base + '/vista-local/hazlotu/landing');
+    assert.equal(response.status(), 200);
+    assert.match(await response.text(), /HazloTú/i);
+    if (process.env.EDUCAME_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.EDUCAME_SCREENSHOT_DIR, `cambios-${name.split(' ')[0]}.png`) });
+  });
+
+  test(`Centro de mando en ${name}`, { timeout: 35_000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
+    const codex = {
+      status: async () => ({ ready: true, message: 'Sesión de ensayo' }),
+      generate: async task => ({ draft: { resumen: 'Entrega de Codex', entrega: task.encargo, comprobaciones: [], pendientes: [],
+        aprendizaje: { tema: 'estetica', criterio: 'Los vagones muestran el destino de cada respuesta.', comprobacion: 'Jugar una ronda en móvil.' } } }),
+    };
+    const server = await listen(t, directory, { codex });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    t.after(() => browser.close());
+    const page = await browser.newPage({ viewport });
+    const failures = [];
+    page.on('pageerror', error => failures.push(error.message));
+    const base = 'http://127.0.0.1:' + server.address().port;
+    const reportRow = { clicks: 12, impressions: 120, ctr: .1, position: 8, keys: ['2026-11-05'] };
+    const channels = [{ id: 'channel', service: 'youtube', name: 'Educame de ensayo', canPublish: true, insights: true }];
+    const posts = [];
+    const stats = [];
+    await page.route('**/api/conexiones', route => route.fulfill({ json: { buffer: true, google: true, openai: false, runway: true, redirect: base + '/api/conexiones/google/volver' } }));
+    await page.route('**/api/conexiones/canales', route => route.fulfill({ json: channels }));
+    await page.route('**/api/apps/estado', route => route.fulfill({ json: { paused: ['UNIVERSIDAD_ADULTOS'] } }));
+    await page.route('**/api/conexiones/propiedades', route => route.fulfill({ json: ['sc-domain:educame.tech'] }));
+    await page.route('**/api/estadisticas/busqueda', route => {
+      stats.push(route.request().postDataJSON());
+      return route.fulfill({ json: { total: reportRow, trend: [reportRow], searches: [{ ...reportRow, keys: ['juegos de fracciones'] }],
+        pages: [{ ...reportRow, keys: ['https://educame.tech/profesor/juegos-interactivos'] }], startDate: '2026-11-01', endDate: '2026-11-07' } });
+    });
+    await page.route('**/api/publicaciones', route => {
+      if (route.request().method() === 'GET') return route.fulfill({ json: posts });
+      const { id, app, text } = route.request().postDataJSON();
+      const result = { id, app, text, date: '2026-11-10T12:00:00Z', results: [{ ...channels[0], status: 'recibida', providerStatus: 'scheduled' }] };
+      posts.push(result);
+      return route.fulfill({ json: result });
+    });
+    const clips = [];
+    await page.route('**/api/videos', route => {
+      if (route.request().method() === 'GET') return route.fulfill({ json: clips });
+      const { id, prompt } = route.request().postDataJSON();
+      const clip = { id, prompt, status: 'SUCCEEDED', date: '2026-11-10T12:00:00Z' };
+      clips.push(clip);
+      return route.fulfill({ json: clip });
+    });
+    await page.goto(base);
+    await page.getByRole('heading', { name: 'Centro de mando' }).waitFor();
+    if (process.env.EDUCAME_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.EDUCAME_SCREENSHOT_DIR, `centro-${name.split(' ')[0]}.png`) });
+    const navigate = label => page.getByRole('navigation').getByRole('link', { name: label, exact: true }).click();
+    await page.getByRole('link', { name: 'Aprender' }).click();
+    await page.getByRole('heading', { name: 'Teoría', exact: true }).waitFor();
+    const localLesson = page.locator('summary').filter({ hasText: 'Dónde vive tu Centro de mando' });
+    assert.equal(await localLesson.locator('..').getAttribute('open'), null);
+    await localLesson.press('Enter');
+    await localLesson.locator('..').getByRole('button', { name: 'Marcar como aprendida' }).click();
+    await page.getByText(/^1 de \d+ lecciones aprendidas$/).waitFor();
+    await page.reload();
+    await page.getByText(/^1 de \d+ lecciones aprendidas$/).waitFor();
+    await page.getByRole('button', { name: 'Tus aplicaciones', exact: true }).click();
+    assert.equal(await page.locator('.theory-lesson:visible img').count(), 7);
+    const search = page.getByRole('searchbox', { name: 'Buscar en Teoría' });
+    await search.fill('indexacion');
+    await page.locator('summary').getByText('SEO, indexación y Search Console').waitFor();
+    assert.equal(await page.locator('.theory-lesson:visible').count(), 1);
+    await search.fill('sin resultado xyz');
+    await page.getByText('Prueba con otra palabra o elige una categoría.').waitFor();
+    await page.getByRole('button', { name: 'Mapa de Educame', exact: true }).click();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    if (process.env.EDUCAME_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.EDUCAME_SCREENSHOT_DIR, `teoria-${name.split(' ')[0]}.png`) });
+    await page.getByRole('link', { name: 'Ruta de desarrollo' }).click();
+    await page.getByRole('heading', { name: 'Etapas de la ruta' }).waitFor();
+    assert.equal(await page.locator('#theory-categories .theory-step').count(), 6);
+    const tools = page.locator('summary').filter({ hasText: 'Editor, terminal y navegador' });
+    await tools.click();
+    await tools.locator('..').getByText('Get-Location', { exact: false }).waitFor();
+    await tools.locator('..').getByRole('button', { name: 'Marcar como aprendida' }).click();
+    await page.getByText(/^1 de \d+ lecciones aprendidas$/).waitFor();
+    await page.reload();
+    await page.getByText(/^1 de \d+ lecciones aprendidas$/).waitFor();
+    await page.getByRole('button', { name: 'Arquitectura de Educame', exact: true }).click();
+    await page.getByText('Cómo viaja un guardado en la web pública').waitFor();
+    assert.equal(await page.locator('.theory-flow li:visible').count(), 4);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    if (process.env.EDUCAME_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.EDUCAME_SCREENSHOT_DIR, `ruta-desarrollo-${name.split(' ')[0]}.png`) });
+    await search.fill('idempotencia');
+    await page.locator('summary').getByText('Caché, reintentos e idempotencia').waitFor();
+    await page.getByRole('link', { name: 'Guía de Educame' }).click();
+    await page.getByText('1 de 29 lecciones aprendidas').waitFor();
+    await navigate('Agentes');
+    await page.getByRole('button', { name: /Juegos Crea/ }).click();
+    await page.locator('#agent-app').selectOption('profesor');
+    await page.getByLabel('¿Qué necesitas?').fill('Prepara una misión sobre fracciones.');
+    await page.getByRole('button', { name: 'Simular', exact: true }).click();
+    await page.locator('#team-activity').getByText('Borrador').waitFor();
+    assert.equal(await page.locator('.batch-chip').count(), 1);
+    await page.getByRole('button', { name: 'Seleccionar a todos' }).click();
+    assert.equal(await page.locator('.team-tile[aria-pressed="true"]').count(), 5);
+    if (process.env.EDUCAME_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.EDUCAME_SCREENSHOT_DIR, `agentes-${name.split(' ')[0]}.png`) });
+    await page.getByRole('button', { name: 'Simular', exact: true }).click();
+    await page.waitForFunction(() => [...document.querySelectorAll('.batch-chip .badge')].filter(node => node.textContent === 'Borrador').length === 5);
+    const panel = await (await page.request.get(base + '/api/panel')).json();
+    assert.equal(panel.history.length, 6);
+    await page.getByRole('button', { name: 'Quitar selección' }).click();
+    await page.getByRole('button', { name: /Juegos Crea/ }).click();
+    await page.locator('#game-pack select').selectOption('Crear y mejorar');
+    await page.getByLabel('Cantidad', { exact: true }).fill('3');
+    assert.equal(await page.getByRole('button', { name: 'Implementar con Codex' }).isEnabled(), true);
+    await page.getByRole('button', { name: 'Preparar borrador', exact: true }).click();
+    await page.locator('#team-activity').getByRole('heading', { name: 'Encargo en Codex' }).waitFor();
+    await page.locator('#team-activity').getByText('Borrador').waitFor();
+    const draftPanel = await (await page.request.get(base + '/api/panel')).json();
+    assert.match(draftPanel.history.find(item => item.mode === 'real').contexto, /Trabajo: Crear y mejorar\. Cantidad solicitada: 3/);
+    await navigate('Inicio');
+    await page.getByRole('button', { name: /Entrega de Codex/ }).click();
+    await page.getByRole('dialog', { name: 'Entrega de Codex' }).waitFor();
+    const delivery = page.getByRole('dialog', { name: 'Entrega de Codex' });
+    await delivery.getByText('Contexto usado en este encargo').click();
+    await delivery.getByText(/Respetar los modos Estudio, Academia y Sin fondo/).waitFor();
+    await delivery.getByText('Conservar un aprendizaje en Memoria').click();
+    await delivery.getByRole('button', { name: 'Usar propuesta del agente' }).click();
+    await delivery.getByRole('button', { name: 'Aprobar borrador' }).click();
+    await delivery.waitFor({ state: 'hidden' });
+    await navigate('Memoria');
+    await page.locator('#memory-app').selectOption('profesor');
+    await page.getByText('Los vagones muestran el destino de cada respuesta.').click();
+    await page.getByText(/Jugar una ronda en móvil/).waitFor();
+    await page.getByRole('button', { name: 'Archivar' }).click();
+    await page.getByText('Todavía no hay criterios para esta app.').waitFor();
+    await page.getByLabel('Mostrar archivados').check();
+    await page.getByText('Los vagones muestran el destino de cada respuesta.').click();
+    await page.getByRole('button', { name: 'Reactivar' }).click();
+    await page.getByText('Criterio reactivado.').waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    if (process.env.EDUCAME_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.EDUCAME_SCREENSHOT_DIR, `memoria-${name.split(' ')[0]}.png`) });
+    await navigate('Publicar');
+    const post = page.locator('#publish-form');
+    await post.getByLabel('Texto', { exact: true }).fill('Anuncio de ensayo');
+    await post.getByLabel('Formato').selectOption('video');
+    await post.getByLabel('URL pública del archivo').fill('https://media.example.org/video.mp4');
+    await post.getByRole('checkbox', { name: /Educame de ensayo/ }).check();
+    await page.locator('#preview-destinations .network-youtube').waitFor();
+    await post.getByLabel('Título', { exact: true }).fill('Juego educativo');
+    await post.getByLabel('¿El vídeo de YouTube está dirigido a niños?').selectOption('no');
+    await page.reload();
+    await post.getByRole('button', { name: 'Revisar envío' }).click();
+    assert.equal(posts.length, 0);
+    await page.getByRole('button', { name: 'Confirmar envío' }).click();
+    await page.getByText('En cola', { exact: true }).waitFor();
+    assert.equal(posts.length, 1);
+    await navigate('Estadísticas');
+    await page.locator('#stats-app').selectOption('profesor');
+    await page.getByRole('button', { name: 'Consultar', exact: true }).click();
+    await page.getByText('juegos de fracciones', { exact: true }).waitFor();
+    assert.match(stats[0].pagePattern, /educame\\\.tech.*profesor/);
+    await navigate('Conexiones');
+    await page.locator('#connected-channels .network-youtube').waitFor();
+    assert.equal(await page.locator('[data-network-icon] svg use').count(), 4);
+    const sprite = await page.request.get(base + '/icons.svg');
+    assert.match(sprite.headers()['content-type'], /image\/svg\+xml/);
+    assert.equal(sprite.status(), 200);
+    if (process.env.EDUCAME_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.EDUCAME_SCREENSHOT_DIR, `conexiones-${name.split(' ')[0]}.png`) });
+    await page.getByRole('button', { name: 'Estadísticas', exact: true }).click();
+    await page.getByText('Autorizado', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Generadores de vídeo' }).click();
+    await page.getByRole('heading', { name: 'Runway' }).waitFor();
+    await page.getByRole('link', { name: 'Crear vídeo', exact: true }).click();
+    await page.getByLabel('Describe el clip').fill('Un tren de juguete');
+    await page.getByRole('button', { name: 'Generar vídeo', exact: true }).click();
+    await page.getByRole('link', { name: 'Descargar MP4' }).waitFor();
+    assert.equal(clips.length, 1);
+    await navigate('Apps');
+    assert.equal(await page.locator('#directory-apps img').count(), 7);
+    await page.waitForFunction(() => [...document.querySelectorAll('#directory-apps img')].every(img => img.complete && img.naturalWidth > 0));
+    await page.getByRole('link', { name: 'Abrir dashboard online ↗' }).waitFor();
+    await page.getByRole('link', { name: /Universidad \+25 En pausa/ }).waitFor();
+    const opened = page.waitForEvent('popup');
+    await page.getByRole('link', { name: 'Vista local de Profesor Particular' }).click();
+    const preview = await opened;
+    await preview.getByText('Mis alumnos', { exact: false }).first().waitFor();
+    await preview.close();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    assert.deepEqual(failures, []);
+  });
+}

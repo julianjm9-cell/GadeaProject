@@ -1,0 +1,22 @@
+[
+  {
+    "id": "piloto-juego-cafe-b1-v1",
+    "agente": "juegos",
+    "app": "ingles",
+    "encargo": "Diseña cuatro decisiones para una misión de inglés B1 en una cafetería. El alumno practica cómo pedir, confirmar y corregir un pedido. Incluye distractores plausibles y una explicación por respuesta.",
+    "contexto": "Ejercicio de prueba con nombres y datos ficticios. Una decisión por pantalla y una sola respuesta correcta por decisión."
+  },
+  {
+    "id": "piloto-guion-ruta-v1",
+    "agente": "marketing",
+    "app": "ingles",
+    "encargo": "Escribe un guion de 25 segundos para enseñar cómo se pasa de Inicio a la siguiente misión. Incluye el texto y qué habría que grabar en cada escena.",
+    "contexto": "La app de Inglés tiene un estilo Ruta con ilustración de tren, una tarjeta para jugar la siguiente misión y una pestaña Juegos. Es una demostración local. Trata el vídeo como borrador editorial."
+  },
+  {
+    "id": "piloto-revision-cafe-b1-v1",
+    "agente": "revision",
+    "encargo": "Comprueba si cada decisión tiene una sola respuesta defendible, si el inglés suena natural para B1 y si las explicaciones ayudan a aprender.",
+    "revisar": "piloto-juego-cafe-b1-v1"
+  }
+]

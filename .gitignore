@@ -17,6 +17,7 @@ backups/
 license_server/.env
 license_server/data/
 .env
+.educame-agents/
 
 # Generated packages
 *.exe
