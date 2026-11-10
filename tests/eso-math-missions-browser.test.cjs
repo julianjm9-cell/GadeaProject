@@ -23,6 +23,7 @@ test('las doce misiones de Matemáticas cargan y se completan con corrección y 
       const answers = await page.evaluate(id => EsoMathMissions[id].stages.map(stage => stage.correct),topicId);
       for (const answer of answers) {
         await page.locator('.eso-object-answers button,.eso-math-options button').nth(answer).click();
+        await page.locator('[data-eso-dock]').click();
         assert.match(await page.locator('.eso-mission-feedback').innerText(),/Correcto/,`${topicId}: corrección`);
         await page.getByRole('button',{name:/Siguiente etapa|Ver resultado/}).click();
       }
@@ -32,6 +33,7 @@ test('las doce misiones de Matemáticas cargan y se completan con corrección y 
     await page.evaluate(() => startGame('mat-proporciones','quest'));
     const wrong = await page.evaluate(() => (EsoMathMissions['mat-proporciones'].stages[0].correct + 1) % 3);
     await page.locator('.eso-object-answers button,.eso-math-options button').nth(wrong).click();
+    await page.locator('[data-eso-dock]').click();
     assert.equal(await page.locator('.eso-object-answers button.wrong:disabled,.eso-math-options button.wrong:disabled').count(),1,'fallo marcado y bloqueado');
     assert.match(await page.locator('.eso-mission-feedback').innerText(),/no encaja/);
     await page.setViewportSize({width:390,height:844});

@@ -44,13 +44,17 @@ test('las 57 misiones restantes usan objetos jugables y mantienen su corrección
           for (let i=0;i<stages.length;i++) {
             const wrong=(stages[i].correct+1)%3;
             await page.locator('.eso-object-answers button').nth(wrong).click();
+            assert.equal(await page.locator('.eso-object-answers button.wrong').count(),0,'preparar una pieza no corrige la etapa');
+            await page.locator('[data-eso-dock]').click();
             assert.equal(await page.locator('.eso-object-answers button.wrong').count(),1);
             await page.locator('.eso-object-answers button').nth(stages[i].correct).click();
+            await page.locator('[data-eso-dock]').click();
             assert.equal(await page.locator('.eso-object-board').getAttribute('data-solved'),'true');
             assert.equal(await page.locator('.eso-object-artefact > span.complete').count(),i+1);
             await page.locator('.eso-object-feedback button').click();
           }
           assert.equal(await page.locator('.eso-game-result').count(),1);
+          assert.equal(await page.locator('.eso-mission-collection li').count(),stages.length);
         }
         if (mission.board.layout==='focus-right' && width===1366) {
           await page.evaluate(id=>startGame(id,'quest'),mission.id);
@@ -59,6 +63,7 @@ test('las 57 misiones restantes usan objetos jugables y mantienen su corrección
             const fit=await page.evaluate(()=>{const surface=document.querySelector('.eso-object-surface'),answers=document.querySelector('.eso-object-answers');return {surface:surface.scrollHeight-surface.clientHeight,answers:answers.scrollHeight-answers.clientHeight}});
             assert.ok(fit.surface<=2&&fit.answers<=2,`${mission.id}: clipped stage ${stage.place} ${JSON.stringify(fit)}`);
             await page.locator('.eso-object-answers button').nth(stage.correct).click();
+            await page.locator('[data-eso-dock]').click();
             await page.locator('.eso-object-feedback button').click();
           }
           assert.equal(await page.locator('.eso-game-result').count(),1);

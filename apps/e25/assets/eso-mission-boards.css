@@ -1,5 +1,22 @@
 /* The mission text and answers are real controls placed on a contextual object.
    Images stay decorative; the complete exercise works without them. */
+.desktop-refresh button.eso-mission-dock{display:flex;align-items:center;justify-content:center;gap:5px;min-height:40px;padding:5px 10px;border:2px dashed #28658b;border-radius:10px;background:#f6fcfff5;color:#15476d;font-size:.82rem;font-weight:850;line-height:1.15}
+.desktop-refresh button.eso-mission-dock[aria-disabled="false"]{border-style:solid;background:#d8f5ff;box-shadow:0 0 0 3px #4abce755,0 4px 9px #183c5455}
+.eso-object-artefact>.current{position:relative}
+.desktop-refresh .eso-object-artefact button.eso-mission-dock{position:absolute;inset:0;min-height:0;width:100%;justify-content:flex-end;align-items:flex-start;padding:1px 4px;background:transparent;font-size:.9rem}
+.desktop-refresh .eso-object-artefact button.eso-mission-dock[aria-disabled="false"]{background:#9ce5ff45}
+.desktop-refresh .eso-math-board>button.eso-mission-dock{position:absolute;z-index:3;left:50%;top:60%;transform:translateX(-50%);width:max-content;max-width:90%;min-height:34px}
+.desktop-refresh .eso-game-run [data-eso-piece][aria-pressed="true"]{border-color:#0874aa;background:#e2f8ff;box-shadow:0 3px 0 #5ca4bb}
+.desktop-refresh .eso-math-options button>b{display:grid;place-items:center;flex:none;width:25px;height:25px;border-radius:50%;background:#fff8;color:#235776}
+.eso-mission-collection{width:min(570px,100%);margin:9px auto;padding:8px 10px;border:1px solid #b8d9cf;border-radius:10px;background:#f0faf6;color:#174f45;text-align:left}
+.eso-mission-collection summary{font-weight:800;cursor:pointer}
+.eso-mission-collection ol{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(176px,100%),1fr));gap:6px;margin:7px 0 0;padding:0;list-style:none}
+.eso-mission-collection li{display:flex;align-items:center;gap:7px;min-width:0;padding:7px;border-radius:7px;background:#e5f4ed;overflow-wrap:anywhere}
+.eso-mission-collection li small{display:block;color:#3a6a62;font-size:.75rem}
+@media(max-width:800px){
+  .desktop-refresh .eso-object-artefact>.current{min-height:44px}
+  .desktop-refresh .eso-math-board>button.eso-mission-dock{position:relative;top:auto;left:auto;transform:none;margin:0 auto 10px;min-height:44px}
+}
 .eso-object-run{width:min(1180px,100%);padding:18px;background:#f8fbff}
 .eso-object-run .eso-game-progress{margin:11px 0 8px}
 .eso-object-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}

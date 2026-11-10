@@ -22,7 +22,8 @@
   };
   function themeFor(game) {
     const scene = sceneThemes[game.scene?.kind];
-    return scene ? {...scene,steps:game.stages.map(stage => stage.label)} : themes[game.id];
+    const theme = scene ? {...scene,steps:game.stages.map(stage => stage.label)} : themes[game.id];
+    return game.replaySteps && !scene ? {...theme,steps:game.replaySteps.map(index=>theme.steps[index])} : theme;
   }
   let active=null;
   const board=()=>document.querySelector('#b2GameBoard .mission-board');
@@ -31,7 +32,15 @@
     return `<button class="mission-slot" type="button" data-mission-place aria-label="${escape(label)}" aria-disabled="true"><span class="mission-slot-prompt" data-mission-placeholder>${escape(label)}</span><span class="mission-slot-plus" aria-hidden="true">+</span></button>`;
   }
   function progress(game,index,solved,theme){
-    return `<ol class="mission-route" aria-label="Avance de la misión">${game.stages.map((_,i)=>`<li class="${i<index||i===index&&solved?'complete':i===index?'current':''}" ${i===index?'aria-current="step"':''}><span>${i<index||i===index&&solved?'✓':i+1}</span><small>${escape(theme.steps[i]||'Etapa '+(i+1))}</small></li>`).join('')}</ol>`;
+    return `<ol class="mission-route" aria-label="Avance de la misión">${game.stages.map((_,i)=>`<li class="${i<index||i===index&&solved?'complete':i===index?'current':''}" ${i===index?'aria-current="step"':''}><span>${i<index||i===index&&solved?theme.icon:i+1}</span><small>${escape(theme.steps[i]||'Etapa '+(i+1))}</small></li>`).join('')}</ol>`;
+  }
+  function fieldLog(game, index, solved) {
+    const amount = index + Number(solved);
+    return `<details class="mission-field-log" ${amount?'':'hidden'}><summary><b aria-hidden="true">▤</b> Tu colección <span>${amount}/${game.stages.length}</span></summary><ol data-mission-log>${logEntries(game,amount)}</ol></details>`;
+  }
+  function logEntries(game, amount) {
+    const theme = themeFor(game);
+    return game.stages.slice(0,amount).map((stage,i)=>`<li><b aria-hidden="true">${theme.icon}</b><span><small>${escape(theme.steps[i]||'Etapa '+(i+1))}</small><strong>${escape(stage.options?stage.options[stage.correct]:stage.answers[0])}</strong></span></li>`).join('');
   }
   function prior(game,index){
     if(!index)return '<span class="mission-dossier-empty">Tu expediente se irá completando con cada acierto.</span>';
@@ -85,7 +94,7 @@
     const solved=run.solvedStage===index;
     active={game,index,selected:null,solved};
     const backdrop=game.scene ? asset(game.scene.art) : game.id==='opencloze'?asset('bridge-world-v1.webp'):game.id==='editor'?asset('academy-v2.webp'):null;
-    return `<section class="b2-panel mission-panel"><div class="mission-toolbar"><button type="button" data-mission-exit>← Recorrido</button><span>${escape(game.level||'B2 First')} · ${escape(game.skill)}</span><button type="button" data-mission-restart>Reiniciar</button></div><div class="mission-heading"><div><small>${escape(theme.name)}</small><h2 id="englishMissionTitle" tabindex="-1">${escape(game.title)}</h2></div><span class="mission-stage-count">${index+1}<small>/${game.stages.length}</small></span></div>${progress(game,index,solved,theme)}<div class="b2-board mission-board" data-kind="${game.id}" data-status="${solved?'solved':'waiting'}" ${backdrop?`style="--mission-backdrop:url('${backdrop}')"`:''}><div class="mission-atmosphere" aria-hidden="true"></div><div class="mission-workspace">${objects(game,index)}</div><div class="mission-bank"><div class="mission-bank-label"><span>${escape(theme.object)}</span><small>${game.stages[index].options?'ELIGE Y COLOCA':'ESCRIBE Y ACTIVA'}</small></div>${choices(game,index)}<p class="mission-instructions">${escape(theme.hint)}</p></div><div class="mission-celebration" aria-hidden="true"><span>✦</span><span>✧</span><span>✦</span></div></div><div class="mission-bottom"><div class="b2-feedback" id="b2GameFeedback" role="status">${solved?'¡Correcto! '+escape(game.stages[index].why):escape(theme.hint)}</div><div id="b2GameNext">${solved?nextButton(game,index):''}</div></div></section>`;
+    return `<section class="b2-panel mission-panel"><div class="mission-toolbar"><button type="button" data-mission-exit>← Recorrido</button><span>${escape(game.level||'B2 First')} · ${escape(game.skill)}</span><button type="button" data-mission-restart>Reiniciar</button></div><div class="mission-heading"><div><small>${game.replaySteps?'Desvío de recuperación · ':''}${escape(theme.name)}</small><h2 id="englishMissionTitle" tabindex="-1">${escape(game.title)}</h2></div><span class="mission-stage-count">${index+1}<small>/${game.stages.length}</small></span></div>${progress(game,index,solved,theme)}<div class="b2-board mission-board" data-kind="${game.id}" data-status="${solved?'solved':'waiting'}" ${backdrop?`style="--mission-backdrop:url('${backdrop}')"`:''}><div class="mission-atmosphere" aria-hidden="true"></div><div class="mission-workspace">${objects(game,index)}</div><div class="mission-bank"><div class="mission-bank-label"><span>${escape(theme.object)}</span><small>${game.stages[index].options?'ELIGE Y COLOCA':'ESCRIBE Y ACTIVA'}</small></div>${choices(game,index)}<p class="mission-instructions">${escape(theme.hint)}</p></div><div class="mission-celebration" aria-hidden="true"><span>✦</span><span>✧</span><span>✦</span></div></div><div class="mission-bottom"><div class="b2-feedback" id="b2GameFeedback" role="status">${solved?'¡Correcto! '+escape(game.stages[index].why):escape(theme.hint)}</div><div id="b2GameNext">${solved?nextButton(game,index):''}</div></div>${fieldLog(game,index,solved)}</section>`;
   }
   const nextButton=(game,index)=>`<button type="button" onclick="nextB2GameStage()">${index+1===game.stages.length?'Terminar partida':'Siguiente etapa →'}</button>`;
   function choose(index){
@@ -127,7 +136,13 @@
       root.querySelectorAll('[data-mission-stamp]').forEach(node=>node.textContent='✓ VERIFICADO');
       const effect=root.querySelector('[data-mission-effect]');
       if(effect)effect.textContent=active.game.id==='machine'?stage.answers[0]:active.game.id==='c2-press'?stage.options[index]:themeFor(active.game).verb;
-      const current=document.querySelector('.mission-route .current');if(current){current.classList.add('complete');current.querySelector('span').textContent='✓';}
+      const current=document.querySelector('.mission-route .current');if(current){current.classList.add('complete');current.querySelector('span').textContent=themeFor(active.game).icon;}
+      const log = root.closest('.mission-panel').querySelector('.mission-field-log');
+      if (log) {
+        log.hidden=false;
+        log.querySelector('summary span').textContent=`${active.index+1}/${active.game.stages.length}`;
+        log.querySelector('[data-mission-log]').innerHTML=logEntries(active.game,active.index+1);
+      }
       const file=root.querySelector('.mission-scenario-files .current');
       if(file){file.classList.replace('current','filed');file.querySelector('span').textContent='✓';}
       const stars=root.querySelector('.mission-stars');if(stars){stars.setAttribute('aria-label',`${active.index+1} observaciones registradas`);stars.querySelectorAll('span').forEach((node,i)=>node.classList.toggle('lit',i<=active.index));}
@@ -136,7 +151,7 @@
   function restored(game,index){if(active?.solved)result(true,game.stages[index].correct);}
   function complete(game,mistakes){
     const theme=themeFor(game);active=null;
-    return `<div class="mission-finale"><div class="mission-finale-medal" aria-hidden="true">${theme.icon}</div><span>MISIÓN COMPLETADA</span><h2>${escape(theme.goal)}</h2><p>Has resuelto las ${game.stages.length} etapas de <strong>${escape(game.title)}</strong>.</p><div class="mission-finale-collection">${theme.steps.map(label=>`<span>✓ ${escape(label)}</span>`).join('')}</div><p>${mistakes?`${mistakes} ${mistakes===1?'intento para revisar':'intentos para revisar'}: consulta las explicaciones antes de volver a jugar.`:'¡Todas las decisiones acertadas a la primera!'}</p></div>`;
+    return `<div class="mission-finale"><div class="mission-finale-medal" aria-hidden="true">${theme.icon}</div><span>MISIÓN COMPLETADA</span><h2>${escape(theme.goal)}</h2><p>Has resuelto las ${game.stages.length} etapas de <strong>${escape(game.title)}</strong>.</p><ol class="mission-loot">${logEntries(game,game.stages.length)}</ol><p>${mistakes?`${mistakes} ${mistakes===1?'intento para revisar':'intentos para revisar'}: puedes recuperar esas etapas.`:'¡Todas las decisiones acertadas a la primera!'}</p></div>`;
   }
   document.addEventListener('click',event=>{
     if(event.target.closest('[data-mission-exit]'))return window.closeEnglishGame();

@@ -68,3 +68,26 @@
  .activity-play [data-type="pasapalabra"] .pasapalabra-card input{height:32px;min-height:32px;font-size:16px}
  .activity-play [data-type="pasapalabra"] .pasapalabra-card [data-answer]{min-height:32px;font-size:12px}
 }
+/* Routes for combined games sit with the navigation, leaving the board free. */
+.activity-play .step-navigation .teacher-map-trigger{width:auto;min-width:47px;padding:3px 7px;color:#174f86;background:#ecf6ff;border:1px solid #adcde8;border-radius:9px;font-weight:800}
+.teacher-game-map{width:min(460px,calc(100vw - 28px));max-height:min(75vh,580px);padding:16px;border:1px solid #abcce5;border-radius:18px;background:#f4faff;color:#123153}
+.teacher-game-map::backdrop{background:#102844a0}
+.teacher-game-map>header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.teacher-game-map h2{margin:0;font-size:1.2rem}
+.teacher-game-map ol{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.teacher-game-map li button{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;min-height:44px;text-align:left;background:white;border:1px solid #bfd7ed;border-radius:11px}
+.teacher-game-map li button[aria-current]{outline:2px solid #296cb0;outline-offset:-2px;background:#e9f5ff}
+.teacher-game-map li b,.teacher-game-medal{display:grid;place-items:center;min-width:31px;min-height:31px;border-radius:50%;background:#e6eff9;color:#1f578b}
+.teacher-game-map li .cleared{background:#e0f5e8;color:#146242}
+.teacher-game-map li .retry{background:#fff0d8;color:#7b490e}
+.teacher-game-map li small{display:block;color:#456581}
+.teacher-game-finale{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid #b4d5e8;border-radius:15px;background:#eaf7ff;color:#153b66}
+.teacher-game-finale h2,.teacher-game-finale p{margin:0}
+.teacher-game-medal{flex:none;width:44px;height:44px;background:#fff0bf;color:#784a0a;font-size:1.4rem}
+.teacher-game-replay{margin-top:12px}
+.activity-play .play-number[data-checkpoint="cleared"]{background:#dff6e7;color:#12603d;box-shadow:0 0 0 2px #53a778}
+.activity-play .play-number[data-checkpoint="retry"]{background:#fff1db;color:#80490f}
+@media(prefers-reduced-motion:no-preference){
+  .activity-play .play-number[data-checkpoint="cleared"]{animation:teacher-game-stamp .23s ease-out}
+  @keyframes teacher-game-stamp{from{transform:scale(.82)}to{transform:scale(1)}}
+}

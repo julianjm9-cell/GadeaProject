@@ -5,6 +5,7 @@
   const shortKey = value => normalize(value).replace(/[.!?¡¿]+$/g, '').trim();
   const objectiveShort = q => q.type === 'short' && /^\S+(?:\s+\S+){0,2}$/.test(String(q.answer || '').trim()) && !/[;:]/.test(q.answer);
   const escape = value => esc(String(value ?? ''));
+  const boardTypes = new Set(['pasapalabra','hangman','wordsearch','memory','flashcard','sentence','timeline','error','crossword','dragdrop','mystery','intruder','bingo','multiselect','table','cipher','race']);
   const accepts = (value, solution, alternatives = []) => [solution, ...alternatives].some(item => normalize(value) === normalize(item));
   const letterKey = value => String(value || '').toUpperCase().replaceAll('Ñ', '\u0001').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replaceAll('\u0001', 'Ñ');
   const numberValue = value => {
@@ -734,6 +735,7 @@
     const signal = playerAbort.signal;
     const m = JSON.parse(JSON.stringify(material));
     const questions = m.activity.questions;
+    const gameRun = questions.some(q => boardTypes.has(q.type));
     const course = String(m.activity?.context?.course || m.course || (studentId ? student(studentId)?.course : '') || '');
     const gameAge = /infantil|primaria/i.test(course) ? 'child' : /\b(?:eso|bachillerato)\b/i.test(course) ? 'teen' : 'neutral';
     const pairChoices = shuffle(questions.filter(q => q.type === 'pairs').map(q => q.answer));
@@ -804,7 +806,7 @@
       if (sequences[index].every((item,position)=>item===expectedSequence(q)[position]) && sequences[index].length > 1) sequences[index].reverse();
     });
     const studentName = studentId ? student(studentId)?.name || 'Alumno' : '';
-    modal('Ejercicios', `${questions.map((q, i) => questionMarkup(q, i, pairChoices, gameAge)).join('')}<p id="activityScore" class="play-score" role="status"></p>${submit('Terminar')}`, async form => {
+    modal(gameRun ? 'Partida' : 'Ejercicios', `${questions.map((q, i) => questionMarkup(q, i, pairChoices, gameAge)).join('')}<p id="activityScore" class="play-score" role="status"></p>${submit('Terminar')}`, async form => {
       if (checked) return false;
       if(!await confirmPlayFinish())return false;
       questions.forEach((q,index)=>confirmQuestion(index));
@@ -834,7 +836,12 @@
       const close = $('form').querySelector('[data-action="close"]');
       if (close) {close.textContent = 'Cerrar';close.hidden=false;}
       $('form').querySelector('.play-footer .actions').insertAdjacentHTML('afterbegin', '<button type="button" id="retryActivity">Repasar errores</button>');
-      $('retryActivity').onclick = () => { const retry = questions.filter((q, i) => ['incorrect','partial','unanswered'].includes(attempt.grades[i])); if (!retry.length) return notify(attempt.pending ? 'Primero revisa las respuestas pendientes.' : 'No quedan errores que repasar.'); runActivity({ ...m, title: m.title + ' · Repaso', activity: { ...m.activity, questions: retry } }, studentId); };
+      $('retryActivity').onclick = () => {
+        const retry = questions.filter((q, i) => ['incorrect','partial','unanswered'].includes(attempt.grades[i]) ||
+          (gameRun && attempt.grades[i] === 'correct' && wasAssisted(i)));
+        if (!retry.length) return notify(attempt.pending ? 'Primero revisa las respuestas pendientes.' : 'No quedan errores que repasar.');
+        runActivity({ ...m, title: m.title + ' · Repaso', activity: { ...m.activity, questions: retry } }, studentId);
+      };
       actions.insertAdjacentHTML('afterbegin','<button type="button" id="showPracticeResult">Resultado</button>');
       $('showPracticeResult').onclick=showResult;
       showResult();
@@ -846,6 +853,34 @@
     $('dialog').addEventListener('close', () => { if (!$('dialog').open) { $('dialog').classList.remove('activity-play'); $('form').noValidate = false; playerAbort?.abort(); } }, { signal });
     const toolbar = document.createElement('div'); toolbar.className = 'step-navigation';
     toolbar.innerHTML = '<button type="button" id="previousQuestion" aria-label="Actividad anterior">←</button><span id="stepPosition" aria-live="polite"></span><button type="button" id="nextQuestion" aria-label="Actividad siguiente">→</button>';
+    let mapDialog;
+    if (gameRun && questions.length > 1) {
+      mapDialog = document.createElement('dialog');
+      mapDialog.className = 'teacher-game-map';
+      mapDialog.setAttribute('aria-labelledby','teacherGameMapTitle');
+      mapDialog.innerHTML = '<header><h2 id="teacherGameMapTitle">Mapa de la partida</h2><button type="button" data-close-map aria-label="Cerrar mapa">×</button></header><ol></ol>';
+      document.body.append(mapDialog);
+      toolbar.insertAdjacentHTML('beforeend','<button class="teacher-map-trigger" type="button" data-game-map aria-haspopup="dialog">Mapa</button>');
+      const trigger = toolbar.querySelector('[data-game-map]');
+      trigger.onclick = () => {
+        const stages = visibleQuestions();
+        mapDialog.querySelector('ol').innerHTML = stages.map((section, n) => {
+          const i = Number(section.dataset.question), q = questions[i], status = stageMark(i);
+          return `<li><button type="button" data-map-step="${i}" ${n===currentStep?'aria-current="step"':''}><b class="${status.tone}">${status.glyph || n+1}</b><span><strong>${escape(activityLabels[q.type])}</strong><small>${escape(status.label)}</small></span><span aria-hidden="true">→</span></button></li>`;
+        }).join('');
+        mapDialog.showModal();
+        mapDialog.querySelector('[aria-current]')?.focus();
+      };
+      mapDialog.querySelector('[data-close-map]').onclick = () => mapDialog.close();
+      mapDialog.addEventListener('click',event=>{
+        const step=event.target.closest('[data-map-step]');
+        if(!step)return;
+        mapDialog.close();
+        showQuestion(Number(step.dataset.mapStep));
+      });
+      mapDialog.addEventListener('close',()=>{if(trigger.isConnected)trigger.focus({preventScroll:true});});
+      signal.addEventListener('abort',()=>{if(mapDialog.open)mapDialog.close();mapDialog.remove();},{once:true});
+    }
     const content = document.createElement('div'); content.className = 'play-content';
     const sections = [...$('form').querySelectorAll('[data-question]')];
     sections[0].before(content); sections.forEach(section => content.append(section));
@@ -888,7 +923,30 @@
     let currentStep = 0;
     const summary=document.createElement('section');summary.className='practice-result';summary.hidden=true;content.append(summary);
     function showResult(){renderSummary();summary.hidden=false;visibleQuestions().forEach(section=>section.hidden=true);toolbar.hidden=true;$('showPracticeResult').hidden=true;content.scrollTop=0;}
-    function renderSummary(){if(!attempt)return;const labels={correct:'✓ Correcta',incorrect:'× Para repasar',partial:'◷ Parcialmente correcta',pending:'◷ Revisión del profesor',unanswered:'— Sin completar'};summary.innerHTML='<h2>Resultado de la práctica</h2><p>'+escape($('activityScore').textContent)+'</p><div class="practice-result-list">'+questions.map((q,i)=>`<button type="button" data-review-question="${i}" class="${attempt.grades[i]}"><span>${i+1}. ${escape(activityLabels[q.type])}</span><small>${labels[attempt.grades[i]]||labels.unanswered}${attempt.grades[i]==='correct'&&wasAssisted(i)?' · con ayuda o reintentos':''}</small><b aria-hidden="true">→</b></button>`).join('')+'</div>';summary.querySelectorAll('[data-review-question]').forEach(button=>button.onclick=()=>showQuestion(Number(button.dataset.reviewQuestion)));}
+    function renderSummary(){
+      if(!attempt)return;
+      const labels={correct:'✓ Correcta',incorrect:'× Para repasar',partial:'◷ Parcialmente correcta',pending:'◷ Revisión del profesor',unanswered:'— Sin completar'};
+      const perfect=attempt.grades.every((grade,i)=>grade==='correct'&&!wasAssisted(i));
+      const resultTitle=gameRun?(perfect?'¡Partida impecable!':'Fin de la partida'):'Resultado de la práctica';
+      summary.innerHTML=`<div class="${gameRun?'teacher-game-finale':''}">${gameRun?`<span class="teacher-game-medal" aria-hidden="true">${perfect?'★':'◆'}</span>`:''}<div><h2>${resultTitle}</h2><p>${escape($('activityScore').textContent)}</p></div></div><div class="practice-result-list">${questions.map((q,i)=>`<button type="button" data-review-question="${i}" class="${attempt.grades[i]}"><span>${i+1}. ${escape(activityLabels[q.type])}</span><small>${labels[attempt.grades[i]]||labels.unanswered}${attempt.grades[i]==='correct'&&wasAssisted(i)?' · con ayuda o reintentos':''}</small><b aria-hidden="true">→</b></button>`).join('')}</div>`;
+      summary.querySelectorAll('[data-review-question]').forEach(button=>button.onclick=()=>showQuestion(Number(button.dataset.reviewQuestion)));
+      if (gameRun) {
+        const again=document.createElement('button');
+        again.type='button';
+        again.className='teacher-game-replay';
+        again.textContent='Volver a jugar';
+        again.onclick=()=>runActivity(m,studentId);
+        summary.append(again);
+      }
+    }
+    function stageMark(index) {
+      const section=sections[index];
+      const result=attempt?.grades[index]||section.dataset.result||(games[index]?.complete?(games[index].correct?'correct':'incorrect'):'');
+      if(result==='correct')return wasAssisted(index)?{tone:'cleared',glyph:'✓',label:'Superado con ayuda o reintentos'}:{tone:'cleared',glyph:'★',label:'Superado a la primera'};
+      if(result==='incorrect'||result==='partial')return {tone:'retry',glyph:'↻',label:'Para repasar'};
+      if(result==='pending')return {tone:'retry',glyph:'◷',label:'Pendiente de revisión'};
+      return {tone:'open',label:section.classList.contains('is-complete')?'En curso':'Por jugar'};
+    }
     const visibleQuestions = () => [...$('form').querySelectorAll('[data-question]')].filter(section => !section.dataset.groupMember);
     const readingTexts = new Set();
     questions.forEach((q, index) => {
@@ -915,13 +973,25 @@
         const controls = [...$('form').querySelectorAll(`[name="r-${index}"]`)];
         return controls.some(control => control.type === 'radio' ? control.checked : String(control.value || '').trim());
       });
-      complete.forEach((done, index) => document.querySelector(`[data-question="${index}"]`)?.classList.toggle('is-complete', done));
+      complete.forEach((done, index) => {
+        const section=sections[index];
+        section.classList.toggle('is-complete', done);
+        if (!boardTypes.has(questions[index].type)) return;
+        const {tone,glyph,label}=stageMark(index);
+        const marker=section.querySelector('.play-number');
+        if (!marker) return;
+        const display=glyph||String(index+1).padStart(2,'0');
+        if (marker.textContent!==display) marker.textContent=display;
+        marker.dataset.checkpoint=tone;
+        marker.title=label;
+        marker.setAttribute('aria-label',`Etapa ${index+1}. ${label}`);
+      });
       const amount = complete.filter(Boolean).length;
       if ($('playCompleted')) $('playCompleted').textContent = `${amount} de ${questions.length} completados`;
       if ($('playProgress')) $('playProgress').style.width = `${Math.round(100 * amount / questions.length)}%`;
     }
 
-    function wasAssisted(index){return practice[index].assisted||Object.values(practice[index].parts).some(part=>part.firstCorrect===false)||['incorrect','assisted'].includes(attempt.firstGrades[index]);}
+    function wasAssisted(index){return practice[index].assisted||Object.values(practice[index].parts).some(part=>part.firstCorrect===false)||['incorrect','assisted'].includes(attempt?.firstGrades[index]);}
     function updateScore() {
       attempt.score = attempt.grades.filter(grade => grade === 'correct').length;
       attempt.pending = attempt.grades.filter(grade => grade === 'pending').length;

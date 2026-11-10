@@ -20,6 +20,12 @@ const material={id:'advanced-layout',title:'Juegos avanzados',subject:'Ciencias'
    page.on('pageerror',error=>errors.push(error.message));
    await page.goto(pathToFileURL(path.resolve('apps/profesor/index.html')).href);
    await page.evaluate(value=>runActivity(value,''),material);
+   await page.getByRole('button',{name:'Mapa',exact:true}).click();
+   const route=page.getByRole('dialog',{name:'Mapa de la partida'});
+   assert.equal(await route.locator('[data-map-step]').count(),questions.length);
+   await route.locator('[data-map-step="1"]').click();
+   assert.equal(await page.locator('.play-question:visible').getAttribute('data-type'),'intruder');
+   await page.getByRole('button',{name:'Actividad anterior'}).click();
    for(let i=0;i<questions.length;i++){
     if(i)await page.getByRole('button',{name:'Actividad siguiente'}).click();
     const type=questions[i].type;

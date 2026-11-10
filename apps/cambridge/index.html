@@ -1383,11 +1383,11 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 </style>
 <link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1">
 <link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261109-4">
-<link rel="stylesheet" href="/assets/cambridge-studio/games.css?v=20261109-2">
+<link rel="stylesheet" href="/assets/cambridge-studio/games.css?v=20261110-play">
 <link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261109-content-4">
 <link rel="stylesheet" href="/assets/study-appearance/appearance.css?v=2">
 <script defer src="/assets/study-appearance/appearance.js?v=1"></script>
-<script src="/assets/cambridge-studio/games.js?v=20261109-2"></script>
+<script src="/assets/cambridge-studio/games.js?v=20261110-play"></script>
 <script src="/assets/cambridge-studio/expansion.js?v=20261109-1"></script>
 </head>
 <body class="english-studio">
@@ -2187,6 +2187,7 @@ function setExamLevel(level) {
   updateEnglishRouteLabels();
   renderEnglishHomeRouteProgress();
   activeB2Game = null;
+  englishReplay = null;
   playingEnglishJourney = false;
   const gameBoard = document.getElementById('b2GameBoard');
   if (gameBoard) gameBoard.innerHTML = '';
@@ -5982,6 +5983,7 @@ const ENGLISH_JOURNEY_BREAKS = {'c1-research':[2,3], 'c1-debate':[2,4], 'c2-obse
 let activeB2Game = null;
 let activeB2Stage = 0;
 let playingEnglishJourney = false;
+let englishReplay = null;
 function b2OptionOrder(count,offset) { return Array.from({length:count},(_,i)=>(i+offset)%count); }
 function englishExpansion(level=state.examLevel) {
   return window.EnglishExpansion?.[level] || {};
@@ -6144,6 +6146,7 @@ function showEnglishGameCatalog(showCatalog) {
 function openB2Game(id, fromJourney = false) {
   const game = englishRouteGames().find(item => item.id === id);
   if (!game) return;
+  englishReplay = null;
   showTab('juegos',document.querySelector('[data-tab-btn="juegos"]'));
   activeB2Game = id;
   playingEnglishJourney = fromJourney;
@@ -6155,13 +6158,29 @@ function openB2Game(id, fromJourney = false) {
   document.getElementById('englishMissionTitle')?.focus({preventScroll:true});
   document.getElementById('b2GameBoard').scrollIntoView({block:'start',behavior:'smooth'});
 }
+function replayEnglishMisses(id) {
+  const game = englishRouteGame(id);
+  if (!game) return;
+  const missed = [...new Set((state.b2Games[id]?.errors || []).map(error=>error.stage))]
+    .filter(index=>Number.isInteger(index) && game.stages[index]).sort((a,b)=>a-b);
+  if (!missed.length) return;
+  englishReplay = {
+    game:{...game, stages:missed.map(index=>game.stages[index]), replaySteps:missed},
+    run:{stage:0,mistakes:0,errors:[]},
+  };
+  activeB2Game = id;
+  activeB2Stage = 0;
+  playingEnglishJourney = false;
+  renderB2GameStage();
+  document.getElementById('englishMissionTitle')?.focus({preventScroll:true});
+}
 function renderB2GameStage() {
-  const game = englishRouteGame(activeB2Game);
+  const game = englishReplay?.game || englishRouteGame(activeB2Game);
   const stage = game?.stages[activeB2Stage];
   if (!stage) return;
   document.getElementById('tab-juegos').classList.add('english-playing');
   if (window.EnglishMissionBoards) {
-    const run=state.b2GameRuns[game.id];
+    const run=englishReplay?.run || state.b2GameRuns[game.id];
     const board = EnglishMissionBoards.render(game,activeB2Stage,run);
     if (board) {
       document.getElementById('b2GameBoard').innerHTML=board;
@@ -6174,7 +6193,7 @@ function renderB2GameStage() {
   const ornament = `<span aria-hidden="true">✦</span><strong>${ornaments[game.id]}</strong><span aria-hidden="true">✦</span>`;
   const art = ENGLISH_GAME_ART[game.id] ? `style="background-image:linear-gradient(#0b2a4650,#0b2a4650),url('${cambridgeGameAsset(ENGLISH_GAME_ART[game.id])}')"` : '';
   document.getElementById('b2GameBoard').innerHTML = `<section class="b2-panel"><div class="b2-game-top"><small>${escHtml(game.skill)} · etapa ${activeB2Stage+1}/${game.stages.length}</small><button type="button" onclick="restartB2Game()">Reiniciar reto</button></div><h2>${escHtml(game.title)}</h2><div class="b2-game-progress" aria-label="Etapa ${activeB2Stage+1} de ${game.stages.length}">${game.stages.map((_,i)=>`<span class="${i<=activeB2Stage?'on':''}"></span>`).join('')}</div><div class="b2-board" data-kind="${game.id}" ${art}><div class="b2-scene-head">${ornament}</div><div class="b2-scene-page"><p>${escHtml(stage.text)}</p>${response}</div></div><div class="b2-feedback" id="b2GameFeedback" role="status">Elige la respuesta en la escena para avanzar.</div><p id="b2GameNext"></p></section>`;
-  if(state.b2GameRuns[game.id]?.solvedStage===activeB2Stage)showB2GameSuccess(game,stage,stage.correct);
+  if((englishReplay?.run || state.b2GameRuns[game.id])?.solvedStage===activeB2Stage)showB2GameSuccess(game,stage,stage.correct);
 }
 function normalizedEnglishGameAnswer(value) {
   return String(value || '').normalize('NFKC').replace(/[‘’]/g,"'").replace(/\s+/g,' ').trim().toLowerCase();
@@ -6185,14 +6204,14 @@ function showB2GameSuccess(game,stage,index) {
   document.querySelectorAll('#b2GameBoard .b2-answer').forEach(control=>control.disabled=true);
   const nextStage = activeB2Stage + 1;
   const action = nextStage === game.stages.length ? 'Terminar partida' :
-    englishJourneyCheckpoint(game,nextStage) ? 'Ver la siguiente parada →' : 'Siguiente etapa →';
+    !englishReplay && englishJourneyCheckpoint(game,nextStage) ? 'Ver la siguiente parada →' : 'Siguiente etapa →';
   document.getElementById('b2GameNext').innerHTML = `<button type="button" onclick="nextB2GameStage()">${action}</button>`;
   window.EnglishMissionBoards?.result(true,index);
 }
 function answerB2Game(index) {
-  const game = englishRouteGame(activeB2Game);
+  const game = englishReplay?.game || englishRouteGame(activeB2Game);
   const stage = game?.stages[activeB2Stage];
-  const run = game && state.b2GameRuns[game.id];
+  const run = englishReplay?.run || (game && state.b2GameRuns[game.id]);
   if (!stage || !run || run.stage!==activeB2Stage || run.solvedStage===activeB2Stage) return false;
   const typed = normalizedEnglishGameAnswer(document.getElementById('b2TypedAnswer')?.value);
   if(stage.options && (!Number.isInteger(index) || index<0 || index>=stage.options.length))return false;
@@ -6203,7 +6222,7 @@ function answerB2Game(index) {
     run.errors = Array.isArray(run.errors) ? run.errors : [];
     run.errors.push({stage:activeB2Stage,answer:stage.options ? stage.options[index] : typed});
     run.updatedAt = new Date().toISOString();
-    persist();
+    if (!englishReplay) persist();
     document.getElementById('b2GameFeedback').textContent = 'Todavía no. Revisa el texto y prueba otra pieza.';
     document.querySelectorAll('#b2GameBoard .b2-scene-option').forEach(button=>button.classList.toggle('incorrect',Number(button.dataset.answerIndex)===index));
     window.EnglishMissionBoards?.result(false,index);
@@ -6211,14 +6230,27 @@ function answerB2Game(index) {
   }
   run.solvedStage=activeB2Stage;
   run.updatedAt=new Date().toISOString();
-  persist();
+  if (!englishReplay) persist();
   showB2GameSuccess(game,stage,index);
   return true;
 }
 function nextB2GameStage() {
-  const game = englishRouteGame(activeB2Game);
-  const run=game && state.b2GameRuns[game.id];
+  const game = englishReplay?.game || englishRouteGame(activeB2Game);
+  const run=englishReplay?.run || (game && state.b2GameRuns[game.id]);
   if(!game || !run || run.solvedStage!==activeB2Stage){const feedback=document.getElementById('b2GameFeedback');if(feedback)feedback.textContent='Resuelve esta etapa antes de continuar.';return false;}
+  if (englishReplay) {
+    if (++activeB2Stage < game.stages.length) {
+      delete run.solvedStage;
+      run.stage = activeB2Stage;
+      renderB2GameStage();
+      document.getElementById('englishMissionTitle')?.focus({preventScroll:true});
+    } else {
+      document.getElementById('b2GameBoard').innerHTML = `<section class="b2-panel mission-panel"><div class="mission-finale"><div class="mission-finale-medal" aria-hidden="true">✓</div><h2 tabindex="-1" id="englishReplayFinished">¡Desvío completado!</h2><p>Has recuperado ${game.stages.length === 1 ? 'la etapa pendiente' : 'las '+game.stages.length+' etapas pendientes'}.</p><div class="mission-finale-actions"><button type="button" onclick="closeEnglishGame()">Volver al recorrido →</button></div></div></section>`;
+      englishReplay = null;
+      document.getElementById('englishReplayFinished').focus({preventScroll:true});
+    }
+    return;
+  }
   if (++activeB2Stage < game.stages.length) {
     delete run.solvedStage;
     state.b2GameRuns[game.id].stage = activeB2Stage;
@@ -6240,11 +6272,13 @@ function nextB2GameStage() {
   const review = errors.length ? `<details class="b2-game-review"><summary>Revisar ${errors.length} ${errors.length===1?'intento':'intentos'}</summary>${errors.map(error => `<p><strong>Etapa ${error.stage+1}:</strong> ${escHtml(error.answer)}. ${escHtml(game.stages[error.stage]?.why || '')}</p>`).join('')}</details>` : '';
   const writingLink = game.id === 'mailroom' ? `<button type="button" onclick="showTab('escrita')">Escribir mi correo completo →</button>` : '';
   const finale=window.EnglishMissionBoards ? EnglishMissionBoards.complete(game,mistakes) : `<h2>Reto completado</h2><p>Has resuelto las ${game.stages.length} etapas de ${escHtml(game.title)}.</p>`;
-  document.getElementById('b2GameBoard').innerHTML = `<section class="b2-panel mission-panel">${finale}${review}${writingLink}<div class="mission-finale-actions"><button type="button" onclick="closeEnglishGame()">Volver al recorrido →</button><button type="button" onclick="openB2Game('${game.id}')">Volver a jugar</button><button type="button" onclick="closeEnglishGame(true)">Ver todos los juegos</button></div></section>`;
+  const recovery = errors.length ? `<button type="button" class="mission-replay-action" onclick="replayEnglishMisses('${game.id}')">Recuperar etapas falladas →</button>` : '';
+  document.getElementById('b2GameBoard').innerHTML = `<section class="b2-panel mission-panel">${finale}${review}${writingLink}<div class="mission-finale-actions">${recovery}<button type="button" onclick="closeEnglishGame()">Volver al recorrido →</button><button type="button" onclick="openB2Game('${game.id}')">Volver a jugar</button><button type="button" onclick="closeEnglishGame(true)">Ver todos los juegos</button></div></section>`;
   renderB2Games();
 }
 function closeEnglishGame(showCatalog = false) {
   activeB2Game=null;
+  englishReplay=null;
   playingEnglishJourney=false;
   document.getElementById('tab-juegos').classList.remove('english-playing');
   document.getElementById('b2GameBoard').innerHTML='';
@@ -6261,6 +6295,7 @@ function closeEnglishGame(showCatalog = false) {
 }
 function restartB2Game() {
   if (!activeB2Game) return;
+  if (englishReplay) return replayEnglishMisses(activeB2Game);
   state.b2GameRuns[activeB2Game] = {stage:0,mistakes:0,errors:[],updatedAt:new Date().toISOString()};
   activeB2Stage = 0;
   persist();

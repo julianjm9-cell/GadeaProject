@@ -44,6 +44,7 @@ for(const [name,engine,launch] of [['Chromium',chromium,{headless:true,channel:'
       else{await page.locator('#b2TypedAnswer').fill(game.id==='machine'&&i===1?'don’t have to bring':stage.answer);await page.locator('#b2TypedAnswer').press('Enter');}
       assert.equal(await page.locator('.mission-board').getAttribute('data-status'),'solved');
       assert.match(await page.locator('#b2GameFeedback').textContent(),/Correcto/);
+      assert.equal(await page.locator('[data-mission-log] li').count(),i+1);
       assert.equal(await page.evaluate(()=>answerB2Game(0)),false,'a checked stage cannot be charged twice');
       if(game.id==='opencloze'&&i===0){
        await page.evaluate(()=>cambridgeSaveQueue);await page.reload();await page.waitForFunction(()=>cambridgeStateETag!==null);await page.evaluate(id=>openB2Game(id),game.id);
@@ -54,6 +55,16 @@ for(const [name,engine,launch] of [['Chromium',chromium,{headless:true,channel:'
      assert.equal(await page.locator('.mission-finale').count(),1);
      assert.deepEqual(await page.evaluate(id=>({plays:state.b2Games[id].plays,mistakes:state.b2Games[id].mistakes,finished:state.b2Games[id].completed}),game.id),{plays:1,mistakes:1,finished:true});
      await page.evaluate(()=>nextB2GameStage());assert.equal(await page.evaluate(id=>state.b2Games[id].plays,game.id),1);
+     if(game.id==='opencloze'){
+      await page.getByRole('button',{name:'Recuperar etapas falladas →'}).click();
+      assert.equal(await page.locator('.mission-route li').count(),1,'el desvío abre únicamente las etapas falladas');
+      await place(page,game.stages[0].correct,{keyboard:true});
+      await page.locator('#b2GameNext button').click();
+      await page.getByRole('heading',{name:'¡Desvío completado!'}).waitFor();
+      assert.equal(await page.evaluate(id=>state.b2Games[id].plays,game.id),1,'la práctica extra no sobrescribe el resultado');
+      await page.getByRole('button',{name:'Volver al recorrido →'}).click();
+      continue;
+     }
      await page.getByRole('button',{name:'Ver todos los juegos',exact:true}).click();assert.equal(await page.locator('#b2GameList').isVisible(),true);
     }
    }

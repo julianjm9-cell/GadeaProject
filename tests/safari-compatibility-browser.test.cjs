@@ -78,6 +78,7 @@ test('ESO Adultos and Profesor Particular work with WebKit touch and Chromium at
           assert.ok(esoOverflow <= 2,`${name} ESO ${viewport.width} horizontal overflow ${esoOverflow}`);
           const correct = await page.evaluate(() => { const mod=MODULES.find(item=>item.id==='matematicas');const topic=mod.tasks.find(item=>item.id==='mat-geometria');return EsoAdultGames.topicQuest(topic,mod,MODEL_UNITS).stations[0].correct; });
           await page.locator('.eso-object-answers button').nth(correct).tap();
+          await page.locator('[data-eso-dock]').tap();
           assert.equal(await page.locator('.eso-object-board[data-solved="true"]').count(),1,`${name} ESO touch answer ${viewport.width}`);
           await page.evaluate(() => startGame('mat-geometria','quiz'));
           const quizCorrect=await page.evaluate(() => { const mod=MODULES.find(item=>item.id==='matematicas'),topic=mod.tasks.find(item=>item.id==='mat-geometria');return EsoAdultGames.topicQuiz(topic,mod,MODEL_UNITS)[0].correct; });

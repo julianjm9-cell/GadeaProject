@@ -85,6 +85,12 @@ for (const [name, engine, options, app, width] of [
           await page.keyboard.press('Escape');
           await page.getByRole('button',{name:'Iniciar misión →'}).click();
           assert.match(await game.locator('.faro-round').innerText(), /1 giro/);
+          const direction=game.getByRole('button',{name:'Girar en sentido antihorario'});
+          await direction.click();
+          assert.equal(await direction.getAttribute('aria-pressed'),'true');
+          await first.click();
+          assert.match(await game.locator('.faro-round').innerText(), /2 giros/);
+          await direction.click();
           await game.getByRole('button',{name:'Reiniciar mapa'}).click();
         }
         if (index === 2) assert.match(await status.innerText(), /Cortocircuito/);

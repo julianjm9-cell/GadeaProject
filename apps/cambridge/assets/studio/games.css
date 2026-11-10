@@ -145,3 +145,13 @@
 @media(max-width:720px){.mission-board[data-status=solved] .mission-guide{left:min(calc(100% - 65px),calc(var(--stop) + 22%))}}
 
 .english-studio .mission-board[data-kind=machine] .mission-bank :is(span,small){color:#31566d}.english-studio .mission-board[data-kind=machine] .mission-machine-display>small{color:#477665}
+.mission-panel .mission-field-log{margin:10px 0 0;padding:8px 10px;border:1px solid #b4cfdb;border-radius:11px;background:#f0f9fa;color:#143e53}
+.mission-field-log>summary{cursor:pointer;font-weight:800}
+.mission-field-log>summary b{margin-inline:4px;color:#216987}
+.mission-field-log>summary span{float:right;color:#285b70;font-variant-numeric:tabular-nums}
+.mission-field-log>ol,.mission-finale .mission-loot{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(156px,100%),1fr));gap:7px;margin:9px 0 0;padding:0;list-style:none;text-align:left}
+.mission-field-log li,.mission-loot li{display:flex;align-items:center;gap:8px;min-width:0;padding:7px 9px;border:1px solid #c6ddd9;border-radius:9px;background:#f4fbf7;color:#174c40}
+.mission-field-log li>b,.mission-loot li>b{display:grid;place-items:center;flex:none;width:26px;height:26px;border-radius:8px;background:#dcf0e4;color:#23614c}
+.mission-field-log li small,.mission-loot li small{display:block;color:#39675e;font-size:.7rem}
+.mission-field-log li strong,.mission-loot li strong{display:block;overflow-wrap:anywhere;font-size:.85rem;line-height:1.3}
+.mission-finale-actions button.mission-replay-action{background:#165e62;color:#fff;border-color:#165e62}

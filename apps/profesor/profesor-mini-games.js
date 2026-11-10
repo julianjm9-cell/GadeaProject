@@ -67,6 +67,7 @@
     const bingoScene=bingoScenes[sceneId];
     let value=kind==='mystery'?{answer:typeof config.value?.answer==='string'?config.value.answer:'',cluesUsed:Math.max(1,Math.min(3,Number(config.value?.cluesUsed)||1))}:kind==='bingo'?Array.from({length:9},(_,i)=>config.value?.[i]||''):typeof config.value==='string'?config.value:'';
     let result=config.result,parts={...(config.parts||{})},explanation=config.explanation||'',active=Math.max(0,Math.min(8,Number(config.focus)||0)),busy=false,message='';
+    let moving = null;
     const options=shuffle(config.options||[],config.seed||kind),cards=config.cards||[],clues=config.clues||[];
     const marks=()=>new Set(Object.keys(parts).filter(index=>parts[index]==='correct').map(index=>value[index]));
     const lines=()=>{const done=marks(),hit=i=>done.has(cards[i]?.token);return [...[0,1,2].map(r=>[r*3,r*3+1,r*3+2]),...[0,1,2].map(c=>[c,c+3,c+6]),[0,4,8],[2,4,6]].filter(line=>line.every(hit)).length;};
@@ -110,7 +111,35 @@
         root.querySelectorAll('[data-bingo-card]').forEach(button=>button.onclick=()=>{if(locked||busy||currentResult==='correct')return;value[active]=cards[Number(button.dataset.bingoCard)].token;delete parts[active];changed();draw();root.querySelector(`[data-bingo-card="${button.dataset.bingoCard}"]`)?.focus({preventScroll:true});});
         root.querySelector('[data-bingo-prev]').onclick=()=>advance(-1);root.querySelector('[data-bingo-next]').onclick=()=>advance(1);
       }
-      root.querySelector('[data-mini-check]')?.addEventListener('click',check);
+      const target = root.querySelector('[data-mini-check]');
+      target?.addEventListener('click',check);
+      if (locked || busy || kind==='mystery' || !target) return;
+      const selector = kind==='intruder'?'[data-intruder]':'[data-bingo-card]';
+      const label = kind==='intruder'?'Retirar del tablero':'Sellar en el cartón';
+      target.textContent = label;
+      target.dataset.miniDock = '';
+      root.querySelectorAll(selector).forEach(button=>{
+        if(button.disabled)return;
+        button.draggable=true;
+        button.ondragstart=event=>{
+          moving=button;
+          event.dataTransfer.setData('application/x-profesor-mini',kind);
+          event.dataTransfer.effectAllowed='move';
+          target.classList.add('mini-target-ready');
+        };
+        button.ondragend=()=>{moving=null;target.classList.remove('mini-target-ready');};
+      });
+      target.ondragover=event=>{
+        if(!moving||target.disabled)return;
+        event.preventDefault();event.dataTransfer.dropEffect='move';
+      };
+      target.ondrop=event=>{
+        event.preventDefault();
+        if(!moving||target.disabled||event.dataTransfer.getData('application/x-profesor-mini')!==kind)return;
+        const piece=moving;moving=null;
+        piece.click();
+        check();
+      };
     }
     draw();return {value:()=>copy(value),review(feedback){result=feedback.result;parts={...(feedback.parts||{})};explanation=feedback.explanation||explanation;draw();}};
   };

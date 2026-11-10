@@ -46,9 +46,11 @@ test('los nueve temas de Inglés muestran escenas utilizables en los tres juegos
 
     await page.evaluate(() => startGame('ing-reading', 'quest'));
     await page.locator('.eso-object-answers button,.eso-math-options button').first().click();
+    await page.locator('[data-eso-dock]').click();
     assert.match(await page.locator('.eso-mission-feedback').innerText(), /no encaja/i);
     assert.equal(await page.locator('.eso-object-answers button.wrong,.eso-math-options button.wrong').count(), 1);
     await page.locator('.eso-object-answers button,.eso-math-options button').nth(1).click();
+    await page.locator('[data-eso-dock]').click();
     assert.match(await page.locator('.eso-mission-feedback').innerText(), /Correcto/);
     await page.getByRole('button', {name:/Siguiente etapa/}).click();
     assert.equal(await page.locator('.eso-object-steps > span.complete,.eso-math-stage-rail > span.complete').count(), 1);
@@ -64,6 +66,7 @@ test('los nueve temas de Inglés muestran escenas utilizables en los tres juegos
       const answers = await page.evaluate(id => EsoEnglishMissions[id].stages.map(stage => stage.correct), topicId);
       for (const answer of answers) {
         await page.locator('.eso-object-answers button,.eso-math-options button').nth(answer).click();
+        await page.locator('[data-eso-dock]').click();
         await page.getByRole('button', {name:/Siguiente etapa|Ver resultado/}).click();
       }
       assert.match(await page.locator('.eso-game-result').innerText(), /100 %/, `${topicId}: resultado de la misión`);

@@ -284,6 +284,39 @@
 if (typeof window !== 'undefined') {
   let gameSubject = null;
   let gameRun = null;
+  const dockVerbs = {
+    document:'Sellar el documento', map:'Marcar en el mapa', dialogue:'Enviar el mensaje',
+    lab:'Activar el experimento', route:'Abrir la siguiente parada', dashboard:'Aplicar al panel',
+    archive:'Archivar la prueba', ledger:'Registrar en el libro',
+    'mat-numeros':'Cerrar la caja', 'mat-proporciones':'Confirmar el pedido', 'mat-finanzas':'Validar la factura',
+    'mat-problemas':'Completar la receta', 'ing-reading':'Archivar la pista', 'ing-vocabulary':'Colocar la señal',
+    'ing-grammar':'Fijar en el calendario', 'ing-writing':'Enviar el correo',
+  };
+
+  function missionPieces(stage, run, solved) {
+    return stage.choices.map((choice, index) => {
+      const wrong = run.missionTried[stage.id]?.includes(index);
+      const mark = solved && index === stage.correct ? 'correct' : wrong ? 'wrong' : '';
+      const glyph = mark === 'correct' ? '✓' : wrong ? '↶' : '◇';
+      return `<button type="button" data-eso-piece="${index}" class="${mark}" aria-pressed="false" draggable="${!solved && !wrong}" onclick="pickMissionPiece(${index},event.detail === 0)" ondragstart="dragMissionPiece(event,${index})" ${solved || wrong ? 'disabled' : ''}><b aria-hidden="true">${glyph}</b><strong>${escapeHtml(choice)}</strong></button>`;
+    }).join('');
+  }
+
+  function missionDock(key, solved, compact = false) {
+    const label = dockVerbs[key] || 'Colocar en la escena';
+    return solved ? '' : `<button class="eso-mission-dock" type="button" data-eso-dock aria-disabled="true" aria-label="${escapeHtml(label)}" onclick="dockMissionPiece()" ondragover="allowMissionDrop(event)" ondrop="dropMissionPiece(event)"><span aria-hidden="true">⊕</span>${compact?'':`<span>${escapeHtml(label)}</span>`}</button>`;
+  }
+
+  function missionCollection(run) {
+    if (run.kind !== 'quest') return '';
+    const story = run.quest.mode === 'story';
+    const contents = run.quest.stations.map((stage, index) => {
+      const placed = run.questPlaced[stage.id];
+      const found = story ? stage.choices[placed] : run.quest.cards[placed]?.text;
+      return found ? `<li><b aria-hidden="true">✓</b><span><small>${escapeHtml(stage.place || 'Estación '+(index+1))}</small><strong>${escapeHtml(found)}</strong></span></li>` : '';
+    }).join('');
+    return `<details class="eso-mission-collection"><summary>Piezas que has colocado</summary><ol>${contents}</ol></details>`;
+  }
 
   window.installGamesShortcut = function () {
     const shortcuts = document.querySelector('.today-shortcuts');
@@ -365,7 +398,7 @@ if (typeof window !== 'undefined') {
       const score = run.score;
       const detail = run.kind === 'quiz' ? `${run.answers.filter(Boolean).length} de ${total} respuestas correctas` : run.kind === 'pairs' ? `${total} parejas encontradas en ${run.moves} intentos` : `${total} ${run.quest?.mode === 'story' ? 'etapas' : 'estaciones'} completadas con ${run.questMistakes} intentos fallidos`;
       const saveMessage = run.saveStatus === 'saved' ? 'Tu resultado está guardado.' : run.saveStatus === 'failed' ? 'No se ha podido guardar el resultado. Sigue en esta pantalla; puedes reintentar o descargar una copia de tu progreso.' : 'Guardando tu resultado…';
-      root.innerHTML = `<div class="eso-game-run">${head}<div class="eso-game-result"><span class="result-medal" aria-hidden="true">${score >= 70 ? '★' : '↻'}</span><h3>${score >= 70 ? '¡Buen trabajo!' : 'Sigue practicando'}</h3><p>${detail} · ${score} %.</p><p role="status">${saveMessage}</p><div class="result-actions">${run.saveStatus === 'failed' ? '<button type="button" onclick="retryGameSave()">Reintentar guardado</button><button type="button" onclick="downloadEsoProgress()">Descargar copia</button>' : ''}<button class="primary" type="button" onclick="startGame('${run.topic.id}','${run.kind}')">Jugar de nuevo</button><button type="button" onclick="openGames('${run.module.id}')">Ver más juegos</button><button type="button" onclick="openModule('${run.module.id}');openTopic('${run.topic.id}')">Estudiar el tema</button></div></div></div>`;
+      root.innerHTML = `<div class="eso-game-run">${head}<div class="eso-game-result"><span class="result-medal" aria-hidden="true">${score >= 70 ? '★' : '↻'}</span><h3>${run.kind==='quest' ? '¡Misión completada!' : score >= 70 ? '¡Buen trabajo!' : 'Sigue practicando'}</h3><p>${detail} · ${score} %.</p><p role="status">${saveMessage}</p>${missionCollection(run)}<div class="result-actions">${run.saveStatus === 'failed' ? '<button type="button" onclick="retryGameSave()">Reintentar guardado</button><button type="button" onclick="downloadEsoProgress()">Descargar copia</button>' : ''}<button class="primary" type="button" onclick="startGame('${run.topic.id}','${run.kind}')">Jugar de nuevo</button><button type="button" onclick="openGames('${run.module.id}')">Ver más juegos</button><button type="button" onclick="openModule('${run.module.id}');openTopic('${run.topic.id}')">Estudiar el tema</button></div></div></div>`;
       return;
     }
     if (run.kind === 'quiz') {
@@ -443,7 +476,7 @@ if (typeof window !== 'undefined') {
       <div class="eso-mission-scene"><img class="eso-mission-backdrop" src="${art}" alt="" width="1440" height="810">
         <div class="eso-mission-layout"><div class="eso-mission-header"><span class="eso-mission-symbol" aria-hidden="true">${escapeHtml(scene.symbol)}</span><div><small>${escapeHtml(scene.place)} · misión ${run.missionStep + 1} de ${total}</small><h3>${escapeHtml(run.quest.title)}</h3><p>${escapeHtml(run.quest.brief)}</p></div></div>
           <div class="eso-mission-steps" aria-label="Etapas de la misión">${run.quest.stations.map((item,index)=>`<span class="${index === run.missionStep ? 'current' : index < run.missionStep ? 'complete' : ''}" ${index === run.missionStep ? 'aria-current="step"' : ''}><b>${index < run.missionStep ? '✓' : index + 1}</b>${escapeHtml(item.place)}</span>`).join('')}</div>
-          <div class="eso-mission-panel"><span class="eso-mission-context">${escapeHtml(stage.context)}</span><h4>${escapeHtml(stage.prompt)}</h4><div class="eso-mission-choices">${stage.choices.map((choice,index)=>`<button type="button" class="${solved && index === stage.correct ? 'correct' : run.missionTried[stage.id]?.includes(index) ? 'wrong' : ''}" onclick="chooseMissionAnswer(${index})" ${solved || run.missionTried[stage.id]?.includes(index) ? 'disabled' : ''}><span aria-hidden="true">${String.fromCharCode(65+index)}</span>${escapeHtml(choice)}</button>`).join('')}</div><div class="eso-mission-bottom"><p class="eso-mission-feedback ${run.missionWrong !== null && !solved ? 'error' : solved ? 'success' : ''}" role="status" aria-live="polite">${escapeHtml(run.missionFeedback || 'Elige la respuesta que resuelve esta etapa.')}</p>${solved ? `<button type="button" class="primary" onclick="nextMissionStep()">${run.missionStep + 1 < total ? 'Siguiente etapa' : 'Ver resultado'} →</button>` : ''}</div></div>
+          <div class="eso-mission-panel"><span class="eso-mission-context">${escapeHtml(stage.context)}</span><h4>${escapeHtml(stage.prompt)}</h4><div class="eso-mission-choices">${missionPieces(stage,run,solved)}</div><div class="eso-mission-bottom"><p class="eso-mission-feedback ${run.missionWrong !== null && !solved ? 'error' : solved ? 'success' : ''}" role="status" aria-live="polite">${escapeHtml(run.missionFeedback || 'Toca una pieza y su destino, o arrástrala.')}</p>${solved ? `<button type="button" class="primary" onclick="nextMissionStep()">${run.missionStep + 1 < total ? 'Siguiente etapa' : 'Ver resultado'} →</button>` : missionDock(scene.kind, false)}</div></div>
         </div>
       </div>
     </div>`;
@@ -458,18 +491,18 @@ if (typeof window !== 'undefined') {
       const complete = Number.isInteger(run.questPlaced[item.id]);
       const current = index === run.missionStep;
       const label = complete ? item.choices[item.correct] : item.place;
-      return `<span class="${complete ? 'complete' : current ? 'current' : ''}" aria-label="${escapeHtml(item.place)}: ${complete ? `completada, ${escapeHtml(label)}` : current ? 'etapa actual' : 'pendiente'}"><b aria-hidden="true">${complete ? '✓' : index + 1}</b><small title="${escapeHtml(label)}">${escapeHtml(label)}</small></span>`;
+      return `<span class="${complete ? 'complete' : current ? 'current' : ''}" aria-label="${escapeHtml(item.place)}: ${complete ? `completada, ${escapeHtml(label)}` : current ? 'etapa actual' : 'pendiente'}"><b aria-hidden="true">${complete ? '✓' : index + 1}</b><small title="${escapeHtml(label)}">${escapeHtml(label)}</small>${current ? missionDock(board.kind, solved, true) : ''}</span>`;
     }).join('');
-    const choices = stage.choices.map((choice, index) => `<button type="button" class="${solved && index === stage.correct ? 'correct' : run.missionTried[stage.id]?.includes(index) ? 'wrong' : ''}" onclick="chooseMissionAnswer(${index})" ${solved || run.missionTried[stage.id]?.includes(index) ? 'disabled' : ''} aria-label="Opción ${String.fromCharCode(65 + index)}: ${escapeHtml(choice)}"><b aria-hidden="true">${String.fromCharCode(65 + index)}</b><span>${escapeHtml(choice)}</span></button>`).join('');
+    const choices = missionPieces(stage, run, solved);
     root.innerHTML = `<div class="eso-game-run eso-object-run" data-mission="${escapeHtml(run.topic.id)}" data-board="${board.kind}" data-layout="${board.layout}">${head}
       <div class="eso-game-progress" role="progressbar" aria-label="Etapas completadas" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${progress}"><span style="width:${progress / total * 100}%"></span></div>
       <div class="eso-object-steps" aria-label="Etapas de la misión">${stepNames}</div>
       <div class="eso-object-board" data-solved="${solved}"><img src="${art}" alt="" width="1440" height="810">
         <div class="eso-object-scene-title"><span aria-hidden="true">${escapeHtml(run.quest.symbol || '✦')}</span><div><small>${escapeHtml(run.quest.place)}</small><strong>${escapeHtml(run.quest.title)}</strong></div></div>
         <div class="eso-object-surface"><div class="eso-object-head"><span class="eso-object-seal" aria-hidden="true">${escapeHtml(run.quest.symbol || '✦')}</span><div><small>${escapeHtml(board.object)} · ${escapeHtml(stage.place)}</small><strong>${escapeHtml(stage.prompt)}</strong></div></div><p>${escapeHtml(stage.context)}</p><div class="eso-object-artefact" aria-label="Progreso en ${escapeHtml(board.object)}">${artifact}</div></div>
-        <div class="eso-object-answers" role="group" aria-label="Respuestas de ${escapeHtml(stage.place)}"><small>${escapeHtml(board.object)} · elige la respuesta correcta</small>${choices}</div>
+        <div class="eso-object-answers" role="group" aria-label="Piezas de ${escapeHtml(stage.place)}"><small>Elige una pieza para usarla en la escena</small>${choices}</div>
       </div>
-      <div class="eso-object-feedback"><p class="eso-mission-feedback ${run.missionWrong !== null && !solved ? 'error' : solved ? 'success' : ''}" role="status" aria-live="polite">${escapeHtml(run.missionFeedback || 'Elige la respuesta en la escena.')}</p>${solved ? `<button type="button" class="primary" onclick="nextMissionStep()">${run.missionStep + 1 < total ? 'Siguiente etapa' : 'Ver resultado'} →</button>` : ''}</div>
+      <div class="eso-object-feedback"><p class="eso-mission-feedback ${run.missionWrong !== null && !solved ? 'error' : solved ? 'success' : ''}" role="status" aria-live="polite">${escapeHtml(run.missionFeedback || 'Toca una pieza y su destino, o arrástrala.')}</p>${solved ? `<button type="button" class="primary" onclick="nextMissionStep()">${run.missionStep + 1 < total ? 'Siguiente etapa' : 'Ver resultado'} →</button>` : ''}</div>
     </div>`;
   }
 
@@ -480,7 +513,7 @@ if (typeof window !== 'undefined') {
     const english = run.module.id === 'ingles';
     const scene = english ? EsoAdultGames.englishScene(run.topic) : null;
     const steps = run.quest.stations.map((item, index) => `<span class="${index === run.missionStep ? 'current' : index < run.missionStep ? 'complete' : ''}" ${index === run.missionStep ? 'aria-current="step"' : ''}><b>${index < run.missionStep ? '✓' : index + 1}</b>${escapeHtml(item.place)}</span>`).join('');
-    const choices = stage.choices.map((choice, index) => `<button type="button" class="${solved && index === stage.correct ? 'correct' : run.missionTried[stage.id]?.includes(index) ? 'wrong' : ''}" onclick="chooseMissionAnswer(${index})" ${solved || run.missionTried[stage.id]?.includes(index) ? 'disabled' : ''} aria-label="Opción ${String.fromCharCode(65 + index)}: ${escapeHtml(choice)}"><span aria-hidden="true">${String.fromCharCode(65 + index)}</span><strong>${escapeHtml(choice)}</strong></button>`).join('');
+    const choices = missionPieces(stage, run, solved);
     root.innerHTML = `<div class="eso-game-run eso-mission-run eso-illustrated-run ${english ? 'eso-english-run eso-english-illustrated' : 'eso-math-run eso-math-illustrated'}" data-mission="${run.topic.id}">${head}
       <div class="eso-game-progress" role="progressbar" aria-label="Etapas completadas" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${progress}"><span style="width:${progress / total * 100}%"></span></div>
       <div class="eso-math-stage-rail" aria-label="Etapas de la misión">${steps}</div>
@@ -488,22 +521,72 @@ if (typeof window !== 'undefined') {
         <img class="eso-math-backdrop" src="${art}" alt="" width="1672" height="939">
         <div class="eso-math-board-title"><span aria-hidden="true">${escapeHtml(scene?.symbol || run.quest.symbol || '✦')}</span><strong>${escapeHtml(run.quest.title)}</strong></div>
         <div class="eso-math-ticket"><small>${escapeHtml(stage.place)} · etapa ${run.missionStep + 1} de ${total}</small><p>${escapeHtml(stage.context)}</p><h3>${escapeHtml(stage.prompt)}</h3></div>
+        ${missionDock(run.topic.id, solved)}
         <div class="eso-math-options" role="group" aria-label="Respuestas para ${escapeHtml(stage.place)}">${choices}</div>
       </div>
-      <div class="eso-math-feedback-row"><p class="eso-mission-feedback ${run.missionWrong !== null && !solved ? 'error' : solved ? 'success' : ''}" role="status" aria-live="polite">${escapeHtml(run.missionFeedback || 'Elige la respuesta en el tablero.')}</p>${solved ? `<button type="button" class="primary" onclick="nextMissionStep()">${run.missionStep + 1 < total ? 'Siguiente etapa' : 'Ver resultado'} →</button>` : ''}</div>
+      <div class="eso-math-feedback-row"><p class="eso-mission-feedback ${run.missionWrong !== null && !solved ? 'error' : solved ? 'success' : ''}" role="status" aria-live="polite">${escapeHtml(run.missionFeedback || 'Toca una pieza y su destino, o arrástrala.')}</p>${solved ? `<button type="button" class="primary" onclick="nextMissionStep()">${run.missionStep + 1 < total ? 'Siguiente etapa' : 'Ver resultado'} →</button>` : ''}</div>
     </div>`;
   }
+
+  function currentMission() {
+    const run = gameRun;
+    return run?.kind === 'quest' && run.quest.mode === 'story' && !run.finished ? run.quest.stations[run.missionStep] : null;
+  }
+
+  window.pickMissionPiece = function (index, focusDock = false) {
+    const stage = currentMission();
+    const dock = document.querySelector('[data-eso-dock]');
+    if (!dock || !stage?.choices[index] || gameRun.missionTried[stage.id]?.includes(index)) return false;
+    gameRun.missionSelected = index;
+    document.querySelectorAll('[data-eso-piece]').forEach(piece => {
+      piece.setAttribute('aria-pressed', String(Number(piece.dataset.esoPiece) === index));
+    });
+    dock.setAttribute('aria-disabled','false');
+    document.querySelector('#gamesView .eso-mission-feedback').textContent = `Pieza preparada. ${dock.getAttribute('aria-label')} para comprobarla.`;
+    if (focusDock) dock.focus({preventScroll:true});
+    return true;
+  };
+
+  window.dragMissionPiece = function (event, index) {
+    if (!pickMissionPiece(index)) return;
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('application/x-eso-mission', JSON.stringify([gameRun.topic.id,currentMission().id,index]));
+  };
+
+  window.allowMissionDrop = function (event) {
+    if (!event.dataTransfer.types.includes('application/x-eso-mission')) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  };
+
+  window.dropMissionPiece = function (event) {
+    event.preventDefault();
+    let item;
+    try { item = JSON.parse(event.dataTransfer.getData('application/x-eso-mission')); } catch { return; }
+    if (!Array.isArray(item) || item[0] !== gameRun?.topic.id || item[1] !== currentMission()?.id || !pickMissionPiece(item[2])) return;
+    dockMissionPiece();
+  };
+
+  window.dockMissionPiece = function () {
+    const index = gameRun?.missionSelected;
+    if (!Number.isInteger(index)) return;
+    const stage = currentMission();
+    chooseMissionAnswer(index);
+    const next = stage?.correct === index ? '#gamesView button[onclick="nextMissionStep()"]' : '#gamesView [data-eso-piece]:not(:disabled)';
+    document.querySelector(next)?.focus({preventScroll:true});
+  };
 
   window.chooseMissionAnswer = function (index) {
     const run = gameRun;
     if (!run || run.kind !== 'quest' || run.quest?.mode !== 'story' || run.finished) return;
     const stage = run.quest.stations[run.missionStep];
     if (!stage || Number.isInteger(run.questPlaced[stage.id]) || !Number.isInteger(index) || index < 0 || index >= stage.choices.length || run.missionTried[stage.id]?.includes(index)) return;
+    run.missionSelected = null;
     if (index !== stage.correct) {
       run.questMistakes += 1;
       (run.missionTried[stage.id] ||= []).push(index);
       run.missionWrong = index;
-      run.missionFeedback = 'Esa opción no encaja. Lee de nuevo la situación y prueba otra.';
+      run.missionFeedback = `La pieza «${stage.choices[index]}» no encaja en ${stage.place}. Prueba otra.`;
     } else {
       run.questPlaced[stage.id] = index;
       run.missionWrong = null;

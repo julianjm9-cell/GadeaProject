@@ -23,6 +23,7 @@ test('las once misiones de Lengua muestran su escena y se pueden completar', asy
       const answers = await page.evaluate(id => EsoLanguageMissions[id].stages.map(stage => stage.correct),topicId);
       for (const answer of answers) {
         await page.locator('.eso-object-answers button').nth(answer).click();
+        await page.locator('[data-eso-dock]').click();
         assert.match(await page.locator('.eso-mission-feedback').innerText(),/Correcto/,`${topicId}: corrección`);
         await page.getByRole('button',{name:/Siguiente etapa|Ver resultado/}).click();
       }
@@ -32,6 +33,7 @@ test('las once misiones de Lengua muestran su escena y se pueden completar', asy
     await page.evaluate(() => startGame('len-comprension','quest'));
     const wrong = await page.evaluate(() => (EsoLanguageMissions['len-comprension'].stages[0].correct + 1) % 3);
     await page.locator('.eso-object-answers button').nth(wrong).click();
+    await page.locator('[data-eso-dock]').click();
     assert.equal(await page.locator('.eso-object-answers button.wrong:disabled').count(),1,'respuesta incorrecta marcada');
     await page.setViewportSize({width:390,height:844});
     await page.evaluate(() => startGame('len-comentario','quest'));

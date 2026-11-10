@@ -26,6 +26,7 @@ test('las 33 misiones sociales y científicas se ven, corrigen y guardan el prog
         const answers = await page.evaluate(([name,id]) => window[name][id].stages.map(stage => stage.correct),[catalogName,topicId]);
         for (const answer of answers) {
           await page.locator('.eso-object-answers button').nth(answer).click();
+          await page.locator('[data-eso-dock]').click();
           assert.match(await page.locator('.eso-mission-feedback').innerText(),/Correcto/,`${topicId}: corrección`);
           await page.getByRole('button',{name:/Siguiente etapa|Ver resultado/}).click();
         }
@@ -36,6 +37,7 @@ test('las 33 misiones sociales y científicas se ven, corrigen y guardan el prog
     await page.evaluate(() => startGame('geo-mapas','quest'));
     const wrong = await page.evaluate(() => (EsoGeographyMissions['geo-mapas'].stages[0].correct + 1) % 3);
     await page.locator('.eso-object-answers button').nth(wrong).click();
+    await page.locator('[data-eso-dock]').click();
     assert.equal(await page.locator('.eso-object-answers button.wrong:disabled').count(),1,'error marcado sin cerrar la misión');
     await page.setViewportSize({width:390,height:844});
     await page.evaluate(() => startGame('cie-proyecto','quest'));

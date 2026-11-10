@@ -31,8 +31,15 @@ const missions=['mat-numeros','mat-proporciones','mat-finanzas','mat-problemas']
     const correct=await page.evaluate(id=>EsoMathMissions[id].stages[0].correct,id);
     const wrong=(correct+1)%3;
     await board.locator('.eso-math-options button').nth(wrong).click();
+    await page.locator('[data-eso-dock]').click();
     assert.equal(await board.locator('.eso-math-options button.wrong:disabled').count(),1,`${id}: wrong state`);
-    await board.locator('.eso-math-options button').nth(correct).click();
+    if(width===1366){
+     await board.locator('.eso-math-options button').nth(correct).dragTo(board.locator('[data-eso-dock]'));
+    }else{
+     await board.locator('.eso-math-options button').nth(correct).focus();
+     await page.keyboard.press('Enter');
+     await page.keyboard.press('Enter');
+    }
     assert.equal(await board.getAttribute('data-solved'),'true',`${id}: solved state`);
     assert.match(await page.locator('.eso-math-feedback-row').innerText(),/Correcto/);
     await page.getByRole('button',{name:/Siguiente etapa/}).click();

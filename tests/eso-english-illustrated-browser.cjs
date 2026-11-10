@@ -36,8 +36,10 @@ const missions = ['ing-reading', 'ing-vocabulary', 'ing-grammar', 'ing-writing']
         await page.screenshot({ path: path.resolve(`tmp/eso-english-scene-${id}-${width}.png`) });
         const correct = await page.evaluate(id => EsoEnglishMissions[id].stages[0].correct, id);
         await choices.nth((correct + 1) % 3).click();
+        await page.locator('[data-eso-dock]').click();
         assert.equal(await board.locator('.eso-math-options button.wrong:disabled').count(), 1, `${id}: wrong state`);
         await choices.nth(correct).click();
+        await page.locator('[data-eso-dock]').click();
         assert.equal(await board.getAttribute('data-solved'), 'true', `${id}: solved state`);
         await page.getByRole('button', { name: /Siguiente etapa/ }).click();
         assert.equal(await board.getAttribute('data-stage'), '2', `${id}: next stage`);
@@ -49,6 +51,7 @@ const missions = ['ing-reading', 'ing-vocabulary', 'ing-grammar', 'ing-writing']
           assert.ok(!clipped, `${id}: clipped text in stage ${step + 1} at ${width}`);
           const nextCorrect = await page.evaluate(({ id, step }) => EsoEnglishMissions[id].stages[step].correct, { id, step });
           await choices.nth(nextCorrect).click();
+          await page.locator('[data-eso-dock]').click();
           await page.getByRole('button', { name: /Siguiente etapa|Ver resultado/ }).click();
         }
         assert.equal(await page.locator('.eso-game-result').count(), 1, `${id}: final result`);

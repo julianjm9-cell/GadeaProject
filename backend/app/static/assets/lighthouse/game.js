@@ -105,6 +105,9 @@
     dialog.querySelector('.faro-tip').textContent = level.tip;
     dialog.querySelector('.faro-best').textContent = Number.isInteger(best) ? `Mejor marca en este mapa · ${best} giros` : '';
     dialog.querySelector('[data-faro-next]').hidden = !result.won || end;
+    const direction=dialog.querySelector('[data-faro-direction]');
+    direction.textContent=turnDirection===1?'↻ Giro a la derecha':'↺ Giro a la izquierda';
+    direction.setAttribute('aria-pressed',String(turnDirection===-1));
     if (focusSelector) dialog.querySelector(focusSelector)?.focus({preventScroll:true});
   }
   function persist() {
@@ -130,10 +133,11 @@
     persist();
     render(focusSelector);
   }
+  let turnDirection = 1;
   function rotate(position) {
     const level = levels[model.index];
     if (!relay(level.tiles[position] || '') || inspect(level, model.rotations).won) return;
-    model.rotations[position] = (model.rotations[position] + 1) % 4;
+    model.rotations[position] = (model.rotations[position] + turnDirection + 4) % 4;
     model.moves++;
     const result = inspect(level, model.rotations);
     if (result.won) model.best[model.index] = Math.min(model.best[model.index] ?? Infinity, model.moves);
@@ -145,12 +149,13 @@
     element.className = 'faro-dialog';
     element.setAttribute('aria-labelledby', 'faro-title');
     element.innerHTML = `<div class="faro-header"><div><small>MISIÓN ESPECIAL</small><h2 id="faro-title">Operación Faro</h2></div><button type="button" data-faro-close aria-label="Cerrar Operación Faro" autofocus>✕</button></div>
-      <div class="faro-content"><div class="faro-screen"></div><p class="faro-status" role="status"></p><div class="faro-controls"><button type="button" data-faro-reset>Reiniciar mapa</button><button type="button" data-faro-next hidden>Siguiente isla →</button><span class="faro-best"></span></div><p class="faro-tip"></p></div>`;
+      <div class="faro-content"><div class="faro-screen"></div><p class="faro-status" role="status"></p><div class="faro-controls"><button type="button" data-faro-reset>Reiniciar mapa</button><button type="button" data-faro-direction aria-label="Girar en sentido antihorario" aria-pressed="false"></button><button type="button" data-faro-next hidden>Siguiente isla →</button><span class="faro-best"></span></div><p class="faro-tip"></p></div>`;
     element.addEventListener('click', event => {
       const control = event.target.closest('button');
       if (!control) return;
       if (control.hasAttribute('data-faro-close')) return element.close();
       if (control.hasAttribute('data-faro-reset')) return setLevel(model.index);
+      if (control.hasAttribute('data-faro-direction')) {turnDirection=-turnDirection;return render();}
       if (control.hasAttribute('data-faro-next')) {
         const index = model.index + 1;
         return setLevel(index, `[data-faro-level="${index}"]`);
@@ -170,6 +175,7 @@
     opener = button;
     storageKey = `educame:lighthouse:v1:${variant}:${button.dataset.faroProfile || 'demo'}`;
     model = restore(storageKey);
+    turnDirection=1;
     dialog ||= createDialog();
     render();
     dialog.showModal();
