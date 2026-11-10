@@ -22,6 +22,7 @@
     <nav id="terrace-navigation" aria-label="Secciones de LA TERRAZA">
       <div class="nav-cluster"><p class="nav-group">Espacio de trabajo</p>
         <a href="#inicio" data-icon="home">Inicio</a>
+        <a href="#chat" data-icon="sparkles">Chat con Codex</a>
         <a href="#agentes" data-icon="sparkles">Agentes</a>
         <a href="#operaciones" data-icon="queue">Cola de trabajo</a>
         <a href="#entregas" data-icon="file">Entregas</a>
@@ -61,7 +62,7 @@
             </div>
             <label>¿Qué quieres que haga Codex?<textarea name="objective" rows="3" maxlength="2000" required placeholder="Ejemplo: revisa por qué se corta el crucigrama en móvil."></textarea></label>
             <p class="inline-hint" id="terrace-mode-hint">Codex revisa el proyecto y propone próximos pasos.</p>
-            <div class="actions"><button class="button primary" type="submit" data-icon="sparkles" disabled>Pedir a Codex</button><a class="text-link" id="terrace-agents" href="#agentes">Elegir agentes →</a></div>
+            <div class="actions"><button class="button primary" type="submit" data-icon="sparkles" disabled>Pedir a Codex</button><a class="text-link" href="#chat">Abrir chat</a><a class="text-link" id="terrace-agents" href="#agentes">Elegir agentes →</a></div>
             <p class="inline-hint" id="terrace-order-status" role="status"></p>
             <a class="text-link" id="terrace-connect" href="#conexiones" data-open-connection="ia" hidden>Configurar Codex en Conexiones →</a>
             <p class="form-message" role="alert" hidden></p>
@@ -80,6 +81,33 @@
       </div>
       <div class="section-heading home-app-heading"><h2>Tus apps</h2><a class="text-link" href="#apps">Todos los accesos →</a></div>
       <div class="product-grid" id="workspace-apps"></div>
+    </section>
+
+    <section data-page="chat" aria-labelledby="chat-title" hidden>
+      <div class="page-heading heading-actions"><h1 id="chat-title">Chat con Codex</h1><a class="text-link" href="#conexiones" data-open-connection="ia">Configurar Codex →</a></div>
+      <section class="card chat-card" aria-label="Conversación con Codex">
+        <div class="chat-toolbar">
+          <label for="chat-model">Modelo de Codex<select id="chat-model" name="model" form="chat-form" required></select></label>
+          <label for="chat-mode">¿Qué quieres hacer?<select id="chat-mode" name="mode" form="chat-form"><option value="ask">Hacer una pregunta</option><option value="change">Cambiar LA TERRAZA</option></select></label>
+          <button class="button secondary" type="button" id="chat-refresh-models">Actualizar modelos</button>
+        </div>
+        <p class="inline-hint" id="chat-mode-hint"></p>
+        <div id="chat-messages" class="chat-messages" role="log" aria-label="Historial del chat" tabindex="0"></div>
+        <form id="chat-form">
+          <label id="chat-text-label">Tu mensaje<textarea name="text" rows="3" maxlength="4000" required></textarea></label>
+          <div class="actions"><button class="button primary" type="submit" data-icon="send" disabled>Enviar</button><span class="inline-hint" id="chat-status" role="status"></span></div>
+          <p class="form-message" role="alert" hidden></p>
+        </form>
+        <aside class="chat-restart" id="chat-restart" hidden><p>Hay cambios locales listos. Reinicia el panel para cargar el código nuevo.</p><button class="button secondary" type="button">Reiniciar LA TERRAZA</button></aside>
+      </section>
+      <dialog id="chat-review" aria-labelledby="chat-review-title">
+        <div class="dialog-heading"><h2 id="chat-review-title">Revisar propuesta</h2><button class="icon-button" type="button" data-close aria-label="Cerrar revisión">×</button></div>
+        <p id="chat-review-commit"></p>
+        <pre id="chat-review-diff" tabindex="0" aria-label="Diferencias de código"></pre>
+        <p class="inline-hint" id="chat-review-note"></p>
+        <p class="form-message" id="chat-review-error" role="alert" hidden></p>
+        <div class="actions"><button class="button secondary" type="button" data-close>Cancelar</button><button class="button primary" id="chat-apply" type="button">Aplicar en este equipo</button></div>
+      </dialog>
     </section>
 
     <section data-page="memoria" aria-labelledby="memory-title" hidden>

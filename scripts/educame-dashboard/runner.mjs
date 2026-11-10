@@ -47,7 +47,7 @@ export function createRunner(store, directory, { model, readiness, generator, ba
     const save = () => store.update(batch);
     active = runBatch(batch.tasks, {
       directory: output(batch.mode), model: batch.model, memory: batch.memory, guidance: batch.guidance, settings: batch.settings,
-      prior, agents: batch.agents,
+      prior, agents: batch.agents, codexModel: batch.codexModel,
       base: batch.base, recover: batch.mode === 'implementacion' ? recoverImplementation : undefined,
       generate: generator(batch),
       onStart: (id, fingerprint) => { batch.jobs[id] = { status: 'en curso', fingerprint }; save(); },
@@ -67,9 +67,9 @@ export function createRunner(store, directory, { model, readiness, generator, ba
     });
   }
 
-  async function start({ mode, engine, tasks, revision }) {
+  async function start({ mode, engine, tasks, revision, codexModel }) {
     if (!tasks.length) throw new RunnerError(400, 'Añade al menos un encargo.');
-    const id = createHash('sha256').update(JSON.stringify({ mode, engine, tasks })).digest('hex');
+    const id = createHash('sha256').update(JSON.stringify({ mode, engine, tasks, codexModel })).digest('hex');
     const existing = store.batch(id);
     if (existing) return publicBatch(reconcile()?.id === id ? store.batch(id) : existing);
     await readiness(mode, engine);
@@ -87,7 +87,7 @@ export function createRunner(store, directory, { model, readiness, generator, ba
       const directory = agentDirectory(board.agentEdits);
       const agents = Object.fromEntries(tasks.map(task => [task.agente, directory[task.agente]]));
       const batch = {
-        id, mode, engine, tasks, base, guidance, agents, memory: board.memory, settings: contextSettings, pid: process.pid, state: 'running',
+        id, mode, engine, tasks, base, guidance, agents, codexModel, memory: board.memory, settings: contextSettings, pid: process.pid, state: 'running',
         model: mode === 'prueba' ? 'prueba-local' : engine === 'codex' ? 'Codex local' : model,
         startedAt: new Date().toISOString(),
         jobs: Object.fromEntries(tasks.map(task => [task.id, { status: task.revisar ? 'espera' : 'pendiente' }])),

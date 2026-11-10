@@ -2,6 +2,7 @@ import { icon, networkIcon } from './icons.js';
 
 const apps = {
   ecosistema: ['Educame · todas las apps'],
+  control: ['LA TERRAZA'],
   profesor: ['Profesor Particular', '/profesor-particular', 'profesor-simple-v2.png', 'violet', 'profesor(?:-particular)?', 'PROFESOR_PARTICULAR'],
   eso: ['ESO Adultos', '/eso-adultos', 'eso-simple-v2.png', 'green', 'eso-adultos|e25', 'ESO_ADULTOS'],
   ingles: ['Inglés', '/cambridge-info', 'ingles-simple.png', 'blue', 'cambridge(?:-info)?', 'CAMBRIDGE'],

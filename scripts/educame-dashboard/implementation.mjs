@@ -9,6 +9,9 @@ const exec = promisify(execFile);
 const sha = /^[a-f0-9]{40}$/;
 const safeId = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const commonPaths = ['backend/app/', 'backend/tests/', 'tests/', 'docs/'];
+const terracePaths = ['scripts/educame-dashboard/', 'scripts/educame-dashboard.mjs', 'scripts/educame-agents.mjs',
+  'docs/agentes-educame.md', 'tests/educame-dashboard.test.cjs', 'tests/educame-dashboard-browser.test.cjs', 'tests/educame-chat.test.cjs'];
+const terraceFile = file => terracePaths.some(path => path.endsWith('/') ? file.startsWith(path) : file === path) && !excluded.test(file);
 const excluded = /(^|\/)(\.env(?:\.|$)|\.git(?:\/|$)|\.educame-agents(?:\/|$)|(?:credentials|secrets)(?:\.|\/|$))|\.(pem|key|p12|pfx|sqlite|dump)$/i;
 const credential = /^\+(?!\+\+).*?(?:-----BEGIN [A-Z ]*PRIVATE KEY-----|(?:sk-|ghp_|github_pat_|AIza)[A-Za-z0-9_-]{20,})/m;
 const github = /^(?:https:\/\/github\.com\/|git@github\.com:|ssh:\/\/git@github\.com\/)([\w.-]+\/[\w.-]+?)(?:\.git)?\/?$/i;
@@ -31,7 +34,7 @@ export function createImplementation(root, directory, codex, { localRemote = fal
   const branch = id => 'codex/educame-' + id;
   const receipt = id => join(worktrees, id + '.json');
   const worktree = id => join(worktrees, id);
-  const pathsFor = app => [...commonPaths, ...(app === 'ecosistema'
+  const pathsFor = app => app === 'control' ? terracePaths : [...commonPaths, ...(app === 'ecosistema'
     ? ['apps/', 'marketing/', 'admin/', 'scripts/educame-'] : products[app]?.paths || [])];
 
   async function base() {
@@ -82,7 +85,8 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     ]);
     if (!changes.size) return reject('El agente entregó una revisión sin cambios de código.');
     const files = [...changes];
-    if (files.length > 120 || files.some(file => excluded.test(file) || !allowed.some(prefix => file.startsWith(prefix)))) {
+    if (files.length > 120 || files.some(file => task.app === 'control' ? !terraceFile(file) :
+      excluded.test(file) || !allowed.some(prefix => file.startsWith(prefix)))) {
       return reject('La entrega contiene archivos fuera del ámbito permitido. La copia aislada conserva los cambios.');
     }
     for (const file of files) {
@@ -137,5 +141,36 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     return { branch: artifact.branch, commit: artifact.commit, url: link && link + '/compare/main...' + encodeURIComponent(artifact.branch) + '?expand=1' };
   }
 
-  return { base, execute, recover, push, worktree };
+  async function terraceRevision(artifact) {
+    if (!artifact?.verified || !sha.test(artifact.commit) || !sha.test(artifact.base) ||
+        await ref(artifact.commit + '^').catch(() => '') !== artifact.base) {
+      throw new ImplementationError(409, 'La propuesta de LA TERRAZA todavía no tiene un commit verificable.');
+    }
+    const files = (await git(['diff', '--name-only', '--no-renames', '-z', artifact.base, artifact.commit])).split('\0').filter(Boolean);
+    if (!files.length || files.some(file => !terraceFile(file))) throw new ImplementationError(409, 'La propuesta contiene archivos fuera de LA TERRAZA.');
+    return files;
+  }
+
+  async function reviewTerrace(artifact) {
+    const files = await terraceRevision(artifact);
+    const patch = await git(['diff', '--no-ext-diff', '--no-textconv', '--no-renames', artifact.base, artifact.commit]);
+    return { files, patch: patch.slice(0, 90_000), truncated: patch.length > 90_000 };
+  }
+
+  async function applyTerrace(artifact) {
+    await terraceRevision(artifact);
+    const head = await base();
+    if ((await git(['branch', '--show-current'])).trim() !== 'main') {
+      throw new ImplementationError(409, 'Abre la rama main del proyecto antes de aplicar la propuesta.');
+    }
+    if (head === artifact.commit) return;
+    if (head !== artifact.base) throw new ImplementationError(409, 'La revisión local cambió. Pide una propuesta nueva sobre el código actual.');
+    if ((await git(['status', '--porcelain', '--untracked-files=no'])).trim()) {
+      throw new ImplementationError(409, 'Hay cambios de Git sin guardar. Guarda tu trabajo antes de aplicar la propuesta.');
+    }
+    try { await git(['merge', '--ff-only', artifact.commit]); }
+    catch { throw new ImplementationError(409, 'Git no pudo aplicar esta revisión. Comprueba la rama y los archivos locales.'); }
+  }
+
+  return { base, execute, recover, push, worktree, reviewTerrace, applyTerrace };
 }

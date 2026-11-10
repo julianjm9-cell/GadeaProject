@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, readdir } from 'node:fs/promises';
 import { createServer } from 'node:http';
+import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { concurrency, defaultModel, maxTasks, outputDir, requestDraft, validateTasks } from './educame-agents.mjs';
@@ -12,6 +13,7 @@ import { cleanRule, memoryTopics, projectProfiles } from './educame-dashboard/pr
 import { openPanelStore } from './educame-dashboard/store.mjs';
 import { createRunner, RunnerError } from './educame-dashboard/runner.mjs';
 import { createImplementation, ImplementationError } from './educame-dashboard/implementation.mjs';
+import { createChat } from './educame-dashboard/chat.mjs';
 import { researchRole } from './educame-dashboard/research.mjs';
 import { OperationError } from './educame-dashboard/operations.mjs';
 import { githubOperations } from './educame-dashboard/github-operations.mjs';
@@ -31,6 +33,7 @@ const assets = new Map([
   ['/operations.css', ['operations.css', 'text/css']],
   ['/terrace.css', ['terrace.css', 'text/css']],
   ['/terrace-hero.webp', ['terrace-hero.webp', 'image/webp']],
+  ['/chat.js', ['chat.js', 'text/javascript']],
   ['/agent-editor.js', ['agent-editor.js', 'text/javascript']],
   ['/icons.js', ['icons.js', 'text/javascript']],
   ['/icons.svg', ['icons.svg', 'image/svg+xml']],
@@ -185,6 +188,7 @@ export async function createDashboard({
   repositoryRoot = fileURLToPath(new URL('../', import.meta.url)),
   implementationOptions,
   ssh,
+  restartProcess,
 } = {}) {
   await mkdir(directory, { recursive: true });
   const connections = await createConnections(directory, fetchImpl);
@@ -213,6 +217,16 @@ export async function createDashboard({
       if (batch.engine === 'codex') return codex.generate;
       const key = activeApiKey();
       return generate || (task => requestDraft(task, { apiKey: key, model: batch.model, fetchImpl }));
+    },
+  });
+  let restarting = false;
+  const chat = createChat({ store, runner, codex, implementation, instance: randomUUID(),
+    readDelivery: id => readJson(join(runner.output('implementacion'), id + '.json'), null),
+    assertIdle() {
+      const job = hostinger.status().job;
+      if (['running', 'paused'].includes(runner.latest()?.state) || ['running', 'uncertain'].includes(job?.state)) {
+        throw new OperationError(409, 'Termina o retoma el trabajo pendiente antes de cambiar el panel.');
+      }
     },
   });
   let appAvailability;
@@ -261,6 +275,25 @@ export async function createDashboard({
       const origin = `http://${host}`;
       const url = new URL(request.url, origin);
       const path = url.pathname;
+      if (restarting && request.method !== 'GET') throw new OperationError(409, 'LA TERRAZA se está reiniciando.');
+      if (request.method === 'GET' && path === '/api/chat') return json(200, await chat.read());
+      if (request.method === 'GET' && path === '/api/chat/modelos') {
+        const fresh = url.searchParams.has('actualizar');
+        const [models, account] = await Promise.all([codex.models?.(fresh), codex.status(fresh)]);
+        return json(200, { models: models || [], ...account });
+      }
+      if (request.method === 'GET' && path === '/api/chat/propuesta') return json(200, await chat.review(url.searchParams.get('id')));
+      if (request.method === 'POST' && ['/api/chat', '/api/chat/aplicar', '/api/chat/reiniciar'].includes(path)) {
+        if (request.headers.origin !== origin) throw new OperationError(403, 'Usa el chat desde LA TERRAZA.');
+        const body = await bodyJson(request);
+        if (path === '/api/chat') return json(202, await chat.send(body));
+        if (path === '/api/chat/aplicar') return json(200, await chat.apply(body));
+        if (!restartProcess || !(await chat.read()).needsRestart) throw new OperationError(409, 'El panel no tiene cambios pendientes de recargar.');
+        chat.assertIdle();
+        restarting = true;
+        response.once('finish', () => server.close(restartProcess));
+        return json(202, { restarting: true });
+      }
       if (path.startsWith('/api/operacion/')) {
         const route = path.slice('/api/operacion/'.length);
         if (request.method === 'GET') {
@@ -439,7 +472,7 @@ export async function createDashboard({
   server.on('close', () => {
     previews.close();
     for (const view of implementationPreviews.values()) view.close();
-    Promise.allSettled([runner.wait(), hostinger.wait()]).finally(store.close).catch(() => {});
+    Promise.allSettled([runner.wait(), hostinger.wait(), chat.wait()]).finally(store.close).catch(() => {});
   });
   return server;
 }
@@ -447,7 +480,14 @@ export async function createDashboard({
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const port = Number(process.env.EDUCAME_DASHBOARD_PORT || 4317);
   try {
-    const server = await createDashboard();
+    const server = await createDashboard({
+      restartProcess() {
+        const child = spawn(process.execPath, [fileURLToPath(import.meta.url)],
+          { detached: true, windowsHide: true, stdio: 'ignore' });
+        child.on('error', error => console.error('No se pudo reiniciar LA TERRAZA:', error.code));
+        child.unref();
+      },
+    });
     server.on('error', error => {
       console.error(error.code === 'EADDRINUSE' ? `El puerto ${port} ya está en uso.` : `No se pudo abrir el panel (${error.code}).`);
       process.exitCode = 1;

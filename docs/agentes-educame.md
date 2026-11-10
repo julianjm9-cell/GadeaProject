@@ -21,6 +21,14 @@ implementación trabaja en una copia Git aislada. Revisa ambos resultados en
 encargo nuevo. Para usar agentes especializados, abre **Elegir agentes**.
 En **Conexiones** y **Operación** hay guías cortas junto a cada configuración.
 
+En **Chat con Codex**, selecciona un modelo del catálogo de tu sesión. **Hacer
+una pregunta** responde en texto y usa los mensajes recientes como contexto.
+**Cambiar LA TERRAZA** prepara un commit del panel en una copia aislada. Abre
+**Revisar propuesta** para ver las pruebas y el diff. **Aplicar en este equipo**
+requiere que el checkout esté en `main`, sin cambios pendientes y en la
+revisión sobre la que se preparó la propuesta. Después, **Reiniciar LA TERRAZA**
+carga el código. El historial del chat se guarda localmente.
+
 **Uso de Codex** muestra el porcentaje disponible y la fecha de renovación de
 cada ventana que devuelve la sesión de Codex CLI. Se actualiza cada minuto
 mientras el panel está visible y también bajo demanda. El total informado por

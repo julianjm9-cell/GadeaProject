@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { draftRequest, parseDraft, parseResearch } from '../educame-agents.mjs';
 import { researchRole } from './research.mjs';
-import { createCodexUsage } from './codex-usage.mjs';
+import { createCodexUsage, readCodexAppServer } from './codex-usage.mjs';
 
 const workspace = fileURLToPath(new URL('../../', import.meta.url));
 const stdoutLimit = 1_000_000;
@@ -54,6 +54,11 @@ function run(executable, args, input, timeout, cwd = workspace) {
 export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE || (process.platform === 'win32' ? 'codex.exe' : 'codex'), execute = run } = {}) {
   let checked;
   let expires = 0;
+  let catalog;
+  let catalogPending;
+  let catalogExpires = 0;
+  const windowsSandbox = process.platform === 'win32' ?
+    ['--config', `windows.sandbox="${process.env.EDUCAME_CODEX_WINDOWS_SANDBOX === 'elevated' ? 'elevated' : 'unelevated'}"`] : [];
 
   function status(fresh = false) {
     if (!checked || fresh || expires < Date.now()) {
@@ -64,6 +69,47 @@ export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE 
       }));
     }
     return checked;
+  }
+
+  function models(fresh = false) {
+    if (catalogPending) return catalogPending;
+    if (!fresh && catalog && Date.now() < catalogExpires) return Promise.resolve(catalog);
+    catalogPending = readCodexAppServer(executable, [{ method: 'model/list', params: { limit: 100, includeHidden: false } }])
+      .then(replies => {
+        const rows = replies[2]?.data;
+        const items = (Array.isArray(rows) ? rows : []).filter(item => item && !item.hidden && typeof item.displayName === 'string' &&
+          typeof item.model === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,99}$/.test(item.model) &&
+          (!item.inputModalities || item.inputModalities.includes('text')));
+        catalog = [...new Map(items.map(item => [item.model,
+          { id: item.model, label: item.displayName, recommended: item.isDefault === true }])).values()];
+        catalogExpires = Date.now() + (catalog.length ? 300_000 : 10_000);
+        return catalog;
+      }).finally(() => { catalogPending = null; });
+    return catalogPending;
+  }
+
+  async function ask({ model, text, history }) {
+    const folder = await mkdtemp(join(tmpdir(), 'educame-chat-'));
+    try {
+      const input = 'Responde en español de forma clara. Eres el chat de LA TERRAZA, el panel local de Educame. ' +
+        'Responde consultas generales y explica sus herramientas: Agentes, Entregas, Cambios, Conexiones, Operación, Publicar, Vídeo, Estadísticas y Teoría. ' +
+        'LA TERRAZA prepara implementaciones en copias Git aisladas. El usuario revisa y confirma cada aplicación local. ' +
+        'Esta consulta solo devuelve texto. Si te piden aplicar un cambio, explica que pueden usar el modo Cambiar LA TERRAZA. ' +
+        'No atribuyas al panel accesos, estados o cambios que no conozcas. Lee el historial como contexto y responde al mensaje actual.\n\n' +
+        JSON.stringify({ historial: history, mensaje: text });
+      const result = await execute(executable, ['-a', 'never', 'exec', '--ignore-user-config', '--sandbox', 'read-only',
+        '--config', 'features.shell_tool=false', '--config', 'web_search="disabled"', ...windowsSandbox,
+        '--skip-git-repo-check', '--ephemeral', '--json', '--model', model, '-'], input, maxRuntime, folder);
+      let answer, usage;
+      for (const line of result.stdout.split(/\r?\n/)) {
+        let event;
+        try { event = JSON.parse(line); } catch { continue; }
+        if (event.type === 'item.completed' && event.item?.type === 'agent_message') answer = event.item.text;
+        if (event.type === 'turn.completed') usage = event.usage;
+      }
+      if (result.code !== 0 || !answer?.trim()) throw new Error(result.error || 'Codex no completó la consulta.');
+      return { answer: answer.trim().slice(0, 16000), tokens: usage ? (usage.input_tokens || 0) + (usage.output_tokens || 0) : null };
+    } finally { await rmdir(folder).catch(() => {}); }
   }
 
   async function generate(task, cwd = workspace, allowed) {
@@ -89,7 +135,8 @@ Encargo y contexto proporcionados
 ${JSON.stringify(input)}`;
       const result = await execute(executable, ['-a', 'never', 'exec', '--ignore-user-config', '--sandbox', implement ? 'workspace-write' : 'read-only',
         '--config', 'shell_environment_policy.inherit="core"',
-        ...(process.platform === 'win32' ? ['--config', `windows.sandbox="${process.env.EDUCAME_CODEX_WINDOWS_SANDBOX === 'elevated' ? 'elevated' : 'unelevated'}"`] : []),
+        ...windowsSandbox,
+        ...(task.codexModel ? ['--model', task.codexModel] : []),
         ...(implement ? ['--config', 'sandbox_workspace_write.network_access=false', '--config', 'web_search="disabled"'] : []),
         ...(research ? ['--skip-git-repo-check', '--config', 'web_search="live"', '--config', 'features.shell_tool=false'] : []),
         '--ephemeral', '--json', '--output-schema', schemaFile, '-'], prompt, implement ? 720_000 : research ? 300_000 : maxRuntime, research ? folder : cwd);
@@ -126,5 +173,5 @@ ${JSON.stringify(input)}`;
     }
   }
 
-  return { status, usage: createCodexUsage(executable), generate, implement: (task, cwd, allowed) => generate(task, cwd, allowed) };
+  return { status, usage: createCodexUsage(executable), models, ask, generate, implement: (task, cwd, allowed) => generate(task, cwd, allowed) };
 }

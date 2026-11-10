@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline';
 
-function readAccount(executable) {
+export function readCodexAppServer(executable, requests) {
   return new Promise(resolve => {
     const child = spawn(executable, ['app-server', '--listen', 'stdio://'], {
       windowsHide: true, stdio: ['pipe', 'pipe', 'ignore'],
@@ -28,17 +28,20 @@ function readAccount(executable) {
       if (message.id === 1) {
         if (!message.result) return finish();
         send({ method: 'initialized' });
-        send({ id: 2, method: 'account/rateLimits/read' });
-        send({ id: 3, method: 'account/usage/read', params: {} });
+        requests.forEach((request, index) => send({ id: index + 2, ...request }));
       }
-      if (message.id === 2 || message.id === 3) {
+      if (Number.isInteger(message.id) && message.id >= 2 && message.id < requests.length + 2) {
         replies[message.id] = message.result || null;
-        if (2 in replies && 3 in replies) finish();
+        if (Object.keys(replies).length === requests.length) finish();
       }
     });
     send({ id: 1, method: 'initialize', params: { clientInfo: { name: 'educame_dashboard', version: '1.0.0' } } });
   });
 }
+
+const readAccount = executable => readCodexAppServer(executable, [
+  { method: 'account/rateLimits/read' }, { method: 'account/usage/read', params: {} },
+]);
 
 const validCount = value => Number.isFinite(value) && value >= 0;
 

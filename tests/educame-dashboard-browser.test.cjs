@@ -23,6 +23,59 @@ for (const [name, engine, viewport] of [
   ['Chromium escritorio', chromium, { width: 1440, height: 950 }],
   ['WebKit móvil', webkit, { width: 390, height: 844 }],
 ]) {
+  test(`Chat con Codex selecciona modelo y revisa cambios en ${name}`, { timeout: 25_000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
+    const server = await listen(t, directory, { codex: {
+      status: async () => ({ ready: true }),
+      models: async () => [{ id: 'modelo-a', label: 'Modelo A', recommended: true }, { id: 'modelo-b', label: 'Modelo B' }],
+      ask: async ({ model }) => ({ answer: 'Respuesta de ' + model, tokens: 24 }),
+    } });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    t.after(() => browser.close());
+    const page = await browser.newPage({ viewport });
+    const base = 'http://127.0.0.1:' + server.address().port;
+    let proposal;
+    let applied = false;
+    const commit = 'a'.repeat(40);
+    await page.route('**/api/chat**', async route => {
+      const request = route.request();
+      const path = new URL(request.url()).pathname;
+      if (path === '/api/chat' && request.method() === 'POST' && request.postDataJSON().mode === 'change') {
+        proposal = { ...request.postDataJSON(), state: 'proposal', reply: 'Cambio preparado.',
+          proposal: { commit, files: ['scripts/educame-dashboard/theme.css'], checks: [{ command: 'node --test', passed: true }] } };
+        return route.fulfill({ json: { messages: [proposal], needsRestart: false } });
+      }
+      if (path === '/api/chat/propuesta') return route.fulfill({ json: { patch: '+ body { color: olive; }' } });
+      if (path === '/api/chat/aplicar') {
+        assert.deepEqual(request.postDataJSON(), { id: proposal.id, commit });
+        applied = true;
+        return route.fulfill({ json: { messages: [{ ...proposal, state: 'applied' }], needsRestart: true } });
+      }
+      return route.continue();
+    });
+    await page.goto(base + '/#chat');
+    const model = page.getByLabel('Modelo de Codex');
+    await model.selectOption('modelo-b');
+    await page.getByLabel('Tu mensaje').fill('¿Qué es Git?');
+    await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+    await page.getByText('Respuesta de modelo-b', { exact: true }).waitFor();
+    await page.reload();
+    await page.getByText('Respuesta de modelo-b', { exact: true }).waitFor();
+    await page.waitForFunction(() => document.querySelector('#chat-model').value === 'modelo-b');
+    await page.getByLabel('¿Qué quieres hacer?').selectOption('change');
+    await page.getByLabel('Tu mensaje').fill('Ajusta los colores del panel.');
+    await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+    await page.getByRole('button', { name: 'Revisar propuesta' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Revisar propuesta' });
+    await dialog.getByText('+ body { color: olive; }').waitFor();
+    assert.equal(applied, false);
+    await dialog.getByRole('button', { name: 'Aplicar en este equipo' }).click();
+    await page.getByText('Aplicada en este equipo', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Reiniciar LA TERRAZA' }).waitFor();
+    assert.equal(applied, true);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  });
+
   test(`LA TERRAZA envía encargos a Codex desde Inicio en ${name}`, { timeout: 35_000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
     const received = [];

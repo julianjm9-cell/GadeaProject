@@ -5,6 +5,7 @@ import { setupTheory } from './theory.js';
 import { setupMemory } from './memory.js';
 import { setupOperations } from './operations.js';
 import { setupAgentEditor } from './agent-editor.js';
+import { setupChat } from './chat.js';
 
 const agents = Object.create(null);
 const agentName = item => item.agentName || agents[item.agente]?.name || item.agente;
@@ -93,6 +94,7 @@ function showPage() {
   window.scrollTo(0, 0);
   if (page === 'cambios') changes?.load();
   if (page === 'control') operations?.open(operation);
+  if (page === 'chat') chat.open();
   if (page === 'teoria') theory.openTrack(development);
   if (page === 'agentes') { memory.renderAgentHint(); operations?.refreshQuota(); }
 }
@@ -380,7 +382,7 @@ function openDelivery(delivery) {
     for (const check of delivery.checks || []) checks.append(element('li', '', `${check.passed ? 'Pasó' : 'Falló'} · ${check.command}`));
     if (checks.children.length) box.append(element('p', '', 'Pruebas registradas'), checks);
     const actions = element('div', 'actions');
-    if (delivery.app !== 'ecosistema') {
+    if (!['ecosistema', 'control'].includes(delivery.app)) {
       const preview = element('a', 'button secondary', 'Vista de la entrega');
       preview.href = '/vista-encargo/' + encodeURIComponent(delivery.id);
       preview.target = '_blank';
@@ -576,6 +578,7 @@ const agentEditor = setupAgentEditor({ api, button, formMessage, getState: () =>
     render();
   },
 });
+const chat = setupChat({ api, element, button, feedback, formMessage });
 changes = setupChanges({ api, element });
 operations = setupOperations({ api, element, button, feedback });
 showPage();

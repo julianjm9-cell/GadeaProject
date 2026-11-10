@@ -11,6 +11,17 @@ export const projectProfiles = {
     verify: 'Comprobar la tarea de principio a fin, en escritorio y móvil cuando afecte a la interfaz. Identificar el estado de error y recuperación.',
     files: ['docs/guia-desarrollo-educame.md', 'scripts/educame-dashboard/', 'admin/'],
   },
+  control: {
+    name: 'LA TERRAZA',
+    audience: 'La persona responsable de Educame trabaja desde el panel local.',
+    priorities: 'Mantener claros los encargos, las entregas, las conexiones y las confirmaciones.',
+    pitfalls: 'Evitar acceder al almacén local de credenciales o mezclar una aplicación local con un despliegue.',
+    style: 'Marfil, verde oliva, navegación agrupada, controles claros y lectura cómoda en móvil.',
+    flows: 'Consultar Codex, revisar una propuesta del panel y aplicar el commit aprobado en el checkout local.',
+    rules: 'Limitar las modificaciones al panel y sus pruebas. Mantener el historial local y los permisos.',
+    verify: 'Ejecutar comprobaciones pertinentes y conservar los accesos existentes.',
+    files: ['scripts/educame-dashboard.mjs', 'scripts/educame-dashboard/', 'tests/educame-dashboard.test.cjs'],
+  },
   profesor: {
     name: 'Profesor Particular',
     audience: 'Profesores particulares que necesitan preparar una clase, organizar fichas, calendario y tareas y poner al alumno a practicar en pocos pasos. La actividad debe servir tanto en portátil como en móvil.',

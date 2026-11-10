@@ -147,7 +147,7 @@ export async function requestDraft(task, { apiKey, model, fetchImpl = fetch }) {
   }
 }
 
-async function runTask(task, { directory, model, generate, guidance, memory, settings, onStart, prior, base, recover, agents = defaultAgents }, parent) {
+async function runTask(task, { directory, model, generate, guidance, memory, settings, onStart, prior, base, recover, agents = defaultAgents, codexModel }, parent) {
   const path = join(directory, `${task.id}.json`);
   const lock = join(directory, `${task.id}.lock`);
   const oldJob = prior?.[task.id];
@@ -155,7 +155,7 @@ async function runTask(task, { directory, model, generate, guidance, memory, set
   const agentProfile = agents[task.agente];
   const fingerprint = oldJob?.fingerprint || createHash('sha256').update(JSON.stringify({
     task, model, common, role: agentInstructions(task.agente, agentProfile, Boolean(base)), format: task.agente === researchRole ? researchFormat : format, maxOutputTokens, parent: parent?.draft,
-    guidance: guidance || undefined, productContext, base, parentCommit: parent?.implementation?.commit,
+    guidance: guidance || undefined, productContext, base, parentCommit: parent?.implementation?.commit, codexModel,
   })).digest('hex');
   const started = Date.now();
   async function saveResult(result) {
@@ -173,7 +173,7 @@ async function runTask(task, { directory, model, generate, guidance, memory, set
     return record;
   }
   const input = {
-    ...task, agentProfile, fingerprint,
+    ...task, agentProfile, fingerprint, codexModel,
     app: productContext.app, guidance, productContext, parentImplementation: parent?.implementation,
     revision: parent ? { encargo: parent.encargo, contexto: parent.contexto, borrador: parent.draft } : undefined,
   };
