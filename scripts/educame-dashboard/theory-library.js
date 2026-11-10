@@ -5,7 +5,7 @@ export const theoryLibrary = [
     description: 'Ubica las piezas y entiende qué pasa cada vez que haces un cambio.',
     lessons: [
       {
-        id: 'local', title: 'Dónde vive tu Centro de mando', summary: 'Node.js sirve el panel desde tu propio ordenador en 127.0.0.1:4317.',
+        id: 'local', title: 'Dónde vive LA TERRAZA', summary: 'Node.js sirve el panel desde tu propio ordenador en 127.0.0.1:4317.',
         detail: '127.0.0.1 significa «este ordenador» y 4317 es el puerto donde escucha el proceso. El código está en scripts/educame-dashboard.mjs y scripts/educame-dashboard/. La carpeta .educame-agents/ guarda la cola, las entregas y la configuración local. Si cierras el proceso, puedes volver a abrirlo con node scripts/educame-dashboard.mjs desde la raíz del proyecto.',
         practice: 'Abre Inicio y fíjate en la dirección del navegador. 127.0.0.1 indica que estás usando el panel de este equipo.',
         link: ['Ir a Inicio', 'inicio'],
@@ -17,7 +17,7 @@ export const theoryLibrary = [
         link: ['Comparar en Cambios', 'cambios'],
       },
       {
-        id: 'sistemas', title: 'Dos paneles con tareas distintas', summary: 'El Centro de mando organiza tu trabajo. Administración online gestiona tus productos publicados.',
+        id: 'sistemas', title: 'Dos paneles con tareas distintas', summary: 'LA TERRAZA organiza tu trabajo. Administración online gestiona tus productos publicados.',
         detail: 'Desde el panel local preparas encargos, previsualizas archivos y consultas conexiones. El dashboard online está en el dominio público y, con tu sesión de administración, puede gestionar cuentas, avisos y disponibilidad de las apps. La vista local de administración abre una interfaz con datos de ensayo.',
         practice: 'En Apps, identifica el acceso a la versión online y el acceso a Vista local de un producto.',
         link: ['Ver Apps', 'apps'],
@@ -116,7 +116,7 @@ export const theoryLibrary = [
       },
       {
         id: 'ensayo', title: 'Datos de ensayo y privacidad', summary: 'Puedes ensayar una interfaz sin abrir información real de usuarios.',
-        detail: 'El Centro de mando abre las vistas locales en puertos de bucle local y usa datos ficticios. Puedes comprobar navegación, estilos y partes del guardado. Entrar con Google, generar con IA o procesar documentos de verdad requiere un entorno con los servicios correspondientes.',
+        detail: 'LA TERRAZA abre las vistas locales en puertos de bucle local y usa datos ficticios. Puedes comprobar navegación, estilos y partes del guardado. Entrar con Google, generar con IA o procesar documentos de verdad requiere un entorno con los servicios correspondientes.',
         practice: 'Abre una vista local, identifica la cuenta de ensayo y reproduce una acción con información ficticia.',
         link: ['Abrir una vista local', 'cambios'],
       },

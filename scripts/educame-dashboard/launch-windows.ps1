@@ -17,10 +17,10 @@ function Test-Dashboard {
 
 try {
     try { $held = $mutex.WaitOne(20000) } catch [Threading.AbandonedMutexException] { $held = $true }
-    if (-not $held) { throw 'El Centro de mando sigue arrancando. Vuelve a abrir el acceso directo.' }
+    if (-not $held) { throw 'LA TERRAZA sigue arrancando. Vuelve a abrir el acceso directo.' }
     if (-not (Test-Dashboard)) {
         $node = Get-Command node.exe -ErrorAction SilentlyContinue
-        if (-not $node) { throw 'Instala Node.js antes de abrir el Centro de mando.' }
+        if (-not $node) { throw 'Instala Node.js antes de abrir LA TERRAZA.' }
         if (-not $env:EDUCAME_CODEX_EXECUTABLE -and -not (Get-Command codex.exe -ErrorAction SilentlyContinue)) {
             $package = Get-AppxPackage -Name OpenAI.Codex | Select-Object -First 1
             if ($package) {
@@ -45,13 +45,13 @@ try {
             if (Test-Dashboard) { $ready = $true; break }
             Start-Sleep -Milliseconds 300
         }
-        if (-not $ready) { throw "No se pudo abrir el Centro de mando. Revisa el registro en $logs." }
+        if (-not $ready) { throw "No se pudo abrir LA TERRAZA. Revisa el registro en $logs." }
     }
-    if (-not $NoBrowser) { Start-Process ($address + '#agentes') }
+    if (-not $NoBrowser) { Start-Process ($address + '#inicio') }
 } catch {
     if (-not $NoBrowser) {
         $shell = New-Object -ComObject WScript.Shell
-        $shell.Popup($_.Exception.Message, 0, 'Centro de mando Educame', 16) | Out-Null
+        $shell.Popup($_.Exception.Message, 0, 'LA TERRAZA', 16) | Out-Null
     }
     throw
 } finally {

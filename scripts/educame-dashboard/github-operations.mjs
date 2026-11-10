@@ -88,7 +88,7 @@ export function githubOperations(changes, connections, store, fetchImpl = fetch)
         const query = new URLSearchParams({ state: 'open', base: 'main', head: `${repository.split('/')[0]}:${branch}` });
         const [existing] = await request('/pulls?' + query, 'GET', undefined, undefined, repository);
         const value = existing || await request('/pulls', 'POST', { head: branch, base: 'main', title: `Educame · ${branch.replace('codex/educame-', '')}`,
-          body: `Entrega revisada en el Centro de mando. Commit: ${pushed.commit}.` }, undefined, repository);
+          body: `Entrega revisada en LA TERRAZA. Commit: ${pushed.commit}.` }, undefined, repository);
         return pull(value, repository);
       } finally { creating.delete(branch); }
     },

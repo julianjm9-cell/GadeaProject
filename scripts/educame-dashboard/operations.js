@@ -193,16 +193,18 @@ export function setupOperations({ api, element, button, feedback }) {
   const admin = setupAdminPanel({ get, post, element, button, confirm, onForm, busy });
   const loaders = { github: loadGitHub, hostinger: loadHostinger, admin: admin.load };
   const load = () => loaders[tab]().catch(fail);
-  for (const control of document.querySelectorAll('[data-operation]')) {
-    control.addEventListener('click', () => {
-      tab = control.dataset.operation;
-      for (const node of document.querySelectorAll('[data-operation]')) {
-        const active = node === control;
-        node.setAttribute('aria-pressed', String(active));
-        $('operation-' + node.dataset.operation).hidden = !active;
-      }
-      load();
-    });
+  const tabs = document.querySelectorAll('[data-operation]');
+  function open(selected = tab) {
+    tab = selected;
+    for (const node of tabs) {
+      const active = node.dataset.operation === selected;
+      node.setAttribute('aria-pressed', String(active));
+      $('operation-' + node.dataset.operation).hidden = !active;
+    }
+    return load();
+  }
+  for (const control of tabs) {
+    control.addEventListener('click', () => open(control.dataset.operation));
   }
   for (const control of document.querySelectorAll('[data-operation-refresh]')) control.addEventListener('click', () => busy(control, load));
   setInterval(() => {
@@ -249,5 +251,5 @@ export function setupOperations({ api, element, button, feedback }) {
   $('codex-usage-refresh').addEventListener('click', event => busy(event.currentTarget, () => quota(true)));
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshQuota(); });
   setInterval(() => { if (!document.hidden) refreshQuota(); }, 60_000);
-  return { load, refreshQuota };
+  return { open, refreshQuota };
 }

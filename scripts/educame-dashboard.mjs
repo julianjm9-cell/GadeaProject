@@ -29,6 +29,8 @@ const assets = new Map([
   ['/operations.js', ['operations.js', 'text/javascript']],
   ['/admin-panel.js', ['admin-panel.js', 'text/javascript']],
   ['/operations.css', ['operations.css', 'text/css']],
+  ['/terrace.css', ['terrace.css', 'text/css']],
+  ['/terrace-hero.webp', ['terrace-hero.webp', 'image/webp']],
   ['/agent-editor.js', ['agent-editor.js', 'text/javascript']],
   ['/icons.js', ['icons.js', 'text/javascript']],
   ['/icons.svg', ['icons.svg', 'image/svg+xml']],
@@ -272,7 +274,7 @@ export async function createDashboard({
         }
         if (request.method === 'POST') {
           if (request.headers.origin !== origin || request.headers['content-type']?.split(';')[0] !== 'application/json') {
-            throw new OperationError(403, 'Realiza la operación desde el Centro de mando local.');
+            throw new OperationError(403, 'Realiza la operación desde LA TERRAZA.');
           }
           const payload = await bodyJson(request);
           if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new OperationError(400, 'Formulario no válido.');
@@ -336,7 +338,7 @@ export async function createDashboard({
       if (request.method === 'GET' && asset) {
         const [file, type] = asset;
         const content = await readFile(new URL(`./educame-dashboard/${file}`, import.meta.url));
-        response.writeHead(200, { 'Content-Type': `${type}; charset=utf-8` });
+        response.writeHead(200, { 'Content-Type': type.startsWith('image/') ? type : `${type}; charset=utf-8` });
         response.end(content);
         return;
       }
@@ -349,7 +351,7 @@ export async function createDashboard({
           model, apiReady: Boolean(activeApiKey()), concurrency, maxTasks, fixture, projectProfiles, memoryTopics });
       }
       if (request.method === 'PUT' && path === '/api/agentes') {
-        if (request.headers.origin !== origin) throw new PanelError(403, 'Edita los agentes desde el Centro de mando local.');
+        if (request.headers.origin !== origin) throw new PanelError(403, 'Edita los agentes desde LA TERRAZA.');
         const payload = await bodyJson(request);
         const board = changeBoard(payload.revision, current => {
           try { return { agentEdits: updateAgent(current.agentEdits, payload) }; }
@@ -450,7 +452,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       console.error(error.code === 'EADDRINUSE' ? `El puerto ${port} ya está en uso.` : `No se pudo abrir el panel (${error.code}).`);
       process.exitCode = 1;
     });
-    server.listen(port, '127.0.0.1', () => console.log(`Educame · Centro de mando en http://127.0.0.1:${server.address().port}/`));
+    server.listen(port, '127.0.0.1', () => console.log(`LA TERRAZA · http://127.0.0.1:${server.address().port}/`));
   } catch (error) {
     console.error('No se pudo iniciar el panel:', error.code || error.name);
     process.exitCode = 1;

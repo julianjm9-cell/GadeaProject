@@ -15,7 +15,7 @@ export const products = {
   facturas: { name: 'Lector de facturas', app: '/facturas', landing: '/ocr-facturas', paths: ['apps/ocr/', 'marketing/app_landings_demo/ocr-facturas'] },
   hazlotu: { name: 'HazloTú', landing: '/hazlo-tu', paths: ['marketing/app_landings_demo/hazlatu', 'apps/hazlotu/'] },
   dashboard: { name: 'Administración online', app: '/admin-dashboard/', paths: ['admin/', 'backend/app/api/admin'] },
-  control: { name: 'Centro de mando', paths: ['scripts/educame-'] },
+  control: { name: 'LA TERRAZA', paths: ['scripts/educame-'] },
 };
 
 const suitePaths = ['apps/', 'marketing/', 'admin/', ...shared, 'package.json', 'package-lock.json'];

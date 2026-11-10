@@ -4,44 +4,74 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>Educame · Centro de mando</title>
+  <title>LA TERRAZA · Educame</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/panel.css">
   <link rel="stylesheet" href="/workspace.css">
   <link rel="stylesheet" href="/operations.css">
+  <link rel="stylesheet" href="/terrace.css">
   <script type="module" src="/panel.js"></script>
 </head>
 <body>
+  <a class="skip-content" href="#main">Saltar al contenido</a>
   <aside class="sidebar">
-    <a class="brand" href="#inicio" aria-label="Educame, inicio"><img class="brand-icon" src="/icon.svg" alt="" width="35" height="35"><span>Educame<small>Centro de mando</small></span></a>
-    <nav aria-label="Secciones del panel">
-      <a href="#inicio" data-icon="home">Inicio</a>
-      <a href="#agentes" data-icon="sparkles">Agentes</a>
-      <a href="#publicar" data-icon="send">Publicar</a>
-      <a href="#video" data-icon="video">Vídeo</a>
-      <a href="#estadisticas" data-icon="chart">Estadísticas</a>
-      <a href="#conexiones" data-icon="network">Conexiones</a>
-      <a href="#apps" data-icon="apps">Apps</a>
-      <a href="#teoria" data-icon="book">Teoría</a>
-      <small class="nav-group">Trabajo</small>
-      <a href="#memoria" data-icon="book">Memoria</a>
-      <a href="#cambios" data-icon="history">Cambios</a>
-      <a href="#control" data-icon="terminal">Operación</a>
-      <a href="#entregas" data-icon="file">Entregas</a>
-      <a href="#operaciones" data-icon="queue">Cola de trabajo</a>
+    <div class="terrace-brand-row">
+      <a class="brand" href="#inicio" aria-label="LA TERRAZA, inicio"><img class="brand-icon" src="/icon.svg" alt="" width="38" height="38"><span>LA TERRAZA<small>Educame</small></span></a>
+      <button class="terrace-menu button secondary" type="button" aria-expanded="false" aria-controls="terrace-navigation">Menú</button>
+    </div>
+    <nav id="terrace-navigation" aria-label="Secciones de LA TERRAZA">
+      <div class="nav-cluster"><p class="nav-group">Espacio de trabajo</p>
+        <a href="#inicio" data-icon="home">Inicio</a>
+        <a href="#agentes" data-icon="sparkles">Agentes</a>
+        <a href="#operaciones" data-icon="queue">Cola de trabajo</a>
+        <a href="#entregas" data-icon="file">Entregas</a>
+      </div>
+      <div class="nav-cluster"><p class="nav-group">Productos</p>
+        <a href="#apps" data-icon="apps">Apps</a>
+        <a href="#cambios" data-icon="history">Cambios</a>
+        <a href="#control" data-icon="terminal">Operación</a>
+      </div>
+      <div class="nav-cluster"><p class="nav-group">Contenido y datos</p>
+        <a href="#publicar" data-icon="send">Publicar</a>
+        <a href="#video" data-icon="video">Vídeo</a>
+        <a href="#estadisticas" data-icon="chart">Estadísticas</a>
+      </div>
+      <div class="nav-cluster"><p class="nav-group">Configuración y aprendizaje</p>
+        <a href="#conexiones" data-icon="network">Conexiones</a>
+        <a href="#memoria" data-icon="book">Memoria</a>
+        <a href="#teoria" data-icon="book">Teoría</a>
+      </div>
     </nav>
     <a class="admin-link icon-label" data-icon="external" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noreferrer">Administración online</a>
   </aside>
 
-  <main id="main">
-    <header class="topline"><span id="page-location" aria-hidden="true">Espacio local</span><div class="actions"><a class="status-chip" id="codex-quota-chip" href="#agentes">Uso de Codex</a><a class="status-chip" id="api-status" href="#conexiones" data-open-connection="ia">Comprobando Codex</a></div></header>
+  <main id="main" tabindex="-1">
+    <header class="topline"><div class="terrace-location"><span>LA TERRAZA</span><span id="page-location">Inicio</span></div><div class="actions"><a class="status-chip" id="codex-quota-chip" href="#agentes">Uso de Codex</a><a class="status-chip" id="api-status" href="#conexiones" data-open-connection="ia">Comprobando Codex</a></div></header>
     <div id="feedback" class="feedback" role="status" hidden><span id="feedback-text"></span><button type="button" class="feedback-close" aria-label="Cerrar aviso">×</button></div>
 
     <section data-page="inicio" aria-labelledby="home-title">
-      <div class="page-heading heading-actions home-hero"><h1 id="home-title">Centro de mando</h1><div class="actions"><a class="button home-study" href="#teoria" data-icon="book">Aprender</a><a class="button primary" href="#agentes" data-icon="plus">Nuevo encargo</a></div></div>
+      <div class="terrace-hero">
+        <div class="terrace-welcome">
+          <p class="eyebrow">TU ESPACIO DE TRABAJO</p>
+          <h1 id="home-title">¿Qué quieres hacer hoy?</h1>
+          <form id="terrace-order" aria-labelledby="home-title">
+            <div class="terrace-order-options">
+              <label>¿En qué app?<select name="app" id="terrace-app" required></select></label>
+              <label>¿Qué quieres recibir?<select name="mode" required><option value="real">Un plan o diagnóstico</option><option value="implementacion">Un cambio implementado</option></select></label>
+            </div>
+            <label>¿Qué quieres que haga Codex?<textarea name="objective" rows="3" maxlength="2000" required placeholder="Ejemplo: revisa por qué se corta el crucigrama en móvil."></textarea></label>
+            <p class="inline-hint" id="terrace-mode-hint">Codex revisa el proyecto y propone próximos pasos.</p>
+            <div class="actions"><button class="button primary" type="submit" data-icon="sparkles" disabled>Pedir a Codex</button><a class="text-link" id="terrace-agents" href="#agentes">Elegir agentes →</a></div>
+            <p class="inline-hint" id="terrace-order-status" role="status"></p>
+            <a class="text-link" id="terrace-connect" href="#conexiones" data-open-connection="ia" hidden>Configurar Codex en Conexiones →</a>
+            <p class="form-message" role="alert" hidden></p>
+          </form>
+        </div>
+        <img class="terrace-photo" src="/terrace-hero.webp" width="1200" height="800" alt="" fetchpriority="high">
+      </div>
       <div class="home-grid">
         <section class="card home-activity" aria-labelledby="home-work"><div class="card-heading"><h2 id="home-work">Trabajo reciente</h2><a class="text-link" href="#entregas">Ver entregas →</a></div><div id="home-activity" class="item-list"></div></section>
-        <section class="card home-activity" aria-labelledby="quick-title"><h2 id="quick-title">Acciones rápidas</h2><div class="quick-grid">
+        <section class="card home-activity" aria-labelledby="quick-title"><div class="card-heading"><h2 id="quick-title">Accesos rápidos</h2><a class="text-link" href="#teoria" data-icon="book">Aprender</a></div><div class="quick-grid">
           <a class="quick-card" href="#cambios"><span class="tile-icon blue" data-icon="history"></span><strong>Revisar cambios</strong><span aria-hidden="true">›</span></a>
           <a class="quick-card" href="#publicar"><span class="tile-icon coral" data-icon="send"></span><strong>Preparar publicación</strong><span aria-hidden="true">›</span></a>
           <a class="quick-card" href="#video"><span class="tile-icon violet" data-icon="video"></span><strong>Crear vídeo</strong><span aria-hidden="true">›</span></a>
@@ -156,7 +186,11 @@
           <label>Token de GitHub<input name="token" type="password" autocomplete="off" required></label>
           <button class="button primary">Conectar</button>
         </form>
-        <p id="github-help" class="muted">Usa un token con acceso a este repositorio, lectura de Checks y escritura de Contents y Pull requests. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">Crear token</a></p>
+        <details class="setup-guide" id="github-help"><summary>Cómo conectar GitHub</summary><ol>
+          <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">Crea un token de acceso limitado</a> y selecciona el repositorio de Educame.</li>
+          <li>Concede lectura de <strong>Checks</strong> y lectura y escritura de <strong>Contents</strong> y <strong>Pull requests</strong>.</li>
+          <li>Pega el token aquí y pulsa <strong>Conectar</strong>. Después podrás revisar los archivos y las pruebas de cada propuesta.</li>
+        </ol></details>
         <button class="button secondary" id="github-disconnect" type="button" hidden>Desconectar GitHub</button>
         <form id="github-create" class="operation-form" hidden>
           <label>Entrega subida desde el panel<select name="branch" required></select></label>
@@ -173,7 +207,11 @@
           <label>Alias SSH o usuario@servidor<input name="target" autocomplete="off" placeholder="educame-vps" required></label>
           <button class="button secondary">Probar conexión</button>
         </form>
-        <p class="muted">Usa una clave autorizada en el VPS y la identidad del servidor ya verificada en OpenSSH.</p>
+        <details class="setup-guide"><summary>Cómo preparar el acceso al VPS</summary><ol>
+          <li>Autoriza en Hostinger la clave pública SSH de este equipo para un usuario con acceso a la instalación y a Docker.</li>
+          <li>Conéctate una vez desde PowerShell con <code>ssh usuario@servidor</code> y verifica la identidad del VPS con el proveedor.</li>
+          <li>Introduce aquí ese destino o su alias de OpenSSH y pulsa <strong>Probar conexión</strong>.</li>
+        </ol><p>También puedes copiar el comando de la revisión desde <a class="text-link" href="#cambios">Cambios</a> y pegarlo en la consola de Hostinger.</p></details>
         <div class="actions"><button class="button primary" id="hostinger-prepare" type="button">Preparar despliegue</button><a class="text-link" href="#cambios">Ver cambios o copiar comando</a></div>
         <div id="hostinger-job" class="operation-detail" role="status"></div>
         <details id="hostinger-history" hidden><summary>Historial de despliegues</summary><ul></ul></details>
@@ -185,6 +223,7 @@
           <label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label>
           <button class="button primary">Entrar</button>
         </form>
+        <details class="setup-guide"><summary>Qué cuenta necesitas</summary><p>Usa tu cuenta de superadministración de Educame. Desde aquí puedes editar cuentas y licencias, o pausar una app concreta después de confirmar.</p></details>
         <div id="admin-content" class="operation-admin-content" hidden>
           <section class="operation-detail"><h3>Disponibilidad de las apps</h3><div id="admin-apps" class="operation-apps"></div></section>
           <details id="admin-create"><summary>Crear cuenta</summary><form class="operation-form">
@@ -241,6 +280,11 @@
           <details id="engine-options" hidden><summary>Motor de ejecución</summary><label>Motor<select name="engine"><option value="codex">Codex local</option><option value="openai">OpenAI API</option></select></label></details>
           <p class="form-message" role="alert" hidden></p>
           <p class="inline-hint" id="team-setup" hidden>Para ejecutar encargos, <a class="text-link" href="#conexiones" data-open-connection="ia">conecta Codex</a>. Puedes usar la simulación mientras tanto.</p>
+          <details class="setup-guide"><summary>Qué hace cada opción</summary><ul>
+            <li><strong>Implementar</strong> prepara cambios y pruebas en una copia aislada.</li>
+            <li><strong>Preparar borrador</strong> devuelve un plan o una propuesta para revisar.</li>
+            <li><strong>Simular</strong> prueba el recorrido con una respuesta ficticia. <strong>Añadir a la cola</strong> guarda el encargo para más tarde.</li>
+          </ul></details>
         </section>
       </form>
       <section class="card compose-card" id="team-activity" hidden aria-label="Último envío"></section>
@@ -305,6 +349,11 @@
           <div class="social-labels"><span data-network-icon="instagram">Instagram</span><span data-network-icon="facebook">Facebook</span><span data-network-icon="tiktok">TikTok</span><span data-network-icon="youtube">YouTube</span></div>
           <a class="text-link" href="https://publish.buffer.com/" target="_blank" rel="noreferrer">Abrir Buffer para vincular perfiles ↗</a>
           <form id="buffer-form"><label>Clave API de Buffer<input type="password" name="key" maxlength="1000" autocomplete="off" required></label><div class="actions"><button class="button primary" type="submit">Conectar Buffer</button><a class="text-link" href="https://publish.buffer.com/settings/api" target="_blank" rel="noreferrer">Obtener clave ↗</a></div><p class="form-message" role="alert" hidden></p></form>
+          <details class="setup-guide"><summary>Cómo conectar tus redes</summary><ol>
+            <li>Vincula tus perfiles en <a href="https://publish.buffer.com/" target="_blank" rel="noreferrer">Buffer</a>.</li>
+            <li>En los ajustes de Buffer, crea una clave API y pégala en el formulario.</li>
+            <li>Comprueba que los perfiles aparecen a la derecha. Desde Publicar podrás elegir los destinos y revisar el envío.</li>
+          </ol></details>
           <div class="actions"><button class="button subtle" type="button" data-disconnect="buffer" hidden>Desconectar</button></div>
         </section>
         <section class="card compose-card provider-card" aria-labelledby="connected-title">
@@ -317,15 +366,21 @@
         <section class="card compose-card provider-card"><div class="provider-head"><span class="tile-icon violet" data-icon="video"></span><span class="badge" id="runway-status">Comprobando</span></div>
           <h2>Runway</h2><p>Genera clips desde una descripción y descarga el resultado.</p>
           <form id="runway-form"><label>Clave API de Runway<input type="password" name="key" maxlength="1000" autocomplete="off" required></label><div class="actions"><button class="button primary" type="submit">Conectar Runway</button><a class="text-link" href="https://dev.runwayml.com/" target="_blank" rel="noreferrer">Obtener clave ↗</a></div><p class="form-message" role="alert" hidden></p></form>
+          <details class="setup-guide"><summary>Cómo conectar Runway</summary><ol>
+            <li>En el portal de desarrolladores de Runway, crea una clave API para tu cuenta.</li>
+            <li>Pégala aquí y pulsa <strong>Conectar Runway</strong>.</li>
+            <li>Abre Vídeo, describe el clip y elige el formato. Cada generación usa créditos de Runway.</li>
+          </ol></details>
           <div class="actions" id="runway-actions" hidden><a class="button primary" href="#video">Crear vídeo</a><button class="button subtle" type="button" data-disconnect="runway">Desconectar</button></div>
         </section>
       </div>
       <div class="connections-grid" data-connection-panel="stats" hidden>
         <section class="card compose-card provider-card"><div class="provider-head"><span class="tile-icon green" data-icon="chart"></span><span class="badge" id="google-status">Comprobando</span></div>
           <h2>Google Search Console</h2><p>Consulta cómo encuentran tus páginas en Google.</p>
-          <details><summary>Configurar el cliente de Google</summary>
-            <p>Habilita Search Console API en Google Cloud, crea un cliente OAuth de tipo web y registra esta URL de retorno.</p>
+          <details class="setup-guide"><summary>Cómo configurar Google Search Console</summary>
+            <ol><li>Habilita Search Console API en Google Cloud.</li><li>Crea un cliente OAuth de tipo <strong>Aplicación web</strong> y registra la URL de retorno que aparece aquí.</li><li>Pega el ID y el secreto y autoriza con una cuenta que tenga acceso a la propiedad.</li></ol>
             <label>URL de retorno<input id="google-redirect" readonly></label>
+            <button class="button secondary" type="button" id="copy-google-redirect">Copiar URL de retorno</button>
             <p>Si el proyecto está en pruebas, añade tu cuenta de Google como usuario de prueba.</p>
             <a class="text-link" href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer">Abrir Google Cloud ↗</a>
           </details>
@@ -338,10 +393,16 @@
           <h2>Codex local</h2><p>Usa la sesión de este equipo. Puede preparar borradores o implementar y probar cambios en una copia Git aislada.</p>
           <p class="inline-hint" id="codex-detail"></p>
           <div class="actions"><button class="button secondary" type="button" id="check-codex">Comprobar sesión</button><a class="text-link" href="#agentes">Nuevo encargo →</a></div>
+          <details class="setup-guide"><summary>Cómo iniciar sesión en Codex</summary><ol>
+            <li>Abre PowerShell en este equipo y ejecuta <code>codex login</code>.</li>
+            <li>Completa el acceso con tu cuenta de ChatGPT en el navegador.</li>
+            <li>Vuelve aquí y pulsa <strong>Comprobar sesión</strong>. Cuando esté lista, podrás hacer los encargos desde Inicio.</li>
+          </ol><a class="text-link" href="https://learn.chatgpt.com/docs/auth" target="_blank" rel="noreferrer">Guía oficial de OpenAI ↗</a></details>
         </section>
         <section class="card compose-card provider-card"><div class="provider-head"><span class="tile-icon violet" data-icon="sparkles"></span><span class="badge" id="openai-status">Comprobando</span></div>
           <h2>OpenAI API</h2><p>Motor alternativo para generar borradores desde el contexto del encargo.</p>
           <form id="openai-form"><label>Clave API de OpenAI<input type="password" name="key" maxlength="1000" autocomplete="off" required></label><div class="actions"><button class="button primary" type="submit">Guardar clave</button><a class="text-link" href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">Obtener clave ↗</a></div><p class="form-message" role="alert" hidden></p></form>
+          <details class="setup-guide"><summary>Cuándo usar la API de OpenAI</summary><p>Úsala como motor alternativo para borradores. Crea una clave en la plataforma, guárdala aquí y elige OpenAI API en el encargo. Su consumo se factura en la plataforma de API.</p></details>
           <button class="button subtle" type="button" data-disconnect="openai" hidden>Quitar clave del panel</button>
         </section>
       </div>
@@ -349,6 +410,7 @@
         <section class="card compose-card provider-card"><div class="provider-head"><span class="tile-icon blue" data-icon="apps"></span><span class="badge">Acceso web</span></div>
           <h2>Educame</h2><p>Entra con tu sesión habitual para abrir o administrar los productos.</p>
           <div class="actions"><a class="button primary" href="#apps">Ver las apps</a><a class="button secondary" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noreferrer">Abrir dashboard ↗</a></div>
+          <details class="setup-guide"><summary>Dónde gestionar cuentas y licencias</summary><p>En <a class="text-link" href="#control/admin">Operación → Cuentas y apps</a> puedes iniciar sesión como superadministrador y gestionar accesos y disponibilidad.</p></details>
         </section>
       </div>
     </section>

@@ -31,11 +31,6 @@ main { padding: 19px clamp(16px, 3.4vw, 49px) 44px; width: min(100%, 1450px); }
 .page-heading { margin: 0 0 17px; }
 .page-heading h1 { font-size: clamp(1.8rem, 3vw, 2.35rem); line-height: 1.16; letter-spacing: -.045em; }
 .heading-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 9px 16px; }
-.home-hero { padding: clamp(17px, 3vw, 32px); color: #fff; border-radius: 19px; background: radial-gradient(ellipse at 100% 120%, #4979bb 0, transparent 57%), linear-gradient(120deg, #49338d, #3f2c82 48%, #314c95); box-shadow: 0 10px 24px #48348e2b; }
-.home-hero .button.primary { background: #fff; border-color: #fff; color: #412779; }
-.home-hero .button.primary:hover { background: #f1ebff; }
-.home-study { color: #fff; background: #ffffff17; border-color: #ffffff7a; }
-.home-study:hover { background: #ffffff32; }
 h2 { font-size: 1.14rem; letter-spacing: -.022em; }
 .card { border-radius: 15px; padding: clamp(14px, 2vw, 23px); box-shadow: 0 3px 13px #172d3905; }
 .button { min-height: 40px; padding-inline: 13px; border-radius: 9px; gap: 7px; }

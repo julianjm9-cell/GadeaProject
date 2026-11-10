@@ -2,17 +2,24 @@
 
 Puedes dar un encargo distinto a cada agente y reunir varios en un lote. Dos agentes pueden trabajar en paralelo. Revisión empieza después de la entrega que tiene asignada. Los agentes de implementación usan Codex local. Copiador investiga fuentes públicas y prepara ideas para ellos.
 
-## Centro de mando local
+## LA TERRAZA
 
-Ejecuta el siguiente comando desde la raíz del proyecto y abre [Educame en tu navegador](http://127.0.0.1:4317/).
+Ejecuta el siguiente comando desde la raíz del proyecto y abre [LA TERRAZA en tu navegador](http://127.0.0.1:4317/).
 
 ```powershell
 node scripts/educame-dashboard.mjs
 ```
 
-En Windows, crea **Centro de mando Educame** en el escritorio con
+En Windows, crea **LA TERRAZA** en el escritorio con
 `powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File scripts/educame-dashboard/install-shortcut.ps1`.
-El acceso directo inicia el panel si hace falta y abre Agentes. Los registros de arranque están en `.educame-agents/`.
+El acceso directo inicia el panel si hace falta y abre Inicio. Los registros de arranque están en `.educame-agents/`.
+
+Desde **Inicio → Pedir a Codex**, elige el proyecto y el tipo de resultado.
+Un plan o diagnóstico consulta el proyecto y prepara una respuesta. Una
+implementación trabaja en una copia Git aislada. Revisa ambos resultados en
+**Entregas**. **Preparar seguimiento** lleva el contexto de una entrega a un
+encargo nuevo. Para usar agentes especializados, abre **Elegir agentes**.
+En **Conexiones** y **Operación** hay guías cortas junto a cada configuración.
 
 **Uso de Codex** muestra el porcentaje disponible y la fecha de renovación de
 cada ventana que devuelve la sesión de Codex CLI. Se actualiza cada minuto

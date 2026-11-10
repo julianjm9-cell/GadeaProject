@@ -36,6 +36,12 @@ export const defaultAgents = {
     name: 'Copiador', description: 'Analiza webs y redes de referencia y propone ideas para Educame.',
     draft: '', implementation: '',
   },
+  codex: {
+    name: 'Codex directo', description: 'Responde a un encargo general sobre tus apps o implementa el cambio solicitado.',
+    draft: 'Responde directamente al encargo. Cuando se pida un diagnóstico, comprueba el código pertinente y separa los hechos comprobados de las hipótesis. Cuando se pida un plan, ordénalo por resultado y explica cómo verificarlo.',
+    implementation: 'Implementa el cambio pedido en la app elegida. Conserva el comportamiento existente que corresponda, comprueba el flujo afectado y explica el resultado y sus pruebas.',
+    team: 'Resuelve la parte general del encargo y ten en cuenta el trabajo de los agentes especializados.',
+  },
 };
 
 export const customAgentLimit = 24;

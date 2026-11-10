@@ -23,6 +23,79 @@ for (const [name, engine, viewport] of [
   ['Chromium escritorio', chromium, { width: 1440, height: 950 }],
   ['WebKit móvil', webkit, { width: 390, height: 844 }],
 ]) {
+  test(`LA TERRAZA envía encargos a Codex desde Inicio en ${name}`, { timeout: 35_000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
+    const received = [];
+    const server = await listen(t, directory, { codex: {
+      status: async () => ({ ready: true, message: 'Sesión local activa' }),
+      generate: async task => {
+        received.push(task);
+        return { draft: { resumen: 'Plan de ensayo ' + 'con una descripción larga '.repeat(9),
+          entrega: 'Prueba los botones desde el teclado.', comprobaciones: [], pendientes: [] } };
+      },
+    } });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    t.after(() => browser.close());
+    const page = await browser.newPage({ viewport });
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    const base = 'http://127.0.0.1:' + server.address().port;
+    const sent = [];
+    await page.route('**/api/encargos', async route => {
+      const data = route.request().postDataJSON();
+      sent.push(data);
+      if (sent.length === 1) {
+        await route.fetch();
+        await route.abort();
+      } else await route.continue();
+    });
+    await page.goto(base + '/#inicio');
+    assert.match(await page.title(), /^LA TERRAZA/);
+    await page.waitForFunction(() => document.querySelector('.terrace-photo').naturalWidth > 0);
+    const order = page.locator('#terrace-order');
+    await order.getByLabel('¿En qué app?').selectOption('profesor');
+    await order.getByLabel('¿Qué quieres recibir?').selectOption('implementacion');
+    await order.getByText(/copia aislada/).waitFor();
+    await order.getByLabel('¿Qué quieres recibir?').selectOption('real');
+    await order.getByLabel('¿Qué quieres que haga Codex?').fill('Comprueba la navegación con teclado.');
+    await page.reload();
+    assert.equal(await order.getByLabel('¿Qué quieres que haga Codex?').inputValue(), 'Comprueba la navegación con teclado.');
+    await order.getByRole('button', { name: 'Pedir a Codex' }).click();
+    await order.getByRole('alert').waitFor();
+    await order.getByRole('button', { name: 'Pedir a Codex' }).click();
+    await page.locator('#team-activity').getByText('Borrador').waitFor();
+    assert.equal(received.length, 1);
+    assert.equal(received[0].agente, 'codex');
+    assert.equal(received[0].app, 'profesor');
+    assert.equal(sent[0].engine, 'codex');
+    assert.deepEqual(sent[0].tasks, sent[1].tasks);
+    await page.locator('#team-activity').getByRole('link', { name: /Abrir entregas/ }).click();
+    await page.locator('#history article').filter({ hasText: 'Plan de ensayo' }).getByRole('button', { name: 'Abrir entrega' }).click();
+    await page.getByRole('button', { name: 'Preparar seguimiento' }).click();
+    const composer = page.locator('#agent-compose');
+    assert.match(await composer.locator('[name=context]').inputValue(), /Prueba los botones/);
+    assert.equal(await composer.locator('[name=app]').inputValue(), 'profesor');
+    await page.goto(base + '/#conexiones');
+    const nav = page.getByRole('button', { name: 'Menú', exact: true });
+    if (await nav.isVisible()) {
+      await nav.click();
+      assert.equal(await nav.getAttribute('aria-expanded'), 'true');
+      await page.keyboard.press('Escape');
+      assert.equal(await nav.getAttribute('aria-expanded'), 'false');
+    }
+    await page.getByRole('button', { name: 'Agentes e IA' }).click();
+    await page.getByText('Cómo iniciar sesión en Codex', { exact: true }).click();
+    await page.getByText('codex login', { exact: true }).waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.setViewportSize({ width: 320, height: 790 });
+    for (const section of ['inicio', 'estadisticas']) {
+      await page.goto(base + '/#' + section);
+      await page.locator('[data-page="' + section + '"] h1').waitFor();
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), section);
+    }
+    assert.deepEqual(errors, []);
+  });
+
   test(`Crear, configurar y encargar agentes en ${name}`, { timeout: 35_000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
     const server = await listen(t, directory, { codex: { status: async () => ({ ready: true }) } });
@@ -289,12 +362,16 @@ for (const [name, engine, viewport] of [
       return route.fulfill({ json: clip });
     });
     await page.goto(base);
-    await page.getByRole('heading', { name: 'Centro de mando' }).waitFor();
+    await page.getByRole('heading', { name: '¿Qué quieres hacer hoy?' }).waitFor();
     if (process.env.EDUCAME_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.EDUCAME_SCREENSHOT_DIR, `centro-${name.split(' ')[0]}.png`) });
-    const navigate = label => page.getByRole('navigation').getByRole('link', { name: label, exact: true }).click();
+    const navigate = async label => {
+      const menu = page.getByRole('button', { name: 'Menú', exact: true });
+      if (await menu.isVisible() && await menu.getAttribute('aria-expanded') === 'false') await menu.click();
+      await page.getByRole('navigation').getByRole('link', { name: label, exact: true }).click();
+    };
     await page.getByRole('link', { name: 'Aprender' }).click();
     await page.getByRole('heading', { name: 'Teoría', exact: true }).waitFor();
-    const localLesson = page.locator('summary').filter({ hasText: 'Dónde vive tu Centro de mando' });
+    const localLesson = page.locator('summary').filter({ hasText: 'Dónde vive LA TERRAZA' });
     assert.equal(await localLesson.locator('..').getAttribute('open'), null);
     await localLesson.press('Enter');
     await localLesson.locator('..').getByRole('button', { name: 'Marcar como aprendida' }).click();

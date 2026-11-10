@@ -159,7 +159,7 @@ async function listenPreview(root) {
     };
     try {
       if (request.headers.host !== host || (request.headers.origin && request.headers.origin !== origin)) {
-        return json(403, { detail: 'Abre la vista previa desde el Centro de mando.' });
+        return json(403, { detail: 'Abre la vista previa desde LA TERRAZA.' });
       }
       const path = decodeURIComponent(new URL(request.url, origin).pathname);
       if (path.includes('\\') || path.split('/').some(segment => segment.startsWith('.'))) return json(404, { detail: 'Página no disponible.' });

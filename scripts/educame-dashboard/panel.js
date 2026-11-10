@@ -18,6 +18,8 @@ const taskForm = document.querySelector('#task-form');
 const linkForm = document.querySelector('#link-form');
 const reviewForm = document.querySelector('#review-form');
 const historyFilter = document.querySelector('#history-filter');
+const menu = document.querySelector('.terrace-menu');
+const navigation = document.querySelector('#terrace-navigation');
 const dates = new Intl.DateTimeFormat('es-ES', { dateStyle: 'short', timeStyle: 'short' });
 let state;
 let reviewing;
@@ -69,19 +71,28 @@ function formMessage(form, message = '') {
   node.hidden = !message;
 }
 
+function setMenu(open) {
+  menu.setAttribute('aria-expanded', String(open));
+  menu.closest('.sidebar').classList.toggle('is-open', open);
+}
+
 function showPage() {
   const hash = location.hash.slice(1);
   const development = hash === 'teoria/desarrollo';
-  const requested = development ? 'teoria' : hash === 'flujos' ? 'agentes' : hash;
+  const operation = /^control\/(github|hostinger|admin)$/.exec(hash)?.[1];
+  const requested = development ? 'teoria' : operation ? 'control' : hash === 'flujos' ? 'agentes' : hash;
   const page = [...document.querySelectorAll('[data-page]')].some(node => node.dataset.page === requested) ? requested : 'inicio';
   document.querySelectorAll('[data-page]').forEach(node => { node.hidden = node.dataset.page !== page; });
-  document.querySelectorAll('nav a').forEach(node => {
+  navigation.querySelectorAll('a').forEach(node => {
     if (node.hash === `#${page === 'enlaces' ? 'apps' : page}`) node.setAttribute('aria-current', 'page');
     else node.removeAttribute('aria-current');
   });
+  const active = navigation.querySelector('[aria-current="page"]');
+  document.querySelector('#page-location').textContent = active?.textContent || 'Inicio';
+  setMenu(false);
   window.scrollTo(0, 0);
   if (page === 'cambios') changes?.load();
-  if (page === 'control') operations?.load();
+  if (page === 'control') operations?.open(operation);
   if (page === 'teoria') theory.openTrack(development);
   if (page === 'agentes') { memory.renderAgentHint(); operations?.refreshQuota(); }
 }
@@ -184,7 +195,7 @@ function render() {
   document.querySelector('#task-list').replaceChildren(...(tasks.length ? tasks : [element('p', 'empty', 'Todavía no hay encargos. Crea uno o carga el ejemplo con Juegos, Marketing y Revisión.')]));
   document.querySelector('#limits').textContent = `${tasks.length} de ${maxTasks} encargos · ${concurrency} a la vez`;
   const apiStatus = document.querySelector('#api-status');
-  apiStatus.textContent = !codex ? 'Comprobando Codex' : codex.ready ? 'Codex disponible' : 'Conectar Codex ↗';
+  apiStatus.textContent = !codex ? 'Comprobando Codex' : codex.ready ? 'Sesión activa' : 'Conectar Codex ↗';
   apiStatus.classList.toggle('ready', Boolean(codex?.ready));
   document.querySelector('#run-status').textContent = running ? 'Lote en marcha. Puedes consultar las entregas a medida que estén listas.'
     : paused ? 'Lote interrumpido. Al retomarlo, solo se ejecutan los pasos que aún pueden continuar con seguridad.'
@@ -421,6 +432,13 @@ function openDelivery(delivery) {
     }
   }
   if (delivery.error) body.append(element('p', 'form-message', delivery.error));
+  if (delivery.draft && delivery.mode !== 'prueba') {
+    const next = element('div', 'actions delivery-next');
+    next.append(button('Preparar seguimiento', () => {
+      if (workspace.prepareFollowUp(delivery)) body.closest('dialog').close();
+    }));
+    body.append(next);
+  }
   reviewForm.hidden = !delivery.draft;
   reviewForm.querySelector('[value="aprobada"]').textContent = artifact?.verified ? 'Aprobar implementación' :
     delivery.research ? 'Aprobar análisis' : 'Aprobar borrador';
@@ -527,6 +545,24 @@ document.querySelector('[data-resume-batch]').addEventListener('click', async ev
 
 historyFilter.addEventListener('change', () => { if (state) renderHistory(); });
 window.addEventListener('hashchange', showPage);
+menu.addEventListener('click', () => setMenu(menu.getAttribute('aria-expanded') !== 'true'));
+navigation.addEventListener('click', event => {
+  if (event.target.closest('a') && menu.getAttribute('aria-expanded') === 'true') {
+    setMenu(false);
+    document.querySelector('#main').focus({ preventScroll: true });
+  }
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && menu.getAttribute('aria-expanded') === 'true' && !document.querySelector('dialog[open]')) {
+    setMenu(false);
+    menu.focus();
+  }
+});
+document.querySelector('.skip-content').addEventListener('click', event => {
+  event.preventDefault();
+  setMenu(false);
+  document.querySelector('#main').focus();
+});
 mountIcons();
 const theory = setupTheory({ element });
 const memory = setupMemory({ api, getState: () => state, setBoard: board => { state.board = board; render(); },
