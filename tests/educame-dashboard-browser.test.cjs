@@ -200,7 +200,8 @@ for (const [name, engine, viewport] of [
     const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
     const server = await listen(t, directory, { codex: {
       status: async () => ({ ready: true, message: 'Sesión local activa' }),
-      usage: async () => ({ windows: [{ usedPercent: 22, durationMinutes: 300, resetsAt: 1900000000 }],
+      usage: async () => ({ windows: [{ usedPercent: 22, durationMinutes: 300, resetsAt: 1900000000 },
+        { usedPercent: 41, durationMinutes: 10080, resetsAt: 1900500000 }],
         limitsFresh: true, accountTokens: 1234, tokensFresh: true }),
     } });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
@@ -245,6 +246,11 @@ for (const [name, engine, viewport] of [
     await page.route('**/api/cambios?*', route => route.fulfill({ json: { upstream: revision, commits: [] } }));
     await page.goto(base + '/#control');
     await page.getByRole('link', { name: 'Codex · 78 % disponible' }).waitFor();
+    const quotaChip = page.locator('#codex-quota-chip');
+    await quotaChip.hover();
+    const quotaTitle = await quotaChip.getAttribute('title');
+    assert.match(quotaTitle, /Límite de 5 h · 78 % disponible · Se renueva el/);
+    assert.match(quotaTitle, /Límite semanal · 59 % disponible · Se renueva el/);
     await page.getByRole('button', { name: '#9 · Un cambio para revisar' }).click();
     await page.getByText('app.js', { exact: false }).click();
     await page.getByText('+nuevo', { exact: true }).waitFor();
