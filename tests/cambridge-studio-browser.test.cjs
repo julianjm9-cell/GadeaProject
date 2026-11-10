@@ -14,13 +14,14 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
   try{
    for(const width of [320,390,768,1440]){
     const page=await browser.newPage({viewport:{width,height:960},hasTouch:width<=768});const errors=[];
-    page.on('pageerror',error=>errors.push(error.message));await fixture(page,{licenseKey:'CAMB-TRIAL'});
+    page.on('pageerror',error=>errors.push(error.message));await fixture(page,{licenseKey:'CAMB-TRIAL',look:'route'});
     await page.goto('http://studio.test/cambridge-info');
     assert.match(await page.locator('#googleEntry').getAttribute('href'),/next=%2Fcambridge/);
     assert.equal(await page.locator('.site-header').count(),0);
     assert.equal(await page.getByText('Ver por dentro',{exact:true}).count(),0);
     assert.equal(await page.locator('#level-title').innerText(),'NIVELES');
-    await page.locator('.workspace-scene img').evaluate(img=>img.decode());
+    assert.equal(await page.locator('.workspace-grid img, .workspace-grid [data-station-spot]').count(),0);
+    assert.deepEqual(await page.locator('.workspace-card-header strong').allTextContents(),['Temario','Juegos','Práctica','Biblioteca']);
     const game=page.locator('[data-preview-open="games"]');
     const dialog=page.getByRole('dialog');
     assert.equal(await dialog.isVisible(),false);
@@ -29,38 +30,14 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
      await page.keyboard.press('Enter');
     } else await game.tap();
     await dialog.waitFor();
-    const plan=dialog.getByRole('button',{name:'Preparar mi viaje →'});
-    assert.equal(await plan.isVisible(),false);
-    await page.waitForFunction(()=>document.querySelector('.station-train').naturalWidth>0);
-    for(const [index,label] of ['Aviso','Panel','Taquilla'].entries()){
-     const clue=dialog.getByRole('button',{name:label,exact:true});
-     if(width<=768)await clue.tap();
-     else {await clue.focus();await page.keyboard.press('Enter');}
-     assert.equal(await page.locator('#stationProgress').innerText(),`${index+1}/3 pistas`);
-    }
-    await dialog.getByRole('button',{name:'Aviso',exact:true}).click();
-    assert.equal(await page.locator('#stationProgress').innerText(),'3/3 pistas');
-    await plan.click();
-    const departure=dialog.getByRole('combobox',{name:'Tren'}),platform=dialog.getByRole('combobox',{name:'Andén'}),ticket=dialog.getByRole('combobox',{name:'Billete'});
-    const board=dialog.getByRole('button',{name:'Embarcar →'});
-    await departure.selectOption('21:45');await platform.selectOption('4');await ticket.selectOption('exchange');
-    await board.click();
-    assert.match(await page.locator('#stationFeedback').innerText(),/cancelación/);
-    await departure.selectOption('22:00');await board.click();
-    assert.equal(await platform.getAttribute('aria-invalid'),'true');
-    await dialog.getByRole('button',{name:'Taquilla',exact:true}).click();
-    assert.equal(await departure.inputValue(),'22:00');
-    await platform.selectOption('6');await board.click();
-    assert.match(await page.locator('#stationFeedback').innerText(),/billete/);
-    await ticket.selectOption('use');
-    assert.ok(await dialog.evaluate(node=>node.scrollWidth-node.clientWidth<=2),'mission overflow '+width);
-    if(name==='Chromium'&&[390,1440].includes(width))await dialog.screenshot({path:path.join(root,`tmp/ingles-estacion-mision-${width}.png`),animations:'disabled'});
-    await board.click();
-    assert.equal(await page.locator('#stationBoard').getAttribute('data-stage'),'arrived');
-    assert.equal(await dialog.getByText('22:35 · Andén 6 · Billete válido').isVisible(),true);
-    await dialog.getByRole('button',{name:'Volver a jugar'}).click();
-    assert.equal(await page.locator('#stationProgress').innerText(),'0/3 pistas');
-    assert.equal(await plan.isVisible(),false);
+    assert.equal(await dialog.getByRole('heading',{name:'Tu ruta de juegos, paso a paso'}).isVisible(),true);
+    assert.equal(await dialog.getByRole('listitem').count(),3);
+    assert.equal(await dialog.locator('select, textarea, audio, [data-station-spot]').count(),0);
+    assert.ok(await dialog.evaluate(node=>node.scrollWidth-node.clientWidth<=2),'tour overflow '+width);
+    if(name==='Chromium'&&[390,1440].includes(width))await dialog.screenshot({path:path.join(root,`tmp/ingles-vista-explicativa-${width}.png`),animations:'disabled'});
+    await dialog.getByRole('button',{name:'Temario',exact:true}).click();
+    assert.equal(await dialog.getByRole('heading',{name:'Lecciones por nivel'}).isVisible(),true);
+    assert.equal(await page.locator('#preview-games').isVisible(),false);
     await page.keyboard.press('Escape');
     assert.equal(await dialog.isVisible(),false);
     assert.equal(await game.evaluate(button=>button===document.activeElement),true);
@@ -69,11 +46,14 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
     await page.locator('#sample-c2 summary').click();
     assert.match(await page.locator('#sample-c2').innerText(),/Sugges/);
     await dialog.getByRole('button',{name:'Cerrar vista interactiva'}).click();
+    await page.locator('[data-preview-open="library"]').click();
+    assert.equal(await dialog.getByRole('heading',{name:'Encuentra el tema que necesitas'}).isVisible(),true);
+    await dialog.getByRole('button',{name:'Cerrar vista interactiva'}).click();
     await page.locator('[data-preview-open="practice"]').click();
-    assert.equal(await page.locator('#previewAudio').getAttribute('src'),'/assets/listening/b2-station.wav');
+    assert.equal(await dialog.getByRole('heading',{name:'Listening B2'}).isVisible(),true);
     await dialog.getByRole('button',{name:'Writing',exact:true}).click();
-    await page.locator('#sampleAnswer').fill('I am writing to enquire.');
-    assert.match(await page.locator('#sampleWordCount').innerText(),/5 palabras/);
+    await dialog.getByText('Ver un ejemplo de registro formal',{exact:true}).click();
+    assert.match(await page.locator('#sample-writing blockquote').innerText(),/I am writing to enquire/);
     await dialog.getByRole('button',{name:'Cerrar vista interactiva'}).click();
     await page.locator('.faq details').nth(0).locator('summary').click();
     assert.equal(await page.locator('.faq details[open]').count(),1);
@@ -83,7 +63,7 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
      await page.screenshot({path:path.join(root,'tmp/ingles-landing-interactiva-'+width+'.png')});
     }
     await page.goto('http://studio.test/cambridge');await page.waitForFunction(()=>cambridgeStateETag!==null);
-    assert.equal(await page.locator('.workspace-header nav button').count(),4);
+    assert.deepEqual(await page.locator('.workspace-header nav button').allTextContents(),['Inicio','Juegos','Temario','Práctica','Biblioteca']);
     assert.equal(await page.locator('.studio-welcome').count(),0);
     for(const img of await page.locator('.quick-mode img').filter({visible:true}).all())await img.evaluate(image=>image.decode());
     assert.equal(await page.getByRole('button',{name:'15 min',exact:true}).getAttribute('aria-pressed'),'true');
@@ -102,6 +82,9 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
      assert.equal(await page.locator('#b2GameList .b2-card').count(),count);
      const routeImages=page.locator('.english-journey-art img');
      assert.equal(await routeImages.count(),10);
+     assert.equal(await page.locator('.english-journey-path').count(),1);
+     assert.equal(await page.locator('.english-journey-path').evaluate(path=>Array.from(path.children).every((stop,index,all)=>index===0||stop.offsetTop>all[index-1].offsetTop)),true);
+     assert.ok((await page.locator('.english-journey-meter').boundingBox()).width>=160,'progress meter fits '+width);
      for(const image of await routeImages.all())await image.scrollIntoViewIfNeeded();
      await page.waitForFunction(()=>[...document.querySelectorAll('.english-journey-art img')].every(image=>image.complete&&image.naturalWidth>0));
      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),`route overflow ${width}px at ${level}`);
@@ -114,6 +97,9 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
     const {x,width:practiceWidth}=await practiceList.boundingBox();
     assert.ok(Math.abs(x+practiceWidth/2-width/2)<=2,'practice cards centered '+width);
     assert.equal(await practiceList.evaluate(list=>getComputedStyle(list).gridTemplateColumns.split(' ').length),width<=620?1:3);
+    const practiceArt=practiceList.locator('.practice-art').first();
+    assert.equal(await practiceArt.evaluate(art=>art.offsetWidth===art.closest('button').clientWidth),true);
+    assert.equal(await practiceList.locator('.practice-copy small').first().evaluate(node=>getComputedStyle(node).color),'rgb(236, 243, 253)');
     for(const [label,tab] of [['Speaking','recitar'],['Writing','escrita']]){
      const option=practice.getByRole('button',{name:label,exact:true});
      if(width<=620)await option.tap();
@@ -192,7 +178,7 @@ for(const [name,engine,options] of [['Chromium',chromium,{headless:true,channel:
  });
 }
 
-test('paused English disables every landing entry while keeping the public trial usable',async()=>{
+test('paused English disables access while keeping the public tour usable',async()=>{
  const browser=await chromium.launch({headless:true,channel:'msedge'});
  try{
   const page=await browser.newPage();await fixture(page,{paused:true});await page.goto('http://studio.test/cambridge-info');
@@ -200,8 +186,10 @@ test('paused English disables every landing entry while keeping the public trial
   assert.equal(await page.locator('.app-entry[href]').count(),0);
   assert.equal(await page.locator('.app-entry[aria-disabled=true]').count(),1);
   await page.locator('[data-preview-open="games"]').click();
-  await page.getByRole('dialog').getByRole('button',{name:'Panel',exact:true}).click();
-  assert.equal(await page.locator('#stationProgress').innerText(),'1/3 pistas');
+  const dialog=page.getByRole('dialog');
+  assert.equal(await dialog.getByRole('heading',{name:'Tu ruta de juegos, paso a paso'}).isVisible(),true);
+  await dialog.getByRole('button',{name:'Práctica',exact:true}).click();
+  assert.equal(await dialog.getByRole('heading',{name:'Entrena una destreza'}).isVisible(),true);
  }finally{await browser.close();}
 });
 
@@ -251,14 +239,20 @@ test('study and game modes share topics, unlock the next stop and restore each l
  const browser=await chromium.launch({headless:true,channel:'msedge'});
  try{
   const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,reducedMotion:'reduce'});
-  await fixture(page);
+  await fixture(page,{look:'route'});
   await page.goto('http://studio.test/cambridge');
   await page.waitForFunction(()=>cambridgeStateETag!==null);
-  const mode=page.getByRole('button',{name:'Modo juegos',exact:true});
+  const mode=page.getByRole('button',{name:'Juegos',exact:true});
   const stops=page.locator('.english-journey-stop');
   const next=stops.filter({has:page.getByRole('button',{name:'Jugar →',exact:true})}).first();
   await page.locator('#headerExamLevel').selectOption('B2 First');
+  assert.equal(await page.locator('.workspace-brand img').count(),0);
+  assert.equal(await page.getByRole('heading',{name:'Tu ruta de inglés'}).isVisible(),true);
+  assert.equal(await page.locator('#routeHomeNext').isVisible(),true);
+  assert.equal(await page.locator('#routeHomeCount').textContent(),'B2 First · 0/10 paradas completadas');
+  assert.match(await page.locator('#routeHomeStops [aria-current="step"]').innerText(),/Collocations/);
   await mode.tap();
+  assert.equal(await page.getByRole('heading',{name:'Juegos',exact:true}).isVisible(),true);
   assert.equal(await stops.count(),10);
   assert.equal(await stops.locator('button').count(),1);
   assert.match(await next.innerText(),/Collocations/);

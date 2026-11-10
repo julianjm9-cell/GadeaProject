@@ -1,7 +1,7 @@
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml','.json':'application/json','.wav':'audio/wav'};
-async function fixture(page,{paused=false,licenseKey}={}){
+async function fixture(page,{paused=false,licenseKey,look='original'}={}){
  let state={},revision=1;
  await page.route('**/*',async route=>{
   const request=route.request(),url=new URL(request.url()),p=url.pathname;
@@ -12,7 +12,7 @@ async function fixture(page,{paused=false,licenseKey}={}){
   }
   if(p==='/api/status')return route.fulfill({json:{ok:true,user:{id:'visual-trial',name:'Cuenta de prueba',total_credits:100,available_credits:100,license_key:licenseKey}}});
   if(p==='/api/me')return route.fulfill({json:{ok:true,user:{id:'visual-trial',name:'Cuenta de prueba',status:'active',total_credits:100,available_credits:100}}});
-  if(p==='/api/study-appearance')return route.fulfill({json:{look:'original'}});
+  if(p==='/api/study-appearance')return route.fulfill({json:{look}});
   if(p==='/auth/google/status')return route.fulfill({json:{enabled:true}});
   if(p==='/api/public/app-availability')return route.fulfill({json:{apps:{CAMBRIDGE:{paused}}}});
   if(p.startsWith('/api/app-notifications/'))return route.fulfill({json:{messages:[],next:null,unread:0}});

@@ -8,6 +8,7 @@
     {id: 'original', name: 'Estilo original', detail: 'La vista azul de siempre, sin fondo ilustrado.'},
     ...({
       cambridge: [
+        {id: 'route', name: 'Ruta', detail: 'Verde bosque, tonos cálidos y un viaje en tren por la costa inglesa.'},
         {id: 'london', name: 'Club de Londres', detail: 'Verde petróleo, luz suave y un rincón junto al Támesis.'},
         {id: 'library', name: 'Biblioteca británica', detail: 'Burdeos, pergamino y una biblioteca clásica.'},
       ],
@@ -19,7 +20,7 @@
   ];
   const label = document.querySelector('[data-study-look-label]');
   let dialog, form, status, options, submit;
-  let savedLook = 'original';
+  let savedLook = root.dataset.studyLook || 'original';
   let loading = true;
   let loadFailed = false;
   let saving = false;

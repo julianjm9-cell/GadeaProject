@@ -1,0 +1,158 @@
+/* Ruta uses the shared appearance tokens and the existing mission controls. */
+:is(html[data-study-look="route"], [data-look-preview="route"]) {
+  --study-room: url('./route-coast-v1.webp');
+  --study-wash: #f3e8cee8;
+  --study-ink: #243d35;
+  --study-muted: #60513e;
+  --study-edge: #d6c39e;
+  --study-card: #fff8e6;
+  --study-soft: #f1e5ca;
+  --study-accent: #8c3c24;
+  --study-nav: #263e36;
+  --study-nav-ink: #fff5de;
+  --study-nav-tab: transparent;
+  --study-nav-active: #f4da97;
+  --study-nav-active-ink: #302917;
+  --study-radius: 17px;
+  --study-button-radius: 10px;
+  --study-shadow: 0 3px 0 #b39a7042, 0 12px 28px #62472516;
+  --study-heading: Georgia, serif;
+}
+
+html[data-study-look="route"]::before {
+  background: linear-gradient(180deg, #f8edd7e8, #efe5cc 680px), var(--study-room) center top / cover no-repeat;
+}
+html[data-study-look="route"] .english-studio {
+  --ink: var(--study-ink);
+  --muted: var(--study-muted);
+  --border: var(--study-edge);
+  --blue: var(--study-accent);
+  --blue-light: var(--study-soft);
+}
+html[data-study-look="route"] .english-studio .workspace-brand span::after {
+  content: "Ruta";
+  display: block;
+  color: #f4da97;
+  font-size: .62rem;
+  letter-spacing: .14em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+html[data-study-look="route"] .workspace-header [data-app-notifications] {
+  background: var(--study-card) !important;
+  border-color: var(--study-edge) !important;
+  color: var(--study-accent) !important;
+}
+html[data-study-look="route"] .english-studio :is(.workspace-page-head h2, .b2-card h3, .route-poster h1, .english-journey-banner h2, .english-journey-stop h3, .english-journey-chapter) {
+  font-family: var(--study-heading);
+}
+html[data-study-look="route"] .english-studio :is(.library-toolbar, .topic-item, .english-progress-panel, .english-progress-overview, .english-teacher-panel) {
+  background: var(--study-card);
+  border-color: var(--study-edge);
+}
+html[data-study-look="route"] .english-studio :is(.english-teacher-head, .global-teacher) {
+  background: var(--study-nav);
+  color: var(--study-nav-ink);
+}
+html[data-study-look="route"] .english-studio .english-teacher-head h2 { color: inherit; }
+
+html[data-study-look="route"] .english-studio #sessionEmpty { max-width: none; }
+html[data-study-look="route"] .english-studio .route-home {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(255px, .8fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.route-poster {
+  display: flex;
+  align-items: end;
+  min-height: clamp(300px, 35vw, 455px);
+  padding: clamp(21px, 3.4vw, 46px);
+  border: 1px solid #a4855a;
+  border-radius: var(--study-radius);
+  background: linear-gradient(12deg, #12251cf5, #182c2282 46%, transparent 75%), var(--study-room) center / cover, #263e36;
+  color: #fff8e7;
+  box-shadow: var(--study-shadow);
+}
+.route-poster h1 { margin: 0; font-size: clamp(34px, 5.3vw, 68px); }
+#sessionEmpty .route-poster p { display: block; }
+.route-poster #routeHomeNext { margin: 9px 0 15px; color: #fff1d6; }
+.route-poster .route-eyebrow {
+  margin: 0 0 9px;
+  color: #ffe6aa;
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.route-nearby {
+  padding: clamp(17px, 2.4vw, 27px);
+  border: 1px solid var(--study-edge);
+  border-radius: var(--study-radius);
+  background: var(--study-card);
+  box-shadow: var(--study-shadow);
+}
+#sessionEmpty .route-nearby h2 {
+  margin: 0 0 13px;
+  font-family: var(--study-heading);
+  font-size: clamp(23px, 3vw, 34px);
+}
+.route-nearby ol { display: grid; gap: 8px; margin: 0 0 15px; padding: 0; list-style: none; }
+.route-nearby li {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+.route-nearby li > span {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--study-edge);
+  border-radius: 50%;
+  color: var(--study-accent);
+  background: var(--study-soft);
+  font-size: .85rem;
+  font-weight: 800;
+}
+.route-nearby li.is-next { background: #f5e7bf; border-color: var(--study-edge); }
+.route-nearby li.is-done > span { background: #e4efe0; color: #306046; }
+.route-nearby :is(strong, small) { display: block; overflow-wrap: anywhere; }
+.route-nearby small { color: var(--study-muted); }
+html[data-study-look="route"] .english-studio .route-nearby .btn-outline {
+  background: var(--study-card);
+  border-color: var(--study-edge);
+  color: var(--study-accent);
+}
+html[data-study-look="route"] .english-studio .quick-session { display: block; min-height: 0; padding: 12px 18px; }
+html[data-study-look="route"] .english-studio .quick-session-main { padding: 0; }
+html[data-study-look="route"] .english-studio .quick-session h1 { margin: 0 0 10px; font-size: 1.25rem; }
+html[data-study-look="route"] .english-studio .quick-session-art { display: none; }
+
+html[data-study-look="route"] #englishJourney {
+  --journey-accent: var(--study-accent);
+  --journey-soft: var(--study-soft);
+  --journey-line: #aa694c;
+  --journey-scene: var(--study-room);
+  --journey-position: 59% center;
+}
+html[data-study-look="route"] .english-journey-banner {
+  background-image: linear-gradient(24deg, #101d23f5, #162a2b86 50%, transparent 80%), var(--journey-scene);
+  border-color: #a4855a;
+}
+html[data-study-look="route"] .english-journey-start {
+  background: var(--study-accent);
+  color: #fff;
+}
+html[data-study-look="route"] .english-journey-start:hover { background: #763019; }
+@media (min-width: 681px) {
+  html[data-study-app="cambridge"] .study-look-options { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 690px) {
+  html[data-study-look="route"] .english-studio .route-home { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .route-poster { min-height: 285px; background-position: 58% center; }
+}

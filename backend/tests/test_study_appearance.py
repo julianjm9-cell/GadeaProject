@@ -18,7 +18,7 @@ def test_appearance_is_account_and_app_scoped_without_revising_academic_state(cl
     eso_stored = web.post("/api/state", headers=eso, json=eso_academic)
     assert eso_stored.status_code == 200
 
-    assert web.get(endpoint, headers=english).json() == {"look": "original"}
+    assert web.get(endpoint, headers=english).json() == {"look": "route"}
     assert web.post(endpoint, headers=english, json={"look": "london"}).json() == {"look": "london"}
     assert web.get(endpoint, headers=eso).json() == {"look": "original"}
     assert web.post(endpoint, headers=eso, json={"look": "observatory"}).json() == {"look": "observatory"}
@@ -39,7 +39,8 @@ def test_appearance_is_account_and_app_scoped_without_revising_academic_state(cl
     seed_user(db_factory, email="other@example.com", product_codes=("CAMBRIDGE", "DIPLOMATOR"))
     other_token = login(web, email="other@example.com").json()["access_token"]
     other = {"Authorization": f"Bearer {other_token}", "X-Client-App": "cambridge"}
-    assert web.get(endpoint, headers=other).json() == {"look": "original"}
+    assert web.get(endpoint, headers=other).json() == {"look": "route"}
+    assert web.post(endpoint, headers=other, json={"look": "route"}).json() == {"look": "route"}
     assert web.post(endpoint, headers=other, json={"look": "library"}).json() == {"look": "library"}
     assert web.get("/api/state", headers={"Authorization": f"Bearer {other_token}"}).json() == {}
     assert web.post(endpoint, headers=english, json={"look": "original"}).json() == {"look": "original"}

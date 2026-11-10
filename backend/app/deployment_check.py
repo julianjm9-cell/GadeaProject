@@ -99,6 +99,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/assets/cambridge-studio/expansion.js": b"EnglishExpansion",
         "/assets/cambridge-studio/games.css": b".mission-bridge",
         "/assets/cambridge-studio/journey.css": b".english-journey-path",
+        "/assets/cambridge-studio/route.css": b".route-poster",
+        "/assets/cambridge-studio/route-coast-v1.webp": b"RIFF",
         "/assets/cambridge-studio/route-atlas-v1.webp": b"RIFF",
         "/assets/cambridge-studio/route-editor-v1.webp": b"RIFF",
         "/assets/cambridge-studio/route-archive-v1.webp": b"RIFF",

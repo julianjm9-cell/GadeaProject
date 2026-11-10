@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-study-app="cambridge">
+<html lang="es" data-study-app="cambridge" data-study-look="route">
 <head>
 <script src="/app-session.js?v=20261107-fixes-1"></script>
 <meta charset="UTF-8">
@@ -1382,11 +1382,12 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 @media(max-width:620px){.b2-grid{grid-template-columns:1fr}.b2-intro,.b2-panel{padding:19px}.b2-board{min-height:240px;padding:12px}.b2-scene-page{padding:15px}.b2-filters input{min-width:0}.b2-filters label{flex:1 1 145px}.writing-report-scores,.writing-compare{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="/assets/app-notifications.css?v=20261107-1">
-<link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261109-4">
+<link rel="stylesheet" href="/assets/cambridge-studio/studio.css?v=20261110-workspace">
 <link rel="stylesheet" href="/assets/cambridge-studio/games.css?v=20261110-play">
-<link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261109-content-4">
+<link rel="stylesheet" href="/assets/cambridge-studio/journey.css?v=20261110-workspace">
 <link rel="stylesheet" href="/assets/study-appearance/appearance.css?v=2">
-<script defer src="/assets/study-appearance/appearance.js?v=1"></script>
+<link rel="stylesheet" href="/assets/cambridge-studio/route.css?v=20261110-workspace">
+<script defer src="/assets/study-appearance/appearance.js?v=2"></script>
 <script src="/assets/cambridge-studio/games.js?v=20261110-play"></script>
 <script src="/assets/cambridge-studio/expansion.js?v=20261109-1"></script>
 </head>
@@ -1401,13 +1402,11 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
 </div>
 
 <header class="workspace-header">
-  <button class="brand-area workspace-brand active" type="button" data-tab-btn="sesion" onclick="showTab('sesion')" aria-label="Inicio de Inglés" aria-current="page">
-    <img src="/assets/brand/ingles-simple.png" width="30" height="30" alt="">
-    <span>Inglés</span>
-  </button>
+  <div class="brand-area workspace-brand"><span>Inglés</span></div>
   <nav class="main-actions" aria-label="Navegación de Inglés">
+    <button class="nav-pill active" type="button" data-tab-btn="sesion" onclick="showTab('sesion')" aria-current="page">Inicio</button>
+    <button class="nav-pill" data-tab-btn="juegos" onclick="showTab('juegos')">Juegos</button>
     <button class="nav-pill" data-tab-btn="b2" onclick="showTab('b2')" aria-label="Modo temario">Temario</button>
-    <button class="nav-pill" data-tab-btn="juegos" onclick="showTab('juegos')" aria-label="Modo juegos">Juegos</button>
     <button class="nav-pill" data-tab-btn="entrenar" onclick="showTab('entrenar')">Práctica</button>
     <button class="nav-pill" data-tab-btn="temas" onclick="showTab('temas')">Biblioteca</button>
   </nav>
@@ -1432,6 +1431,21 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   <!-- TAB: SESIÓN -->
   <div id="tab-sesion" class="tab active">
     <div id="sessionEmpty" class="session-empty">
+      <div class="route-home">
+        <section class="route-poster" aria-labelledby="routeHomeTitle">
+          <div>
+            <p class="route-eyebrow" id="routeHomeCount"></p>
+            <h1 id="routeHomeTitle" data-workspace-title tabindex="-1">Tu ruta de inglés</h1>
+            <p id="routeHomeNext"></p>
+            <button class="btn" type="button" id="routeHomePlay" onclick="openB2Game(this.dataset.game, true)" hidden>Jugar la siguiente misión <span aria-hidden="true">→</span></button>
+          </div>
+        </section>
+        <section class="route-nearby" aria-labelledby="routeNearbyTitle">
+          <h2 id="routeNearbyTitle">Paradas cercanas</h2>
+          <ol id="routeHomeStops"></ol>
+          <button type="button" class="btn btn-outline" onclick="closeEnglishGame(); showTab('juegos')">Ver todos los juegos <span aria-hidden="true">↗</span></button>
+        </section>
+      </div>
       <section class="quick-session" aria-labelledby="quickSessionTitle">
         <div class="quick-session-main">
           <h1 id="quickSessionTitle" data-workspace-title tabindex="-1">Sesión de hoy</h1>
@@ -1782,7 +1796,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
   <div id="tab-perfil" class="tab">
     <h2 class="workspace-sr-only" data-workspace-title tabindex="-1">Perfil</h2>
     <div class="profile-card">
-      <div class="profile-avatar" id="profileAvatar"></div>
+      <div class="profile-avatar" id="profileAvatar" aria-hidden="true">I</div>
       <div>
         <div class="profile-title" id="profileName">Cuenta Título de inglés</div>
         <div class="profile-name-row">
@@ -1816,7 +1830,7 @@ header{grid-template-columns:minmax(200px,1fr) minmax(0,850px) minmax(200px,1fr)
       </div>
     </div>
     <section class="study-look-setting" aria-labelledby="studyLookSetting">
-      <div><h3 id="studyLookSetting">Apariencia</h3><p data-study-look-label>Estilo original</p></div>
+      <div><h3 id="studyLookSetting">Apariencia</h3><p data-study-look-label>Ruta</p></div>
       <button class="study-look-open" type="button" data-study-appearance-open aria-haspopup="dialog" hidden>Cambiar estilo</button>
     </section>
     <div class="notice" id="accessKeyHelp">
@@ -2815,6 +2829,24 @@ function renderEnglishHomeRouteProgress() {
   const route = englishRouteProgressSummary(state.examLevel);
   document.getElementById('englishHomeRouteProgress').textContent = `${route.doneLessons}/${route.lessons} lecciones completadas`;
   document.getElementById('englishHomeGameProgress').textContent = `${route.doneGames}/${route.games} juegos terminados`;
+
+  const stops = englishJourneyStops();
+  const next = stops.findIndex(stop => !stop.done);
+  const upcoming = stops[next];
+  const count = stops.filter(stop => stop.done).length;
+  document.getElementById('routeHomeCount').textContent = `${state.examLevel} · ${count}/${stops.length} paradas completadas`;
+  document.getElementById('routeHomeNext').textContent = upcoming ? `Siguiente misión · ${upcoming.game.title}` : 'Has completado el recorrido.';
+  const play = document.getElementById('routeHomePlay');
+  play.hidden = !upcoming;
+  play.dataset.game = upcoming?.game.id || '';
+
+  const start = next < 0 ? Math.max(0, stops.length - 3) : Math.max(0, Math.min(next - 1, stops.length - 3));
+  document.getElementById('routeHomeStops').innerHTML = stops.slice(start, start + 3).map(({lesson,done}, index) => {
+    const current = start + index === next;
+    const status = done ? 'Completada' : current ? 'Siguiente' : 'Por abrir';
+    const marker = done ? '✓' : String(start + index + 1).padStart(2,'0');
+    return `<li class="${done ? 'is-done' : current ? 'is-next' : ''}" ${current ? 'aria-current="step"' : ''}><span aria-hidden="true">${marker}</span><div><strong>${escHtml(lesson.title)}</strong><small>${status}</small></div></li>`;
+  }).join('');
 }
 
 function openEnglishPractice(tab) {
@@ -2975,7 +3007,7 @@ function showTab(name) {
   if (name === 'escrita') renderWritingPractice();
   if (name === 'progreso') renderEnglishDashboard();
   window.scrollTo({top:0,behavior:'auto'});
-  [...tab.querySelectorAll('[data-workspace-title]')].find(title => !title.closest('[hidden]'))?.focus({preventScroll:true});
+  [...tab.querySelectorAll('[data-workspace-title]')].find(title => title.getClientRects().length)?.focus({preventScroll:true});
   updateEnglishTeacherContext();
 }
 
@@ -4162,15 +4194,9 @@ function remainingCredits(user = null) {
   return total ? Math.max(0, total - used) : null;
 }
 
-function cambridgeIcon() {
-  return '<img src="assets/brand/ingles-simple.png" alt="">';
-}
-
 function renderCambridgeIcons() {
   const mini = document.getElementById('profileHeaderBtn');
-  const avatar = document.getElementById('profileAvatar');
   if (mini) mini.textContent = 'P';
-  if (avatar) avatar.innerHTML = cambridgeIcon();
   document.querySelectorAll('#tab-perfil .profile-actions button').forEach(button => {
     if (button.getAttribute('onclick')?.includes('showUtilityTab')) button.textContent = 'Configuración';
   });
@@ -4190,7 +4216,7 @@ function renderProfile(user = null) {
   const subtitleEl = document.getElementById('profileSubtitle');
   const usageEl = document.getElementById('profileUsage');
   const expiryEl = document.getElementById('profileExpiry');
-  if (avatar) avatar.innerHTML = cambridgeIcon();
+  if (avatar) avatar.textContent = Array.from(name.trim())[0]?.toLocaleUpperCase('es') || 'I';
   if (nameEl) nameEl.textContent = name;
   if (nameInput) nameInput.value = name;
   if (subtitleEl) subtitleEl.textContent = email || 'Acceso local Título de inglés';
@@ -6069,16 +6095,19 @@ function englishJourneyArt(game) {
   const base = location.protocol === 'file:' ? 'assets/studio/' : '/assets/cambridge-studio/';
   return `<img src="${base + (game.scene?.art || ENGLISH_JOURNEY_ART[game.id])}" alt="" width="480" height="270" loading="lazy" decoding="async">`;
 }
-function renderEnglishJourney() {
+function englishJourneyStops() {
   const lessons = englishRouteLessons();
   const games = englishRouteGames();
-  const stops = lessons.map(lesson => {
+  return lessons.map(lesson => {
     const game = games.find(item => item.id === englishLessonMission(lesson));
     const chapters = englishJourneyChapters(game);
     const chapter = chapters.findIndex(item => item.lesson.id === lesson.id);
     const done = state.b2Games[game.id]?.completed || (state.b2GameRuns[game.id]?.stage || 0) >= chapters[chapter].end;
     return {lesson, game, chapter, chapters:chapters.length, done};
   });
+}
+function renderEnglishJourney() {
+  const stops = englishJourneyStops();
   const next = stops.findIndex(stop => !stop.done);
   const total = stops.filter(stop => stop.done).length;
   const nodes = stops.map(({lesson, game, chapter, chapters, done}, index) => {
@@ -6104,7 +6133,7 @@ function renderEnglishJourney() {
   journey.dataset.level = state.examLevel.slice(0,2);
   journey.innerHTML = `<header class="english-journey-banner">
     <div class="english-journey-intro">
-      <h2 data-workspace-title tabindex="-1">Mapa de misiones</h2>
+      <h2 data-workspace-title tabindex="-1">Juegos</h2>
       <p>${upcoming ? 'Próxima parada · ' + escHtml(upcoming.lesson.title) : '¡Recorrido completado! Puedes repetir tus misiones.'}</p>
       ${upcoming ? `<button class="english-journey-start" type="button" onclick="openB2Game('${upcoming.game.id}',true)">${action} →</button>` : ''}
     </div>
@@ -6113,9 +6142,10 @@ function renderEnglishJourney() {
       <progress max="${stops.length}" value="${total}" aria-label="Paradas completadas"></progress>
     </div>
   </header>
-  <ol class="english-journey-path" aria-label="Primer tramo">${nodes.slice(0,6).join('')}</ol>
-  ${nodes.length > 6 ? `<h3 class="english-journey-chapter">Nuevas misiones</h3>
-  <ol class="english-journey-path english-journey-extension" start="7" aria-label="Segundo tramo">${nodes.slice(6).join('')}</ol>` : ''}`;
+  <div class="english-journey-content">
+    <h3 class="english-journey-chapter">Paradas de ${escHtml(state.examLevel)}</h3>
+    <ol class="english-journey-path" aria-label="Paradas del recorrido">${nodes.join('')}</ol>
+  </div>`;
 }
 function renderB2Games() {
   const list = document.getElementById('b2GameList');
@@ -6128,9 +6158,13 @@ function renderB2Games() {
     const completed = state.b2Games?.[game.id]?.completed;
     return `<article class="b2-card english-catalog-card">
       <div class="english-catalog-art">${englishJourneyArt(game)}</div>
-      <small>${escHtml(game.skill)}</small><h3>${escHtml(game.title)}</h3><p>${escHtml(game.intro)}</p>
-      <span class="b2-card-status">${run ? `Etapa ${run.stage+1}/${game.stages.length}` : completed ? '✓ Completado' : 'Por jugar'}</span>
-      <button type="button" onclick="openB2Game('${game.id}')">${run ? 'Continuar' : completed ? 'Volver a jugar' : 'Jugar'}</button>
+      <div class="english-catalog-copy">
+        <small>${escHtml(game.skill)}</small><h3>${escHtml(game.title)}</h3><p>${escHtml(game.intro)}</p>
+        <div class="english-catalog-actions">
+          <span class="b2-card-status">${run ? `Etapa ${run.stage+1}/${game.stages.length}` : completed ? '✓ Completado' : 'Por jugar'}</span>
+          <button type="button" onclick="openB2Game('${game.id}')">${run ? 'Continuar' : completed ? 'Volver a jugar' : 'Jugar'} <span aria-hidden="true">→</span></button>
+        </div>
+      </div>
     </article>`;
   }).join('');
 }

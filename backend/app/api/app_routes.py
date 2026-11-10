@@ -735,7 +735,7 @@ def cambridge_game_illustration(filename: str, request: Request):
 def cambridge_studio_asset(filename: str):
     if filename not in {'studio.css', 'landing.css', 'landing-preview.js', 'word-bridge-preview-v1.webp',
                         'last-train-station-v1.webp', 'last-train-sprite-v1.webp',
-                        'games.css', 'games.js', 'expansion.js', 'journey.css', 'bridge-world-v1.webp', 'guide-v1.webp',
+                        'games.css', 'games.js', 'expansion.js', 'journey.css', 'route.css', 'route-coast-v1.webp', 'bridge-world-v1.webp', 'guide-v1.webp',
                         'route-atlas-v1.webp', 'route-editor-v1.webp', 'route-archive-v1.webp', 'route-machine-v1.webp',
                         'route-forge-v1.webp', 'route-mailroom-v1.webp', 'route-research-v1.webp', 'route-debate-v1.webp',
                         'route-observatory-v1.webp', 'route-press-v1.webp',
@@ -1923,7 +1923,7 @@ async def upload_drive_document(
     return {"ok": True, "file_id": data.get("id"), "webViewLink": data.get("webViewLink")}
 
 
-STUDY_APPEARANCES = {"cambridge": ("original", "london", "library"), "eso_adultos": ("original", "courtyard", "observatory")}
+STUDY_APPEARANCES = {"cambridge": ("route", "original", "london", "library"), "eso_adultos": ("original", "courtyard", "observatory")}
 
 
 def study_appearance_app(request: Request) -> str:
@@ -1938,7 +1938,8 @@ def get_study_appearance(request: Request, user: User = Depends(current_user), _
     app_key = study_appearance_app(request)
     look_column = ClientState.data["__apps"][f"{app_key}_appearance"]["look"].as_string()
     look = db.scalar(select(look_column).where(ClientState.organization_id == user.organization_id, ClientState.user_id == user.id))
-    return {"look": look if look in STUDY_APPEARANCES[app_key] else "original"}
+    available = STUDY_APPEARANCES[app_key]
+    return {"look": look if look in available else available[0]}
 
 
 @router.post("/api/study-appearance")
