@@ -279,10 +279,6 @@ export function setupOperations({ api, element, button, feedback, openCommand })
           element('p', 'muted', result.tokensFresh ? 'Tokens acumulados' : 'Último dato · ' + stamp(result.tokensAt)));
         nodes.push(card);
       }
-      const local = element('div', 'quota-metric');
-      local.append(element('h3', '', 'Encargos de Educame'), element('strong', '', number.format(result.local.tokens)),
-        element('p', 'muted', 'Tokens registrados · ' + result.local.records + ' entregas'));
-      nodes.push(local);
       if (windows.length && !result.limitsFresh) nodes.push(element('p', 'muted', 'Límites de la última consulta · ' + stamp(result.limitsAt)));
       meter.replaceChildren(...nodes);
     }).finally(() => { quotaQuery = null; });

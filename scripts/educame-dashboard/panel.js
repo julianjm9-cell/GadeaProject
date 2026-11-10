@@ -518,7 +518,6 @@ function openDelivery(delivery) {
   const verdict = deliveryVerdict(delivery);
   document.querySelector('#delivery-title').textContent = delivery.draft?.resumen || 'Detalle del encargo';
   const meta = [delivery.mode === 'prueba' ? 'Simulación local' : delivery.model, dates.format(new Date(delivery.finishedAt))];
-  if (delivery.usage?.total_tokens !== undefined) meta.push(`${delivery.usage.total_tokens} tokens`);
   if (delivery.app) meta.push(state.projectProfiles[delivery.app]?.name);
   if (verdict) meta.push(states[verdict.decision][0]);
   document.querySelector('#delivery-meta').textContent = meta.join(' · ');

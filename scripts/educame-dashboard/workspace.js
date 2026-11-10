@@ -903,7 +903,6 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     $('#local-metrics').replaceChildren(
       metric('Entregas de agentes', number.format(real.filter(item => item.status === 'borrador').length)),
       metric('Simulaciones', number.format(state.history.filter(item => item.mode === 'prueba').length)),
-      metric('Tokens registrados', number.format(real.reduce((sum, item) => sum + (item.usage?.total_tokens || 0), 0))),
       metric('Envíos a Buffer', number.format(publicationHistory.length)),
     );
   }

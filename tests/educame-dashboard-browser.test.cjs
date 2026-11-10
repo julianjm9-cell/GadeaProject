@@ -84,7 +84,7 @@ for (const [name, engine, viewport] of [
       generate: async task => {
         received.push(task);
         return { draft: { resumen: 'Plan de ensayo ' + 'con una descripción larga '.repeat(9),
-          entrega: 'Prueba los botones desde el teclado.', comprobaciones: [], pendientes: [] } };
+          entrega: 'Prueba los botones desde el teclado.', comprobaciones: [], pendientes: [] }, usage: { total_tokens: 9876 } };
       },
     } });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
@@ -124,6 +124,8 @@ for (const [name, engine, viewport] of [
     assert.deepEqual(sent[0].tasks, sent[1].tasks);
     await page.locator('#team-activity').getByRole('link', { name: /Abrir entregas/ }).click();
     await page.locator('#history article').filter({ hasText: 'Plan de ensayo' }).getByRole('button', { name: 'Abrir entrega' }).click();
+    assert.doesNotMatch(await page.locator('#delivery-meta').innerText(), /tokens|9876/i);
+    assert.match(await page.locator('#delivery-meta').innerText(), /Codex local/);
     await page.getByRole('button', { name: 'Preparar seguimiento' }).click();
     const composer = page.locator('#agent-compose');
     assert.match(await composer.locator('[name=context]').inputValue(), /Prueba los botones/);
@@ -144,6 +146,10 @@ for (const [name, engine, viewport] of [
     for (const section of ['inicio', 'estadisticas']) {
       await page.goto(base + '/#' + section);
       await page.locator('[data-page="' + section + '"] h1').waitFor();
+      if (section === 'estadisticas') {
+        assert.match(await page.locator('#local-metrics').innerText(), /Entregas de agentes/);
+        assert.doesNotMatch(await page.locator('#local-metrics').innerText(), /tokens/i);
+      }
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), section);
     }
     assert.deepEqual(errors, []);
@@ -221,6 +227,7 @@ for (const [name, engine, viewport] of [
     const key = 'implementacion/cambio-ensayo';
     const delivery = () => ({ id: 'cambio-ensayo', key, mode: 'implementacion', agente: 'juegos', app: 'ingles',
       model: 'Codex local', encargo: 'Mejora el tablero de Inglés', finishedAt: '2026-11-10T12:00:00Z',
+      usage: { total_tokens: 9876 },
       status: checked ? 'completado' : 'borrador', canRevalidate: !checked,
       draft: { resumen: 'Tablero de ensayo', entrega: 'El tablero está preparado.' },
       implementation: { verified: checked, commit: checked ? revision : undefined, files: ['apps/cambridge/index.html'] } });
@@ -294,6 +301,8 @@ for (const [name, engine, viewport] of [
     assert.match(quotaTitle, /Límite de 5 h · 78 % disponible · Se renueva el/);
     assert.match(quotaTitle, /Límite semanal · 59 % disponible · Se renueva el/);
     const deliveryDialog = page.getByRole('dialog', { name: 'Tablero de ensayo' });
+    await deliveryDialog.waitFor();
+    assert.doesNotMatch(await deliveryDialog.locator('#delivery-meta').innerText(), /tokens|9876/i);
     await deliveryDialog.getByRole('button', { name: 'Volver a comprobar' }).click();
     await deliveryDialog.getByText('Ver cambios de código').click();
     await deliveryDialog.getByText('+nuevo tablero', { exact: true }).waitFor();
@@ -344,7 +353,8 @@ for (const [name, engine, viewport] of [
     await page.getByRole('link', { name: 'Codex · 78 % disponible' }).click();
     await page.getByRole('heading', { name: 'Uso de Codex' }).waitFor();
     await page.getByText('Total informado por Codex').waitFor();
-    await page.getByText('Encargos de Educame').waitFor();
+    assert.equal(await page.getByText('Encargos de Educame', { exact: true }).count(), 0);
+    assert.doesNotMatch(await page.locator('#codex-usage').innerText(), /Tokens registrados|entregas/i);
     assert.deepEqual(errors, []);
   });
 
