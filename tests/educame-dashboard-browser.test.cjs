@@ -216,6 +216,41 @@ for (const [name, engine, viewport] of [
       files: [{ name: 'app.js', additions: 1, deletions: 0, patch: '+nuevo' }] };
     const target = 'educame-vps';
     let job, deploymentCount = 0, paused = false, signed = false;
+    let checked = false, approved = false, published = false;
+    const key = 'implementacion/cambio-ensayo';
+    const delivery = () => ({ id: 'cambio-ensayo', key, mode: 'implementacion', agente: 'juegos', app: 'ingles',
+      model: 'Codex local', encargo: 'Mejora el tablero de Inglés', finishedAt: '2026-11-10T12:00:00Z',
+      status: checked ? 'completado' : 'borrador', canRevalidate: !checked,
+      draft: { resumen: 'Tablero de ensayo', entrega: 'El tablero está preparado.' },
+      implementation: { verified: checked, commit: checked ? revision : undefined, files: ['apps/cambridge/index.html'] } });
+    const review = { decision: 'aprobada', commit: revision, note: '' };
+    const push = { commit: revision, pull: { number: pull.number, url: pull.url } };
+    await page.route('**/api/panel', async route => {
+      const data = await (await route.fetch()).json();
+      data.history.unshift(delivery());
+      if (approved) data.board.reviews[key] = review;
+      if (published) data.board.pushes[key] = push;
+      return route.fulfill({ json: data });
+    });
+    await page.route('**/api/revisar', async route => {
+      assert.equal(route.request().postDataJSON().commit, revision);
+      approved = true;
+      const { board } = await (await page.request.get(base + '/api/panel')).json();
+      return route.fulfill({ json: { ...board, reviews: { [key]: review } } });
+    });
+    await page.route('**/api/encargos/*', route => {
+      const path = new URL(route.request().url()).pathname.split('/').at(-1);
+      if (path === 'comprobar') { checked = true; return route.fulfill({ json: delivery() }); }
+      if (path === 'diferencias') return route.fulfill({ json: { commit: revision, patch: '+nuevo tablero' } });
+      if (path === 'publicar') {
+        assert.equal(approved, true);
+        assert.equal(route.request().postDataJSON().commit, revision);
+        published = true;
+        return route.fulfill({ json: { board: { pushes: { [key]: push } } } });
+      }
+      if (path === 'verificar-publicacion') return route.fulfill({ json: { revision } });
+      return route.continue();
+    });
     const account = { id: 'fixture', full_name: 'Docente de ensayo', email: 'docente@example.invalid', role: 'user',
       is_active: true, organization_name: 'Ensayo', accesses: [] };
     await page.route('**/api/operacion/**', route => {
@@ -223,7 +258,12 @@ for (const [name, engine, viewport] of [
       let json;
       if (path === 'github') json = { connected: true, repository: 'educame/test', branches: [] };
       if (path === 'github/lista') json = [pull];
-      if (path === 'github/detalle') json = pull;
+      if (path === 'github/detalle') json = { ...pull, deliveryKey: key };
+      if (path === 'github/fusionar') {
+        pull.open = false;
+        pull.merged = true;
+        json = { merged: true, sha: revision };
+      }
       if (path === 'hostinger/estado') json = { target, job, history: job ? [job] : [] };
       if (path === 'hostinger/preparar') json = { id: 'fixture', revision, before: previous, target, ciChecked: true };
       if (path === 'hostinger/desplegar') {
@@ -243,17 +283,34 @@ for (const [name, engine, viewport] of [
     });
     await page.route('**/api/cambios/sincronizar', route => route.fulfill({ json: {} }));
     await page.route('**/api/cambios?*', route => route.fulfill({ json: { upstream: revision, commits: [] } }));
-    await page.goto(base + '/#control');
+    await page.route('**/api/cambios/hostinger', route => {
+      assert.equal(route.request().postDataJSON().revision, revision);
+      return route.fulfill({ json: { revision, command: 'bash infra/deploy-hostinger.sh' } });
+    });
+    await page.goto(base + '/#entregas/cambio-ensayo');
     await page.getByRole('link', { name: 'Codex · 78 % disponible' }).waitFor();
-    await page.getByRole('button', { name: '#9 · Un cambio para revisar' }).click();
+    const deliveryDialog = page.getByRole('dialog', { name: 'Tablero de ensayo' });
+    await deliveryDialog.getByRole('button', { name: 'Volver a comprobar' }).click();
+    await deliveryDialog.getByText('Ver cambios de código').click();
+    await deliveryDialog.getByText('+nuevo tablero', { exact: true }).waitFor();
+    await deliveryDialog.getByRole('button', { name: 'Aprobar implementación' }).click();
+    await deliveryDialog.getByRole('button', { name: 'Preparar publicación' }).click();
+    await deliveryDialog.getByRole('link', { name: 'Revisar solicitud #9' }).click();
+    assert.equal(new URL(page.url()).hash, '#control/github/9');
     await page.getByText('app.js', { exact: false }).click();
     await page.getByText('+nuevo', { exact: true }).waitFor();
     await page.getByRole('button', { name: 'Fusionar en main' }).click();
-    await page.getByRole('dialog', { name: 'Fusionar en GitHub' }).waitFor();
-    await page.getByRole('button', { name: 'Cancelar' }).click();
+    const merge = page.getByRole('dialog', { name: 'Fusionar en GitHub' });
+    await merge.getByRole('textbox').fill('1111111');
+    await merge.getByRole('button', { name: 'Fusionar', exact: true }).click();
+    await page.getByRole('button', { name: 'Continuar a Hostinger' }).click();
 
-    await page.getByRole('button', { name: 'Hostinger', exact: true }).click();
     await page.getByText('Conexión configurada · educame-vps').waitFor();
+    await page.getByText('Versión seleccionada para publicar · 1111111').waitFor();
+    await page.getByRole('button', { name: 'Generar comando' }).click();
+    const command = page.getByRole('dialog', { name: 'Comando para Hostinger' });
+    await command.waitFor();
+    await command.getByRole('button', { name: 'Cerrar' }).click();
     await page.getByRole('button', { name: 'Preparar despliegue' }).click();
     const confirm = page.getByRole('dialog', { name: 'Desplegar en Hostinger' });
     await confirm.getByRole('textbox').fill('incorrecto');

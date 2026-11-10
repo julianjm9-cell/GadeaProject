@@ -186,6 +186,16 @@ dialog::backdrop { background: #1b2c25a3; }
 .setup-guide input { margin-top: 4px; }
 #team-activity { scroll-margin-top: 72px; }
 .delivery-next { padding-top: 8px; }
+.delivery-flow { display: grid; min-width: 0; gap: 10px; padding: clamp(12px, 3vw, 20px); border: 1px solid var(--line); border-radius: 14px; background: #f3f8f4; }
+.delivery-flow h3, .delivery-flow p { margin: 0; }
+.delivery-flow .actions { justify-content: flex-start; }
+.delivery-steps { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 0; list-style: none; }
+.delivery-steps li { padding: 4px 9px; border: 1px solid var(--line); border-radius: 999px; font-size: .8rem; background: var(--paper); }
+.delivery-steps .is-done { color: #21664d; background: #e3f2e9; }
+.delivery-steps .is-done::before { content: "✓ "; }
+.delivery-steps [aria-current="step"] { color: #fff; background: #285e48; border-color: #285e48; }
+.feedback { pointer-events: none; }
+.feedback-close { pointer-events: auto; }
 .chat-card { display: grid; gap: 13px; }
 .chat-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: 10px; }
 .chat-toolbar :is(label, select) { min-width: 0; }

@@ -78,6 +78,11 @@ export function setupChat({ api, element, button, feedback, formMessage }) {
         if (item.state === 'applied') reply.append(element('strong', '', 'Aplicada en este equipo'));
         else reply.append(button('Revisar propuesta', () => openReview(item)));
       }
+      if (item.mode === 'change' && item.taskId) {
+        const delivery = element('a', 'text-link', 'Abrir entrega y publicación →');
+        delivery.href = '#entregas/' + item.taskId;
+        reply.append(delivery);
+      }
     }
     if (Number.isFinite(item.tokens)) reply.append(element('small', '', item.tokens.toLocaleString('es-ES') + ' tokens'));
     section.append(user, reply);
@@ -173,7 +178,7 @@ export function setupChat({ api, element, button, feedback, formMessage }) {
       $('chat-review-error').hidden = false;
     } finally { controls.forEach(node => { node.disabled = false; }); }
   });
-  restart.addEventListener('click', async () => {
+  async function restartPanel() {
     restart.disabled = true;
     restart.textContent = 'Reiniciando…';
     try {
@@ -186,6 +191,7 @@ export function setupChat({ api, element, button, feedback, formMessage }) {
       throw new Error('El panel aún no responde. Abre el acceso directo de LA TERRAZA.');
     } catch (error) { feedback(error.message, true); }
     finally { restart.disabled = false; restart.textContent = 'Reiniciar LA TERRAZA'; }
-  });
-  return { open() { load(); if (!catalog.length) loadModels(); } };
+  }
+  restart.addEventListener('click', restartPanel);
+  return { restart: restartPanel, open() { load(); if (!catalog.length) loadModels(); } };
 }

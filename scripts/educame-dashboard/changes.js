@@ -166,16 +166,19 @@ export function setupChanges({ api, element }) {
       deploy.disabled = !data?.upstream;
     }
   });
+  async function openCommand(expected) {
+    const { revision, command } = await api('/api/cambios/hostinger', 'POST', { revision: expected });
+    $('changes-command-code').value = command;
+    $('changes-command-note').textContent = `El bloque despliega la revisión ${short(revision)} de GitHub mediante el procedimiento habitual de copia y comprobación.`;
+    $('changes-copy-status').textContent = '';
+    dialog.showModal();
+  }
   deploy.addEventListener('click', async () => {
     deploy.disabled = true;
     sync.disabled = true;
     feedback('Verificando la revisión de GitHub…');
     try {
-      const { revision, command } = await api('/api/cambios/hostinger', 'POST', { revision: data.upstream });
-      $('changes-command-code').value = command;
-      $('changes-command-note').textContent = `El bloque despliega la revisión ${short(revision)} de GitHub mediante el procedimiento habitual de copia y comprobación.`;
-      $('changes-copy-status').textContent = '';
-      dialog.showModal();
+      await openCommand(data.upstream);
       await load();
     } catch (error) {
       page = 1;
@@ -198,5 +201,5 @@ export function setupChanges({ api, element }) {
       hint.textContent = 'Comando seleccionado. Usa Ctrl+C o la opción Copiar.';
     }
   });
-  return { load };
+  return { load, openCommand };
 }

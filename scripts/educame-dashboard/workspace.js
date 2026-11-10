@@ -106,7 +106,7 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     const batch = state?.batch;
     const implementation = directForm.elements.mode.value === 'implementacion';
     $('#terrace-mode-hint').textContent = implementation ?
-      'Codex hace el cambio en una copia aislada. Podrás revisar el resultado antes de subirlo.' :
+      'Codex hace el cambio en una copia aislada. En Entregas podrás revisar, aprobar y preparar la publicación.' :
       'Codex consulta el proyecto y responde con un plan o un diagnóstico.';
     $('#terrace-connect').hidden = !codex || codex.ready;
     $('#terrace-order-status').textContent = sendingDirect ? 'Enviando encargo…' :

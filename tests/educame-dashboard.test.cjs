@@ -263,6 +263,61 @@ test('implementa en copias separadas, revisa sobre el cambio y sube solo la revi
   const preview = await request(base, '/vista-encargo/pack-revisado', undefined, { redirect: 'manual' });
   assert.equal(preview.status, 303);
   assert.match(await fetch(preview.headers.get('location')).then(response => response.text()), /Pack revisado/);
+  const opts = { headers: { Origin: base, 'Content-Type': 'application/json' } };
+  const payload = { key, commit: pushed.commit };
+  assert.equal((await request(base, '/api/encargos/publicar', payload)).status, 403);
+  assert.equal((await request(base, '/api/encargos/publicar', { ...payload, commit: initial }, opts)).status, 409);
+  assert.equal((await request(base, '/api/encargos/publicar', payload, opts)).status, 200);
+  assert.equal((await request(base, '/api/encargos/verificar-publicacion', payload, opts)).status, 409);
+  await git(root, 'push', 'origin', pushed.commit + ':main');
+  const release = await request(base, '/api/encargos/verificar-publicacion', payload, opts).then(response => response.json());
+  assert.equal(release.revision, pushed.commit);
+});
+
+test('recupera la misma copia con pruebas locales y vuelve a pedir aprobación para el commit', { timeout: 30_000 }, async t => {
+  const directory = await local(t);
+  const root = join(directory, 'repo');
+  const output = join(directory, 'panel');
+  const file = 'apps/cambridge/index.html';
+  const check = 'tests/recover.test.cjs';
+  const git = (...args) => promisify(execFile)('git', args, { cwd: root, windowsHide: true });
+  await mkdir(join(root, 'apps', 'cambridge'), { recursive: true });
+  await mkdir(join(root, 'tests'));
+  await git('init', '-b', 'main');
+  await git('config', 'user.email', 'educame@example.invalid');
+  await git('config', 'user.name', 'Educame fixture');
+  await writeFile(join(root, file), '<h1>Base</h1>\n');
+  await writeFile(join(root, check), "require('node:test')('copia', () => require('node:assert/strict').match(require('node:fs').readFileSync('apps/cambridge/index.html', 'utf8'), /Mejora/));\n");
+  await git('add', '.');
+  await git('-c', 'commit.gpgsign=false', 'commit', '-m', 'Base');
+  let calls = 0;
+  const base = await start(t, output, { repositoryRoot: root, codex: {
+    status: async () => ({ ready: true }), async implement(task, cwd) {
+      calls++;
+      await writeFile(join(cwd, file), '<h1>Mejora</h1>\n');
+      return { ...fakeDraft(), checks: [{ command: 'node --test --test-isolation=none ' + check, passed: false }] };
+    },
+  } });
+  const key = 'implementacion/rescate';
+  const opts = { headers: { Origin: base, 'Content-Type': 'application/json' } };
+  const tasks = [{ id: 'rescate', agente: 'juegos', revisar: '', app: 'ingles', encargo: 'Mejora este juego.' }];
+  assert.equal((await request(base, '/api/encargos', { mode: 'implementacion', engine: 'codex', tasks })).status, 202);
+  const panel = await waitPanel(base, ({ batch }) => batch?.state === 'finished');
+  assert.equal(panel.history[0].canRevalidate, true);
+  assert.equal((await request(base, '/api/revisar', { key, decision: 'aprobada', note: '', revision: panel.board.revision })).status, 200);
+  const checked = await request(base, '/api/encargos/comprobar', { key }, opts).then(response => response.json());
+  assert.equal(checked.status, 'completado', checked.error);
+  assert.equal(checked.checks[0].source, 'local');
+  assert.equal(checked.checks[0].passed, true);
+  assert.equal(calls, 1);
+  const { commit } = checked.implementation;
+  assert.equal((await request(base, '/api/encargos/publicar', { key, commit }, opts)).status, 409);
+  const repeated = await request(base, '/api/encargos/comprobar', { key }, opts).then(response => response.json());
+  assert.equal(repeated.implementation.commit, commit);
+  assert.equal((await request(base, '/api/panel').then(response => response.json())).batch.jobs.rescate.status, 'completado');
+  const diff = await request(base, '/api/encargos/diferencias?key=' + encodeURIComponent(key)).then(response => response.json());
+  assert.match(diff.patch, /\+<h1>Mejora/);
+  assert.match(await readFile(join(root, file), 'utf8'), /Base/);
 });
 
 test('el equipo recibe encargos directos sin reemplazar la cola y entrega el borrador a Revisión', async t => {

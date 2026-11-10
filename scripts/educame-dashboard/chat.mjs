@@ -16,16 +16,16 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
 
   async function read() {
     const row = entries().at(-1);
-    if (row?.state === 'working' && !active) {
+    if ((row?.state === 'working' || (row?.mode === 'change' && row.state === 'error')) && !active) {
       if (row.mode === 'change') {
         const delivery = await readDelivery(row.taskId);
         if (delivery?.implementation?.verified) {
           update(row.id, { state: 'proposal', reply: delivery.draft?.resumen,
             proposal: { commit: delivery.implementation.commit, files: delivery.implementation.files,
-              checks: delivery.checks, summary: delivery.draft?.entrega?.slice(0, 16000) } }, 'working');
+              checks: delivery.checks, summary: delivery.draft?.entrega?.slice(0, 16000) } }, row.state);
         } else {
           const batch = row.batchId ? store.batch(row.batchId) : store.latest();
-          if (!batch?.tasks?.some(task => task.id === row.taskId) || batch.state === 'finished') {
+          if (row.state === 'working' && (!batch?.tasks?.some(task => task.id === row.taskId) || batch.state === 'finished')) {
             update(row.id, { state: 'error', reply: delivery?.error || batch?.jobs?.[row.taskId]?.error ||
               'La propuesta se interrumpió. Vuelve a enviarla cuando quieras retomarla.' }, 'working');
           }

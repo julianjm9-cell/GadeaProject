@@ -14,7 +14,7 @@ En Windows, crea **LA TERRAZA** en el escritorio con
 `powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File scripts/educame-dashboard/install-shortcut.ps1`.
 El acceso directo inicia el panel si hace falta y abre Inicio. Los registros de arranque están en `.educame-agents/`.
 
-Desde **Inicio → Pedir a Codex**, elige el proyecto y el tipo de resultado.
+Desde **Inicio → Pedir a Codex**, elige el proyecto y el tipo de resultado. Por defecto se prepara un cambio listo para revisar.
 Un plan o diagnóstico consulta el proyecto y prepara una respuesta. Una
 implementación trabaja en una copia Git aislada. Revisa ambos resultados en
 **Entregas**. **Preparar seguimiento** lleva el contexto de una entrega a un
@@ -48,8 +48,8 @@ Si una consulta falla, el último dato disponible aparece con su fecha.
    instalación. **Preparar despliegue** muestra la revisión actual y la revisión
    elegida de `main`. Tras confirmar, el VPS ejecuta
    [el procedimiento de actualización](../infra/HOSTINGER_UPDATE.md) y conserva
-   el estado del intento aunque cierres el panel. Puedes seguir usando
-   **Cambios → Generar comando** para la consola de Hostinger.
+   el estado del intento aunque cierres el panel. **Generar comando** está
+   disponible en Hostinger y en Cambios para usar la consola del VPS.
 3. En **Cuentas y apps**, entra con tu cuenta de superadministración de Educame.
    Busca una cuenta para editar sus datos y licencias, o abre la disponibilidad
    de las aplicaciones para pausar o reactivar una. La sesión local caduca a los
@@ -58,7 +58,7 @@ Si una consulta falla, el último dato disponible aparece con su fecha.
 
 - **Agentes.** Selecciona la app, los agentes y el resultado que buscas. **Implementar con Codex** usa la sesión local de Codex CLI para editar una copia Git aislada. Con Juegos puedes crear, mejorar o combinar ambas acciones en un pack de hasta diez juegos. **Preparar borrador** usa Codex en modo de lectura u OpenAI API. **Simular** prueba el flujo sin hacer llamadas. Para un lote con instrucciones distintas por agente, edita cada encargo en **Cola de trabajo**.
 - **Memoria.** Consulta la ficha de cada app con público, estética, funcionalidades, prioridades, reglas, errores a evitar y comprobaciones. Añade criterios sobre didáctica, accesibilidad, marketing, operación u otras categorías de la ficha. Un agente puede sugerir un aprendizaje. Para incorporarlo, pulsa **Usar propuesta del agente**, ajusta el texto y guarda la revisión con la casilla de Memoria marcada. Las notas y propuestas sin confirmar se quedan en su entrega. Edita o archiva criterios desde Memoria.
-- **Entregas.** Abre el resultado, consulta sus archivos y pruebas, y guarda tu decisión. Una implementación completada tiene un commit y una vista local de la app cuando está disponible. Tras aprobarla, **Subir a GitHub** publica esa revisión en su rama `codex/educame-…` y ofrece abrir la comparación para crear una solicitud de cambios. Un borrador de Marketing aprobado se puede llevar al editor de publicaciones.
+- **Entregas.** Abre el resultado para ver el siguiente paso. Si Codex dejó una copia con pruebas compatibles, **Volver a comprobar** ejecuta esas pruebas en el equipo sobre la copia aislada. Cuando pasan, revisa la vista local o el código y aprueba el commit. **Preparar publicación** sube la rama y prepara una solicitud de cambios si GitHub está conectado. Un borrador de Marketing aprobado se puede llevar al editor de publicaciones.
 - **Conexiones.** En **Agentes e IA** puedes comprobar Codex y configurar una clave de OpenAI como alternativa. Si el panel no detecta una sesión de Codex, inicia sesión con `codex login` y pulsa **Comprobar sesión**. En **Redes sociales**, vincula los perfiles en [Buffer](https://publish.buffer.com/) y guarda su clave API. En **Estadísticas**, habilita Search Console API en Google Cloud, crea un cliente OAuth web, registra la URL de retorno del panel y autoriza la lectura de la propiedad.
 - **Vídeo.** Conecta una clave de [Runway](https://dev.runwayml.com/) y describe un clip de cinco segundos en formato vertical u horizontal. La generación usa créditos de Runway. Descarga el MP4 cuando esté listo. Para programarlo después en Buffer, aloja primero el archivo en una URL pública estable.
 - **Apps.** Abre los siete productos de Educame, inicia un encargo con la app seleccionada o entra al dashboard online. La etiqueta **En pausa** refleja el estado público de la app.
@@ -104,7 +104,9 @@ El panel guarda cola, criterios, revisiones y progreso de los lotes en `.educame
 
 La copia aislada parte del `HEAD` confirmado en Git al iniciar el lote. Los cambios sin commit del escritorio quedan fuera. Revisión puede continuar desde el commit del agente que le precede. El panel marca **Completado** cuando la entrega tiene cambios permitidos, pasa las comprobaciones registradas y tiene un commit local. Si falta una comprobación o hay errores, la copia queda disponible para continuar el trabajo.
 
-Después de revisar la vista local, aprueba la entrega y sube la rama desde **Entregas**. Si varios agentes implementaron cambios independientes, integra sus ramas mediante solicitudes de cambios en GitHub. Cuando la revisión esté en `main`, sincroniza GitHub en **Cambios** y genera el comando de Hostinger para esa revisión.
+Desde **Revisar solicitud**, comprueba el estado de GitHub y confirma la fusión cuando sus pruebas estén listas. **Continuar a Hostinger** selecciona una revisión de `main` que contiene la entrega. Puedes desplegar por SSH con confirmación o usar **Generar comando** para la consola. Si usas GitHub en el navegador, abre la comparación y usa **Comprobar fusión** en la entrega una vez integrada.
+
+En una entrega de LA TERRAZA puedes **Aplicar en este equipo** tras aprobar el cambio y reiniciar desde el mismo diálogo. El panel conserva la opción de preparar la solicitud en GitHub para versionar la entrega. Los cambios de LA TERRAZA se cargan al reiniciar el programa local.
 
 Desde la raíz del proyecto, abre la vista previa del lote. Usa Node.js 24, igual que las pruebas del repositorio.
 

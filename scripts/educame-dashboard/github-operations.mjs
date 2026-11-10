@@ -26,7 +26,8 @@ export function githubOperations(changes, connections, store, fetchImpl = fetch)
   };
   const pull = (item, repository) => ({ number: item.number, title: item.title, body: item.body?.slice(0, 6000) || '',
     branch: item.head?.ref, head: item.head?.sha, base: item.base?.ref, open: item.state === 'open',
-    merged: item.merged === true, draft: item.draft === true, mergeable: item.mergeable, fileCount: item.changed_files,
+    merged: item.merged === true || Boolean(item.merged_at), mergeCommit: item.merge_commit_sha, draft: item.draft === true,
+    mergeable: item.mergeable, fileCount: item.changed_files,
     url: `https://github.com/${repository}/pull/${item.number}` });
 
   async function checks(revision, repository) {
@@ -49,7 +50,9 @@ export function githubOperations(changes, connections, store, fetchImpl = fetch)
     if (current.head?.sha !== item.head || current.base?.ref !== item.base || current.state !== (item.open ? 'open' : 'closed')) {
       throw new OperationError(409, 'La solicitud cambió durante la consulta. Vuelve a abrirla.');
     }
-    return { ...item, checks: check, files: files.map(file => ({
+    const delivery = Object.entries(store.board().pushes || {}).find(([, value]) => value.branch === item.branch);
+    return { ...item, checks: check, localOnly: delivery?.[1].app === 'control',
+      deliveryKey: delivery?.[0], files: files.map(file => ({
       name: file.filename, status: file.status, additions: file.additions, deletions: file.deletions, patch: file.patch?.slice(0, 12000) || '',
       patchTruncated: (file.patch?.length || 0) > 12000,
     })) };
@@ -59,7 +62,7 @@ export function githubOperations(changes, connections, store, fetchImpl = fetch)
     connected, checks,
     async status() {
       return { connected: connected(), repository: await repo().catch(() => null),
-        branches: Object.values(store.board().pushes || {}).filter(item => branchPattern.test(item.branch))
+        branches: Object.values(store.board().pushes || {}).filter(item => branchPattern.test(item.branch) && !item.integratedRevision)
           .map(({ branch, commit }) => ({ branch, commit })) };
     },
     async connect(value) {
@@ -83,12 +86,15 @@ export function githubOperations(changes, connections, store, fetchImpl = fetch)
       creating.add(branch);
       try {
         const repository = await repo();
-        const remote = await request('/branches/' + encodeURIComponent(branch), 'GET', undefined, undefined, repository);
-        if (remote.commit?.sha !== pushed.commit) throw new OperationError(409, 'La rama remota cambió desde que se aprobó la entrega.');
-        const query = new URLSearchParams({ state: 'open', base: 'main', head: `${repository.split('/')[0]}:${branch}` });
+        const query = new URLSearchParams({ state: 'all', base: 'main', head: `${repository.split('/')[0]}:${branch}` });
         const [existing] = await request('/pulls?' + query, 'GET', undefined, undefined, repository);
+        if (!existing?.merged_at && existing?.merged !== true) {
+          const remote = await request('/branches/' + encodeURIComponent(branch), 'GET', undefined, undefined, repository);
+          if (remote.commit?.sha !== pushed.commit) throw new OperationError(409, 'La rama remota cambió desde que se aprobó la entrega.');
+        }
         const value = existing || await request('/pulls', 'POST', { head: branch, base: 'main', title: `Educame · ${branch.replace('codex/educame-', '')}`,
           body: `Entrega revisada en LA TERRAZA. Commit: ${pushed.commit}.` }, undefined, repository);
+        if (value.head?.sha !== pushed.commit) throw new OperationError(409, 'La solicitud corresponde a otra revisión.');
         return pull(value, repository);
       } finally { creating.delete(branch); }
     },
@@ -103,6 +109,10 @@ export function githubOperations(changes, connections, store, fetchImpl = fetch)
         const path = numberPath(number);
         const item = await request(path, 'GET', undefined, undefined, repository);
         if (item.head?.sha !== revision || item.base?.ref !== 'main') throw new OperationError(409, 'La revisión o la rama de destino cambió.');
+        const board = store.board();
+        const delivery = Object.entries(board.pushes || {}).find(([, value]) => value.branch === item.head?.ref);
+        if (delivery && (delivery[1].commit !== revision || board.reviews?.[delivery[0]]?.decision !== 'aprobada' ||
+            board.reviews?.[delivery[0]]?.commit !== revision)) throw new OperationError(409, 'Esta entrega cambió o requiere volver a aprobarse.');
         if (item.merged) return { merged: true, sha: item.merge_commit_sha, alreadyMerged: true };
         if (item.state !== 'open' || item.draft || item.mergeable !== true) throw new OperationError(409, 'GitHub todavía no permite fusionar esta solicitud.');
         if (!(await checks(revision, repository)).ready) throw new OperationError(409, 'Espera a que pasen las comprobaciones de GitHub de esta revisión.');

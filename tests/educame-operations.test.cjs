@@ -13,12 +13,13 @@ test('GitHub comprueba el commit, verifica sus pruebas y repite la solicitud sin
   const { githubOperations } = await import('../scripts/educame-dashboard/github-operations.mjs');
   const branch = 'codex/educame-example';
   const token = 'github_pat_example_12345678';
-  let credential, created = 0, merged = 0, validChecks = false, sha = head;
+  let credential, created = 0, merged = 0, validChecks = false, approved = true, sha = head;
   const pull = () => ({ number: 4, title: 'Ejemplo', state: merged ? 'closed' : 'open', merged: Boolean(merged),
     mergeable: true, merge_commit_sha: before, head: { sha, ref: branch }, base: { ref: 'main' } });
   const github = githubOperations({ repository: async () => 'https://github.com/educame/demo' }, {
     githubToken: () => credential, setGithubToken: value => { credential = value; },
-  }, { board: () => ({ pushes: { delivery: { branch, commit: head } } }) }, async (url, options) => {
+  }, { board: () => ({ pushes: { delivery: { branch, commit: head } },
+    reviews: { delivery: { decision: approved ? 'aprobada' : 'cambios', commit: head } } }) }, async (url, options) => {
     assert.equal(new URL(url).origin, 'https://api.github.com');
     assert.equal(options.headers.Authorization, 'Bearer ' + token);
     const path = new URL(url).pathname;
@@ -48,8 +49,13 @@ test('GitHub comprueba el commit, verifica sus pruebas y repite la solicitud sin
   sha = before;
   await assert.rejects(github.merge(data), { status: 409 });
   sha = head;
+  approved = false;
+  await assert.rejects(github.merge(data), { status: 409 });
+  approved = true;
   assert.equal((await github.merge(data)).sha, before);
   assert.equal((await github.merge(data)).alreadyMerged, true);
+  assert.equal((await github.create(branch)).merged, true);
+  assert.equal(created, 1);
   assert.equal(merged, 1);
 });
 

@@ -6,13 +6,14 @@ const date = new Intl.DateTimeFormat('es-ES', { dateStyle: 'short', timeStyle: '
 const short = sha => sha?.slice(0, 7) || '—';
 const stamp = value => date.format(new Date(value));
 
-export function setupOperations({ api, element, button, feedback }) {
+export function setupOperations({ api, element, button, feedback, openCommand }) {
   const base = '/api/operacion/';
   const get = path => api(base + path);
   const post = (path, data = {}) => api(base + path, 'POST', data);
   let tab = 'github';
   let pullNumber;
   let pullQuery = 0;
+  let deliveryRevision;
   let hostinger;
   let statusQuery;
   let quotaQuery;
@@ -124,7 +125,20 @@ export function setupOperations({ api, element, button, feedback }) {
       panel.append(detail);
     }
     if (item.fileCount > item.files.length) panel.append(link('Ver todos los archivos ↗', item.url + '/files'));
-    if (item.merged) panel.append(element('p', 'badge ready', 'Fusionada'));
+    if (item.merged) {
+      panel.append(element('p', 'badge ready', 'Fusionada'));
+      if (item.localOnly) panel.append(element('p', 'muted', 'Aplica la entrega en este equipo para actualizar LA TERRAZA.'));
+      else if (item.deliveryKey || item.mergeCommit) {
+        const next = button('Continuar a Hostinger', event => busy(event.currentTarget, async () => {
+          const result = item.deliveryKey
+            ? await api('/api/encargos/verificar-publicacion', 'POST', { key: item.deliveryKey, pull: item.number })
+            : { revision: item.mergeCommit };
+          location.hash = 'control/hostinger/' + result.revision;
+        }));
+        next.className = 'button primary';
+        panel.append(next);
+      }
+    } else if (!item.open) panel.append(element('p', 'muted', 'La solicitud está cerrada. Puedes volver a abrirla desde GitHub.'));
     if (item.open && !item.draft && item.mergeable === true && item.checks.ready) {
       panel.append(button('Fusionar en main', () => confirm({
         title: 'Fusionar en GitHub', copy: 'La solicitud #' + item.number + ' se incorporará a main. El despliegue se confirma por separado.',
@@ -163,6 +177,14 @@ export function setupOperations({ api, element, button, feedback }) {
     if (!statusQuery) statusQuery = get('hostinger/estado').then(showHostinger).finally(() => { statusQuery = null; });
     return statusQuery;
   }
+  async function release() {
+    await api('/api/cambios/sincronizar', 'POST', {});
+    const history = await api('/api/cambios?source=github');
+    if (deliveryRevision && history.upstream !== deliveryRevision) {
+      throw new Error('main avanzó desde que abriste esta entrega. Vuelve a comprobarla o revisa la versión actual en Cambios.');
+    }
+    return history;
+  }
   onForm($('github-connect'), async values => { await post('github/conectar', values); await loadGitHub(); });
   onForm($('github-create'), async values => {
     const result = await post('github/crear', values);
@@ -174,9 +196,11 @@ export function setupOperations({ api, element, button, feedback }) {
     await loadGitHub();
   }));
   onForm($('hostinger-connect'), async values => showHostinger(await post('hostinger/conectar', values)));
+  $('hostinger-command').addEventListener('click', event => busy(event.currentTarget, async () => {
+    await openCommand((await release()).upstream);
+  }));
   $('hostinger-prepare').addEventListener('click', event => busy(event.currentTarget, async () => {
-    await api('/api/cambios/sincronizar', 'POST', {});
-    const history = await api('/api/cambios?source=github');
+    const history = await release();
     const plan = await post('hostinger/preparar', { revision: history.upstream });
     confirm({
       title: 'Desplegar en Hostinger', code: short(plan.revision), label: 'Desplegar',
@@ -194,8 +218,12 @@ export function setupOperations({ api, element, button, feedback }) {
   const loaders = { github: loadGitHub, hostinger: loadHostinger, admin: admin.load };
   const load = () => loaders[tab]().catch(fail);
   const tabs = document.querySelectorAll('[data-operation]');
-  function open(selected = tab) {
+  function open(selected = tab, reference) {
     tab = selected;
+    if (reference && selected === 'github' && /^\d+$/.test(reference)) pullNumber = Number(reference);
+    deliveryRevision = selected === 'hostinger' && /^[a-f0-9]{40}$/.test(reference || '') ? reference : undefined;
+    message($('hostinger-delivery'), deliveryRevision ? 'Versión seleccionada para publicar · ' + short(deliveryRevision) : '');
+    $('hostinger-delivery').hidden = !deliveryRevision;
     for (const node of tabs) {
       const active = node.dataset.operation === selected;
       node.setAttribute('aria-pressed', String(active));

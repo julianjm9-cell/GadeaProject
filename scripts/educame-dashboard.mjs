@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, readdir } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
@@ -12,7 +12,7 @@ import { createPreviews } from './educame-dashboard/preview.mjs';
 import { cleanRule, memoryTopics, projectProfiles } from './educame-dashboard/project-context.mjs';
 import { openPanelStore } from './educame-dashboard/store.mjs';
 import { createRunner, RunnerError } from './educame-dashboard/runner.mjs';
-import { createImplementation, ImplementationError } from './educame-dashboard/implementation.mjs';
+import { canRevalidate, createImplementation, ImplementationError } from './educame-dashboard/implementation.mjs';
 import { createChat } from './educame-dashboard/chat.mjs';
 import { researchRole } from './educame-dashboard/research.mjs';
 import { OperationError } from './educame-dashboard/operations.mjs';
@@ -155,7 +155,8 @@ async function readDeliveries(directory, mode) {
       });
       if (record?.id !== file.name.slice(0, -5) || !['borrador', 'fallido', 'completado', 'interrumpido'].includes(record.status) ||
           typeof record.finishedAt !== 'string' || !Number.isFinite(Date.parse(record.finishedAt))) return null;
-      return { ...record, agentName: record.agentName || defaultAgents[record.agente]?.name, mode, key: `${mode}/${record.id}` };
+      return { ...record, agentName: record.agentName || defaultAgents[record.agente]?.name, mode, key: `${mode}/${record.id}`,
+        canRevalidate: mode === 'implementacion' && canRevalidate(record) };
     }));
   return records.filter(Boolean);
 }
@@ -220,11 +221,14 @@ export async function createDashboard({
     },
   });
   let restarting = false;
+  let terraceNeedsRestart = false;
+  let deliveryWork;
+  const implementationPath = id => join(runner.output('implementacion'), id + '.json');
   const chat = createChat({ store, runner, codex, implementation, instance: randomUUID(),
-    readDelivery: id => readJson(join(runner.output('implementacion'), id + '.json'), null),
+    readDelivery: id => readJson(implementationPath(id), null),
     assertIdle() {
       const job = hostinger.status().job;
-      if (['running', 'paused'].includes(runner.latest()?.state) || ['running', 'uncertain'].includes(job?.state)) {
+      if (deliveryWork || ['running', 'paused'].includes(runner.latest()?.state) || ['running', 'uncertain'].includes(job?.state)) {
         throw new OperationError(409, 'Termina o retoma el trabajo pendiente antes de cambiar el panel.');
       }
     },
@@ -258,6 +262,53 @@ export async function createDashboard({
     return records.flat().sort((left, right) => right.finishedAt.localeCompare(left.finishedAt));
   }
 
+  async function implementationDelivery(key) {
+    const id = /^implementacion\/([a-z0-9][a-z0-9-]{0,63})$/.exec(key || '')?.[1];
+    const delivery = id && await readJson(implementationPath(id), null);
+    if (!delivery || delivery.id !== id) throw new PanelError(404, 'No se encuentra la entrega.');
+    return delivery;
+  }
+
+  function approveCheck(key, delivery) {
+    if (delivery.status !== 'completado' || !delivery.implementation?.verified) {
+      throw new PanelError(409, 'La implementación debe completar sus comprobaciones antes de publicar.');
+    }
+    const review = store.board().reviews[key];
+    if (review?.decision !== 'aprobada' || review.commit !== delivery.implementation.commit) {
+      throw new PanelError(409, 'Aprueba la revisión antes de publicarla.');
+    }
+  }
+
+  function savePush(key, pushed) {
+    return store.transaction(() => {
+      const board = store.board();
+      const current = board.pushes?.[key];
+      if (current?.commit === pushed.commit && current.app === pushed.app &&
+          (!pushed.integratedRevision || current.integratedRevision === pushed.integratedRevision) &&
+          (!pushed.pull || (current.pull?.number === pushed.pull.number && current.pull.merged === pushed.pull.merged))) return board;
+      if (current?.commit === pushed.commit) pushed = { ...current, ...pushed };
+      const updated = { ...board, revision: board.revision + 1, pushes: { ...board.pushes, [key]: pushed } };
+      store.writeBoard(updated);
+      return updated;
+    });
+  }
+
+  async function revalidate(delivery) {
+    const result = await implementation.revalidate(delivery);
+    const updated = { ...delivery, ...result, error: result.error,
+      status: result.implementation.verified ? 'completado' : 'borrador' };
+    const path = implementationPath(delivery.id);
+    const temporary = path + '.' + randomUUID() + '.tmp';
+    await writeFile(temporary, JSON.stringify(updated, null, 2) + '\n', { flush: true });
+    await rename(temporary, path);
+    const batch = store.recent().find(item => item.mode === 'implementacion' && item.jobs[delivery.id]?.fingerprint === delivery.fingerprint);
+    if (batch?.state === 'finished') {
+      batch.jobs[delivery.id] = { ...batch.jobs[delivery.id], status: updated.status, error: updated.error };
+      store.update(batch);
+    }
+    return { ...updated, key: 'implementacion/' + delivery.id, mode: 'implementacion', canRevalidate: canRevalidate(updated) };
+  }
+
   const server = createServer(async (request, response) => {
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('X-Content-Type-Options', 'nosniff');
@@ -276,7 +327,10 @@ export async function createDashboard({
       const url = new URL(request.url, origin);
       const path = url.pathname;
       if (restarting && request.method !== 'GET') throw new OperationError(409, 'LA TERRAZA se está reiniciando.');
-      if (request.method === 'GET' && path === '/api/chat') return json(200, await chat.read());
+      if (request.method === 'GET' && path === '/api/chat') {
+        const data = await chat.read();
+        return json(200, { ...data, needsRestart: data.needsRestart || terraceNeedsRestart });
+      }
       if (request.method === 'GET' && path === '/api/chat/modelos') {
         const fresh = url.searchParams.has('actualizar');
         const [models, account] = await Promise.all([codex.models?.(fresh), codex.status(fresh)]);
@@ -288,11 +342,71 @@ export async function createDashboard({
         const body = await bodyJson(request);
         if (path === '/api/chat') return json(202, await chat.send(body));
         if (path === '/api/chat/aplicar') return json(200, await chat.apply(body));
-        if (!restartProcess || !(await chat.read()).needsRestart) throw new OperationError(409, 'El panel no tiene cambios pendientes de recargar.');
+        if (!restartProcess || (!terraceNeedsRestart && !(await chat.read()).needsRestart)) throw new OperationError(409, 'El panel no tiene cambios pendientes de recargar.');
         chat.assertIdle();
         restarting = true;
         response.once('finish', () => server.close(restartProcess));
         return json(202, { restarting: true });
+      }
+      if (request.method === 'GET' && path === '/api/encargos/diferencias') {
+        const delivery = await implementationDelivery(url.searchParams.get('key'));
+        return json(200, { ...await implementation.review(delivery.implementation), commit: delivery.implementation.commit });
+      }
+      if (request.method === 'POST' && path === '/api/encargos/verificar-publicacion') {
+        if (request.headers.origin !== origin) throw new OperationError(403, 'Realiza esta acción desde LA TERRAZA.');
+        const { key, pull } = await bodyJson(request);
+        const delivery = await implementationDelivery(key);
+        if (delivery.app === 'control' || store.board().pushes?.[key]?.commit !== delivery.implementation?.commit ||
+            !delivery.implementation?.verified) throw new PanelError(409, 'La entrega debe estar publicada en GitHub.');
+        let revision = delivery.implementation.commit;
+        if (pull !== undefined) {
+          const merged = await github.detail(pull);
+          if (merged.deliveryKey !== key || !merged.merged || merged.head !== revision || merged.base !== 'main') {
+            throw new PanelError(409, 'GitHub aún no confirma la fusión de esta revisión en main.');
+          }
+          revision = merged.mergeCommit;
+        }
+        return json(200, await changes.integrated(revision));
+      }
+      if (request.method === 'POST' && ['/api/encargos/comprobar', '/api/encargos/publicar', '/api/encargos/aplicar'].includes(path)) {
+        if (request.headers.origin !== origin) throw new OperationError(403, 'Realiza esta acción desde LA TERRAZA.');
+        const { key, commit } = await bodyJson(request);
+        const delivery = await implementationDelivery(key);
+        if (path === '/api/encargos/comprobar' && delivery.implementation?.verified) {
+          return json(200, { ...delivery, key, mode: 'implementacion', canRevalidate: false });
+        }
+        chat.assertIdle();
+        if (path !== '/api/encargos/comprobar') {
+          approveCheck(key, delivery);
+          if (commit !== delivery.implementation.commit) throw new PanelError(409, 'Vuelve a revisar la entrega antes de continuar.');
+        }
+        deliveryWork = (async () => {
+          if (path === '/api/encargos/comprobar') return revalidate(delivery);
+          if (path === '/api/encargos/aplicar') {
+            if (delivery.app !== 'control') throw new PanelError(409, 'Esta acción solo actualiza LA TERRAZA.');
+            if (await implementation.applyTerrace(delivery.implementation)) terraceNeedsRestart = true;
+            return { needsRestart: terraceNeedsRestart };
+          }
+          const { commit, branch } = delivery.implementation;
+          const integrated = await changes.integrated(commit).catch(error => {
+            if (!(error instanceof ChangesError) || error.status !== 409) throw error;
+            return null;
+          });
+          if (integrated) return { board: savePush(key, { commit, branch, app: delivery.app, integratedRevision: integrated.revision }) };
+          const pushed = { ...await implementation.push(delivery.id, delivery.implementation), app: delivery.app };
+          let board = savePush(key, pushed);
+          if (!github.connected()) return { board };
+          try {
+            const pull = await github.create(pushed.branch);
+            board = savePush(key, { ...pushed, pull: { number: pull.number, url: pull.url, merged: pull.merged } });
+            return { board };
+          } catch (error) {
+            if (!(error instanceof OperationError)) throw error;
+            return { board, warning: error.message };
+          }
+        })();
+        try { return json(200, await deliveryWork); }
+        finally { deliveryWork = null; }
       }
       if (path.startsWith('/api/operacion/')) {
         const route = path.slice('/api/operacion/'.length);
@@ -313,7 +427,14 @@ export async function createDashboard({
           if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new OperationError(400, 'Formulario no válido.');
           const writes = {
             'github/conectar': () => github.connect(payload.token), 'github/desconectar': github.disconnect,
-            'github/crear': () => github.create(payload.branch), 'github/fusionar': () => github.merge(payload),
+            'github/crear': () => github.create(payload.branch),
+            'github/fusionar': async () => {
+              const result = await github.merge(payload);
+              const delivery = Object.entries(store.board().pushes || {}).find(([, item]) =>
+                item.commit === payload.revision && item.pull?.number === payload.number);
+              if (delivery && result.merged) savePush(delivery[0], { ...delivery[1], pull: { ...delivery[1].pull, merged: true } });
+              return result;
+            },
             'hostinger/conectar': () => hostinger.connect(payload.target),
             'hostinger/preparar': () => hostinger.prepare(payload.revision), 'hostinger/desplegar': () => hostinger.start(payload),
           };
@@ -332,6 +453,9 @@ export async function createDashboard({
         const id = implementedPreview[1];
         const delivery = await readJson(join(runner.output('implementacion'), id + '.json'), null);
         if (!delivery?.implementation?.verified) throw new PanelError(404, 'Vista de la entrega no disponible.');
+        if (!(await implementation.verifiedWorktree(id, delivery.implementation))) {
+          throw new PanelError(409, 'La copia de la vista previa ya no coincide con el commit verificado.');
+        }
         if (!implementationPreviews.has(id)) implementationPreviews.set(id, createPreviews(implementation.worktree(id)));
         response.writeHead(303, { Location: await implementationPreviews.get(id).open(delivery.app, delivery.app === 'hazlotu' ? 'landing' : 'app') });
         response.end();
@@ -381,6 +505,7 @@ export async function createDashboard({
         const history = await deliveries();
         const board = store.board();
         return json(200, { board, agentEditor: agentEditor(board.agentEdits), history: history.slice(0, 100), batch, batches,
+          terraceNeedsRestart,
           model, apiReady: Boolean(activeApiKey()), concurrency, maxTasks, fixture, projectProfiles, memoryTopics });
       }
       if (request.method === 'PUT' && path === '/api/agentes') {
@@ -406,6 +531,7 @@ export async function createDashboard({
         return json(200, updated);
       }
       if (request.method === 'POST' && ['/api/ejecutar', '/api/encargos'].includes(path)) {
+        if (deliveryWork) throw new PanelError(409, 'Espera a que termine la operación de la entrega.');
         const { mode, revision, tasks, engine = 'openai', researchOnly, agentRevision } = await bodyJson(request);
         if (!['openai', 'codex'].includes(engine)) throw new PanelError(400, 'Elige Codex u OpenAI API.');
         if (!['real', 'prueba', 'implementacion'].includes(mode)) throw new PanelError(400, 'Elige cómo ejecutar el lote.');
@@ -426,30 +552,18 @@ export async function createDashboard({
       }
       if (request.method === 'POST' && path === '/api/encargos/github') {
         const { key } = await bodyJson(request);
-        const id = /^implementacion\/([a-z0-9][a-z0-9-]{0,63})$/.exec(key || '')?.[1];
-        if (!id) throw new PanelError(404, 'No se encuentra la entrega.');
-        const delivery = await readJson(join(runner.output('implementacion'), id + '.json'), null);
-        if (delivery?.status !== 'completado') throw new PanelError(409, 'La implementación debe completar sus comprobaciones antes de subirla.');
-        const review = store.board().reviews[key];
-        if (review?.decision !== 'aprobada' || review.commit !== delivery.implementation.commit) {
-          throw new PanelError(409, 'Aprueba la revisión antes de subirla a GitHub.');
-        }
-        const pushed = await implementation.push(id, delivery.implementation);
-        return json(200, store.transaction(() => {
-          const board = store.board();
-          if (board.pushes?.[key]?.commit === pushed.commit) return board;
-          const updated = { ...board, revision: board.revision + 1, pushes: { ...board.pushes, [key]: pushed } };
-          store.writeBoard(updated);
-          return updated;
-        }));
+        const delivery = await implementationDelivery(key);
+        approveCheck(key, delivery);
+        return json(200, savePush(key, { ...await implementation.push(delivery.id, delivery.implementation), app: delivery.app }));
       }
       if (request.method === 'POST' && path === '/api/revisar') {
-        const { key, decision, note, revision, rule } = await bodyJson(request);
+        const { key, decision, note, revision, rule, commit } = await bodyJson(request);
         if (typeof key !== 'string' || !decisions.includes(decision) || typeof note !== 'string' || note.length > 2000) {
           throw new PanelError(400, 'Revisa la decisión y la nota.');
         }
         const delivery = (await deliveries()).find(item => item.key === key && ['borrador', 'completado'].includes(item.status));
         if (!delivery) throw new PanelError(404, 'La entrega no está disponible para revisar.');
+        if (commit !== undefined && commit !== delivery.implementation?.commit) throw new PanelError(409, 'La entrega cambió. Ábrela de nuevo.');
         const updated = await changeBoard(revision, current => ({
           reviews: { ...current.reviews, [key]: { decision, note: note.trim(), date: new Date().toISOString(),
             ...(delivery.implementation?.verified ? { commit: delivery.implementation.commit } : {}) } },
@@ -472,7 +586,7 @@ export async function createDashboard({
   server.on('close', () => {
     previews.close();
     for (const view of implementationPreviews.values()) view.close();
-    Promise.allSettled([runner.wait(), hostinger.wait(), chat.wait()]).finally(store.close).catch(() => {});
+    Promise.allSettled([runner.wait(), hostinger.wait(), chat.wait(), deliveryWork]).finally(store.close).catch(() => {});
   });
   return server;
 }

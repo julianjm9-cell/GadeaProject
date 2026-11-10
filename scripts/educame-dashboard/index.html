@@ -58,10 +58,10 @@
           <form id="terrace-order" aria-labelledby="home-title">
             <div class="terrace-order-options">
               <label>¿En qué app?<select name="app" id="terrace-app" required></select></label>
-              <label>¿Qué quieres recibir?<select name="mode" required><option value="real">Un plan o diagnóstico</option><option value="implementacion">Un cambio implementado</option></select></label>
+              <label>¿Qué quieres recibir?<select name="mode" required><option value="implementacion">Un cambio listo para revisar</option><option value="real">Un plan o diagnóstico</option></select></label>
             </div>
             <label>¿Qué quieres que haga Codex?<textarea name="objective" rows="3" maxlength="2000" required placeholder="Ejemplo: revisa por qué se corta el crucigrama en móvil."></textarea></label>
-            <p class="inline-hint" id="terrace-mode-hint">Codex revisa el proyecto y propone próximos pasos.</p>
+            <p class="inline-hint" id="terrace-mode-hint">Codex trabaja en una copia aislada. En Entregas podrás revisar, aprobar y preparar la publicación.</p>
             <div class="actions"><button class="button primary" type="submit" data-icon="sparkles" disabled>Pedir a Codex</button><a class="text-link" href="#chat">Abrir chat</a><a class="text-link" id="terrace-agents" href="#agentes">Elegir agentes →</a></div>
             <p class="inline-hint" id="terrace-order-status" role="status"></p>
             <a class="text-link" id="terrace-connect" href="#conexiones" data-open-connection="ia" hidden>Configurar Codex en Conexiones →</a>
@@ -240,7 +240,8 @@
           <li>Conéctate una vez desde PowerShell con <code>ssh usuario@servidor</code> y verifica la identidad del VPS con el proveedor.</li>
           <li>Introduce aquí ese destino o su alias de OpenSSH y pulsa <strong>Probar conexión</strong>.</li>
         </ol><p>También puedes copiar el comando de la revisión desde <a class="text-link" href="#cambios">Cambios</a> y pegarlo en la consola de Hostinger.</p></details>
-        <div class="actions"><button class="button primary" id="hostinger-prepare" type="button">Preparar despliegue</button><a class="text-link" href="#cambios">Ver cambios o copiar comando</a></div>
+        <p class="muted" id="hostinger-delivery" hidden></p>
+        <div class="actions"><button class="button primary" id="hostinger-prepare" type="button">Preparar despliegue</button><button class="button secondary" id="hostinger-command" type="button">Generar comando</button><a class="text-link" href="#cambios">Ver cambios</a></div>
         <div id="hostinger-job" class="operation-detail" role="status"></div>
         <details id="hostinger-history" hidden><summary>Historial de despliegues</summary><ul></ul></details>
       </section>

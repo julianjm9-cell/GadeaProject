@@ -15,6 +15,26 @@ const terraceFile = file => terracePaths.some(path => path.endsWith('/') ? file.
 const excluded = /(^|\/)(\.env(?:\.|$)|\.git(?:\/|$)|\.educame-agents(?:\/|$)|(?:credentials|secrets)(?:\.|\/|$))|\.(pem|key|p12|pfx|sqlite|dump)$/i;
 const credential = /^\+(?!\+\+).*?(?:-----BEGIN [A-Z ]*PRIVATE KEY-----|(?:sk-|ghp_|github_pat_|AIza)[A-Za-z0-9_-]{20,})/m;
 const github = /^(?:https:\/\/github\.com\/|git@github\.com:|ssh:\/\/git@github\.com\/)([\w.-]+\/[\w.-]+?)(?:\.git)?\/?$/i;
+const testEnv = /^(path|pathext|systemroot|windir|comspec|home|userprofile|appdata|localappdata|temp|tmp|programfiles(?:\(x86\))?|programdata|playwright_browsers_path)$/i;
+
+function localTest(command) {
+  const parts = command.trim().replaceAll('\\', '/').split(/\s+/);
+  const [program, ...args] = parts;
+  if (/^npm(?:\.cmd)?$/i.test(program) && args.join(' ') === 'test') return [process.execPath, ['tests/run-unit.cjs']];
+  if (/^node(?:\.exe)?$/i.test(program)) {
+    if (args.join(' ') === 'tests/run-unit.cjs') return [process.execPath, args];
+    const files = args.slice(1).filter(arg => !arg.startsWith('--'));
+    if (args[0] === '--test' && files.length && args.slice(1).every(arg =>
+      /^tests\/[\w/-]+(?:\.[\w-]+)*\.(?:cjs|mjs|js)$/.test(arg) ||
+      /^--(?:test-isolation=none|test-concurrency=[1-4])$/.test(arg))) return [process.execPath, args];
+  }
+  if (/^python(?:3)?$/i.test(program) && args[0] === '-m' && args[1] === 'pytest' &&
+      args.length > 2 && args.slice(2).every(arg => arg === '-q' || /^backend\/tests(?:\/[\w-]+\.py)?$/.test(arg)) &&
+      args.some(arg => arg.startsWith('backend/tests'))) return [program, args];
+}
+
+export const canRevalidate = delivery => Boolean(delivery?.draft && delivery.implementation && !delivery.implementation.verified &&
+  delivery.checks?.length && delivery.checks.every(check => typeof check.command === 'string' && localTest(check.command)));
 
 export class ImplementationError extends Error {
   constructor(status, message) {
@@ -75,14 +95,20 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     })) return { uncertain: true, error: 'Ya existe una copia aislada de este encargo. Revisa su contenido antes de repetirlo.' };
     await git(['worktree', 'add', '--detach', cwd, start], root, 120_000);
     const output = await codex.implement(task, cwd, allowed);
-    const pending = { branch: branch(task.id), base: baseRevision };
+    return finalize(task, output, { branch: branch(task.id), base: baseRevision, start });
+  }
+
+  async function finalize(task, output, pending, rerun) {
     if (!output.draft) return { ...output, implementation: pending };
     const reject = error => ({ ...output, error, implementation: pending });
-    if (await ref('HEAD', cwd) !== start) return reject('La copia cambió de revisión durante el encargo. Requiere revisión manual.');
-    const changes = new Set([
+    const cwd = worktree(task.id);
+    const allowed = pathsFor(task.app);
+    if (await ref('HEAD', cwd) !== pending.start) return reject('La copia cambió de revisión durante el encargo. Requiere revisión manual.');
+    const changedFiles = async () => new Set([
       ...(await git(['diff', '--name-only', '--no-renames', '-z', 'HEAD'], cwd)).split('\0').filter(Boolean),
       ...(await git(['ls-files', '--others', '--exclude-standard', '-z'], cwd)).split('\0').filter(Boolean),
     ]);
+    const changes = await changedFiles();
     if (!changes.size) return reject('El agente entregó una revisión sin cambios de código.');
     const files = [...changes];
     if (files.length > 120 || files.some(file => task.app === 'control' ? !terraceFile(file) :
@@ -100,6 +126,16 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     const staged = await git(['diff', '--cached', '--no-renames', '--unified=0', '--', ...literal], cwd);
     if (credential.test(staged)) return reject('Hay un valor que parece una credencial. La entrega requiere revisión.');
     if (!(await git(['diff', '--cached', '--check'], cwd).then(() => true, () => false))) return reject('Git encontró errores de formato en la entrega.');
+    if (rerun) {
+      const tree = await git(['write-tree'], cwd);
+      output.checks = await rerun(cwd);
+      const clean = await git(['diff', '--quiet'], cwd).then(() => true, () => false);
+      const after = await changedFiles();
+      if (!clean || files.length !== after.size || files.some(file => !after.has(file)) ||
+          await ref('HEAD', cwd) !== pending.start || await git(['write-tree'], cwd) !== tree) {
+        return reject('La copia cambió durante las pruebas. Revísala antes de volver a comprobar.');
+      }
+    }
     if (!output.checks?.length) return reject('Falta una prueba ejecutada con éxito dentro de la copia aislada.');
     if (output.checks.some(check => !check.passed)) return reject('Quedan pruebas con errores. La copia aislada conserva los cambios.');
     await git(['-c', 'commit.gpgsign=false', 'commit', '-m', 'Educame: ' + task.agente + ' · ' + task.encargo.replace(/\s+/g, ' ').slice(0, 95)], cwd);
@@ -110,6 +146,29 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     await rename(temp, receipt(task.id));
     await commitBranch(result.implementation);
     return result;
+  }
+
+  async function revalidate(delivery) {
+    if (!safeId.test(delivery.id) || !canRevalidate(delivery)) throw new ImplementationError(409, 'Esta entrega necesita un seguimiento que añada o corrija las pruebas.');
+    const recovered = await recover(delivery);
+    if (recovered?.implementation?.verified) return recovered;
+    const { base, branch: name, start = base } = delivery.implementation;
+    if (name !== branch(delivery.id) || !sha.test(base) || !sha.test(start)) {
+      throw new ImplementationError(409, 'No se puede verificar el origen de esta copia.');
+    }
+    const { draft, responseId, usage, checks } = delivery;
+    return finalize(delivery, { draft, responseId, usage, checks }, { base, branch: name, start }, async cwd => {
+      const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => testEnv.test(key)));
+      env.NODE_PATH = join(root, 'node_modules');
+      const results = [];
+      for (const { command } of checks) {
+        const [program, args] = localTest(command);
+        const passed = await exec(program, args, { cwd, env, windowsHide: true, timeout: 180_000, maxBuffer: 4 * 1024 * 1024 })
+          .then(() => true, () => false);
+        results.push({ command, passed, source: 'local' });
+      }
+      return results;
+    });
   }
 
   async function push(id, artifact) {
@@ -141,6 +200,15 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     return { branch: artifact.branch, commit: artifact.commit, url: link && link + '/compare/main...' + encodeURIComponent(artifact.branch) + '?expand=1' };
   }
 
+  async function review(artifact) {
+    if (!artifact?.verified || !sha.test(artifact.commit) || !sha.test(artifact.base) ||
+        !(await git(['merge-base', '--is-ancestor', artifact.base, artifact.commit]).then(() => true, () => false))) {
+      throw new ImplementationError(409, 'No se pudo verificar el historial de la entrega.');
+    }
+    const patch = await git(['diff', '--no-ext-diff', '--no-textconv', '--no-renames', artifact.base, artifact.commit]);
+    return { patch: patch.slice(0, 90_000), truncated: patch.length > 90_000 };
+  }
+
   async function terraceRevision(artifact) {
     if (!artifact?.verified || !sha.test(artifact.commit) || !sha.test(artifact.base) ||
         await ref(artifact.commit + '^').catch(() => '') !== artifact.base) {
@@ -153,8 +221,13 @@ export function createImplementation(root, directory, codex, { localRemote = fal
 
   async function reviewTerrace(artifact) {
     const files = await terraceRevision(artifact);
-    const patch = await git(['diff', '--no-ext-diff', '--no-textconv', '--no-renames', artifact.base, artifact.commit]);
-    return { files, patch: patch.slice(0, 90_000), truncated: patch.length > 90_000 };
+    return { files, ...await review(artifact) };
+  }
+
+  async function verifiedWorktree(id, artifact) {
+    const cwd = worktree(id);
+    return await ref('HEAD', cwd).catch(() => '') === artifact.commit &&
+      !(await git(['status', '--porcelain'], cwd)).trim();
   }
 
   async function applyTerrace(artifact) {
@@ -163,14 +236,15 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     if ((await git(['branch', '--show-current'])).trim() !== 'main') {
       throw new ImplementationError(409, 'Abre la rama main del proyecto antes de aplicar la propuesta.');
     }
-    if (head === artifact.commit) return;
+    if (await git(['merge-base', '--is-ancestor', artifact.commit, head]).then(() => true, () => false)) return;
     if (head !== artifact.base) throw new ImplementationError(409, 'La revisión local cambió. Pide una propuesta nueva sobre el código actual.');
     if ((await git(['status', '--porcelain', '--untracked-files=no'])).trim()) {
       throw new ImplementationError(409, 'Hay cambios de Git sin guardar. Guarda tu trabajo antes de aplicar la propuesta.');
     }
     try { await git(['merge', '--ff-only', artifact.commit]); }
     catch { throw new ImplementationError(409, 'Git no pudo aplicar esta revisión. Comprueba la rama y los archivos locales.'); }
+    return true;
   }
 
-  return { base, execute, recover, push, worktree, reviewTerrace, applyTerrace };
+  return { base, execute, recover, revalidate, push, worktree, verifiedWorktree, review, reviewTerrace, applyTerrace };
 }

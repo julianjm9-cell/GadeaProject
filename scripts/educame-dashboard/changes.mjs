@@ -124,5 +124,13 @@ export function createChanges(cwd) {
       'bash infra/deploy-hostinger.sh';
     return { revision, command };
   }
-  return { history, sync, deploy, repository };
+  async function integrated(commit) {
+    if (!/^[a-f0-9]{40}$/.test(commit || '')) throw new ChangesError(400, 'La entrega no tiene una revisión válida.');
+    await sync();
+    const revision = await readRef(remoteRef);
+    const included = await git(['merge-base', '--is-ancestor', commit, revision]).then(() => true, () => false);
+    if (!included) throw new ChangesError(409, 'La entrega aún no figura en main. Comprueba la fusión en GitHub.');
+    return { revision };
+  }
+  return { history, sync, deploy, repository, integrated };
 }
