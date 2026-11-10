@@ -12,6 +12,7 @@ import { cleanRule, memoryTopics, projectProfiles } from './educame-dashboard/pr
 import { openPanelStore } from './educame-dashboard/store.mjs';
 import { createRunner, RunnerError } from './educame-dashboard/runner.mjs';
 import { createImplementation, ImplementationError } from './educame-dashboard/implementation.mjs';
+import { researchRole } from './educame-dashboard/research.mjs';
 
 const assets = new Map([
   ['/', ['index.html', 'text/html']],
@@ -146,6 +147,11 @@ async function readDeliveries(directory, mode) {
 }
 
 async function exampleDraft(task) {
+  if (task.agente === researchRole) return {
+    draft: { resumen: 'Simulación de análisis', entrega: 'Se guardaron los enlaces en el encargo de prueba.', comprobaciones: [],
+      pendientes: ['Pulsa Analizar enlaces para consultar las fuentes públicas.'] },
+    research: { searched: false, fuentes: task.fuentes.map(url => ({ url, estado: 'inaccesible', observacion: 'Simulación sin consulta web.' })), ideas: [] },
+  };
   return {
     draft: {
       resumen: task.revision ? 'Entrega recibida para revisar' : 'Encargo recibido por el agente',
@@ -289,8 +295,10 @@ export async function createDashboard({
         return;
       }
       if (request.method === 'GET' && path === '/api/panel') {
+        const batch = runner.latest();
+        const batches = runner.recent();
         const history = await deliveries();
-        return json(200, { board: store.board(), history: history.slice(0, 100), batch: runner.latest(), batches: runner.recent(),
+        return json(200, { board: store.board(), history: history.slice(0, 100), batch, batches,
           model, apiReady: Boolean(activeApiKey()), concurrency, maxTasks, fixture, projectProfiles, memoryTopics });
       }
       if (request.method === 'GET' && path === '/api/codex') return json(200, await codex.status(url.searchParams.has('actualizar')));
@@ -301,13 +309,18 @@ export async function createDashboard({
         return json(200, updated);
       }
       if (request.method === 'POST' && ['/api/ejecutar', '/api/encargos'].includes(path)) {
-        const { mode, revision, tasks, engine = 'openai' } = await bodyJson(request);
+        const { mode, revision, tasks, engine = 'openai', researchOnly } = await bodyJson(request);
         if (!['openai', 'codex'].includes(engine)) throw new PanelError(400, 'Elige Codex u OpenAI API.');
         if (!['real', 'prueba', 'implementacion'].includes(mode)) throw new PanelError(400, 'Elige cómo ejecutar el lote.');
         const queued = path === '/api/ejecutar';
         const board = store.board();
         if (queued && revision !== board.revision) throw new PanelError(409, 'El lote ha cambiado. Vuelve a cargar antes de ejecutarlo.');
-        const selected = queued ? board.tasks : validateBoard(tasks);
+        let selected = queued ? board.tasks : validateBoard(tasks);
+        if (queued && mode === 'real' && researchOnly === true) selected = selected.filter(task => task.agente === researchRole);
+        if (queued && mode === 'implementacion') selected = selected.filter(task => task.agente !== researchRole);
+        if (mode === 'implementacion' && selected.some(task => task.agente === researchRole)) {
+          throw new PanelError(400, 'Ejecuta Copiador en modo de análisis. Sus ideas se pueden convertir en encargos de implementación.');
+        }
         return json(202, await runner.start({ mode, engine, tasks: selected, revision: queued ? revision : undefined }));
       }
       if (request.method === 'POST' && path === '/api/encargos/retomar') {

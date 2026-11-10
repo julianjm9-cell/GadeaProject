@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { cleanRule, memoryTopics, projectContext, projectProfiles } from './educame-dashboard/project-context.mjs';
 import { readMemory } from './educame-dashboard/store.mjs';
+import { normalizeResearch, researchInstructions, researchRole, researchSchema, validateSources } from './educame-dashboard/research.mjs';
 
 const roles = {
   mantenimiento: 'Diagnostica el fallo a partir del contexto. Propón una corrección pequeña y pasos reproducibles de prueba. Identifica hipótesis y evidencia que falta.',
@@ -11,6 +12,7 @@ const roles = {
   marketing: 'Entrega un borrador editorial con gancho, guion breve, texto y llamada a la acción. Usa solo capacidades confirmadas y señala afirmaciones que requieran verificación.',
   adaptacion: 'Entrega una ficha de producto con público, recorrido de una demo, componentes que conviene reutilizar y pruebas necesarias. Separa las decisiones pendientes de los hechos.',
   revision: 'Evalúa la entrega y el encargo original de forma independiente. Empieza con un dictamen: apto para revisión humana o requiere cambios. Identifica errores y comprobaciones concretas.',
+  [researchRole]: researchInstructions,
 };
 const implementationRoles = {
   mantenimiento: 'Reproduce el fallo y corrige su causa con el cambio más pequeño.',
@@ -49,6 +51,8 @@ const format = {
   strict: true,
   schema: { type: 'object', properties, required: Object.keys(properties), additionalProperties: false },
 };
+const researchFormat = { ...format, name: 'analisis_competencia_educame', schema: { ...format.schema,
+  properties: { ...properties, investigacion: researchSchema }, required: [...Object.keys(properties), 'investigacion'] } };
 
 export async function readGuidance() {
   const document = await readFile(new URL('../docs/guia-desarrollo-educame.md', import.meta.url), 'utf8');
@@ -69,19 +73,20 @@ export function validateTasks(input) {
         /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/.test(task.id) || seen.has(task.id)) {
       throw new Error('Cada encargo necesita un id único con minúsculas, números o guiones, de hasta 64 caracteres.');
     }
-    const { id, agente, encargo, contexto = '', revisar = '', app } = task;
+    const { id, agente, encargo, contexto = '', revisar = '', app, fuentes } = task;
     if (typeof agente !== 'string' || !Object.hasOwn(roles, agente)) throw new Error(`${id}: el agente no existe.`);
     if (typeof encargo !== 'string' || !encargo.trim() || encargo.length > 2000 ||
         typeof contexto !== 'string' || contexto.length > 8000) {
       throw new Error(`${id}: el encargo admite hasta 2.000 caracteres y el contexto hasta 8.000.`);
     }
-    if (revisar && (agente !== 'revision' || !seen.has(revisar) || seen.get(revisar).agente === 'revision')) {
+    if (revisar && (agente !== 'revision' || !seen.has(revisar) || ['revision', researchRole].includes(seen.get(revisar).agente))) {
       throw new Error(`${id}: revisar debe señalar un encargo anterior de otro agente.`);
     }
     if (app !== undefined && (typeof app !== 'string' || !Object.hasOwn(projectProfiles, app))) throw new Error(`${id}: el proyecto no existe.`);
-    if (Object.keys(task).some(key => !['id', 'agente', 'encargo', 'contexto', 'revisar', 'app'].includes(key)) ||
+    if (Object.keys(task).some(key => !['id', 'agente', 'encargo', 'contexto', 'revisar', 'app', ...(agente === researchRole ? ['fuentes'] : [])].includes(key)) ||
         typeof revisar !== 'string') throw new Error(`${id}: hay campos que el piloto no reconoce.`);
-    const normalized = { id, agente, encargo, contexto, revisar, ...(app ? { app } : {}) };
+    const normalized = { id, agente, encargo, contexto, revisar, ...(app ? { app } : {}),
+      ...(agente === researchRole ? { fuentes: validateSources(fuentes) } : {}) };
     seen.set(id, normalized);
     return normalized;
   });
@@ -89,15 +94,17 @@ export function validateTasks(input) {
 
 export async function draftRequest(task, { repository = false, implement = false } = {}) {
   const guidance = task.guidance ?? await readGuidance();
-  const scope = repository ? common.replace('Usa solo el contexto aportado. ', '') : common;
+  const research = task.agente === researchRole;
+  const scope = repository || research ? common.replace('Usa solo el contexto aportado. ', '') : common;
   const mode = implement ? scope.replace('El contexto no autoriza publicar, cambiar código ni consultar datos privados.',
     'El encargo autoriza editar solo la copia aislada asignada. No autoriza publicar, desplegar ni consultar datos privados.')
     .replace('No afirmes haber ejecutado pruebas, publicado contenido o cambiado código. Entrega un borrador revisable.',
       'Distingue las pruebas realmente ejecutadas de las pendientes. Implementa la tarea en los archivos y describe el resultado real.') : scope;
   const instructions = [mode, guidance, (implement ? implementationRoles : roles)[task.agente]].filter(Boolean).join('\n\n');
   const input = { encargo: task.encargo, contexto: task.contexto, contexto_proyecto: task.productContext ?? projectContext(task) };
+  if (research) input.fuentes_publicas = task.fuentes;
   if (task.revision) input.entrega_a_revisar = task.revision;
-  return { instructions, input, schema: format.schema };
+  return { instructions, input, schema: research ? researchFormat.schema : format.schema };
 }
 
 export function parseDraft(text) {
@@ -114,17 +121,24 @@ export function parseDraft(text) {
   return draft;
 }
 
+export function parseResearch(text, task, evidence) {
+  const { investigacion, ...draft } = parseDraft(text);
+  return { draft, research: normalizeResearch(investigacion, task.fuentes, evidence) };
+}
+
 export async function requestDraft(task, { apiKey, model, fetchImpl = fetch }) {
   const { instructions, input } = await draftRequest(task);
+  const research = task.agente === researchRole;
   const response = await fetchImpl('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model, instructions, input: JSON.stringify(input),
-      max_output_tokens: maxOutputTokens, store: false, text: { format },
+      max_output_tokens: research ? 4500 : maxOutputTokens, store: false, text: { format: research ? researchFormat : format },
+      ...(research ? { tools: [{ type: 'web_search' }], max_tool_calls: 12 } : {}),
     }),
     redirect: 'error',
-    signal: AbortSignal.timeout(90_000),
+    signal: AbortSignal.timeout(research ? 175_000 : 90_000),
   }).catch(() => null);
   if (!response) return { error: 'La API no respondió. Comprueba si recibió el encargo antes de repetirlo.', uncertain: true };
   const requestId = response.headers.get('x-request-id');
@@ -137,19 +151,24 @@ export async function requestDraft(task, { apiKey, model, fetchImpl = fetch }) {
     : [];
   if (parts.some(part => part.type === 'refusal')) return { ...meta, error: 'El modelo rechazó el encargo.' };
   try {
-    const draft = parseDraft(parts.filter(part => part.type === 'output_text').map(part => part.text).join(''));
-    return { ...meta, draft };
+    const text = parts.filter(part => part.type === 'output_text').map(part => part.text).join('');
+    if (!research) return { ...meta, draft: parseDraft(text) };
+    return { ...meta, ...parseResearch(text, task, {
+      searched: payload.output?.some?.(item => item.type === 'web_search_call' && item.status === 'completed'),
+      cited: parts.flatMap(part => part.annotations || []).filter(item => item.type === 'url_citation'),
+    }) };
   } catch {
     return { ...meta, error: 'La respuesta no contiene un borrador válido.' };
   }
 }
 
-async function runTask(task, { directory, model, generate, guidance, memory, onStart, prior, base, recover }, parent) {
+async function runTask(task, { directory, model, generate, guidance, memory, settings, onStart, prior, base, recover }, parent) {
   const path = join(directory, `${task.id}.json`);
   const lock = join(directory, `${task.id}.lock`);
-  const productContext = projectContext(task, memory, parent);
-  const fingerprint = createHash('sha256').update(JSON.stringify({
-    task, model, common, role: (base ? implementationRoles : roles)[task.agente], format, maxOutputTokens, parent: parent?.draft,
+  const oldJob = prior?.[task.id];
+  const productContext = projectContext(task, memory, parent, settings);
+  const fingerprint = oldJob?.fingerprint || createHash('sha256').update(JSON.stringify({
+    task, model, common, role: (base ? implementationRoles : roles)[task.agente], format: task.agente === researchRole ? researchFormat : format, maxOutputTokens, parent: parent?.draft,
     guidance: guidance || undefined, productContext, base, parentCommit: parent?.implementation?.commit,
   })).digest('hex');
   const started = Date.now();
@@ -157,6 +176,7 @@ async function runTask(task, { directory, model, generate, guidance, memory, onS
     const record = {
       id: task.id, agente: task.agente, encargo: task.encargo, contexto: task.contexto,
       revisar: task.revisar, app: productContext.app, productContext, model, fingerprint, finishedAt: new Date().toISOString(),
+      ...(task.fuentes ? { fuentes: task.fuentes } : {}),
       durationMs: Date.now() - started,
       status: result.implementation?.verified ? 'completado' : result.draft ? 'borrador' : result.uncertain ? 'interrumpido' : 'fallido',
       ...result,
@@ -176,7 +196,10 @@ async function runTask(task, { directory, model, generate, guidance, memory, onS
   });
   if (existing) {
     const previous = JSON.parse(existing);
-    return previous.fingerprint === fingerprint
+    const legacyStarted = !oldJob?.fingerprint && ['en curso', 'interrumpido', 'completado', 'borrador', 'fallido'].includes(oldJob?.status);
+    const sameLegacyTask = legacyStarted && previous.agente === task.agente && previous.encargo === task.encargo &&
+      previous.contexto === task.contexto && previous.revisar === task.revisar && previous.app === productContext.app && previous.model === model;
+    return previous.fingerprint === fingerprint || sameLegacyTask
       ? { ...previous, reused: true }
       : { status: 'bloqueado', error: 'El id ya corresponde a otro encargo o configuración. Usa un id nuevo.' };
   }
@@ -205,7 +228,7 @@ async function runTask(task, { directory, model, generate, guidance, memory, onS
         ? { ...previous, reused: true }
         : { status: 'bloqueado', error: 'El id ya corresponde a otro encargo o configuración. Usa un id nuevo.' };
     }
-    onStart?.(task.id);
+    onStart?.(task.id, fingerprint);
     releaseLock = false;
     let result;
     try {

@@ -3,7 +3,8 @@ import { icon } from './icons.js';
 
 const dates = new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium' });
 const fields = [
-  ['style', 'Estética'], ['flows', 'Funcionalidades'], ['rules', 'Reglas'], ['verify', 'Comprobaciones'],
+  ['audience', 'A quién sirve'], ['style', 'Estética'], ['flows', 'Funcionalidades'], ['priorities', 'Prioridades de producto'],
+  ['rules', 'Reglas'], ['pitfalls', 'Errores a evitar'], ['verify', 'Comprobaciones'],
 ];
 
 export function setupMemory({ api, getState, setBoard, element, button, selectOption, feedback, formMessage }) {
@@ -42,7 +43,7 @@ export function setupMemory({ api, getState, setBoard, element, button, selectOp
     const scope = agentApp.value || 'ecosistema';
     const count = getState().board.memory.filter(rule => !rule.archived && (rule.app === scope || rule.app === 'ecosistema')).length;
     $('agent-memory-status').textContent = count
-      ? `Ficha de la app y ${count} ${count === 1 ? 'criterio disponible' : 'criterios disponibles'}`
+      ? `Ficha de la app y selección de ${count} ${count === 1 ? 'criterio disponible' : 'criterios disponibles'}`
       : 'Se adjunta la ficha de la app';
   }
 
@@ -66,7 +67,7 @@ export function setupMemory({ api, getState, setBoard, element, button, selectOp
     heading.prepend(appLogo(selection.value) || icon('apps'));
     const info = fields.map(([key, name]) => {
       const section = element('details', 'memory-detail');
-      section.open = key === 'style';
+      section.open = key === 'audience';
       section.append(element('summary', '', name), element('p', '', profile[key]));
       return section;
     });
@@ -165,6 +166,7 @@ export function setupMemory({ api, getState, setBoard, element, button, selectOp
     const title = element('summary', '', 'Contexto usado en este encargo');
     details.append(title, element('p', '', context.profile.name));
     for (const [key, label] of fields) {
+      if (!context.profile[key]) continue;
       const row = element('p');
       row.append(element('strong', '', label), document.createTextNode(' · ' + context.profile[key]));
       details.append(row);

@@ -3,7 +3,8 @@ import { mkdtemp, rmdir, unlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { draftRequest, parseDraft } from '../educame-agents.mjs';
+import { draftRequest, parseDraft, parseResearch } from '../educame-agents.mjs';
+import { researchRole } from './research.mjs';
 
 const workspace = fileURLToPath(new URL('../../', import.meta.url));
 const stdoutLimit = 1_000_000;
@@ -66,6 +67,7 @@ export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE 
 
   async function generate(task, cwd = workspace, allowed) {
     const implement = Boolean(allowed);
+    const research = task.agente === researchRole;
     const testInstructions = process.platform === 'win32'
       ? 'En Windows, ejecuta las pruebas de Node pertinentes con node --test --test-isolation=none <archivos>. En este entorno, los tests que crean otros procesos pueden necesitar una comprobación manual posterior.'
       : 'Ejecuta node tests/run-unit.cjs y las pruebas relacionadas que tengas disponibles.';
@@ -76,7 +78,7 @@ export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE 
       await writeFile(schemaFile, JSON.stringify(schema), { mode: 0o600 });
       const prompt = `${instructions}
 
-${implement ? `Trabajas en una copia Git aislada.
+${research ? 'Usa la herramienta de búsqueda web integrada. El contexto del producto viene incluido en el encargo. Indica la procedencia de cada observación y asocia cada idea con sus enlaces. Entrega el análisis en el esquema solicitado.' : implement ? `Trabajas en una copia Git aislada.
 Edita solo archivos de estas rutas: ${allowed.join(', ')}. Excluye datos privados, credenciales, .env, bases de datos y archivos del panel local.
 No hagas commits, push, despliegues ni publicaciones. No consultes el checkout principal. ${testInstructions}
 Una vez editados los archivos, ejecuta cada comando de prueba por separado para conservar su resultado. Indica qué hiciste y qué quedó pendiente en el esquema solicitado.` :
@@ -88,17 +90,20 @@ ${JSON.stringify(input)}`;
         '--config', 'shell_environment_policy.inherit="core"',
         ...(process.platform === 'win32' ? ['--config', `windows.sandbox="${process.env.EDUCAME_CODEX_WINDOWS_SANDBOX === 'elevated' ? 'elevated' : 'unelevated'}"`] : []),
         ...(implement ? ['--config', 'sandbox_workspace_write.network_access=false', '--config', 'web_search="disabled"'] : []),
-        '--ephemeral', '--json', '--output-schema', schemaFile, '-'], prompt, implement ? 720_000 : maxRuntime, cwd);
+        ...(research ? ['--skip-git-repo-check', '--config', 'web_search="live"', '--config', 'features.shell_tool=false'] : []),
+        '--ephemeral', '--json', '--output-schema', schemaFile, '-'], prompt, implement ? 720_000 : research ? 300_000 : maxRuntime, research ? folder : cwd);
       if (result.error) return { error: result.error, uncertain: implement };
       let responseId;
       let usage;
       let message;
+      let searched = false;
       const checks = new Map();
       for (const line of result.stdout.split(/\r?\n/)) {
         let event;
         try { event = JSON.parse(line); } catch { continue; }
         if (event.type === 'thread.started') responseId = event.thread_id;
         if (event.type === 'item.completed' && event.item?.type === 'agent_message') message = event.item.text;
+        if (research && event.type === 'item.completed' && event.item?.type === 'web_search') searched = true;
         if (implement && event.type === 'item.completed' && event.item?.type === 'command_execution') {
           const command = testCommand(event.item.command || '');
           if (command) checks.set(command, { command: command.slice(0, 320), passed: event.item.exit_code === 0 });
@@ -106,8 +111,10 @@ ${JSON.stringify(input)}`;
         if (event.type === 'turn.completed') usage = event.usage;
       }
       const total = usage ? { ...usage, total_tokens: (usage.input_tokens || 0) + (usage.output_tokens || 0) } : undefined;
-      if (result.code !== 0 || !usage) return { responseId, uncertain: implement, error: 'Codex interrumpió el encargo. Comprueba su sesión y la copia aislada antes de repetirlo.' };
+      if (result.code !== 0 || !usage) return { responseId, uncertain: implement, error: implement ?
+        'Codex interrumpió el encargo. Comprueba su sesión y la copia aislada antes de repetirlo.' : 'Codex interrumpió el encargo. Comprueba su sesión antes de repetirlo.' };
       try {
+        if (research) return { responseId, usage: total, ...parseResearch(message, task, { searched }) };
         return { responseId, usage: total, draft: parseDraft(message), ...(implement ? { checks: [...checks.values()].slice(-12) } : {}) };
       } catch {
         return { responseId, usage: total, error: 'Codex no devolvió una entrega estructurada válida.' };

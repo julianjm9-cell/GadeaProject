@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { readGuidance, runBatch } from '../educame-agents.mjs';
+import { contextSettings } from './project-context.mjs';
 
 export class RunnerError extends Error {
   constructor(status, message) {
@@ -44,11 +45,14 @@ export function createRunner(store, directory, { model, readiness, generator, ba
   function launch(batch, prior) {
     const save = () => store.update(batch);
     active = runBatch(batch.tasks, {
-      directory: output(batch.mode), model: batch.model, memory: batch.memory, guidance: batch.guidance, prior,
+      directory: output(batch.mode), model: batch.model, memory: batch.memory, guidance: batch.guidance, settings: batch.settings, prior,
       base: batch.base, recover: batch.mode === 'implementacion' ? recoverImplementation : undefined,
       generate: generator(batch),
-      onStart: id => { batch.jobs[id] = { status: 'en curso' }; save(); },
-      report: ({ id, status, error, reused }) => { batch.jobs[id] = { status, error, reused }; save(); },
+      onStart: (id, fingerprint) => { batch.jobs[id] = { status: 'en curso', fingerprint }; save(); },
+      report: ({ id, status, error, reused, fingerprint }) => {
+        batch.jobs[id] = { status, error, reused, fingerprint: fingerprint || batch.jobs[id].fingerprint };
+        save();
+      },
     }).then(() => {
       batch.state = 'finished';
       batch.finishedAt = new Date().toISOString();
@@ -79,7 +83,7 @@ export function createRunner(store, directory, { model, readiness, generator, ba
       const board = store.board();
       if (revision !== undefined && revision !== board.revision) throw new RunnerError(409, 'El lote ha cambiado. Vuelve a cargar antes de ejecutarlo.');
       const batch = {
-        id, mode, engine, tasks, base, guidance, memory: board.memory, pid: process.pid, state: 'running',
+        id, mode, engine, tasks, base, guidance, memory: board.memory, settings: contextSettings, pid: process.pid, state: 'running',
         model: mode === 'prueba' ? 'prueba-local' : engine === 'codex' ? 'Codex local' : model,
         startedAt: new Date().toISOString(),
         jobs: Object.fromEntries(tasks.map(task => [task.id, { status: task.revisar ? 'espera' : 'pendiente' }])),

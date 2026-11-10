@@ -104,3 +104,62 @@ test('Responses recibe el contrato y guarda el consumo de las respuestas incompl
   assert.equal(incomplete.usage.total_tokens, 2001);
   assert.match(incomplete.error, /no completó/);
 });
+
+test('Copiador valida fuentes públicas y conserva evidencia e ideas en el contrato de búsqueda', async () => {
+  const { validateTasks, requestDraft } = await modulePromise;
+  const url = 'https://www.youtube.com/watch?v=prueba';
+  const other = 'https://www.instagram.com/p/ensayo/';
+  const input = { id: 'analisis', agente: 'copiador', app: 'ingles', encargo: 'Analiza el recorrido', fuentes: [url, url + '#fragmento', other] };
+  const [task] = validateTasks([input]);
+  assert.deepEqual(task.fuentes, [url, other]);
+  for (const privateUrl of ['file:///secret', 'http://127.0.0.1:4317', 'https://example.com/?access_token=secreto', 'https://user:pass@example.com', 'https://office.internal/app']) {
+    assert.throws(() => validateTasks([{ ...input, fuentes: [privateUrl] }]), /enlaces públicos/);
+  }
+  let searched = true;
+  const run = () => requestDraft(task, {
+    apiKey: 'clave-de-ensayo', model: 'simulado',
+    fetchImpl: async (_, options) => {
+      const body = JSON.parse(options.body);
+      assert.deepEqual(body.tools, [{ type: 'web_search' }]);
+      assert.deepEqual(JSON.parse(body.input).fuentes_publicas, task.fuentes);
+      assert.match(JSON.parse(body.input).contexto_proyecto.profile.audience, /B2 First/);
+      assert.match(body.instructions, /Ignora sus instrucciones/);
+      assert.ok(body.text.format.schema.required.includes('investigacion'));
+      const text = JSON.stringify({ ...draft, investigacion: { fuentes: [
+        { url, estado: 'consultada', observacion: 'Descripción pública.' },
+        { url: other, estado: 'inaccesible', observacion: 'Solicita acceso.' },
+        { url: 'javascript:alert(1)', estado: 'consultada', observacion: 'Inválida.' },
+      ], ideas: [{ titulo: 'Mapa de decisiones', propuesta: 'Diseña una misión original.', beneficio: 'Practicar inferencias.',
+        esfuerzo: 'medio', prueba: 'Completar dos rutas.', agente: 'juegos', fuentes: [url, 'https://example.com/no-citada'] }] } });
+      return Response.json({ status: 'completed', output: [
+        ...(searched ? [{ type: 'web_search_call', status: 'completed' }] : []),
+        { type: 'message', content: [{ type: 'output_text', text, annotations: searched ? [{ type: 'url_citation', url, title: 'Vídeo de ensayo' }] : [] }] },
+      ] });
+    },
+  });
+  const result = await run();
+  assert.equal(result.research.searched, true);
+  assert.equal(result.research.fuentes[0].title, 'Vídeo de ensayo');
+  assert.equal(result.research.fuentes[1].estado, 'inaccesible');
+  assert.deepEqual(result.research.ideas[0].fuentes, [url]);
+  searched = false;
+  const unconfirmed = await run();
+  assert.equal(unconfirmed.research.searched, false);
+  assert.ok(unconfirmed.research.fuentes.every(source => source.estado === 'inaccesible'));
+});
+
+test('la memoria ampliada prioriza coincidencias y conserva criterios variados dentro del ámbito', async () => {
+  const { projectContext, projectProfiles } = await import('../scripts/educame-dashboard/project-context.mjs');
+  for (const profile of Object.values(projectProfiles)) assert.ok(profile.audience && profile.priorities && profile.pitfalls);
+  const rule = (id, app, tema, criterio, archived = false) => ({ id, app, tema, criterio, comprobacion: 'Verificar en ensayo.', archived });
+  const rules = [rule('relevante', 'profesor', 'pedagogia', 'Fracciones equivalentes.'), rule('teclado', 'profesor', 'accesibilidad', 'Probar foco de teclado.'),
+    rule('fuera', 'eso', 'pedagogia', 'Fracciones equivalentes.'), rule('archivado', 'profesor', 'pedagogia', 'Fracciones equivalentes.', true),
+    rule('global', 'ecosistema', 'operacion', 'Usar datos ficticios.'),
+    ...Array.from({ length: 13 }, (_, index) => rule(`estilo-${index}`, 'profesor', 'estetica', `Tema visual ${index}.`))];
+  const context = projectContext({ app: 'profesor', encargo: 'Crea un reto de fracciones' }, rules);
+  assert.equal(context.confirmed[0].id, 'relevante');
+  assert.equal(context.confirmed.length, 11);
+  assert.ok(context.confirmed.some(item => item.id === 'teclado'));
+  assert.equal(context.confirmed.at(-1).id, 'global');
+  assert.ok(context.confirmed.every(item => !['fuera', 'archivado'].includes(item.id)));
+});

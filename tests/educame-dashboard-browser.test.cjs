@@ -97,12 +97,23 @@ for (const [name, engine, viewport] of [
     if (process.env.EDUCAME_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.EDUCAME_SCREENSHOT_DIR, `cambios-${name.split(' ')[0]}.png`) });
   });
 
-  test(`Centro de mando en ${name}`, { timeout: 35_000 }, async t => {
+  test(`Centro de mando en ${name}`, { timeout: 50_000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
+    const reference = 'https://www.youtube.com/watch?v=educame-test';
     const codex = {
       status: async () => ({ ready: true, message: 'Sesión de ensayo' }),
-      generate: async task => ({ draft: { resumen: 'Entrega de Codex', entrega: task.encargo, comprobaciones: [], pendientes: [],
-        aprendizaje: { tema: 'estetica', criterio: 'Los vagones muestran el destino de cada respuesta.', comprobacion: 'Jugar una ronda en móvil.' } } }),
+      async generate(task) {
+        if (task.agente === 'copiador') {
+          assert.deepEqual(task.fuentes, [reference]);
+          assert.match(task.productContext.profile.priorities, /Temario/);
+          return { draft: { resumen: 'Análisis de referencia', entrega: 'Informe ficticio.', comprobaciones: [], pendientes: [] },
+            research: { searched: true, fuentes: [{ url: reference, title: 'Referencia de ensayo', estado: 'consultada', observacion: 'Rutas cortas.' }],
+              ideas: [{ titulo: 'Ruta con decisiones', propuesta: 'Diseñar una actividad original.', beneficio: 'Práctica breve.',
+                prueba: 'Completar dos caminos.', esfuerzo: 'medio', agente: 'juegos', fuentes: [reference] }] } };
+        }
+        return { draft: { resumen: 'Entrega de Codex', entrega: task.encargo, comprobaciones: [], pendientes: [],
+          aprendizaje: { tema: 'estetica', criterio: 'Los vagones muestran el destino de cada respuesta.', comprobacion: 'Jugar una ronda en móvil.' } } };
+      },
     };
     const server = await listen(t, directory, { codex });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
@@ -189,7 +200,7 @@ for (const [name, engine, viewport] of [
     await page.getByRole('button', { name: 'Simular', exact: true }).click();
     await page.locator('#team-activity').getByText('Borrador').waitFor();
     assert.equal(await page.locator('.batch-chip').count(), 1);
-    await page.getByRole('button', { name: 'Seleccionar a todos' }).click();
+    await page.getByRole('button', { name: 'Seleccionar equipo' }).click();
     assert.equal(await page.locator('.team-tile[aria-pressed="true"]').count(), 5);
     if (process.env.EDUCAME_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.EDUCAME_SCREENSHOT_DIR, `agentes-${name.split(' ')[0]}.png`) });
     await page.getByRole('button', { name: 'Simular', exact: true }).click();
@@ -228,6 +239,25 @@ for (const [name, engine, viewport] of [
     await page.getByText('Criterio reactivado.').waitFor();
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     if (process.env.EDUCAME_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.EDUCAME_SCREENSHOT_DIR, `memoria-${name.split(' ')[0]}.png`) });
+    const profile = page.locator('#memory-profile');
+    await profile.getByText('Prioridades de producto', { exact: true }).click();
+    await profile.getByText(/variantes infantil y adolescente/).waitFor();
+    await navigate('Agentes');
+    await page.getByRole('button', { name: /Copiador Analiza/ }).click();
+    await page.locator('#agent-app').selectOption('ingles');
+    await page.getByLabel('¿Qué necesitas?').fill('');
+    await page.locator('#agent-sources textarea').fill(reference);
+    await page.getByRole('button', { name: 'Analizar enlaces', exact: true }).click();
+    await page.locator('#team-activity').getByRole('heading', { name: 'Análisis de enlaces' }).waitFor();
+    await page.locator('#team-activity').getByText('Borrador').waitFor();
+    await navigate('Inicio');
+    await page.getByRole('button', { name: /Análisis de referencia/ }).click();
+    const analysis = page.getByRole('dialog', { name: 'Análisis de referencia' });
+    assert.equal(await analysis.getByRole('link', { name: 'Referencia de ensayo' }).first().getAttribute('href'), reference);
+    await analysis.getByRole('button', { name: 'Preparar encargo para Juegos' }).click();
+    await page.getByRole('button', { name: 'Implementar con Codex' }).waitFor();
+    assert.match(await page.getByLabel('¿Qué necesitas?').inputValue(), /Ruta con decisiones/);
+    assert.equal(await page.locator('#agent-app').inputValue(), 'ingles');
     await navigate('Publicar');
     const post = page.locator('#publish-form');
     await post.getByLabel('Texto', { exact: true }).fill('Anuncio de ensayo');

@@ -240,6 +240,32 @@ test('el equipo recibe encargos directos sin reemplazar la cola y entrega el bor
   assert.equal(await (await request(base, '/api/conexiones')).text().then(data => data.includes('sk-ensayo')), false);
 });
 
+test('Copiador retoma enlaces guardados y separa el análisis de los encargos de implementación', async t => {
+  const directory = await local(t);
+  const calls = [];
+  const reference = 'https://www.youtube.com/watch?v=educame-test';
+  const research = { id: 'referencia', agente: 'copiador', app: 'ingles', encargo: 'Analiza este enlace', fuentes: [reference] };
+  const game = { id: 'juego-guardado', agente: 'juegos', app: 'profesor', encargo: 'Prepara un juego.' };
+  const options = { codex: { status: async () => ({ ready: true }), generate: async task => { calls.push(task); return fakeDraft(); } } };
+  const first = await start(t, directory, options);
+  const initial = await request(first, '/api/panel').then(response => response.json());
+  const saved = await request(first, '/api/panel', { revision: initial.board.revision, tasks: [research, game], links: initial.board.links }, { method: 'PUT' });
+  assert.equal(saved.status, 200);
+  const second = await start(t, directory, options);
+  const before = await request(second, '/api/panel').then(response => response.json());
+  assert.deepEqual(before.board.tasks[0].fuentes, [reference]);
+  assert.equal((await request(second, '/api/encargos', { mode: 'implementacion', engine: 'codex', tasks: [research] })).status, 400);
+  const body = { mode: 'real', engine: 'codex', revision: before.board.revision, researchOnly: true };
+  const submitted = await request(second, '/api/ejecutar', body);
+  assert.equal(submitted.status, 202);
+  const batch = await submitted.json();
+  const done = await waitPanel(second, ({ batch }) => batch?.state === 'finished');
+  assert.deepEqual(calls.map(({ id }) => id), [research.id]);
+  assert.deepEqual(done.history[0].fuentes, [reference]);
+  assert.deepEqual(done.board.tasks.map(({ id }) => id), [research.id, game.id]);
+  assert.equal((await request(second, '/api/ejecutar', body).then(response => response.json())).id, batch.id);
+});
+
 test('la memoria solo reutiliza criterios confirmados y respeta el ámbito del encargo', async t => {
   const directory = await local(t);
   const received = [];

@@ -96,6 +96,14 @@ h2 { font-size: 1.14rem; letter-spacing: -.022em; }
 .team-tile small, .channel-option small { display: block; margin-top: 2px; color: var(--muted); font-size: .78rem; font-weight: 500; }
 .team-check { display: grid; place-items: center; width: 21px; height: 21px; border: 1px solid #c3d3cf; border-radius: 50%; color: transparent; }
 .team-tile[aria-pressed="true"] .team-check { color: #fff; background: var(--green); border-color: var(--green); }
+.research-input { padding: 12px; background: #f7f2ff; border: 1px solid #e6d9f6; border-radius: 12px; }
+.research-input .inline-hint { margin-bottom: 0; }
+.research-report { display: grid; gap: 10px; min-width: 0; }
+.research-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.research-card { display: grid; gap: 6px; min-width: 0; padding: 12px; background: #f7f9fc; border: 1px solid var(--line); border-radius: 12px; overflow-wrap: anywhere; }
+.research-card :is(h4, p) { margin: 0; }
+.research-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.research-meta > a { min-width: 0; max-width: 100%; }
 .inline-hint { color: var(--muted); font-size: .83rem; overflow-wrap: anywhere; }
 .inline-hint:empty { display: none; }
 .batch-chips { display: flex; flex-wrap: wrap; gap: 7px; }

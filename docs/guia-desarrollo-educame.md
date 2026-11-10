@@ -42,14 +42,15 @@ Educame reúne herramientas para profesores particulares y para personas que pre
 | Marketing | Función verificada, versión, público y canal | Guion y texto, enlace de destino y afirmaciones que requieren comprobación |
 | Adaptación | Público, problema, señal de demanda y app de referencia | Recorrido de la demo, piezas que se pueden reutilizar y pruebas de compatibilidad |
 | Revisión | Encargo original, entrega y evidencia | Dictamen, fallos reproducibles, comprobaciones pendientes y cambios concretos |
+| Copiador | App de destino, enlaces públicos y foco del análisis | Observaciones con fuente, límites de acceso e ideas adaptadas con comprobaciones |
 
 En paralelo, Juegos y Marketing pueden avanzar con entradas independientes. Si Marketing va a mostrar un juego nuevo, su versión revisada es una entrada del guion. Cuando dos cambios tocan la misma pantalla o el mismo formato de datos, acuerda el alcance antes de integrar.
 
-En el Centro de mando, cada rol puede implementar en una copia Git aislada. Registra los archivos y las pruebas ejecutadas. La aprobación corresponde al commit revisado y la subida crea una rama de trabajo. Hostinger se actualiza después de integrar los cambios en `main`.
+En el Centro de mando, los cinco roles de implementación trabajan en copias Git aisladas. Registra los archivos y las pruebas ejecutadas. La aprobación corresponde al commit revisado y la subida crea una rama de trabajo. Hostinger se actualiza después de integrar los cambios en `main`. Copiador entrega análisis para revisión. Adapta los patrones al público y a las reglas de la app, separando lo observado de la propuesta. Conserva la fuente para poder comprobarlo.
 
 ## Cómo incorporar lo aprendido
 
 - El Centro de mando guarda la decisión y la nota al aprobar un borrador o pedir cambios. Usa la nota para describir el resultado que esperabas y lo que observaste. Una corrección puntual se queda en el encargo. Si el criterio debe aplicarse en trabajos futuros, confírmalo en **Memoria** con su ámbito y una comprobación. Las convenciones estables de cada producto se resumen en su [ficha base](../scripts/educame-dashboard/project-context.mjs).
 - Para una regla nueva, escribe **observación → decisión → comprobación**. Si una solución tapaba los botones, ábrela en un espacio propio con cierre claro y comprueba que puedes volver al juego con los controles accesibles.
-- El piloto lee el bloque breve al iniciar cada lote real. Mantén ahí solo criterios generales y útiles para los cinco roles. Añade los casos específicos en las secciones de producto o en la documentación de la app. Evita incluir conversaciones completas, credenciales o datos de usuarios.
+- El panel lee el bloque breve al iniciar cada lote real. Mantén ahí solo criterios generales y útiles para el equipo. Añade los casos específicos en las secciones de producto o en la documentación de la app. Evita incluir conversaciones completas, credenciales o datos de usuarios.
 - Si una decisión nueva sustituye a otra, edita la regla y conserva el motivo en Git. Prioriza la petición más reciente, verifica el repositorio y distingue lo que está en local de lo que ya está publicado.

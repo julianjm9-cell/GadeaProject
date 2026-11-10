@@ -1,4 +1,4 @@
-import { setupWorkspace } from './workspace.js';
+import { setupWorkspace, sourceLines } from './workspace.js';
 import { setupChanges } from './changes.js';
 import { mountIcons } from './icons.js';
 import { setupTheory } from './theory.js';
@@ -10,6 +10,7 @@ const agents = {
   marketing: ['Marketing', 'Mejora landings, demos y contenido.'],
   adaptacion: ['Adaptación', 'Implementa demos y variantes para otros públicos.'],
   revision: ['Revisión', 'Comprueba entregas y corrige fallos.'],
+  copiador: ['Copiador', 'Analiza webs y redes de referencia y propone ideas para Educame.'],
 };
 const states = {
   pendiente: ['Listo', 'pending'], espera: ['Espera un borrador', 'pending'], 'en curso': ['En curso', 'ready'],
@@ -120,6 +121,7 @@ function taskRow(task, index) {
 function renderHistory() {
   const filter = historyFilter.value;
   const selected = state.history.filter(item => filter === 'todas' ||
+    (filter === 'copiador' && item.mode === 'real' && item.agente === 'copiador') ||
     (filter === 'pendientes' && ['borrador', 'completado'].includes(item.status) && !state.board.reviews[item.key]) || item.mode === filter);
   const rows = selected.map(delivery => {
     const row = element('article', 'item');
@@ -196,7 +198,12 @@ function render() {
   });
   document.querySelector('[data-action="new-link"]').disabled = false;
   document.querySelectorAll('[data-run]').forEach(node => {
-    node.disabled = running || paused || tasks.length === 0 || (node.dataset.run === 'implementacion' && !codex?.ready);
+    const mode = node.dataset.run;
+    const researchers = tasks.some(task => task.agente === 'copiador');
+    if (mode === 'real') node.hidden = !researchers;
+    node.disabled = running || paused || !tasks.length ||
+      (mode === 'implementacion' && (!codex?.ready || tasks.every(task => task.agente === 'copiador'))) ||
+      (mode === 'real' && (!researchers || (!codex?.ready && !state.apiReady)));
   });
   const activity = history.slice(0, 3).map(delivery => {
     const row = element('button', 'activity-row');
@@ -251,8 +258,9 @@ function openTask(task = null, agent = 'juegos') {
   fields.app.value = memory.appFor(task);
   fields.encargo.value = task?.encargo || '';
   fields.contexto.value = task?.contexto || '';
+  fields.fuentes.value = task?.fuentes?.join('\n') || '';
   fields.revisar.replaceChildren(selectOption('', 'Sin dependencia'), ...state.board.tasks.slice(0, index)
-    .filter(item => item.agente !== 'revision').map(item => selectOption(item.id, item.encargo.slice(0, 90))));
+    .filter(item => !['revision', 'copiador'].includes(item.agente)).map(item => selectOption(item.id, item.encargo.slice(0, 90))));
   fields.revisar.value = task?.revisar || '';
   fields.agente.dispatchEvent(new Event('change'));
   formMessage(taskForm);
@@ -270,6 +278,54 @@ function openLink(link) {
   formMessage(linkForm);
   linkForm.closest('dialog').showModal();
   fields.name.focus();
+}
+
+function renderResearch(report, delivery) {
+  const section = element('section', 'research-report');
+  section.append(element('h3', '', 'Fuentes y observaciones'));
+  if (!report.searched) section.append(element('p', 'muted', 'Esta entrega carece de una consulta web confirmada. Las ideas pueden basarse en el contexto facilitado.'));
+  const list = element('ul', 'research-list');
+  function sourceLink(url, label) {
+    const link = element('a', 'text-link', label || url);
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noreferrer noopener';
+    return link;
+  }
+  const statuses = { consultada: ['Consultada', 'ready'], parcial: ['Parcial', 'pending'], inaccesible: ['Acceso sin confirmar', 'pending'] };
+  const byUrl = new Map();
+  for (const source of report.fuentes) {
+    if (!/^https?:\/\//i.test(source.url)) continue;
+    byUrl.set(source.url, source.title || new URL(source.url).hostname);
+    const row = element('li', 'research-card');
+    const [label, style] = statuses[source.estado] || statuses.inaccesible;
+    const heading = element('div', 'research-meta');
+    heading.append(sourceLink(source.url, source.title), element('span', `badge ${style}`, label));
+    row.append(heading);
+    if (source.observacion) row.append(element('p', '', source.observacion));
+    list.append(row);
+  }
+  section.append(list);
+  if (report.ideas.length) section.append(element('h3', '', 'Ideas para Educame'));
+  for (const idea of report.ideas) {
+    if (!Object.hasOwn(agents, idea.agente) || idea.agente === 'copiador') continue;
+    const row = element('article', 'research-card');
+    row.append(element('h4', '', idea.titulo), element('p', '', idea.propuesta));
+    if (idea.beneficio) row.append(element('p', '', idea.beneficio));
+    row.append(element('p', 'muted', 'Cómo probarlo · ' + idea.prueba));
+    const links = element('div', 'research-meta');
+    for (const url of idea.fuentes) if (byUrl.has(url)) links.append(sourceLink(url, byUrl.get(url)));
+    if (links.children.length) row.append(links);
+    const actions = element('div', 'research-meta');
+    if (idea.esfuerzo) actions.append(element('span', 'badge pending', `Esfuerzo ${idea.esfuerzo}`));
+    if (delivery.mode !== 'prueba') actions.append(button('Preparar encargo para ' + agents[idea.agente][0], () => {
+      reviewForm.closest('dialog').close();
+      workspace.prepareIdea(delivery.app, idea);
+    }));
+    row.append(actions);
+    section.append(row);
+  }
+  return section;
 }
 
 function openDelivery(delivery) {
@@ -333,6 +389,7 @@ function openDelivery(delivery) {
     const preview = element('pre', '', delivery.draft.entrega);
     preview.tabIndex = 0;
     body.append(preview);
+    if (delivery.research) body.append(renderResearch(delivery.research, delivery));
     for (const [title, list] of [['Comprobaciones', delivery.draft.comprobaciones], ['Pendientes', delivery.draft.pendientes]]) {
       if (!list?.length) continue;
       const items = element('ul');
@@ -348,7 +405,8 @@ function openDelivery(delivery) {
   }
   if (delivery.error) body.append(element('p', 'form-message', delivery.error));
   reviewForm.hidden = !delivery.draft;
-  reviewForm.querySelector('[value="aprobada"]').textContent = artifact?.verified ? 'Aprobar implementación' : 'Aprobar borrador';
+  reviewForm.querySelector('[value="aprobada"]').textContent = artifact?.verified ? 'Aprobar implementación' :
+    delivery.research ? 'Aprobar análisis' : 'Aprobar borrador';
   reviewForm.elements.note.value = verdict?.note || '';
   memory.prepareReview(delivery);
   formMessage(reviewForm);
@@ -371,14 +429,19 @@ async function submit(form, action) {
 
 taskForm.elements.agente.append(...Object.entries(agents).map(([id, [name]]) => selectOption(id, name)));
 taskForm.elements.agente.addEventListener('change', () => {
-  document.querySelector('#depends-field').hidden = taskForm.elements.agente.value !== 'revision';
+  const agent = taskForm.elements.agente.value;
+  document.querySelector('#depends-field').hidden = agent !== 'revision';
+  document.querySelector('#task-sources').hidden = agent !== 'copiador';
+  taskForm.elements.fuentes.disabled = agent !== 'copiador';
+  taskForm.elements.fuentes.required = agent === 'copiador';
 });
 taskForm.addEventListener('submit', event => {
   event.preventDefault();
   submit(taskForm, async () => {
-    const { id: oldId, agente, app, encargo, contexto, revisar } = Object.fromEntries(new FormData(taskForm));
+    const { id: oldId, agente, app, encargo, contexto, revisar, fuentes } = Object.fromEntries(new FormData(taskForm));
     const newId = `enc-${crypto.randomUUID()}`;
-    const task = { id: newId, agente, app, encargo: encargo.trim(), contexto: contexto.trim(), revisar: agente === 'revision' ? revisar : '' };
+    const task = { id: newId, agente, app, encargo: encargo.trim(), contexto: contexto.trim(), revisar: agente === 'revision' ? revisar : '',
+      ...(agente === 'copiador' ? { fuentes: sourceLines(fuentes) } : {}) };
     const tasks = oldId ? state.board.tasks.map(item => {
       if (item.id === oldId) return task;
       if (item.revisar === oldId) return { ...item, id: `enc-${crypto.randomUUID()}`, revisar: newId };
@@ -428,8 +491,8 @@ document.querySelectorAll('[data-run]').forEach(node => node.addEventListener('c
   node.disabled = true;
   feedback('');
   try {
-    const engine = node.dataset.run === 'implementacion' ? 'codex' : 'openai';
-    await api('/api/ejecutar', 'POST', { mode: node.dataset.run, revision: state.board.revision, engine });
+    const engine = node.dataset.run === 'implementacion' || (node.dataset.run === 'real' && workspace.codexStatus()?.ready) ? 'codex' : 'openai';
+    await api('/api/ejecutar', 'POST', { mode: node.dataset.run, revision: state.board.revision, engine, researchOnly: node.dataset.run === 'real' });
     await refresh();
   } catch (error) {
     render();

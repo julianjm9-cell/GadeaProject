@@ -1,6 +1,6 @@
 # Agentes de Educame
 
-Puedes dar un encargo distinto a cada agente y reunir varios en un lote. Dos agentes pueden trabajar en paralelo. Revisión empieza después de la entrega que tiene asignada. Los cinco roles pueden implementar con Codex local.
+Puedes dar un encargo distinto a cada agente y reunir varios en un lote. Dos agentes pueden trabajar en paralelo. Revisión empieza después de la entrega que tiene asignada. Los cinco roles de implementación usan Codex local. Copiador investiga fuentes públicas y prepara ideas para ellos.
 
 ## Centro de mando local
 
@@ -11,7 +11,7 @@ node scripts/educame-dashboard.mjs
 ```
 
 - **Agentes.** Selecciona la app, los agentes y el resultado que buscas. **Implementar con Codex** usa la sesión local de Codex CLI para editar una copia Git aislada. Con Juegos puedes crear, mejorar o combinar ambas acciones en un pack de hasta diez juegos. **Preparar borrador** usa Codex en modo de lectura u OpenAI API. **Simular** prueba el flujo sin hacer llamadas. Para un lote con instrucciones distintas por agente, edita cada encargo en **Cola de trabajo**.
-- **Memoria.** Consulta la ficha de cada app con su estética, funcionalidades, reglas y comprobaciones. Añade un criterio verificable aquí o desde la revisión de una entrega. Un agente puede sugerir un aprendizaje. Para incorporarlo, pulsa **Usar propuesta del agente**, ajusta el texto si hace falta y guarda la revisión con la casilla de Memoria marcada. Las notas y propuestas sin confirmar se quedan en su entrega. Edita o archiva criterios desde Memoria.
+- **Memoria.** Consulta la ficha de cada app con público, estética, funcionalidades, prioridades, reglas, errores a evitar y comprobaciones. Añade criterios sobre didáctica, accesibilidad, marketing, operación u otras categorías de la ficha. Un agente puede sugerir un aprendizaje. Para incorporarlo, pulsa **Usar propuesta del agente**, ajusta el texto y guarda la revisión con la casilla de Memoria marcada. Las notas y propuestas sin confirmar se quedan en su entrega. Edita o archiva criterios desde Memoria.
 - **Entregas.** Abre el resultado, consulta sus archivos y pruebas, y guarda tu decisión. Una implementación completada tiene un commit y una vista local de la app cuando está disponible. Tras aprobarla, **Subir a GitHub** publica esa revisión en su rama `codex/educame-…` y ofrece abrir la comparación para crear una solicitud de cambios. Un borrador de Marketing aprobado se puede llevar al editor de publicaciones.
 - **Conexiones.** En **Agentes e IA** puedes comprobar Codex y configurar una clave de OpenAI como alternativa. Si el panel no detecta una sesión de Codex, inicia sesión con `codex login` y pulsa **Comprobar sesión**. En **Redes sociales**, vincula los perfiles en [Buffer](https://publish.buffer.com/) y guarda su clave API. En **Estadísticas**, habilita Search Console API en Google Cloud, crea un cliente OAuth web, registra la URL de retorno del panel y autoriza la lectura de la propiedad.
 - **Vídeo.** Conecta una clave de [Runway](https://dev.runwayml.com/) y describe un clip de cinco segundos en formato vertical u horizontal. La generación usa créditos de Runway. Descarga el MP4 cuando esté listo. Para programarlo después en Buffer, aloja primero el archivo en una URL pública estable.
@@ -30,6 +30,13 @@ Las credenciales guardadas desde Conexiones se cifran en el equipo. El almacén 
 | Marketing (`marketing`) | «Simplifica la entrada de la landing y enseña un juego real» | Cambios en la landing, demostración o piezas del repositorio |
 | Adaptación (`adaptacion`) | «Implementa una demo de inglés para hostelería usando el motor actual» | Demo con recorrido y código reutilizado |
 | Revisión (`revision`) | «Comprueba las soluciones y corrige los errores reproducibles» | Comprobaciones y correcciones sobre el commit que recibe |
+| Copiador (`copiador`) | «Fíjate en el recorrido y las primeras acciones de estas tres webs» | Observaciones con fuente e ideas propias con beneficio, esfuerzo y una prueba |
+
+## Analizar webs y redes
+
+En **Agentes → Copiador**, elige la app y pega hasta seis enlaces públicos, uno por línea. Puedes añadir qué quieres investigar. **Analizar enlaces** abre un análisis con el buscador de Codex o, si la eliges como motor, la API de OpenAI. Si una publicación requiere iniciar sesión, puedes aportar su descripción o un extracto en Contexto. El informe distingue la consulta de una página, los datos parciales y el acceso sin confirmar.
+
+En **Entregas → Análisis de enlaces** están los resultados. Cada idea indica qué patrón se puede adaptar, cómo probarlo y qué agente encaja. **Preparar encargo** abre el formulario de ese rol con la app y la propuesta. Puedes editarlo antes de guardarlo o implementarlo. El análisis se guarda en el historial. Para reutilizar un aprendizaje de forma habitual, confírmalo desde la revisión de la entrega.
 
 ## Retomar un lote
 
@@ -62,7 +69,7 @@ Para una ejecución real, configura una clave de proyecto de la API de OpenAI en
 node scripts/educame-agents.mjs scripts/educame-agents.example.json --ejecutar
 ```
 
-Cada lote real carga el bloque breve de la [guía de desarrollo](guia-desarrollo-educame.md) y la [ficha del proyecto](../scripts/educame-dashboard/project-context.mjs). En los lotes de consola puedes indicar `app` como en el ejemplo. El modelo también recibe el encargo, el contexto manual y hasta cinco criterios confirmados de la app y tres generales, priorizados por palabras del encargo. Los encargos de todo Educame reciben hasta ocho criterios generales. Revisión hereda la app del borrador. El contexto que recibió cada encargo se puede consultar en su entrega. Usa ejemplos ficticios o material que puedas compartir con la API. Las respuestas y los criterios quedan en `.educame-agents/`. Cada lote admite hasta seis encargos, con un máximo de 2.000 tokens de salida por llamada de OpenAI API.
+Cada lote real carga el bloque breve de la [guía de desarrollo](guia-desarrollo-educame.md) y la [ficha del proyecto](../scripts/educame-dashboard/project-context.mjs). En los lotes de consola puedes indicar `app` como en el ejemplo. El modelo también recibe el encargo, el contexto manual y hasta diez criterios confirmados de la app y cinco generales. Prioriza coincidencias con el encargo y da espacio a distintas categorías cuando hay pocos criterios relevantes. Los encargos de todo Educame reciben hasta quince criterios generales. Revisión hereda la app de la entrega. El contexto que recibió cada encargo se puede consultar en su entrega. Usa ejemplos ficticios o material que puedas compartir con la API. Las respuestas y los criterios quedan en `.educame-agents/`. Cada lote admite hasta seis encargos. En la API de OpenAI se reservan hasta 2.000 tokens de salida por borrador y hasta 4.500 por análisis de enlaces.
 
 Repetir un lote con los mismos identificadores, criterios y configuración reutiliza los resultados guardados. Usa un identificador nuevo para volver a encargar un trabajo con una guía distinta. Si un encargo falla, las tareas independientes continúan y su revisor espera. Para volver a intentarlo, comprueba primero el estado de la llamada y usa un identificador nuevo. Si la ejecución se interrumpe y queda un directorio `.lock`, confirma que el proceso terminó y comprueba si OpenAI recibió el encargo antes de retirar ese bloqueo.
 
