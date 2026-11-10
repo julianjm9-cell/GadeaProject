@@ -247,6 +247,15 @@ export function setupOperations({ api, element, button, feedback, openCommand })
       const used = windows[0]?.usedPercent;
       message($('codex-quota-chip'), used === undefined ? 'Uso de Codex' :
         (result.limitsFresh ? 'Codex · ' : 'Último dato · ') + number.format(100 - used) + ' % disponible');
+      const summary = [300, 10080].map(duration => {
+        const item = windows.find(window => window.durationMinutes === duration);
+        const label = duration === 300 ? 'Límite de 5 h' : 'Límite semanal';
+        if (!item) return label + ' · Sin datos disponibles';
+        return label + ' · ' + number.format(100 - item.usedPercent) + ' % disponible · ' +
+          (item.resetsAt ? 'Se renueva el ' + stamp(item.resetsAt * 1000) : 'Renovación sin fecha disponible');
+      });
+      if (windows.length && !result.limitsFresh) summary.unshift('Último dato · ' + stamp(result.limitsAt));
+      $('codex-quota-chip').title = summary.join('\n');
       const nodes = windows.map(item => {
         const mins = item.durationMinutes;
         const label = mins === 10080 ? 'Límite semanal' : mins && mins % 60 === 0 ? 'Ventana de ' + mins / 60 + ' h' : 'Límite de uso';

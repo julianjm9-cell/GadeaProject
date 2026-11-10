@@ -200,7 +200,8 @@ for (const [name, engine, viewport] of [
     const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
     const server = await listen(t, directory, { codex: {
       status: async () => ({ ready: true, message: 'Sesión local activa' }),
-      usage: async () => ({ windows: [{ usedPercent: 22, durationMinutes: 300, resetsAt: 1900000000 }],
+      usage: async () => ({ windows: [{ usedPercent: 22, durationMinutes: 300, resetsAt: 1900000000 },
+        { usedPercent: 41, durationMinutes: 10080, resetsAt: 1900500000 }],
         limitsFresh: true, accountTokens: 1234, tokensFresh: true }),
     } });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
@@ -289,6 +290,9 @@ for (const [name, engine, viewport] of [
     });
     await page.goto(base + '/#entregas/cambio-ensayo');
     await page.getByRole('link', { name: 'Codex · 78 % disponible' }).waitFor();
+    const quotaTitle = await page.locator('#codex-quota-chip').getAttribute('title');
+    assert.match(quotaTitle, /Límite de 5 h · 78 % disponible · Se renueva el/);
+    assert.match(quotaTitle, /Límite semanal · 59 % disponible · Se renueva el/);
     const deliveryDialog = page.getByRole('dialog', { name: 'Tablero de ensayo' });
     await deliveryDialog.getByRole('button', { name: 'Volver a comprobar' }).click();
     await deliveryDialog.getByText('Ver cambios de código').click();
