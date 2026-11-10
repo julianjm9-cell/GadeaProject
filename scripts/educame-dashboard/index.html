@@ -216,7 +216,7 @@
       </section>
       <form id="agent-compose" class="compose-layout">
         <section class="card compose-card">
-          <div class="card-heading"><h2>Agentes</h2><button class="button secondary" id="select-team" type="button" aria-pressed="false">Seleccionar equipo</button></div>
+          <div class="card-heading agent-picker-heading"><h2>Agentes</h2><div class="actions"><button class="button secondary" id="select-team" type="button" aria-pressed="false">Seleccionar equipo</button><button class="button secondary" id="open-agent-editor" type="button" data-icon="tool" disabled>Gestionar agentes</button></div></div>
           <div class="team-grid" id="team-picker" role="group" aria-label="Agentes"></div>
           <p class="inline-hint" id="team-review-hint" hidden>Revisión trabajará sobre la entrega de Juegos si lo has seleccionado, o sobre la del primer agente de la selección.</p>
         </section>
@@ -423,6 +423,33 @@
       <p id="publish-confirm-copy"></p><p class="form-message" role="alert" hidden></p>
       <div class="actions"><button class="button secondary" type="button" data-close>Volver a editar</button><button class="button primary" type="submit">Confirmar envío</button></div>
     </form>
+  </dialog>
+
+  <dialog id="agent-editor" aria-labelledby="agent-editor-title">
+    <div class="dialog-heading"><h2 id="agent-editor-title">Gestionar agentes</h2><button class="icon-button" id="close-agent-editor" type="button" aria-label="Cerrar editor de agentes">×</button></div>
+    <div class="agent-editor-layout">
+      <div class="agent-editor-directory">
+        <button class="button primary" id="create-agent" type="button" data-icon="plus">Nuevo agente</button>
+        <div id="agent-editor-list" role="group" aria-label="Agentes configurados"></div>
+      </div>
+      <form id="agent-profile-form" method="dialog">
+        <div class="card-heading"><h3 id="agent-profile-title"></h3><span class="badge" id="agent-profile-kind"></span></div>
+        <label>Nombre<input name="name" maxlength="48" required></label>
+        <label>Descripción breve<input name="description" maxlength="160" required></label>
+        <label><span id="agent-profile-draft-label">Instrucciones para borradores</span><textarea name="draft" rows="4" maxlength="3000"></textarea></label>
+        <label id="agent-profile-implement">Instrucciones para implementar con Codex<textarea name="implementation" rows="4" maxlength="3000"></textarea></label>
+        <label id="agent-profile-team">Instrucciones al trabajar en equipo (opcional)<textarea name="team" rows="2" maxlength="320"></textarea></label>
+        <details id="agent-profile-research" hidden><summary>Ver reglas base de investigación</summary><p></p></details>
+        <p class="inline-hint" id="agent-profile-scope"></p>
+        <p class="form-message" role="alert" hidden></p>
+        <p class="inline-hint" id="agent-profile-message" role="status"></p>
+        <div class="actions">
+          <button class="button subtle" id="restore-agent" type="button" hidden>Restaurar valores originales</button>
+          <button class="button secondary" id="use-agent" type="button">Preparar encargo</button>
+          <button class="button primary" type="submit" id="save-agent">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
   </dialog>
 
   <dialog id="task-dialog" aria-labelledby="task-dialog-title">

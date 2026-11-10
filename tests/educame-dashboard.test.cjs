@@ -98,11 +98,58 @@ async function waitPanel(base, ready) {
 
 const fakeDraft = () => ({ draft: { resumen: 'Ensayo', entrega: 'Entrega ficticia', comprobaciones: [], pendientes: [] } });
 
+function saveAgent(base, data) {
+  return request(base, '/api/agentes', data, { method: 'PUT', headers: { Origin: base, 'Content-Type': 'application/json' } });
+}
+
+test('los agentes nuevos y editados se guardan y se usan desde la cola y el encargo directo', async t => {
+  const directory = await local(t);
+  const { draftRequest } = await import('../scripts/educame-agents.mjs');
+  const captured = [];
+  const base = await start(t, directory, { codex: { status: async () => ({ ready: true }), async generate(task) {
+    captured.push({ draft: (await draftRequest(task)).instructions, implementation: (await draftRequest(task, { implement: true })).instructions });
+    return fakeDraft();
+  } } });
+  const initial = await request(base, '/api/panel').then(response => response.json());
+  const profile = { name: 'Accesibilidad', description: 'Prueba el teclado y los lectores de pantalla.', draft: 'Explica cómo comprobar el foco.',
+    implementation: 'Corrige el orden de foco.', team: 'Revisa los controles.' };
+  const create = { revision: initial.board.revision, action: 'create', profile };
+  assert.equal((await request(base, '/api/agentes', create, { method: 'PUT' })).status, 403);
+  const saved = await (await saveAgent(base, create)).json();
+  const agent = saved.agentEditor.profiles.find(item => item.name === profile.name);
+  assert.equal(agent.builtIn, false);
+  assert.equal((await saveAgent(base, create)).status, 409);
+  assert.equal((await saveAgent(base, { ...create, revision: saved.board.revision,
+    profile: { ...profile, name: 'ACCESIBILIDAD' } })).status, 400);
+  const task = { id: 'accessible-1', agente: agent.id, encargo: 'Comprueba el foco', app: 'profesor' };
+  const put = await request(base, '/api/panel', { ...saved.board, tasks: [task] }, { method: 'PUT' });
+  assert.equal(put.status, 200);
+  const board = await put.json();
+  const first = await request(base, '/api/ejecutar', { revision: board.revision, engine: 'codex', mode: 'prueba' });
+  assert.equal(first.status, 202);
+  await waitPanel(base, ({ batch }) => batch?.state === 'finished');
+  const updated = await (await saveAgent(base, { revision: board.revision, action: 'edit', id: agent.id,
+    profile: { ...profile, name: 'Accesibilidad web', draft: 'Describe la navegación con Tab.' } })).json();
+  const direct = { engine: 'codex', mode: 'real', tasks: [{ ...task, id: 'accessible-2' }] };
+  assert.equal((await request(base, '/api/encargos', { ...direct, agentRevision: board.revision })).status, 409);
+  assert.equal((await request(base, '/api/encargos', { ...direct, agentRevision: updated.board.revision })).status, 202);
+  const final = await waitPanel(base, ({ batch }) => batch?.state === 'finished' && batch?.mode === 'real');
+  assert.equal(final.board.tasks[0].agente, agent.id);
+  assert.equal(final.history.find(item => item.id === task.id).agentName, 'Accesibilidad');
+  assert.equal(final.history.find(item => item.id === 'accessible-2').agentName, 'Accesibilidad web');
+  assert.match(captured[0].draft, /Describe la navegación con Tab/);
+  assert.match(captured[0].implementation, /Corrige el orden de foco/);
+  const second = await start(t, directory);
+  assert.equal((await request(second, '/api/panel').then(response => response.json())).agentEditor.profiles.find(item => item.id === agent.id).name, 'Accesibilidad web');
+});
+
 test('tras cerrar el proceso a la fuerza se conservan criterios y se retoma solo lo pendiente', { timeout: 30_000 }, async t => {
   const directory = await local(t);
   const task = id => ({ id, app: 'profesor', agente: 'juegos', encargo: 'Prueba de recuperación ' + id });
   const body = { mode: 'real', tasks: ['hecho', 'en-curso-1', 'en-curso-2', 'pendiente'].map(task) };
-  const legacy = { revision: 8, tasks: [task('de-la-cola')], memory: [{ id: 'regla-preexistente', app: 'profesor',
+  const gameProfile = { name: 'Juegos de clase', description: 'Juegos integrados.', draft: 'Criterio original de la partida.',
+    implementation: 'Prueba la ronda.', team: '' };
+  const legacy = { revision: 8, tasks: [task('de-la-cola')], agentEdits: { juegos: gameProfile }, memory: [{ id: 'regla-preexistente', app: 'profesor',
     tema: 'estetica', criterio: 'Integrar vagones en el tablero.', comprobacion: 'Probar un acierto.' }] };
   await writeFile(join(directory, 'panel.json'), JSON.stringify(legacy));
   const child = spawn(process.execPath, ['--input-type=module', '-e', `
@@ -140,12 +187,17 @@ test('tras cerrar el proceso a la fuerza se conservan criterios y se retoma solo
   const rule = { app: 'profesor', tema: 'flujos', criterio: 'Mostrar el progreso del viaje.', comprobacion: 'Completar un vagón.' };
   assert.equal((await request(base, '/api/memoria', { revision: resumed.board.revision, rule })).status, 200);
   assert.equal((await request(second, '/api/memoria', { revision: resumed.board.revision, rule })).status, 409);
+  const afterMemory = await request(second, '/api/panel').then(response => response.json());
+  const modified = await saveAgent(second, { revision: afterMemory.board.revision, action: 'edit', id: 'juegos',
+    profile: { ...gameProfile, draft: 'Criterio nuevo para próximos lotes.' } });
+  assert.equal(modified.status, 200);
   assert.equal((await request(second, '/api/encargos', body).then(response => response.json())).id, id);
   assert.deepEqual(called, []);
   const retries = await Promise.all([request(base, '/api/encargos/retomar', { id }), request(second, '/api/encargos/retomar', { id })]);
   assert.ok(retries.every(response => response.status === 202));
   const done = await waitPanel(base, ({ batch }) => batch?.state === 'finished');
   assert.deepEqual(called.map(task => task.id), ['pendiente']);
+  assert.equal(called[0].agentProfile.draft, gameProfile.draft);
   assert.deepEqual(called[0].productContext.confirmed.map(rule => rule.id), ['regla-preexistente']);
   assert.equal(done.board.memory.length, 2);
   assert.equal(done.batch.jobs.hecho.reused, true);

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { readGuidance, runBatch } from '../educame-agents.mjs';
 import { contextSettings } from './project-context.mjs';
+import { agentDirectory, defaultAgents } from './agent-profiles.mjs';
 
 export class RunnerError extends Error {
   constructor(status, message) {
@@ -18,9 +19,9 @@ function running(pid) {
 
 export function publicBatch(batch) {
   if (!batch) return null;
-  const { id, mode, engine, startedAt, finishedAt, state, tasks, jobs, error } = batch;
+  const { id, mode, engine, startedAt, finishedAt, state, tasks, jobs, error, agents } = batch;
   return { id, mode, engine, startedAt, finishedAt, state, running: state === 'running',
-    tasks: tasks.map(({ id, agente, encargo }) => ({ id, agente, encargo })), jobs, error };
+    tasks: tasks.map(({ id, agente, encargo }) => ({ id, agente, encargo, agentName: (agents?.[agente] || defaultAgents[agente])?.name })), jobs, error };
 }
 
 export function createRunner(store, directory, { model, readiness, generator, baseRevision, recoverImplementation }) {
@@ -45,7 +46,8 @@ export function createRunner(store, directory, { model, readiness, generator, ba
   function launch(batch, prior) {
     const save = () => store.update(batch);
     active = runBatch(batch.tasks, {
-      directory: output(batch.mode), model: batch.model, memory: batch.memory, guidance: batch.guidance, settings: batch.settings, prior,
+      directory: output(batch.mode), model: batch.model, memory: batch.memory, guidance: batch.guidance, settings: batch.settings,
+      prior, agents: batch.agents,
       base: batch.base, recover: batch.mode === 'implementacion' ? recoverImplementation : undefined,
       generate: generator(batch),
       onStart: (id, fingerprint) => { batch.jobs[id] = { status: 'en curso', fingerprint }; save(); },
@@ -82,8 +84,10 @@ export function createRunner(store, directory, { model, readiness, generator, ba
       if (latest?.state === 'paused') throw new RunnerError(409, 'Retoma primero el lote interrumpido.');
       const board = store.board();
       if (revision !== undefined && revision !== board.revision) throw new RunnerError(409, 'El lote ha cambiado. Vuelve a cargar antes de ejecutarlo.');
+      const directory = agentDirectory(board.agentEdits);
+      const agents = Object.fromEntries(tasks.map(task => [task.agente, directory[task.agente]]));
       const batch = {
-        id, mode, engine, tasks, base, guidance, memory: board.memory, settings: contextSettings, pid: process.pid, state: 'running',
+        id, mode, engine, tasks, base, guidance, agents, memory: board.memory, settings: contextSettings, pid: process.pid, state: 'running',
         model: mode === 'prueba' ? 'prueba-local' : engine === 'codex' ? 'Codex local' : model,
         startedAt: new Date().toISOString(),
         jobs: Object.fromEntries(tasks.map(task => [task.id, { status: task.revisar ? 'espera' : 'pendiente' }])),

@@ -17,6 +17,7 @@ import { OperationError } from './educame-dashboard/operations.mjs';
 import { githubOperations } from './educame-dashboard/github-operations.mjs';
 import { hostingerOperations } from './educame-dashboard/hostinger-operations.mjs';
 import { adminOperations } from './educame-dashboard/admin-operations.mjs';
+import { agentDirectory, agentEditor, defaultAgents, updateAgent } from './educame-dashboard/agent-profiles.mjs';
 
 const assets = new Map([
   ['/', ['index.html', 'text/html']],
@@ -28,6 +29,7 @@ const assets = new Map([
   ['/operations.js', ['operations.js', 'text/javascript']],
   ['/admin-panel.js', ['admin-panel.js', 'text/javascript']],
   ['/operations.css', ['operations.css', 'text/css']],
+  ['/agent-editor.js', ['agent-editor.js', 'text/javascript']],
   ['/icons.js', ['icons.js', 'text/javascript']],
   ['/icons.svg', ['icons.svg', 'image/svg+xml']],
   ['/theory.js', ['theory.js', 'text/javascript']],
@@ -79,10 +81,10 @@ function validateLinks(links) {
   });
 }
 
-function validateBoard(tasks) {
+function validateBoard(tasks, board) {
   if (Array.isArray(tasks) && tasks.length === 0) return [];
   try {
-    return validateTasks(tasks);
+    return validateTasks(tasks, agentDirectory(board.agentEdits));
   } catch (error) {
     throw new PanelError(400, error.message);
   }
@@ -148,7 +150,7 @@ async function readDeliveries(directory, mode) {
       });
       if (record?.id !== file.name.slice(0, -5) || !['borrador', 'fallido', 'completado', 'interrumpido'].includes(record.status) ||
           typeof record.finishedAt !== 'string' || !Number.isFinite(Date.parse(record.finishedAt))) return null;
-      return { ...record, mode, key: `${mode}/${record.id}` };
+      return { ...record, agentName: record.agentName || defaultAgents[record.agente]?.name, mode, key: `${mode}/${record.id}` };
     }));
   return records.filter(Boolean);
 }
@@ -164,7 +166,7 @@ async function exampleDraft(task) {
       resumen: task.revision ? 'Entrega recibida para revisar' : 'Encargo recibido por el agente',
       entrega: task.revision
         ? `El flujo ha entregado el borrador de ${task.revisar} a Revisión.\n\nEncargo original: ${task.revision.encargo}\n\nResumen recibido: ${task.revision.borrador.resumen}`
-        : `Encargo de ${task.agente}\n\n${task.encargo}\n\nEste resultado permite probar la cola y la bandeja de entregas.`,
+        : `Encargo de ${task.agentProfile.name}\n\n${task.encargo}\n\nEste resultado permite probar la cola y la bandeja de entregas.`,
       comprobaciones: ['La entrega se ha guardado en el historial local.'],
       pendientes: ['Ejecuta el lote con OpenAI para obtener un borrador del agente.'],
     },
@@ -342,8 +344,18 @@ export async function createDashboard({
         const batch = runner.latest();
         const batches = runner.recent();
         const history = await deliveries();
-        return json(200, { board: store.board(), history: history.slice(0, 100), batch, batches,
+        const board = store.board();
+        return json(200, { board, agentEditor: agentEditor(board.agentEdits), history: history.slice(0, 100), batch, batches,
           model, apiReady: Boolean(activeApiKey()), concurrency, maxTasks, fixture, projectProfiles, memoryTopics });
+      }
+      if (request.method === 'PUT' && path === '/api/agentes') {
+        if (request.headers.origin !== origin) throw new PanelError(403, 'Edita los agentes desde el Centro de mando local.');
+        const payload = await bodyJson(request);
+        const board = changeBoard(payload.revision, current => {
+          try { return { agentEdits: updateAgent(current.agentEdits, payload) }; }
+          catch (error) { throw new PanelError(400, error.message); }
+        });
+        return json(200, { board, agentEditor: agentEditor(board.agentEdits) });
       }
       if (request.method === 'GET' && path === '/api/codex') return json(200, await codex.status(url.searchParams.has('actualizar')));
       if (request.method === 'GET' && path === '/api/codex/uso') {
@@ -355,23 +367,23 @@ export async function createDashboard({
       if (request.method === 'GET' && path === '/api/apps/estado') return json(200, await publicAppStatus());
       if (request.method === 'PUT' && path === '/api/panel') {
         const { revision, tasks, links } = await bodyJson(request);
-        const updated = await changeBoard(revision, () => ({ tasks: validateBoard(tasks), links: validateLinks(links) }));
+        const updated = await changeBoard(revision, board => ({ tasks: validateBoard(tasks, board), links: validateLinks(links) }));
         return json(200, updated);
       }
       if (request.method === 'POST' && ['/api/ejecutar', '/api/encargos'].includes(path)) {
-        const { mode, revision, tasks, engine = 'openai', researchOnly } = await bodyJson(request);
+        const { mode, revision, tasks, engine = 'openai', researchOnly, agentRevision } = await bodyJson(request);
         if (!['openai', 'codex'].includes(engine)) throw new PanelError(400, 'Elige Codex u OpenAI API.');
         if (!['real', 'prueba', 'implementacion'].includes(mode)) throw new PanelError(400, 'Elige cómo ejecutar el lote.');
         const queued = path === '/api/ejecutar';
         const board = store.board();
         if (queued && revision !== board.revision) throw new PanelError(409, 'El lote ha cambiado. Vuelve a cargar antes de ejecutarlo.');
-        let selected = queued ? board.tasks : validateBoard(tasks);
+        let selected = queued ? board.tasks : validateBoard(tasks, board);
         if (queued && mode === 'real' && researchOnly === true) selected = selected.filter(task => task.agente === researchRole);
         if (queued && mode === 'implementacion') selected = selected.filter(task => task.agente !== researchRole);
         if (mode === 'implementacion' && selected.some(task => task.agente === researchRole)) {
           throw new PanelError(400, 'Ejecuta Copiador en modo de análisis. Sus ideas se pueden convertir en encargos de implementación.');
         }
-        return json(202, await runner.start({ mode, engine, tasks: selected, revision: queued ? revision : undefined }));
+        return json(202, await runner.start({ mode, engine, tasks: selected, revision: queued ? revision : agentRevision }));
       }
       if (request.method === 'POST' && path === '/api/encargos/retomar') {
         const { id } = await bodyJson(request);

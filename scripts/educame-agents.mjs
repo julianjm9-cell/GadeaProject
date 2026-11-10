@@ -4,23 +4,8 @@ import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { cleanRule, memoryTopics, projectContext, projectProfiles } from './educame-dashboard/project-context.mjs';
 import { readMemory } from './educame-dashboard/store.mjs';
-import { normalizeResearch, researchInstructions, researchRole, researchSchema, validateSources } from './educame-dashboard/research.mjs';
-
-const roles = {
-  mantenimiento: 'Diagnostica el fallo a partir del contexto. Propón una corrección pequeña y pasos reproducibles de prueba. Identifica hipótesis y evidencia que falta.',
-  juegos: 'Entrega un borrador de juego con objetivo, edad o nivel, reglas, preguntas, soluciones y explicación de cada respuesta. Incluye casos para validar las soluciones.',
-  marketing: 'Entrega un borrador editorial con gancho, guion breve, texto y llamada a la acción. Usa solo capacidades confirmadas y señala afirmaciones que requieran verificación.',
-  adaptacion: 'Entrega una ficha de producto con público, recorrido de una demo, componentes que conviene reutilizar y pruebas necesarias. Separa las decisiones pendientes de los hechos.',
-  revision: 'Evalúa la entrega y el encargo original de forma independiente. Empieza con un dictamen: apto para revisión humana o requiere cambios. Identifica errores y comprobaciones concretas.',
-  [researchRole]: researchInstructions,
-};
-const implementationRoles = {
-  mantenimiento: 'Reproduce el fallo y corrige su causa con el cambio más pequeño.',
-  juegos: 'Crea o mejora todos los juegos solicitados. Identifica cada uno y comprueba su mecánica, soluciones, aciertos, errores y final. Reutiliza el motor y las referencias visuales del producto.',
-  marketing: 'Implementa los cambios de landing, textos, demostraciones o piezas del repositorio que solicita el encargo. Verifica las funciones que menciones.',
-  adaptacion: 'Implementa la variante o demo solicitada, reutilizando el motor y separando el progreso y la identidad del producto.',
-  revision: 'Comprueba la entrega con independencia. Corrige los defectos que puedas reproducir y explica los que siguen pendientes.',
-};
+import { normalizeResearch, researchRole, researchSchema, validateSources } from './educame-dashboard/research.mjs';
+import { agentInstructions, defaultAgents } from './educame-dashboard/agent-profiles.mjs';
 export const maxTasks = 6;
 export const concurrency = 2;
 const maxOutputTokens = 2000;
@@ -63,7 +48,7 @@ export async function readGuidance() {
   return guidance;
 }
 
-export function validateTasks(input) {
+export function validateTasks(input, agents = defaultAgents) {
   if (!Array.isArray(input) || input.length < 1 || input.length > maxTasks) {
     throw new Error(`El lote debe incluir entre 1 y ${maxTasks} encargos.`);
   }
@@ -74,7 +59,7 @@ export function validateTasks(input) {
       throw new Error('Cada encargo necesita un id único con minúsculas, números o guiones, de hasta 64 caracteres.');
     }
     const { id, agente, encargo, contexto = '', revisar = '', app, fuentes } = task;
-    if (typeof agente !== 'string' || !Object.hasOwn(roles, agente)) throw new Error(`${id}: el agente no existe.`);
+    if (typeof agente !== 'string' || !Object.hasOwn(agents, agente)) throw new Error(`${id}: el agente no existe.`);
     if (typeof encargo !== 'string' || !encargo.trim() || encargo.length > 2000 ||
         typeof contexto !== 'string' || contexto.length > 8000) {
       throw new Error(`${id}: el encargo admite hasta 2.000 caracteres y el contexto hasta 8.000.`);
@@ -100,7 +85,7 @@ export async function draftRequest(task, { repository = false, implement = false
     'El encargo autoriza editar solo la copia aislada asignada. No autoriza publicar, desplegar ni consultar datos privados.')
     .replace('No afirmes haber ejecutado pruebas, publicado contenido o cambiado código. Entrega un borrador revisable.',
       'Distingue las pruebas realmente ejecutadas de las pendientes. Implementa la tarea en los archivos y describe el resultado real.') : scope;
-  const instructions = [mode, guidance, (implement ? implementationRoles : roles)[task.agente]].filter(Boolean).join('\n\n');
+  const instructions = [mode, guidance, agentInstructions(task.agente, task.agentProfile, implement)].filter(Boolean).join('\n\n');
   const input = { encargo: task.encargo, contexto: task.contexto, contexto_proyecto: task.productContext ?? projectContext(task) };
   if (research) input.fuentes_publicas = task.fuentes;
   if (task.revision) input.entrega_a_revisar = task.revision;
@@ -162,19 +147,20 @@ export async function requestDraft(task, { apiKey, model, fetchImpl = fetch }) {
   }
 }
 
-async function runTask(task, { directory, model, generate, guidance, memory, settings, onStart, prior, base, recover }, parent) {
+async function runTask(task, { directory, model, generate, guidance, memory, settings, onStart, prior, base, recover, agents = defaultAgents }, parent) {
   const path = join(directory, `${task.id}.json`);
   const lock = join(directory, `${task.id}.lock`);
   const oldJob = prior?.[task.id];
   const productContext = projectContext(task, memory, parent, settings);
+  const agentProfile = agents[task.agente];
   const fingerprint = oldJob?.fingerprint || createHash('sha256').update(JSON.stringify({
-    task, model, common, role: (base ? implementationRoles : roles)[task.agente], format: task.agente === researchRole ? researchFormat : format, maxOutputTokens, parent: parent?.draft,
+    task, model, common, role: agentInstructions(task.agente, agentProfile, Boolean(base)), format: task.agente === researchRole ? researchFormat : format, maxOutputTokens, parent: parent?.draft,
     guidance: guidance || undefined, productContext, base, parentCommit: parent?.implementation?.commit,
   })).digest('hex');
   const started = Date.now();
   async function saveResult(result) {
     const record = {
-      id: task.id, agente: task.agente, encargo: task.encargo, contexto: task.contexto,
+      id: task.id, agente: task.agente, agentName: agentProfile.name, encargo: task.encargo, contexto: task.contexto,
       revisar: task.revisar, app: productContext.app, productContext, model, fingerprint, finishedAt: new Date().toISOString(),
       ...(task.fuentes ? { fuentes: task.fuentes } : {}),
       durationMs: Date.now() - started,
@@ -187,7 +173,7 @@ async function runTask(task, { directory, model, generate, guidance, memory, set
     return record;
   }
   const input = {
-    ...task, fingerprint,
+    ...task, agentProfile, fingerprint,
     app: productContext.app, guidance, productContext, parentImplementation: parent?.implementation,
     revision: parent ? { encargo: parent.encargo, contexto: parent.contexto, borrador: parent.draft } : undefined,
   };
@@ -245,7 +231,7 @@ async function runTask(task, { directory, model, generate, guidance, memory, set
 }
 
 export async function runBatch(input, options) {
-  const tasks = validateTasks(input);
+  const tasks = validateTasks(input, options.agents);
   const guidance = options.guidance ?? await readGuidance();
   const runOptions = { ...options, guidance };
   await mkdir(options.directory, { recursive: true });

@@ -88,11 +88,29 @@ h2 { font-size: 1.14rem; letter-spacing: -.022em; }
 .compose-card summary { color: var(--green); font-size: .83rem; font-weight: 720; cursor: pointer; }
 .compose-card details > :not(summary) { margin-top: 8px; }
 .team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.agent-picker-heading { flex-wrap: wrap; }
+.agent-picker-heading .actions { gap: 7px; }
+#agent-editor { width: min(880px, calc(100% - 28px)); }
+.agent-editor-layout { display: grid; grid-template-columns: minmax(135px, .65fr) minmax(0, 1.6fr); gap: 16px; margin-top: 16px; }
+.agent-editor-directory { display: grid; align-content: start; gap: 9px; min-width: 0; }
+#agent-editor-list { display: grid; gap: 6px; max-height: min(60vh, 520px); overflow: auto; padding: 3px; }
+#agent-editor-list .button { justify-content: start; text-align: start; overflow-wrap: anywhere; }
+#agent-editor-list [aria-pressed="true"] { background: #e0f6e9; border-color: #4b9a77; color: #164b38; }
+#agent-profile-form { min-width: 0; padding: 14px; background: #f7faf8; border: 1px solid var(--line); border-radius: 12px; }
+#agent-profile-form .card-heading { flex-wrap: wrap; }
+#agent-profile-research p { white-space: pre-wrap; margin-top: 8px; font-size: .86rem; }
+#agent-profile-message:empty { display: none; }
+@media (max-width: 620px) {
+  .agent-editor-layout { grid-template-columns: minmax(0, 1fr); }
+  #agent-editor-list { display: flex; max-height: none; overflow-x: auto; }
+  #agent-editor-list .button { flex: 0 0 auto; }
+  #agent-editor .actions { justify-content: start; }
+}
 .team-tile { display: grid; align-content: start; justify-items: start; gap: 3px; min-width: 0; padding: 10px; text-align: left; color: var(--ink); background: #fafbfc; border: 1px solid var(--line); border-radius: 11px; }
 .team-tile:hover { border-color: #83ad9f; }
 .team-tile[aria-pressed="true"] { background: #e8f4ee; border-color: #38816c; box-shadow: inset 0 0 0 1px #38816c; }
 .team-tile-top { width: 100%; display: flex; justify-content: space-between; align-items: start; margin-bottom: 3px; }
-.team-tile strong { overflow-wrap: anywhere; }
+.team-tile strong, .team-tile small { overflow-wrap: anywhere; }
 .team-tile small, .channel-option small { display: block; margin-top: 2px; color: var(--muted); font-size: .78rem; font-weight: 500; }
 .team-check { display: grid; place-items: center; width: 21px; height: 21px; border: 1px solid #c3d3cf; border-radius: 50%; color: transparent; }
 .team-tile[aria-pressed="true"] .team-check { color: #fff; background: var(--green); border-color: var(--green); }

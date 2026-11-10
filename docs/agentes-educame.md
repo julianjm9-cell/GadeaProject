@@ -1,6 +1,6 @@
 # Agentes de Educame
 
-Puedes dar un encargo distinto a cada agente y reunir varios en un lote. Dos agentes pueden trabajar en paralelo. Revisión empieza después de la entrega que tiene asignada. Los cinco roles de implementación usan Codex local. Copiador investiga fuentes públicas y prepara ideas para ellos.
+Puedes dar un encargo distinto a cada agente y reunir varios en un lote. Dos agentes pueden trabajar en paralelo. Revisión empieza después de la entrega que tiene asignada. Los agentes de implementación usan Codex local. Copiador investiga fuentes públicas y prepara ideas para ellos.
 
 ## Centro de mando local
 
@@ -53,6 +53,18 @@ Si una consulta falla, el último dato disponible aparece con su fecha.
 - **Estadísticas.** Google muestra clics, impresiones, CTR, posición, consultas y páginas por periodo. Redes muestra los datos que Buffer ofrece para cada perfil autorizado. Actividad local reúne entregas, simulaciones, tokens y envíos recientes.
 
 Las credenciales guardadas desde Conexiones se cifran en el equipo. El almacén y la clave local quedan en `.educame-agents/`, fuera de Git. El servidor escucha en la dirección de bucle local.
+
+En **Agentes → Gestionar agentes**, puedes crear un agente o editar el nombre, la
+descripción y las instrucciones de uno existente. Las instrucciones de
+borrador, implementación y trabajo en equipo se editan por separado. Usa
+**Preparar encargo** para seleccionar el agente desde su ficha, o selecciónalo en
+la cola junto con el resto. **Restaurar valores originales** recupera el perfil
+de un agente de Educame. El editor de Copiador admite instrucciones adicionales y
+muestra sus reglas base de investigación.
+
+Los perfiles se guardan en la base local del panel. Cada lote fija los perfiles
+al empezar y usa esa versión al retomarlo. Para comprobar un cambio, guarda la
+ficha, selecciona el agente y simula un encargo nuevo desde Agentes.
 
 | Agente | Qué puedes pedirle | Qué entrega |
 | --- | --- | --- |

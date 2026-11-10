@@ -23,6 +23,53 @@ for (const [name, engine, viewport] of [
   ['Chromium escritorio', chromium, { width: 1440, height: 950 }],
   ['WebKit móvil', webkit, { width: 390, height: 844 }],
 ]) {
+  test(`Crear, configurar y encargar agentes en ${name}`, { timeout: 35_000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
+    const server = await listen(t, directory, { codex: { status: async () => ({ ready: true }) } });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    t.after(() => browser.close());
+    const page = await browser.newPage({ viewport });
+    const base = 'http://127.0.0.1:' + server.address().port;
+    await page.goto(base + '/#agentes');
+    const editorButton = page.getByRole('button', { name: 'Gestionar agentes' });
+    await editorButton.click();
+    const editor = page.getByRole('dialog', { name: 'Gestionar agentes' });
+    await editor.getByRole('button', { name: 'Juegos', exact: true }).click();
+    const implementation = editor.getByLabel('Instrucciones para implementar con Codex');
+    const original = await implementation.inputValue();
+    assert.match(original, /Crea o mejora todos los juegos solicitados/);
+    await implementation.fill('Comprueba la ronda final desde un móvil.');
+    await editor.getByRole('button', { name: 'Guardar cambios' }).click();
+    await editor.getByText('Cambios guardados para los próximos encargos.').waitFor();
+    page.once('dialog', confirmation => confirmation.accept());
+    await editor.getByRole('button', { name: 'Restaurar valores originales' }).click();
+    await editor.getByText('Valores originales restaurados.').waitFor();
+    assert.equal(await implementation.inputValue(), original);
+    await editor.getByRole('button', { name: 'Copiador', exact: true }).click();
+    assert.equal(await implementation.isVisible(), false);
+    await editor.getByText('Ver reglas base de investigación').click();
+    await editor.getByText(/Investiga las fuentes públicas indicadas/).waitFor();
+    await editor.getByRole('button', { name: 'Nuevo agente', exact: true }).click();
+    await editor.getByLabel('Nombre', { exact: true }).fill('Accesibilidad');
+    await editor.getByLabel('Descripción breve').fill('Revisa las interacciones con teclado.');
+    await implementation.fill('Corrige los controles que no se puedan usar con teclado.');
+    await editor.getByRole('button', { name: 'Crear agente', exact: true }).click();
+    await editor.getByText('Agente creado. Ya puedes preparar su primer encargo.').waitFor();
+    assert.ok(await editor.evaluate(node => node.scrollWidth <= node.clientWidth + 1));
+    await editor.getByRole('button', { name: 'Preparar encargo', exact: true }).click();
+    await editor.waitFor({ state: 'hidden' });
+    await page.getByRole('button', { name: /Accesibilidad Revisa las interacciones/ }).waitFor();
+    assert.equal(await page.getByRole('button', { name: /Accesibilidad Revisa las interacciones/ }).getAttribute('aria-pressed'), 'true');
+    await page.getByLabel('¿Qué necesitas?').fill('Revisa la navegación con el teclado.');
+    await page.getByRole('button', { name: 'Añadir a la cola', exact: true }).click();
+    await page.locator('#task-list').getByText('Revisa la navegación con el teclado.').waitFor();
+    await page.locator('#task-list').getByRole('button', { name: 'Editar', exact: true }).click();
+    assert.equal(await page.locator('#task-form select[name=agente] option:checked').textContent(), 'Accesibilidad');
+    await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    await page.reload();
+    await page.locator('#task-list').getByText(/Accesibilidad/).waitFor();
+  });
+
   test(`Operación y uso de Codex en ${name}`, { timeout: 35_000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
     const server = await listen(t, directory, { codex: {

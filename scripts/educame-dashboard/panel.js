@@ -4,15 +4,10 @@ import { mountIcons } from './icons.js';
 import { setupTheory } from './theory.js';
 import { setupMemory } from './memory.js';
 import { setupOperations } from './operations.js';
+import { setupAgentEditor } from './agent-editor.js';
 
-const agents = {
-  mantenimiento: ['Mantenimiento', 'Corrige fallos y comprueba que se resuelven.'],
-  juegos: ['Juegos', 'Crea y mejora packs de juegos jugables.'],
-  marketing: ['Marketing', 'Mejora landings, demos y contenido.'],
-  adaptacion: ['Adaptación', 'Implementa demos y variantes para otros públicos.'],
-  revision: ['Revisión', 'Comprueba entregas y corrige fallos.'],
-  copiador: ['Copiador', 'Analiza webs y redes de referencia y propone ideas para Educame.'],
-};
+const agents = Object.create(null);
+const agentName = item => item.agentName || agents[item.agente]?.name || item.agente;
 const states = {
   pendiente: ['Listo', 'pending'], espera: ['Espera un borrador', 'pending'], 'en curso': ['En curso', 'ready'],
   borrador: ['Borrador', 'ready'], fallido: ['Fallido', 'error'], bloqueado: ['Bloqueado', 'error'],
@@ -30,6 +25,7 @@ let poll;
 let workspace;
 let changes;
 let operations;
+let agentProfilesKey;
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -100,7 +96,7 @@ function taskRow(task, index) {
   const mode = source ? state.batch.mode : stored?.mode;
   copy.append(
     element('p', 'item-title', task.encargo),
-    element('p', 'item-meta', `${index + 1} · ${agents[task.agente][0]}${parent ? ` · Revisa el encargo ${state.board.tasks.indexOf(parent) + 1}` : ''}`),
+    element('p', 'item-meta', `${index + 1} · ${agentName(task)}${parent ? ` · Revisa el encargo ${state.board.tasks.indexOf(parent) + 1}` : ''}`),
   );
   if (status.error) copy.append(element('p', 'item-meta', status.error));
   const controls = element('div', 'actions');
@@ -131,7 +127,7 @@ function renderHistory() {
     const copy = element('div');
     copy.append(
       element('p', 'item-title', delivery.draft?.resumen || delivery.encargo),
-      element('p', 'item-meta', `${agents[delivery.agente]?.[0] || delivery.agente} · ${dates.format(new Date(delivery.finishedAt))}`),
+      element('p', 'item-meta', `${agentName(delivery)} · ${dates.format(new Date(delivery.finishedAt))}`),
     );
     const controls = element('div', 'actions');
     if (delivery.mode === 'prueba') controls.append(element('span', 'badge demo', 'Simulación'));
@@ -164,7 +160,22 @@ function renderLinks() {
   document.querySelector('#links').replaceChildren(...(cards.length ? cards : [element('p', 'empty', 'Añade el primer enlace.')]));
 }
 
+function renderAgentProfiles() {
+  const key = JSON.stringify(state.agentEditor.profiles);
+  if (key === agentProfilesKey) return;
+  agentProfilesKey = key;
+  for (const id of Object.keys(agents)) delete agents[id];
+  for (const profile of state.agentEditor.profiles) agents[profile.id] = profile;
+  const select = taskForm.elements.agente;
+  const selected = select.value;
+  select.replaceChildren(...Object.values(agents).map(({ id, name }) => selectOption(id, name)));
+  if (Object.hasOwn(agents, selected)) select.value = selected;
+  workspace.refreshAgents();
+  agentEditor.ready();
+}
+
 function render() {
+  renderAgentProfiles();
   const { board, batch, concurrency, maxTasks, fixture, history } = state;
   const running = Boolean(batch?.running);
   const paused = batch?.state === 'paused';
@@ -213,7 +224,7 @@ function render() {
     row.type = 'button';
     const copy = element('span', 'activity-copy');
     copy.append(element('strong', '', delivery.draft?.resumen || delivery.encargo),
-      element('small', '', [agents[delivery.agente]?.[0], delivery.mode === 'prueba' ? 'Simulación' : delivery.model].filter(Boolean).join(' · ')));
+      element('small', '', [agentName(delivery), delivery.mode === 'prueba' ? 'Simulación' : delivery.model].filter(Boolean).join(' · ')));
     row.append(copy, badge(board.reviews[delivery.key]?.decision || delivery.status));
     row.addEventListener('click', () => openDelivery(delivery));
     return row;
@@ -233,7 +244,10 @@ function render() {
 
 async function refresh() {
   const next = await api('/api/panel');
-  if (state && state.board.revision > next.board.revision) next.board = state.board;
+  if (state && state.board.revision > next.board.revision) {
+    next.board = state.board;
+    next.agentEditor = state.agentEditor;
+  }
   state = next;
   render();
   clearTimeout(poll);
@@ -321,7 +335,7 @@ function renderResearch(report, delivery) {
     if (links.children.length) row.append(links);
     const actions = element('div', 'research-meta');
     if (idea.esfuerzo) actions.append(element('span', 'badge pending', `Esfuerzo ${idea.esfuerzo}`));
-    if (delivery.mode !== 'prueba') actions.append(button('Preparar encargo para ' + agents[idea.agente][0], () => {
+    if (delivery.mode !== 'prueba') actions.append(button('Preparar encargo para ' + agents[idea.agente].name, () => {
       reviewForm.closest('dialog').close();
       workspace.prepareIdea(delivery.app, idea);
     }));
@@ -430,7 +444,6 @@ async function submit(form, action) {
   }
 }
 
-taskForm.elements.agente.append(...Object.entries(agents).map(([id, [name]]) => selectOption(id, name)));
 taskForm.elements.agente.addEventListener('change', () => {
   const agent = taskForm.elements.agente.value;
   document.querySelector('#depends-field').hidden = agent !== 'revision';
@@ -520,6 +533,13 @@ const memory = setupMemory({ api, getState: () => state, setBoard: board => { st
   element, button, selectOption, feedback, formMessage });
 workspace = setupWorkspace({ agents, element, button, api, feedback, formMessage, selectOption, badge, saveBoard, refresh,
   getState: () => state, renderPanel: () => { if (state) render(); } });
+const agentEditor = setupAgentEditor({ api, button, formMessage, getState: () => state, prepare: workspace.selectAgent,
+  apply(result) {
+    if (result.board.revision < state.board.revision) return;
+    Object.assign(state, result);
+    render();
+  },
+});
 changes = setupChanges({ api, element });
 operations = setupOperations({ api, element, button, feedback });
 showPage();

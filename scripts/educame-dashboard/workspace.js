@@ -15,13 +15,6 @@ const agentArt = {
   adaptacion: ['apps', 'gold'], revision: ['shield', 'green'],
   copiador: ['search', 'violet'],
 };
-const roleBriefs = {
-  mantenimiento: 'Identifica el problema, la intervención técnica y las comprobaciones que corresponden a tu rol.',
-  juegos: 'Si el encargo tiene componente educativo, diseña la mecánica jugable y su corrección. Si es indirecto, concreta qué implicaciones tiene para los juegos.',
-  marketing: 'Prepara el ángulo de comunicación y una pieza en borrador basada en la información confirmada.',
-  adaptacion: 'Estudia qué parte es reutilizable en otras apps y qué debe adaptarse al contexto de esta.',
-  revision: 'Evalúa la propuesta o el objetivo desde la perspectiva de calidad y lista comprobaciones concretas.',
-};
 const networks = {
   instagram: 'Instagram', facebook: 'Facebook', tiktok: 'TikTok', youtube: 'YouTube', linkedin: 'LinkedIn',
   threads: 'Threads', twitter: 'X', bluesky: 'Bluesky', mastodon: 'Mastodon',
@@ -74,6 +67,8 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
   let videoHistory = [];
   let videoBusy = false;
   let videoTimer;
+  const teamIds = () => Object.keys(agents).filter(id => id !== 'copiador');
+  const selectGroup = () => teamIds().slice(0, getState()?.maxTasks || 6);
 
   function fillSelect(select, values, placeholder) {
     const previous = select.value;
@@ -144,18 +139,20 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
   function renderTeam() {
     const state = getState();
     const engine = agentForm.elements.engine;
-    const ids = Object.keys(agents).filter(id => id !== 'copiador');
+    const ids = teamIds();
     const research = selectedAgents.has('copiador');
     const selectTeam = $('#select-team');
-    const all = selectedAgents.size === ids.length;
+    const group = selectGroup();
+    const all = group.length > 0 && group.length === selectedAgents.size && group.every(id => selectedAgents.has(id));
     selectTeam.setAttribute('aria-pressed', String(all));
-    selectTeam.textContent = all ? 'Quitar selección' : 'Seleccionar equipo';
+    selectTeam.disabled = !group.length;
+    selectTeam.textContent = all ? 'Quitar selección' : ids.length > group.length ? 'Seleccionar ' + group.length : 'Seleccionar equipo';
     for (const node of $('#team-picker').children) {
       node.setAttribute('aria-pressed', String(selectedAgents.has(node.dataset.agent)));
     }
     $('#team-review-hint').hidden = !selectedAgents.has('revision') || selectedAgents.size < 2;
-    $('#team-summary').textContent = research ? 'Copiador · análisis de fuentes públicas' : selectedAgents.size ?
-      `${selectedAgents.size} de ${ids.length} agentes de implementación` : 'Selecciona al menos un agente.';
+    $('#team-summary').textContent = research ? agents.copiador.name + ' · análisis de fuentes públicas' : selectedAgents.size ?
+      `${selectedAgents.size} de ${group.length} agentes por lote` : 'Selecciona al menos un agente.';
     $('#engine-options').hidden = !state?.apiReady;
     engine.options[1].disabled = !state?.apiReady;
     if (!state?.apiReady) engine.value = 'codex';
@@ -197,7 +194,7 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
       for (const task of batch.tasks) {
         const item = element('div', 'batch-chip');
         const job = batch.jobs[task.id];
-        item.append(element('strong', '', agents[task.agente][0]), badge(job?.status));
+        item.append(element('strong', '', task.agentName || agents[task.agente]?.name || task.agente), badge(job?.status));
         if (job?.error) item.append(element('small', 'form-message', job.error));
         items.append(item);
       }
@@ -208,14 +205,14 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
   agentForm.elements.engine.addEventListener('change', renderTeam);
 
   $('#select-team').addEventListener('click', () => {
-    const team = Object.keys(agents).filter(id => id !== 'copiador');
-    const all = team.every(id => selectedAgents.has(id));
+    const team = selectGroup();
+    const all = team.length === selectedAgents.size && team.every(id => selectedAgents.has(id));
     selectedAgents.clear();
     if (!all) for (const id of team) selectedAgents.add(id);
     renderTeam();
   });
-  for (const [id, [name, description]] of Object.entries(agents)) {
-    const [glyph, color] = agentArt[id];
+  function agentCard(id, { name, description, builtIn }) {
+    const [glyph, color] = agentArt[id] || ['sparkles', 'blue'];
     const choice = element('button', 'team-tile');
     choice.type = 'button';
     choice.dataset.agent = id;
@@ -227,16 +224,22 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     symbol.append(icon(glyph));
     header.append(symbol, check);
     choice.append(header, element('strong', '', name), element('small', '', description));
+    if (!builtIn) choice.append(element('span', 'badge', 'Personalizado'));
     choice.addEventListener('click', () => {
       if (selectedAgents.has(id)) selectedAgents.delete(id);
       else {
         if (id === 'copiador') selectedAgents.clear();
         else selectedAgents.delete('copiador');
+        if (selectedAgents.size >= getState().maxTasks) {
+          formMessage(agentForm, 'Puedes seleccionar hasta ' + getState().maxTasks + ' agentes por lote.');
+          return;
+        }
         selectedAgents.add(id);
       }
+      formMessage(agentForm);
       renderTeam();
     });
-    $('#team-picker').append(choice);
+    return choice;
   }
 
   agentForm.addEventListener('submit', async event => {
@@ -260,7 +263,7 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     let tasks = agentsInOrder.map(agente => ({
       id: ids[agente], agente, app, encargo: objective.trim() || researchObjective,
       ...(research ? { fuentes: links } : {}),
-      contexto: [agentsInOrder.length > 1 ? roleBriefs[agente] : '', agente === 'juegos' ?
+      contexto: [agentsInOrder.length > 1 ? agents[agente].team : '', agente === 'juegos' ?
         `Pack de juegos. Trabajo: ${gameWork}. Cantidad solicitada: ${Number(gameCount) || 1}. Informa por separado del resultado y las comprobaciones de cada juego.` : '',
       context.trim()].filter(Boolean).join('\n\n'),
       revisar: agente === 'revision' ? reviewTarget || '' : '',
@@ -276,11 +279,13 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
         feedback('Encargos añadidos a la cola.');
       } else {
         const engine = mode === 'implementacion' ? 'codex' : mode === 'prueba' ? 'openai' : agentForm.elements.engine.value;
-        const signature = JSON.stringify({ mode, engine, app, objective, context, gameWork, gameCount, agentsInOrder, ...(research ? { links } : {}) });
+        const customized = agentsInOrder.map(id => agents[id]).filter(profile => !profile.builtIn || profile.modified);
+        const signature = JSON.stringify({ mode, engine, app, objective, context, gameWork, gameCount, agentsInOrder,
+          ...(research ? { links } : {}), ...(customized.length ? { customized } : {}) });
         if (previousRequest?.signature === signature) tasks = previousRequest.tasks;
         previousRequest = { signature, tasks };
         try { sessionStorage.setItem(batchDraftKey, JSON.stringify(previousRequest)); } catch {}
-        await api('/api/encargos', 'POST', { mode, tasks, engine });
+        await api('/api/encargos', 'POST', { mode, tasks, engine, agentRevision: state.board.revision });
         await refresh();
         renderTeam();
         $('#team-activity').scrollIntoView({ block: 'nearest' });
@@ -827,6 +832,16 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
 
   return {
     codexStatus: () => codex,
+    refreshAgents() {
+      $('#team-picker').replaceChildren(...Object.entries(agents).map(([id, profile]) => agentCard(id, profile)));
+    },
+    selectAgent(id) {
+      selectedAgents.clear();
+      selectedAgents.add(id);
+      formMessage(agentForm);
+      renderTeam();
+      agentForm.elements.objective.focus();
+    },
     prepareIdea(app, idea) {
       selectedAgents.clear();
       selectedAgents.add(idea.agente);
