@@ -23,6 +23,33 @@ for (const [name, engine, viewport] of [
   ['Chromium escritorio', chromium, { width: 1440, height: 950 }],
   ['WebKit móvil', webkit, { width: 390, height: 844 }],
 ]) {
+  test(`Cola unificada conserva y simula encargos en ${name}`, { timeout: 35_000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
+    const server = await listen(t, directory, { codex: { status: async () => ({ ready: false }) } });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    t.after(() => browser.close());
+    const page = await browser.newPage({ viewport });
+    const base = 'http://127.0.0.1:' + server.address().port;
+    await page.goto(base + '/#agentes/nuevo');
+    await page.locator('#team-picker').getByRole('button', { name: /^Juegos/ }).click();
+    await page.locator('#agent-compose').getByLabel('¿Qué necesitas?').fill('Encargo ficticio para comprobar la cola.');
+    await page.getByRole('button', { name: 'Añadir a la cola', exact: true }).click();
+    await page.locator('#task-list').getByText('Encargo ficticio para comprobar la cola.', { exact: true }).waitFor();
+    assert.equal(await page.locator('[data-page="agentes"]').isVisible(), true);
+    assert.equal(await page.locator('#team-activity').isVisible(), false);
+    await page.reload();
+    await page.locator('#task-list').getByText('Encargo ficticio para comprobar la cola.', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Simular lote', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('#team-activity progress')?.value === 1);
+    await page.locator('#team-activity').getByText('Encargo ficticio para comprobar la cola.', { exact: true }).waitFor();
+    assert.match(await page.locator('#team-activity').innerText(), /1 de 1 encargos terminados/);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.locator('.work-navigation').getByRole('link', { name: 'Nuevo encargo', exact: true }).click();
+    await page.waitForFunction(() => document.activeElement?.id === 'new-order-title');
+    await page.locator('.work-navigation').getByRole('link', { name: 'Revisar entregas' }).click();
+    await page.locator('#history').getByRole('button', { name: /Abrir/ }).first().waitFor();
+  });
+
   test(`Chat con Codex selecciona modelo y revisa cambios en ${name}`, { timeout: 25_000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
     const server = await listen(t, directory, { codex: {

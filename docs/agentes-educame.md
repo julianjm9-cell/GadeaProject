@@ -35,6 +35,22 @@ mientras el panel está visible y también bajo demanda. El total informado por
 Codex y los tokens registrados en los encargos de Educame son cifras separadas.
 Si una consulta falla, el último dato disponible aparece con su fecha.
 
+### Agentes y cola de trabajo
+
+**Agentes** reúne preparación y seguimiento. Usa **Nuevo encargo** para elegir
+agentes y escribir el objetivo. **Añadir a la cola** guarda sin ejecutar.
+**+ Añadir encargo** permite dar instrucciones distintas a cada agente.
+En **Cola y progreso**, edita los encargos y pulsa **Simular lote** para usar
+respuestas ficticias o **Implementar lote** para trabajar en copias aisladas.
+Las otras opciones del formulario ejecutan directamente sin sustituir la cola.
+
+El último envío muestra el objetivo y estado de cada agente y un contador de
+encargos terminados que incluye fallos y bloqueos, sin implicar aprobación.
+La cola preparada y el último envío pueden ser diferentes. **Ver entrega**
+abre el resultado guardado del encargo. **Historial de lotes** conserva los
+envíos anteriores. **Revisar entregas** abre sus resultados. El enlace anterior
+a `#operaciones` sigue abriendo la cola en este mismo espacio.
+
 ### Operación
 
 1. En **GitHub**, conecta un token de acceso limitado al repositorio de Educame

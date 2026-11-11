@@ -100,6 +100,15 @@ dialog { background: var(--paper); border-radius: 14px; }
 dialog::backdrop { background: #1b2c25a3; }
 .empty, .activity-row, .activity-progress, .item, .operation-detail, #agent-profile-form { background: #faf9f3; }
 .quota-panel { background: #f9f8f0; }
+.work-navigation { flex-wrap: wrap; margin-bottom: 18px; }
+#work-queue { margin-bottom: 24px; scroll-margin-top: 16px; }
+#new-order-title { scroll-margin-top: 16px; }
+#new-order-title:focus { outline: 2px solid #526445; outline-offset: 5px; }
+#team-activity { margin-bottom: 16px; }
+#team-activity progress { width: 100%; accent-color: #526445; }
+#team-activity .batch-chips { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+#team-activity .batch-chip { min-width: 0; }
+#team-activity .item-title { flex-basis: 100%; overflow-wrap: anywhere; }
 .quota-metric { background: #f1f2e9; border-color: #dce3d5; }
 .tile-icon.violet { background: #ece6f0; color: #655174; }
 .tile-icon.green { background: #e2ece1; color: #315c46; }

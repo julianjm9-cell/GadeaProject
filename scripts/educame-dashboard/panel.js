@@ -82,7 +82,7 @@ function showPage() {
   const development = hash === 'teoria/desarrollo';
   const operation = /^control\/(github|hostinger|admin)(?:\/([a-f0-9]+))?$/.exec(hash);
   const deliveryId = /^entregas\/([a-z0-9][a-z0-9-]{0,63})$/.exec(hash)?.[1];
-  const requested = development ? 'teoria' : operation ? 'control' : deliveryId ? 'entregas' : hash === 'flujos' ? 'agentes' : hash;
+  const requested = development ? 'teoria' : operation ? 'control' : deliveryId ? 'entregas' : ['flujos', 'operaciones', 'agentes/nuevo'].includes(hash) ? 'agentes' : hash;
   const page = [...document.querySelectorAll('[data-page]')].some(node => node.dataset.page === requested) ? requested : 'inicio';
   document.querySelectorAll('[data-page]').forEach(node => { node.hidden = node.dataset.page !== page; });
   navigation.querySelectorAll('a').forEach(node => {
@@ -98,7 +98,11 @@ function showPage() {
   if (page === 'entregas' && state) refresh().then(openLinkedDelivery).catch(error => feedback(error.message, true));
   if (page === 'chat') chat.open();
   if (page === 'teoria') theory.openTrack(development);
-  if (page === 'agentes') { memory.renderAgentHint(); operations?.refreshQuota(); }
+  if (page === 'agentes') {
+    memory.renderAgentHint(); operations?.refreshQuota();
+    if (hash === 'operaciones') document.querySelector('#work-queue').scrollIntoView({ block: 'start' });
+    if (hash === 'agentes/nuevo') document.querySelector('#new-order-title').focus();
+  }
 }
 
 function openLinkedDelivery() {
@@ -134,6 +138,7 @@ function taskRow(task, index) {
   });
   edit.disabled = remove.disabled = Boolean(state.batch?.running);
   controls.append(edit, remove);
+  if (stored) controls.append(button('Ver entrega', () => openDelivery(stored)));
   row.append(copy, controls);
   return row;
 }
@@ -225,7 +230,7 @@ function render() {
     detail.append(element('summary', '', `${kind} · ${label} · ${dates.format(new Date(run.startedAt))}`));
     for (const task of run.tasks) {
       const job = run.jobs[task.id];
-      const row = element('p', '', task.encargo + ' ');
+      const row = element('p', '', agentName(task) + ' · ' + task.encargo + ' ');
       row.append(badge(job?.status));
       detail.append(row);
       if (job?.error) detail.append(element('p', 'muted', job.error));
@@ -681,7 +686,7 @@ mountIcons();
 const theory = setupTheory({ element });
 const memory = setupMemory({ api, getState: () => state, setBoard: board => { state.board = board; render(); },
   element, button, selectOption, feedback, formMessage });
-workspace = setupWorkspace({ agents, element, button, api, feedback, formMessage, selectOption, badge, saveBoard, refresh,
+workspace = setupWorkspace({ agents, element, button, api, feedback, formMessage, selectOption, badge, saveBoard, refresh, openDelivery,
   getState: () => state, renderPanel: () => { if (state) render(); } });
 const agentEditor = setupAgentEditor({ api, button, formMessage, getState: () => state, prepare: workspace.selectAgent,
   apply(result) {

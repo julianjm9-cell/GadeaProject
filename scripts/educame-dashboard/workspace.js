@@ -46,7 +46,7 @@ export function appLogo(key) {
   return image;
 }
 
-export function setupWorkspace({ agents, element, button, api, feedback, formMessage, selectOption, badge, saveBoard, refresh, getState, renderPanel }) {
+export function setupWorkspace({ agents, element, button, api, feedback, formMessage, selectOption, badge, saveBoard, refresh, getState, renderPanel, openDelivery }) {
   const agentForm = $('#agent-compose');
   const directForm = $('#terrace-order');
   const postForm = $('#publish-form');
@@ -274,11 +274,21 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
       for (const task of batch.tasks) {
         const item = element('div', 'batch-chip');
         const job = batch.jobs[task.id];
-        item.append(element('strong', '', task.agentName || agents[task.agente]?.name || task.agente), badge(job?.status));
+        item.append(element('strong', '', task.agentName || agents[task.agente]?.name || task.agente), badge(job?.status), element('p', 'item-title', task.encargo));
+        const delivery = state.history.find(entry => entry.id === task.id);
+        if (delivery) {
+          item.append(button('Ver entrega', () => openDelivery(delivery)));
+        }
         if (job?.error) item.append(element('small', 'form-message', job.error));
         items.append(item);
       }
-      activity.replaceChildren(title, items);
+      const finished = batch.tasks.filter(task => ['completado', 'borrador', 'fallido', 'bloqueado'].includes(batch.jobs[task.id]?.status)).length;
+      const summary = element('p', 'inline-hint', finished + ' de ' + batch.tasks.length + ' encargos terminados (incluye fallos y bloqueos)' + (batch.running ? ' · Lote en marcha' : batch.state === 'paused' ? ' · Lote interrumpido' : ' · Lote finalizado'));
+      const progress = element('progress');
+      progress.max = batch.tasks.length;
+      progress.value = finished;
+      progress.setAttribute('aria-label', 'Encargos terminados del último lote');
+      activity.replaceChildren(title, summary, progress, items);
       if (batch.error) activity.append(element('p', 'form-message', batch.error));
     }
   }
@@ -356,6 +366,7 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
       if (mode === 'queue') {
         await saveBoard({ tasks: [...state.board.tasks, ...tasks] });
         location.hash = 'operaciones';
+        $('#work-queue').scrollIntoView({ block: 'start' });
         feedback('Encargos añadidos a la cola.');
       } else {
         const engine = mode === 'implementacion' ? 'codex' : mode === 'prueba' ? 'openai' : agentForm.elements.engine.value;
