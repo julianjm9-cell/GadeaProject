@@ -219,6 +219,15 @@ export function setupOperations({ api, element, button, feedback }) {
       const used = windows[0]?.usedPercent;
       message($('codex-quota-chip'), used === undefined ? 'Uso de Codex' :
         (result.limitsFresh ? 'Codex · ' : 'Último dato · ') + number.format(100 - used) + ' % disponible');
+      $('codex-quota-chip').title = [
+        result.limitsFresh ? 'Límites de Codex' : 'Límites de la última consulta',
+        ...[[300, 'Límite de 5 h'], [10080, 'Límite semanal']].map(([minutes, label]) => {
+          const window = windows.find(item => item.durationMinutes === minutes);
+          return label + ' · ' + (window ? number.format(100 - window.usedPercent) + ' % disponible · ' +
+            (window.resetsAt ? 'Se renueva el ' + stamp(window.resetsAt * 1000) : 'Renovación sin fecha disponible') :
+            'Sin datos disponibles');
+        }),
+      ].join('\n');
       const nodes = windows.map(item => {
         const mins = item.durationMinutes;
         const label = mins === 10080 ? 'Límite semanal' : mins && mins % 60 === 0 ? 'Ventana de ' + mins / 60 + ' h' : 'Límite de uso';
@@ -247,7 +256,10 @@ export function setupOperations({ api, element, button, feedback }) {
     }).finally(() => { quotaQuery = null; });
     return quotaQuery;
   }
-  const refreshQuota = () => quota().catch(() => message($('codex-quota-chip'), 'Uso de Codex sin actualizar'));
+  const refreshQuota = () => quota().catch(() => {
+    message($('codex-quota-chip'), 'Uso de Codex sin actualizar');
+    $('codex-quota-chip').title = 'No se pudieron actualizar los límites de Codex. Abre Uso de Codex para consultar el último dato.';
+  });
   $('codex-usage-refresh').addEventListener('click', event => busy(event.currentTarget, () => quota(true)));
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshQuota(); });
   setInterval(() => { if (!document.hidden) refreshQuota(); }, 60_000);
