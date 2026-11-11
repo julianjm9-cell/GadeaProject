@@ -86,18 +86,24 @@ for (const [name, engine, viewport] of [
     const page = await browser.newPage({ viewport });
     await page.goto('http://127.0.0.1:' + server.address().port + '/#inicio');
     const toggle = page.locator('#environment-name-toggle');
+    assert.equal(await page.locator('.terrace-photo').isVisible(), true);
     await page.getByRole('button', { name: 'Ocultar nombre del entorno', exact: true }).click();
     assert.equal(await toggle.getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('.terrace-photo').isVisible(), false);
+    assert.ok(await page.locator('.terrace-welcome').evaluate(node =>
+      Math.abs(node.getBoundingClientRect().width - node.parentElement.clientWidth) <= 1));
     assert.equal(await page.title(), 'Cuadro de mando · Educame');
     assert.deepEqual(await page.locator('[data-environment-name]').allTextContents(), ['Cuadro de mando', 'Cuadro de mando']);
     assert.equal(new URL(page.url()).hash, '#inicio');
     await page.reload();
     await page.getByRole('button', { name: 'Mostrar nombre del entorno', exact: true }).waitFor();
+    assert.equal(await page.locator('.terrace-photo').isVisible(), false);
     assert.equal(await page.title(), 'Cuadro de mando · Educame');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     await toggle.focus();
     await page.keyboard.press('Enter');
     assert.equal(await page.title(), 'LA TERRAZA · Educame');
+    assert.equal(await page.locator('.terrace-photo').isVisible(), true);
     await page.keyboard.press('Space');
     assert.equal(await page.title(), 'Cuadro de mando · Educame');
     await toggle.click();

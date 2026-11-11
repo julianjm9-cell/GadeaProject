@@ -28,6 +28,7 @@ const environmentPreference = 'educame.control.hide-environment-name';
 let environmentNameHidden = false;
 try { environmentNameHidden = localStorage.getItem(environmentPreference) === 'true'; } catch {}
 function renderEnvironmentName() {
+  document.body.classList.toggle('environment-hidden', environmentNameHidden);
   const name = environmentNameHidden ? 'Cuadro de mando' : 'LA TERRAZA';
   document.querySelectorAll('[data-environment-name]').forEach(node => { node.textContent = name; });
   document.title = name + ' · Educame';
