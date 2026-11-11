@@ -10,7 +10,7 @@ const sha = /^[a-f0-9]{40}$/;
 const safeId = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const commonPaths = ['backend/app/', 'backend/tests/', 'tests/', 'docs/'];
 const terracePaths = ['scripts/educame-dashboard/', 'scripts/educame-dashboard.mjs', 'scripts/educame-agents.mjs',
-  'docs/agentes-educame.md', 'tests/educame-dashboard.test.cjs', 'tests/educame-dashboard-browser.test.cjs',
+  'docs/agentes-educame.md', 'docs/guia-desarrollo-educame.md', 'tests/educame-dashboard.test.cjs', 'tests/educame-dashboard-browser.test.cjs',
   'tests/educame-chat.test.cjs', 'tests/educame-operations.test.cjs', 'tests/educame-changes.test.cjs'];
 const terraceFile = file => terracePaths.some(path => path.endsWith('/') ? file.startsWith(path) : file === path) && !excluded.test(file);
 const excluded = /(^|\/)(\.env(?:\.|$)|\.git(?:\/|$)|\.educame-agents(?:\/|$)|(?:credentials|secrets)(?:\.|\/|$))|\.(pem|key|p12|pfx|sqlite|dump)$/i;

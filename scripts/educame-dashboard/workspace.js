@@ -30,8 +30,7 @@ const percent = new Intl.NumberFormat('es-ES', { style: 'percent', maximumFracti
 const dates = new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium', timeStyle: 'short' });
 const draftKey = 'educame-publication-draft';
 const batchDraftKey = 'educame-agent-request-v1';
-const directDraftKey = 'educame-terrace-draft-v1';
-const directRequestKey = 'educame-terrace-request-v1';
+const composerKey = 'educame-work-composer-v1';
 const researchObjective = 'Analiza estos enlaces y propón ideas originales y priorizadas para la app seleccionada.';
 export const sourceLines = text => text?.split(/\r?\n/).map(line => line.trim()).filter(Boolean) || [];
 
@@ -48,7 +47,6 @@ export function appLogo(key) {
 
 export function setupWorkspace({ agents, element, button, api, feedback, formMessage, selectOption, badge, saveBoard, refresh, getState, renderPanel }) {
   const agentForm = $('#agent-compose');
-  const directForm = $('#terrace-order');
   const postForm = $('#publish-form');
   const confirmForm = $('#publish-confirm');
   const searchForm = $('#search-stats');
@@ -56,7 +54,7 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
   const videoForm = $('#video-form');
   const selectedAgents = new Set();
   const previousRequests = new Map();
-  for (const key of [batchDraftKey, directRequestKey]) {
+  for (const key of [batchDraftKey]) {
     try { previousRequests.set(key, JSON.parse(sessionStorage.getItem(key))); } catch {}
   }
   let connections;
@@ -66,7 +64,6 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
   let pendingPost;
   let publicationId = crypto.randomUUID();
   let sending = false;
-  let sendingDirect = false;
   let posting = false;
   let loadVersion = 0;
   let selectedChannels = [];
@@ -84,15 +81,43 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     if (values.some(([value]) => value === previous)) select.value = previous;
   }
 
-  for (const id of ['agent-app', 'terrace-app', 'publish-app', 'stats-app']) {
+  for (const id of ['agent-app', 'publish-app', 'stats-app']) {
     fillSelect($('#' + id), Object.entries(apps).filter(([key, app]) => id !== 'stats-app' || key === 'ecosistema' || app[4])
-      .map(([key, [name]]) => [key, name]), id === 'terrace-app' ? 'Elige una app o el ecosistema' : undefined);
+      .map(([key, [name]]) => [key, name]));
   }
   try {
-    const draft = JSON.parse(sessionStorage.getItem(directDraftKey));
-    if (draft) for (const key of ['app', 'mode', 'objective']) directForm.elements[key].value = draft[key];
+    let saved = JSON.parse(localStorage.getItem(composerKey));
+    if (!saved) {
+      const previous = JSON.parse(sessionStorage.getItem('educame-terrace-draft-v1'));
+      if (previous?.objective) saved = { fields: previous, agents: ['codex'] };
+    }
+    if (saved?.fields) {
+      for (const field of ['app', 'objective', 'context', 'sources', 'gameWork', 'gameCount', 'engine']) {
+        if (typeof saved.fields[field] === 'string') agentForm.elements[field].value = saved.fields[field];
+      }
+      for (const id of (Array.isArray(saved.agents) ? saved.agents : []).slice(0, 6)) {
+        if (typeof id === 'string') selectedAgents.add(id);
+      }
+    }
   } catch {}
 
+  function persistComposer() {
+    try { localStorage.setItem(composerKey, JSON.stringify({
+      fields: Object.fromEntries(new FormData(agentForm)), agents: [...selectedAgents],
+    })); } catch {}
+  }
+
+  function openComposer() {
+    $('#work-compose').open = true;
+    requestAnimationFrame(() => agentForm.elements.objective.focus());
+  }
+
+  agentForm.addEventListener('input', () => {
+    if (!selectedAgents.size && agents.codex && agentForm.elements.objective.value.trim()) selectedAgents.add('codex');
+    persistComposer();
+    renderTeam();
+  });
+  agentForm.addEventListener('change', persistComposer);
   async function requestOrder(key, signature, tasks, mode, engine, agentRevision) {
     const previous = previousRequests.get(key);
     const request = { signature, tasks: previous?.signature === signature ? previous.tasks : tasks };
@@ -101,65 +126,6 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     return api('/api/encargos', 'POST', { mode, tasks: request.tasks, engine, agentRevision });
   }
 
-  function renderDirect() {
-    const state = getState();
-    const batch = state?.batch;
-    const implementation = directForm.elements.mode.value === 'implementacion';
-    $('#terrace-mode-hint').textContent = implementation ?
-      'Codex hace el cambio en una copia aislada. En Entregas podrás revisar, aprobar y preparar la publicación.' :
-      'Codex consulta el proyecto y responde con un plan o un diagnóstico.';
-    $('#terrace-connect').hidden = !codex || codex.ready;
-    $('#terrace-order-status').textContent = sendingDirect ? 'Enviando encargo…' :
-      !codex ? 'Comprobando la sesión de Codex…' :
-        batch?.running ? 'Hay un lote en curso. Puedes seguirlo en Cola de trabajo.' :
-          batch?.state === 'paused' ? 'Retoma el lote interrumpido desde Cola de trabajo.' : '';
-    directForm.querySelector('[type=submit]').disabled = !state || !codex?.ready || !agents.codex ||
-      sending || sendingDirect || batch?.running || batch?.state === 'paused';
-  }
-
-  directForm.addEventListener('input', () => {
-    try { sessionStorage.setItem(directDraftKey, JSON.stringify(Object.fromEntries(new FormData(directForm)))); } catch {}
-    renderDirect();
-  });
-  $('#terrace-agents').addEventListener('click', () => {
-    if (agentForm.elements.objective.value.trim() || agentForm.elements.context.value.trim()) return;
-    const { app, objective } = directForm.elements;
-    if (app.value) {
-      agentForm.elements.app.value = app.value;
-      agentForm.elements.app.dispatchEvent(new Event('change'));
-    }
-    agentForm.elements.objective.value = objective.value;
-  });
-  directForm.addEventListener('submit', async event => {
-    event.preventDefault();
-    if (directForm.querySelector('[type=submit]').disabled) return;
-    const { app, mode, objective } = Object.fromEntries(new FormData(directForm));
-    const encargo = objective.trim();
-    if (!encargo) return formMessage(directForm, 'Escribe qué necesitas antes de pedir el encargo.');
-    sendingDirect = true;
-    formMessage(directForm);
-    renderTeam();
-    try {
-      const signature = JSON.stringify({ app, mode, encargo, profile: agents.codex });
-      await requestOrder(directRequestKey, signature, [{ id: 'enc-' + crypto.randomUUID(), agente: 'codex', app, encargo }],
-        mode, 'codex', getState().board.revision);
-      if (directForm.elements.objective.value === objective && directForm.elements.app.value === app && directForm.elements.mode.value === mode) {
-        directForm.elements.objective.value = '';
-        directForm.dispatchEvent(new Event('input'));
-      }
-      previousRequests.delete(directRequestKey);
-      try { sessionStorage.removeItem(directRequestKey); } catch {}
-      location.hash = 'agentes';
-      await refresh();
-      $('#team-activity').scrollIntoView({ block: 'nearest' });
-    } catch (error) {
-      if (location.hash === '#agentes') feedback(error.message, true);
-      else formMessage(directForm, error.message);
-    } finally {
-      sendingDirect = false;
-      renderTeam();
-    }
-  });
   try {
     const saved = JSON.parse(sessionStorage.getItem(draftKey));
     if (saved) {
@@ -192,7 +158,7 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     const actions = element('div', 'product-actions');
     const task = button('Crear encargo', () => {
       agentForm.elements.app.value = id;
-      location.hash = 'agentes';
+      location.hash = 'agentes/nuevo';
       requestAnimationFrame(() => agentForm.elements.objective.focus());
     });
     task.prepend(icon('plus'));
@@ -216,7 +182,6 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
   }).catch(() => {});
 
   function renderTeam() {
-    renderDirect();
     const state = getState();
     const engine = agentForm.elements.engine;
     const ids = teamIds();
@@ -231,8 +196,9 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
       node.setAttribute('aria-pressed', String(selectedAgents.has(node.dataset.agent)));
     }
     $('#team-review-hint').hidden = !selectedAgents.has('revision') || selectedAgents.size < 2;
-    $('#team-summary').textContent = research ? agents.copiador.name + ' · análisis de fuentes públicas' : selectedAgents.size ?
-      `${selectedAgents.size} de ${state.maxTasks} agentes por lote` : 'Selecciona al menos un agente.';
+    $('#team-summary').textContent = research ? (agents.copiador?.name || 'Copiador') + ' · análisis de fuentes públicas' : selectedAgents.size ?
+      `${[...selectedAgents].map(id => agents[id]?.name || id).join(', ')} · ${selectedAgents.size} de ${state?.maxTasks || 6} agentes` :
+      'Escribe el encargo para usar Codex o elige un agente.';
     $('#engine-options').hidden = !state?.apiReady;
     engine.options[1].disabled = !state?.apiReady;
     if (!state?.apiReady) engine.value = 'codex';
@@ -250,36 +216,11 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     $('#game-pack').disabled = !selectedAgents.has('juegos');
     $('#team-setup').hidden = !state || Boolean(ready);
     for (const node of agentForm.querySelectorAll('[type="submit"]')) {
-      node.disabled = node.hidden || !state || !selectedAgents.size || sending || sendingDirect || Boolean(state.batch?.running) || state?.batch?.state === 'paused' ||
+      node.disabled = node.hidden || !state || !selectedAgents.size || sending ||
+        (node.value !== 'queue' && (Boolean(state.batch?.running) || state?.batch?.state === 'paused')) ||
         (node.value === 'real' && !ready) ||
         (node.value === 'implementacion' && !codex?.ready) ||
         (node.value === 'queue' && state.board.tasks.length + selectedAgents.size > state.maxTasks);
-    }
-    const activity = $('#team-activity');
-    activity.hidden = !state?.batch?.tasks?.length;
-    if (!activity.hidden) {
-      const { batch } = state;
-      const title = element('div', 'card-heading');
-      const link = element('a', 'text-link', 'Abrir entregas →');
-      link.href = '#entregas';
-      title.append(element('h2', '', batch.mode === 'implementacion' ? 'Implementación en Codex' : batch.mode === 'prueba' ?
-        'Última simulación' : batch.tasks.every(task => task.agente === 'copiador') ? 'Análisis de enlaces' :
-        batch.engine === 'codex' ? 'Encargo en Codex' : 'Encargo en OpenAI API'), link);
-      if (batch.state === 'paused') {
-        const resume = element('a', 'button secondary', 'Retomar en Cola de trabajo');
-        resume.href = '#operaciones';
-        title.append(resume);
-      }
-      const items = element('div', 'batch-chips');
-      for (const task of batch.tasks) {
-        const item = element('div', 'batch-chip');
-        const job = batch.jobs[task.id];
-        item.append(element('strong', '', task.agentName || agents[task.agente]?.name || task.agente), badge(job?.status));
-        if (job?.error) item.append(element('small', 'form-message', job.error));
-        items.append(item);
-      }
-      activity.replaceChildren(title, items);
-      if (batch.error) activity.append(element('p', 'form-message', batch.error));
     }
   }
   agentForm.elements.engine.addEventListener('change', renderTeam);
@@ -289,6 +230,7 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     const all = team.length === selectedAgents.size && team.every(id => selectedAgents.has(id));
     selectedAgents.clear();
     if (!all) for (const id of team) selectedAgents.add(id);
+    persistComposer();
     renderTeam();
   });
   function agentCard(id, { name, description, builtIn }) {
@@ -317,6 +259,7 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
         selectedAgents.add(id);
       }
       formMessage(agentForm);
+      persistComposer();
       renderTeam();
     });
     return choice;
@@ -325,7 +268,7 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
   agentForm.addEventListener('submit', async event => {
     event.preventDefault();
     const state = getState();
-    if (!state || sending || sendingDirect || !selectedAgents.size) return;
+    if (!state || sending || !selectedAgents.size) return;
     const { app, objective, context, gameWork, gameCount, sources } = Object.fromEntries(new FormData(agentForm));
     const research = selectedAgents.has('copiador');
     const links = sourceLines(sources);
@@ -352,10 +295,14 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     formMessage(agentForm);
     renderTeam();
     try {
-      const mode = event.submitter?.value || 'prueba';
+      const mode = event.submitter?.value || 'queue';
       if (mode === 'queue') {
         await saveBoard({ tasks: [...state.board.tasks, ...tasks] });
-        location.hash = 'operaciones';
+        agentForm.elements.objective.value = '';
+        persistComposer();
+        $('#work-compose').open = false;
+        location.hash = 'agentes/cola';
+        $('#work-queue').scrollIntoView({ block: 'start' });
         feedback('Encargos añadidos a la cola.');
       } else {
         const engine = mode === 'implementacion' ? 'codex' : mode === 'prueba' ? 'openai' : agentForm.elements.engine.value;
@@ -363,6 +310,8 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
         const signature = JSON.stringify({ mode, engine, app, objective, context, gameWork, gameCount, agentsInOrder,
           ...(research ? { links } : {}), ...(customized.length ? { customized } : {}) });
         await requestOrder(batchDraftKey, signature, tasks, mode, engine, state.board.revision);
+        previousRequests.delete(batchDraftKey);
+        try { sessionStorage.removeItem(batchDraftKey); } catch {}
         await refresh();
         renderTeam();
         $('#team-activity').scrollIntoView({ block: 'nearest' });
@@ -919,16 +868,20 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
   Promise.all([loadConnections(), loadPublications(), checkCodex(), loadVideos()]).catch(error => feedback(error.message, true));
 
   return {
+    openComposer,
     codexStatus: () => codex,
     refreshAgents() {
+      for (const id of selectedAgents) if (!agents[id]) selectedAgents.delete(id);
+      if (!selectedAgents.size && agents.codex && agentForm.elements.objective.value.trim()) selectedAgents.add('codex');
       $('#team-picker').replaceChildren(...Object.entries(agents).map(([id, profile]) => agentCard(id, profile)));
     },
     selectAgent(id) {
       selectedAgents.clear();
       selectedAgents.add(id);
+      persistComposer();
       formMessage(agentForm);
       renderTeam();
-      agentForm.elements.objective.focus();
+      openComposer();
     },
     prepareFollowUp(delivery) {
       if ((agentForm.elements.objective.value.trim() || agentForm.elements.context.value.trim()) &&
@@ -946,7 +899,8 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
       ].filter(Boolean).join('\n\n').slice(0, 7500);
       agentForm.elements.context.closest('details').open = true;
       formMessage(agentForm);
-      location.hash = 'agentes';
+      persistComposer();
+      location.hash = 'agentes/nuevo';
       renderTeam();
       requestAnimationFrame(() => agentForm.elements.objective.focus());
       return true;
@@ -965,7 +919,8 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
         agentForm.elements.gameCount.value = '1';
       }
       formMessage(agentForm);
-      location.hash = 'agentes';
+      persistComposer();
+      location.hash = 'agentes/nuevo';
       renderTeam();
       requestAnimationFrame(() => agentForm.elements.objective.focus());
     },

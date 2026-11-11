@@ -208,6 +208,30 @@ test('tras cerrar el proceso a la fuerza se conservan criterios y se retoma solo
   assert.equal(done.history.length, 2);
 });
 
+test('la cola ejecutada pasa al seguimiento y admite encargos nuevos durante el trabajo', async t => {
+  const directory = await local(t);
+  let finish;
+  const gate = new Promise(resolve => { finish = resolve; });
+  t.after(() => finish());
+  const base = await start(t, directory, { apiKey: 'ensayo-local', generate: async () => { await gate; return fakeDraft(); } });
+  const panel = await request(base, '/api/panel').then(response => response.json());
+  const task = id => ({ id, agente: 'juegos', app: 'ingles', encargo: 'Encargo ' + id });
+  const saved = await request(base, '/api/panel', { ...panel.board, tasks: [task('primero')] }, { method: 'PUT' }).then(response => response.json());
+  assert.equal((await request(base, '/api/ejecutar', { mode: 'real', engine: 'openai', revision: saved.revision, consumeQueue: true })).status, 202);
+  const active = await waitPanel(base, ({ batch }) => batch?.running);
+  assert.equal(active.board.tasks.length, 0);
+  assert.equal(active.batch.tasks[0].app, 'ingles');
+  assert.equal((await request(base, '/api/panel', { ...active.board, tasks: [task('siguiente')] }, { method: 'PUT' })).status, 200);
+  finish();
+  const done = await waitPanel(base, ({ batch }) => batch?.state === 'finished');
+  assert.deepEqual(done.board.tasks.map(task => task.id), ['siguiente']);
+  assert.equal(done.history.filter(item => item.id === 'primero').length, 1);
+  const reopened = await start(t, directory);
+  const restored = await request(reopened, '/api/panel').then(response => response.json());
+  assert.equal(restored.board.tasks[0].id, 'siguiente');
+  assert.equal(restored.batch.tasks[0].id, 'primero');
+});
+
 test('implementa en copias separadas, revisa sobre el cambio y sube solo la revisión aprobada', { timeout: 30_000 }, async t => {
   const directory = await local(t);
   const root = join(directory, 'repo');

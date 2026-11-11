@@ -21,7 +21,7 @@ export function publicBatch(batch) {
   if (!batch) return null;
   const { id, mode, engine, startedAt, finishedAt, state, tasks, jobs, error, agents } = batch;
   return { id, mode, engine, startedAt, finishedAt, state, running: state === 'running',
-    tasks: tasks.map(({ id, agente, encargo }) => ({ id, agente, encargo, agentName: (agents?.[agente] || defaultAgents[agente])?.name })), jobs, error };
+    tasks: tasks.map(({ id, agente, encargo, app }) => ({ id, agente, encargo, app, agentName: (agents?.[agente] || defaultAgents[agente])?.name })), jobs, error };
 }
 
 export function createRunner(store, directory, { model, readiness, generator, baseRevision, recoverImplementation }) {
@@ -67,7 +67,7 @@ export function createRunner(store, directory, { model, readiness, generator, ba
     });
   }
 
-  async function start({ mode, engine, tasks, revision, codexModel }) {
+  async function start({ mode, engine, tasks, revision, codexModel, consumeQueue = false }) {
     if (!tasks.length) throw new RunnerError(400, 'Añade al menos un encargo.');
     const id = createHash('sha256').update(JSON.stringify({ mode, engine, tasks, codexModel })).digest('hex');
     const existing = store.batch(id);
@@ -93,6 +93,11 @@ export function createRunner(store, directory, { model, readiness, generator, ba
         jobs: Object.fromEntries(tasks.map(task => [task.id, { status: task.revisar ? 'espera' : 'pendiente' }])),
       };
       store.insert(batch);
+      if (consumeQueue) {
+        const selected = new Set(tasks.map(task => task.id));
+        store.writeBoard({ ...board, revision: board.revision + 1,
+          tasks: board.tasks.filter(task => !selected.has(task.id)) });
+      }
       return { batch, started: true };
     });
     if (result.started) launch(result.batch);

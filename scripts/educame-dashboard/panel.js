@@ -6,6 +6,7 @@ import { setupMemory } from './memory.js';
 import { setupOperations } from './operations.js';
 import { setupAgentEditor } from './agent-editor.js';
 import { setupChat } from './chat.js';
+import { setupWorkProgress } from './work-progress.js';
 
 const agents = Object.create(null);
 const agentName = item => item.agentName || agents[item.agente]?.name || item.agente;
@@ -82,7 +83,8 @@ function showPage() {
   const development = hash === 'teoria/desarrollo';
   const operation = /^control\/(github|hostinger|admin)(?:\/([a-f0-9]+))?$/.exec(hash);
   const deliveryId = /^entregas\/([a-z0-9][a-z0-9-]{0,63})$/.exec(hash)?.[1];
-  const requested = development ? 'teoria' : operation ? 'control' : deliveryId ? 'entregas' : hash === 'flujos' ? 'agentes' : hash;
+  const work = deliveryId || ['entregas', 'flujos', 'operaciones'].includes(hash) || hash.startsWith('agentes/');
+  const requested = development ? 'teoria' : operation ? 'control' : work ? 'agentes' : hash;
   const page = [...document.querySelectorAll('[data-page]')].some(node => node.dataset.page === requested) ? requested : 'inicio';
   document.querySelectorAll('[data-page]').forEach(node => { node.hidden = node.dataset.page !== page; });
   navigation.querySelectorAll('a').forEach(node => {
@@ -95,10 +97,30 @@ function showPage() {
   window.scrollTo(0, 0);
   if (page === 'cambios') changes?.load();
   if (page === 'control') operations?.open(operation?.[1], operation?.[2]);
-  if (page === 'entregas' && state) refresh().then(openLinkedDelivery).catch(error => feedback(error.message, true));
+  if ((deliveryId || hash === 'entregas') && state) refresh().then(openLinkedDelivery).catch(error => feedback(error.message, true));
   if (page === 'chat') chat.open();
   if (page === 'teoria') theory.openTrack(development);
-  if (page === 'agentes') { memory.renderAgentHint(); operations?.refreshQuota(); }
+  if (page === 'agentes') {
+    memory.renderAgentHint(); operations?.refreshQuota();
+    if (hash === 'agentes/nuevo') workspace.openComposer();
+    if (hash === 'agentes/revisar') {
+      historyFilter.value = 'pendientes';
+      if (state) renderHistory();
+    }
+    if (hash === 'agentes/uso') {
+      const usage = document.querySelector('#codex-usage').closest('details');
+      usage.open = true;
+      usage.scrollIntoView({ block: 'start' });
+    }
+    const target = { operaciones: '#work-queue', entregas: '#work-results',
+      'agentes/cola': '#work-queue', 'agentes/progreso': '#team-activity',
+      'agentes/resultados': '#work-results', 'agentes/revisar': '#work-results' }[hash];
+    if (target) document.querySelector(target).scrollIntoView({ block: 'start' });
+    document.querySelectorAll('.work-navigation a').forEach(link => {
+      if (link.hash === '#' + hash) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  }
 }
 
 function openLinkedDelivery() {
@@ -132,8 +154,9 @@ function taskRow(task, index) {
     saveBoard({ tasks: state.board.tasks.filter(item => item.id !== task.id) })
       .then(() => feedback('Encargo retirado del lote.')).catch(error => feedback(error.message, true));
   });
-  edit.disabled = remove.disabled = Boolean(state.batch?.running);
+  edit.disabled = remove.disabled = Boolean(state.batch?.running && state.batch.tasks.some(item => item.id === task.id));
   controls.append(edit, remove);
+  if (stored) controls.append(button('Ver entrega', () => openDelivery(stored)));
   row.append(copy, controls);
   return row;
 }
@@ -147,8 +170,7 @@ function renderHistory() {
   const filter = historyFilter.value;
   const selected = state.history.filter(item => filter === 'todas' ||
     (filter === 'copiador' && item.mode === 'real' && item.agente === 'copiador') ||
-    (filter === 'pendientes' && ['borrador', 'completado'].includes(item.status) &&
-      (!deliveryVerdict(item) || (item.implementation && !item.implementation.verified))) || item.mode === filter);
+    (filter === 'pendientes' && workProgress.needsAttention(item, state.board)) || item.mode === filter);
   const rows = selected.map(delivery => {
     const row = element('article', 'item');
     const copy = element('div');
@@ -158,11 +180,7 @@ function renderHistory() {
     );
     const controls = element('div', 'actions');
     if (delivery.mode === 'prueba') controls.append(element('span', 'badge demo', 'Simulación'));
-    const verdict = deliveryVerdict(delivery);
-    controls.append(delivery.implementation && !delivery.implementation.verified
-      ? element('span', 'badge pending', 'Pruebas pendientes') : badge(delivery.status));
-    if (state.board.pushes?.[delivery.key]) controls.append(element('span', 'badge ready', 'En GitHub'));
-    else if (verdict) controls.append(badge(verdict.decision));
+    controls.append(workProgress.statusBadge(delivery, state.board));
     controls.append(button('Abrir entrega', () => openDelivery(delivery)));
     row.append(copy, controls);
     return row;
@@ -208,15 +226,16 @@ function render() {
   const running = Boolean(batch?.running);
   const paused = batch?.state === 'paused';
   const codex = workspace?.codexStatus();
-  const tasks = board.tasks.map(taskRow);
-  document.querySelector('#task-list').replaceChildren(...(tasks.length ? tasks : [element('p', 'empty', 'Todavía no hay encargos. Crea uno o carga el ejemplo con Juegos, Marketing y Revisión.')]));
-  document.querySelector('#limits').textContent = `${tasks.length} de ${maxTasks} encargos · ${concurrency} a la vez`;
+  const tasks = board.tasks;
+  const rows = tasks.map(taskRow);
+  document.querySelector('#task-list').replaceChildren(...(rows.length ? rows : [element('p', 'empty', 'La cola está vacía. Pulsa Nuevo encargo para preparar el siguiente trabajo.')]));
+  document.querySelector('#limits').textContent = `${tasks.length} de ${maxTasks} preparados · hasta ${concurrency} agentes a la vez`;
   const apiStatus = document.querySelector('#api-status');
   apiStatus.textContent = !codex ? 'Comprobando Codex' : codex.ready ? 'Sesión activa' : 'Conectar Codex ↗';
   apiStatus.classList.toggle('ready', Boolean(codex?.ready));
-  document.querySelector('#run-status').textContent = running ? 'Lote en marcha. Puedes consultar las entregas a medida que estén listas.'
-    : paused ? 'Lote interrumpido. Al retomarlo, solo se ejecutan los pasos que aún pueden continuar con seguridad.'
-      : batch?.error || (batch ? 'Lote finalizado. Consulta el estado de los encargos guardados.' : 'La simulación usa respuestas de prueba locales.');
+  document.querySelector('#run-status').textContent = running ? 'Los agentes están trabajando. Puedes añadir encargos para después.'
+    : paused ? 'Hay un trabajo interrumpido. Pulsa Retomar trabajo para continuar.'
+      : tasks.length ? 'Pulsa Empezar cola para ejecutar los encargos preparados.' : 'Prepara un encargo para empezar.';
   document.querySelector('[data-resume-batch]').hidden = !paused;
   const runs = (state.batches || []).map(run => {
     const detail = element('details', 'memory-detail');
@@ -225,7 +244,7 @@ function render() {
     detail.append(element('summary', '', `${kind} · ${label} · ${dates.format(new Date(run.startedAt))}`));
     for (const task of run.tasks) {
       const job = run.jobs[task.id];
-      const row = element('p', '', task.encargo + ' ');
+      const row = element('p', '', agentName(task) + ' · ' + task.encargo + ' ');
       row.append(badge(job?.status));
       detail.append(row);
       if (job?.error) detail.append(element('p', 'muted', job.error));
@@ -233,16 +252,17 @@ function render() {
     return detail;
   });
   document.querySelector('#run-history').replaceChildren(...(runs.length ? runs : [element('p', 'empty', 'Aquí aparecerán los lotes que ejecutes.')]));
-  document.querySelectorAll('[data-action="new-task"]').forEach(node => { node.disabled = running || tasks.length >= maxTasks; });
+  document.querySelectorAll('[data-action="new-task"]').forEach(node => { node.disabled = tasks.length >= maxTasks; });
   document.querySelectorAll('[data-action="example"]').forEach(node => {
-    node.disabled = running || tasks.length + fixture.length > maxTasks;
-    node.title = !running && node.disabled ? 'El ejemplo requiere tres huecos en el lote.' : '';
+    node.disabled = tasks.length + fixture.length > maxTasks;
+    node.title = node.disabled ? 'El ejemplo requiere tres huecos en la cola.' : '';
   });
   document.querySelector('[data-action="new-link"]').disabled = false;
   document.querySelectorAll('[data-run]').forEach(node => {
     const mode = node.dataset.run;
     const researchers = tasks.some(task => task.agente === 'copiador');
     if (mode === 'real') node.hidden = !researchers;
+    if (mode === 'implementacion') node.hidden = tasks.length > 0 && tasks.every(task => task.agente === 'copiador');
     node.disabled = running || paused || !tasks.length ||
       (mode === 'implementacion' && (!codex?.ready || tasks.every(task => task.agente === 'copiador'))) ||
       (mode === 'real' && (!researchers || (!codex?.ready && !state.apiReady)));
@@ -269,6 +289,7 @@ function render() {
   renderLinks();
   memory.render();
   workspace?.render();
+  workProgress.render(state);
 }
 
 async function refresh() {
@@ -544,7 +565,7 @@ function openDelivery(delivery) {
     }
   }
   if (delivery.error) body.append(element('p', 'form-message', delivery.error));
-  if (delivery.draft && delivery.mode !== 'prueba') {
+  if ((delivery.draft || delivery.error) && delivery.mode !== 'prueba') {
     const next = element('div', 'actions delivery-next');
     next.append(button('Preparar seguimiento', () => {
       if (workspace.prepareFollowUp(delivery)) body.closest('dialog').close();
@@ -640,7 +661,8 @@ document.querySelectorAll('[data-run]').forEach(node => node.addEventListener('c
   feedback('');
   try {
     const engine = node.dataset.run === 'implementacion' || (node.dataset.run === 'real' && workspace.codexStatus()?.ready) ? 'codex' : 'openai';
-    await api('/api/ejecutar', 'POST', { mode: node.dataset.run, revision: state.board.revision, engine, researchOnly: node.dataset.run === 'real' });
+    await api('/api/ejecutar', 'POST', { mode: node.dataset.run, revision: state.board.revision, engine,
+      researchOnly: node.dataset.run === 'real', consumeQueue: true });
     await refresh();
   } catch (error) {
     render();
@@ -691,6 +713,7 @@ const agentEditor = setupAgentEditor({ api, button, formMessage, getState: () =>
   },
 });
 const chat = setupChat({ api, element, button, feedback, formMessage });
+const workProgress = setupWorkProgress({ element, button, badge, openDelivery });
 changes = setupChanges({ api, element });
 operations = setupOperations({ api, element, button, feedback, openCommand: changes.openCommand });
 showPage();

@@ -26,6 +26,7 @@ const assets = new Map([
   ['/panel.css', ['panel.css', 'text/css']],
   ['/panel.js', ['panel.js', 'text/javascript']],
   ['/workspace.js', ['workspace.js', 'text/javascript']],
+  ['/work-progress.js', ['work-progress.js', 'text/javascript']],
   ['/workspace.css', ['workspace.css', 'text/css']],
   ['/changes.js', ['changes.js', 'text/javascript']],
   ['/operations.js', ['operations.js', 'text/javascript']],
@@ -541,7 +542,7 @@ export async function createDashboard({
       }
       if (request.method === 'POST' && ['/api/ejecutar', '/api/encargos'].includes(path)) {
         if (deliveryWork) throw new PanelError(409, 'Espera a que termine la operación de la entrega.');
-        const { mode, revision, tasks, engine = 'openai', researchOnly, agentRevision } = await bodyJson(request);
+        const { mode, revision, tasks, engine = 'openai', researchOnly, agentRevision, consumeQueue } = await bodyJson(request);
         if (!['openai', 'codex'].includes(engine)) throw new PanelError(400, 'Elige Codex u OpenAI API.');
         if (!['real', 'prueba', 'implementacion'].includes(mode)) throw new PanelError(400, 'Elige cómo ejecutar el lote.');
         const queued = path === '/api/ejecutar';
@@ -553,7 +554,8 @@ export async function createDashboard({
         if (mode === 'implementacion' && selected.some(task => task.agente === researchRole)) {
           throw new PanelError(400, 'Ejecuta Copiador en modo de análisis. Sus ideas se pueden convertir en encargos de implementación.');
         }
-        return json(202, await runner.start({ mode, engine, tasks: selected, revision: queued ? revision : agentRevision }));
+        return json(202, await runner.start({ mode, engine, tasks: selected, revision: queued ? revision : agentRevision,
+          consumeQueue: queued && consumeQueue === true }));
       }
       if (request.method === 'POST' && path === '/api/encargos/retomar') {
         const { id } = await bodyJson(request);

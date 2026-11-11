@@ -14,11 +14,7 @@ En Windows, crea **LA TERRAZA** en el escritorio con
 `powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File scripts/educame-dashboard/install-shortcut.ps1`.
 El acceso directo inicia el panel si hace falta y abre Inicio. Los registros de arranque están en `.educame-agents/`.
 
-Desde **Inicio → Pedir a Codex**, elige el proyecto y el tipo de resultado. Por defecto se prepara un cambio listo para revisar.
-Un plan o diagnóstico consulta el proyecto y prepara una respuesta. Una
-implementación trabaja en una copia Git aislada. Revisa ambos resultados en
-**Entregas**. **Preparar seguimiento** lleva el contexto de una entrega a un
-encargo nuevo. Para usar agentes especializados, abre **Elegir agentes**.
+Desde **Inicio → Crear un encargo** o **Agentes → Nuevo encargo**, elige la app y escribe el objetivo. El borrador y la selección de agentes se conservan al recargar. Codex se selecciona al escribir si todavía no has elegido un agente. Puedes seleccionar otros especialistas antes de enviar.
 En **Conexiones** y **Operación** hay guías cortas junto a cada configuración.
 
 En **Chat con Codex**, selecciona un modelo del catálogo de tu sesión. **Hacer
@@ -32,8 +28,20 @@ carga el código. El historial del chat se guarda localmente.
 **Uso de Codex** muestra el porcentaje disponible y la fecha de renovación de
 cada ventana que devuelve la sesión de Codex CLI. Se actualiza cada minuto
 mientras el panel está visible y también bajo demanda. El total informado por
-Codex y los tokens registrados en los encargos de Educame son cifras separadas.
+Codex muestra sus ventanas de uso por separado.
 Si una consulta falla, el último dato disponible aparece con su fecha.
+
+### Agentes y trabajos
+
+La misma pantalla reúne tres zonas.
+
+1. **En cola** guarda los encargos que has preparado. **Añadir a la cola** permite seguir preparando mientras otros agentes trabajan. **Empezar cola** inicia los cambios con Codex. Los encargos pasan al seguimiento al empezar y dejan espacio para los siguientes.
+2. **En curso** muestra el agente, la app, el objetivo y el estado real de cada encargo. Los resultados con comprobaciones pendientes muestran **Resolver comprobaciones**.
+3. **Resultados** permite abrir cada entrega, revisarla, pedir seguimiento y preparar su publicación. El historial conserva también análisis y simulaciones.
+
+**Implementar con Codex** y **Analizar enlaces** ejecutan directamente. **Planificar o probar el encargo** permite preparar un borrador o simular con datos ficticios. **Opciones de la cola** permite simular los encargos guardados, cargar un ejemplo o editar instrucciones individuales.
+
+Los enlaces anteriores `#operaciones` y `#entregas` siguen llevando a sus zonas dentro de Agentes. **Historial de ejecuciones** conserva los grupos enviados.
 
 ### Operación
 
@@ -58,14 +66,14 @@ Si una consulta falla, el último dato disponible aparece con su fecha.
 
 - **Agentes.** Selecciona la app, los agentes y el resultado que buscas. **Implementar con Codex** usa la sesión local de Codex CLI para editar una copia Git aislada. Con Juegos puedes crear, mejorar o combinar ambas acciones en un pack de hasta diez juegos. **Preparar borrador** usa Codex en modo de lectura u OpenAI API. **Simular** prueba el flujo sin hacer llamadas. Para un lote con instrucciones distintas por agente, edita cada encargo en **Cola de trabajo**.
 - **Memoria.** Consulta la ficha de cada app con público, estética, funcionalidades, prioridades, reglas, errores a evitar y comprobaciones. Añade criterios sobre didáctica, accesibilidad, marketing, operación u otras categorías de la ficha. Un agente puede sugerir un aprendizaje. Para incorporarlo, pulsa **Usar propuesta del agente**, ajusta el texto y guarda la revisión con la casilla de Memoria marcada. Las notas y propuestas sin confirmar se quedan en su entrega. Edita o archiva criterios desde Memoria.
-- **Entregas.** Abre el resultado para ver el siguiente paso. Si Codex dejó una copia con pruebas compatibles, **Volver a comprobar** ejecuta esas pruebas en el equipo sobre la copia aislada. Cuando pasan, revisa la vista local o el código y aprueba el commit. **Preparar publicación** sube la rama y prepara una solicitud de cambios si GitHub está conectado. Un borrador de Marketing aprobado se puede llevar al editor de publicaciones.
+- **Resultados de Agentes.** Abre una entrega para ver el siguiente paso. Si Codex dejó una copia con pruebas compatibles, **Volver a comprobar** ejecuta esas pruebas en el equipo sobre la copia aislada. Cuando pasan, revisa la vista local o el código y aprueba el commit. **Preparar publicación** sube la rama y prepara una solicitud de cambios si GitHub está conectado. Un borrador de Marketing aprobado se puede llevar al editor de publicaciones.
 - **Conexiones.** En **Agentes e IA** puedes comprobar Codex y configurar una clave de OpenAI como alternativa. Si el panel no detecta una sesión de Codex, inicia sesión con `codex login` y pulsa **Comprobar sesión**. En **Redes sociales**, vincula los perfiles en [Buffer](https://publish.buffer.com/) y guarda su clave API. En **Estadísticas**, habilita Search Console API en Google Cloud, crea un cliente OAuth web, registra la URL de retorno del panel y autoriza la lectura de la propiedad.
 - **Vídeo.** Conecta una clave de [Runway](https://dev.runwayml.com/) y describe un clip de cinco segundos en formato vertical u horizontal. La generación usa créditos de Runway. Descarga el MP4 cuando esté listo. Para programarlo después en Buffer, aloja primero el archivo en una URL pública estable.
 - **Apps.** Abre los siete productos de Educame, inicia un encargo con la app seleccionada o entra al dashboard online. La etiqueta **En pausa** refleja el estado público de la app.
 - **Cambios.** Filtra el historial Git por app y comprueba qué archivos tienes pendientes. **Sincronizar GitHub** actualiza la referencia de `origin/main`. **Vista local** abre la app o su landing con los archivos de tu equipo, incluso los cambios sin commit. Usa datos de ensayo. Para llevar una revisión a Hostinger, comprueba que los cambios aprobados estén en `main` de GitHub y pulsa **Generar comando**. El bloque fija esa revisión y usa el [procedimiento de actualización](../infra/HOSTINGER_UPDATE.md).
 - **Teoría.** La [guía de Educame](../scripts/educame-dashboard/theory-library.js) explica las apps y el panel. La [ruta de desarrollo](../scripts/educame-dashboard/theory-development.js) recorre herramientas, frontend, backend, arquitectura, infraestructura y un proyecto guiado. Cada ruta conserva su progreso en el navegador. Cuando un flujo nuevo aporte algo que aprender, añade un ejemplo verificable al catálogo correspondiente y conserva los identificadores existentes.
 - **Publicar.** Elige perfiles, revisa el texto y confirma si quieres que Buffer lo envíe ahora o lo añada a su cola. Para imágenes y vídeos, pega la URL HTTPS pública del archivo. El historial indica la respuesta de Buffer por perfil. Si un envío queda sin confirmar, comprueba primero el resultado en Buffer. [Formatos de medios](https://developers.buffer.com/guides/hosting-media)
-- **Estadísticas.** Google muestra clics, impresiones, CTR, posición, consultas y páginas por periodo. Redes muestra los datos que Buffer ofrece para cada perfil autorizado. Actividad local reúne entregas, simulaciones, tokens y envíos recientes.
+- **Estadísticas.** Google muestra clics, impresiones, CTR, posición, consultas y páginas por periodo. Redes muestra los datos que Buffer ofrece para cada perfil autorizado. Actividad local reúne entregas, simulaciones y envíos recientes.
 
 Las credenciales guardadas desde Conexiones se cifran en el equipo. El almacén y la clave local quedan en `.educame-agents/`, fuera de Git. El servidor escucha en la dirección de bucle local.
 
@@ -98,7 +106,7 @@ En **Entregas → Análisis de enlaces** están los resultados. Cada idea indica
 
 ## Retomar un lote
 
-El panel guarda cola, criterios, revisiones y progreso de los lotes en `.educame-agents/panel.sqlite`. En el primer arranque importa `panel.json` si existe y conserva el archivo original. Si el proceso se cierra durante un lote, **Cola de trabajo → Retomar lote** recupera las entregas guardadas y ejecuta los encargos pendientes con los criterios que se aplicaban al empezar. Los encargos enviados cuyo resultado no se pudo confirmar se marcan como **Interrumpido**. Para una implementación, la copia aislada queda disponible en `.educame-agents/worktrees/`.
+El panel guarda cola, criterios, revisiones y progreso de los lotes en `.educame-agents/panel.sqlite`. En el primer arranque importa `panel.json` si existe y conserva el archivo original. Si el proceso se cierra durante un lote, **Agentes → Retomar trabajo** recupera las entregas guardadas y ejecuta los encargos pendientes con los criterios que se aplicaban al empezar. Los encargos enviados cuyo resultado no se pudo confirmar se marcan como **Interrumpido**. Para una implementación, la copia aislada queda disponible en `.educame-agents/worktrees/`.
 
 ## Revisar y subir código
 

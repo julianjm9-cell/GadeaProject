@@ -158,9 +158,9 @@ export const theoryLibrary = [
       },
       {
         id: 'codex', title: 'Codex local y una API', summary: 'Un agente puede usar la sesión local de Codex o llamar a un servicio con una clave.',
-        detail: 'En este panel Codex CLI consulta el proyecto en modo de solo lectura para preparar una entrega. El motor alternativo usa OpenAI API con la configuración disponible. La revisión y la decisión se conservan en el panel. Las respuestas de IA requieren comprobar hechos, código y soluciones.',
-        practice: 'Abre un borrador en Entregas y localiza su motor, su resultado y lo que queda por verificar.',
-        link: ['Ver Entregas', 'entregas'],
+        detail: 'Codex local puede preparar un plan o implementar un cambio en una copia Git aislada. El motor alternativo usa OpenAI API para borradores y análisis. En Agentes ves la cola, el progreso y los resultados. Revisa las pruebas y el resultado antes de aprobar y publicar.',
+        practice: 'Abre un resultado en Agentes y localiza su motor, su resultado y lo que queda por verificar.',
+        link: ['Ver resultados', 'agentes/resultados'],
       },
       {
         id: 'automatizar', title: 'Cola, revisiones y límites', summary: 'Una automatización necesita pasos claros, dependencias y una salida comprobable.',

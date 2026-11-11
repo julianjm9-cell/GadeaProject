@@ -24,8 +24,6 @@
         <a href="#inicio" data-icon="home">Inicio</a>
         <a href="#chat" data-icon="sparkles">Chat con Codex</a>
         <a href="#agentes" data-icon="sparkles">Agentes</a>
-        <a href="#operaciones" data-icon="queue">Cola de trabajo</a>
-        <a href="#entregas" data-icon="file">Entregas</a>
       </div>
       <div class="nav-cluster"><p class="nav-group">Productos</p>
         <a href="#apps" data-icon="apps">Apps</a>
@@ -47,7 +45,7 @@
   </aside>
 
   <main id="main" tabindex="-1">
-    <header class="topline"><div class="terrace-location"><span>LA TERRAZA</span><span id="page-location">Inicio</span></div><div class="actions"><a class="status-chip" id="codex-quota-chip" href="#agentes">Uso de Codex</a><a class="status-chip" id="api-status" href="#conexiones" data-open-connection="ia">Comprobando Codex</a></div></header>
+    <header class="topline"><div class="terrace-location"><span>LA TERRAZA</span><span id="page-location">Inicio</span></div><div class="actions"><a class="status-chip" id="codex-quota-chip" href="#agentes/uso">Uso de Codex</a><a class="status-chip" id="api-status" href="#conexiones" data-open-connection="ia">Comprobando Codex</a></div></header>
     <div id="feedback" class="feedback" role="status" hidden><span id="feedback-text"></span><button type="button" class="feedback-close" aria-label="Cerrar aviso">×</button></div>
 
     <section data-page="inicio" aria-labelledby="home-title">
@@ -55,18 +53,8 @@
         <div class="terrace-welcome">
           <p class="eyebrow">TU ESPACIO DE TRABAJO</p>
           <h1 id="home-title">¿Qué quieres hacer hoy?</h1>
-          <form id="terrace-order" aria-labelledby="home-title">
-            <div class="terrace-order-options">
-              <label>¿En qué app?<select name="app" id="terrace-app" required></select></label>
-              <label>¿Qué quieres recibir?<select name="mode" required><option value="implementacion">Un cambio listo para revisar</option><option value="real">Un plan o diagnóstico</option></select></label>
-            </div>
-            <label>¿Qué quieres que haga Codex?<textarea name="objective" rows="3" maxlength="2000" required placeholder="Ejemplo: revisa por qué se corta el crucigrama en móvil."></textarea></label>
-            <p class="inline-hint" id="terrace-mode-hint">Codex trabaja en una copia aislada. En Entregas podrás revisar, aprobar y preparar la publicación.</p>
-            <div class="actions"><button class="button primary" type="submit" data-icon="sparkles" disabled>Pedir a Codex</button><a class="text-link" href="#chat">Abrir chat</a><a class="text-link" id="terrace-agents" href="#agentes">Elegir agentes →</a></div>
-            <p class="inline-hint" id="terrace-order-status" role="status"></p>
-            <a class="text-link" id="terrace-connect" href="#conexiones" data-open-connection="ia" hidden>Configurar Codex en Conexiones →</a>
-            <p class="form-message" role="alert" hidden></p>
-          </form>
+          <p>Prepara un encargo y sigue el trabajo de tus agentes desde un mismo espacio.</p>
+          <div class="actions"><a class="button primary" href="#agentes/nuevo">Crear un encargo</a><a class="button secondary" href="#chat">Abrir chat con Codex</a></div>
         </div>
         <img class="terrace-photo" src="/terrace-hero.webp" width="1200" height="800" alt="" fetchpriority="high">
       </div>
@@ -277,18 +265,47 @@
     </dialog>
 
     <section data-page="agentes" aria-labelledby="compose-title" hidden>
-      <div class="page-heading heading-actions"><h1 id="compose-title">Nuevo encargo</h1><a class="text-link" href="#operaciones">Abrir cola →</a></div>
-      <section class="card operation-panel quota-panel" aria-labelledby="codex-quota-title">
-        <div class="card-heading"><h2 id="codex-quota-title">Uso de Codex</h2><button class="button secondary" id="codex-usage-refresh" type="button">Actualizar</button></div>
-        <div id="codex-usage" class="quota-grid" aria-live="polite"><p class="muted">Consultando la sesión local…</p></div>
+      <div class="page-heading heading-actions"><div><h1 id="compose-title">Agentes y trabajos</h1><p class="muted">Prepara, pon en marcha y revisa cada encargo.</p></div><div class="actions"><button class="button secondary" id="open-agent-editor" type="button" data-icon="tool" disabled>Gestionar agentes</button><a class="button primary" href="#agentes/nuevo" data-icon="plus">Nuevo encargo</a></div></div>
+      <nav class="work-navigation" aria-label="Trabajo con agentes">
+        <a href="#agentes/cola"><strong id="work-queue-count">0</strong><span>En cola</span><small>Preparados para empezar</small></a>
+        <a href="#agentes/progreso"><strong id="work-running-count">0</strong><span>En curso</span><small>Trabajo de tus agentes</small></a>
+        <a href="#agentes/revisar"><strong id="work-review-count">0</strong><span>Por revisar</span><small>Resultados y siguientes pasos</small></a>
+      </nav>
+      <section class="card compose-card" id="team-activity" hidden aria-label="Progreso de los encargos"></section>
+      <section id="work-queue" aria-labelledby="lote-title">
+        <section class="card" aria-labelledby="lote-title">
+          <div class="card-heading"><div><h2 id="lote-title">En cola</h2><p id="limits"></p></div><a class="text-link" href="#agentes/nuevo">Añadir otro encargo</a></div>
+          <div class="run-bar">
+            <p id="run-status" role="status">Cargando tu espacio local…</p>
+            <div class="actions">
+              <button type="button" class="button primary" data-run="implementacion" disabled>Empezar cola</button>
+              <button type="button" class="button primary" data-run="real" hidden disabled>Analizar enlaces en cola</button>
+              <button type="button" class="button primary" data-resume-batch hidden>Retomar trabajo</button>
+            </div>
+          </div>
+          <div id="task-list" class="item-list"></div>
+          <details class="work-options"><summary>Opciones de la cola</summary><div class="actions"><button type="button" class="button secondary" data-run="prueba" disabled>Simular lote</button><button class="button subtle" type="button" data-action="example" disabled>Cargar ejemplo</button><button class="button subtle" type="button" data-action="new-task" disabled>Editar un encargo por agente</button></div></details>
+        </section>
       </section>
-      <form id="agent-compose" class="compose-layout">
-        <section class="card compose-card">
-          <div class="card-heading agent-picker-heading"><h2>Agentes</h2><div class="actions"><button class="button secondary" id="select-team" type="button" aria-pressed="false">Seleccionar equipo</button><button class="button secondary" id="open-agent-editor" type="button" data-icon="tool" disabled>Gestionar agentes</button></div></div>
+      <section id="work-results" aria-labelledby="entregas-title">
+        <div class="card-heading"><div><h2 id="entregas-title">Resultados</h2><p class="muted">Abre un resultado para comprobarlo, pedir ajustes o publicarlo.</p></div><label class="compact-label">Mostrar<select id="history-filter"><option value="todas">Todos</option><option value="pendientes">Por revisar</option><option value="implementacion">Implementaciones</option><option value="copiador">Análisis de enlaces</option><option value="real">Borradores</option><option value="prueba">Simulaciones</option></select></label></div>
+        <div id="history" class="item-list"></div>
+      </section>
+      <details class="card run-history"><summary id="run-history-title">Historial de ejecuciones</summary><div id="run-history" class="item-list"></div></details>
+      <details class="card operation-panel quota-panel">
+        <summary id="codex-quota-title">Uso disponible de Codex</summary><button class="button secondary" id="codex-usage-refresh" type="button">Actualizar</button>
+        <div id="codex-usage" class="quota-grid" aria-live="polite"><p class="muted">Consultando la sesión local…</p></div>
+      </details>
+      <details id="work-compose" class="work-compose">
+      <summary id="new-order-title">Crear un nuevo encargo</summary>
+      <p class="inline-hint">Escribe el objetivo y elige la app. Codex se selecciona al escribir. Puedes elegir un agente especializado o varios.</p>
+      <form id="agent-compose" class="compose-layout" aria-labelledby="new-order-title">
+        <section class="card compose-card agent-selection">
+          <div class="card-heading agent-picker-heading"><h2>¿Quién lo hará?</h2><button class="button secondary" id="select-team" type="button" aria-pressed="false">Seleccionar equipo</button></div>
           <div class="team-grid" id="team-picker" role="group" aria-label="Agentes"></div>
           <p class="inline-hint" id="team-review-hint" hidden>Revisión trabajará sobre la entrega de Juegos si lo has seleccionado, o sobre la del primer agente de la selección.</p>
         </section>
-        <section class="card compose-card">
+        <section class="card compose-card agent-request">
           <h2>Encargo</h2>
           <label>App o proyecto<select name="app" id="agent-app"></select></label>
           <div class="memory-inline"><span id="agent-memory-status"></span><a class="text-link" href="#memoria" id="agent-memory-link">Ver contexto</a></div>
@@ -305,7 +322,8 @@
           </fieldset>
           <details><summary>Añadir contexto o criterios de entrega</summary><label>Contexto<textarea name="context" rows="3" maxlength="7500" placeholder="Nivel, público, restricciones o pasos para reproducir un fallo."></textarea></label></details>
           <p class="inline-hint" id="team-summary" role="status"></p>
-          <div class="actions"><button class="button primary" type="submit" value="implementacion" disabled>Implementar con Codex</button><button class="button secondary" type="submit" value="real" id="agent-draft" disabled>Preparar borrador</button><button class="button primary" type="submit" value="real" id="agent-research" hidden disabled>Analizar enlaces</button><button class="button secondary" type="submit" value="prueba" disabled>Simular</button><button class="button subtle" type="submit" value="queue" disabled>Añadir a la cola</button></div>
+          <div class="actions"><button class="button primary" type="submit" value="queue" disabled>Añadir a la cola</button><button class="button secondary" type="submit" value="implementacion" disabled>Implementar con Codex</button><button class="button secondary" type="submit" value="real" id="agent-research" hidden disabled>Analizar enlaces</button></div>
+          <details class="work-options"><summary>Planificar o probar el encargo</summary><div class="actions"><button class="button secondary" type="submit" value="real" id="agent-draft" disabled>Preparar borrador</button><button class="button secondary" type="submit" value="prueba" disabled>Simular</button></div></details>
           <details id="engine-options" hidden><summary>Motor de ejecución</summary><label>Motor<select name="engine"><option value="codex">Codex local</option><option value="openai">OpenAI API</option></select></label></details>
           <p class="form-message" role="alert" hidden></p>
           <p class="inline-hint" id="team-setup" hidden>Para ejecutar encargos, <a class="text-link" href="#conexiones" data-open-connection="ia">conecta Codex</a>. Puedes usar la simulación mientras tanto.</p>
@@ -316,7 +334,7 @@
           </ul></details>
         </section>
       </form>
-      <section class="card compose-card" id="team-activity" hidden aria-label="Último envío"></section>
+      </details>
     </section>
 
     <section data-page="publicar" aria-labelledby="publish-title" hidden>
@@ -458,36 +476,6 @@
       <section class="card compose-card" data-stat-panel="local" aria-label="Actividad local" hidden><h2>Actividad reciente</h2><p class="inline-hint">Últimas 100 entregas de agentes y 50 envíos a Buffer.</p><div class="stat-metrics" id="local-metrics"></div></section>
     </section>
 
-    <section data-page="operaciones" aria-labelledby="operaciones-title" hidden>
-      <div class="page-heading heading-actions"><h1 id="operaciones-title">Cola de trabajo</h1><button class="button primary" type="button" data-action="new-task" disabled>+ Añadir encargo</button></div>
-      <section class="card" aria-labelledby="lote-title">
-        <div class="card-heading">
-          <div><h2 id="lote-title">Encargos preparados</h2><p id="limits"></p></div>
-          <button class="button subtle" type="button" data-action="example" disabled>Cargar ejemplo</button>
-        </div>
-        <div class="run-bar">
-          <p id="run-status" role="status">Cargando tu espacio local…</p>
-          <div class="actions">
-            <button type="button" class="button secondary" data-run="prueba" disabled>Simular lote</button>
-            <button type="button" class="button primary" data-run="implementacion" disabled>Implementar lote</button>
-            <button type="button" class="button primary" data-run="real" hidden disabled>Analizar enlaces en cola</button>
-            <button type="button" class="button primary" data-resume-batch hidden>Retomar lote</button>
-          </div>
-        </div>
-        <div id="task-list" class="item-list"></div>
-      </section>
-      <section class="card run-history" aria-labelledby="run-history-title"><h2 id="run-history-title">Lotes guardados</h2><div id="run-history" class="item-list"></div></section>
-    </section>
-
-    <section data-page="entregas" aria-labelledby="entregas-title" hidden>
-      <div class="page-heading"><h1 id="entregas-title">Entregas</h1></div>
-      <section class="card" aria-label="Historial de entregas">
-        <div class="card-heading"><h2>Historial</h2>
-          <label class="compact-label">Mostrar<select id="history-filter"><option value="todas">Todas</option><option value="pendientes">Por revisar</option><option value="implementacion">Implementaciones</option><option value="copiador">Análisis de enlaces</option><option value="real">Borradores</option><option value="prueba">Simulaciones</option></select></label>
-        </div>
-        <div id="history" class="item-list"></div>
-      </section>
-    </section>
 
     <section data-page="enlaces" aria-labelledby="enlaces-title" hidden>
       <div class="page-heading heading-actions"><h1 id="enlaces-title">Accesos guardados</h1><a class="text-link" href="#apps">Volver a apps →</a></div>
