@@ -58,7 +58,7 @@ export function validateTasks(input, agents = defaultAgents) {
         /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/.test(task.id) || seen.has(task.id)) {
       throw new Error('Cada encargo necesita un id único con minúsculas, números o guiones, de hasta 64 caracteres.');
     }
-    const { id, agente, encargo, contexto = '', revisar = '', app, fuentes } = task;
+    const { id, agente, encargo, contexto = '', revisar = '', app, fuentes, continuar } = task;
     if (typeof agente !== 'string' || !Object.hasOwn(agents, agente)) throw new Error(`${id}: el agente no existe.`);
     if (typeof encargo !== 'string' || !encargo.trim() || encargo.length > 2000 ||
         typeof contexto !== 'string' || contexto.length > 8000) {
@@ -68,9 +68,10 @@ export function validateTasks(input, agents = defaultAgents) {
       throw new Error(`${id}: revisar debe señalar un encargo anterior de otro agente.`);
     }
     if (app !== undefined && (typeof app !== 'string' || !Object.hasOwn(projectProfiles, app))) throw new Error(`${id}: el proyecto no existe.`);
-    if (Object.keys(task).some(key => !['id', 'agente', 'encargo', 'contexto', 'revisar', 'app', ...(agente === researchRole ? ['fuentes'] : [])].includes(key)) ||
+    if (continuar !== undefined && (typeof continuar !== 'string' || !/^[a-z0-9][a-z0-9-]{0,63}$/.test(continuar))) throw new Error('La entrega de referencia no es válida.');
+    if (Object.keys(task).some(key => !['id', 'agente', 'encargo', 'contexto', 'revisar', 'app', 'continuar', ...(agente === researchRole ? ['fuentes'] : [])].includes(key)) ||
         typeof revisar !== 'string') throw new Error(`${id}: hay campos que el piloto no reconoce.`);
-    const normalized = { id, agente, encargo, contexto, revisar, ...(app ? { app } : {}),
+    const normalized = { id, agente, encargo, contexto, revisar, ...(app ? { app } : {}), ...(continuar ? { continuar } : {}),
       ...(agente === researchRole ? { fuentes: validateSources(fuentes) } : {}) };
     seen.set(id, normalized);
     return normalized;

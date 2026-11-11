@@ -47,7 +47,7 @@ Educame reúne herramientas para profesores particulares y para personas que pre
 
 En paralelo, Juegos y Marketing pueden avanzar con entradas independientes. Si Marketing va a mostrar un juego nuevo, su versión revisada es una entrada del guion. Cuando dos cambios tocan la misma pantalla o el mismo formato de datos, acuerda el alcance antes de integrar.
 
-En el Centro de mando, los agentes de implementación trabajan en copias Git aisladas. Registra los archivos y las pruebas ejecutadas. La aprobación corresponde al commit revisado y la subida crea una rama de trabajo. La fusión en GitHub y el despliegue en Hostinger tienen confirmaciones separadas, cada una vinculada a un commit. Si la revisión cambia entre la confirmación y la ejecución, el panel debe pedir que se revise de nuevo. Copiador entrega análisis para revisión. Adapta los patrones al público y a las reglas de la app, separando lo observado de la propuesta. Conserva la fuente para poder comprobarlo.
+En el Centro de mando, los agentes de implementación trabajan en copias Git aisladas. El recorrido habitual es comprobar las entregas, preparar y probar una versión conjunta y pulsar Aceptar y publicar. Esa aceptación aplica la revisión comprobada y la sube con el acceso Git del equipo. Comprueba que la copia local y GitHub siguen en las revisiones previstas y conserva el estado para reintentar sin duplicar. Si la web requiere actualización, ofrece el siguiente paso de Hostinger al terminar. Desde una entrega se pueden enviar ajustes que continúan su código anterior. Copiador entrega análisis para revisión y sus ideas conservan las fuentes.
 
 ## Cómo incorporar lo aprendido
 

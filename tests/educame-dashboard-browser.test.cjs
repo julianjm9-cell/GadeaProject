@@ -23,6 +23,61 @@ for (const [name, engine, viewport] of [
   ['Chromium escritorio', chromium, { width: 1440, height: 950 }],
   ['WebKit móvil', webkit, { width: 390, height: 844 }],
 ]) {
+  test(`Publicación sencilla comprueba, acepta y reintenta en ${name}`, { timeout: 25_000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
+    const server = await listen(t, directory, { codex: { status: async () => ({ ready: true }) } });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    t.after(() => browser.close());
+    const page = await browser.newPage({ viewport });
+    page.setDefaultTimeout(8000);
+    const pageErrors = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+    t.after(() => assert.deepEqual(pageErrors, []));
+    const base = 'http://127.0.0.1:' + server.address().port, candidate = 'a'.repeat(40);
+    const key = 'implementacion/publicar-ensayo';
+    let job = null, accepts = 0;
+    await page.route('**/api/panel', async route => {
+      const data = await (await route.fetch()).json();
+      data.history.unshift({ id: 'publicar-ensayo', key, mode: 'implementacion', app: 'ingles', agente: 'juegos',
+        model: 'Codex local', encargo: 'Mejora el juego', status: 'borrador', finishedAt: '2026-11-11T12:00:00Z',
+        implementation: { verified: false }, draft: { resumen: 'Mejora del juego', entrega: 'Tablero de ensayo.' } });
+      if (job?.state === 'published') data.board.pushes[key] = { integratedRevision: candidate };
+      return route.fulfill({ json: data });
+    });
+    await page.route('**/api/publicacion**', route => {
+      const path = new URL(route.request().url()).pathname;
+      if (path !== '/api/publicacion' && !path.startsWith('/api/publicacion/')) return route.continue();
+      if (path.endsWith('/preparar')) {
+        assert.deepEqual(route.request().postDataJSON().keys, [key]);
+        job = { id: 'ensayo', state: 'ready', candidate, sources: [{ key, title: 'Mejora del juego' }],
+          files: ['apps/cambridge/index.html'], checks: [{ command: 'node --test', passed: true }], requiresWeb: true };
+      }
+      if (path.endsWith('/aceptar')) {
+        assert.deepEqual(route.request().postDataJSON(), { id: job.id, candidate });
+        accepts++;
+        job = { ...job, state: accepts === 1 ? 'retry' : 'published', message: 'Falta confirmar la subida. Reintenta.' };
+      }
+      return route.fulfill({ json: job });
+    });
+    await page.route('**/api/cambios/hostinger', route => route.fulfill({ json: { revision: candidate, command: 'bash infra/deploy-hostinger.sh' } }));
+    await page.goto(base + '/#entregas/publicar-ensayo');
+    const delivery = page.getByRole('dialog', { name: 'Mejora del juego' });
+    await delivery.getByRole('button', { name: 'Comprobar y preparar' }).click().catch(async error => {
+      t.diagnostic(JSON.stringify(await page.evaluate(() => ({ hash: location.hash,
+        open: document.querySelector('#delivery-dialog').open, title: document.querySelector('#delivery-title').textContent,
+        feedback: document.querySelector('#feedback-text').textContent, body: document.querySelector('#delivery-body').textContent.slice(0, 1200) }))));
+      throw error;
+    });
+    const publication = page.locator('#work-publication');
+    await publication.getByRole('button', { name: 'Aceptar y publicar', exact: true }).click();
+    await publication.getByRole('button', { name: 'Reintentar publicación' }).click();
+    await publication.getByText('Aplicado y subido a GitHub', { exact: true }).waitFor();
+    assert.equal(accepts, 2);
+    await publication.getByRole('button', { name: 'Copiar comando de Hostinger' }).click();
+    await page.getByRole('dialog', { name: 'Comando para Hostinger' }).waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  });
+
   test(`El logo alterna el nombre del entorno y conserva la elección en ${name}`, { timeout: 25_000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
     const server = await listen(t, directory, { codex: { status: async () => ({ ready: false }) } });
@@ -112,7 +167,14 @@ for (const [name, engine, viewport] of [
     const base = 'http://127.0.0.1:' + server.address().port;
     let proposal;
     let applied = false;
+    let prepared = false;
     const commit = 'a'.repeat(40);
+    await page.route('**/api/publicacion/preparar', route => {
+      assert.deepEqual(route.request().postDataJSON().keys, ['implementacion/terraza-' + proposal.id]);
+      prepared = true;
+      return route.fulfill({ json: { id: 'chat-ensayo', state: 'ready', candidate: commit,
+        sources: [], files: ['scripts/educame-dashboard/theme.css'], checks: [] } });
+    });
     await page.route('**/api/chat**', async route => {
       const request = route.request();
       const path = new URL(request.url()).pathname;
@@ -145,10 +207,10 @@ for (const [name, engine, viewport] of [
     const dialog = page.getByRole('dialog', { name: 'Revisar propuesta' });
     await dialog.getByText('+ body { color: olive; }').waitFor();
     assert.equal(applied, false);
-    await dialog.getByRole('button', { name: 'Aplicar en este equipo' }).click();
-    await page.getByText('Aplicada en este equipo', { exact: true }).waitFor();
-    await page.getByRole('button', { name: 'Reiniciar LA TERRAZA' }).waitFor();
-    assert.equal(applied, true);
+    await dialog.getByRole('button', { name: 'Comprobar y preparar' }).click();
+    await page.locator('#work-publication').getByRole('button', { name: 'Aceptar y publicar', exact: true }).waitFor();
+    assert.equal(applied, false, 'el chat no aplica antes de aceptar la publicación conjunta');
+    assert.equal(prepared, true);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   });
 
@@ -212,12 +274,27 @@ for (const [name, engine, viewport] of [
     await body.getByText('Revisión ficticia de navegación.', { exact: true }).waitFor();
     await body.getByText('Comprobar el foco en móvil.', { exact: true }).waitFor();
     await body.getByText('Según la entrega del agente.', { exact: true }).waitFor();
+    const review = page.locator('#review-form');
+    await review.getByRole('button', { name: 'Pedir cambios', exact: true }).click();
+    await review.getByRole('alert').getByText('Escribe qué quieres cambiar para preparar los ajustes.').waitFor();
+    const adjustments = 'Haz visible el foco y explica cómo comprobarlo con teclado.';
+    await review.locator('[name=note]').fill(adjustments);
     page.once('dialog', dialog => dialog.accept());
-    await page.getByRole('button', { name: 'Preparar seguimiento' }).click();
+    await review.getByRole('button', { name: 'Pedir cambios', exact: true }).click();
     const composer = page.locator('#agent-compose');
+    await page.waitForFunction(() => !document.querySelector('#delivery-dialog').open);
+    assert.equal(await composer.getByLabel('¿Qué necesitas?').inputValue(), adjustments);
     assert.match(await composer.locator('[name=context]').inputValue(), /Prueba los botones/);
+    assert.match(await composer.locator('[name=context]').inputValue(), /Entrega de referencia/);
     assert.equal(await composer.locator('[name=app]').inputValue(), 'profesor');
+    await page.reload();
+    await page.waitForFunction(() => document.querySelector('#agent-compose [name=objective]').value.startsWith('Haz visible'));
+    assert.equal(await composer.getByLabel('¿Qué necesitas?').inputValue(), adjustments);
+    const savedReview = await page.evaluate(async () => (await (await fetch('/api/panel')).json()).board.reviews);
+    assert.ok(Object.values(savedReview).some(item => item.decision === 'cambios' && item.note === adjustments));
+    assert.equal(received.length, 1, 'preparar ajustes no ejecuta el encargo');
     await composer.getByLabel('¿Qué necesitas?').fill('Trabajo que tarda.');
+    await composer.getByText('Planificar o probar el encargo', { exact: true }).click();
     await composer.getByRole('button', { name: 'Preparar borrador', exact: true }).click();
     await page.locator('#team-activity').getByText('En curso', { exact: true }).waitFor();
     await composer.getByLabel('¿Qué necesitas?').fill('Trabajo para después.');
@@ -402,12 +479,9 @@ for (const [name, engine, viewport] of [
     const deliveryDialog = page.getByRole('dialog', { name: 'Tablero de ensayo' });
     await deliveryDialog.waitFor();
     assert.doesNotMatch(await deliveryDialog.locator('#delivery-meta').innerText(), /tokens|9876/i);
-    await deliveryDialog.getByRole('button', { name: 'Volver a comprobar' }).click();
-    await deliveryDialog.getByText('Ver cambios de código').click();
-    await deliveryDialog.getByText('+nuevo tablero', { exact: true }).waitFor();
-    await deliveryDialog.getByRole('button', { name: 'Aprobar implementación' }).click();
-    await deliveryDialog.getByRole('button', { name: 'Preparar publicación' }).click();
-    await deliveryDialog.getByRole('link', { name: 'Revisar solicitud #9' }).click();
+    await deliveryDialog.getByRole('button', { name: 'Comprobar y preparar' }).waitFor();
+    await deliveryDialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
+    await page.goto(base + '/#control/github/9');
     assert.equal(new URL(page.url()).hash, '#control/github/9');
     await page.getByText('app.js', { exact: false }).click();
     await page.getByText('+nuevo', { exact: true }).waitFor();

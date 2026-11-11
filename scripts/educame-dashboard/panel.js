@@ -7,6 +7,7 @@ import { setupOperations } from './operations.js';
 import { setupAgentEditor } from './agent-editor.js';
 import { setupChat } from './chat.js';
 import { setupWorkProgress } from './work-progress.js';
+import { setupPublication } from './publication.js';
 
 const agents = Object.create(null);
 const agentName = item => item.agentName || agents[item.agente]?.name || item.agente;
@@ -49,6 +50,11 @@ let poll;
 let workspace;
 let changes;
 let operations;
+let publicationClient;
+const pendingReplies = new Map();
+try {
+  for (const [key, value] of JSON.parse(sessionStorage.getItem('educame-delivery-replies') || '[]')) pendingReplies.set(key, value);
+} catch {}
 let agentProfilesKey;
 
 function element(tag, className, text) {
@@ -134,7 +140,7 @@ function showPage() {
     }
     const target = { operaciones: '#work-queue', entregas: '#work-results',
       'agentes/cola': '#work-queue', 'agentes/progreso': '#team-activity',
-      'agentes/resultados': '#work-results', 'agentes/revisar': '#work-results' }[hash];
+      'agentes/resultados': '#work-results', 'agentes/revisar': '#work-results', 'agentes/publicar': '#work-publication' }[hash];
     if (target) document.querySelector(target).scrollIntoView({ block: 'start' });
     document.querySelectorAll('.work-navigation a').forEach(link => {
       if (link.hash === '#' + hash) link.setAttribute('aria-current', 'location');
@@ -310,6 +316,7 @@ function render() {
   memory.render();
   workspace?.render();
   workProgress.render(state);
+  publicationClient?.render(state);
 }
 
 async function refresh() {
@@ -415,140 +422,47 @@ function renderResearch(report, delivery) {
   return section;
 }
 
-function deliveryFlow(delivery, verdict) {
-  const artifact = delivery.implementation;
-  const verified = artifact.verified;
-  const approved = verified && verdict?.decision === 'aprobada' && verdict.commit === artifact.commit;
-  const pushed = state.board.pushes?.[delivery.key];
-  const integrated = pushed?.pull?.merged || pushed?.integratedRevision;
-  const local = delivery.app === 'control';
+function deliveryFlow(delivery) {
   const box = element('section', 'delivery-flow');
-  const steps = element('ol', 'delivery-steps');
-  const phases = ['Pruebas', 'Revisión', 'GitHub', ...(!local ? ['Hostinger'] : [])];
-  const current = !verified ? 0 : !approved ? 1 : integrated ? 3 : 2;
-  phases.forEach((label, index) => {
-    const done = index < current;
-    const step = element('li', '', label);
-    if (done) step.className = 'is-done';
-    else if (index === current) step.setAttribute('aria-current', 'step');
-    steps.append(step);
-  });
-  const summary = !verified ? 'Pruebas pendientes' : !approved ? 'Lista para revisar' :
-    integrated ? 'Integrada en GitHub' : pushed?.pull ? 'Solicitud de cambios preparada' :
-      pushed ? 'Rama subida a GitHub' : 'Entrega aprobada';
-  const status = element('p', 'form-message');
-  status.setAttribute('role', 'status');
-  status.hidden = true;
-  const actions = element('div', 'actions');
-  const payload = { key: delivery.key, commit: artifact.commit };
-  const dialog = reviewForm.closest('dialog');
-  function action(label, pending, run, primary = false) {
-    const control = button(label, async () => {
-      const buttons = [...dialog.querySelectorAll('button:not([data-close])')].filter(node => !node.disabled);
-      buttons.forEach(node => { node.disabled = true; });
-      control.textContent = pending;
-      status.hidden = true;
-      try { await run(); }
-      catch (error) { status.textContent = error.message; status.hidden = false; }
-      finally {
-        control.textContent = label;
-        buttons.forEach(node => { node.disabled = false; });
-      }
-    });
-    if (primary) control.className = 'button primary';
-    actions.append(control);
-  }
-  function link(label, href, external = false) {
-    const anchor = element('a', 'button secondary', label);
-    anchor.href = href;
-    if (external) {
-      anchor.target = '_blank';
-      anchor.rel = 'noopener noreferrer';
-    } else anchor.addEventListener('click', () => { feedback(''); dialog.close(); });
-    actions.append(anchor);
-  }
-  box.append(element('h3', '', summary), steps);
-  if (verified) box.append(element('p', 'muted', 'Commit ' + artifact.commit.slice(0, 8)));
-  if (!verified) {
-    box.append(element('p', 'muted', delivery.canRevalidate ?
-      'Puedes ejecutar las pruebas de esta copia en tu equipo y conservar el trabajo ya hecho.' :
-      'La copia está guardada. Prepara un seguimiento para resolver las comprobaciones pendientes.'));
-    if (delivery.canRevalidate) action('Volver a comprobar', 'Ejecutando pruebas…', async () => {
-      const result = await api('/api/encargos/comprobar', 'POST', payload);
-      await refresh();
-      if (dialog.open && reviewing.key === delivery.key) openDelivery(result);
-    }, true);
+  const published = state.board.pushes?.[delivery.key]?.integratedRevision;
+  if (published) {
+    box.append(element('h3', '', 'Cambio integrado'), element('p', 'muted', 'Esta entrega ya está incluida en la versión de GitHub.'));
   } else {
-    if (!['ecosistema', 'control'].includes(delivery.app)) link('Vista de la entrega', '/vista-encargo/' + delivery.id, true);
-    const diff = element('details', 'operation-file');
-    const patch = element('pre');
+    box.append(element('h3', '', delivery.implementation.verified ? 'Lista para preparar la publicación' : 'Pendiente de comprobación'));
+    box.append(element('p', 'muted', 'El panel comprobará esta entrega y preparará una versión para que la aceptes.'));
+    const prepare = button('Comprobar y preparar', () => {
+      reviewForm.closest('dialog').close();
+      publicationClient.prepare([delivery.key]);
+    });
+    prepare.className = 'button primary';
+    box.append(prepare);
+  }
+  const technical = element('details', 'operation-file');
+  technical.append(element('summary', '', 'Ver archivos y pruebas'));
+  for (const file of delivery.implementation.files || []) technical.append(element('p', 'muted', file));
+  for (const check of delivery.checks || []) technical.append(element('p', 'muted', (check.passed ? 'Correcta · ' : 'Pendiente · ') + check.command));
+  if (delivery.implementation.verified) {
+    if (!['ecosistema', 'control'].includes(delivery.app)) {
+      const preview = element('a', 'button secondary', 'Vista de la entrega');
+      preview.href = '/vista-encargo/' + delivery.id;
+      preview.target = '_blank';
+      preview.rel = 'noopener noreferrer';
+      box.append(preview);
+    }
+    const diff = element('details', 'operation-file'), patch = element('pre');
     diff.append(element('summary', '', 'Ver cambios de código'), patch);
     diff.addEventListener('toggle', async () => {
       if (!diff.open || diff.dataset.loaded) return;
       diff.dataset.loaded = 'true';
-      patch.textContent = 'Cargando…';
       try {
         const result = await api('/api/encargos/diferencias?key=' + encodeURIComponent(delivery.key));
-        if (result.commit !== artifact.commit) throw new Error('La entrega cambió. Ábrela de nuevo.');
-        patch.textContent = result.patch + (result.truncated ? '\n\nVista previa parcial. Consulta el diff completo en GitHub.' : '');
+        if (result.commit !== delivery.implementation.commit) throw new Error('La entrega cambió. Ábrela de nuevo.');
+        patch.textContent = result.patch + (result.truncated ? '\n\nVista parcial.' : '');
       } catch (error) { delete diff.dataset.loaded; patch.textContent = error.message; }
     });
-    box.append(diff);
+    technical.append(diff);
   }
-  if (approved) {
-    if (local) {
-      if (state.terraceNeedsRestart) action('Reiniciar LA TERRAZA', 'Reiniciando…', () => chat.restart(), true);
-      else action(integrated ? 'Actualizar LA TERRAZA desde GitHub' : 'Aplicar en este equipo', 'Aplicando…', async () => {
-        const result = await api('/api/encargos/aplicar', 'POST', {
-          ...payload, fromGithub: Boolean(integrated), pull: pushed?.pull?.number,
-        });
-        await refresh();
-        if (dialog.open && reviewing.key === delivery.key) openDelivery(delivery);
-        feedback(result.needsRestart ? 'Cambio aplicado. Reinicia LA TERRAZA para cargarlo.' : 'La revisión ya está aplicada.');
-      }, true);
-      if (integrated && !state.terraceNeedsRestart) box.append(element('p', 'muted', 'La actualización trae la versión de main a este equipo.'));
-    }
-    if (pushed?.pull || integrated) {
-      if (pushed.pull) link('Revisar solicitud #' + pushed.pull.number, '#control/github/' + pushed.pull.number);
-      if (!local && integrated) action('Continuar a Hostinger', 'Verificando revisión…', async () => {
-        const result = await api('/api/encargos/verificar-publicacion', 'POST', { ...payload, pull: pushed.pull?.number });
-        dialog.close();
-        location.hash = 'control/hostinger/' + result.revision;
-      }, true);
-    }
-    else {
-      action(pushed ? 'Preparar solicitud en el panel' : 'Preparar publicación', 'Preparando GitHub…', async () => {
-        const result = await api('/api/encargos/publicar', 'POST', payload);
-        await refresh();
-        if (dialog.open && reviewing.key === delivery.key) openDelivery(delivery);
-        const publication = result.board.pushes[delivery.key];
-        feedback(result.warning || (publication.integratedRevision ? 'La entrega ya está en main.' : publication.pull ?
-          'Solicitud preparada. Puedes revisar y fusionar desde el panel.' :
-          'Rama subida. Abre GitHub para preparar la solicitud o conecta tu cuenta en Operación.'), Boolean(result.warning));
-      }, !local && !pushed);
-      if (pushed?.url) {
-        link('Abrir propuesta en GitHub', pushed.url, true);
-        link('Conectar GitHub', '#control/github');
-        action('Comprobar fusión', 'Consultando GitHub…', async () => {
-          const result = await api('/api/encargos/verificar-publicacion', 'POST', payload);
-          if (local) {
-            await refresh();
-            if (dialog.open && reviewing.key === delivery.key) openDelivery(delivery);
-            return;
-          }
-          dialog.close();
-          location.hash = 'control/hostinger/' + result.revision;
-        });
-      }
-    }
-  }
-  const evidence = element('details', 'operation-file');
-  evidence.append(element('summary', '', 'Ver archivos y registro técnico'));
-  const list = element('ul');
-  for (const file of artifact.files || []) list.append(element('li', '', file));
-  if (!verified) list.append(element('li', '', '.educame-agents/worktrees/' + delivery.id));
-  evidence.append(list);
-  box.append(actions, status, evidence);
+  box.append(technical);
   return box;
 }
 
@@ -581,6 +495,20 @@ function openDelivery(delivery) {
         for (const check of delivery.checks) checks.append(element('li', '',
           `${check.passed ? 'Pasó' : 'No pasó'}${check.source === 'local' ? ' en este equipo' : ''} · ${check.command}`));
         section.append(checks);
+        body.append(section);
+        continue;
+      }
+      if (artifact && title === 'Qué falta' && artifact.verified) {
+        section.append(element('p', '', state.board.pushes?.[delivery.key]?.integratedRevision ?
+          'Entrega integrada en la versión de GitHub.' : 'Las pruebas locales están superadas. Puedes preparar la publicación o enviar ajustes.'));
+        if (list?.length) {
+          const original = element('details', 'operation-file'), items = element('ul');
+          items.append(...list.map(item => element('li', '', item)));
+          original.append(element('summary', '', 'Observaciones del agente antes de la comprobación local'), items);
+          section.append(original);
+        }
+        body.append(section);
+        continue;
       }
       if (!list?.length) {
         section.append(element('p', 'muted', empty));
@@ -607,10 +535,10 @@ function openDelivery(delivery) {
     'Es una simulación: no se han aplicado cambios.' : delivery.draft ?
       'Revisa la propuesta. Puedes aprobarla o pedir cambios con una nota.' :
       'Prepara un seguimiento para resolver el error y continuar.'));
-  if ((delivery.draft || delivery.error) && delivery.mode !== 'prueba') {
+  if (!artifact && (delivery.draft || delivery.error) && delivery.mode !== 'prueba') {
     const next = element('div', 'actions delivery-next');
     next.append(button('Preparar seguimiento', () => {
-      if (workspace.prepareFollowUp(delivery)) body.closest('dialog').close();
+      if (workspace.prepareFollowUp(delivery, verdict?.decision === 'cambios' ? verdict.note : '')) body.closest('dialog').close();
     }));
     body.append(next);
   }
@@ -618,7 +546,9 @@ function openDelivery(delivery) {
   request.append(element('summary', '', 'Ver encargo original'), element('p', '', delivery.encargo));
   body.append(request);
   if (delivery.productContext) body.append(memory.contextDetails(delivery.productContext));
-  reviewForm.hidden = !delivery.draft || Boolean(artifact && !artifact.verified);
+  reviewForm.hidden = !delivery.draft && !artifact;
+  reviewForm.querySelector('[value="cambios"]').textContent = artifact ? 'Enviar ajustes al agente' : 'Pedir cambios';
+  reviewForm.querySelector('[value="aprobada"]').hidden = Boolean(artifact);
   reviewForm.querySelector('[value="aprobada"]').textContent = artifact?.verified ? 'Aprobar implementación' :
     delivery.research ? 'Aprobar análisis' : 'Aprobar borrador';
   reviewForm.elements.note.value = verdict?.note || '';
@@ -677,15 +607,39 @@ linkForm.addEventListener('submit', event => {
 reviewForm.addEventListener('submit', event => {
   event.preventDefault();
   submit(reviewForm, async () => {
+    const decision = event.submitter.value;
+    const note = reviewForm.elements.note.value.trim();
+    if (decision === 'cambios' && !note) {
+      reviewForm.elements.note.focus();
+      throw new Error('Escribe qué quieres cambiar para preparar los ajustes.');
+    }
+    if (decision === 'cambios' && reviewing.implementation) {
+      const previous = pendingReplies.get(reviewing.key);
+      const reply = previous?.note === note ? previous : { id: crypto.randomUUID(), key: reviewing.key, note };
+      pendingReplies.set(reviewing.key, reply);
+      try { sessionStorage.setItem('educame-delivery-replies', JSON.stringify([...pendingReplies])); } catch {}
+      await api('/api/encargos/ajustes', 'POST', reply);
+      pendingReplies.delete(reviewing.key);
+      try { sessionStorage.setItem('educame-delivery-replies', JSON.stringify([...pendingReplies])); } catch {}
+      reviewForm.closest('dialog').close();
+      await refresh();
+      location.hash = 'agentes/progreso';
+      feedback('Ajustes enviados. El agente continúa desde la entrega anterior.');
+      return;
+    }
     const rule = memory.reviewRule();
     state.board = await api('/api/revisar', 'POST', {
-      key: reviewing.key, decision: event.submitter.value, note: reviewForm.elements.note.value, revision: state.board.revision, rule,
+      key: reviewing.key, decision, note, revision: state.board.revision, rule,
       commit: reviewing.implementation?.commit,
     });
     render();
     feedback(rule ? 'Decisión y criterio guardados.' : 'Decisión guardada en la bandeja.');
-    if (reviewing.implementation?.verified) openDelivery(reviewing);
-  }, !reviewing.implementation?.verified);
+    if (decision === 'cambios' && reviewing.mode !== 'prueba' && workspace.prepareFollowUp(reviewing, note)) {
+      reviewForm.closest('dialog').close();
+      feedback('Respuesta guardada. Revisa el encargo de ajustes y elige cómo ejecutarlo.');
+    } else if (decision === 'aprobada' && !reviewing.implementation) reviewForm.closest('dialog').close();
+    else openDelivery(reviewing);
+  }, false);
 });
 document.querySelectorAll('[data-close]').forEach(node => node.addEventListener('click', () => node.closest('dialog').close()));
 document.querySelector('.feedback-close').addEventListener('click', () => feedback(''));
@@ -758,10 +712,13 @@ const agentEditor = setupAgentEditor({ api, button, formMessage, getState: () =>
     render();
   },
 });
-const chat = setupChat({ api, element, button, feedback, formMessage });
+const chat = setupChat({ api, element, button, feedback, formMessage, getState: () => state,
+  preparePublication: keys => publicationClient.prepare(keys) });
 const workProgress = setupWorkProgress({ element, button, badge, openDelivery });
 changes = setupChanges({ api, element });
 operations = setupOperations({ api, element, button, feedback, openCommand: changes.openCommand });
+publicationClient = setupPublication({ api, element, button, feedback, getState: () => state, refresh,
+  restart: () => chat.restart(), openCommand: changes.openCommand });
 showPage();
 operations.refreshQuota();
-refresh().then(openLinkedDelivery).catch(error => feedback(error.message, true));
+refresh().then(() => { openLinkedDelivery(); publicationClient.load(); }).catch(error => feedback(error.message, true));

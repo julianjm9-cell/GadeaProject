@@ -122,6 +122,11 @@ dialog::backdrop { background: #1b2c25a3; }
 .work-task-copy small { color: var(--muted); }
 .work-total-progress { width: 100%; height: 7px; margin: 12px 0; accent-color: var(--green); }
 .work-running { width: min(100%, 220px); height: 5px; margin-top: 7px; accent-color: var(--green); }
+.publication-choices { display: grid; gap: 8px; margin: 12px 0; }
+.publication-choice { display: flex; align-items: start; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); cursor: pointer; }
+.publication-choice input { flex: none; width: 18px; height: 18px; margin-top: 2px; accent-color: var(--green); }
+#work-publication { display: grid; gap: 10px; scroll-margin-top: 20px; border-color: #97b39f; background: #f0f5ed; }
+#work-publication > h2, #work-publication > p { margin: 0; }
 .agent-request { order: 0; }
 .agent-selection { order: 1; }
 #work-compose .compose-layout { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }

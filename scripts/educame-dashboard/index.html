@@ -94,7 +94,7 @@
         <pre id="chat-review-diff" tabindex="0" aria-label="Diferencias de código"></pre>
         <p class="inline-hint" id="chat-review-note"></p>
         <p class="form-message" id="chat-review-error" role="alert" hidden></p>
-        <div class="actions"><button class="button secondary" type="button" data-close>Cancelar</button><button class="button primary" id="chat-apply" type="button">Aplicar en este equipo</button></div>
+        <div class="actions"><button class="button secondary" type="button" data-close>Cancelar</button><button class="button primary" id="chat-apply" type="button">Comprobar y preparar</button></div>
       </dialog>
     </section>
 
@@ -271,6 +271,7 @@
         <a href="#agentes/progreso"><strong id="work-running-count">0</strong><span>En curso</span><small>Trabajo de tus agentes</small></a>
         <a href="#agentes/revisar"><strong id="work-review-count">0</strong><span>Por revisar</span><small>Resultados y siguientes pasos</small></a>
       </nav>
+      <section class="card compose-card" id="work-publication" aria-live="polite"></section>
       <section class="card compose-card" id="team-activity" hidden aria-label="Progreso de los encargos"></section>
       <section id="work-queue" aria-labelledby="lote-title">
         <section class="card" aria-labelledby="lote-title">
@@ -563,7 +564,8 @@
     <p id="delivery-meta" class="muted"></p>
     <div id="delivery-body"></div>
     <form id="review-form" method="dialog" hidden>
-      <label>Nota de revisión <span class="muted">(opcional)</span><textarea name="note" rows="2" maxlength="2000" placeholder="Qué has comprobado o qué hace falta ajustar."></textarea></label>
+      <label>Nota de revisión <span class="muted">(necesaria para pedir cambios)</span><textarea name="note" rows="3" maxlength="2000" placeholder="Responde a la entrega: qué esperabas y qué quieres ajustar."></textarea></label>
+      <p class="inline-hint">Pedir cambios guarda tu respuesta y prepara un encargo editable con la entrega como referencia. Después puedes añadirlo a la cola o ejecutarlo.</p>
       <details id="review-memory">
         <summary>Conservar un aprendizaje en Memoria</summary>
         <p class="inline-hint" id="review-memory-existing" hidden></p>

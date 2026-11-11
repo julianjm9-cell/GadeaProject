@@ -14,6 +14,7 @@ import { openPanelStore } from './educame-dashboard/store.mjs';
 import { createRunner, RunnerError } from './educame-dashboard/runner.mjs';
 import { canRevalidate, createImplementation, ImplementationError } from './educame-dashboard/implementation.mjs';
 import { createChat } from './educame-dashboard/chat.mjs';
+import { createPublication } from './educame-dashboard/publication.mjs';
 import { researchRole } from './educame-dashboard/research.mjs';
 import { OperationError } from './educame-dashboard/operations.mjs';
 import { githubOperations } from './educame-dashboard/github-operations.mjs';
@@ -27,6 +28,7 @@ const assets = new Map([
   ['/panel.js', ['panel.js', 'text/javascript']],
   ['/workspace.js', ['workspace.js', 'text/javascript']],
   ['/work-progress.js', ['work-progress.js', 'text/javascript']],
+  ['/publication.js', ['publication.js', 'text/javascript']],
   ['/workspace.css', ['workspace.css', 'text/css']],
   ['/changes.js', ['changes.js', 'text/javascript']],
   ['/operations.js', ['operations.js', 'text/javascript']],
@@ -206,6 +208,7 @@ export async function createDashboard({
   const runner = createRunner(store, directory, {
     model, baseRevision: implementation.base, recoverImplementation: implementation.recover,
     async readiness(mode, engine) {
+      if (publication.busy() || deliveryWork) throw new RunnerError(409, 'Espera a que termine la comprobación o publicación actual.');
       if (mode === 'implementacion' && engine !== 'codex') throw new RunnerError(400, 'Implementar requiere Codex local.');
       if (mode !== 'prueba' && engine === 'codex') {
         const status = await codex.status();
@@ -215,7 +218,14 @@ export async function createDashboard({
     },
     generator(batch) {
       if (batch.mode === 'prueba') return exampleDraft;
-      if (batch.mode === 'implementacion') return task => implementation.execute(task, batch.base);
+      if (batch.mode === 'implementacion') return async task => {
+        if (task.continuar) {
+          const source = await implementationDelivery('implementacion/' + task.continuar);
+          if (source.app !== task.app) throw new PanelError(409, 'El ajuste debe continuar en la misma aplicación.');
+          task = { ...task, parentImplementation: await implementation.continuation(source) };
+        }
+        return implementation.execute(task, batch.base);
+      };
       if (batch.engine === 'codex') return codex.generate;
       const key = activeApiKey();
       return generate || (task => requestDraft(task, { apiKey: key, model: batch.model, fetchImpl }));
@@ -229,11 +239,14 @@ export async function createDashboard({
     readDelivery: id => readJson(implementationPath(id), null),
     assertIdle() {
       const job = hostinger.status().job;
-      if (deliveryWork || ['running', 'paused'].includes(runner.latest()?.state) || ['running', 'uncertain'].includes(job?.state)) {
+      if (deliveryWork || publication.busy() || ['running', 'paused'].includes(runner.latest()?.state) || ['running', 'uncertain'].includes(job?.state)) {
         throw new OperationError(409, 'Termina o retoma el trabajo pendiente antes de cambiar el panel.');
       }
     },
   });
+  const publication = createPublication({ root: repositoryRoot, directory, store, implementation,
+    readDelivery: implementationDelivery, revalidate, assertIdle: () => chat.assertIdle(),
+    onApplied: () => { terraceNeedsRestart = true; }, localRemote: implementationOptions?.localRemote });
   let appAvailability;
   let availabilityExpiry = 0;
 
@@ -343,6 +356,30 @@ export async function createDashboard({
       const url = new URL(request.url, origin);
       const path = url.pathname;
       if (restarting && request.method !== 'GET') throw new OperationError(409, 'LA TERRAZA se está reiniciando.');
+      if (path === '/api/publicacion' && request.method === 'GET') return json(200, publication.status());
+      if (path === '/api/encargos/ajustes' && request.method === 'POST') {
+        if (request.headers.origin !== origin) throw new PanelError(403, 'Envía los ajustes desde el panel.');
+        const { key, note, id } = await bodyJson(request);
+        if (!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(id || '') ||
+            typeof note !== 'string' || !note.trim() || note.length > 2000) throw new PanelError(400, 'Escribe qué quieres ajustar.');
+        if (publication.busy() || deliveryWork) throw new PanelError(409, 'Espera a que termine la operación actual.');
+        const source = await implementationDelivery(key);
+        const task = { id: 'ajuste-' + id, app: source.app, agente: source.agente, encargo: note.trim(), continuar: source.id,
+          contexto: ('Ajusta esta entrega conservando el trabajo ya hecho.\nEncargo original\n' + source.encargo +
+            '\nResultado anterior\n' + (source.draft?.entrega || source.error || '')).slice(0, 7500) };
+        const batch = await runner.start({ mode: 'implementacion', engine: 'codex', tasks: [task] });
+        store.transaction(() => {
+          const board = store.board();
+          store.writeBoard({ ...board, revision: board.revision + 1, reviews: { ...board.reviews,
+            [key]: { decision: 'cambios', note: note.trim(), commit: source.implementation?.commit, date: new Date().toISOString() } } });
+        });
+        return json(202, batch);
+      }
+      if (['/api/publicacion/preparar', '/api/publicacion/aceptar'].includes(path) && request.method === 'POST') {
+        if (request.headers.origin !== origin) throw new OperationError(403, 'Publica los cambios desde el panel local.');
+        const payload = await bodyJson(request);
+        return json(202, await (path.endsWith('/preparar') ? publication.prepare(payload) : publication.accept(payload)));
+      }
       if (request.method === 'GET' && path === '/api/chat') {
         const data = await chat.read();
         return json(200, { ...data, needsRestart: data.needsRestart || terraceNeedsRestart });
@@ -541,7 +578,7 @@ export async function createDashboard({
         return json(200, updated);
       }
       if (request.method === 'POST' && ['/api/ejecutar', '/api/encargos'].includes(path)) {
-        if (deliveryWork) throw new PanelError(409, 'Espera a que termine la operación de la entrega.');
+        if (deliveryWork || publication.busy()) throw new PanelError(409, 'Espera a que termine la comprobación o publicación de cambios.');
         const { mode, revision, tasks, engine = 'openai', researchOnly, agentRevision, consumeQueue } = await bodyJson(request);
         if (!['openai', 'codex'].includes(engine)) throw new PanelError(400, 'Elige Codex u OpenAI API.');
         if (!['real', 'prueba', 'implementacion'].includes(mode)) throw new PanelError(400, 'Elige cómo ejecutar el lote.');
@@ -597,7 +634,7 @@ export async function createDashboard({
   server.on('close', () => {
     previews.close();
     for (const view of implementationPreviews.values()) view.close();
-    Promise.allSettled([runner.wait(), hostinger.wait(), chat.wait(), deliveryWork]).finally(store.close).catch(() => {});
+    Promise.allSettled([runner.wait(), hostinger.wait(), chat.wait(), deliveryWork, publication.wait()]).finally(store.close).catch(() => {});
   });
   return server;
 }

@@ -11,7 +11,7 @@ const safeId = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const commonPaths = ['backend/app/', 'backend/tests/', 'tests/', 'docs/'];
 const terracePaths = ['scripts/educame-dashboard/', 'scripts/educame-dashboard.mjs', 'scripts/educame-agents.mjs',
   'docs/agentes-educame.md', 'docs/guia-desarrollo-educame.md', 'tests/educame-dashboard.test.cjs', 'tests/educame-dashboard-browser.test.cjs',
-  'tests/educame-chat.test.cjs', 'tests/educame-operations.test.cjs', 'tests/educame-changes.test.cjs'];
+  'tests/educame-chat.test.cjs', 'tests/educame-operations.test.cjs', 'tests/educame-changes.test.cjs', 'tests/educame-publication.test.cjs'];
 const terraceFile = file => terracePaths.some(path => path.endsWith('/') ? file.startsWith(path) : file === path) && !excluded.test(file);
 const excluded = /(^|\/)(\.env(?:\.|$)|\.git(?:\/|$)|\.educame-agents(?:\/|$)|(?:credentials|secrets)(?:\.|\/|$))|\.(pem|key|p12|pfx|sqlite|dump)$/i;
 const credential = /^\+(?!\+\+).*?(?:-----BEGIN [A-Z ]*PRIVATE KEY-----|(?:sk-|ghp_|github_pat_|AIza)[A-Za-z0-9_-]{20,})/m;
@@ -19,15 +19,35 @@ const github = /^(?:https:\/\/github\.com\/|git@github\.com:|ssh:\/\/git@github\
 const testEnv = /^(path|pathext|systemroot|windir|comspec|home|userprofile|appdata|localappdata|temp|tmp|programfiles(?:\(x86\))?|programdata|playwright_browsers_path)$/i;
 
 function localTest(command) {
-  const parts = command.trim().replaceAll('\\', '/').split(/\s+/);
+  const parts = [];
+  let token = '', quote = '', started = false;
+  for (const char of command.trim()) {
+    if (quote) {
+      if (char === quote) quote = '';
+      else token += char;
+    } else if (char === '"' || char === "'") {
+      quote = char;
+      started = true;
+    } else if (/\s/.test(char)) {
+      if (started) parts.push(token);
+      token = '';
+      started = false;
+    } else {
+      token += char;
+      started = true;
+    }
+  }
+  if (quote) return;
+  if (started) parts.push(token);
   const [program, ...args] = parts;
   if (/^npm(?:\.cmd)?$/i.test(program) && args.join(' ') === 'test') return [process.execPath, ['tests/run-unit.cjs']];
   if (/^node(?:\.exe)?$/i.test(program)) {
     if (args.join(' ') === 'tests/run-unit.cjs') return [process.execPath, args];
     const files = args.slice(1).filter(arg => !arg.startsWith('--'));
     if (args[0] === '--test' && files.length && args.slice(1).every(arg =>
-      /^tests\/[\w/-]+(?:\.[\w-]+)*\.(?:cjs|mjs|js)$/.test(arg) ||
-      /^--(?:test-isolation=none|test-concurrency=[1-4])$/.test(arg))) return [process.execPath, args];
+      /^tests[\\/][\w/\\-]+(?:\.[\w-]+)*\.(?:cjs|mjs|js)$/.test(arg) ||
+      /^--(?:test-isolation=none|test-concurrency=[1-4])$/.test(arg) ||
+      /^--test-name-pattern=[^\x00-\x1f]{1,200}$/.test(arg))) return [process.execPath, args];
   }
   if (/^python(?:3)?$/i.test(program) && args[0] === '-m' && args[1] === 'pytest' &&
       args.length > 2 && args.slice(2).every(arg => arg === '-q' || /^backend\/tests(?:\/[\w-]+\.py)?$/.test(arg)) &&
@@ -57,6 +77,22 @@ export function createImplementation(root, directory, codex, { localRemote = fal
   const worktree = id => join(worktrees, id);
   const pathsFor = app => app === 'control' ? terracePaths : [...commonPaths, ...(app === 'ecosistema'
     ? ['apps/', 'marketing/', 'admin/', 'scripts/educame-'] : products[app]?.paths || [])];
+
+  async function runChecks(cwd, commands, progress = () => {}) {
+    const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => testEnv.test(key)));
+    env.NODE_PATH = join(root, 'node_modules');
+    const results = [];
+    for (const command of [...new Set(commands)]) {
+      const test = localTest(command);
+      if (!test) throw new ImplementationError(409, 'Hay una prueba que necesita ajustarse antes de ejecutarla en este equipo.');
+      progress(command);
+      const [program, args] = test;
+      const result = await exec(program, args, { cwd, env, windowsHide: true, timeout: 180_000, maxBuffer: 4 * 1024 * 1024 })
+        .then(() => ({ passed: true }), error => ({ passed: false, reason: error.killed ? 'timeout' : error.code === 'ENOENT' ? 'unavailable' : 'failed' }));
+      results.push({ command, ...result, source: 'local' });
+    }
+    return results;
+  }
 
   async function base() {
     try { return await ref('HEAD'); }
@@ -96,7 +132,35 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     })) return { uncertain: true, error: 'Ya existe una copia aislada de este encargo. Revisa su contenido antes de repetirlo.' };
     await git(['worktree', 'add', '--detach', cwd, start], root, 120_000);
     const output = await codex.implement(task, cwd, allowed);
-    return finalize(task, output, { branch: branch(task.id), base: baseRevision, start });
+    return finalize(task, output, { branch: branch(task.id), base: task.parentImplementation?.base || baseRevision, start });
+  }
+
+  async function continuation(delivery) {
+    const artifact = delivery.implementation;
+    if (artifact?.verified) return { commit: artifact.commit, base: artifact.base };
+    if (!safeId.test(delivery.id) || !sha.test(artifact?.base || '')) throw new ImplementationError(409, 'Esta entrega no tiene una copia que se pueda continuar.');
+    const cwd = worktree(delivery.id);
+    if (await ref('HEAD', cwd) !== (artifact.start || artifact.base)) throw new ImplementationError(409, 'La copia de la entrega cambió de revisión.');
+    const files = [...new Set([...(await git(['diff', '--name-only', '-z', 'HEAD'], cwd)).split('\0'),
+      ...(await git(['ls-files', '--others', '--exclude-standard', '-z'], cwd)).split('\0')].filter(Boolean))];
+    if (!files.length) return { commit: artifact.start || artifact.base, base: artifact.base };
+    const allowed = pathsFor(delivery.app);
+    if (files.length > 120 || files.some(file => excluded.test(file) ||
+        (delivery.app === 'control' ? !terraceFile(file) : !allowed.some(prefix => file.startsWith(prefix))))) {
+      throw new ImplementationError(409, 'La copia incluye archivos que requieren una revisión antes de continuar.');
+    }
+    for (const file of files) {
+      const entry = await lstat(join(cwd, file)).catch(error => { if (error.code !== 'ENOENT') throw error; });
+      if (entry && (!entry.isFile() || entry.size > 15 * 1024 * 1024 || relative(join(cwd, file), await realpath(join(cwd, file))))) {
+        throw new ImplementationError(409, 'La copia contiene un archivo que no se puede incorporar al ajuste.');
+      }
+    }
+    await git(['add', '-A', '--', ...files.map(file => ':(literal)' + file)], cwd);
+    if (credential.test(await git(['diff', '--cached', '--unified=0'], cwd))) throw new ImplementationError(409, 'La copia contiene una posible credencial.');
+    const commit = (await git(['stash', 'create'], cwd)).trim();
+    if (!sha.test(commit)) throw new ImplementationError(409, 'No se pudo guardar el punto de continuación.');
+    await git(['update-ref', 'refs/educame/checkpoints/' + randomUUID(), commit]);
+    return { commit, base: artifact.base };
   }
 
   async function finalize(task, output, pending, rerun) {
@@ -158,18 +222,8 @@ export function createImplementation(root, directory, codex, { localRemote = fal
       throw new ImplementationError(409, 'No se puede verificar el origen de esta copia.');
     }
     const { draft, responseId, usage, checks } = delivery;
-    return finalize(delivery, { draft, responseId, usage, checks }, { base, branch: name, start }, async cwd => {
-      const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => testEnv.test(key)));
-      env.NODE_PATH = join(root, 'node_modules');
-      const results = [];
-      for (const { command } of checks) {
-        const [program, args] = localTest(command);
-        const passed = await exec(program, args, { cwd, env, windowsHide: true, timeout: 180_000, maxBuffer: 4 * 1024 * 1024 })
-          .then(() => true, () => false);
-        results.push({ command, passed, source: 'local' });
-      }
-      return results;
-    });
+    return finalize(delivery, { draft, responseId, usage, checks }, { base, branch: name, start },
+      cwd => runChecks(cwd, checks.map(check => check.command)));
   }
 
   async function push(id, artifact) {
@@ -251,5 +305,5 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     return true;
   }
 
-  return { base, execute, recover, revalidate, push, worktree, verifiedWorktree, review, reviewTerrace, applyTerrace };
+  return { base, execute, recover, revalidate, continuation, runChecks, push, worktree, verifiedWorktree, review, reviewTerrace, applyTerrace };
 }

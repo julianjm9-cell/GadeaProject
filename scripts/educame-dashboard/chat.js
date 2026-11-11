@@ -3,7 +3,7 @@ const preference = 'terrace-chat-model';
 const pendingKey = 'terrace-chat-pending';
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-export function setupChat({ api, element, button, feedback, formMessage }) {
+export function setupChat({ api, element, button, feedback, formMessage, preparePublication, getState }) {
   const form = $('chat-form');
   const model = $('chat-model');
   const mode = $('chat-mode');
@@ -22,6 +22,7 @@ export function setupChat({ api, element, button, feedback, formMessage }) {
   let loading;
   let timer;
   let selected;
+  let publications;
   try {
     pending = JSON.parse(sessionStorage.getItem(pendingKey));
     if (pending) { input.value = pending.text; mode.value = pending.mode; }
@@ -42,7 +43,9 @@ export function setupChat({ api, element, button, feedback, formMessage }) {
 
   function render(data) {
     clearTimeout(timer);
-    const changed = JSON.stringify(snapshot?.messages) !== JSON.stringify(data.messages);
+    const published = JSON.stringify(getState()?.board.pushes);
+    const changed = JSON.stringify(snapshot?.messages) !== JSON.stringify(data.messages) || publications !== published;
+    publications = published;
     snapshot = data;
     $('chat-restart').hidden = !data.needsRestart;
     if (changed) {
@@ -75,7 +78,8 @@ export function setupChat({ api, element, button, feedback, formMessage }) {
         for (const file of item.proposal.files || []) files.append(element('li', '', file));
         reply.append(files);
         for (const check of item.proposal.checks || []) reply.append(element('small', '', (check.passed ? 'Correcta · ' : 'Falló · ') + check.command));
-        if (item.state === 'applied') reply.append(element('strong', '', 'Aplicada en este equipo'));
+        if (getState()?.board.pushes?.['implementacion/' + item.taskId]?.integratedRevision) reply.append(element('strong', '', 'Aplicada y subida a GitHub'));
+        else if (item.state === 'applied') reply.append(element('strong', '', 'Aplicada en este equipo'));
         else reply.append(button('Revisar propuesta', () => openReview(item)));
       }
       if (item.mode === 'change' && item.taskId) {
@@ -149,7 +153,7 @@ export function setupChat({ api, element, button, feedback, formMessage }) {
     selected = item;
     $('chat-review-commit').textContent = 'Commit ' + item.proposal.commit.slice(0, 10);
     $('chat-review-diff').textContent = 'Cargando las diferencias…';
-    $('chat-review-note').textContent = 'La aplicación actualiza el checkout local de LA TERRAZA.';
+    $('chat-review-note').textContent = 'La publicación se prepara y acepta desde el mismo recorrido que el resto de entregas.';
     $('chat-review-error').hidden = true;
     apply.disabled = true;
     review.showModal();
@@ -170,9 +174,8 @@ export function setupChat({ api, element, button, feedback, formMessage }) {
     controls.forEach(node => { node.disabled = true; });
     $('chat-review-error').hidden = true;
     try {
-      render(await api('/api/chat/aplicar', 'POST', { id: selected.id, commit: selected.proposal.commit }));
       review.close();
-      feedback('Cambio aplicado en este equipo.');
+      await preparePublication(['implementacion/' + (selected.taskId || 'terraza-' + selected.id)]);
     } catch (error) {
       $('chat-review-error').textContent = error.message;
       $('chat-review-error').hidden = false;
