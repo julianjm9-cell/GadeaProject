@@ -22,6 +22,26 @@ const reviewForm = document.querySelector('#review-form');
 const historyFilter = document.querySelector('#history-filter');
 const menu = document.querySelector('.terrace-menu');
 const navigation = document.querySelector('#terrace-navigation');
+const environmentToggle = document.querySelector('#environment-name-toggle');
+const environmentPreference = 'educame.control.hide-environment-name';
+let environmentNameHidden = false;
+try { environmentNameHidden = localStorage.getItem(environmentPreference) === 'true'; } catch {}
+function renderEnvironmentName() {
+  const name = environmentNameHidden ? 'Cuadro de mando' : 'LA TERRAZA';
+  document.querySelectorAll('[data-environment-name]').forEach(node => { node.textContent = name; });
+  document.title = name + ' · Educame';
+  navigation.setAttribute('aria-label', 'Secciones de ' + name);
+  const action = environmentNameHidden ? 'Mostrar nombre del entorno' : 'Ocultar nombre del entorno';
+  environmentToggle.setAttribute('aria-label', action);
+  environmentToggle.title = action;
+  environmentToggle.setAttribute('aria-pressed', String(environmentNameHidden));
+}
+environmentToggle.addEventListener('click', () => {
+  environmentNameHidden = !environmentNameHidden;
+  try { localStorage.setItem(environmentPreference, String(environmentNameHidden)); } catch {}
+  renderEnvironmentName();
+});
+renderEnvironmentName();
 const dates = new Intl.DateTimeFormat('es-ES', { dateStyle: 'short', timeStyle: 'short' });
 let state;
 let reviewing;

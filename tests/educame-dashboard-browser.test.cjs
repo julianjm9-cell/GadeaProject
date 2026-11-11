@@ -23,6 +23,38 @@ for (const [name, engine, viewport] of [
   ['Chromium escritorio', chromium, { width: 1440, height: 950 }],
   ['WebKit móvil', webkit, { width: 390, height: 844 }],
 ]) {
+  test(`El logo alterna el nombre del entorno y conserva la elección en ${name}`, { timeout: 25_000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
+    const server = await listen(t, directory, { codex: { status: async () => ({ ready: false }) } });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    t.after(() => browser.close());
+    const page = await browser.newPage({ viewport });
+    await page.goto('http://127.0.0.1:' + server.address().port + '/#inicio');
+    const toggle = page.locator('#environment-name-toggle');
+    await page.getByRole('button', { name: 'Ocultar nombre del entorno', exact: true }).click();
+    assert.equal(await toggle.getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.title(), 'Cuadro de mando · Educame');
+    assert.deepEqual(await page.locator('[data-environment-name]').allTextContents(), ['Cuadro de mando', 'Cuadro de mando']);
+    assert.equal(new URL(page.url()).hash, '#inicio');
+    await page.reload();
+    await page.getByRole('button', { name: 'Mostrar nombre del entorno', exact: true }).waitFor();
+    assert.equal(await page.title(), 'Cuadro de mando · Educame');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await toggle.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await page.title(), 'LA TERRAZA · Educame');
+    await page.keyboard.press('Space');
+    assert.equal(await page.title(), 'Cuadro de mando · Educame');
+    await toggle.click();
+    await toggle.click();
+    assert.equal(await page.title(), 'Cuadro de mando · Educame');
+    await page.reload();
+    await page.getByRole('button', { name: 'Mostrar nombre del entorno', exact: true }).waitFor();
+    if (name.includes('móvil')) await page.getByRole('button', { name: 'Menú', exact: true }).click();
+    await page.locator('#terrace-navigation').getByRole('link', { name: 'Inicio', exact: true }).click();
+    assert.equal(await page.locator('[data-page="inicio"]').isVisible(), true);
+  });
+
   test(`Cola unificada conserva y simula encargos en ${name}`, { timeout: 35_000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
     const server = await listen(t, directory, { codex: { status: async () => ({ ready: false }) } });

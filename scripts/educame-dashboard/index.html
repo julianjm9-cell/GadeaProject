@@ -16,7 +16,7 @@
   <a class="skip-content" href="#main">Saltar al contenido</a>
   <aside class="sidebar">
     <div class="terrace-brand-row">
-      <a class="brand" href="#inicio" aria-label="LA TERRAZA, inicio"><img class="brand-icon" src="/icon.svg" alt="" width="38" height="38"><span>LA TERRAZA<small>Educame</small></span></a>
+      <button class="brand" id="environment-name-toggle" type="button" aria-label="Ocultar nombre del entorno" aria-pressed="false" title="Ocultar nombre del entorno"><img class="brand-icon" src="/icon.svg" alt="" width="38" height="38"><span><span data-environment-name>LA TERRAZA</span><small>Educame</small></span></button>
       <button class="terrace-menu button secondary" type="button" aria-expanded="false" aria-controls="terrace-navigation">Menú</button>
     </div>
     <nav id="terrace-navigation" aria-label="Secciones de LA TERRAZA">
@@ -45,7 +45,7 @@
   </aside>
 
   <main id="main" tabindex="-1">
-    <header class="topline"><div class="terrace-location"><span>LA TERRAZA</span><span id="page-location">Inicio</span></div><div class="actions"><a class="status-chip" id="codex-quota-chip" href="#agentes/uso">Uso de Codex</a><a class="status-chip" id="api-status" href="#conexiones" data-open-connection="ia">Comprobando Codex</a></div></header>
+    <header class="topline"><div class="terrace-location"><span data-environment-name>LA TERRAZA</span><span id="page-location">Inicio</span></div><div class="actions"><a class="status-chip" id="codex-quota-chip" href="#agentes/uso">Uso de Codex</a><a class="status-chip" id="api-status" href="#conexiones" data-open-connection="ia">Comprobando Codex</a></div></header>
     <div id="feedback" class="feedback" role="status" hidden><span id="feedback-text"></span><button type="button" class="feedback-close" aria-label="Cerrar aviso">×</button></div>
 
     <section data-page="inicio" aria-labelledby="home-title">
