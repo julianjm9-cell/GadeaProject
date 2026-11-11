@@ -126,6 +126,10 @@ dialog .actions { justify-content: flex-end; }
 .delivery-dialog { width: min(790px, calc(100% - 28px)); }
 #delivery-meta { margin: 3px 0 12px; font-size: .84rem; }
 #delivery-body { display: grid; gap: 8px; }
+#delivery-body > h3 { margin: 12px 0 0; }
+.delivery-summary { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.delivery-summary h3 { margin: 0 0 8px; }
+.delivery-summary p { margin: 0 0 8px; }
 #delivery-body pre { max-height: 44vh; overflow: auto; margin: 0; padding: 11px; border: 1px solid var(--line); border-radius: 8px; background: #f5f8f4; font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; }
 #delivery-body ul { margin: 0; padding-inline-start: 18px; overflow-wrap: anywhere; }
 #review-form { margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--line); }

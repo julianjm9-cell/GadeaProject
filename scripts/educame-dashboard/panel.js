@@ -523,10 +523,9 @@ function deliveryFlow(delivery, verdict) {
     }
   }
   const evidence = element('details', 'operation-file');
-  evidence.append(element('summary', '', 'Archivos y pruebas'));
+  evidence.append(element('summary', '', 'Ver archivos y registro técnico'));
   const list = element('ul');
   for (const file of artifact.files || []) list.append(element('li', '', file));
-  for (const check of delivery.checks || []) list.append(element('li', '', `${check.passed ? 'Pasó' : 'Falló'}${check.source === 'local' ? ' en este equipo' : ''} · ${check.command}`));
   if (!verified) list.append(element('li', '', '.educame-agents/worktrees/' + delivery.id));
   evidence.append(list);
   box.append(actions, status, evidence);
@@ -543,19 +542,36 @@ function openDelivery(delivery) {
   if (verdict) meta.push(states[verdict.decision][0]);
   document.querySelector('#delivery-meta').textContent = meta.join(' · ');
   const body = document.querySelector('#delivery-body');
-  body.replaceChildren(element('p', 'muted', delivery.encargo));
-  if (artifact) body.append(deliveryFlow(delivery, verdict));
-  if (delivery.productContext) body.append(memory.contextDetails(delivery.productContext));
+  body.replaceChildren();
   if (delivery.draft) {
+    body.append(element('h3', '', artifact ? 'Qué se ha hecho' : 'Qué se propone'));
     const preview = element('pre', '', delivery.draft.entrega);
     preview.tabIndex = 0;
     body.append(preview);
     if (delivery.research) body.append(renderResearch(delivery.research, delivery));
-    for (const [title, list] of [['Comprobaciones', delivery.draft.comprobaciones], ['Pendientes', delivery.draft.pendientes]]) {
-      if (!list?.length) continue;
+    for (const [title, list, empty] of [
+      ['Qué se ha comprobado', delivery.draft.comprobaciones, 'El agente no ha indicado comprobaciones.'],
+      ['Qué falta', delivery.draft.pendientes, 'El agente no ha indicado pendientes. Revisa el resultado antes de aprobar.'],
+    ]) {
+      const section = element('section', 'delivery-summary');
+      section.append(element('h3', '', title));
+      if (title === 'Qué se ha comprobado' && delivery.checks?.length) {
+        section.append(element('p', 'muted', 'Pruebas registradas por el panel:'));
+        const checks = element('ul');
+        for (const check of delivery.checks) checks.append(element('li', '',
+          `${check.passed ? 'Pasó' : 'No pasó'}${check.source === 'local' ? ' en este equipo' : ''} · ${check.command}`));
+        section.append(checks);
+      }
+      if (!list?.length) {
+        section.append(element('p', 'muted', empty));
+        body.append(section);
+        continue;
+      }
+      if (title === 'Qué se ha comprobado') section.append(element('p', 'muted', 'Según la entrega del agente.'));
       const items = element('ul');
       items.append(...list.map(item => element('li', '', item)));
-      body.append(element('h3', '', title), items);
+      section.append(items);
+      body.append(section);
     }
     if (delivery.agente === 'marketing' && delivery.mode === 'real' && verdict?.decision === 'aprobada') {
       body.append(button('Llevar borrador a Publicar', () => {
@@ -565,6 +581,12 @@ function openDelivery(delivery) {
     }
   }
   if (delivery.error) body.append(element('p', 'form-message', delivery.error));
+  body.append(element('h3', '', 'Siguiente paso'));
+  if (artifact) body.append(deliveryFlow(delivery, verdict));
+  else body.append(element('p', 'muted', delivery.mode === 'prueba' ?
+    'Es una simulación: no se han aplicado cambios.' : delivery.draft ?
+      'Revisa la propuesta. Puedes aprobarla o pedir cambios con una nota.' :
+      'Prepara un seguimiento para resolver el error y continuar.'));
   if ((delivery.draft || delivery.error) && delivery.mode !== 'prueba') {
     const next = element('div', 'actions delivery-next');
     next.append(button('Preparar seguimiento', () => {
@@ -572,6 +594,10 @@ function openDelivery(delivery) {
     }));
     body.append(next);
   }
+  const request = element('details', 'operation-file');
+  request.append(element('summary', '', 'Ver encargo original'), element('p', '', delivery.encargo));
+  body.append(request);
+  if (delivery.productContext) body.append(memory.contextDetails(delivery.productContext));
   reviewForm.hidden = !delivery.draft || Boolean(artifact && !artifact.verified);
   reviewForm.querySelector('[value="aprobada"]').textContent = artifact?.verified ? 'Aprobar implementación' :
     delivery.research ? 'Aprobar análisis' : 'Aprobar borrador';

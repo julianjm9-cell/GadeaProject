@@ -47,6 +47,16 @@ for (const [name, engine, viewport] of [
     assert.match(await page.locator('#team-activity').innerText(), /1 de 1 encargos procesados/);
     assert.equal(await page.locator('#work-queue-count').innerText(), '0');
     await page.locator('#team-activity').getByRole('button', { name: 'Ver resultado' }).click();
+    const detail = page.locator('#delivery-dialog');
+    await detail.getByRole('heading', { name: 'Qué se propone', exact: true }).waitFor();
+    await detail.getByRole('heading', { name: 'Qué falta', exact: true }).waitFor();
+    await detail.getByText('Es una simulación: no se han aplicado cambios.', { exact: true }).waitFor();
+    const original = detail.locator('summary').filter({ hasText: 'Ver encargo original' });
+    assert.equal(await original.locator('..').getAttribute('open'), null);
+    await original.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(await original.locator('..').evaluate(node => node.open), true);
+    assert.ok(await detail.evaluate(node => node.scrollWidth <= node.clientWidth + 1));
     await page.getByRole('dialog').getByRole('button', { name: 'Cerrar', exact: true }).click();
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     await page.getByRole('link', { name: 'Nuevo encargo', exact: true }).click();
@@ -122,7 +132,8 @@ for (const [name, engine, viewport] of [
         received.push(task);
         if (received.length > 1) await gate;
         return { draft: { resumen: 'Plan de ensayo ' + 'con una descripción larga '.repeat(9),
-          entrega: 'Prueba los botones desde el teclado.', comprobaciones: [], pendientes: [] }, usage: { total_tokens: 9876 } };
+          entrega: 'Prueba los botones desde el teclado.', comprobaciones: ['Revisión ficticia de navegación.'],
+          pendientes: ['Comprobar el foco en móvil.'] }, usage: { total_tokens: 9876 } };
       },
     } });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
@@ -163,6 +174,12 @@ for (const [name, engine, viewport] of [
     await page.locator('#team-activity').getByRole('button', { name: 'Ver resultado' }).click();
     assert.doesNotMatch(await page.locator('#delivery-meta').innerText(), /tokens|9876/i);
     assert.match(await page.locator('#delivery-meta').innerText(), /Codex local/);
+    const body = page.locator('#delivery-body');
+    assert.deepEqual(await body.getByRole('heading', { level: 3 }).allTextContents(),
+      ['Qué se propone', 'Qué se ha comprobado', 'Qué falta', 'Siguiente paso']);
+    await body.getByText('Revisión ficticia de navegación.', { exact: true }).waitFor();
+    await body.getByText('Comprobar el foco en móvil.', { exact: true }).waitFor();
+    await body.getByText('Según la entrega del agente.', { exact: true }).waitFor();
     page.once('dialog', dialog => dialog.accept());
     await page.getByRole('button', { name: 'Preparar seguimiento' }).click();
     const composer = page.locator('#agent-compose');
