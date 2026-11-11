@@ -610,7 +610,7 @@ function openDelivery(delivery) {
   if ((delivery.draft || delivery.error) && delivery.mode !== 'prueba') {
     const next = element('div', 'actions delivery-next');
     next.append(button('Preparar seguimiento', () => {
-      if (workspace.prepareFollowUp(delivery)) body.closest('dialog').close();
+      if (workspace.prepareFollowUp(delivery, verdict?.decision === 'cambios' ? verdict.note : '')) body.closest('dialog').close();
     }));
     body.append(next);
   }
@@ -618,7 +618,8 @@ function openDelivery(delivery) {
   request.append(element('summary', '', 'Ver encargo original'), element('p', '', delivery.encargo));
   body.append(request);
   if (delivery.productContext) body.append(memory.contextDetails(delivery.productContext));
-  reviewForm.hidden = !delivery.draft || Boolean(artifact && !artifact.verified);
+  reviewForm.hidden = !delivery.draft;
+  reviewForm.querySelector('[value="aprobada"]').hidden = Boolean(artifact && !artifact.verified);
   reviewForm.querySelector('[value="aprobada"]').textContent = artifact?.verified ? 'Aprobar implementación' :
     delivery.research ? 'Aprobar análisis' : 'Aprobar borrador';
   reviewForm.elements.note.value = verdict?.note || '';
@@ -677,15 +678,25 @@ linkForm.addEventListener('submit', event => {
 reviewForm.addEventListener('submit', event => {
   event.preventDefault();
   submit(reviewForm, async () => {
+    const decision = event.submitter.value;
+    const note = reviewForm.elements.note.value.trim();
+    if (decision === 'cambios' && !note) {
+      reviewForm.elements.note.focus();
+      throw new Error('Escribe qué quieres cambiar para preparar los ajustes.');
+    }
     const rule = memory.reviewRule();
     state.board = await api('/api/revisar', 'POST', {
-      key: reviewing.key, decision: event.submitter.value, note: reviewForm.elements.note.value, revision: state.board.revision, rule,
+      key: reviewing.key, decision, note, revision: state.board.revision, rule,
       commit: reviewing.implementation?.commit,
     });
     render();
     feedback(rule ? 'Decisión y criterio guardados.' : 'Decisión guardada en la bandeja.');
-    if (reviewing.implementation?.verified) openDelivery(reviewing);
-  }, !reviewing.implementation?.verified);
+    if (decision === 'cambios' && reviewing.mode !== 'prueba' && workspace.prepareFollowUp(reviewing, note)) {
+      reviewForm.closest('dialog').close();
+      feedback('Respuesta guardada. Revisa el encargo de ajustes y elige cómo ejecutarlo.');
+    } else if (decision === 'aprobada' && !reviewing.implementation) reviewForm.closest('dialog').close();
+    else openDelivery(reviewing);
+  }, false);
 });
 document.querySelectorAll('[data-close]').forEach(node => node.addEventListener('click', () => node.closest('dialog').close()));
 document.querySelector('.feedback-close').addEventListener('click', () => feedback(''));

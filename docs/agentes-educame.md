@@ -110,6 +110,8 @@ El panel guarda cola, criterios, revisiones y progreso de los lotes en `.educame
 
 ## Revisar y subir código
 
+Para responder a una entrega, escribe los ajustes en **Nota de revisión** y pulsa **Pedir cambios**. La respuesta queda guardada en la entrega y abre un encargo editable con esa nota, la app, el agente y el resultado anterior como referencia. Revisa el texto y elige añadirlo a la cola o ejecutarlo. Si ya tienes un borrador, el panel pregunta antes de sustituirlo; si lo conservas, puedes volver desde **Preparar seguimiento**. El seguimiento prepara un nuevo encargo, no reanuda la copia Git anterior. Las implementaciones con pruebas pendientes también admiten pedir ajustes, pero siguen sin poder aprobarse.
+
 La copia aislada parte del `HEAD` confirmado en Git al iniciar el lote. Los cambios sin commit del escritorio quedan fuera. Revisión puede continuar desde el commit del agente que le precede. El panel marca **Completado** cuando la entrega tiene cambios permitidos, pasa las comprobaciones registradas y tiene un commit local. Si falta una comprobación o hay errores, la copia queda disponible para continuar el trabajo.
 
 Desde **Revisar solicitud**, comprueba el estado de GitHub y confirma la fusión cuando sus pruebas estén listas. **Continuar a Hostinger** selecciona una revisión de `main` que contiene la entrega. Puedes desplegar por SSH con confirmación o usar **Generar comando** para la consola. Si usas GitHub en el navegador, abre la comparación y usa **Comprobar fusión** en la entrega una vez integrada.

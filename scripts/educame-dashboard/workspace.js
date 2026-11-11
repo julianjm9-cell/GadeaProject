@@ -883,19 +883,21 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
       renderTeam();
       openComposer();
     },
-    prepareFollowUp(delivery) {
+    prepareFollowUp(delivery, note = '') {
       if ((agentForm.elements.objective.value.trim() || agentForm.elements.context.value.trim()) &&
           !window.confirm('¿Sustituir el borrador de encargo que estás preparando?')) return false;
       selectedAgents.clear();
       selectedAgents.add(Object.hasOwn(agents, delivery.agente) ? delivery.agente : 'codex');
       agentForm.elements.app.value = Object.hasOwn(apps, delivery.app) ? delivery.app : 'ecosistema';
       agentForm.elements.app.dispatchEvent(new Event('change'));
-      agentForm.elements.objective.value = '';
+      agentForm.elements.objective.value = note.trim();
       agentForm.elements.sources.value = (delivery.fuentes || []).join('\n');
       agentForm.elements.context.value = [
+        'Entrega de referencia\n' + delivery.key,
         'Encargo anterior\n' + delivery.encargo,
         delivery.implementation?.verified && 'Revisión anterior de referencia\n' + delivery.implementation.commit,
-        'Resultado anterior\n' + (delivery.draft?.entrega || delivery.error || 'Sin entrega registrada.'),
+        'Resultado anterior\n' + (delivery.draft?.entrega || delivery.error || 'Sin entrega registrada.').slice(0, 3500),
+        delivery.contexto && 'Contexto anterior\n' + delivery.contexto.slice(0, 1500),
       ].filter(Boolean).join('\n\n').slice(0, 7500);
       agentForm.elements.context.closest('details').open = true;
       formMessage(agentForm);
