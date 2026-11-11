@@ -34,6 +34,11 @@ async function fixture(t) {
     const server = await createDashboard({ directory: data, repositoryRoot: root, apiKey: '', implementationOptions: { localRemote: true },
       codex: { status: async () => ({ ready: true }), implement: async (task, cwd) => {
         implementationCount++;
+        if (task.integration) {
+          assert.match(await readFile(join(cwd, 'apps/cambridge/index.html'), 'utf8'), /<<<<<<< /);
+          await writeFile(join(cwd, 'apps/cambridge/index.html'), 'Improved with current layout\n');
+          return { draft: { resumen: 'Integrado', entrega: 'Conservadas ambas versiones.' } };
+        }
         if (task.continuar) assert.match(await readFile(join(cwd, 'apps/cambridge/index.html'), 'utf8'), /Needs adjustment/);
         await writeFile(join(cwd, 'apps/cambridge/index.html'), task.encargo === 'Broken' ? 'Needs adjustment\n' : 'Improved\n');
         return { draft: { resumen: task.encargo, entrega: 'Cambio de ensayo.', comprobaciones: [], pendientes: [] },
@@ -90,6 +95,28 @@ test('comprueba, acepta y publica con el acceso Git existente y recupera el resu
   assert.equal((await reopened('/api/publicacion').then(response => response.json())).state, 'published');
   assert.equal((await reopened('/api/publicacion/aceptar', payload)).status, 202);
   assert.equal(f.count(), 1);
+});
+
+test('Subir integra conflictos y publica con una sola petición, incluso al repetirla o reiniciar', { timeout: 45_000 }, async t => {
+  const f = await fixture(t), request = await f.start(), key = 'implementacion/antigua';
+  await order(request, 'antigua', 'Improved');
+  await writeFile(join(f.root, 'apps/cambridge/index.html'), 'Current layout\n');
+  await f.git('add', '.');
+  await f.git('-c', 'commit.gpgsign=false', 'commit', '-m', 'Current layout');
+  await f.git('push', 'origin', 'main');
+  const current = await f.git('rev-parse', 'HEAD');
+  const payload = { id: randomUUID(), keys: [key] };
+  const responses = await Promise.all([request('/api/publicacion/subir', payload), request('/api/publicacion/subir', payload)]);
+  assert.ok(responses.every(response => response.status === 202));
+  const result = await wait(request, '/api/publicacion', job => ['published', 'failed', 'retry'].includes(job?.state));
+  assert.equal(result.state, 'published', result.message);
+  assert.match(await readFile(join(f.root, 'apps/cambridge/index.html'), 'utf8'), /Improved with current layout/);
+  assert.equal(f.count(), 2, 'un encargo y una integración, sin duplicación');
+  await f.git('merge-base', '--is-ancestor', current, result.candidate);
+  const reopened = await f.start();
+  assert.equal((await reopened('/api/publicacion/subir', payload)).status, 202);
+  assert.equal(f.count(), 2);
+  assert.equal((await reopened('/api/publicacion').then(response => response.json())).state, 'published');
 });
 
 test('una entrega con fallos se conserva y el ajuste continúa desde su código sin volver a empezar', { timeout: 30_000 }, async t => {

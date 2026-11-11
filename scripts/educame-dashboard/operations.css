@@ -49,3 +49,15 @@
   .operation-form > label { flex-basis: 100%; }
   .quota-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+.quota-hint { position: relative; display: inline-flex; }
+.quota-hint [role="tooltip"] {
+  display: none; position: absolute; top: 100%; right: 0; z-index: 50;
+  width: min(340px, calc(100vw - 32px)); box-sizing: border-box;
+  padding: 12px; border: 1px solid #b8beac; border-radius: 10px;
+  background: #fffdf5; color: #293c30; box-shadow: 0 6px 20px #23352826;
+  white-space: pre-line; overflow-wrap: anywhere; font-size: .8rem; line-height: 1.6;
+}
+.quota-hint:not(.dismissed):is(:hover, :focus-within) [role="tooltip"] { display: block; }
+@media (max-width: 600px) {
+  .quota-hint [role="tooltip"] { position: fixed; top: 110px; right: 16px; }
+}

@@ -163,6 +163,38 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     return { commit, base: artifact.base };
   }
 
+  async function resolveMerge(cwd, delivery) {
+    const start = await ref('HEAD', cwd);
+    const allowed = pathsFor(delivery.app);
+    const output = await codex.implement({ app: delivery.app, agente: 'codex', integration: true,
+      encargo: 'Integra la entrega en la versión actual sin perder cambios existentes.',
+      contexto: 'Resuelve los conflictos del merge en curso. Conserva las funcionalidades y pruebas de ambas versiones. ' +
+        'El encargo que se integra es: ' + delivery.encargo + '\n' + (delivery.draft?.entrega || '') +
+        '\nEdita los archivos en conflicto; no hagas commits, no publiques ni cambies de revisión. No elimines pruebas para hacerlas pasar.'
+    }, cwd, allowed);
+    if (output.error || output.uncertain || await ref('HEAD', cwd) !== start) {
+      throw new ImplementationError(409, 'No se pudo integrar esta entrega automáticamente. Su código sigue guardado.');
+    }
+    const files = [...new Set((await git(['diff', '--name-only', 'HEAD'], cwd)).split(/\r?\n/).filter(Boolean))];
+    const untracked = (await git(['ls-files', '--others', '--exclude-standard', '-z'], cwd)).split('\0').filter(Boolean);
+    files.push(...untracked.filter(file => !files.includes(file)));
+    if (files.length > 120 || files.some(file => excluded.test(file) ||
+        (delivery.app === 'control' ? !terraceFile(file) : !allowed.some(prefix => file.startsWith(prefix))))) {
+      throw new ImplementationError(409, 'La integración necesita una revisión de su alcance. Las copias están conservadas.');
+    }
+    for (const file of files) {
+      const entry = await lstat(join(cwd, file)).catch(error => { if (error.code !== 'ENOENT') throw error; });
+      if (entry && (!entry.isFile() || entry.size > 15 * 1024 * 1024 || relative(join(cwd, file), await realpath(join(cwd, file))))) {
+        throw new ImplementationError(409, 'La integración contiene un archivo no permitido.');
+      }
+    }
+    if (files.length) await git(['add', '-A', '--', ...files.map(file => ':(literal)' + file)], cwd);
+    const patch = await git(['diff', '--cached', '--no-ext-diff', '--no-textconv', '--unified=0'], cwd);
+    if (await git(['diff', '--name-only', '--diff-filter=U'], cwd) || credential.test(patch) ||
+        /^\+(?:<<<<<<< |>>>>>>> |=======$)/m.test(patch)) throw new ImplementationError(409, 'La integración no se completó. Se ha conservado la copia para corregirla.');
+    await git(['-c', 'commit.gpgsign=false', 'commit', '--no-edit'], cwd);
+  }
+
   async function finalize(task, output, pending, rerun) {
     if (!output.draft) return { ...output, implementation: pending };
     const reject = error => ({ ...output, error, implementation: pending });
@@ -305,5 +337,5 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     return true;
   }
 
-  return { base, execute, recover, revalidate, continuation, runChecks, push, worktree, verifiedWorktree, review, reviewTerrace, applyTerrace };
+  return { base, execute, recover, revalidate, continuation, resolveMerge, runChecks, push, worktree, verifiedWorktree, review, reviewTerrace, applyTerrace };
 }

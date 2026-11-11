@@ -35,7 +35,7 @@ for (const [name, engine, viewport] of [
     t.after(() => assert.deepEqual(pageErrors, []));
     const base = 'http://127.0.0.1:' + server.address().port, candidate = 'a'.repeat(40);
     const key = 'implementacion/publicar-ensayo';
-    let job = null, accepts = 0;
+    let job = null, accepts = 0, uploadId;
     await page.route('**/api/panel', async route => {
       const data = await (await route.fetch()).json();
       data.history.unshift({ id: 'publicar-ensayo', key, mode: 'implementacion', app: 'ingles', agente: 'juegos',
@@ -47,31 +47,30 @@ for (const [name, engine, viewport] of [
     await page.route('**/api/publicacion**', route => {
       const path = new URL(route.request().url()).pathname;
       if (path !== '/api/publicacion' && !path.startsWith('/api/publicacion/')) return route.continue();
-      if (path.endsWith('/preparar')) {
+      if (path.endsWith('/subir')) {
         assert.deepEqual(route.request().postDataJSON().keys, [key]);
-        job = { id: 'ensayo', state: 'ready', candidate, sources: [{ key, title: 'Mejora del juego' }],
-          files: ['apps/cambridge/index.html'], checks: [{ command: 'node --test', passed: true }], requiresWeb: true };
-      }
-      if (path.endsWith('/aceptar')) {
-        assert.deepEqual(route.request().postDataJSON(), { id: job.id, candidate });
+        if (uploadId) assert.equal(route.request().postDataJSON().id, uploadId);
+        uploadId = route.request().postDataJSON().id;
         accepts++;
-        job = { ...job, state: accepts === 1 ? 'retry' : 'published', message: 'Falta confirmar la subida. Reintenta.' };
+        job = { id: 'ensayo', keys: [key], state: accepts === 1 ? 'retry' : 'published', candidate,
+          sources: [{ key, title: 'Mejora del juego' }], requiresWeb: true };
       }
       return route.fulfill({ json: job });
     });
     await page.route('**/api/cambios/hostinger', route => route.fulfill({ json: { revision: candidate, command: 'bash infra/deploy-hostinger.sh' } }));
     await page.goto(base + '/#entregas/publicar-ensayo');
     const delivery = page.getByRole('dialog', { name: 'Mejora del juego' });
-    await delivery.getByRole('button', { name: 'Comprobar y preparar' }).click().catch(async error => {
+    await delivery.getByRole('button', { name: 'Subir', exact: true }).click().catch(async error => {
       t.diagnostic(JSON.stringify(await page.evaluate(() => ({ hash: location.hash,
         open: document.querySelector('#delivery-dialog').open, title: document.querySelector('#delivery-title').textContent,
         feedback: document.querySelector('#feedback-text').textContent, body: document.querySelector('#delivery-body').textContent.slice(0, 1200) }))));
       throw error;
     });
     const publication = page.locator('#work-publication');
-    await publication.getByRole('button', { name: 'Aceptar y publicar', exact: true }).click();
-    await publication.getByRole('button', { name: 'Reintentar publicación' }).click();
-    await publication.getByText('Aplicado y subido a GitHub', { exact: true }).waitFor();
+    await publication.getByText('No se confirmó la subida.', { exact: false }).waitFor();
+    assert.equal(await page.getByRole('button', { name: /Comprobar|Aceptar y publicar/ }).count(), 0);
+    await publication.getByRole('button', { name: 'Subir', exact: true }).click();
+    await publication.getByText('Subido a GitHub', { exact: true }).waitFor();
     assert.equal(accepts, 2);
     await publication.getByRole('button', { name: 'Copiar comando de Hostinger' }).click();
     await page.getByRole('dialog', { name: 'Comando para Hostinger' }).waitFor();
@@ -175,10 +174,10 @@ for (const [name, engine, viewport] of [
     let applied = false;
     let prepared = false;
     const commit = 'a'.repeat(40);
-    await page.route('**/api/publicacion/preparar', route => {
+    await page.route('**/api/publicacion/subir', route => {
       assert.deepEqual(route.request().postDataJSON().keys, ['implementacion/terraza-' + proposal.id]);
       prepared = true;
-      return route.fulfill({ json: { id: 'chat-ensayo', state: 'ready', candidate: commit,
+      return route.fulfill({ json: { id: 'chat-ensayo', state: 'preparing', candidate: commit,
         sources: [], files: ['scripts/educame-dashboard/theme.css'], checks: [] } });
     });
     await page.route('**/api/chat**', async route => {
@@ -213,8 +212,8 @@ for (const [name, engine, viewport] of [
     const dialog = page.getByRole('dialog', { name: 'Revisar propuesta' });
     await dialog.getByText('+ body { color: olive; }').waitFor();
     assert.equal(applied, false);
-    await dialog.getByRole('button', { name: 'Comprobar y preparar' }).click();
-    await page.locator('#work-publication').getByRole('button', { name: 'Aceptar y publicar', exact: true }).waitFor();
+    await dialog.getByRole('button', { name: 'Subir', exact: true }).click();
+    await page.locator('#work-publication').getByText('Estamos preparando y subiendo tus cambios…', { exact: true }).waitFor();
     assert.equal(applied, false, 'el chat no aplica antes de aceptar la publicación conjunta');
     assert.equal(prepared, true);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
@@ -485,8 +484,19 @@ for (const [name, engine, viewport] of [
     const deliveryDialog = page.getByRole('dialog', { name: 'Tablero de ensayo' });
     await deliveryDialog.waitFor();
     assert.doesNotMatch(await deliveryDialog.locator('#delivery-meta').innerText(), /tokens|9876/i);
-    await deliveryDialog.getByRole('button', { name: 'Comprobar y preparar' }).waitFor();
+    await deliveryDialog.getByRole('button', { name: 'Subir', exact: true }).waitFor();
     await deliveryDialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
+    const chip = page.locator('#codex-quota-chip'), tooltip = page.getByRole('tooltip');
+    await chip.hover();
+    await tooltip.waitFor({ state: 'visible' });
+    assert.match(await tooltip.textContent(), /Límite semanal · 59 % disponible/);
+    const bounds = await tooltip.boundingBox();
+    assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= viewport.width);
+    await chip.focus();
+    await page.keyboard.press('Escape');
+    await tooltip.waitFor({ state: 'hidden' });
+    await page.mouse.move(0, 0);
+    await chip.blur();
     await page.goto(base + '/#control/github/9');
     assert.equal(new URL(page.url()).hash, '#control/github/9');
     await page.getByText('app.js', { exact: false }).click();

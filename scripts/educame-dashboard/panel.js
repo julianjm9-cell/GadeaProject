@@ -429,41 +429,13 @@ function deliveryFlow(delivery) {
   if (published) {
     box.append(element('h3', '', 'Cambio integrado'), element('p', 'muted', 'Esta entrega ya está incluida en la versión de GitHub.'));
   } else {
-    box.append(element('h3', '', delivery.implementation.verified ? 'Lista para preparar la publicación' : 'Pendiente de comprobación'));
-    box.append(element('p', 'muted', 'El panel comprobará esta entrega y preparará una versión para que la aceptes.'));
-    const prepare = button('Comprobar y preparar', () => {
+    const prepare = button('Subir', () => {
       reviewForm.closest('dialog').close();
-      publicationClient.prepare([delivery.key]);
+      publicationClient.upload([delivery.key]);
     });
     prepare.className = 'button primary';
     box.append(prepare);
   }
-  const technical = element('details', 'operation-file');
-  technical.append(element('summary', '', 'Ver archivos y pruebas'));
-  for (const file of delivery.implementation.files || []) technical.append(element('p', 'muted', file));
-  for (const check of delivery.checks || []) technical.append(element('p', 'muted', (check.passed ? 'Correcta · ' : 'Pendiente · ') + check.command));
-  if (delivery.implementation.verified) {
-    if (!['ecosistema', 'control'].includes(delivery.app)) {
-      const preview = element('a', 'button secondary', 'Vista de la entrega');
-      preview.href = '/vista-encargo/' + delivery.id;
-      preview.target = '_blank';
-      preview.rel = 'noopener noreferrer';
-      box.append(preview);
-    }
-    const diff = element('details', 'operation-file'), patch = element('pre');
-    diff.append(element('summary', '', 'Ver cambios de código'), patch);
-    diff.addEventListener('toggle', async () => {
-      if (!diff.open || diff.dataset.loaded) return;
-      diff.dataset.loaded = 'true';
-      try {
-        const result = await api('/api/encargos/diferencias?key=' + encodeURIComponent(delivery.key));
-        if (result.commit !== delivery.implementation.commit) throw new Error('La entrega cambió. Ábrela de nuevo.');
-        patch.textContent = result.patch + (result.truncated ? '\n\nVista parcial.' : '');
-      } catch (error) { delete diff.dataset.loaded; patch.textContent = error.message; }
-    });
-    technical.append(diff);
-  }
-  box.append(technical);
   return box;
 }
 
@@ -488,6 +460,7 @@ function openDelivery(delivery) {
       ['Qué se ha comprobado', delivery.draft.comprobaciones, 'El agente no ha indicado comprobaciones.'],
       ['Qué falta', delivery.draft.pendientes, 'El agente no ha indicado pendientes. Revisa el resultado antes de aprobar.'],
     ]) {
+      if (artifact) continue;
       const section = element('section', 'delivery-summary');
       section.append(element('h3', '', title));
       if (title === 'Qué se ha comprobado' && delivery.checks?.length) {
@@ -548,12 +521,16 @@ function openDelivery(delivery) {
   body.append(request);
   if (delivery.productContext) body.append(memory.contextDetails(delivery.productContext));
   reviewForm.hidden = !delivery.draft && !artifact;
-  reviewForm.querySelector('[value="cambios"]').textContent = artifact ? 'Enviar ajustes al agente' : 'Pedir cambios';
+  reviewForm.querySelector('[value="cambios"]').textContent = 'Pedir cambios';
   reviewForm.querySelector('[value="aprobada"]').hidden = Boolean(artifact);
   reviewForm.querySelector('[value="aprobada"]').textContent = artifact?.verified ? 'Aprobar implementación' :
     delivery.research ? 'Aprobar análisis' : 'Aprobar borrador';
   reviewForm.elements.note.value = verdict?.note || '';
   memory.prepareReview(delivery);
+  document.querySelector('#review-memory').hidden = Boolean(artifact);
+  document.querySelector('#review-note-hint').textContent = artifact ?
+    'El agente continuará desde esta entrega con los ajustes que le pidas.' :
+    'Pedir cambios guarda tu respuesta y prepara un encargo editable.';
   formMessage(reviewForm);
   if (!reviewForm.closest('dialog').open) reviewForm.closest('dialog').showModal();
 }
@@ -714,7 +691,7 @@ const agentEditor = setupAgentEditor({ api, button, formMessage, getState: () =>
   },
 });
 const chat = setupChat({ api, element, button, feedback, formMessage, getState: () => state,
-  preparePublication: keys => publicationClient.prepare(keys) });
+  preparePublication: keys => publicationClient.upload(keys) });
 const workProgress = setupWorkProgress({ element, button, badge, openDelivery });
 changes = setupChanges({ api, element });
 operations = setupOperations({ api, element, button, feedback, openCommand: changes.openCommand });

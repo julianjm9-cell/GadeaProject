@@ -4,7 +4,7 @@ export function setupWorkProgress({ element, button, badge, openDelivery }) {
   function deliveryStatus(delivery, board) {
     if (delivery.mode === 'prueba') return ['Simulación terminada', 'demo'];
     if (!delivery.draft) return ['Necesita atención', 'error'];
-    if (delivery.implementation && !delivery.implementation.verified) return ['Requiere comprobación', 'pending'];
+    if (delivery.implementation && !delivery.implementation.verified) return ['Por revisar', 'pending'];
     const review = board.reviews[delivery.key];
     const approved = review?.decision === 'aprobada' &&
       (!delivery.implementation || review.commit === delivery.implementation.commit);
@@ -54,7 +54,7 @@ export function setupWorkProgress({ element, button, badge, openDelivery }) {
         actions.append(delivery ? statusBadge(delivery, board) :
           badge(batch.state === 'paused' && job?.status === 'en curso' ? 'interrumpido' : job?.status));
         if (delivery) {
-          actions.append(button(delivery.implementation && !delivery.implementation.verified ? 'Resolver comprobaciones' : 'Ver resultado',
+          actions.append(button('Ver resultado',
             () => openDelivery(delivery)));
         } else if (job?.status === 'en curso' && batch.running) {
           const running = element('progress', 'work-running');

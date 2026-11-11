@@ -20,8 +20,8 @@ En **Conexiones** y **Operación** hay guías cortas junto a cada configuración
 En **Chat con Codex**, selecciona un modelo del catálogo de tu sesión. **Hacer
 una pregunta** responde en texto y usa los mensajes recientes como contexto.
 **Cambiar LA TERRAZA** prepara un commit del panel en una copia aislada. Abre
-**Revisar propuesta** para ver las pruebas y el diff. **Comprobar y preparar**
-lleva al mismo recorrido de **Aceptar y publicar** que las demás entregas.
+**Revisar propuesta** permite leer el resultado. **Subir**
+usa el mismo proceso automático que las demás entregas.
 El panel aplica la versión y se recarga al terminar. El historial del chat se guarda localmente.
 
 **Uso de Codex** muestra el porcentaje disponible y la fecha de renovación de
@@ -35,18 +35,18 @@ Si una consulta falla, el último dato disponible aparece con su fecha.
 La misma pantalla reúne tres zonas.
 
 1. **En cola** guarda los encargos que has preparado. **Añadir a la cola** permite seguir preparando mientras otros agentes trabajan. **Empezar cola** inicia los cambios con Codex. Los encargos pasan al seguimiento al empezar y dejan espacio para los siguientes.
-2. **En curso** muestra el agente, la app, el objetivo y el estado real de cada encargo. Los resultados con comprobaciones pendientes muestran **Resolver comprobaciones**.
+2. **En curso** muestra el agente, la app, el objetivo y el estado real de cada encargo. **Ver resultado** abre su entrega.
 3. **Resultados** permite abrir cada entrega, revisarla, pedir seguimiento y preparar su publicación. El historial conserva también análisis y simulaciones.
 
 **Implementar con Codex** y **Analizar enlaces** ejecutan directamente. **Planificar o probar el encargo** permite preparar un borrador o simular con datos ficticios. **Opciones de la cola** permite simular los encargos guardados, cargar un ejemplo o editar instrucciones individuales.
 
 Los enlaces anteriores `#operaciones` y `#entregas` siguen llevando a sus zonas dentro de Agentes. **Historial de ejecuciones** conserva los grupos enviados.
 
-### Aceptar y publicar
+### Pedir cambios o subir
 
-En **Aceptar y publicar cambios**, selecciona las entregas y pulsa **Comprobar y preparar**. El panel repite las pruebas compatibles, reúne los cambios en una copia aislada y comprueba la versión conjunta. **Aceptar y publicar** aplica esa versión en el equipo y la sube a `main` usando el acceso Git ya configurado. Los cambios de LA TERRAZA recargan el panel al terminar. Para cambios de la web, el resultado ofrece **Copiar comando de Hostinger**.
+Desde una entrega, **Pedir cambios** envía la nota al agente y continúa desde su código. **Subir** inicia todo el proceso con una sola pulsación: integra, resuelve conflictos con Codex cuando corresponde, comprueba, aplica y sube a `main` con el acceso Git del equipo. El botón general sube juntas las entregas pendientes. No hay un paso manual de pruebas, preparación o segunda aceptación. Los cambios de LA TERRAZA recargan el panel al terminar. Para cambios de la web, el resultado ofrece **Copiar comando de Hostinger**.
 
-Si aparece un fallo, el estado conserva la versión y permite reintentar o enviar ajustes. Si cambia el código local o GitHub después de preparar, hay que volver a comprobar la versión. Desde la nota de una implementación, **Enviar ajustes al agente** inicia un encargo que continúa desde su código anterior, incluso si todavía tenía pruebas pendientes.
+Si aparece un fallo real, el estado conserva la versión: no anuncia una subida que no se haya confirmado. Subir retoma una publicación pendiente de confirmación sin duplicarla. Las comprobaciones y las protecciones de revisión siguen funcionando por detrás.
 
 ### Operación avanzada (opcional)
 
@@ -71,7 +71,7 @@ Si aparece un fallo, el estado conserva la versión y permite reintentar o envia
 
 - **Agentes.** Selecciona la app, los agentes y el resultado que buscas. **Implementar con Codex** usa la sesión local de Codex CLI para editar una copia Git aislada. Con Juegos puedes crear, mejorar o combinar ambas acciones en un pack de hasta diez juegos. **Preparar borrador** usa Codex en modo de lectura u OpenAI API. **Simular** prueba el flujo sin hacer llamadas. Para un lote con instrucciones distintas por agente, edita cada encargo en **Cola de trabajo**.
 - **Memoria.** Consulta la ficha de cada app con público, estética, funcionalidades, prioridades, reglas, errores a evitar y comprobaciones. Añade criterios sobre didáctica, accesibilidad, marketing, operación u otras categorías de la ficha. Un agente puede sugerir un aprendizaje. Para incorporarlo, pulsa **Usar propuesta del agente**, ajusta el texto y guarda la revisión con la casilla de Memoria marcada. Las notas y propuestas sin confirmar se quedan en su entrega. Edita o archiva criterios desde Memoria.
-- **Resultados de Agentes.** Abre una entrega para ver el siguiente paso. **Comprobar y preparar** comprueba las copias y reúne los cambios; **Aceptar y publicar** aplica y sube la versión. La vista de la entrega y el código siguen disponibles para revisar. Un borrador de Marketing aprobado se puede llevar al editor de publicaciones.
+- **Resultados de Agentes.** Abre una entrega y elige **Pedir cambios** o **Subir**. Un borrador de Marketing aprobado se puede llevar al editor de publicaciones.
 - **Conexiones.** En **Agentes e IA** puedes comprobar Codex y configurar una clave de OpenAI como alternativa. Si el panel no detecta una sesión de Codex, inicia sesión con `codex login` y pulsa **Comprobar sesión**. En **Redes sociales**, vincula los perfiles en [Buffer](https://publish.buffer.com/) y guarda su clave API. En **Estadísticas**, habilita Search Console API en Google Cloud, crea un cliente OAuth web, registra la URL de retorno del panel y autoriza la lectura de la propiedad.
 - **Vídeo.** Conecta una clave de [Runway](https://dev.runwayml.com/) y describe un clip de cinco segundos en formato vertical u horizontal. La generación usa créditos de Runway. Descarga el MP4 cuando esté listo. Para programarlo después en Buffer, aloja primero el archivo en una URL pública estable.
 - **Apps.** Abre los siete productos de Educame, inicia un encargo con la app seleccionada o entra al dashboard online. La etiqueta **En pausa** refleja el estado público de la app.
@@ -115,13 +115,13 @@ El panel guarda cola, criterios, revisiones y progreso de los lotes en `.educame
 
 ## Revisar y subir código
 
-Para responder a una entrega, escribe los ajustes en **Nota de revisión** y pulsa **Pedir cambios**. La respuesta queda guardada en la entrega y abre un encargo editable con esa nota, la app, el agente y el resultado anterior como referencia. Revisa el texto y elige añadirlo a la cola o ejecutarlo. Si ya tienes un borrador, el panel pregunta antes de sustituirlo; si lo conservas, puedes volver desde **Preparar seguimiento**. El seguimiento prepara un nuevo encargo, no reanuda la copia Git anterior. Las implementaciones con pruebas pendientes también admiten pedir ajustes, pero siguen sin poder aprobarse.
+Para responder a una implementación, escribe qué quieres ajustar y pulsa **Pedir cambios**. El agente recibe la nota y continúa desde el código anterior. Los análisis sin implementación siguen preparando un encargo editable con el contexto original.
 
 La copia aislada parte del `HEAD` confirmado en Git al iniciar el lote. Los cambios sin commit del escritorio quedan fuera. Revisión puede continuar desde el commit del agente que le precede. El panel marca **Completado** cuando la entrega tiene cambios permitidos, pasa las comprobaciones registradas y tiene un commit local. Si falta una comprobación o hay errores, la copia queda disponible para continuar el trabajo.
 
-Desde **Revisar solicitud**, comprueba el estado de GitHub y confirma la fusión cuando sus pruebas estén listas. **Continuar a Hostinger** selecciona una revisión de `main` que contiene la entrega. Puedes desplegar por SSH con confirmación o usar **Generar comando** para la consola. Si usas GitHub en el navegador, abre la comparación y usa **Comprobar fusión** en la entrega una vez integrada.
+El recorrido habitual termina con **Subir**. La operación avanzada permite además revisar solicitudes de GitHub y desplegar en Hostinger por SSH con confirmación, o generar el comando para su consola.
 
-En una entrega de LA TERRAZA puedes **Aplicar en este equipo** tras aprobar el cambio y reiniciar desde el mismo diálogo. Si ya está integrada, **Actualizar LA TERRAZA desde GitHub** trae la versión verificada de `main` cuando Git permite avanzar sin sobrescribir el trabajo local. Los cambios de LA TERRAZA se cargan al reiniciar el programa local.
+Las entregas de LA TERRAZA se aplican y recargan automáticamente al subirlas. Los archivos técnicos de la entrega siguen guardados para diagnóstico, aunque la pantalla no muestre sus pruebas.
 
 Desde la raíz del proyecto, abre la vista previa del lote. Usa Node.js 24, igual que las pruebas del repositorio.
 

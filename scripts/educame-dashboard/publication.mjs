@@ -55,13 +55,13 @@ export function createPublication({ root, directory, store, implementation, read
         'No se pudo completar este paso. Comprueba el acceso a GitHub y vuelve a intentarlo.' });
     }).finally(() => { active = null; });
   }
-  async function prepare({ keys }) {
+  async function prepare({ keys, uploadId = null }) {
     if (!Array.isArray(keys) || keys.length > 12 || keys.some(key => !/^implementacion\/[a-z0-9][a-z0-9-]{0,63}$/.test(key)) ||
         new Set(keys).size !== keys.length) throw new OperationError(400, 'Selecciona las entregas que quieres preparar.');
     if (active) throw new OperationError(409, 'Los cambios ya se están procesando.');
     assertIdle();
     const id = randomUUID();
-    save({ id, state: 'preparing', phase: 'Comprobando entregas', keys, sources: [], files: [], checks: [], candidate: null,
+    save({ id, uploadId, state: 'preparing', phase: 'Preparando cambios', keys, sources: [], files: [], checks: [], candidate: null,
       message: '', root: null, remote: null, requiresRestart: false, requiresWeb: false, acceptedAt: null });
     background(async () => {
       const head = await clean();
@@ -87,7 +87,13 @@ export function createPublication({ root, directory, store, implementation, read
       for (const commit of [remote, ...sources.map(item => item.commit)]) {
         if (!(await ancestor(commit, await git(['rev-parse', 'HEAD'], cwd), cwd))) {
           try { await git(['merge', '--no-edit', commit], cwd); }
-          catch { throw new OperationError(409, 'Dos cambios necesitan ajustes para encajar. Las copias están conservadas. Pide al agente que resuelva la integración.'); }
+          catch {
+            if (!await git(['diff', '--name-only', '--diff-filter=U'], cwd)) throw new OperationError(409, 'No se pudo unir la versión. Los cambios están guardados.');
+            save({ phase: 'Adaptando los cambios a la versión actual' });
+            const source = sources.find(item => item.commit === commit);
+            const delivery = source ? await readDelivery(source.key) : { app: 'ecosistema', encargo: 'Integra las versiones local y remota conservando sus cambios.' };
+            await implementation.resolveMerge(cwd, delivery);
+          }
         }
       }
       const candidate = await git(['rev-parse', 'HEAD'], cwd);
@@ -112,6 +118,7 @@ export function createPublication({ root, directory, store, implementation, read
         localCommits: Number(await git(['rev-list', '--count', remote + '..' + head], cwd)),
         requiresRestart: localFiles.some(file => file.startsWith('scripts/educame-dashboard') || file === 'scripts/educame-agents.mjs'),
         requiresWeb: files.some(file => /^(?:apps\/|backend\/|admin\/|marketing\/|infra\/|docker-compose|compose\.)/.test(file)) });
+      if (uploadId) await publish(read());
     });
     return read();
   }
@@ -128,7 +135,12 @@ export function createPublication({ root, directory, store, implementation, read
     if (!['ready', 'retry'].includes(plan.state)) throw new OperationError(409, 'Comprueba los cambios antes de aceptarlos.');
     assertIdle();
     save({ state: 'publishing', phase: 'Aplicando y publicando', message: '', acceptedAt: plan.acceptedAt || new Date().toISOString() });
-    background(async () => {
+    background(() => publish(plan));
+    return read();
+  }
+  async function publish(plan) {
+      const candidate = plan.candidate;
+      save({ state: 'publishing', phase: 'Subiendo cambios', acceptedAt: plan.acceptedAt || new Date().toISOString() });
       const head = await clean();
       if (![plan.root, candidate].includes(head)) throw new OperationError(409, 'La versión local cambió. Prepara de nuevo los cambios.');
       for (const item of plan.sources) {
@@ -164,8 +176,16 @@ export function createPublication({ root, directory, store, implementation, read
         store.writeBoard({ ...board, revision: board.revision + 1, reviews, pushes });
       });
       save({ state: 'published', phase: 'Cambios publicados', message: '', publishedAt: new Date().toISOString() });
-    });
-    return read();
   }
-  return { status, prepare, accept, busy: () => Boolean(active), wait: () => active };
+  async function upload({ keys, id }) {
+    if (!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(id || '')) throw new OperationError(400, 'La solicitud de subida no es válida.');
+    const current = status();
+    if (current?.uploadId === id) {
+      if (JSON.stringify(current.keys) !== JSON.stringify(keys)) throw new OperationError(409, 'La selección de cambios cambió.');
+      if (active || current.state === 'published' || current.state === 'failed') return current;
+      if (['ready', 'retry'].includes(current.state)) return accept({ id: current.id, candidate: current.candidate });
+    }
+    return prepare({ keys, uploadId: id });
+  }
+  return { status, prepare, accept, upload, busy: () => Boolean(active), wait: () => active };
 }

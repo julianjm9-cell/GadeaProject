@@ -17,6 +17,12 @@ export function setupOperations({ api, element, button, feedback, openCommand })
   let hostinger;
   let statusQuery;
   let quotaQuery;
+  const quotaHint = $('codex-quota-chip').parentElement;
+  quotaHint.addEventListener('keydown', event => {
+    if (event.key === 'Escape') quotaHint.classList.add('dismissed');
+  });
+  quotaHint.addEventListener('pointerleave', () => quotaHint.classList.remove('dismissed'));
+  quotaHint.addEventListener('focusout', () => quotaHint.classList.remove('dismissed'));
   let confirmation;
   const dialog = $('operation-confirm');
   const confirmForm = dialog.querySelector('form');
@@ -260,6 +266,7 @@ export function setupOperations({ api, element, button, feedback, openCommand })
       });
       if (windows.length && !result.limitsFresh) summary.unshift('Último dato · ' + stamp(result.limitsAt));
       $('codex-quota-chip').title = summary.join('\n');
+      $('codex-quota-tooltip').textContent = summary.join('\n');
       const nodes = windows.map(item => {
         const mins = item.durationMinutes;
         const label = mins === 10080 ? 'Límite semanal' : mins && mins % 60 === 0 ? 'Ventana de ' + mins / 60 + ' h' : 'Límite de uso';
@@ -284,7 +291,10 @@ export function setupOperations({ api, element, button, feedback, openCommand })
     }).finally(() => { quotaQuery = null; });
     return quotaQuery;
   }
-  const refreshQuota = () => quota().catch(() => message($('codex-quota-chip'), 'Uso de Codex sin actualizar'));
+  const refreshQuota = () => quota().catch(() => {
+    message($('codex-quota-chip'), 'Uso de Codex sin actualizar');
+    $('codex-quota-tooltip').textContent = 'No se pudieron actualizar los límites de Codex. Abre Uso de Codex para consultar el último dato.';
+  });
   $('codex-usage-refresh').addEventListener('click', event => busy(event.currentTarget, () => quota(true)));
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshQuota(); });
   setInterval(() => { if (!document.hidden) refreshQuota(); }, 60_000);

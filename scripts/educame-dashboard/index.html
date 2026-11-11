@@ -45,7 +45,7 @@
   </aside>
 
   <main id="main" tabindex="-1">
-    <header class="topline"><div class="terrace-location"><span data-environment-name>LA TERRAZA</span><span id="page-location">Inicio</span></div><div class="actions"><a class="status-chip" id="codex-quota-chip" href="#agentes/uso">Uso de Codex</a><a class="status-chip" id="api-status" href="#conexiones" data-open-connection="ia">Comprobando Codex</a></div></header>
+    <header class="topline"><div class="terrace-location"><span data-environment-name>LA TERRAZA</span><span id="page-location">Inicio</span></div><div class="actions"><span class="quota-hint"><a class="status-chip" id="codex-quota-chip" href="#agentes/uso" aria-describedby="codex-quota-tooltip">Uso de Codex</a><span id="codex-quota-tooltip" role="tooltip">Consultando los límites de Codex…</span></span><a class="status-chip" id="api-status" href="#conexiones" data-open-connection="ia">Comprobando Codex</a></div></header>
     <div id="feedback" class="feedback" role="status" hidden><span id="feedback-text"></span><button type="button" class="feedback-close" aria-label="Cerrar aviso">×</button></div>
 
     <section data-page="inicio" aria-labelledby="home-title">
@@ -94,7 +94,7 @@
         <pre id="chat-review-diff" tabindex="0" aria-label="Diferencias de código"></pre>
         <p class="inline-hint" id="chat-review-note"></p>
         <p class="form-message" id="chat-review-error" role="alert" hidden></p>
-        <div class="actions"><button class="button secondary" type="button" data-close>Cancelar</button><button class="button primary" id="chat-apply" type="button">Comprobar y preparar</button></div>
+        <div class="actions"><button class="button secondary" type="button" data-close>Cancelar</button><button class="button primary" id="chat-apply" type="button">Subir</button></div>
       </dialog>
     </section>
 
@@ -564,8 +564,8 @@
     <p id="delivery-meta" class="muted"></p>
     <div id="delivery-body"></div>
     <form id="review-form" method="dialog" hidden>
-      <label>Nota de revisión <span class="muted">(necesaria para pedir cambios)</span><textarea name="note" rows="3" maxlength="2000" placeholder="Responde a la entrega: qué esperabas y qué quieres ajustar."></textarea></label>
-      <p class="inline-hint">Pedir cambios guarda tu respuesta y prepara un encargo editable con la entrega como referencia. Después puedes añadirlo a la cola o ejecutarlo.</p>
+      <label>¿Qué quieres cambiar?<textarea name="note" rows="3" maxlength="2000" placeholder="Explica qué quieres ajustar."></textarea></label>
+      <p class="inline-hint" id="review-note-hint">Pedir cambios guarda tu respuesta y prepara los ajustes.</p>
       <details id="review-memory">
         <summary>Conservar un aprendizaje en Memoria</summary>
         <p class="inline-hint" id="review-memory-existing" hidden></p>

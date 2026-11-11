@@ -375,10 +375,11 @@ export async function createDashboard({
         });
         return json(202, batch);
       }
-      if (['/api/publicacion/preparar', '/api/publicacion/aceptar'].includes(path) && request.method === 'POST') {
+      if (['/api/publicacion/preparar', '/api/publicacion/aceptar', '/api/publicacion/subir'].includes(path) && request.method === 'POST') {
         if (request.headers.origin !== origin) throw new OperationError(403, 'Publica los cambios desde el panel local.');
         const payload = await bodyJson(request);
-        return json(202, await (path.endsWith('/preparar') ? publication.prepare(payload) : publication.accept(payload)));
+        return json(202, await (path.endsWith('/subir') ? publication.upload(payload) :
+          path.endsWith('/preparar') ? publication.prepare(payload) : publication.accept(payload)));
       }
       if (request.method === 'GET' && path === '/api/chat') {
         const data = await chat.read();

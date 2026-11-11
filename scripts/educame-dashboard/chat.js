@@ -153,7 +153,7 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
     selected = item;
     $('chat-review-commit').textContent = 'Commit ' + item.proposal.commit.slice(0, 10);
     $('chat-review-diff').textContent = 'Cargando las diferencias…';
-    $('chat-review-note').textContent = 'La publicación se prepara y acepta desde el mismo recorrido que el resto de entregas.';
+    $('chat-review-note').textContent = 'Subir aplica y guarda los cambios en GitHub. El resto se hace automáticamente.';
     $('chat-review-error').hidden = true;
     apply.disabled = true;
     review.showModal();
