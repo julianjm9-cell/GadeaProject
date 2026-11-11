@@ -16,6 +16,12 @@ export function setupOperations({ api, element, button, feedback }) {
   let hostinger;
   let statusQuery;
   let quotaQuery;
+  const quotaHint = $('codex-quota-chip').parentElement;
+  quotaHint.addEventListener('keydown', event => {
+    if (event.key === 'Escape') quotaHint.classList.add('dismissed');
+  });
+  quotaHint.addEventListener('pointerleave', () => quotaHint.classList.remove('dismissed'));
+  quotaHint.addEventListener('focusout', () => quotaHint.classList.remove('dismissed'));
   let confirmation;
   const dialog = $('operation-confirm');
   const confirmForm = dialog.querySelector('form');
@@ -219,7 +225,7 @@ export function setupOperations({ api, element, button, feedback }) {
       const used = windows[0]?.usedPercent;
       message($('codex-quota-chip'), used === undefined ? 'Uso de Codex' :
         (result.limitsFresh ? 'Codex · ' : 'Último dato · ') + number.format(100 - used) + ' % disponible');
-      $('codex-quota-chip').title = [
+      $('codex-quota-tooltip').textContent = [
         result.limitsFresh ? 'Límites de Codex' : 'Límites de la última consulta',
         ...[[300, 'Límite de 5 h'], [10080, 'Límite semanal']].map(([minutes, label]) => {
           const window = windows.find(item => item.durationMinutes === minutes);
@@ -258,7 +264,7 @@ export function setupOperations({ api, element, button, feedback }) {
   }
   const refreshQuota = () => quota().catch(() => {
     message($('codex-quota-chip'), 'Uso de Codex sin actualizar');
-    $('codex-quota-chip').title = 'No se pudieron actualizar los límites de Codex. Abre Uso de Codex para consultar el último dato.';
+    $('codex-quota-tooltip').textContent = 'No se pudieron actualizar los límites de Codex. Abre Uso de Codex para consultar el último dato.';
   });
   $('codex-usage-refresh').addEventListener('click', event => busy(event.currentTarget, () => quota(true)));
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshQuota(); });
