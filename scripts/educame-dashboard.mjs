@@ -245,7 +245,8 @@ export async function createDashboard({
     },
   });
   const publication = createPublication({ root: repositoryRoot, directory, store, implementation,
-    readDelivery: implementationDelivery, revalidate, assertIdle: () => chat.assertIdle(),
+    readDelivery: implementationDelivery, revalidate,
+    repair: async delivery => saveDelivery(delivery, await implementation.repair(delivery)), assertIdle: () => chat.assertIdle(),
     onApplied: () => { terraceNeedsRestart = true; }, localRemote: implementationOptions?.localRemote });
   let appAvailability;
   let availabilityExpiry = 0;
@@ -308,7 +309,9 @@ export async function createDashboard({
   }
 
   async function revalidate(delivery) {
-    const result = await implementation.revalidate(delivery);
+    return saveDelivery(delivery, await implementation.revalidate(delivery));
+  }
+  async function saveDelivery(delivery, result) {
     const updated = { ...delivery, ...result, error: result.error,
       status: result.implementation.verified ? 'completado' : 'borrador' };
     const path = implementationPath(delivery.id);
@@ -375,10 +378,10 @@ export async function createDashboard({
         });
         return json(202, batch);
       }
-      if (['/api/publicacion/preparar', '/api/publicacion/aceptar', '/api/publicacion/subir'].includes(path) && request.method === 'POST') {
+      if (['/api/publicacion/preparar', '/api/publicacion/aceptar', '/api/publicacion/subir', '/api/publicacion/deshacer'].includes(path) && request.method === 'POST') {
         if (request.headers.origin !== origin) throw new OperationError(403, 'Publica los cambios desde el panel local.');
         const payload = await bodyJson(request);
-        return json(202, await (path.endsWith('/subir') ? publication.upload(payload) :
+        return json(202, await (path.endsWith('/deshacer') ? publication.undo(payload) : path.endsWith('/subir') ? publication.upload(payload) :
           path.endsWith('/preparar') ? publication.prepare(payload) : publication.accept(payload)));
       }
       if (request.method === 'GET' && path === '/api/chat') {

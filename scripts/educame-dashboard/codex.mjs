@@ -126,7 +126,7 @@ export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE 
       const prompt = `${instructions}
 
 ${research ? 'Usa la herramienta de búsqueda web integrada. El contexto del producto viene incluido en el encargo. Indica la procedencia de cada observación y asocia cada idea con sus enlaces. Entrega el análisis en el esquema solicitado.' : implement ? `Trabajas en una copia Git aislada.
-Edita solo archivos de estas rutas: ${allowed.join(', ')}. Excluye datos privados, credenciales, .env, bases de datos y archivos del panel local.
+Edita solo archivos cuyos nombres empiecen por estas rutas o prefijos: ${allowed.join(', ')}. Un prefijo como marketing/app_landings_demo/profesor incluye profesor-anuncios.html y las demás subpáginas del producto. No pidas autorización adicional para archivos que coincidan con estos prefijos. Excluye datos privados, credenciales, .env y bases de datos.
 No hagas commits, push, despliegues ni publicaciones. No consultes el checkout principal. ${testInstructions}
 Una vez editados los archivos, ejecuta cada comando de prueba por separado para conservar su resultado. Indica qué hiciste y qué quedó pendiente en el esquema solicitado.` :
     'Puedes consultar código y documentación del producto para fundamentar la propuesta. Excluye datos privados, archivos .env, claves, copias de bases de datos y el almacén .educame-agents. Trabaja en modo de solo lectura. Entrega la propuesta en el esquema solicitado.'}

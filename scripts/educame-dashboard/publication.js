@@ -44,21 +44,47 @@ export function setupPublication({ api, element, button, feedback, getState, ref
     } catch (error) { feedback(error.message, true); }
     finally { busy = false; render(getState()); }
   }
+  async function undo() {
+    if (running()) return;
+    busy = true;
+    const previous = job.lastPublished || job;
+    const payload = { id: previous.id, candidate: previous.candidate };
+    render(getState());
+    try {
+      job = await api('/api/publicacion/deshacer', 'POST', payload);
+      timer = setTimeout(load, 500);
+    } catch (error) { feedback(error.message, true); }
+    finally { busy = false; render(getState()); }
+  }
   function render(state) {
     if (!state) return;
     host.replaceChildren(element('h2', '', 'Subir cambios'));
     if (running()) {
       const progress = element('progress');
       progress.setAttribute('aria-label', 'Subiendo cambios');
-      host.append(element('p', '', 'Estamos preparando y subiendo tus cambios…'), progress,
+      host.append(element('p', '', job?.phase && !job.phase.startsWith('Comprobando') ? job.phase + '…' : 'Estamos preparando y subiendo tus cambios…'), progress,
         element('p', 'muted', 'Puedes dejar esta pantalla abierta. Todo el proceso es automático.'));
       return;
     }
     const pendingItems = state.history.filter(item => item.mode === 'implementacion' &&
       !state.board.pushes?.[item.key]?.integratedRevision && state.board.reviews[item.key]?.decision !== 'cambios');
     if (job?.state === 'published') {
-      host.append(element('p', 'badge ready', 'Subido a GitHub'));
+      host.append(element('p', 'badge ready', job.undoOf ? 'Última subida deshecha' : 'Subido a GitHub'));
       if (job.requiresWeb) host.append(button('Copiar comando de Hostinger', () => openCommand(job.candidate)));
+    }
+    const last = job?.lastPublished || (job?.state === 'published' ? job : null);
+    if (last && !last.undoOf && last.files?.length) host.append(button('Deshacer última subida', undo));
+    if (job?.undoOf && job.state === 'retry') {
+      host.append(button('Reintentar deshacer', async () => {
+        if (running()) return;
+        busy = true;
+        render(getState());
+        try {
+          job = await api('/api/publicacion/aceptar', 'POST', { id: job.id, candidate: job.candidate });
+          timer = setTimeout(load, 500);
+        } catch (error) { feedback(error.message, true); }
+        finally { busy = false; render(getState()); }
+      }));
     }
     if (['failed', 'retry'].includes(job?.state)) {
       host.append(element('p', 'form-message', job.state === 'retry' ?

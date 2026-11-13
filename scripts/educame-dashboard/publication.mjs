@@ -7,11 +7,12 @@ import { OperationError } from './operations.mjs';
 
 const exec = promisify(execFile);
 const stateKey = 'simple-publication-v1';
+const lastPublishedKey = stateKey + '-last-published';
 const revision = /^[a-f0-9]{40}$/;
 const privateFile = /(^|\/)(\.env(?:\.|$)|\.git(?:\/|$)|\.educame-agents(?:\/|$)|(?:secrets|credentials)(?:\.|\/|$))|\.(?:pem|key|p12|pfx|sqlite|dump)$/i;
 const credential = /^\+(?!\+\+).*?(?:-----BEGIN [A-Z ]*PRIVATE KEY-----|(?:sk-|ghp_|github_pat_|AIza)[A-Za-z0-9_-]{20,})/m;
 
-export function createPublication({ root, directory, store, implementation, readDelivery, revalidate, assertIdle,
+export function createPublication({ root, directory, store, implementation, readDelivery, revalidate, repair, assertIdle,
   onApplied, localRemote = false }) {
   let active;
   const git = (args, cwd = root) => exec('git', ['-c', 'core.hooksPath=' + join(directory, 'agent-empty-hooks'),
@@ -46,7 +47,7 @@ export function createPublication({ root, directory, store, implementation, read
       return save({ state: job.state === 'publishing' ? 'retry' : 'failed',
         message: 'El proceso se interrumpió. Puedes retomarlo desde aquí.' });
     }
-    return job;
+    return job ? { ...job, lastPublished: store.operation(lastPublishedKey) } : job;
   }
   function background(action) {
     active = Promise.resolve().then(action).catch(error => {
@@ -61,8 +62,9 @@ export function createPublication({ root, directory, store, implementation, read
     if (active) throw new OperationError(409, 'Los cambios ya se están procesando.');
     assertIdle();
     const id = randomUUID();
-    save({ id, uploadId, state: 'preparing', phase: 'Preparando cambios', keys, sources: [], files: [], checks: [], candidate: null,
-      message: '', root: null, remote: null, requiresRestart: false, requiresWeb: false, acceptedAt: null });
+    save({ id, uploadId, undoOf: null, undoSources: [], state: 'preparing', phase: 'Preparando cambios', keys, sources: [], files: [], checks: [], candidate: null,
+      message: '', root: null, remote: null, requiresRestart: false, requiresWeb: false, acceptedAt: null,
+      startedAt: new Date().toISOString(), preparedAt: null, publishedAt: null, localCommits: 0 });
     background(async () => {
       const head = await clean();
       const remote = await sync();
@@ -71,6 +73,10 @@ export function createPublication({ root, directory, store, implementation, read
         save({ phase: 'Comprobando entrega ' + (index + 1) + ' de ' + keys.length });
         let delivery = await readDelivery(key);
         if (!delivery.implementation?.verified) delivery = await revalidate(delivery);
+        if (!delivery.implementation?.verified && repair) {
+          save({ phase: 'Corrigiendo automáticamente el encargo ' + (index + 1) + ' de ' + keys.length });
+          delivery = await repair(delivery);
+        }
         if (!delivery.implementation?.verified) throw new OperationError(409,
           'Una entrega necesita ajustes porque sus pruebas siguen fallando. Abre el resultado y escribe qué debe corregir el agente.');
         await implementation.review(delivery.implementation);
@@ -107,7 +113,9 @@ export function createPublication({ root, directory, store, implementation, read
       const commands = [...new Set(sources.flatMap(item => item.checks.map(check => check.command)))];
       if (files.length && await access(join(cwd, 'tests/run-unit.cjs')).then(() => true, () => false)) commands.unshift('npm.cmd test');
       if (files.length && !commands.length) throw new OperationError(409, 'Esta versión necesita una comprobación antes de publicarse.');
-      const checks = files.length ? await implementation.runChecks(cwd, commands, () => save({ phase: 'Comprobando la versión conjunta' })) : [];
+      let checkIndex = 0;
+      const checks = files.length ? await implementation.runChecks(cwd, commands, () =>
+        save({ phase: 'Revisando los cambios (' + (++checkIndex) + '/' + commands.length + ')' })) : [];
       save({ checks });
       if (checks.some(check => !check.passed)) throw new OperationError(409, 'La versión conjunta tiene una prueba pendiente. Pide ajustes antes de aceptarla.');
       if (await git(['status', '--porcelain'], cwd) || await git(['rev-parse', 'HEAD'], cwd) !== candidate) {
@@ -173,9 +181,50 @@ export function createPublication({ root, directory, store, implementation, read
           pushes[item.key] = { ...pushes[item.key], branch: 'codex/educame-' + delivery, commit: item.commit,
             app: item.app, integratedRevision: candidate };
         }
+        for (const item of plan.undoSources || []) {
+          pushes[item.key] = { ...pushes[item.key], undoneRevision: candidate };
+          reviews[item.key] = { decision: 'cambios', note: 'Subida deshecha', commit: item.commit, date: new Date().toISOString() };
+        }
         store.writeBoard({ ...board, revision: board.revision + 1, reviews, pushes });
       });
       save({ state: 'published', phase: 'Cambios publicados', message: '', publishedAt: new Date().toISOString() });
+      if (plan.files?.length || plan.undoOf) store.writeOperation(lastPublishedKey, read());
+  }
+  async function undo({ id, candidate }) {
+    const current = status();
+    if (current?.undoOf === id) return current;
+    const previous = store.operation(lastPublishedKey) || current;
+    if (active) throw new OperationError(409, 'Espera a que termine la operación actual.');
+    assertIdle();
+    if (previous?.state !== 'published' || previous.undoOf || previous.id !== id || previous.candidate !== candidate) {
+      throw new OperationError(409, 'La última subida cambió. Actualiza el panel antes de deshacer.');
+    }
+    const undoId = randomUUID();
+    save({ id: undoId, undoOf: id, state: 'preparing', phase: 'Preparando la versión anterior',
+      candidate: null, uploadId: null, keys: [], sources: [], message: '' });
+    background(async () => {
+      const head = await clean();
+      const remote = await sync();
+      if (head !== candidate || remote !== candidate) throw new OperationError(409,
+        'Hay cambios posteriores a esta subida. No se pueden deshacer automáticamente.');
+      const cwd = cwdFor(undoId);
+      await git(['worktree', 'add', '--detach', cwd, head]);
+      await git(['read-tree', '--reset', '-u', previous.remote], cwd);
+      await git(['commit', '--allow-empty', '-m', 'Deshacer última subida de Educame'], cwd);
+      const corrected = await git(['rev-parse', 'HEAD'], cwd);
+      const files = (await git(['diff', '--name-only', head, corrected], cwd)).split('\n').filter(Boolean);
+      const commands = await access(join(cwd, 'tests/run-unit.cjs')).then(() => ['npm.cmd test'], () => []);
+      const checks = await implementation.runChecks(cwd, commands, () => save({ phase: 'Comprobando la versión anterior' }));
+      if (checks.some(check => !check.passed) || await git(['status', '--porcelain'], cwd) ||
+          await git(['rev-parse', 'HEAD'], cwd) !== corrected ||
+          await git(['rev-parse', 'HEAD^{tree}'], cwd) !== await git(['rev-parse', previous.remote + '^{tree}'], cwd)) {
+        throw new OperationError(409, 'La versión anterior no superó las comprobaciones. Se conserva la subida actual.');
+      }
+      save({ root: head, remote, candidate: corrected, files, checks, sources: [], undoSources: previous.sources,
+        requiresRestart: previous.requiresRestart, requiresWeb: previous.requiresWeb, preparedAt: new Date().toISOString() });
+      await publish(read());
+    });
+    return read();
   }
   async function upload({ keys, id }) {
     if (!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(id || '')) throw new OperationError(400, 'La solicitud de subida no es válida.');
@@ -187,5 +236,5 @@ export function createPublication({ root, directory, store, implementation, read
     }
     return prepare({ keys, uploadId: id });
   }
-  return { status, prepare, accept, upload, busy: () => Boolean(active), wait: () => active };
+  return { status, prepare, accept, upload, undo, busy: () => Boolean(active), wait: () => active };
 }

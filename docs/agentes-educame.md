@@ -19,9 +19,7 @@ En **Conexiones** y **Operación** hay guías cortas junto a cada configuración
 
 En **Chat con Codex**, selecciona un modelo del catálogo de tu sesión. **Hacer
 una pregunta** responde en texto y usa los mensajes recientes como contexto.
-**Cambiar LA TERRAZA** prepara un commit del panel en una copia aislada. Abre
-**Revisar propuesta** permite leer el resultado. **Subir**
-usa el mismo proceso automático que las demás entregas.
+**Cambiar LA TERRAZA** prepara el cambio en una copia aislada y muestra el resultado con **Subir**, sin abrir una ficha detallada.
 El panel aplica la versión y se recarga al terminar. El historial del chat se guarda localmente.
 
 **Uso de Codex** muestra el porcentaje disponible y la fecha de renovación de
@@ -36,15 +34,15 @@ La misma pantalla reúne tres zonas.
 
 1. **En cola** guarda los encargos que has preparado. **Añadir a la cola** permite seguir preparando mientras otros agentes trabajan. **Empezar cola** inicia los cambios con Codex. Los encargos pasan al seguimiento al empezar y dejan espacio para los siguientes.
 2. **En curso** muestra el agente, la app, el objetivo y el estado real de cada encargo. **Ver resultado** abre su entrega.
-3. **Resultados** permite abrir cada entrega, revisarla, pedir seguimiento y preparar su publicación. El historial conserva también análisis y simulaciones.
+3. **Resultados** muestra directamente lo realizado y permite **Subir**. El historial conserva también análisis y simulaciones, que mantienen sus vistas de lectura.
 
 **Implementar con Codex** y **Analizar enlaces** ejecutan directamente. **Planificar o probar el encargo** permite preparar un borrador o simular con datos ficticios. **Opciones de la cola** permite simular los encargos guardados, cargar un ejemplo o editar instrucciones individuales.
 
 Los enlaces anteriores `#operaciones` y `#entregas` siguen llevando a sus zonas dentro de Agentes. **Historial de ejecuciones** conserva los grupos enviados.
 
-### Pedir cambios o subir
+### Subir y deshacer
 
-Desde una entrega, **Pedir cambios** envía la nota al agente y continúa desde su código. **Subir** inicia todo el proceso con una sola pulsación: integra, resuelve conflictos con Codex cuando corresponde, comprueba, aplica y sube a `main` con el acceso Git del equipo. El botón general sube juntas las entregas pendientes. No hay un paso manual de pruebas, preparación o segunda aceptación. Los cambios de LA TERRAZA recargan el panel al terminar. Para cambios de la web, el resultado ofrece **Copiar comando de Hostinger**.
+**Subir** inicia todo el proceso con una sola pulsación: comprueba fuera del sandbox, corrige una vez los errores reproducibles con Codex, integra y sube a `main`. El botón general reúne las entregas pendientes. No hay una ficha detallada ni una segunda aceptación. **Deshacer última subida** crea una nueva revisión con el contenido anterior, sin borrar el historial; se bloquea si hay cambios posteriores. Los cambios de LA TERRAZA recargan el panel. Para la web se ofrece **Copiar comando de Hostinger**.
 
 Si aparece un fallo real, el estado conserva la versión: no anuncia una subida que no se haya confirmado. Subir retoma una publicación pendiente de confirmación sin duplicarla. Las comprobaciones y las protecciones de revisión siguen funcionando por detrás.
 
@@ -71,7 +69,7 @@ Si aparece un fallo real, el estado conserva la versión: no anuncia una subida 
 
 - **Agentes.** Selecciona la app, los agentes y el resultado que buscas. **Implementar con Codex** usa la sesión local de Codex CLI para editar una copia Git aislada. Con Juegos puedes crear, mejorar o combinar ambas acciones en un pack de hasta diez juegos. **Preparar borrador** usa Codex en modo de lectura u OpenAI API. **Simular** prueba el flujo sin hacer llamadas. Para un lote con instrucciones distintas por agente, edita cada encargo en **Cola de trabajo**.
 - **Memoria.** Consulta la ficha de cada app con público, estética, funcionalidades, prioridades, reglas, errores a evitar y comprobaciones. Añade criterios sobre didáctica, accesibilidad, marketing, operación u otras categorías de la ficha. Un agente puede sugerir un aprendizaje. Para incorporarlo, pulsa **Usar propuesta del agente**, ajusta el texto y guarda la revisión con la casilla de Memoria marcada. Las notas y propuestas sin confirmar se quedan en su entrega. Edita o archiva criterios desde Memoria.
-- **Resultados de Agentes.** Abre una entrega y elige **Pedir cambios** o **Subir**. Un borrador de Marketing aprobado se puede llevar al editor de publicaciones.
+- **Resultados de Agentes.** Lee el resumen y pulsa **Subir**. Un borrador de Marketing aprobado se puede llevar al editor de publicaciones.
 - **Conexiones.** En **Agentes e IA** puedes comprobar Codex y configurar una clave de OpenAI como alternativa. Si el panel no detecta una sesión de Codex, inicia sesión con `codex login` y pulsa **Comprobar sesión**. En **Redes sociales**, vincula los perfiles en [Buffer](https://publish.buffer.com/) y guarda su clave API. En **Estadísticas**, habilita Search Console API en Google Cloud, crea un cliente OAuth web, registra la URL de retorno del panel y autoriza la lectura de la propiedad.
 - **Vídeo.** Conecta una clave de [Runway](https://dev.runwayml.com/) y describe un clip de cinco segundos en formato vertical u horizontal. La generación usa créditos de Runway. Descarga el MP4 cuando esté listo. Para programarlo después en Buffer, aloja primero el archivo en una URL pública estable.
 - **Apps.** Abre los siete productos de Educame, inicia un encargo con la app seleccionada o entra al dashboard online. La etiqueta **En pausa** refleja el estado público de la app.
@@ -149,3 +147,6 @@ Cada lote real carga el bloque breve de la [guía de desarrollo](guia-desarrollo
 Repetir un lote con los mismos identificadores, criterios y configuración reutiliza los resultados guardados. Usa un identificador nuevo para volver a encargar un trabajo con una guía distinta. Si un encargo falla, las tareas independientes continúan y su revisor espera. Para volver a intentarlo, comprueba primero el estado de la llamada y usa un identificador nuevo. Si la ejecución se interrumpe y queda un directorio `.lock`, confirma que el proceso terminó y comprueba si OpenAI recibió el encargo antes de retirar ese bloqueo.
 
 La [propuesta de evolución](plan-centro-de-mando.md) recoge ideas para los siguientes bloques.
+
+
+Las entregas de implementación se muestran en la lista, sin abrir un detalle. Subir comprueba e integra en main. Deshacer última subida crea otra revisión con el contenido anterior a esa subida; exige que main local y remoto sigan en esa revisión. Conserva el historial y no actualiza Hostinger automáticamente. Una subida conjunta se deshace completa.
