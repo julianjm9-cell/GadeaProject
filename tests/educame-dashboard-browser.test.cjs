@@ -53,20 +53,19 @@ for (const [name, engine, viewport] of [
         uploadId = route.request().postDataJSON().id;
         accepts++;
         job = { id: 'ensayo', keys: [key], state: accepts === 1 ? 'retry' : 'published', candidate,
-          sources: [{ key, title: 'Mejora del juego' }], requiresWeb: true };
+          sources: [{ key, title: 'Mejora del juego' }], files: ['apps/cambridge/index.html'], requiresWeb: true };
+      }
+      if (path.endsWith('/deshacer')) {
+        assert.deepEqual(route.request().postDataJSON(), { id: 'ensayo', candidate });
+        job = { ...job, id: 'undo-ensayo', undoOf: 'ensayo', state: 'published' };
       }
       return route.fulfill({ json: job });
     });
     await page.route('**/api/cambios/hostinger', route => route.fulfill({ json: { revision: candidate, command: 'bash infra/deploy-hostinger.sh' } }));
     await page.goto(base + '/#entregas/publicar-ensayo');
-    const delivery = page.getByRole('dialog', { name: 'Mejora del juego' });
-    await delivery.getByRole('button', { name: 'Subir', exact: true }).click().catch(async error => {
-      t.diagnostic(JSON.stringify(await page.evaluate(() => ({ hash: location.hash,
-        open: document.querySelector('#delivery-dialog').open, title: document.querySelector('#delivery-title').textContent,
-        feedback: document.querySelector('#feedback-text').textContent, body: document.querySelector('#delivery-body').textContent.slice(0, 1200) }))));
-      throw error;
-    });
     const publication = page.locator('#work-publication');
+    assert.equal(await page.locator('#delivery-dialog').isVisible(), false);
+    await publication.getByRole('button', { name: 'Subir', exact: true }).click();
     await publication.getByText('No se confirmó la subida.', { exact: false }).waitFor();
     assert.equal(await page.getByRole('button', { name: /Comprobar|Aceptar y publicar/ }).count(), 0);
     await publication.getByRole('button', { name: 'Subir', exact: true }).click();
@@ -74,6 +73,10 @@ for (const [name, engine, viewport] of [
     assert.equal(accepts, 2);
     await publication.getByRole('button', { name: 'Copiar comando de Hostinger' }).click();
     await page.getByRole('dialog', { name: 'Comando para Hostinger' }).waitFor();
+    await page.getByRole('dialog', { name: 'Comando para Hostinger' }).getByRole('button', { name: 'Cerrar comando', exact: true }).click();
+    await publication.getByRole('button', { name: 'Deshacer última subida', exact: true }).click();
+    await publication.getByText('Última subida deshecha', { exact: true }).waitFor();
+    assert.equal(await publication.getByRole('button', { name: 'Deshacer última subida', exact: true }).count(), 0);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   });
 
@@ -154,6 +157,7 @@ for (const [name, engine, viewport] of [
     await page.getByRole('link', { name: 'Nuevo encargo', exact: true }).click();
     await page.waitForFunction(() => document.activeElement?.name === 'objective');
     await page.locator('.work-navigation').getByRole('link', { name: /Por revisar/ }).click();
+    await page.waitForFunction(() => document.querySelector('#history-filter').value === 'pendientes');
     assert.equal(await page.locator('#history-filter').inputValue(), 'pendientes');
     await page.locator('#history-filter').selectOption('todas');
     await page.locator('#history').getByRole('button', { name: /Abrir/ }).first().waitFor();
@@ -208,11 +212,8 @@ for (const [name, engine, viewport] of [
     await page.getByLabel('¿Qué quieres hacer?').selectOption('change');
     await page.getByLabel('Tu mensaje').fill('Ajusta los colores del panel.');
     await page.getByRole('button', { name: 'Enviar', exact: true }).click();
-    await page.getByRole('button', { name: 'Revisar propuesta' }).click();
-    const dialog = page.getByRole('dialog', { name: 'Revisar propuesta' });
-    await dialog.getByText('+ body { color: olive; }').waitFor();
     assert.equal(applied, false);
-    await dialog.getByRole('button', { name: 'Subir', exact: true }).click();
+    await page.locator('#chat-messages').getByRole('button', { name: 'Subir', exact: true }).click();
     await page.locator('#work-publication').getByText('Estamos preparando y subiendo tus cambios…', { exact: true }).waitFor();
     assert.equal(applied, false, 'el chat no aplica antes de aceptar la publicación conjunta');
     assert.equal(prepared, true);
@@ -481,11 +482,8 @@ for (const [name, engine, viewport] of [
     const quotaTitle = await page.locator('#codex-quota-chip').getAttribute('title');
     assert.match(quotaTitle, /Límite de 5 h · 78 % disponible · Se renueva el/);
     assert.match(quotaTitle, /Límite semanal · 59 % disponible · Se renueva el/);
-    const deliveryDialog = page.getByRole('dialog', { name: 'Tablero de ensayo' });
-    await deliveryDialog.waitFor();
-    assert.doesNotMatch(await deliveryDialog.locator('#delivery-meta').innerText(), /tokens|9876/i);
-    await deliveryDialog.getByRole('button', { name: 'Subir', exact: true }).waitFor();
-    await deliveryDialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
+    await page.locator('#work-publication').getByRole('button', { name: 'Subir', exact: true }).waitFor();
+    assert.equal(await page.locator('#delivery-dialog').isVisible(), false);
     const chip = page.locator('#codex-quota-chip'), tooltip = page.getByRole('tooltip');
     await chip.hover();
     await tooltip.waitFor({ state: 'visible' });

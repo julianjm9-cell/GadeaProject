@@ -183,7 +183,7 @@ function taskRow(task, index) {
   });
   edit.disabled = remove.disabled = Boolean(state.batch?.running && state.batch.tasks.some(item => item.id === task.id));
   controls.append(edit, remove);
-  if (stored) controls.append(button('Ver entrega', () => openDelivery(stored)));
+  if (stored && stored.mode !== 'implementacion') controls.append(button('Ver entrega', () => openDelivery(stored)));
   row.append(copy, controls);
   return row;
 }
@@ -208,7 +208,14 @@ function renderHistory() {
     const controls = element('div', 'actions');
     if (delivery.mode === 'prueba') controls.append(element('span', 'badge demo', 'Simulación'));
     controls.append(workProgress.statusBadge(delivery, state.board));
-    controls.append(button('Abrir entrega', () => openDelivery(delivery)));
+    if (delivery.mode === 'implementacion') {
+      if (delivery.draft?.entrega) copy.append(element('p', '', delivery.draft.entrega));
+      if (!state.board.pushes?.[delivery.key]?.integratedRevision && delivery.implementation) {
+        const submit = button('Subir', () => publicationClient.upload([delivery.key]));
+        submit.disabled = Boolean(state.batch?.running || state.batch?.state === 'paused');
+        controls.append(submit);
+      }
+    } else controls.append(button('Abrir entrega', () => openDelivery(delivery)));
     row.append(copy, controls);
     return row;
   });
@@ -440,6 +447,11 @@ function deliveryFlow(delivery) {
 }
 
 function openDelivery(delivery) {
+  if (delivery.mode === 'implementacion') {
+    location.hash = 'agentes/publicar';
+    document.querySelector('#work-publication').scrollIntoView({ block: 'start' });
+    return;
+  }
   reviewing = delivery;
   const artifact = delivery.implementation;
   const verdict = deliveryVerdict(delivery);
@@ -692,7 +704,8 @@ const agentEditor = setupAgentEditor({ api, button, formMessage, getState: () =>
 });
 const chat = setupChat({ api, element, button, feedback, formMessage, getState: () => state,
   preparePublication: keys => publicationClient.upload(keys) });
-const workProgress = setupWorkProgress({ element, button, badge, openDelivery });
+const workProgress = setupWorkProgress({ element, button, badge, openDelivery,
+  upload: keys => publicationClient.upload(keys) });
 changes = setupChanges({ api, element });
 operations = setupOperations({ api, element, button, feedback, openCommand: changes.openCommand });
 publicationClient = setupPublication({ api, element, button, feedback, getState: () => state, refresh,

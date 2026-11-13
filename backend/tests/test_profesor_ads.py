@@ -117,6 +117,37 @@ def ad_payload(**changes):
     }
 
 
+def test_contact_is_private_in_list_and_detail_and_survives_management(client):
+    web, _ = client
+    contact = {"contact": "Contacto privado", "contact_email": "docente@example.com",
+               "contact_phone": "+34 600 123 456"}
+    created = web.post('/api/profesor/ads', json=ad_payload(**contact)).json()
+    ad_id, key = created['ad']['id'], created['manage_key']
+    for public in (created['ad'], web.get('/api/profesor/ads').json()['ads'][0],
+                   web.get(f'/api/profesor/ads/{ad_id}').json()['ad']):
+        assert not set(contact).intersection(public)
+    headers = {'X-Ad-Key': key}
+    assert web.get(f'/api/profesor/ads/manage/{ad_id}').status_code == 404
+    private = web.get(f'/api/profesor/ads/manage/{ad_id}', headers=headers).json()['ad']
+    assert all(private[field] == value for field, value in contact.items())
+    edited = web.post(f'/api/profesor/ads/manage/{ad_id}', headers=headers,
+                      json=ad_payload(**contact, description='Clases actualizadas')).json()['ad']
+    assert all(edited[field] == value for field, value in contact.items())
+    reloaded = web.get(f'/api/profesor/ads/manage/{ad_id}', headers=headers).json()['ad']
+    assert all(reloaded[field] == value for field, value in contact.items())
+
+
+def test_embedded_contacts_are_hidden_publicly_and_preserved_privately(client):
+    web, _ = client
+    info = 'Clases online. Contacta en maria@example.org o +34 600 123 456.'
+    created = web.post('/api/profesor/ads', json=ad_payload(information=info)).json()
+    ad_id, key = created['ad']['id'], created['manage_key']
+    public = web.get(f'/api/profesor/ads/{ad_id}').json()['ad']
+    assert 'maria@example.org' not in str(public) and '600 123 456' not in str(public)
+    private = web.get(f'/api/profesor/ads/manage/{ad_id}', headers={'X-Ad-Key': key}).json()['ad']
+    assert private['information'] == info
+
+
 def test_simple_ad_can_be_published_and_edited(client):
     web, _ = client
     page = web.get('/profesor/anunciar').text
@@ -126,7 +157,7 @@ def test_simple_ad_can_be_published_and_edited(client):
     assert '<label for="location">Ubicación' in page
     assert '<label for="information">Información' in page
     assert '<label for="photo">Imagen' in page
-    assert '<label for="contact">Contacto *' in page and 'id="contact"' in page
+    assert '<label for="contact">Contacto privado *' in page and 'id="contact"' in page
     assert 'id="contact_email"' not in page and 'id="contact_phone"' not in page
     assert 'id="locationFilter"' not in page
 
@@ -141,8 +172,10 @@ def test_simple_ad_can_be_published_and_edited(client):
     ad = web.get(f'/api/profesor/ads/{ad_id}').json()['ad']
     assert (ad['title'], ad['course'], ad['subject'], ad['location'], ad['information']) == (
         payload['title'], payload['course'], payload['subject'], payload['location'], payload['information'])
-    assert ad['contact_email'] == payload['contact_email'] and ad['contact_phone'] == ''
-    assert ad['contact'] == payload['contact_email']
+    assert not {'contact', 'contact_email', 'contact_phone'}.intersection(ad)
+    private = web.get(f'/api/profesor/ads/manage/{ad_id}', headers={'X-Ad-Key': key}).json()['ad']
+    assert private['contact_email'] == payload['contact_email'] and private['contact_phone'] == ''
+    assert private['contact'] == payload['contact_email']
     edited = web.post(f'/api/profesor/ads/manage/{ad_id}', headers={'X-Ad-Key': key},
                       json={**payload, 'title': 'Refuerzo de álgebra', 'course': '4.º ESO, 1.º Bachillerato',
                             'location': 'Getafe', 'information': 'Clases presenciales'})
@@ -164,9 +197,11 @@ def test_ad_contact_accepts_free_text_and_remains_editable(client):
     created = web.post('/api/profesor/ads', json=payload)
     assert created.status_code == 201, created.text
     ad_id, key = created.json()['ad']['id'], created.json()['manage_key']
-    assert created.json()['ad']['contact'] == payload['contact']
-    assert created.json()['ad']['contact_email'] == created.json()['ad']['contact_phone'] == ''
-    assert web.get(f'/api/profesor/ads/{ad_id}').json()['ad']['contact'] == payload['contact']
+    assert 'contact' not in created.json()['ad']
+    private = web.get(f'/api/profesor/ads/manage/{ad_id}', headers={'X-Ad-Key': key}).json()['ad']
+    assert private['contact'] == payload['contact']
+    assert private['contact_email'] == private['contact_phone'] == ''
+    assert 'contact' not in web.get(f'/api/profesor/ads/{ad_id}').json()['ad']
     edited = web.post(f'/api/profesor/ads/manage/{ad_id}', headers={'X-Ad-Key': key},
                       json={**payload, 'contact': 'Telegram: @maria_clases'})
     assert edited.status_code == 200, edited.text

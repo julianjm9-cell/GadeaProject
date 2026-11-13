@@ -21,6 +21,7 @@ jobs:
       - run: mkdir -p tmp
       - run: npm test
       - run: npm run test:browser
+      - run: node tests/profesor-ads-contact-browser.cjs
       - run: CAMBRIDGE_BROWSER=webkit node --test tests/cambridge-route-progress-browser.test.cjs
   checks:
     runs-on: ubuntu-latest

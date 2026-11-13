@@ -9,6 +9,17 @@ const { join } = require('node:path');
 const { randomUUID } = require('node:crypto');
 const execute = promisify(execFile);
 
+test('las comprobaciones de apps y pytest se reconocen sin aceptar comandos arbitrarios', async () => {
+  const { canRevalidate } = await import('../scripts/educame-dashboard/implementation.mjs');
+  const ready = command => canRevalidate({ draft: {}, implementation: {}, checks: [{ command }] });
+  assert.equal(ready('node --test --test-isolation=none apps/profesor/tests/ads-display.test.cjs'), true);
+  assert.equal(ready('python -m pytest tests/test_profesor_ads.py -q -p no:cacheprovider'), true);
+  assert.equal(ready('python -m pytest backend/tests/test_profesor_ads.py -q'), true);
+  assert.equal(ready('python -m pytest tests/../../secrets.py -q'), false);
+  assert.equal(ready('python -m pytest backend/tests -p malicious'), false);
+  assert.equal(ready('node --test tests/a.cjs; git push'), false);
+});
+
 async function fixture(t) {
   const directory = await mkdtemp(join(tmpdir(), 'educame-publication-'));
   const root = join(directory, 'repo'), data = join(directory, 'data'), remote = join(directory, 'remote.git');
@@ -34,13 +45,15 @@ async function fixture(t) {
     const server = await createDashboard({ directory: data, repositoryRoot: root, apiKey: '', implementationOptions: { localRemote: true },
       codex: { status: async () => ({ ready: true }), implement: async (task, cwd) => {
         implementationCount++;
+        if (task.repair && task.id === 'roto') return { error: 'Necesita ajustar la consigna.' };
         if (task.integration) {
           assert.match(await readFile(join(cwd, 'apps/cambridge/index.html'), 'utf8'), /<<<<<<< /);
           await writeFile(join(cwd, 'apps/cambridge/index.html'), 'Improved with current layout\n');
           return { draft: { resumen: 'Integrado', entrega: 'Conservadas ambas versiones.' } };
         }
         if (task.continuar) assert.match(await readFile(join(cwd, 'apps/cambridge/index.html'), 'utf8'), /Needs adjustment/);
-        await writeFile(join(cwd, 'apps/cambridge/index.html'), task.encargo === 'Broken' ? 'Needs adjustment\n' : 'Improved\n');
+        await writeFile(join(cwd, 'apps/cambridge/index.html'), task.encargo === 'Broken' ||
+          (task.encargo === 'Repairable' && !task.repair) ? 'Needs adjustment\n' : 'Improved\n');
         return { draft: { resumen: task.encargo, entrega: 'Cambio de ensayo.', comprobaciones: [], pendientes: [] },
           checks: [{ command, passed: false }] };
       } } });
@@ -131,9 +144,9 @@ test('una entrega con fallos se conserva y el ajuste continúa desde su código 
   const adjusted = await wait(request, '/api/panel', result => result.batch.state === 'finished');
   const delivery = adjusted.history.find(item => item.id === 'ajuste-' + reply.id);
   assert.ok(delivery.draft, delivery.error);
-  assert.equal(f.count(), 2);
+  assert.equal(f.count(), 3, 'encargo inicial, corrección automática y ajuste solicitado');
   assert.equal((await request('/api/encargos/ajustes', reply)).status, 202);
-  assert.equal(f.count(), 2);
+  assert.equal(f.count(), 3);
   await request('/api/publicacion/preparar', { keys: [delivery.key] });
   const plan = await wait(request, '/api/publicacion', result => ['ready', 'failed'].includes(result.state));
   assert.equal(plan.state, 'ready', plan.message);
@@ -157,4 +170,57 @@ test('una revisión nueva en GitHub invalida la aceptación y se conserva al vol
   const newer = await wait(request, '/api/publicacion', result => ['ready', 'failed'].includes(result.state));
   assert.equal(newer.state, 'ready', newer.message);
   assert.equal(newer.remote, other);
+});
+
+
+test('Deshacer sube una revisión nueva con el contenido anterior y tolera doble pulsación', { timeout: 30_000 }, async t => {
+  const f = await fixture(t), request = await f.start();
+  await order(request, 'deshacer', 'Improved');
+  await request('/api/publicacion/subir', { id: randomUUID(), keys: ['implementacion/deshacer'] });
+  const published = await wait(request, '/api/publicacion', job => ['published', 'failed', 'retry'].includes(job?.state));
+  assert.equal(published.state, 'published', published.message);
+  const payload = { id: published.id, candidate: published.candidate };
+  assert.equal((await request('/api/publicacion/deshacer', { ...payload, candidate: f.original })).status, 409);
+  assert.equal((await request('/api/publicacion/deshacer', payload)).status, 202);
+  assert.equal((await request('/api/publicacion/deshacer', payload)).status, 202);
+  const undone = await wait(request, '/api/publicacion', job => ['published', 'failed', 'retry'].includes(job?.state));
+  assert.equal(undone.state, 'published', undone.message);
+  assert.equal(await f.git('rev-parse', 'HEAD^{tree}'), await f.git('rev-parse', f.original + '^{tree}'));
+  await f.git('merge-base', '--is-ancestor', published.candidate, undone.candidate);
+  assert.match(await f.git('ls-remote', 'origin', 'refs/heads/main'), new RegExp('^' + undone.candidate));
+  const afterUndo = await request('/api/panel').then(response => response.json());
+  assert.equal(afterUndo.board.pushes['implementacion/deshacer'].undoneRevision, undone.candidate);
+  const reopened = await f.start();
+  assert.equal((await reopened('/api/publicacion/deshacer', payload)).status, 202);
+  assert.equal(await f.git('rev-parse', 'HEAD'), undone.candidate);
+});
+
+test('Subir corrige una entrega incompleta una vez y conserva el resultado al reabrir', { timeout: 45_000 }, async t => {
+  const f = await fixture(t), request = await f.start();
+  await order(request, 'corregible', 'Repairable');
+  const payload = { id: randomUUID(), keys: ['implementacion/corregible'] };
+  await request('/api/publicacion/subir', payload);
+  const result = await wait(request, '/api/publicacion', job => ['published', 'failed', 'retry'].includes(job?.state));
+  assert.equal(result.state, 'published', result.message);
+  assert.equal(f.count(), 2, 'solo se solicita una corrección automática');
+  const panel = await request('/api/panel').then(response => response.json());
+  assert.equal(panel.history.find(item => item.id === 'corregible').implementation.verified, true);
+  const reopened = await f.start();
+  await reopened('/api/publicacion/subir', payload);
+  assert.equal(f.count(), 2);
+});
+
+test('un intento fallido no borra la última subida que se puede deshacer', { timeout: 45_000 }, async t => {
+  const f = await fixture(t), request = await f.start();
+  await order(request, 'hecho', 'Improved');
+  await request('/api/publicacion/subir', { id: randomUUID(), keys: ['implementacion/hecho'] });
+  const previous = await wait(request, '/api/publicacion', job => ['published', 'failed'].includes(job?.state));
+  assert.equal(previous.state, 'published', previous.message);
+  await request('/api/publicacion/subir', { id: randomUUID(), keys: ['implementacion/inexistente'] });
+  const failed = await wait(request, '/api/publicacion', job => job?.state === 'failed');
+  assert.equal(failed.lastPublished.candidate, previous.candidate);
+  await request('/api/publicacion/deshacer', { id: previous.id, candidate: previous.candidate });
+  const undone = await wait(request, '/api/publicacion', job => ['published', 'failed', 'retry'].includes(job?.state));
+  assert.equal(undone.state, 'published', undone.message);
+  assert.equal(await f.git('rev-parse', 'HEAD^{tree}'), await f.git('rev-parse', f.original + '^{tree}'));
 });

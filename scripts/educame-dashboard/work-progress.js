@@ -1,17 +1,18 @@
-export function setupWorkProgress({ element, button, badge, openDelivery }) {
+export function setupWorkProgress({ element, button, badge, openDelivery, upload }) {
   const terminal = new Set(['completado', 'borrador', 'fallido', 'bloqueado', 'interrumpido']);
 
   function deliveryStatus(delivery, board) {
     if (delivery.mode === 'prueba') return ['Simulación terminada', 'demo'];
     if (!delivery.draft) return ['Necesita atención', 'error'];
-    if (delivery.implementation && !delivery.implementation.verified) return ['Por revisar', 'pending'];
     const review = board.reviews[delivery.key];
     const approved = review?.decision === 'aprobada' &&
       (!delivery.implementation || review.commit === delivery.implementation.commit);
     const published = board.pushes?.[delivery.key];
+    if (published?.undoneRevision) return ['Subida deshecha', 'pending'];
     if (published?.integratedRevision || published?.pull?.merged) return ['Integrado en GitHub', 'ready'];
     if (published) return ['Pendiente de fusión', 'pending'];
     if (review?.decision === 'cambios') return ['Cambios solicitados', 'pending'];
+    if (delivery.implementation && !delivery.implementation.verified) return ['Por revisar', 'pending'];
     if (approved) return [delivery.implementation ? 'Listo para publicar' : 'Revisado', 'ready'];
     return ['Por revisar', 'pending'];
   }
@@ -22,7 +23,7 @@ export function setupWorkProgress({ element, button, badge, openDelivery }) {
   }
 
   function needsAttention(delivery, board) {
-    return delivery.mode !== 'prueba' && ['Necesita atención', 'Requiere comprobación', 'Por revisar', 'Cambios solicitados']
+    return delivery.mode !== 'prueba' && ['Necesita atención', 'Por revisar']
       .includes(deliveryStatus(delivery, board)[0]);
   }
 
@@ -54,8 +55,12 @@ export function setupWorkProgress({ element, button, badge, openDelivery }) {
         actions.append(delivery ? statusBadge(delivery, board) :
           badge(batch.state === 'paused' && job?.status === 'en curso' ? 'interrumpido' : job?.status));
         if (delivery) {
-          actions.append(button('Ver resultado',
-            () => openDelivery(delivery)));
+          if (delivery.mode === 'implementacion') {
+            if (delivery.draft?.resumen) copy.append(element('p', 'muted', delivery.draft.resumen));
+            if (!board.pushes?.[delivery.key]?.integratedRevision && board.reviews[delivery.key]?.decision !== 'cambios') {
+              actions.append(button('Subir', () => upload([delivery.key])));
+            }
+          } else actions.append(button('Ver resultado', () => openDelivery(delivery)));
         } else if (job?.status === 'en curso' && batch.running) {
           const running = element('progress', 'work-running');
           running.setAttribute('aria-label', 'El agente está trabajando');

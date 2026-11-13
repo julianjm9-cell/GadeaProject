@@ -30,9 +30,9 @@ router = APIRouter(tags=["profesor-ads"])
 IMAGE_DIR = Path("/app/data/documents/teacher-ads") if Path("/app").exists() else Path(__file__).resolve().parents[3] / "backend" / "data" / "documents" / "teacher-ads"
 MAX_IMAGE_BYTES = 5_000_000
 MAX_IMAGE_PIXELS = 12_000_000
-CONSENT_VERSION = "2026-10-09.3"
+CONSENT_VERSION = "2026-11-13.1"
 TERMS_TEXT = "Soy mayor de edad, acepto las condiciones del tablón y tengo derecho a publicar este contenido e imagen. No incluyo datos de menores ni de terceros."
-PUBLICATION_TEXT = "Autorizo la publicación de mi anuncio, imagen y los datos de contacto que decida incluir. Serán visibles para cualquier visitante y podrán aparecer en buscadores. Puedo retirar mi consentimiento y borrar el anuncio con mi enlace privado o contactando con el titular."
+PUBLICATION_TEXT = "Autorizo la publicación de mi anuncio e imagen. Mi contacto se conserva de forma privada para gestionar el anuncio y las solicitudes de contacto que reciba administración; no se muestra en el tablón. No incluyo contactos personales en el texto ni en la imagen. Puedo retirar mi consentimiento y borrar el anuncio con mi enlace privado o contactando con el titular."
 _ALL_SENDS: list[float] = []
 AD_COURSES = {
     "Infantil", *(f"{number}.º Primaria" for number in range(1, 7)),
@@ -198,22 +198,35 @@ def image_path(ad: ProfesorAd) -> Path:
     return IMAGE_DIR / f"{ad.id}.webp"
 
 
-def public_ad(ad: ProfesorAd) -> dict:
-    return {
+def hide_contact(value: str) -> str:
+    value = re.sub(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", "[Contacto privado]", value, flags=re.I)
+    return re.sub(r"(?<!\w)\+?\d[\d ()\u00a0.-]{7,}\d(?!\w)",
+                  lambda match: "[Contacto privado]" if 9 <= len(re.sub(r"\D", "", match[0])) <= 15 else match[0], value)
+
+
+def public_ad(ad: ProfesorAd, *, mask_contact: bool = True) -> dict:
+    data = {
         "id": str(ad.id), "title": ad.headline or ad.name, "subject": ad.subjects,
         "course": ad.levels, "subjects": ad.subjects,
         "information": ad.description, "name": ad.name,
         "headline": ad.headline, "levels": ad.levels, "modality": ad.modality,
         "location": ad.location, "description": ad.description, "price": ad.price,
-        "contact": ad.contact or " · ".join(part for part in (ad.contact_email, ad.contact_phone) if part),
-        "contact_email": ad.contact_email, "contact_phone": ad.contact_phone,
         "image_url": f"/api/profesor/ads/{ad.id}/image" if ad.image_name else None,
         "created_at": ad.created_at.isoformat(),
     }
+    if mask_contact:
+        for field in ("title", "subject", "course", "subjects", "information", "name", "headline", "levels", "modality", "location", "description", "price"):
+            if isinstance(data[field], str):
+                data[field] = hide_contact(data[field])
+    return data
 
 
 def private_ad(ad: ProfesorAd) -> dict:
-    data = public_ad(ad)
+    data = public_ad(ad, mask_contact=False)
+    data.update({
+        "contact": ad.contact or " · ".join(part for part in (ad.contact_email, ad.contact_phone) if part),
+        "contact_email": ad.contact_email, "contact_phone": ad.contact_phone,
+    })
     data["moderation_reason"] = (ad.governance or {}).get("moderation_reason", "")
     data["consent_version"] = ad.consent_version
     if ad.image_name and image_path(ad).is_file():
@@ -375,7 +388,9 @@ def report_receipt(report_id: UUID, x_ad_key: str = Header(default=""), db: Sess
 def admin_list_ads(_: User = Depends(require_superadmin), db: Session = Depends(get_db)):
     ads = db.scalars(select(ProfesorAd).order_by(ProfesorAd.created_at.desc()).limit(300)).all()
     counts = dict(db.execute(select(ProfesorAdReport.ad_id, func.count()).group_by(ProfesorAdReport.ad_id)).all())
-    return {"ads": [{**public_ad(ad), "status": ad.status, "reports": counts.get(ad.id, 0)} for ad in ads]}
+    return {"ads": [{**public_ad(ad, mask_contact=False), "contact": ad.contact,
+                     "contact_email": ad.contact_email, "contact_phone": ad.contact_phone,
+                     "status": ad.status, "reports": counts.get(ad.id, 0)} for ad in ads]}
 
 
 @router.get("/admin/profesor-ads/{ad_id}/reports")

@@ -31,3 +31,16 @@ test('The form keeps the selected subjects and courses separate in both payload 
  assert.equal(nodes.courseSummary.textContent,'2 cursos seleccionados');assert.equal(nodes.subjectSummary.textContent,'2 asignaturas seleccionadas');
  assert.doesNotMatch(nodes.courseChosen.innerHTML,/Matemáticas/);assert.doesNotMatch(nodes.subjectChosen.innerHTML,/ESO/);
 });
+
+test('Public cards request contact from administration without exposing personal details',()=>{
+ const run=renderer();
+ const markup=run(`card({id:'ad-42',title:'Profe & clase',contact:'Telegram privado',contact_email:'private@example.org',contact_phone:'+34 600 123 456',information:'Escríbeme private@example.org o 600 123 456'},true)`);
+ assert.match(markup,/Pedir contacto/);
+ assert.doesNotMatch(markup,/private@example|600 123 456|Telegram privado|href="tel:/);
+ const href=markup.match(/class="contact-link" href="([^"]+)"/)[1].replace(/&amp;/g,'&');
+ const url=new URL(href);
+ assert.equal(url.pathname,'educamesuite@gmail.com');
+ assert.equal(url.searchParams.get('subject'),'Solicitud de contacto: Profe & clase');
+ assert.match(url.searchParams.get('body'),/https:\/\/educame.tech\/profesor\/anuncios\/ad-42/);
+ assert.match(run(`card({title:'Vista previa',contact:'private@example.org'},false,true)`),/Pedir contacto/);
+});

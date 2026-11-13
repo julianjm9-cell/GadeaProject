@@ -8,7 +8,7 @@ import { products } from './changes.mjs';
 const exec = promisify(execFile);
 const sha = /^[a-f0-9]{40}$/;
 const safeId = /^[a-z0-9][a-z0-9-]{0,63}$/;
-const commonPaths = ['backend/app/', 'backend/tests/', 'tests/', 'docs/'];
+const commonPaths = ['backend/app/', 'backend/tests/', 'tests/', 'docs/', 'marketing/app_landings_demo/privacidad.html'];
 const terracePaths = ['scripts/educame-dashboard/', 'scripts/educame-dashboard.mjs', 'scripts/educame-agents.mjs',
   'docs/agentes-educame.md', 'docs/guia-desarrollo-educame.md', 'tests/educame-dashboard.test.cjs', 'tests/educame-dashboard-browser.test.cjs',
   'tests/educame-chat.test.cjs', 'tests/educame-operations.test.cjs', 'tests/educame-changes.test.cjs', 'tests/educame-publication.test.cjs'];
@@ -45,13 +45,17 @@ function localTest(command) {
     if (args.join(' ') === 'tests/run-unit.cjs') return [process.execPath, args];
     const files = args.slice(1).filter(arg => !arg.startsWith('--'));
     if (args[0] === '--test' && files.length && args.slice(1).every(arg =>
-      /^tests[\\/][\w/\\-]+(?:\.[\w-]+)*\.(?:cjs|mjs|js)$/.test(arg) ||
+      /^(?:tests|apps[\\/][\w-]+[\\/]tests)[\\/][\w/\\-]+(?:\.[\w-]+)*\.(?:cjs|mjs|js)$/.test(arg) ||
       /^--(?:test-isolation=none|test-concurrency=[1-4])$/.test(arg) ||
       /^--test-name-pattern=[^\x00-\x1f]{1,200}$/.test(arg))) return [process.execPath, args];
   }
-  if (/^python(?:3)?$/i.test(program) && args[0] === '-m' && args[1] === 'pytest' &&
-      args.length > 2 && args.slice(2).every(arg => arg === '-q' || /^backend\/tests(?:\/[\w-]+\.py)?$/.test(arg)) &&
-      args.some(arg => arg.startsWith('backend/tests'))) return [program, args];
+  if (/^python(?:3)?$/i.test(program) && args[0] === '-m' && args[1] === 'pytest') {
+    const normalized = args.map(arg => /^tests\/test_[\w-]+\.py$/.test(arg) ? 'backend/' + arg : arg);
+    if (normalized.length > 2 && normalized.slice(2).every((arg, index) => arg === '-q' ||
+        (arg === '-p' && normalized[index + 3] === 'no:cacheprovider') ||
+        (arg === 'no:cacheprovider' && normalized[index + 1] === '-p') || /^backend\/tests(?:\/[\w-]+\.py)?$/.test(arg)) &&
+        normalized.some(arg => arg.startsWith('backend/tests'))) return [program, normalized];
+  }
 }
 
 export const canRevalidate = delivery => Boolean(delivery?.draft && delivery.implementation && !delivery.implementation.verified &&
@@ -81,6 +85,8 @@ export function createImplementation(root, directory, codex, { localRemote = fal
   async function runChecks(cwd, commands, progress = () => {}) {
     const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => testEnv.test(key)));
     env.NODE_PATH = join(root, 'node_modules');
+    env.PYTHONPATH = join(cwd, 'backend');
+    env.DATABASE_URL = 'sqlite+pysqlite:///:memory:';
     const results = [];
     for (const command of [...new Set(commands)]) {
       const test = localTest(command);
@@ -88,7 +94,9 @@ export function createImplementation(root, directory, codex, { localRemote = fal
       progress(command);
       const [program, args] = test;
       const result = await exec(program, args, { cwd, env, windowsHide: true, timeout: 180_000, maxBuffer: 4 * 1024 * 1024 })
-        .then(() => ({ passed: true }), error => ({ passed: false, reason: error.killed ? 'timeout' : error.code === 'ENOENT' ? 'unavailable' : 'failed' }));
+        .then(() => ({ passed: true }), error => ({ passed: false,
+          reason: error.killed ? 'timeout' : error.code === 'ENOENT' ? 'unavailable' : 'failed',
+          diagnostic: String(error.stdout || error.stderr || error.message).slice(-6000) }));
       results.push({ command, ...result, source: 'local' });
     }
     return results;
@@ -258,6 +266,23 @@ export function createImplementation(root, directory, codex, { localRemote = fal
       cwd => runChecks(cwd, checks.map(check => check.command)));
   }
 
+  async function repair(delivery) {
+    const { base, branch: name, start = base } = delivery.implementation;
+    if (!safeId.test(delivery.id) || name !== branch(delivery.id) || !sha.test(start) ||
+        await ref('HEAD', worktree(delivery.id)) !== start) throw new ImplementationError(409, 'La copia cambió; se conserva para revisión.');
+    const checks = (delivery.checks || []).filter(check => localTest(check.command));
+    if (!checks.length) throw new ImplementationError(409, 'El encargo necesita una comprobación compatible.');
+    const result = await codex.implement({ ...delivery, agente: delivery.agente || 'codex', repair: true,
+      encargo: 'Completa y corrige este encargo: ' + delivery.encargo,
+      contexto: 'Continúa el código existente. Completa el objetivo original y corrige las pruebas que fallan sin eliminarlas. ' +
+        'No hagas commits ni publiques. Las pruebas se ejecutarán también fuera del sandbox.\n' +
+        JSON.stringify(checks.filter(check => !check.passed).map(({ command, diagnostic, reason }) => ({ command, diagnostic, reason })))
+    }, worktree(delivery.id), pathsFor(delivery.app));
+    if (result.error || result.uncertain || !result.draft) return { ...delivery, error: result.error || 'No se pudo terminar la corrección automática.' };
+    const commands = [...new Set([...checks, ...(result.checks || [])].map(check => check.command).filter(command => localTest(command)))];
+    return finalize(delivery, result, { base, branch: name, start }, cwd => runChecks(cwd, commands));
+  }
+
   async function push(id, artifact) {
     if (!safeId.test(id) || artifact?.branch !== branch(id) || !sha.test(artifact?.commit || '') || !sha.test(artifact?.base || '')) {
       throw new ImplementationError(409, 'La entrega no tiene una revisión lista para subir.');
@@ -337,5 +362,5 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     return true;
   }
 
-  return { base, execute, recover, revalidate, continuation, resolveMerge, runChecks, push, worktree, verifiedWorktree, review, reviewTerrace, applyTerrace };
+  return { base, execute, recover, revalidate, repair, continuation, resolveMerge, runChecks, push, worktree, verifiedWorktree, review, reviewTerrace, applyTerrace };
 }

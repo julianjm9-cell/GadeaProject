@@ -74,16 +74,12 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
       reply.append(element('p', item.state === 'error' ? 'form-message' : '', item.reply || 'Propuesta preparada.'));
       if (item.proposal) {
         if (item.proposal.summary) reply.append(element('p', 'muted', item.proposal.summary));
-        const files = element('ul');
-        for (const file of item.proposal.files || []) files.append(element('li', '', file));
-        reply.append(files);
-        for (const check of item.proposal.checks || []) reply.append(element('small', '', (check.passed ? 'Correcta · ' : 'Falló · ') + check.command));
         if (getState()?.board.pushes?.['implementacion/' + item.taskId]?.integratedRevision) reply.append(element('strong', '', 'Aplicada y subida a GitHub'));
         else if (item.state === 'applied') reply.append(element('strong', '', 'Aplicada en este equipo'));
-        else reply.append(button('Revisar propuesta', () => openReview(item)));
+        else reply.append(button('Subir', () => preparePublication(['implementacion/' + (item.taskId || 'terraza-' + item.id)])));
       }
       if (item.mode === 'change' && item.taskId) {
-        const delivery = element('a', 'text-link', 'Abrir entrega y publicación →');
+        const delivery = element('a', 'text-link', 'Ir a los cambios →');
         delivery.href = '#entregas/' + item.taskId;
         reply.append(delivery);
       }
