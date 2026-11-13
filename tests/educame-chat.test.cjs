@@ -61,7 +61,7 @@ test('Chat usa el modelo elegido y aplica una revisión del panel solo después 
   async function finished() {
     for (let i = 0; i < 250; i++) {
       const state = await get('/api/chat');
-      if (state.messages.at(-1)?.state !== 'working') return state.messages.at(-1);
+      if (!['working', 'queued'].includes(state.messages.at(-1)?.state)) return state.messages.at(-1);
       await new Promise(resolve => setTimeout(resolve, 40));
     }
     assert.fail('El mensaje siguió en ejecución.');

@@ -635,7 +635,14 @@ export async function createDashboard({
       json(error.status || 500, { error: error.status ? error.message : 'No se pudo completar la operación local.' });
     }
   });
+  let chatTimer;
+  server.on('listening', () => {
+    chatTimer = setInterval(() => { chat.pump().catch(() => {}); }, 1000);
+    chatTimer.unref();
+  });
   server.on('close', () => {
+    clearInterval(chatTimer);
+    chat.close();
     previews.close();
     for (const view of implementationPreviews.values()) view.close();
     Promise.allSettled([runner.wait(), hostinger.wait(), chat.wait(), deliveryWork, publication.wait()]).finally(store.close).catch(() => {});

@@ -21,6 +21,7 @@ En **Chat con Codex**, selecciona un modelo del catálogo de tu sesión. **Hacer
 una pregunta** responde en texto y usa los mensajes recientes como contexto.
 **Cambiar LA TERRAZA** prepara el cambio en una copia aislada y muestra el resultado con **Subir**, sin abrir una ficha detallada.
 El panel aplica la versión y se recarga al terminar. El historial del chat se guarda localmente.
+Si hay otro trabajo en marcha, el chat guarda el mensaje en **En espera** y continúa automáticamente cuando termina. Puedes enviar más mensajes y cerrar o recargar la pestaña: la cola permanece en el servidor local. Los errores antiguos de «hay un lote en marcha» permiten **Reintentar** usando el mismo identificador. Si un lote está interrumpido, hay que retomarlo primero desde Agentes.
 
 **Uso de Codex** muestra el porcentaje disponible y la fecha de renovación de
 cada ventana que devuelve la sesión de Codex CLI. Se actualiza cada minuto

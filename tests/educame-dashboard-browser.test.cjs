@@ -163,6 +163,37 @@ for (const [name, engine, viewport] of [
     await page.locator('#history').getByRole('button', { name: /Abrir/ }).first().waitFor();
   });
 
+  test(`Chat permite seguir escribiendo y retoma los mensajes en espera en ${name}`, { timeout: 25000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
+    let release;
+    const gate = new Promise(resolve => { release = resolve; });
+    t.after(() => release());
+    const received = [];
+    const server = await listen(t, directory, { codex: {
+      status: async () => ({ ready: true }), models: async () => [{ id: 'modelo', label: 'Modelo' }],
+      ask: async ({ text }) => { received.push(text); await gate; return { answer: 'Respuesta: ' + text }; },
+    } });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    t.after(() => browser.close());
+    const page = await browser.newPage({ viewport });
+    await page.goto('http://127.0.0.1:' + server.address().port + '/#chat');
+    await page.getByLabel('Modelo de Codex').selectOption('modelo');
+    await page.getByLabel('Tu mensaje').fill('Primera pregunta');
+    await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+    await page.getByText('Preparando la respuesta…', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Enviar', exact: true }).isEnabled(), true);
+    await page.getByLabel('Tu mensaje').fill('Segunda pregunta');
+    await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+    await page.getByText('En espera. Se ejecutará automáticamente al terminar el trabajo anterior.', { exact: true }).waitFor();
+    await page.reload();
+    await page.getByText('En espera. Se ejecutará automáticamente al terminar el trabajo anterior.', { exact: true }).waitFor();
+    assert.deepEqual(received, ['Primera pregunta']);
+    release();
+    await page.getByText('Respuesta: Segunda pregunta', { exact: true }).waitFor();
+    assert.deepEqual(received, ['Primera pregunta', 'Segunda pregunta']);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  });
+
   test(`Chat con Codex selecciona modelo y revisa cambios en ${name}`, { timeout: 25_000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
     const server = await listen(t, directory, { codex: {
@@ -739,6 +770,7 @@ for (const [name, engine, viewport] of [
     await page.getByRole('button', { name: /Juegos Crea/ }).click();
     await page.locator('#game-pack select').selectOption('Crear y mejorar');
     await page.getByLabel('Cantidad', { exact: true }).fill('3');
+    await page.waitForFunction(() => !document.querySelector('#agent-compose button[value="implementacion"]').disabled);
     assert.equal(await page.getByRole('button', { name: 'Implementar con Codex' }).isEnabled(), true);
     await page.getByRole('button', { name: 'Preparar borrador', exact: true }).click();
     await page.locator('#team-activity').getByRole('heading', { name: 'Último trabajo' }).waitFor();

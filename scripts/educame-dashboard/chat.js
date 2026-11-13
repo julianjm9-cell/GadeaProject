@@ -29,13 +29,17 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
   } catch {}
 
   const visible = () => !$('chat-title').closest('[data-page]').hidden;
-  const isWorking = () => snapshot?.messages.at(-1)?.state === 'working';
+  const isWorking = () => snapshot?.messages.some(item => item.state === 'working');
+  const queued = () => snapshot?.messages.filter(item => item.state === 'queued').length || 0;
+  const hasPending = () => isWorking() || queued() > 0;
   function controls() {
-    submit.disabled = !snapshot || !model.value || sending || isWorking();
-    $('chat-status').textContent = sending ? 'Enviando…' : isWorking() ? 'Codex está trabajando…' : modelStatus;
+    submit.disabled = !snapshot || !model.value || sending;
+    $('chat-status').textContent = sending ? 'Enviando…' : queued() ?
+      queued() + ' en espera. Se enviarán automáticamente cuando termine el trabajo actual.' :
+      isWorking() ? 'Codex está trabajando. Puedes añadir otro mensaje.' : modelStatus;
     const change = mode.value === 'change';
     $('chat-mode-hint').textContent = change ?
-      'Codex prepara el cambio en una copia aislada. Revisa las pruebas y el código antes de aplicarlo.' :
+      'Codex prepara el cambio. Si hay otro trabajo en marcha, lo guarda y continúa después.' :
       'Pregunta sobre LA TERRAZA o cualquier otro tema. Codex usa los mensajes recientes para seguir el hilo.';
     input.placeholder = change ? 'Ejemplo: haz más fácil encontrar las entregas pendientes.' :
       'Ejemplo: ¿cómo se diferencia un commit de una propuesta en GitHub?';
@@ -55,7 +59,7 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
       if (atEnd) log.scrollTop = log.scrollHeight;
     }
     controls();
-    if (visible() && isWorking()) timer = setTimeout(load, 1200);
+    if (visible() && hasPending()) timer = setTimeout(load, 1200);
   }
   function turn(item) {
     const section = element('article', 'chat-turn');
@@ -63,7 +67,9 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
     user.append(element('small', '', item.mode === 'change' ? 'Tú · Cambio en LA TERRAZA' : 'Tú · Consulta'), element('p', '', item.text));
     const reply = element('div', 'chat-bubble');
     reply.append(element('small', '', 'Codex · ' + (catalog.find(entry => entry.id === item.model)?.label || item.model)));
-    if (item.state === 'working') {
+    if (item.state === 'queued') {
+      reply.append(element('p', 'muted', 'En espera. Se ejecutará automáticamente al terminar el trabajo anterior.'));
+    } else if (item.state === 'working') {
       reply.append(element('p', 'muted', item.mode === 'change' ? 'Preparando la propuesta…' : 'Preparando la respuesta…'));
       if (item.mode === 'change') {
         const queue = element('a', 'text-link', 'Ver cola de trabajo →');
@@ -71,7 +77,17 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
         reply.append(queue);
       }
     } else {
-      reply.append(element('p', item.state === 'error' ? 'form-message' : '', item.reply || 'Propuesta preparada.'));
+      reply.append(element('p', item.retryable ? 'muted' : item.state === 'error' ? 'form-message' : '', item.retryable ?
+        'Este mensaje no llegó a ejecutarse porque había otro trabajo en marcha.' : item.reply || 'Propuesta preparada.'));
+      if (item.retryable) {
+        const retry = button('Reintentar', async () => {
+          retry.disabled = true;
+          try { render(await api('/api/chat', 'POST', { id: item.id, mode: item.mode, model: item.model, text: item.text })); }
+          catch (error) { feedback(error.message, true); }
+          finally { retry.disabled = false; }
+        });
+        reply.append(retry);
+      }
       if (item.proposal) {
         if (item.proposal.summary) reply.append(element('p', 'muted', item.proposal.summary));
         if (getState()?.board.pushes?.['implementacion/' + item.taskId]?.integratedRevision) reply.append(element('strong', '', 'Aplicada y subida a GitHub'));
@@ -92,7 +108,7 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
   function load() {
     if (!loading) loading = api('/api/chat').then(render).catch(error => {
       formMessage(form, error.message);
-      if (visible() && isWorking()) timer = setTimeout(load, 2400);
+      if (visible() && hasPending()) timer = setTimeout(load, 2400);
     }).finally(() => { loading = null; });
     return loading;
   }

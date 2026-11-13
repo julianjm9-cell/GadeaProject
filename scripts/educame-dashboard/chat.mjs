@@ -2,21 +2,28 @@ import { OperationError } from './operations.mjs';
 
 const key = 'terrace-chat-v1';
 const messageId = /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
+const busyReply = /Hay un lote en marcha|Espera a que termine la comprobación o publicación actual|Termina o retoma el trabajo pendiente|Retoma primero el lote interrumpido|Todavía hay un mensaje en curso/;
 
 export function createChat({ store, codex, runner, implementation, readDelivery, assertIdle, instance }) {
   let active;
   let applying = false;
+  let pumping = false;
+  let closed = false;
+  let activeId;
+  let pumpDone = Promise.resolve();
   const entries = () => store.operation(key) || [];
   const write = rows => store.writeOperation(key, rows);
   const update = (id, changes, expected) => store.transaction(() => {
     const rows = entries();
     const row = rows.find(item => item.id === id);
-    if (row && (!expected || row.state === expected)) write(rows.map(item => item.id === id ? { ...item, ...changes } : item));
+    if (!row || (expected && row.state !== expected)) return false;
+    write(rows.map(item => item.id === id ? { ...item, ...changes } : item));
+    return true;
   });
 
-  async function read() {
-    const row = entries().at(-1);
-    if ((row?.state === 'working' || (row?.mode === 'change' && row.state === 'error')) && !active) {
+  async function reconcile() {
+    for (const row of entries()) {
+      if (!(row.state === 'working' || (row.mode === 'change' && row.state === 'error')) || row.id === activeId) continue;
       if (row.mode === 'change') {
         const delivery = await readDelivery(row.taskId);
         if (delivery?.implementation?.verified) {
@@ -32,8 +39,13 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
         }
       } else update(row.id, { state: 'error', reply: 'La consulta se interrumpió. Puedes volver a enviarla.' }, 'working');
     }
+  }
+  async function read() {
+    await reconcile();
+    void pump().catch(() => {});
     const messages = entries();
-    return { messages, needsRestart: messages.some(item => item.restartInstance === instance) };
+    return { messages: messages.map(row => ({ ...row, retryable: row.state === 'error' && busyReply.test(row.reply || '') })),
+      needsRestart: messages.some(item => item.restartInstance === instance) };
   }
 
   async function send(body) {
@@ -48,6 +60,10 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
       if (duplicate.mode !== mode || duplicate.model !== model || duplicate.text !== text) {
         throw new OperationError(409, 'Ese identificador ya pertenece a otro mensaje.');
       }
+      if (duplicate.state === 'error' && busyReply.test(duplicate.reply || '')) {
+        update(id, { state: 'queued', reply: undefined }, 'error');
+        await pump();
+      }
       return read();
     }
     const account = await codex.status();
@@ -55,22 +71,44 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
     if (!(await codex.models?.())?.some(item => item.id === model)) {
       throw new OperationError(400, 'El modelo no figura en el catálogo de tu sesión. Actualiza la lista.');
     }
-    await read();
+    await reconcile();
     const taskId = 'terraza-' + id;
     const previous = store.transaction(() => {
       const rows = entries();
       if (rows.some(row => row.id === id)) return null;
-      if (applying || active || rows.at(-1)?.state === 'working') throw new OperationError(409, 'Todavía hay un mensaje en curso.');
-      write([...rows, { id, text, mode, model, state: 'working', taskId, at: new Date().toISOString() }]);
+      if (rows.filter(row => row.state === 'queued').length >= 20) throw new OperationError(409, 'Hay veinte mensajes esperando. Deja que avancen antes de añadir más.');
+      write([...rows, { id, text, mode, model, state: 'queued', taskId, at: new Date().toISOString() }]);
       return rows;
     });
     if (!previous) return read();
-    const history = previous.filter(row => row.reply && row.state !== 'error').slice(-8)
+    await pump();
+    return read();
+  }
+
+  async function pump() {
+    if (closed || pumping || active || applying) return;
+    pumping = true;
+    let done;
+    pumpDone = new Promise(resolve => { done = resolve; });
+    try {
+      await reconcile();
+      if (closed) return;
+      const rows = entries();
+      if (rows.some(row => row.state === 'working')) return;
+      const row = rows.find(row => row.state === 'queued');
+      if (!row) return;
+      try { assertIdle(); }
+      catch (error) { if (error.status === 409) return; throw error; }
+      const { id, mode, model, text, taskId } = row;
+      const previous = rows.slice(0, rows.findIndex(item => item.id === id));
+      const history = previous.filter(row => row.reply && ['answer', 'proposal', 'applied'].includes(row.state)).slice(-8)
       .map(row => ({ message: row.text.slice(0, 1700), answer: [
         row.proposal && (row.state === 'applied' ? 'Cambio aplicado localmente.' : 'Propuesta pendiente de aplicar.'),
         row.reply, row.proposal?.summary,
       ].filter(Boolean).join('\n').slice(0, 2000) }));
-    active = Promise.resolve().then(async () => {
+      if (!update(id, { state: 'working', reply: undefined }, 'queued')) return;
+      activeId = id;
+      active = Promise.resolve().then(async () => {
       if (mode === 'ask') {
         const result = await codex.ask({ model, text, history });
         update(id, { state: 'answer', reply: result.answer, tokens: result.tokens }, 'working');
@@ -82,9 +120,13 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
         update(id, { batchId: batch.id }, 'working');
       }
     }).catch(error => {
+      if (error.status === 409) {
+        update(id, { state: 'queued', reply: undefined }, 'working');
+        return;
+      }
       update(id, { state: 'error', reply: error.status ? error.message : 'Codex no completó este mensaje. Puedes volver a enviarlo.' }, 'working');
-    }).finally(() => { active = null; });
-    return read();
+      }).finally(() => { active = null; activeId = undefined; });
+    } finally { pumping = false; done(); }
   }
 
   async function proposal(id) {
@@ -97,7 +139,7 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
     return { row, artifact: delivery.implementation };
   }
 
-  return { read, send, wait: () => active,
+  return { read, send, pump, close() { closed = true; }, async wait() { await pumpDone; await active; },
     async review(id) {
       const { artifact } = await proposal(id);
       return implementation.reviewTerrace(artifact);
