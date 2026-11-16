@@ -185,7 +185,7 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
     const text = input.value.trim();
     if (!text) return formMessage(form, 'Escribe un mensaje para Codex.');
     const request = { text, model: model.value, mode: mode.value, ...(replyTo ? { replyTo } : {}) };
-    if (!pending || Object.keys(request).some(key => request[key] !== pending[key])) {
+    if (!pending || ['text', 'model', 'mode', 'replyTo'].some(key => request[key] !== pending[key])) {
       pending = { id: crypto.randomUUID(), ...request };
     }
     try { sessionStorage.setItem(pendingKey, JSON.stringify(pending)); } catch {}
