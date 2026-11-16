@@ -16,6 +16,7 @@ import { canRevalidate, createImplementation, ImplementationError } from './educ
 import { createChat } from './educame-dashboard/chat.mjs';
 import { createPublication } from './educame-dashboard/publication.mjs';
 import { createKnowledge } from './educame-dashboard/knowledge.mjs';
+import { createProviders } from './educame-dashboard/api-agent.mjs';
 import { researchRole } from './educame-dashboard/research.mjs';
 import { OperationError } from './educame-dashboard/operations.mjs';
 import { githubOperations } from './educame-dashboard/github-operations.mjs';
@@ -204,7 +205,9 @@ export async function createDashboard({
   const github = githubOperations(changes, connections, store, fetchImpl);
   const hostinger = hostingerOperations(store, changes, github, ssh);
   const admin = adminOperations(fetchImpl);
-  const implementation = createImplementation(repositoryRoot, directory, codex, implementationOptions);
+  const providers = createProviders({ codex, connections, apiKey, root: repositoryRoot, fetchImpl, store,
+    runChecks: (cwd, commands) => implementation.runChecks(cwd, commands) });
+  const implementation = createImplementation(repositoryRoot, directory, providers, implementationOptions);
   const implementationPreviews = new Map();
   const knowledge = createKnowledge({ store, root: repositoryRoot,
     readDelivery: key => implementationDelivery(key) });
@@ -213,9 +216,8 @@ export async function createDashboard({
     contextSnapshot: revision => knowledge.snapshot(revision),
     async readiness(mode, engine) {
       if (publication.busy() || deliveryWork) throw new RunnerError(409, 'Espera a que termine la comprobación o publicación actual.');
-      if (mode === 'implementacion' && engine !== 'codex') throw new RunnerError(400, 'Implementar requiere Codex local.');
-      if (mode !== 'prueba' && engine === 'codex') {
-        const status = await codex.status();
+      if (mode !== 'prueba') {
+        const status = await providers.get(engine).status();
         if (!status.ready) throw new RunnerError(503, status.message);
       }
       if (mode === 'real' && engine === 'openai' && !activeApiKey()) throw new RunnerError(503, 'Configura OpenAI desde Conexiones para usar la API.');
@@ -231,6 +233,8 @@ export async function createDashboard({
         return implementation.execute(task, batch.base);
       };
       if (batch.engine === 'codex') return codex.generate;
+      if (batch.engine === 'claude' || batch.providerModel) return task => task.agente === researchRole && batch.engine === 'openai' ?
+        requestDraft(task, { apiKey: activeApiKey(), model: batch.providerModel || batch.model, fetchImpl }) : providers.get(batch.engine).generate(task);
       const key = activeApiKey();
       return generate || (task => requestDraft(task, { apiKey: key, model: batch.model, fetchImpl }));
     },
@@ -239,7 +243,7 @@ export async function createDashboard({
   let terraceNeedsRestart = false;
   let deliveryWork;
   const implementationPath = id => join(runner.output('implementacion'), id + '.json');
-  const chat = createChat({ store, runner, codex, implementation, instance: randomUUID(),
+  const chat = createChat({ store, runner, codex, providers, implementation, instance: randomUUID(),
     contextSnapshot: () => knowledge.snapshot(),
     readDelivery: id => readJson(implementationPath(id), null),
     assertIdle() {
@@ -374,7 +378,8 @@ export async function createDashboard({
         const task = { id: 'ajuste-' + id, app: source.app, agente: source.agente, encargo: note.trim(), continuar: source.id,
           contexto: ('Ajusta esta entrega conservando el trabajo ya hecho.\nEncargo original\n' + source.encargo +
             '\nResultado anterior\n' + (source.draft?.entrega || source.error || '')).slice(0, 7500) };
-        const batch = await runner.start({ mode: 'implementacion', engine: 'codex', tasks: [task], enqueue: true });
+        const batch = await runner.start({ mode: 'implementacion', engine: source.provider || 'codex', providerModel: source.providerModel,
+          codexModel: source.codexModel, qualityRequired: source.qualityRequired === true, tasks: [task], enqueue: true });
         store.transaction(() => {
           const board = store.board();
           store.writeBoard({ ...board, revision: board.revision + 1, reviews: { ...board.reviews,
@@ -394,7 +399,8 @@ export async function createDashboard({
       }
       if (request.method === 'GET' && path === '/api/chat/modelos') {
         const fresh = url.searchParams.has('actualizar');
-        const [models, account] = await Promise.all([codex.models?.(fresh), codex.status(fresh)]);
+        const adapter = providers.get(url.searchParams.get('provider') || 'codex');
+        const [models, account] = await Promise.all([adapter.models?.(fresh), adapter.status(fresh)]);
         return json(200, { models: models || [], ...account });
       }
       if (request.method === 'GET' && path === '/api/chat/propuesta') return json(200, await chat.review(url.searchParams.get('id')));
@@ -561,7 +567,8 @@ export async function createDashboard({
         const board = store.board();
         return json(200, { board, agentEditor: agentEditor(board.agentEdits), history: history.slice(0, 100), batch, batches, pendingBatches: runner.queued(),
           terraceNeedsRestart,
-          model, apiReady: Boolean(activeApiKey()), concurrency, maxTasks, fixture, projectProfiles, memoryTopics });
+          model, apiReady: Boolean(activeApiKey()), providerAvailability: { codex: true, openai: Boolean(activeApiKey()), claude: Boolean(connections.claudeKey()) },
+          concurrency, maxTasks, fixture, projectProfiles, memoryTopics });
       }
       if (request.method === 'PUT' && path === '/api/agentes') {
         if (request.headers.origin !== origin) throw new PanelError(403, 'Edita los agentes desde LA TERRAZA.');
@@ -573,6 +580,7 @@ export async function createDashboard({
         return json(200, { board, agentEditor: agentEditor(board.agentEdits) });
       }
       if (request.method === 'GET' && path === '/api/codex') return json(200, await codex.status(url.searchParams.has('actualizar')));
+      if (request.method === 'GET' && path === '/api/proveedores') return json(200, { providers: await providers.list(), usage: providers.usage() });
       if (request.method === 'GET' && path === '/api/codex/uso') {
         const [account, history] = await Promise.all([codex.usage?.(url.searchParams.has('actualizar')), deliveries()]);
         const records = history.filter(item => item.model === 'Codex local' && Number.isFinite(item.usage?.total_tokens));
@@ -586,8 +594,10 @@ export async function createDashboard({
         return json(200, updated);
       }
       if (request.method === 'POST' && ['/api/ejecutar', '/api/encargos'].includes(path)) {
-        const { mode, revision, tasks, engine = 'openai', researchOnly, agentRevision, consumeQueue } = await bodyJson(request);
-        if (!['openai', 'codex'].includes(engine)) throw new PanelError(400, 'Elige Codex u OpenAI API.');
+        const { mode, revision, tasks, engine = 'openai', researchOnly, agentRevision, consumeQueue, providerModel, qualityRequired } = await bodyJson(request);
+        if (!['openai', 'codex', 'claude'].includes(engine)) throw new PanelError(400, 'Elige Codex, OpenAI API o Claude API.');
+        if (providerModel !== undefined && (typeof providerModel !== 'string' || providerModel.length > 100 || !providerModel)) throw new PanelError(400, 'Elige un modelo válido.');
+        if (qualityRequired !== undefined && typeof qualityRequired !== 'boolean') throw new PanelError(400, 'La opción de revisión no es válida.');
         if (!['real', 'prueba', 'implementacion'].includes(mode)) throw new PanelError(400, 'Elige cómo ejecutar el lote.');
         const queued = path === '/api/ejecutar';
         const board = store.board();
@@ -598,7 +608,11 @@ export async function createDashboard({
         if (mode === 'implementacion' && selected.some(task => task.agente === researchRole)) {
           throw new PanelError(400, 'Ejecuta Copiador en modo de análisis. Sus ideas se pueden convertir en encargos de implementación.');
         }
-        return json(202, await runner.start({ mode, engine, tasks: selected, revision: queued ? revision : agentRevision,
+        const chosenModel = mode !== 'prueba' && engine !== 'codex' && (mode === 'implementacion' || engine === 'claude') ?
+          providerModel || (await providers.get(engine).models())[0]?.id : providerModel;
+        if (mode !== 'prueba' && engine !== 'codex' && (mode === 'implementacion' || engine === 'claude') && !chosenModel) throw new PanelError(503, 'Configura el proveedor y selecciona su modelo desde Conexiones.');
+        return json(202, await runner.start({ mode, engine, providerModel: chosenModel, codexModel: engine === 'codex' ? providerModel : undefined,
+          qualityRequired: qualityRequired === true, tasks: selected, revision: queued ? revision : agentRevision,
           consumeQueue: queued && consumeQueue === true, enqueue: true }));
       }
       if (request.method === 'POST' && path === '/api/encargos/retomar') {

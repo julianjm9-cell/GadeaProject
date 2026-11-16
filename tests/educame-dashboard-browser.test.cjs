@@ -23,6 +23,58 @@ for (const [name, engine, viewport] of [
   ['Chromium escritorio', chromium, { width: 1440, height: 950 }],
   ['WebKit móvil', webkit, { width: 390, height: 844 }],
 ]) {
+  test(`Motores API se conectan, cambian de modelo y conservan el encargo en ${name}`, { timeout: 35000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
+    let modelCalls = 0, messages = 0;
+    const server = await listen(t, directory, { codex: { status: async () => ({ ready: true }),
+      models: async () => [{ id: 'codex-ensayo', label: 'Codex ensayo' }] }, fetchImpl: async (url, options) => {
+      if (url === 'https://api.anthropic.com/v1/models') { modelCalls++; return new Response(JSON.stringify({ data: [{ id: 'claude-test', display_name: 'Claude ensayo' }] })); }
+      if (url === 'https://api.anthropic.com/v1/messages') {
+        messages++; const body = JSON.parse(options.body); assert.equal(body.model, 'claude-test');
+        return new Response(JSON.stringify({ id: 'msg-test', content: [{ type: 'tool_use', id: 'finish', name: 'finish', input: { action: 'answer', reply: 'Consulta respondida por Claude.', tasks: [] } }],
+          usage: { input_tokens: 20, output_tokens: 10 } }));
+      }
+      return new Response(JSON.stringify({ paused: [] }));
+    } });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    t.after(() => browser.close()); const page = await browser.newPage({ viewport });
+    const errors = []; page.on('pageerror', error => errors.push(error.message));
+    const base = 'http://127.0.0.1:' + server.address().port;
+    await page.goto(base + '/#chat');
+    await page.locator('#chat-provider').selectOption('claude');
+    await page.getByText('Configura Claude API en Conexiones.', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Enviar', exact: true }).isEnabled(), false);
+    await page.goto(base + '/#conexiones');
+    await page.getByRole('button', { name: 'Agentes e IA', exact: true }).click();
+    await page.getByLabel('Clave API de Claude').fill('sk-ant-ensayo-no-real');
+    await page.getByRole('button', { name: 'Guardar clave de Claude', exact: true }).click();
+    await page.locator('#claude-status').getByText('Clave guardada', { exact: true }).waitFor();
+    await page.goto(base + '/#chat');
+    await page.getByRole('button', { name: 'Actualizar modelos', exact: true }).click();
+    await page.locator('#chat-model').selectOption('claude-test');
+    await page.getByLabel('Tu mensaje').fill('Explícame la revisión de los juegos');
+    await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+    await page.getByText('Consulta respondida por Claude.', { exact: true }).waitFor();
+    assert.match(await page.locator('#chat-messages').innerText(), /Claude API/);
+    await page.reload();
+    await page.waitForFunction(() => document.querySelector('#chat-model').value === 'claude-test');
+    assert.equal(await page.locator('#chat-provider').inputValue(), 'claude');
+    await page.goto(base + '/#agentes/nuevo');
+    const form = page.locator('#agent-compose');
+    await page.locator('#engine-options summary').click();
+    await form.locator('[name=engine]').selectOption('claude');
+    await form.locator('[name=providerModel]').selectOption('claude-test');
+    await form.getByLabel('¿Qué necesitas?').fill('Mejora las pistas sin borrar contenido.');
+    assert.equal(await form.getByRole('button', { name: 'Implementar con Claude', exact: true }).isEnabled(), true);
+    await page.reload();
+    await page.locator('#engine-options summary').click();
+    await page.waitForFunction(() => document.querySelector('#agent-provider-model').value === 'claude-test');
+    assert.equal(await form.getByLabel('¿Qué necesitas?').inputValue(), 'Mejora las pistas sin borrar contenido.');
+    assert.equal(messages, 1); assert.ok(modelCalls >= 1);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    assert.deepEqual(errors, []);
+  });
+
   test(`Memoria exporta, revisa e importa criterios sin sustituirlos en ${name}`, { timeout: 30000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
     const server = await listen(t, directory, { codex: { status: async () => ({ ready: true }) } });
@@ -80,7 +132,7 @@ for (const [name, engine, viewport] of [
     t.after(() => browser.close());
     const page = await browser.newPage({ viewport });
     await page.goto('http://127.0.0.1:' + server.address().port + '/#chat');
-    await page.getByLabel('Modelo de Codex').selectOption('modelo');
+    await page.locator('#chat-model').selectOption('modelo');
     assert.equal(await page.locator('#chat-mode').inputValue(), 'auto');
     await page.getByLabel('Tu mensaje').fill('Mejora el juego sin borrar contenido');
     await page.reload();
@@ -255,7 +307,7 @@ for (const [name, engine, viewport] of [
     t.after(() => browser.close());
     const page = await browser.newPage({ viewport });
     await page.goto('http://127.0.0.1:' + server.address().port + '/#chat');
-    await page.getByLabel('Modelo de Codex').selectOption('modelo');
+    await page.locator('#chat-model').selectOption('modelo');
     await page.getByLabel('Tu mensaje').fill('Primera pregunta');
     await page.getByRole('button', { name: 'Enviar', exact: true }).click();
     await page.getByText('Leyendo tu mensaje…', { exact: true }).waitFor();
@@ -311,7 +363,7 @@ for (const [name, engine, viewport] of [
       return route.continue();
     });
     await page.goto(base + '/#chat');
-    const model = page.getByLabel('Modelo de Codex');
+    const model = page.locator('#chat-model');
     await model.selectOption('modelo-b');
     await page.getByLabel('Tu mensaje').fill('¿Qué es Git?');
     await page.getByRole('button', { name: 'Enviar', exact: true }).click();

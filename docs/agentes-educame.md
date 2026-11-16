@@ -1,6 +1,6 @@
 # Agentes de Educame
 
-Puedes dar un encargo distinto a cada agente y reunir varios en un lote. Dos agentes pueden trabajar en paralelo. Revisión empieza después de la entrega que tiene asignada. Los agentes de implementación usan Codex local. Copiador investiga fuentes públicas y prepara ideas para ellos.
+Puedes dar un encargo distinto a cada agente y reunir varios en un lote. Dos agentes pueden trabajar en paralelo. Revisión empieza después de la entrega que tiene asignada. Los agentes de implementación admiten Codex local, OpenAI API o Claude API. Copiador investiga fuentes públicas con Codex o con la búsqueda de OpenAI y prepara ideas para ellos.
 
 ## LA TERRAZA
 
@@ -14,7 +14,7 @@ En Windows, crea **LA TERRAZA** en el escritorio con
 `powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File scripts/educame-dashboard/install-shortcut.ps1`.
 El acceso directo inicia el panel si hace falta y abre Inicio. Los registros de arranque están en `.educame-agents/`.
 
-Desde **Inicio → Crear un encargo** o **Agentes → Nuevo encargo**, elige la app y escribe el objetivo. El borrador y la selección de agentes se conservan al recargar. Codex se selecciona al escribir si todavía no has elegido un agente. Puedes seleccionar otros especialistas antes de enviar.
+Desde **Inicio → Crear un encargo** o **Agentes → Nuevo encargo**, elige la app y escribe el objetivo. El borrador y la selección de agentes se conservan al recargar. Codex se selecciona al escribir si todavía no has elegido un agente. Puedes seleccionar otros especialistas antes de enviar. **Motor de ejecución** permite cambiar de proveedor y elegir un modelo API disponible en tu cuenta. No cambia automáticamente de proveedor ante un fallo.
 En **Conexiones** y **Operación** hay guías cortas junto a cada configuración.
 
 En **Chat con Codex**, escribe una pregunta o un cambio indicando la app, por ejemplo: «Mejora las pistas de Inglés y simplifica las tarjetas de LA TERRAZA». El modo automático identifica el destino, divide el encargo y asigna especialistas. Si falta una decisión necesaria, aparece una pregunta: pulsa **Responder** y escribe la aclaración. El borrador y la respuesta pendiente se conservan al recargar. En **Opciones** siguen disponibles la consulta de solo texto y el cambio directo en LA TERRAZA para compatibilidad.
@@ -51,6 +51,20 @@ Si pulsas **Subir** mientras otro encargo trabaja, la solicitud queda guardada e
 
 Comprobación de este flujo (16 de noviembre de 2026): 161 pruebas unitarias y 22 de navegador, en Chromium escritorio y WebKit móvil. Los casos nuevos cubren aclaraciones, ajustes, dependencias, una publicación conjunta contra un remoto Git de ensayo, doble envío, cola persistente, dos instancias, recuperación sin reenviar llamadas inciertas y subida en espera. Las implementaciones de ensayo usan agentes simulados; se comprobó por separado una consulta real del coordinador con Codex, sin editar archivos ni iniciar encargos reales.
 
+### Motores y revisión automática
+
+En **Chat con Codex → Motor** puedes usar el mismo interlocutor con **Codex local**, **OpenAI API** o **Claude API**. Las claves se guardan en **Conexiones → Agentes e IA**, cifradas en este equipo y excluidas de Git. No las envíes por el chat. Cada proveedor muestra los modelos que devuelve su cuenta; la configuración de Claude no utiliza ni necesita una sesión de Claude Desktop.
+
+La API se factura por separado de la suscripción de Codex. Cada pasada admite hasta 24 peticiones o 120.000 tokens informados; la última petición puede superar el umbral antes de poder detenerse. Las implementaciones nuevas del chat y del formulario incluyen dos pasadas: implementación y revisión independiente, con el mismo proveedor y modelo. Subir puede realizar una corrección adicional si hay un error reproducible. En Conexiones se muestran llamadas y tokens API acumulados por este panel; son mediciones de uso, no saldo disponible ni cálculo de facturación.
+
+Los motores API reciben la misma ficha, memoria y criterios congelados. Disponen de herramientas para listar y buscar código, leer por líneas, escribir archivos, sustituir fragmentos con comprobación de revisión y ejecutar las pruebas compatibles. Se restringen al ámbito del producto en su copia Git. Los archivos privados, enlaces y rutas externas quedan rechazados. Las pruebas se ejecutan con el entorno reducido del panel; la copia Git no equivale a una máquina virtual ni a un aislamiento completo del sistema operativo. No hay herramienta de publicación en manos de los modelos API.
+
+La segunda pasada recibe la petición original, la entrega y criterios específicos del especialista. Las pruebas elegidas por el panel y las pruebas compatibles de ambos agentes se vuelven a ejecutar localmente. Si falla una prueba, hay puntos pendientes o no termina la revisión, la copia queda conservada y no se marca como completada. **Subir** vuelve a comprobar la versión integrada y el remoto antes de anunciar el resultado. La entrega y el historial conservan proveedor, modelo, revisor y resultados reales; **Ver en local** abre las apps verificadas con datos de ensayo, antes de subirlas. LA TERRAZA se recarga después de aplicar sus cambios.
+
+Las API de esta versión implementan código y consultan contexto; no disponen de una herramienta propia de generación de imágenes ni de navegación visual. Para analizar enlaces usa Copiador con Codex o OpenAI en el modo de investigación. Los ensayos de protocolo, edición, revisión, publicación y reinicio usan proveedores simulados y un remoto Git temporal. Probar una clave real y su facturación requiere conectar la cuenta correspondiente; no se anuncia como verificada por estos ensayos.
+
+Referencias de implementación: [OpenAI, llamadas a herramientas](https://developers.openai.com/api/docs/guides/function-calling), [OpenAI, catálogo de modelos](https://developers.openai.com/api/reference/resources/models/methods/list), [Claude, Messages](https://platform.claude.com/docs/en/api/messages/create) y [Claude, catálogo de modelos](https://platform.claude.com/docs/en/api/models/list).
+
 ### Operación avanzada (opcional)
 
 1. En **GitHub**, conecta un token de acceso limitado al repositorio de Educame
@@ -81,7 +95,7 @@ Comprobación de este flujo (16 de noviembre de 2026): 161 pruebas unitarias y 2
 
   En **Copiar o mover la memoria**, descarga un JSON con criterios y perfiles, o un Markdown de la app seleccionada para facilitarlo a otro proveedor de IA. No se exportan claves, conexiones, cuentas, conversaciones ni encargos. Al importar el JSON primero ves lo que se incorporará y los conflictos que se conservarán. **Importar sin sustituir lo actual** confirma las nuevas reglas y perfiles; la repetición del mismo archivo no duplica entradas. Las fichas y las guías base siguen versionadas en GitHub y el contexto Git se reconstruye en el equipo de destino. Importar memoria no añade soporte de ejecución para otro proveedor.
 - **Resultados de Agentes.** Lee el resumen y pulsa **Subir**. Un borrador de Marketing aprobado se puede llevar al editor de publicaciones.
-- **Conexiones.** En **Agentes e IA** puedes comprobar Codex y configurar una clave de OpenAI como alternativa. Si el panel no detecta una sesión de Codex, inicia sesión con `codex login` y pulsa **Comprobar sesión**. En **Redes sociales**, vincula los perfiles en [Buffer](https://publish.buffer.com/) y guarda su clave API. En **Estadísticas**, habilita Search Console API en Google Cloud, crea un cliente OAuth web, registra la URL de retorno del panel y autoriza la lectura de la propiedad.
+- **Conexiones.** En **Agentes e IA** puedes comprobar Codex y configurar claves de OpenAI y Claude como alternativas para preguntar e implementar. Si el panel no detecta una sesión de Codex, inicia sesión con `codex login` y pulsa **Comprobar sesión**. En **Redes sociales**, vincula los perfiles en [Buffer](https://publish.buffer.com/) y guarda su clave API. En **Estadísticas**, habilita Search Console API en Google Cloud, crea un cliente OAuth web, registra la URL de retorno del panel y autoriza la lectura de la propiedad.
 - **Vídeo.** Conecta una clave de [Runway](https://dev.runwayml.com/) y describe un clip de cinco segundos en formato vertical u horizontal. La generación usa créditos de Runway. Descarga el MP4 cuando esté listo. Para programarlo después en Buffer, aloja primero el archivo en una URL pública estable.
 - **Apps.** Abre los siete productos de Educame, inicia un encargo con la app seleccionada o entra al dashboard online. La etiqueta **En pausa** refleja el estado público de la app.
 - **Cambios.** Filtra el historial Git por app y comprueba qué archivos tienes pendientes. **Sincronizar GitHub** actualiza la referencia de `origin/main`. **Vista local** abre la app o su landing con los archivos de tu equipo, incluso los cambios sin commit. Usa datos de ensayo. Para llevar una revisión a Hostinger, comprueba que los cambios aprobados estén en `main` de GitHub y pulsa **Generar comando**. El bloque fija esa revisión y usa el [procedimiento de actualización](../infra/HOSTINGER_UPDATE.md).

@@ -19,8 +19,8 @@ function running(pid) {
 
 export function publicBatch(batch) {
   if (!batch) return null;
-  const { id, mode, engine, startedAt, finishedAt, state, tasks, jobs, error, agents, queuedAt } = batch;
-  return { id, mode, engine, startedAt, finishedAt, state, running: state === 'running',
+  const { id, mode, engine, startedAt, finishedAt, state, tasks, jobs, error, agents, queuedAt, providerModel } = batch;
+  return { id, mode, engine, providerModel, startedAt, finishedAt, state, running: state === 'running',
     queuedAt, tasks: tasks.map(({ id, agente, encargo, app, despues }) => ({ id, agente, encargo, app, despues, agentName: (agents?.[agente] || defaultAgents[agente])?.name })), jobs, error };
 }
 
@@ -50,7 +50,7 @@ export function createRunner(store, directory, { model, readiness, generator, ba
     const save = () => store.update(batch);
     active = runBatch(batch.tasks, {
       directory: output(batch.mode), model: batch.model, memory: batch.memory, guidance: batch.guidance, settings: batch.settings,
-      prior, agents: batch.agents, codexModel: batch.codexModel,
+      prior, agents: batch.agents, codexModel: batch.codexModel, provider: batch.engine, providerModel: batch.providerModel, qualityRequired: batch.qualityRequired,
       base: batch.base, recover: batch.mode === 'implementacion' ? recoverImplementation : undefined,
       generate: generator(batch),
       onStart: (id, fingerprint) => { batch.jobs[id] = { status: 'en curso', fingerprint }; save(); },
@@ -70,9 +70,10 @@ export function createRunner(store, directory, { model, readiness, generator, ba
     });
   }
 
-  async function start({ mode, engine, tasks, revision, codexModel, consumeQueue = false, enqueue = false }) {
+  async function start({ mode, engine, tasks, revision, codexModel, providerModel, qualityRequired = false, consumeQueue = false, enqueue = false }) {
     if (!tasks.length) throw new RunnerError(400, 'Añade al menos un encargo.');
-    const id = createHash('sha256').update(JSON.stringify({ mode, engine, tasks, codexModel })).digest('hex');
+    const id = createHash('sha256').update(JSON.stringify({ mode, engine, tasks, codexModel,
+      ...(providerModel ? { providerModel } : {}), ...(qualityRequired ? { qualityRequired: true } : {}) })).digest('hex');
     const existing = store.batch(id);
     if (existing) return publicBatch(reconcile()?.id === id ? store.batch(id) : existing);
     try { await readiness(mode, engine); }
@@ -92,12 +93,13 @@ export function createRunner(store, directory, { model, readiness, generator, ba
       if (revision !== undefined && revision !== board.revision) throw new RunnerError(409, 'El lote ha cambiado. Vuelve a cargar antes de ejecutarlo.');
       const directory = agentDirectory(board.agentEdits);
       const agents = Object.fromEntries(tasks.map(task => [task.agente, directory[task.agente]]));
+      if (qualityRequired) agents.revision = directory.revision;
       const batch = {
-        id, mode, engine, tasks, base, guidance, agents, codexModel, memory: board.memory,
+        id, mode, engine, tasks, base, guidance, agents, codexModel, providerModel, qualityRequired, memory: board.memory,
         settings: knowledge ? { ...contextSettings, knowledge } : contextSettings,
         pid: enqueue ? null : process.pid, state: enqueue ? 'queued' : 'running', managed: enqueue,
         ...(enqueue ? { queuedAt: new Date().toISOString() } : {}),
-        model: mode === 'prueba' ? 'prueba-local' : engine === 'codex' ? 'Codex local' : model,
+        model: mode === 'prueba' ? 'prueba-local' : engine === 'codex' ? 'Codex local' : providerModel || model,
         startedAt: new Date().toISOString(),
         jobs: Object.fromEntries(tasks.map(task => [task.id, { status: task.revisar ? 'espera' : 'pendiente' }])),
       };

@@ -151,7 +151,7 @@ export async function requestDraft(task, { apiKey, model, fetchImpl = fetch }) {
   }
 }
 
-async function runTask(task, { directory, model, generate, guidance, memory, settings, onStart, prior, base, recover, agents = defaultAgents, codexModel }, parent) {
+async function runTask(task, { directory, model, generate, guidance, memory, settings, onStart, prior, base, recover, agents = defaultAgents, codexModel, provider, providerModel, qualityRequired }, parent) {
   const path = join(directory, `${task.id}.json`);
   const lock = join(directory, `${task.id}.lock`);
   const oldJob = prior?.[task.id];
@@ -159,7 +159,8 @@ async function runTask(task, { directory, model, generate, guidance, memory, set
   const agentProfile = agents[task.agente];
   const fingerprint = oldJob?.fingerprint || createHash('sha256').update(JSON.stringify({
     task, model, common, role: agentInstructions(task.agente, agentProfile, Boolean(base)), format: task.agente === researchRole ? researchFormat : format, maxOutputTokens, parent: parent?.draft,
-    guidance: guidance || undefined, productContext, base, parentCommit: parent?.implementation?.commit, codexModel,
+    guidance: guidance || undefined, productContext, base, parentCommit: parent?.implementation?.commit, codexModel, providerModel,
+    ...(qualityRequired ? { qualityRequired: true, reviewer: agents.revision } : {}),
   })).digest('hex');
   const started = Date.now();
   async function saveResult(result) {
@@ -168,6 +169,8 @@ async function runTask(task, { directory, model, generate, guidance, memory, set
       revisar: task.revisar, ...(task.despues ? { despues: task.despues } : {}), app: productContext.app, productContext, model, fingerprint, finishedAt: new Date().toISOString(),
       ...(task.fuentes ? { fuentes: task.fuentes } : {}),
       durationMs: Date.now() - started,
+      ...(provider ? { provider } : {}), ...(providerModel ? { providerModel } : {}), ...(codexModel ? { codexModel } : {}),
+      ...(qualityRequired ? { qualityRequired: true, reviewerProfile: agents.revision } : {}),
       status: result.implementation?.verified ? 'completado' : result.draft ? 'borrador' : result.uncertain ? 'interrumpido' : 'fallido',
       ...result,
     };
@@ -177,7 +180,7 @@ async function runTask(task, { directory, model, generate, guidance, memory, set
     return record;
   }
   const input = {
-    ...task, agentProfile, fingerprint, codexModel, baseRevision: base,
+    ...task, agentProfile, fingerprint, codexModel, baseRevision: base, provider, providerModel, qualityRequired, reviewerProfile: agents.revision,
     app: productContext.app, guidance, productContext, parentImplementation: parent?.implementation,
     revision: parent ? { encargo: parent.encargo, contexto: parent.contexto, borrador: parent.draft } : undefined,
   };

@@ -19,6 +19,8 @@ test('Chat usa el modelo elegido y aplica una revisión del panel solo después 
   await mkdir(join(root, 'apps'), { recursive: true });
   await writeFile(join(root, file), 'body { color: black; }\n');
   await writeFile(join(root, 'apps/demo.js'), 'export const demo = 1;\n');
+  await mkdir(join(root, 'tests'), { recursive: true });
+  await writeFile(join(root, 'tests/check.test.cjs'), "require('node:test')('estilos', () => {});\n");
   await git('init', '-b', 'main');
   await git('config', 'user.email', 'test@example.invalid');
   await git('config', 'user.name', 'Educame Test');
@@ -35,7 +37,7 @@ test('Chat usa el modelo elegido y aplica una revisión del panel solo después 
       const target = task.encargo === 'Cambia la app pública' ? 'apps/demo.js' : file;
       await writeFile(join(cwd, target), task.id === 'publicado' ? '/* Cambio desde GitHub */\n' : '/* Cambio propuesto */\n');
       return { draft: { resumen: 'Una propuesta de prueba.', entrega: 'Ajusta los estilos.', comprobaciones: [], pendientes: [] },
-        checks: [{ command: 'node --test', passed: true }] };
+        checks: [{ command: 'node --test tests/check.test.cjs', passed: true }] };
     },
   };
   const servers = new Set();

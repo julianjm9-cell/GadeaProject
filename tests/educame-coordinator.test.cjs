@@ -95,7 +95,7 @@ test('una aclaración genera cambios en apps y LA TERRAZA, respeta dependencias 
   assert.equal((await post('/api/chat', answer)).status, 202);
   assert.equal((await post('/api/chat', { ...answer, id: randomUUID() })).status, 409);
   const done = await until('/api/chat', data => data.messages[1]?.state === 'proposal');
-  assert.equal(plans, 2); assert.equal(implementations, 3);
+  assert.equal(plans, 2); assert.equal(implementations, 6);
   assert.equal(done.messages[0].answeredBy, answer.id);
   assert.equal(done.messages[1].proposals.length, 3);
   assert.equal(await readFile(join(root, 'apps/profesor/demo.js'), 'utf8'), 'original\n');
@@ -113,5 +113,5 @@ test('una aclaración genera cambios en apps y LA TERRAZA, respeta dependencias 
   assert.equal(confirmation.status, 200);
   assert.equal((await confirmation.json()).memory.length, 1);
   await post('/api/chat', answer);
-  assert.equal(implementations, 3);
+  assert.equal(implementations, 6);
 });

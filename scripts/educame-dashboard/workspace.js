@@ -118,12 +118,13 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     renderTeam();
   });
   agentForm.addEventListener('change', persistComposer);
-  async function requestOrder(key, signature, tasks, mode, engine, agentRevision) {
+  async function requestOrder(key, signature, tasks, mode, engine, agentRevision, providerModel) {
     const previous = previousRequests.get(key);
     const request = { signature, tasks: previous?.signature === signature ? previous.tasks : tasks };
     previousRequests.set(key, request);
     try { sessionStorage.setItem(key, JSON.stringify(request)); } catch {}
-    return api('/api/encargos', 'POST', { mode, tasks: request.tasks, engine, agentRevision });
+    return api('/api/encargos', 'POST', { mode, tasks: request.tasks, engine, agentRevision, providerModel,
+      qualityRequired: mode === 'implementacion' });
   }
 
   try {
@@ -199,10 +200,12 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     $('#team-summary').textContent = research ? (agents.copiador?.name || 'Copiador') + ' · análisis de fuentes públicas' : selectedAgents.size ?
       `${[...selectedAgents].map(id => agents[id]?.name || id).join(', ')} · ${selectedAgents.size} de ${state?.maxTasks || 6} agentes` :
       'Escribe el encargo para usar Codex o elige un agente.';
-    $('#engine-options').hidden = !state?.apiReady;
-    engine.options[1].disabled = !state?.apiReady;
-    if (!state?.apiReady) engine.value = 'codex';
-    const ready = engine.value === 'codex' ? codex?.ready : state?.apiReady;
+    const availability = state?.providerAvailability || { openai: state?.apiReady };
+    const ready = engine.value === 'codex' ? codex?.ready : availability[engine.value];
+    agentForm.querySelector('[value="implementacion"]').textContent = engine.value === 'codex' ? 'Implementar con Codex' : engine.value === 'claude' ? 'Implementar con Claude' : 'Implementar con OpenAI';
+    $('#agent-model-field').hidden = engine.value === 'codex';
+    $('#agent-provider-hint').textContent = engine.value === 'codex' ? 'Codex usa la sesión de este equipo. Se revisan los cambios antes de darlos por completados.' :
+      agentModelError || (!ready ? 'Configura este motor en Conexiones → Agentes e IA.' : 'API de pago. Hasta 24 pasos o 120.000 tokens por pasada. Las implementaciones incluyen una segunda pasada de revisión.');
     $('#agent-sources').hidden = !research;
     agentForm.elements.sources.disabled = !research;
     agentForm.elements.sources.required = research;
@@ -217,12 +220,31 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     $('#team-setup').hidden = !state || Boolean(ready);
     for (const node of agentForm.querySelectorAll('[type="submit"]')) {
       node.disabled = node.hidden || !state || !selectedAgents.size || sending ||
-        (node.value === 'real' && !ready) ||
-        (node.value === 'implementacion' && !codex?.ready) ||
+        (node.value === 'real' && (!ready || (engine.value !== 'codex' && !agentForm.elements.providerModel.value) || (research && engine.value === 'claude'))) ||
+        (node.value === 'implementacion' && (!ready || (engine.value !== 'codex' && !agentForm.elements.providerModel.value))) ||
         (node.value === 'queue' && state.board.tasks.length + selectedAgents.size > state.maxTasks);
     }
   }
-  agentForm.elements.engine.addEventListener('change', renderTeam);
+  let modelLoad = 0, agentModelError = '';
+  async function loadAgentModels() {
+    const version = ++modelLoad;
+    const engine = agentForm.elements.engine.value;
+    const select = agentForm.elements.providerModel;
+    agentModelError = ''; select.replaceChildren(); renderTeam();
+    if (engine === 'codex') return;
+    try {
+      const result = await api('/api/chat/modelos?provider=' + engine);
+      if (version !== modelLoad) return;
+      select.replaceChildren(...(result.models || []).map(item => new Option(item.label, item.id)));
+      let stored;
+      try { stored = JSON.parse(localStorage.getItem(composerKey))?.fields?.providerModel; } catch {}
+      if ([...select.options].some(item => item.value === stored)) select.value = stored;
+      if (!select.options.length) agentModelError = result.message || 'Sin modelos disponibles. Revisa Conexiones.';
+    } catch (error) { if (version === modelLoad) agentModelError = error.message; }
+    finally { if (version === modelLoad) renderTeam(); }
+  }
+  agentForm.elements.engine.addEventListener('change', loadAgentModels);
+  agentForm.elements.providerModel.addEventListener('change', persistComposer);
 
   $('#select-team').addEventListener('click', () => {
     const team = selectGroup();
@@ -307,11 +329,12 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
         $('#work-queue').scrollIntoView({ block: 'start' });
         feedback('Encargos añadidos a la cola.');
       } else {
-        const engine = mode === 'implementacion' ? 'codex' : mode === 'prueba' ? 'openai' : agentForm.elements.engine.value;
+        const engine = mode === 'prueba' ? 'openai' : agentForm.elements.engine.value;
+        const providerModel = engine === 'codex' ? undefined : agentForm.elements.providerModel.value || undefined;
         const customized = agentsInOrder.map(id => agents[id]).filter(profile => !profile.builtIn || profile.modified);
-        const signature = JSON.stringify({ mode, engine, app, objective, context, gameWork, gameCount, agentsInOrder,
+        const signature = JSON.stringify({ mode, engine, providerModel, app, objective, context, gameWork, gameCount, agentsInOrder,
           ...(research ? { links } : {}), ...(customized.length ? { customized } : {}) });
-        await requestOrder(batchDraftKey, signature, tasks, mode, engine, state.board.revision);
+        await requestOrder(batchDraftKey, signature, tasks, mode, engine, state.board.revision, providerModel);
         previousRequests.delete(batchDraftKey);
         try { sessionStorage.removeItem(batchDraftKey); } catch {}
         await refresh();
@@ -380,12 +403,19 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     connectionBadge('buffer', connections.buffer ? 'Clave guardada' : 'Por conectar', connections.buffer);
     connectionBadge('google', connections.google ? 'Autorizado' : 'Por conectar', connections.google);
     connectionBadge('openai', getState()?.apiReady ? 'Configurado' : 'Por configurar', getState()?.apiReady);
+    connectionBadge('claude', connections.claude ? 'Clave guardada' : 'Por configurar', connections.claude);
     connectionBadge('runway', connections.runway ? 'Conectado' : 'Por conectar', connections.runway);
     $('#google-redirect').value = connections.redirect;
     for (const node of document.querySelectorAll('[data-disconnect]')) node.hidden = !connections[node.dataset.disconnect];
     $('#buffer-form').hidden = connections.buffer;
     $('#google-form').hidden = connections.google;
     $('#openai-form').hidden = Boolean(getState()?.apiReady);
+    $('#claude-form').hidden = Boolean(connections.claude);
+    api('/api/proveedores').then(data => {
+      $('#api-provider-usage').textContent = Object.entries(data.usage || {}).map(([id, usage]) =>
+        (id === 'claude' ? 'Claude API' : 'OpenAI API') + ': ' + usage.calls + ' llamadas · ' +
+        (usage.input_tokens + usage.output_tokens).toLocaleString('es-ES') + ' tokens').join(' · ') || 'Sin llamadas registradas.';
+    }).catch(() => {});
     $('#runway-form').hidden = connections.runway;
     $('#runway-actions').hidden = !connections.runway;
     $('[data-reload-connections]').hidden = !connections.buffer;
@@ -423,7 +453,7 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     if (properties.status === 'rejected') $('#search-setup').textContent = properties.reason.message;
   }
 
-  for (const id of ['buffer', 'google', 'openai', 'runway']) {
+  for (const id of ['buffer', 'google', 'openai', 'claude', 'runway']) {
     const form = $('#' + id + '-form');
     form.addEventListener('submit', async event => {
       event.preventDefault();
@@ -440,7 +470,8 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
         await refresh();
         await loadConnections();
         feedback(id === 'buffer' ? 'Buffer conectado. Ya puedes seleccionar tus perfiles.' :
-          id === 'runway' ? 'Runway conectado. Ya puedes crear clips.' : 'OpenAI API configurada.');
+          id === 'runway' ? 'Runway conectado. Ya puedes crear clips.' : id === 'claude' ? 'Claude API configurada.' : 'OpenAI API configurada.');
+        if (['openai', 'claude'].includes(id)) await loadAgentModels();
       } catch (error) {
         formMessage(form, error.message);
       } finally {
@@ -866,6 +897,7 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
       'Google no completó la conexión. Revisa la URL de retorno, la API y los permisos e inténtalo de nuevo.', callback !== 'conectado');
   }
   renderTeam();
+  if (agentForm.elements.engine.value !== 'codex') loadAgentModels();
   renderPreview();
   Promise.all([loadConnections(), loadPublications(), checkCodex(), loadVideos()]).catch(error => feedback(error.message, true));
 

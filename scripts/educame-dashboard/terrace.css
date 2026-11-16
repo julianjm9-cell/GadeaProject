@@ -233,7 +233,7 @@ dialog::backdrop { background: #1b2c25a3; }
 .feedback { pointer-events: none; }
 .feedback-close { pointer-events: auto; }
 .chat-card { display: grid; gap: 13px; }
-.chat-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+.chat-toolbar { display: grid; grid-template-columns: minmax(130px, .7fr) minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: 10px; }
 .chat-toolbar :is(label, select) { min-width: 0; }
 .chat-messages {
   display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 12px;

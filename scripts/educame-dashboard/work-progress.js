@@ -13,6 +13,7 @@ export function setupWorkProgress({ element, button, badge, openDelivery, upload
     if (published) return ['Pendiente de fusión', 'pending'];
     if (review?.decision === 'cambios') return ['Cambios solicitados', 'pending'];
     if (delivery.implementation && !delivery.implementation.verified) return ['Por revisar', 'pending'];
+    if (delivery.implementation?.verified) return ['Listo para subir', 'ready'];
     if (approved) return [delivery.implementation ? 'Listo para publicar' : 'Revisado', 'ready'];
     return ['Por revisar', 'pending'];
   }
@@ -57,6 +58,12 @@ export function setupWorkProgress({ element, button, badge, openDelivery, upload
         if (delivery) {
           if (delivery.mode === 'implementacion') {
             if (delivery.draft?.resumen) copy.append(element('p', 'muted', delivery.draft.resumen));
+            if (delivery.quality?.reviewed) copy.append(element('small', '', 'Revisión independiente completada · ' + delivery.quality.reviewer));
+            if (delivery.implementation?.verified && !['control', 'ecosistema'].includes(delivery.app)) {
+              const preview = element('a', 'button secondary', 'Ver en local');
+              preview.href = '/vista-encargo/' + delivery.id; preview.target = '_blank'; preview.rel = 'noopener';
+              actions.append(preview);
+            }
             if (!board.pushes?.[delivery.key]?.integratedRevision && board.reviews[delivery.key]?.decision !== 'cambios') {
               actions.append(button('Subir', () => upload([delivery.key])));
             }

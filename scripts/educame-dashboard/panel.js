@@ -300,9 +300,11 @@ function render() {
     const researchers = tasks.some(task => task.agente === 'copiador');
     if (mode === 'real') node.hidden = !researchers;
     if (mode === 'implementacion') node.hidden = tasks.length > 0 && tasks.every(task => task.agente === 'copiador');
+    const engine = document.querySelector('#agent-compose [name=engine]').value;
+    const ready = engine === 'codex' ? codex?.ready : state.providerAvailability?.[engine] && document.querySelector('#agent-provider-model').value;
     node.disabled = !tasks.length ||
-      (mode === 'implementacion' && (!codex?.ready || tasks.every(task => task.agente === 'copiador'))) ||
-      (mode === 'real' && (!researchers || (!codex?.ready && !state.apiReady)));
+      (mode === 'implementacion' && (!ready || tasks.every(task => task.agente === 'copiador'))) ||
+      (mode === 'real' && (!researchers || !ready || engine === 'claude'));
   });
   const activity = history.slice(0, 3).map(delivery => {
     const row = element('button', 'activity-row');
@@ -653,15 +655,17 @@ document.querySelectorAll('[data-run]').forEach(node => node.addEventListener('c
   node.disabled = true;
   feedback('');
   try {
-    const engine = node.dataset.run === 'implementacion' || (node.dataset.run === 'real' && workspace.codexStatus()?.ready) ? 'codex' : 'openai';
+    const engine = node.dataset.run === 'prueba' ? 'openai' : document.querySelector('#agent-compose [name=engine]').value;
+    const providerModel = engine === 'codex' ? undefined : document.querySelector('#agent-provider-model').value || undefined;
     await api('/api/ejecutar', 'POST', { mode: node.dataset.run, revision: state.board.revision, engine,
-      researchOnly: node.dataset.run === 'real', consumeQueue: true });
+      providerModel, qualityRequired: node.dataset.run === 'implementacion', researchOnly: node.dataset.run === 'real', consumeQueue: true });
     await refresh();
   } catch (error) {
     render();
     feedback(error.message, true);
   }
 }));
+document.querySelector('#agent-compose [name=engine]').addEventListener('change', () => { if (state) render(); });
 document.querySelector('[data-resume-batch]').addEventListener('click', async event => {
   const node = event.currentTarget;
   node.disabled = true;

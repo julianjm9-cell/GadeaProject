@@ -5,7 +5,7 @@ const key = 'terrace-chat-v1';
 const messageId = /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
 const busyReply = /Hay un lote en marcha|Espera a que termine la comprobación o publicación actual|Termina o retoma el trabajo pendiente|Retoma primero el lote interrumpido|Todavía hay un mensaje en curso/;
 
-export function createChat({ store, codex, runner, implementation, readDelivery, assertIdle, instance, contextSnapshot }) {
+export function createChat({ store, codex, providers, runner, implementation, readDelivery, assertIdle, instance, contextSnapshot }) {
   let active;
   let applying = false;
   let pumping = false;
@@ -74,17 +74,17 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
   }
 
   async function send(body) {
-    const { id, model, replyTo } = body;
+    const { id, model, replyTo, provider = 'codex' } = body;
     const mode = body.mode || 'auto';
     const text = typeof body.text === 'string' ? body.text.trim() : '';
-    if (typeof id !== 'string' || !messageId.test(id) || !['auto', 'ask', 'change'].includes(mode) ||
+    if (typeof id !== 'string' || !messageId.test(id) || !['auto', 'ask', 'change'].includes(mode) || !['codex', 'openai', 'claude'].includes(provider) ||
         (replyTo !== undefined && (typeof replyTo !== 'string' || !messageId.test(replyTo))) ||
         typeof model !== 'string' || model.length > 100 || !text || text.length > 4000) {
       throw new OperationError(400, 'Elige un modelo y escribe un mensaje de hasta 4.000 caracteres.');
     }
     const duplicate = entries().find(row => row.id === id);
     if (duplicate) {
-      if (duplicate.mode !== mode || duplicate.model !== model || duplicate.text !== text || duplicate.replyTo !== replyTo) {
+      if (duplicate.mode !== mode || duplicate.model !== model || duplicate.text !== text || duplicate.replyTo !== replyTo || (duplicate.provider || 'codex') !== provider) {
         throw new OperationError(409, 'Ese identificador ya pertenece a otro mensaje.');
       }
       if (duplicate.state === 'error' && ((!duplicate.batchId && duplicate.mode === 'auto') || busyReply.test(duplicate.reply || ''))) {
@@ -93,9 +93,10 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
       }
       return read();
     }
-    const account = await codex.status();
+    const adapter = providers ? providers.get(provider) : codex;
+    const account = await adapter.status();
     if (!account.ready) throw new OperationError(503, account.message || 'Conecta Codex desde Conexiones.');
-    if (!(await codex.models?.())?.some(item => item.id === model)) {
+    if (!(await adapter.models?.())?.some(item => item.id === model)) {
       throw new OperationError(400, 'El modelo no figura en el catálogo de tu sesión. Actualiza la lista.');
     }
     await reconcile();
@@ -114,7 +115,7 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
       if (replyTo && (!question || !['question', 'proposal', 'error'].includes(question.state) || question.answeredBy)) throw new OperationError(409, 'Ese mensaje ya tiene respuesta o sigue trabajando. Escribe un mensaje nuevo.');
       const context = question ? [question.context, 'Petición original: ' + question.text, 'Aclaración: ' + question.reply].filter(Boolean).join('\n').slice(-7000) : '';
       write([...rows.map(row => row.id === replyTo ? { ...row, answeredBy: id } : row),
-        { id, text, mode, model, ...(replyTo ? { replyTo, context, continuations } : {}), state: 'queued', taskId, at: new Date().toISOString() }]);
+        { id, text, mode, model, provider, ...(replyTo ? { replyTo, context, continuations } : {}), state: 'queued', taskId, at: new Date().toISOString() }]);
       return rows;
     });
     if (!previous) return read();
@@ -137,6 +138,8 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
       try { if (row.mode !== 'auto') assertIdle(); }
       catch (error) { if (error.status === 409) return; throw error; }
       const { id, mode, model, text, taskId } = row;
+      const provider = row.provider || 'codex';
+      const adapter = providers ? providers.get(provider) : codex;
       const previous = rows.slice(0, rows.findIndex(item => item.id === id));
       const history = previous.filter(row => row.reply && ['answer', 'proposal', 'applied', 'question'].includes(row.state)).slice(-8)
       .map(row => ({ message: row.text.slice(0, 1700), answer: [
@@ -149,11 +152,11 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
       if (mode === 'auto') {
         let plan = row.plan;
         if (!plan) {
-          if (!codex.coordinate) throw new OperationError(503, 'Reinicia LA TERRAZA para cargar el coordinador de encargos. Tu mensaje está guardado.');
+          if (!adapter.coordinate) throw new OperationError(503, 'Reinicia LA TERRAZA para cargar el coordinador de encargos. Tu mensaje está guardado.');
           const context = await contextSnapshot?.();
           const knowledge = context ? { revision: context.ecosistema?.revision,
             apps: Object.entries(context).map(([app, info]) => ({ app, accepted: info.accepted.slice(0, 2).map(fact => ({ summary: fact.summary, commit: fact.commit })) })) } : undefined;
-          const result = await codex.coordinate({ model, text: [row.context, text].filter(Boolean).join('\n\n'), history, board: store.board(), knowledge });
+          const result = await adapter.coordinate({ model, text: [row.context, text].filter(Boolean).join('\n\n'), history, board: store.board(), knowledge });
           plan = normalizeCoordination(result.plan, row, store.board());
           // Persist the interpreted request BEFORE any implementation can start.
           update(id, { plan, tokens: result.tokens }, 'working');
@@ -161,15 +164,17 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
         if (plan.action !== 'implement') {
           update(id, { state: plan.action === 'clarify' ? 'question' : 'answer', reply: plan.reply }, 'working');
         } else {
-          const batch = await runner.start({ mode: 'implementacion', engine: 'codex', codexModel: model, enqueue: true, tasks: plan.tasks });
+          const batch = await runner.start({ mode: 'implementacion', engine: provider, codexModel: provider === 'codex' ? model : undefined,
+            providerModel: provider === 'codex' ? undefined : model, qualityRequired: Boolean(providers), enqueue: true, tasks: plan.tasks });
           update(id, { batchId: batch.id, taskIds: plan.tasks.map(task => task.id), reply: plan.reply, waiting: batch.state === 'queued' }, 'working');
         }
       } else if (mode === 'ask') {
-        const result = await codex.ask({ model, text, history });
+        const result = await adapter.ask({ model, text, history });
         update(id, { state: 'answer', reply: result.answer, tokens: result.tokens }, 'working');
       } else {
         const context = history.map(item => 'Mensaje anterior\n' + item.message + '\nRespuesta\n' + item.answer).join('\n\n').slice(-7600);
-        const batch = await runner.start({ mode: 'implementacion', engine: 'codex', codexModel: model, enqueue: true,
+        const batch = await runner.start({ mode: 'implementacion', engine: provider, codexModel: provider === 'codex' ? model : undefined,
+          providerModel: provider === 'codex' ? undefined : model, qualityRequired: Boolean(providers), enqueue: true,
           tasks: [{ id: taskId, app: 'control', agente: 'codex', encargo: text.slice(0, 2000),
             contexto: [text.length > 2000 && text.slice(2000), context.slice(-5500)].filter(Boolean).join('\n\n'), revisar: '' }] });
         update(id, { batchId: batch.id }, 'working');

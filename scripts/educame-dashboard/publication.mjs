@@ -95,7 +95,8 @@ export function createPublication({ root, directory, store, implementation, read
           throw new OperationError(409, 'La revisión de una entrega cambió. Vuelve a prepararla.');
         }
         sources.push({ key, commit: delivery.implementation.commit, title: delivery.draft?.resumen || delivery.encargo, app: delivery.app,
-          checks: delivery.checks || [] });
+          provider: delivery.provider || 'codex', providerModel: delivery.providerModel || delivery.codexModel,
+          quality: delivery.quality, checks: delivery.checks || [] });
       }
       const cwd = cwdFor(id);
       await mkdir(join(directory, 'worktrees'), { recursive: true });
@@ -108,7 +109,9 @@ export function createPublication({ root, directory, store, implementation, read
             if (!await git(['diff', '--name-only', '--diff-filter=U'], cwd)) throw new OperationError(409, 'No se pudo unir la versión. Los cambios están guardados.');
             save({ phase: 'Adaptando los cambios a la versión actual' });
             const source = sources.find(item => item.commit === commit);
-            const delivery = source ? await readDelivery(source.key) : { app: 'ecosistema', encargo: 'Integra las versiones local y remota conservando sus cambios.' };
+            const delivery = source ? await readDelivery(source.key) : { app: 'ecosistema',
+              provider: sources[0]?.provider || 'codex', providerModel: sources[0]?.providerModel,
+              encargo: 'Integra las versiones local y remota conservando sus cambios.' };
             await implementation.resolveMerge(cwd, delivery);
           }
         }

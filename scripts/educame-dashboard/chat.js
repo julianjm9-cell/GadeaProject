@@ -6,6 +6,9 @@ const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 export function setupChat({ api, element, button, feedback, formMessage, preparePublication, getState }) {
   const form = $('chat-form');
   const model = $('chat-model');
+  const provider = $('chat-provider');
+  const providerLabel = id => ({ codex: 'Codex local', openai: 'OpenAI API', claude: 'Claude API' })[id || 'codex'];
+  try { provider.value = localStorage.getItem('terrace-chat-provider') || 'codex'; } catch {}
   const mode = $('chat-mode');
   const input = form.elements.text;
   const submit = form.querySelector('[type=submit]');
@@ -24,7 +27,6 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
   let selected;
   let publications;
   let replyTo;
-  replyTo = pending?.replyTo;
   const draftKey = 'terrace-chat-draft';
   try {
     const draft = JSON.parse(localStorage.getItem(draftKey));
@@ -32,7 +34,7 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
   } catch {}
   try {
     pending = JSON.parse(sessionStorage.getItem(pendingKey));
-    if (pending) { input.value = pending.text; mode.value = pending.mode; }
+    if (pending) { input.value = pending.text; mode.value = pending.mode; provider.value = pending.provider || 'codex'; replyTo = pending.replyTo; }
   } catch {}
 
   const visible = () => !$('chat-title').closest('[data-page]').hidden;
@@ -43,12 +45,13 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
     submit.disabled = !snapshot || !model.value || sending;
     $('chat-status').textContent = sending ? 'Enviando…' : queued() ?
       queued() + ' en espera. Se enviarán automáticamente cuando termine el trabajo actual.' :
-      isWorking() ? 'Codex está trabajando. Puedes añadir otro mensaje.' : modelStatus;
+      isWorking() ? 'El agente está trabajando. Puedes añadir otro mensaje.' : modelStatus;
     const change = mode.value === 'change';
     $('chat-mode-hint').textContent = mode.value === 'auto' ?
       'Pregunta o pide cambios en tus apps y en LA TERRAZA. Si falta algo, te preguntará aquí. Después solo tendrás que pulsar Subir.' : change ?
       'Codex prepara el cambio. Si hay otro trabajo en marcha, lo guarda y continúa después.' :
-      'Pregunta sobre LA TERRAZA o cualquier otro tema. Codex usa los mensajes recientes para seguir el hilo.';
+      'Pregunta sobre LA TERRAZA o cualquier otro tema. El agente usa los mensajes recientes para seguir el hilo.';
+    if (provider.value !== 'codex') $('chat-mode-hint').textContent += ' API de pago. Hasta 24 pasos o 120.000 tokens por pasada, incluida una segunda pasada para revisar las implementaciones.';
     input.placeholder = mode.value === 'auto' ? 'Ejemplo: mejora el juego de fracciones de Profesor Particular y simplifica las tarjetas de LA TERRAZA.' : change ? 'Ejemplo: haz más fácil encontrar las entregas pendientes.' :
       'Ejemplo: ¿cómo se diferencia un commit de una propuesta en GitHub?';
     const context = $('chat-reply-context');
@@ -84,7 +87,7 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
     const user = element('div', 'chat-bubble chat-user');
     user.append(element('small', '', item.mode === 'change' ? 'Tú · Cambio en LA TERRAZA' : item.mode === 'auto' ? 'Tú' : 'Tú · Consulta'), element('p', '', item.text));
     const reply = element('div', 'chat-bubble');
-    reply.append(element('small', '', 'Codex · ' + (catalog.find(entry => entry.id === item.model)?.label || item.model)));
+    reply.append(element('small', '', providerLabel(item.provider) + ' · ' + (catalog.find(entry => entry.id === item.model)?.label || item.model)));
     if (item.state === 'queued') {
       reply.append(element('p', 'muted', 'En espera. Se ejecutará automáticamente al terminar el trabajo anterior.'));
     } else if (item.state === 'working') {
@@ -100,7 +103,7 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
       if (item.retryable) {
         const retry = button('Reintentar', async () => {
           retry.disabled = true;
-          try { render(await api('/api/chat', 'POST', { id: item.id, mode: item.mode, model: item.model, text: item.text, ...(item.replyTo ? { replyTo: item.replyTo } : {}) })); }
+          try { render(await api('/api/chat', 'POST', { id: item.id, provider: item.provider || 'codex', mode: item.mode, model: item.model, text: item.text, ...(item.replyTo ? { replyTo: item.replyTo } : {}) })); }
           catch (error) { feedback(error.message, true); }
           finally { retry.disabled = false; }
         });
@@ -158,25 +161,34 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
   async function loadModels(fresh = false) {
     if (refresh.disabled) return;
     refresh.disabled = true;
+    const chosenProvider = provider.value;
+    const previousModel = model.dataset.provider === chosenProvider ? model.value : '';
+    model.replaceChildren(); controls();
     try {
-      const result = await api('/api/chat/modelos' + (fresh ? '?actualizar=1' : ''));
+      const result = await api('/api/chat/modelos?provider=' + chosenProvider + (fresh ? '&actualizar=1' : ''));
+      if (chosenProvider !== provider.value) return;
       catalog = result.ready ? result.models : [];
-      let stored = pending?.model;
-      try { stored ||= localStorage.getItem(preference); } catch {}
-      const selectedModel = model.value || stored;
+      let stored = pending && (pending.provider || 'codex') === chosenProvider ? pending.model : '';
+      try { stored ||= localStorage.getItem(preference + '-' + chosenProvider) || (chosenProvider === 'codex' ? localStorage.getItem(preference) : ''); } catch {}
+      const selectedModel = previousModel || stored;
       model.replaceChildren(...catalog.map(item => new Option(item.label + (item.recommended ? ' · Recomendado' : ''), item.id)));
+      model.dataset.provider = chosenProvider;
       if (catalog.some(item => item.id === selectedModel)) model.value = selectedModel;
       else if (catalog.some(item => item.recommended)) model.value = catalog.find(item => item.recommended).id;
-      modelStatus = catalog.length ? '' : result.ready ? 'Codex aún no devolvió el catálogo. Actualiza los modelos.' : result.message;
+      modelStatus = catalog.length ? '' : result.ready ? 'El motor aún no devolvió el catálogo. Actualiza los modelos.' : result.message;
       if (snapshot) {
         const data = snapshot;
         snapshot = null;
         render(data);
       }
     } catch (error) { modelStatus = error.message; }
-    finally { refresh.disabled = false; controls(); }
+    finally { refresh.disabled = false; controls(); if (chosenProvider !== provider.value) loadModels(); }
   }
-  model.addEventListener('change', () => { try { localStorage.setItem(preference, model.value); } catch {} });
+  provider.addEventListener('change', () => {
+    try { localStorage.setItem('terrace-chat-provider', provider.value); } catch {}
+    catalog = []; model.replaceChildren(); modelStatus = 'Consultando modelos…'; controls(); loadModels();
+  });
+  model.addEventListener('change', () => { try { localStorage.setItem(preference + '-' + provider.value, model.value); } catch {} });
   mode.addEventListener('change', controls);
   refresh.addEventListener('click', () => loadModels(true));
   form.addEventListener('submit', async event => {
@@ -184,8 +196,8 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
     if (submit.disabled) return;
     const text = input.value.trim();
     if (!text) return formMessage(form, 'Escribe un mensaje para Codex.');
-    const request = { text, model: model.value, mode: mode.value, ...(replyTo ? { replyTo } : {}) };
-    if (!pending || ['text', 'model', 'mode', 'replyTo'].some(key => request[key] !== pending[key])) {
+    const request = { text, provider: provider.value, model: model.value, mode: mode.value, ...(replyTo ? { replyTo } : {}) };
+    if (!pending || ['text', 'provider', 'model', 'mode', 'replyTo'].some(key => request[key] !== (key === 'provider' ? pending[key] || 'codex' : pending[key]))) {
       pending = { id: crypto.randomUUID(), ...request };
     }
     try { sessionStorage.setItem(pendingKey, JSON.stringify(pending)); } catch {}

@@ -4,6 +4,8 @@ import { join, relative } from 'node:path';
 import { promisify } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import { products } from './changes.mjs';
+import { qualityCommands, specialistAcceptance } from './quality-plan.mjs';
+import { defaultAgents } from './agent-profiles.mjs';
 
 const exec = promisify(execFile);
 const sha = /^[a-f0-9]{40}$/;
@@ -12,7 +14,7 @@ const commonPaths = ['backend/app/', 'backend/tests/', 'tests/', 'docs/', 'marke
 const terracePaths = ['scripts/educame-dashboard/', 'scripts/educame-dashboard.mjs', 'scripts/educame-agents.mjs',
   'docs/agentes-educame.md', 'docs/guia-desarrollo-educame.md', 'tests/educame-dashboard.test.cjs', 'tests/educame-dashboard-browser.test.cjs',
   'tests/educame-chat.test.cjs', 'tests/educame-chat-queue.test.cjs', 'tests/educame-coordinator.test.cjs', 'tests/educame-runner-queue.test.cjs',
-  'tests/educame-operations.test.cjs', 'tests/educame-changes.test.cjs', 'tests/educame-publication.test.cjs', 'tests/educame-knowledge.test.cjs'];
+  'tests/educame-operations.test.cjs', 'tests/educame-changes.test.cjs', 'tests/educame-publication.test.cjs', 'tests/educame-knowledge.test.cjs', 'tests/educame-providers.test.cjs'];
 const terraceFile = file => terracePaths.some(path => path.endsWith('/') ? file.startsWith(path) : file === path) && !excluded.test(file);
 const excluded = /(^|\/)(\.env(?:\.|$)|\.git(?:\/|$)|\.educame-agents(?:\/|$)|(?:credentials|secrets)(?:\.|\/|$))|\.(pem|key|p12|pfx|sqlite|dump)$/i;
 const credential = /^\+(?!\+\+).*?(?:-----BEGIN [A-Z ]*PRIVATE KEY-----|(?:sk-|ghp_|github_pat_|AIza)[A-Za-z0-9_-]{20,})/m;
@@ -149,8 +151,33 @@ export function createImplementation(root, directory, codex, { localRemote = fal
       return false;
     })) return { uncertain: true, error: 'Ya existe una copia aislada de este encargo. Revisa su contenido antes de repetirlo.' };
     await git(['worktree', 'add', '--detach', cwd, start], root, 120_000);
-    const output = await codex.implement(task, cwd, allowed);
-    return finalize(task, output, { branch: branch(task.id), base: task.parentImplementation?.base || baseRevision, start });
+    const pending = { branch: branch(task.id), base: task.parentImplementation?.base || baseRevision, start };
+    return complete(task, await codex.implement(task, cwd, allowed), pending);
+  }
+
+  async function complete(task, output, pending) {
+    const cwd = worktree(task.id), allowed = pathsFor(task.app);
+    if (task.qualityRequired && output.draft && !output.error && !output.uncertain) {
+      const review = await codex.implement({ ...task, agente: 'revision', agentProfile: task.reviewerProfile || defaultAgents.revision, qualityRequired: false,
+        encargo: 'Revisa y corrige la entrega: ' + task.encargo,
+        contexto: 'Petición original: ' + task.encargo + '\n' + task.contexto + '\n' + (specialistAcceptance[task.agente] || specialistAcceptance.codex),
+        revision: { encargo: task.encargo, borrador: output.draft } }, cwd, allowed);
+      if (!review.draft || review.error || review.uncertain) return { ...output, implementation: pending,
+        error: review.error || 'La revisión independiente no terminó. Conservamos el trabajo para continuar.', quality: { reviewed: false } };
+      const files = [...new Set([...(await git(['diff', '--name-only', '-z', 'HEAD'], cwd)).split('\0'),
+        ...(await git(['ls-files', '--others', '--exclude-standard', '-z'], cwd)).split('\0')].filter(Boolean))];
+      const commands = [...new Set([...(await qualityCommands(cwd, task.app, files)),
+        ...[...(output.checks || []), ...(review.checks || [])].map(check => check.command).filter(command => localTest(command))])];
+      const usage = { input_tokens: (output.usage?.input_tokens || 0) + (review.usage?.input_tokens || 0),
+        output_tokens: (output.usage?.output_tokens || 0) + (review.usage?.output_tokens || 0),
+        total_tokens: (output.usage?.total_tokens || 0) + (review.usage?.total_tokens || 0) };
+      output = { ...output, usage, quality: { reviewed: true, reviewer: task.reviewerProfile?.name || defaultAgents.revision.name,
+        provider: task.provider || 'codex', model: task.providerModel || task.codexModel, summary: review.draft.resumen },
+        draft: { ...output.draft, comprobaciones: [...output.draft.comprobaciones || [], ...review.draft.comprobaciones || []],
+          pendientes: [...new Set([...(output.draft.pendientes || []), ...(review.draft.pendientes || [])])] } };
+      return finalize(task, output, pending, location => runChecks(location, commands));
+    }
+    return finalize(task, output, pending);
   }
 
   async function continuation(delivery) {
@@ -184,7 +211,7 @@ export function createImplementation(root, directory, codex, { localRemote = fal
   async function resolveMerge(cwd, delivery) {
     const start = await ref('HEAD', cwd);
     const allowed = pathsFor(delivery.app);
-    const output = await codex.implement({ app: delivery.app, agente: 'codex', integration: true,
+    const output = await codex.implement({ app: delivery.app, agente: 'codex', provider: delivery.provider, providerModel: delivery.providerModel, codexModel: delivery.codexModel, integration: true,
       encargo: 'Integra la entrega en la versión actual sin perder cambios existentes.',
       contexto: 'Resuelve los conflictos del merge en curso. Conserva las funcionalidades y pruebas de ambas versiones. ' +
         'El encargo que se integra es: ' + delivery.encargo + '\n' + (delivery.draft?.entrega || '') +
@@ -216,6 +243,8 @@ export function createImplementation(root, directory, codex, { localRemote = fal
   async function finalize(task, output, pending, rerun) {
     if (!output.draft) return { ...output, implementation: pending };
     const reject = error => ({ ...output, error, implementation: pending });
+    if (task.qualityRequired && output.quality?.reviewed !== true) return reject('Falta completar la revisión independiente de este encargo.');
+    if (task.qualityRequired && output.draft.pendientes?.length) return reject('La revisión conserva puntos pendientes. Pide que el agente los resuelva antes de subir.');
     const cwd = worktree(task.id);
     const allowed = pathsFor(task.app);
     if (await ref('HEAD', cwd) !== pending.start) return reject('La copia cambió de revisión durante el encargo. Requiere revisión manual.');
@@ -271,8 +300,8 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     if (name !== branch(delivery.id) || !sha.test(base) || !sha.test(start)) {
       throw new ImplementationError(409, 'No se puede verificar el origen de esta copia.');
     }
-    const { draft, responseId, usage, checks } = delivery;
-    return finalize(delivery, { draft, responseId, usage, checks }, { base, branch: name, start },
+    const { draft, responseId, usage, checks, quality } = delivery;
+    return finalize(delivery, { draft, responseId, usage, checks, quality }, { base, branch: name, start },
       cwd => runChecks(cwd, checks.map(check => check.command)));
   }
 
@@ -289,6 +318,7 @@ export function createImplementation(root, directory, codex, { localRemote = fal
         JSON.stringify(checks.filter(check => !check.passed).map(({ command, diagnostic, reason }) => ({ command, diagnostic, reason })))
     }, worktree(delivery.id), pathsFor(delivery.app));
     if (result.error || result.uncertain || !result.draft) return { ...delivery, error: result.error || 'No se pudo terminar la corrección automática.' };
+    if (delivery.qualityRequired) return complete(delivery, { ...result, checks: [...checks, ...(result.checks || [])] }, { base, branch: name, start });
     const commands = [...new Set([...checks, ...(result.checks || [])].map(check => check.command).filter(command => localTest(command)))];
     return finalize(delivery, result, { base, branch: name, start }, cwd => runChecks(cwd, commands));
   }

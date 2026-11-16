@@ -420,11 +420,12 @@ export async function createConnections(directory, fetchImpl = fetch) {
   return {
     googleFinish, downloadVideo,
     openaiKey: () => vault.get('openai'),
+    claudeKey: () => vault.get('claude'),
     githubToken: () => vault.get('github'),
     setGithubToken: value => vault.set('github', value),
     async handle(path, method, body, origin) {
       if (path === '/api/conexiones' && method === 'GET') return {
-        buffer: Boolean(vault.get('buffer')), google: Boolean(vault.get('google')), openai: Boolean(vault.get('openai')), runway: Boolean(vault.get('runway')),
+        buffer: Boolean(vault.get('buffer')), google: Boolean(vault.get('google')), openai: Boolean(vault.get('openai')), claude: Boolean(vault.get('claude')), runway: Boolean(vault.get('runway')),
         redirect: origin + googleCallback,
       };
       if (path === '/api/conexiones/buffer' && method === 'POST') {
@@ -445,8 +446,14 @@ export async function createConnections(directory, fetchImpl = fetch) {
         await vault.set('runway', key);
         return { configured: true };
       }
+      if (path === '/api/conexiones/claude' && method === 'POST') {
+        const key = requireText(body.key, 1000, 'Introduce la clave API de Anthropic.');
+        if (!/^sk-ant-[\w-]+$/.test(key)) throw new ConnectionError(400, 'La clave de Anthropic debe empezar por sk-ant-.');
+        await vault.set('claude', key);
+        return { configured: true };
+      }
       if (path === '/api/conexiones/desconectar' && method === 'POST') {
-        if (!['buffer', 'google', 'openai', 'runway'].includes(body.provider)) throw new ConnectionError(400, 'Elige una conexión.');
+        if (!['buffer', 'google', 'openai', 'claude', 'runway'].includes(body.provider)) throw new ConnectionError(400, 'Elige una conexión.');
         if (body.provider === 'google') {
           authorization = null;
           access = null;

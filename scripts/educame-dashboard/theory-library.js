@@ -158,7 +158,7 @@ export const theoryLibrary = [
       },
       {
         id: 'codex', title: 'Codex local y una API', summary: 'Un agente puede usar la sesión local de Codex o llamar a un servicio con una clave.',
-        detail: 'Codex local puede preparar un plan o implementar un cambio en una copia Git aislada. El motor alternativo usa OpenAI API para borradores y análisis. En Agentes ves la cola, el progreso y los resultados. Revisa las pruebas y el resultado antes de aprobar y publicar.',
+        detail: 'Codex local, OpenAI API y Claude API pueden preguntar, coordinar y preparar cambios en copias Git aisladas. Elige el motor en el chat o en el encargo. La API tiene facturación propia. Los encargos nuevos conservan el modelo y la memoria; una segunda pasada revisa el cambio y se ejecutan pruebas antes de darlo por completado. Tú pulsas Subir para integrarlo. Copiador investiga con Codex o con la búsqueda de OpenAI.',
         practice: 'Abre un resultado en Agentes y localiza su motor, su resultado y lo que queda por verificar.',
         link: ['Ver resultados', 'agentes/resultados'],
       },
