@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { access, lstat, mkdir, readFile, realpath, rename, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { promisify } from 'node:util';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { products } from './changes.mjs';
 import { qualityCommands, specialistAcceptance } from './quality-plan.mjs';
 import { defaultAgents } from './agent-profiles.mjs';
@@ -158,24 +158,65 @@ export function createImplementation(root, directory, codex, { localRemote = fal
   async function complete(task, output, pending) {
     const cwd = worktree(task.id), allowed = pathsFor(task.app);
     if (task.qualityRequired && output.draft && !output.error && !output.uncertain) {
+      const changed = async () => [...new Set([...(await git(['diff', '--name-only', '-z', 'HEAD'], cwd)).split('\0'),
+        ...(await git(['ls-files', '--others', '--exclude-standard', '-z'], cwd)).split('\0')].filter(Boolean))];
+      const safeFiles = async files => {
+        if (files.length > 120 || files.some(file => task.app === 'control' ? !terraceFile(file) :
+          excluded.test(file) || !allowed.some(prefix => file.startsWith(prefix)))) return false;
+        for (const file of files) {
+          const entry = await lstat(join(cwd, file)).catch(error => { if (error.code !== 'ENOENT') throw error; });
+          if (entry && (!entry.isFile() || entry.size > 15 * 1024 * 1024 || relative(join(cwd, file), await realpath(join(cwd, file))))) return false;
+        }
+        return true;
+      };
+      const snapshot = async () => {
+        const files = await changed();
+        if (!await safeFiles(files)) return null;
+        const hashes = [];
+        for (const file of files) hashes.push([file, await readFile(join(cwd, file)).then(content => createHash('sha256').update(content).digest('hex'), error => {
+          if (error.code !== 'ENOENT') throw error; return null;
+        })]);
+        return JSON.stringify([await ref('HEAD', cwd), await git(['status', '--porcelain', '-z'], cwd), hashes]);
+      };
+      const beforeHost = await snapshot();
+      if (!beforeHost) return { ...output, implementation: pending, error: 'La entrega contiene archivos fuera del ámbito permitido o enlaces. Conservamos la copia.' };
+      const initialCommands = [...new Set([...(await qualityCommands(cwd, task.app, await changed())),
+        ...(output.checks || []).map(check => check.command).filter(command => localTest(command))])];
+      // The reviewer must see host results, rather than treating sandbox EPERM as a product defect.
+      const hostChecks = await runChecks(cwd, initialCommands);
+      const beforeReview = await snapshot();
+      if (beforeReview !== beforeHost) return { ...output, implementation: pending, checks: hostChecks, error: 'La copia cambió durante las pruebas. Conservamos el trabajo para revisarlo.' };
+      const implementationPending = output.draft.pendientes || [];
       const review = await codex.implement({ ...task, agente: 'revision', agentProfile: task.reviewerProfile || defaultAgents.revision, qualityRequired: false,
         encargo: 'Revisa y corrige la entrega: ' + task.encargo,
-        contexto: 'Petición original: ' + task.encargo + '\n' + task.contexto + '\n' + (specialistAcceptance[task.agente] || specialistAcceptance.codex),
-        revision: { encargo: task.encargo, borrador: output.draft } }, cwd, allowed);
+        contexto: 'Petición original: ' + task.encargo + '\n' + task.contexto + '\n' + (specialistAcceptance[task.agente] || specialistAcceptance.codex) +
+          '\nRecibes comprobaciones_locales ejecutadas realmente por LA TERRAZA fuera del sandbox. Resuelve o conserva cada pendiente del implementador. ' +
+          'Las pruebas locales con passed=true ya están comprobadas; no las dejes pendientes por una restricción EPERM de tu sandbox. ' +
+          'La revisión automática es esta misma pasada y no es un pendiente. En pendientes deja solo defectos o decisiones todavía sin resolver. ' +
+          'No elimines pruebas ni rebajes requisitos para aprobar la entrega.',
+        revision: { encargo: task.encargo, borrador: output.draft, comprobaciones_locales: hostChecks } }, cwd, allowed);
       if (!review.draft || review.error || review.uncertain) return { ...output, implementation: pending,
-        error: review.error || 'La revisión independiente no terminó. Conservamos el trabajo para continuar.', quality: { reviewed: false } };
-      const files = [...new Set([...(await git(['diff', '--name-only', '-z', 'HEAD'], cwd)).split('\0'),
-        ...(await git(['ls-files', '--others', '--exclude-standard', '-z'], cwd)).split('\0')].filter(Boolean))];
+        checks: hostChecks, error: review.error || 'La revisión independiente no terminó. Conservamos el trabajo para continuar.', quality: { reviewed: false } };
+      const files = await changed();
+      const afterReview = await snapshot();
+      if (!afterReview) return { ...output, implementation: pending, checks: hostChecks, error: 'La revisión contiene archivos fuera del ámbito permitido o enlaces. Conservamos la copia.' };
+      const unchanged = afterReview === beforeReview;
       const commands = [...new Set([...(await qualityCommands(cwd, task.app, files)),
         ...[...(output.checks || []), ...(review.checks || [])].map(check => check.command).filter(command => localTest(command))])];
       const usage = { input_tokens: (output.usage?.input_tokens || 0) + (review.usage?.input_tokens || 0),
         output_tokens: (output.usage?.output_tokens || 0) + (review.usage?.output_tokens || 0),
         total_tokens: (output.usage?.total_tokens || 0) + (review.usage?.total_tokens || 0) };
       output = { ...output, usage, quality: { reviewed: true, reviewer: task.reviewerProfile?.name || defaultAgents.revision.name,
-        provider: task.provider || 'codex', model: task.providerModel || task.codexModel, summary: review.draft.resumen },
+        provider: task.provider || 'codex', model: task.providerModel || task.codexModel, summary: review.draft.resumen,
+        reviewResponseId: review.responseId, hostChecks },
         draft: { ...output.draft, comprobaciones: [...output.draft.comprobaciones || [], ...review.draft.comprobaciones || []],
-          pendientes: [...new Set([...(output.draft.pendientes || []), ...(review.draft.pendientes || [])])] } };
-      return finalize(task, output, pending, location => runChecks(location, commands));
+          pendientes: review.draft.pendientes || [] } };
+      output.quality.implementationPending = implementationPending;
+      return finalize(task, output, pending, async location => {
+        const reusable = unchanged ? new Map(hostChecks.map(check => [check.command, check])) : new Map();
+        const fresh = await runChecks(location, commands.filter(command => !reusable.has(command)));
+        return commands.map(command => reusable.get(command) || fresh.find(check => check.command === command));
+      });
     }
     return finalize(task, output, pending);
   }
@@ -301,6 +342,9 @@ export function createImplementation(root, directory, codex, { localRemote = fal
       throw new ImplementationError(409, 'No se puede verificar el origen de esta copia.');
     }
     const { draft, responseId, usage, checks, quality } = delivery;
+    if (delivery.qualityRequired && (!quality?.reviewed || draft.pendientes?.length)) {
+      return complete(delivery, { draft, responseId, usage, checks }, { base, branch: name, start });
+    }
     return finalize(delivery, { draft, responseId, usage, checks, quality }, { base, branch: name, start },
       cwd => runChecks(cwd, checks.map(check => check.command)));
   }

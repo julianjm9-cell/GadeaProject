@@ -226,7 +226,7 @@ test('una revisión fallida conserva la copia sin permitir completado o publicac
   assert.equal(result.quality.reviewed, false); assert.ok(!result.implementation.verified);
   assert.equal(await readFile(join(implementation.worktree(task.id), 'apps/profesor/demo.js'), 'utf8'), 'conservado\n');
   const revalidated = await implementation.revalidate({ ...task, ...result });
-  assert.ok(!revalidated.implementation.verified); assert.match(revalidated.error, /revisión independiente/);
+  assert.ok(!revalidated.implementation.verified); assert.equal(revalidated.quality.reviewed, false); assert.equal(revalidated.error, 'API ocupada');
 });
 
 test('un lote API en espera conserva modelo, memoria y revisor originales al retomar', async t => {
@@ -255,4 +255,36 @@ test('un lote API en espera conserva modelo, memoria y revisor originales al ret
   const record = JSON.parse(await readFile(join(dir, 'implementaciones/espera-api.json'), 'utf8'));
   assert.equal(record.reviewerProfile.name, 'Revisión original'); assert.equal(record.provider, 'claude');
   assert.equal((await runner.start(request)).id, batch.id); assert.equal(received.length, 1);
+});
+
+test('el revisor recibe pruebas locales reales y resuelve EPERM sin ocultar pendientes funcionales', { timeout: 25000 }, async t => {
+  const { createImplementation } = await import('../scripts/educame-dashboard/implementation.mjs');
+  const dir = await temporary(t), root = join(dir, 'repo');
+  for (const path of ['apps/profesor', 'tests']) await mkdir(join(root, path), { recursive: true });
+  await writeFile(join(root, 'apps/profesor/demo.js'), 'original\n');
+  await writeFile(join(root, 'tests/check.test.cjs'), "require('node:test')('pista', () => {});\n");
+  const git = (...args) => exec('git', args, { cwd: root, windowsHide: true }).then(({ stdout }) => stdout.trim());
+  await git('init', '-b', 'main'); await git('config', 'user.email', 'test@example.invalid'); await git('config', 'user.name', 'Test');
+  await git('add', '.'); await git('-c', 'commit.gpgsign=false', 'commit', '-m', 'Original');
+  let reviews = 0;
+  const implementation = createImplementation(root, join(dir, 'data'), { implement: async (task, cwd) => {
+    if (task.agente === 'revision') {
+      reviews++;
+      assert.equal(task.revision.comprobaciones_locales[0].passed, true);
+      assert.equal(task.revision.comprobaciones_locales[0].source, 'local');
+      assert.match(task.contexto, /no las dejes pendientes/);
+      return { draft: { ...draft, pendientes: task.id === 'bloqueo-real' ? ['Terminar el guardado de respuestas.'] : [] } };
+    }
+    await writeFile(join(cwd, 'apps/profesor/demo.js'), 'pista accesible\n');
+    return { draft: { ...draft, pendientes: ['Repetir pruebas por spawn EPERM.', 'Revisión automática de la entrega.'] },
+      checks: [{ command: 'node --test tests/check.test.cjs', passed: false }] };
+  } }, { localRemote: true });
+  const task = { id: 'bloqueo-sandbox', app: 'profesor', agente: 'mantenimiento', encargo: 'Pista', fingerprint: 'ensayo', qualityRequired: true };
+  const result = await implementation.execute(task, await implementation.base());
+  assert.equal(result.implementation.verified, true); assert.equal(result.checks[0].passed, true);
+  assert.equal(result.quality.implementationPending.length, 2); assert.deepEqual(result.draft.pendientes, []);
+  assert.equal(reviews, 1);
+  const blocked = await implementation.execute({ ...task, id: 'bloqueo-real' }, await implementation.base());
+  assert.ok(!blocked.implementation.verified); assert.match(blocked.error, /puntos pendientes/);
+  assert.deepEqual(blocked.draft.pendientes, ['Terminar el guardado de respuestas.']);
 });
