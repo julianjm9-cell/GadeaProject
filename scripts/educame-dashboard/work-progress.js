@@ -74,9 +74,19 @@ export function setupWorkProgress({ element, button, badge, openDelivery, upload
       progress.replaceChildren(heading, summary, bar, items);
       if (batch.error) progress.append(element('p', 'form-message', batch.error));
     }
+    const pending = state.pendingBatches || [];
+    if (pending.length) {
+      progress.hidden = false;
+      const list = element('div', 'chat-task-progress');
+      list.append(element('h3', '', 'Encargos guardados para después'));
+      for (const batch of pending) for (const task of batch.tasks) {
+        list.append(element('p', 'muted', (projectProfiles[task.app]?.name || task.app) + ' · ' + task.encargo));
+      }
+      progress.append(list);
+    }
     const activeCount = batch?.running ? batch.tasks.filter(task => !terminal.has(batch.jobs[task.id]?.status)).length : 0;
     const attention = history.filter(item => needsAttention(item, board)).length;
-    for (const [id, count] of [['work-queue-count', board.tasks.length], ['work-running-count', activeCount], ['work-review-count', attention]]) {
+    for (const [id, count] of [['work-queue-count', board.tasks.length + pending.reduce((sum, batch) => sum + batch.tasks.length, 0)], ['work-running-count', activeCount], ['work-review-count', attention]]) {
       document.getElementById(id).textContent = count;
     }
   }

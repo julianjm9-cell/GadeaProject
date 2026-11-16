@@ -23,6 +23,13 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
   let timer;
   let selected;
   let publications;
+  let replyTo;
+  replyTo = pending?.replyTo;
+  const draftKey = 'terrace-chat-draft';
+  try {
+    const draft = JSON.parse(localStorage.getItem(draftKey));
+    if (draft && !pending) { input.value = draft.text || ''; replyTo = draft.replyTo; }
+  } catch {}
   try {
     pending = JSON.parse(sessionStorage.getItem(pendingKey));
     if (pending) { input.value = pending.text; mode.value = pending.mode; }
@@ -38,12 +45,23 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
       queued() + ' en espera. Se enviarán automáticamente cuando termine el trabajo actual.' :
       isWorking() ? 'Codex está trabajando. Puedes añadir otro mensaje.' : modelStatus;
     const change = mode.value === 'change';
-    $('chat-mode-hint').textContent = change ?
+    $('chat-mode-hint').textContent = mode.value === 'auto' ?
+      'Pregunta o pide cambios en tus apps y en LA TERRAZA. Si falta algo, te preguntará aquí. Después solo tendrás que pulsar Subir.' : change ?
       'Codex prepara el cambio. Si hay otro trabajo en marcha, lo guarda y continúa después.' :
       'Pregunta sobre LA TERRAZA o cualquier otro tema. Codex usa los mensajes recientes para seguir el hilo.';
-    input.placeholder = change ? 'Ejemplo: haz más fácil encontrar las entregas pendientes.' :
+    input.placeholder = mode.value === 'auto' ? 'Ejemplo: mejora el juego de fracciones de Profesor Particular y simplifica las tarjetas de LA TERRAZA.' : change ? 'Ejemplo: haz más fácil encontrar las entregas pendientes.' :
       'Ejemplo: ¿cómo se diferencia un commit de una propuesta en GitHub?';
+    const context = $('chat-reply-context');
+    if (context) {
+      const question = snapshot?.messages.find(item => item.id === replyTo);
+      context.hidden = !question;
+      context.replaceChildren();
+      if (question) context.append(element('span', '', 'Respondiendo: ' + question.reply), button('Cancelar respuesta', () => { replyTo = undefined; saveDraft(); controls(); }));
+    }
   }
+  function saveDraft() { try { localStorage.setItem(draftKey, JSON.stringify({ text: input.value, replyTo })); } catch {} }
+  input.addEventListener('input', saveDraft);
+  function respond(item) { replyTo = item.id; mode.value = 'auto'; saveDraft(); controls(); input.focus(); }
 
   function render(data) {
     clearTimeout(timer);
@@ -64,14 +82,14 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
   function turn(item) {
     const section = element('article', 'chat-turn');
     const user = element('div', 'chat-bubble chat-user');
-    user.append(element('small', '', item.mode === 'change' ? 'Tú · Cambio en LA TERRAZA' : 'Tú · Consulta'), element('p', '', item.text));
+    user.append(element('small', '', item.mode === 'change' ? 'Tú · Cambio en LA TERRAZA' : item.mode === 'auto' ? 'Tú' : 'Tú · Consulta'), element('p', '', item.text));
     const reply = element('div', 'chat-bubble');
     reply.append(element('small', '', 'Codex · ' + (catalog.find(entry => entry.id === item.model)?.label || item.model)));
     if (item.state === 'queued') {
       reply.append(element('p', 'muted', 'En espera. Se ejecutará automáticamente al terminar el trabajo anterior.'));
     } else if (item.state === 'working') {
-      reply.append(element('p', 'muted', item.mode === 'change' ? 'Preparando la propuesta…' : 'Preparando la respuesta…'));
-      if (item.mode === 'change') {
+      reply.append(element('p', 'muted', item.waiting ? 'Encargo guardado. Empezará automáticamente cuando termine el anterior.' : item.batchId ? item.reply || 'Preparando los cambios…' : 'Leyendo tu mensaje…'));
+      if (item.batchId || item.mode === 'change') {
         const queue = element('a', 'text-link', 'Ver cola de trabajo →');
         queue.href = '#operaciones';
         reply.append(queue);
@@ -82,11 +100,20 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
       if (item.retryable) {
         const retry = button('Reintentar', async () => {
           retry.disabled = true;
-          try { render(await api('/api/chat', 'POST', { id: item.id, mode: item.mode, model: item.model, text: item.text })); }
+          try { render(await api('/api/chat', 'POST', { id: item.id, mode: item.mode, model: item.model, text: item.text, ...(item.replyTo ? { replyTo: item.replyTo } : {}) })); }
           catch (error) { feedback(error.message, true); }
           finally { retry.disabled = false; }
         });
         reply.append(retry);
+      }
+      if (item.state === 'question' && !item.answeredBy) reply.append(button('Responder', () => respond(item)));
+      if (item.taskIds?.length && ['proposal', 'error'].includes(item.state) && !item.answeredBy) {
+        reply.append(button('Pedir ajustes', () => respond(item)));
+      }
+      if (item.proposals?.length) {
+        const pending = item.proposals.filter(proposal => !getState()?.board.pushes?.['implementacion/' + proposal.taskId]?.integratedRevision);
+        reply.append(pending.length ? button('Subir', () => preparePublication(pending.map(proposal => 'implementacion/' + proposal.taskId))) :
+          element('strong', '', 'Aplicados y subidos a GitHub'));
       }
       if (item.proposal) {
         if (item.proposal.summary) reply.append(element('p', 'muted', item.proposal.summary));
@@ -99,6 +126,22 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
         delivery.href = '#entregas/' + item.taskId;
         reply.append(delivery);
       }
+    }
+    if (item.progress?.length) {
+      const list = element('ul', 'chat-task-progress');
+      for (const task of item.progress) {
+        const title = getState()?.projectProfiles?.[task.app]?.name || task.app;
+        const label = task.status === 'en curso' ? 'En curso' : task.status === 'completado' ? 'Completado' :
+          ['fallido', 'interrumpido', 'bloqueado'].includes(task.status) ? 'Necesita atención' : 'En espera';
+        const row = element('li', '', title + ' · ' + label);
+        if (task.request) row.append(element('small', '', task.request));
+        if (task.error) row.append(element('small', 'muted', task.error));
+        if (['fallido', 'interrumpido', 'bloqueado'].includes(task.status)) {
+          const link = element('a', 'text-link', 'Ver trabajo →'); link.href = '#entregas/' + task.id; row.append(link);
+        }
+        list.append(row);
+      }
+      reply.append(list);
     }
     if (Number.isFinite(item.tokens)) reply.append(element('small', '', item.tokens.toLocaleString('es-ES') + ' tokens'));
     section.append(user, reply);
@@ -141,7 +184,7 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
     if (submit.disabled) return;
     const text = input.value.trim();
     if (!text) return formMessage(form, 'Escribe un mensaje para Codex.');
-    const request = { text, model: model.value, mode: mode.value };
+    const request = { text, model: model.value, mode: mode.value, ...(replyTo ? { replyTo } : {}) };
     if (!pending || Object.keys(request).some(key => request[key] !== pending[key])) {
       pending = { id: crypto.randomUUID(), ...request };
     }
@@ -152,7 +195,7 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
     try {
       if (loading) await loading;
       render(await api('/api/chat', 'POST', pending));
-      if (input.value.trim() === text && model.value === request.model && mode.value === request.mode) input.value = '';
+      if (input.value.trim() === text && model.value === request.model && mode.value === request.mode) { input.value = ''; replyTo = undefined; saveDraft(); }
       pending = null;
       try { sessionStorage.removeItem(pendingKey); } catch {}
       log.scrollTop = log.scrollHeight;

@@ -64,6 +64,7 @@ export function openPanelStore(directory, defaults) {
     writeOperation: (key, value) => set.run(key, JSON.stringify(value)),
     writeBoard: value => set.run('board', JSON.stringify(value)),
     latest: () => decode(latestBatch.get()),
+    batches: () => db.prepare('SELECT value FROM batches ORDER BY sequence').all().map(decode),
     recent: () => recentBatches.all().map(decode),
     batch: id => decode(batchById.get(id)),
     insert: batch => insertBatch.run(batch.id, JSON.stringify(batch)),

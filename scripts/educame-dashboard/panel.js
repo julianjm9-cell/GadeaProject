@@ -212,7 +212,6 @@ function renderHistory() {
       if (delivery.draft?.entrega) copy.append(element('p', '', delivery.draft.entrega));
       if (!state.board.pushes?.[delivery.key]?.integratedRevision && delivery.implementation) {
         const submit = button('Subir', () => publicationClient.upload([delivery.key]));
-        submit.disabled = Boolean(state.batch?.running || state.batch?.state === 'paused');
         controls.append(submit);
       }
     } else controls.append(button('Abrir entrega', () => openDelivery(delivery)));
@@ -268,13 +267,13 @@ function render() {
   apiStatus.textContent = !codex ? 'Comprobando Codex' : codex.ready ? 'Sesión activa' : 'Conectar Codex ↗';
   apiStatus.classList.toggle('ready', Boolean(codex?.ready));
   document.querySelector('#run-status').textContent = running ? 'Los agentes están trabajando. Puedes añadir encargos para después.'
-    : paused ? 'Hay un trabajo interrumpido. Pulsa Retomar trabajo para continuar.'
+    : paused ? 'Un trabajo necesita atención. Puedes retomarlo o enviar otros encargos.'
       : tasks.length ? 'Pulsa Empezar cola para ejecutar los encargos preparados.' : 'Prepara un encargo para empezar.';
   document.querySelector('[data-resume-batch]').hidden = !paused;
   const runs = (state.batches || []).map(run => {
     const detail = element('details', 'memory-detail');
     const kind = run.mode === 'implementacion' ? 'Implementación' : run.mode === 'prueba' ? 'Simulación' : 'Borrador';
-    const label = run.state === 'running' ? 'En curso' : run.state === 'paused' ? 'Interrumpido' : 'Finalizado';
+    const label = run.state === 'queued' ? 'En espera' : run.state === 'running' ? 'En curso' : run.state === 'paused' ? 'Interrumpido' : 'Finalizado';
     detail.append(element('summary', '', `${kind} · ${label} · ${dates.format(new Date(run.startedAt))}`));
     for (const task of run.tasks) {
       const job = run.jobs[task.id];
@@ -283,6 +282,10 @@ function render() {
       detail.append(row);
       if (job?.error) detail.append(element('p', 'muted', job.error));
     }
+    if (run.state === 'paused') detail.append(button('Retomar trabajo', async () => {
+      try { await api('/api/encargos/retomar', 'POST', { id: run.id }); await refresh(); }
+      catch (error) { feedback(error.message, true); }
+    }));
     return detail;
   });
   document.querySelector('#run-history').replaceChildren(...(runs.length ? runs : [element('p', 'empty', 'Aquí aparecerán los lotes que ejecutes.')]));
@@ -297,7 +300,7 @@ function render() {
     const researchers = tasks.some(task => task.agente === 'copiador');
     if (mode === 'real') node.hidden = !researchers;
     if (mode === 'implementacion') node.hidden = tasks.length > 0 && tasks.every(task => task.agente === 'copiador');
-    node.disabled = running || paused || !tasks.length ||
+    node.disabled = !tasks.length ||
       (mode === 'implementacion' && (!codex?.ready || tasks.every(task => task.agente === 'copiador'))) ||
       (mode === 'real' && (!researchers || (!codex?.ready && !state.apiReady)));
   });

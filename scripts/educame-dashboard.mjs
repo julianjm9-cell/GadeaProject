@@ -239,7 +239,7 @@ export async function createDashboard({
     readDelivery: id => readJson(implementationPath(id), null),
     assertIdle() {
       const job = hostinger.status().job;
-      if (deliveryWork || publication.busy() || ['running', 'paused'].includes(runner.latest()?.state) || ['running', 'uncertain'].includes(job?.state)) {
+      if (deliveryWork || publication.busy(false) || runner.latest()?.state === 'running' || ['running', 'uncertain'].includes(job?.state)) {
         throw new OperationError(409, 'Termina o retoma el trabajo pendiente antes de cambiar el panel.');
       }
     },
@@ -365,12 +365,11 @@ export async function createDashboard({
         const { key, note, id } = await bodyJson(request);
         if (!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(id || '') ||
             typeof note !== 'string' || !note.trim() || note.length > 2000) throw new PanelError(400, 'Escribe qué quieres ajustar.');
-        if (publication.busy() || deliveryWork) throw new PanelError(409, 'Espera a que termine la operación actual.');
         const source = await implementationDelivery(key);
         const task = { id: 'ajuste-' + id, app: source.app, agente: source.agente, encargo: note.trim(), continuar: source.id,
           contexto: ('Ajusta esta entrega conservando el trabajo ya hecho.\nEncargo original\n' + source.encargo +
             '\nResultado anterior\n' + (source.draft?.entrega || source.error || '')).slice(0, 7500) };
-        const batch = await runner.start({ mode: 'implementacion', engine: 'codex', tasks: [task] });
+        const batch = await runner.start({ mode: 'implementacion', engine: 'codex', tasks: [task], enqueue: true });
         store.transaction(() => {
           const board = store.board();
           store.writeBoard({ ...board, revision: board.revision + 1, reviews: { ...board.reviews,
@@ -555,7 +554,7 @@ export async function createDashboard({
         const batches = runner.recent();
         const history = await deliveries();
         const board = store.board();
-        return json(200, { board, agentEditor: agentEditor(board.agentEdits), history: history.slice(0, 100), batch, batches,
+        return json(200, { board, agentEditor: agentEditor(board.agentEdits), history: history.slice(0, 100), batch, batches, pendingBatches: runner.queued(),
           terraceNeedsRestart,
           model, apiReady: Boolean(activeApiKey()), concurrency, maxTasks, fixture, projectProfiles, memoryTopics });
       }
@@ -582,7 +581,6 @@ export async function createDashboard({
         return json(200, updated);
       }
       if (request.method === 'POST' && ['/api/ejecutar', '/api/encargos'].includes(path)) {
-        if (deliveryWork || publication.busy()) throw new PanelError(409, 'Espera a que termine la comprobación o publicación de cambios.');
         const { mode, revision, tasks, engine = 'openai', researchOnly, agentRevision, consumeQueue } = await bodyJson(request);
         if (!['openai', 'codex'].includes(engine)) throw new PanelError(400, 'Elige Codex u OpenAI API.');
         if (!['real', 'prueba', 'implementacion'].includes(mode)) throw new PanelError(400, 'Elige cómo ejecutar el lote.');
@@ -596,7 +594,7 @@ export async function createDashboard({
           throw new PanelError(400, 'Ejecuta Copiador en modo de análisis. Sus ideas se pueden convertir en encargos de implementación.');
         }
         return json(202, await runner.start({ mode, engine, tasks: selected, revision: queued ? revision : agentRevision,
-          consumeQueue: queued && consumeQueue === true }));
+          consumeQueue: queued && consumeQueue === true, enqueue: true }));
       }
       if (request.method === 'POST' && path === '/api/encargos/retomar') {
         const { id } = await bodyJson(request);
@@ -637,12 +635,13 @@ export async function createDashboard({
   });
   let chatTimer;
   server.on('listening', () => {
-    chatTimer = setInterval(() => { chat.pump().catch(() => {}); }, 1000);
+    chatTimer = setInterval(() => { publication.pump().then(() => runner.pump()).then(() => chat.pump()).catch(() => {}); }, 1000);
     chatTimer.unref();
   });
   server.on('close', () => {
     clearInterval(chatTimer);
     chat.close();
+    runner.close();
     previews.close();
     for (const view of implementationPreviews.values()) view.close();
     Promise.allSettled([runner.wait(), hostinger.wait(), chat.wait(), deliveryWork, publication.wait()]).finally(store.close).catch(() => {});

@@ -58,7 +58,7 @@ export function validateTasks(input, agents = defaultAgents) {
         /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/.test(task.id) || seen.has(task.id)) {
       throw new Error('Cada encargo necesita un id único con minúsculas, números o guiones, de hasta 64 caracteres.');
     }
-    const { id, agente, encargo, contexto = '', revisar = '', app, fuentes, continuar } = task;
+    const { id, agente, encargo, contexto = '', revisar = '', app, fuentes, continuar, despues } = task;
     if (typeof agente !== 'string' || !Object.hasOwn(agents, agente)) throw new Error(`${id}: el agente no existe.`);
     if (typeof encargo !== 'string' || !encargo.trim() || encargo.length > 2000 ||
         typeof contexto !== 'string' || contexto.length > 8000) {
@@ -69,9 +69,12 @@ export function validateTasks(input, agents = defaultAgents) {
     }
     if (app !== undefined && (typeof app !== 'string' || !Object.hasOwn(projectProfiles, app))) throw new Error(`${id}: el proyecto no existe.`);
     if (continuar !== undefined && (typeof continuar !== 'string' || !/^[a-z0-9][a-z0-9-]{0,63}$/.test(continuar))) throw new Error('La entrega de referencia no es válida.');
-    if (Object.keys(task).some(key => !['id', 'agente', 'encargo', 'contexto', 'revisar', 'app', 'continuar', ...(agente === researchRole ? ['fuentes'] : [])].includes(key)) ||
+    if (despues !== undefined && (typeof despues !== 'string' || !seen.has(despues) || seen.get(despues).app !== app || revisar || continuar)) {
+      throw new Error(`${id}: la dependencia debe ser una tarea anterior de la misma app, sin otra continuación.`);
+    }
+    if (Object.keys(task).some(key => !['id', 'agente', 'encargo', 'contexto', 'revisar', 'app', 'continuar', 'despues', ...(agente === researchRole ? ['fuentes'] : [])].includes(key)) ||
         typeof revisar !== 'string') throw new Error(`${id}: hay campos que el piloto no reconoce.`);
-    const normalized = { id, agente, encargo, contexto, revisar, ...(app ? { app } : {}), ...(continuar ? { continuar } : {}),
+    const normalized = { id, agente, encargo, contexto, revisar, ...(app ? { app } : {}), ...(continuar ? { continuar } : {}), ...(despues ? { despues } : {}),
       ...(agente === researchRole ? { fuentes: validateSources(fuentes) } : {}) };
     seen.set(id, normalized);
     return normalized;
@@ -162,7 +165,7 @@ async function runTask(task, { directory, model, generate, guidance, memory, set
   async function saveResult(result) {
     const record = {
       id: task.id, agente: task.agente, agentName: agentProfile.name, encargo: task.encargo, contexto: task.contexto,
-      revisar: task.revisar, app: productContext.app, productContext, model, fingerprint, finishedAt: new Date().toISOString(),
+      revisar: task.revisar, ...(task.despues ? { despues: task.despues } : {}), app: productContext.app, productContext, model, fingerprint, finishedAt: new Date().toISOString(),
       ...(task.fuentes ? { fuentes: task.fuentes } : {}),
       durationMs: Date.now() - started,
       status: result.implementation?.verified ? 'completado' : result.draft ? 'borrador' : result.uncertain ? 'interrumpido' : 'fallido',
@@ -174,7 +177,7 @@ async function runTask(task, { directory, model, generate, guidance, memory, set
     return record;
   }
   const input = {
-    ...task, agentProfile, fingerprint, codexModel,
+    ...task, agentProfile, fingerprint, codexModel, baseRevision: base,
     app: productContext.app, guidance, productContext, parentImplementation: parent?.implementation,
     revision: parent ? { encargo: parent.encargo, contexto: parent.contexto, borrador: parent.draft } : undefined,
   };
@@ -197,7 +200,7 @@ async function runTask(task, { directory, model, generate, guidance, memory, set
       await rmdir(lock).catch(() => {});
       return { ...record, reused: true };
     }
-    return { status: 'interrumpido', error: 'El encargo pudo llegar al ejecutor. El panel conserva su estado y evita enviarlo otra vez.' };
+    return saveResult({ uncertain: true, error: 'El encargo pudo llegar al ejecutor. El panel conserva su estado y evita enviarlo otra vez.' });
   }
   try {
     await mkdir(lock);
@@ -253,10 +256,10 @@ export async function runBatch(input, options) {
   }
 
   for (const task of tasks) {
-    const parent = results.get(task.revisar);
+    const parent = results.get(task.despues || task.revisar);
     const result = Promise.resolve(parent).then(previous => {
       if (parent && previous.status !== 'completado' && (options.base || previous.status !== 'borrador')) {
-        return { status: 'bloqueado', error: `Falta la entrega de ${task.revisar}.` };
+        return { status: 'bloqueado', error: `Falta la entrega de ${task.despues || task.revisar}.` };
       }
       return inSlot(() => runTask(task, runOptions, previous));
     }).catch(() => ({ status: 'fallido', error: 'No se pudo guardar o leer el registro local. Compruébalo antes de repetir.' }));

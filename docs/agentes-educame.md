@@ -17,11 +17,11 @@ El acceso directo inicia el panel si hace falta y abre Inicio. Los registros de 
 Desde **Inicio → Crear un encargo** o **Agentes → Nuevo encargo**, elige la app y escribe el objetivo. El borrador y la selección de agentes se conservan al recargar. Codex se selecciona al escribir si todavía no has elegido un agente. Puedes seleccionar otros especialistas antes de enviar.
 En **Conexiones** y **Operación** hay guías cortas junto a cada configuración.
 
-En **Chat con Codex**, selecciona un modelo del catálogo de tu sesión. **Hacer
-una pregunta** responde en texto y usa los mensajes recientes como contexto.
-**Cambiar LA TERRAZA** prepara el cambio en una copia aislada y muestra el resultado con **Subir**, sin abrir una ficha detallada.
-El panel aplica la versión y se recarga al terminar. El historial del chat se guarda localmente.
-Si hay otro trabajo en marcha, el chat guarda el mensaje en **En espera** y continúa automáticamente cuando termina. Puedes enviar más mensajes y cerrar o recargar la pestaña: la cola permanece en el servidor local. Los errores antiguos de «hay un lote en marcha» permiten **Reintentar** usando el mismo identificador. Si un lote está interrumpido, hay que retomarlo primero desde Agentes.
+En **Chat con Codex**, escribe una pregunta o un cambio indicando la app, por ejemplo: «Mejora las pistas de Inglés y simplifica las tarjetas de LA TERRAZA». El modo automático identifica el destino, divide el encargo y asigna especialistas. Si falta una decisión necesaria, aparece una pregunta: pulsa **Responder** y escribe la aclaración. El borrador y la respuesta pendiente se conservan al recargar. En **Opciones** siguen disponibles la consulta de solo texto y el cambio directo en LA TERRAZA para compatibilidad.
+
+El plan se guarda antes de arrancar las implementaciones. Las tareas independientes pueden avanzar en paralelo; las dependientes de la misma app continúan desde la revisión anterior. Cada parte muestra su estado y al terminar puedes pulsar **Subir** para reunir las entregas, o **Pedir ajustes** para continuar desde sus copias conservadas. La actualización de LA TERRAZA se recarga al terminar. El historial del chat se guarda localmente.
+
+Si hay otro encargo o una publicación en marcha, los cambios nuevos quedan guardados en **En espera**, incluso desde el formulario de Agentes. Se ejecutan automáticamente cuando corresponde, sin necesitar consultas del navegador. Las preguntas automáticas pueden responderse mientras otro agente implementa. Al reiniciar se recuperan los pasos confirmados y los pendientes de los nuevos lotes. Una llamada incierta no se repite a ciegas: queda marcada para atención con su copia, sin frenar los trabajos independientes. Los lotes antiguos interrumpidos conservan **Retomar trabajo** en su historial.
 
 **Uso de Codex** muestra el porcentaje disponible y la fecha de renovación de
 cada ventana que devuelve la sesión de Codex CLI. Se actualiza cada minuto
@@ -46,6 +46,10 @@ Los enlaces anteriores `#operaciones` y `#entregas` siguen llevando a sus zonas 
 **Subir** inicia todo el proceso con una sola pulsación: comprueba fuera del sandbox, corrige una vez los errores reproducibles con Codex, integra y sube a `main`. El botón general reúne las entregas pendientes. No hay una ficha detallada ni una segunda aceptación. **Deshacer última subida** crea una nueva revisión con el contenido anterior, sin borrar el historial; se bloquea si hay cambios posteriores. Los cambios de LA TERRAZA recargan el panel. Para la web se ofrece **Copiar comando de Hostinger**.
 
 Si aparece un fallo real, el estado conserva la versión: no anuncia una subida que no se haya confirmado. Subir retoma una publicación pendiente de confirmación sin duplicarla. Las comprobaciones y las protecciones de revisión siguen funcionando por detrás.
+
+Si pulsas **Subir** mientras otro encargo trabaja, la solicitud queda guardada en el servidor local. Espera a que termine, realiza la subida autorizada y después deja avanzar los encargos siguientes. No tienes que volver a pulsar el botón y la solicitud sobrevive al cierre de la pestaña o al reinicio del panel.
+
+Comprobación de este flujo (16 de noviembre de 2026): 161 pruebas unitarias y 22 de navegador, en Chromium escritorio y WebKit móvil. Los casos nuevos cubren aclaraciones, ajustes, dependencias, una publicación conjunta contra un remoto Git de ensayo, doble envío, cola persistente, dos instancias, recuperación sin reenviar llamadas inciertas y subida en espera. Las implementaciones de ensayo usan agentes simulados; se comprobó por separado una consulta real del coordinador con Codex, sin editar archivos ni iniciar encargos reales.
 
 ### Operación avanzada (opcional)
 

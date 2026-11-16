@@ -217,7 +217,6 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     $('#team-setup').hidden = !state || Boolean(ready);
     for (const node of agentForm.querySelectorAll('[type="submit"]')) {
       node.disabled = node.hidden || !state || !selectedAgents.size || sending ||
-        (node.value !== 'queue' && (Boolean(state.batch?.running) || state?.batch?.state === 'paused')) ||
         (node.value === 'real' && !ready) ||
         (node.value === 'implementacion' && !codex?.ready) ||
         (node.value === 'queue' && state.board.tasks.length + selectedAgents.size > state.maxTasks);
@@ -282,7 +281,9 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     }
     const agentsInOrder = Object.keys(agents).filter(id => selectedAgents.has(id));
     const ids = Object.fromEntries(agentsInOrder.map(id => [id, `enc-${crypto.randomUUID()}`]));
-    const reviewTarget = ids.juegos || ids[agentsInOrder.find(id => id !== 'revision')];
+    const implement = ['implementacion', 'queue'].includes(event.submitter?.value || 'queue');
+    const implementers = agentsInOrder.filter(id => id !== 'revision');
+    const reviewTarget = implement ? ids[implementers.at(-1)] : ids.juegos || ids[agentsInOrder.find(id => id !== 'revision')];
     const tasks = agentsInOrder.map(agente => ({
       id: ids[agente], agente, app, encargo: objective.trim() || researchObjective,
       ...(research ? { fuentes: links } : {}),
@@ -290,6 +291,7 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
         `Pack de juegos. Trabajo: ${gameWork}. Cantidad solicitada: ${Number(gameCount) || 1}. Informa por separado del resultado y las comprobaciones de cada juego.` : '',
       context.trim()].filter(Boolean).join('\n\n'),
       revisar: agente === 'revision' ? reviewTarget || '' : '',
+      ...(implement && agente !== 'revision' && implementers.indexOf(agente) > 0 ? { despues: ids[implementers[implementers.indexOf(agente) - 1]] } : {}),
     }));
     sending = true;
     formMessage(agentForm);

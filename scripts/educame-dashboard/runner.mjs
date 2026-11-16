@@ -19,27 +19,30 @@ function running(pid) {
 
 export function publicBatch(batch) {
   if (!batch) return null;
-  const { id, mode, engine, startedAt, finishedAt, state, tasks, jobs, error, agents } = batch;
+  const { id, mode, engine, startedAt, finishedAt, state, tasks, jobs, error, agents, queuedAt } = batch;
   return { id, mode, engine, startedAt, finishedAt, state, running: state === 'running',
-    tasks: tasks.map(({ id, agente, encargo, app }) => ({ id, agente, encargo, app, agentName: (agents?.[agente] || defaultAgents[agente])?.name })), jobs, error };
+    queuedAt, tasks: tasks.map(({ id, agente, encargo, app, despues }) => ({ id, agente, encargo, app, despues, agentName: (agents?.[agente] || defaultAgents[agente])?.name })), jobs, error };
 }
 
 export function createRunner(store, directory, { model, readiness, generator, baseRevision, recoverImplementation }) {
   let active;
+  let pumping;
+  let closed = false;
+  const all = () => store.batches();
   const output = mode => mode === 'implementacion' ? join(directory, 'implementaciones') :
     mode === 'prueba' ? join(directory, 'simulaciones') : directory;
 
   function reconcile() {
-    const latest = store.latest();
-    if (latest?.state !== 'running' || running(latest.pid)) return latest;
     return store.transaction(() => {
-      const batch = store.latest();
-      if (batch?.state === 'running' && !running(batch.pid)) {
-        batch.state = 'paused';
-        batch.pid = null;
-        store.update(batch);
+      for (const batch of all()) {
+        if (batch.state === 'running' && !running(batch.pid)) {
+          batch.state = 'paused';
+          batch.pid = null;
+          store.update(batch);
+        }
       }
-      return batch;
+      const batches = all();
+      return batches.find(batch => batch.state === 'running') || batches.find(batch => batch.state === 'queued') || store.latest();
     });
   }
 
@@ -67,27 +70,31 @@ export function createRunner(store, directory, { model, readiness, generator, ba
     });
   }
 
-  async function start({ mode, engine, tasks, revision, codexModel, consumeQueue = false }) {
+  async function start({ mode, engine, tasks, revision, codexModel, consumeQueue = false, enqueue = false }) {
     if (!tasks.length) throw new RunnerError(400, 'Añade al menos un encargo.');
     const id = createHash('sha256').update(JSON.stringify({ mode, engine, tasks, codexModel })).digest('hex');
     const existing = store.batch(id);
     if (existing) return publicBatch(reconcile()?.id === id ? store.batch(id) : existing);
-    await readiness(mode, engine);
+    try { await readiness(mode, engine); }
+    catch (error) { if (!enqueue || error.status !== 409) throw error; }
     const guidance = mode === 'prueba' ? '' : await readGuidance();
-    const base = mode === 'implementacion' ? await baseRevision() : undefined;
+    const base = !enqueue && mode === 'implementacion' ? await baseRevision() : undefined;
     reconcile();
     const result = store.transaction(() => {
       const existing = store.batch(id);
       if (existing) return { batch: existing };
-      const latest = store.latest();
-      if (latest?.state === 'running') throw new RunnerError(409, 'Hay un lote en marcha.');
-      if (latest?.state === 'paused') throw new RunnerError(409, 'Retoma primero el lote interrumpido.');
+      const latest = all().find(batch => batch.state === 'running') || store.latest();
+      if (!enqueue && latest?.state === 'running') throw new RunnerError(409, 'Hay un lote en marcha.');
+      if (!enqueue && latest?.state === 'paused') throw new RunnerError(409, 'Retoma primero el lote interrumpido.');
+      if (enqueue && all().filter(batch => batch.state === 'queued').length >= 50) throw new RunnerError(409, 'Hay cincuenta trabajos guardados en espera. Deja que avance la cola.');
       const board = store.board();
       if (revision !== undefined && revision !== board.revision) throw new RunnerError(409, 'El lote ha cambiado. Vuelve a cargar antes de ejecutarlo.');
       const directory = agentDirectory(board.agentEdits);
       const agents = Object.fromEntries(tasks.map(task => [task.agente, directory[task.agente]]));
       const batch = {
-        id, mode, engine, tasks, base, guidance, agents, codexModel, memory: board.memory, settings: contextSettings, pid: process.pid, state: 'running',
+        id, mode, engine, tasks, base, guidance, agents, codexModel, memory: board.memory, settings: contextSettings,
+        pid: enqueue ? null : process.pid, state: enqueue ? 'queued' : 'running', managed: enqueue,
+        ...(enqueue ? { queuedAt: new Date().toISOString() } : {}),
         model: mode === 'prueba' ? 'prueba-local' : engine === 'codex' ? 'Codex local' : model,
         startedAt: new Date().toISOString(),
         jobs: Object.fromEntries(tasks.map(task => [task.id, { status: task.revisar ? 'espera' : 'pendiente' }])),
@@ -100,18 +107,20 @@ export function createRunner(store, directory, { model, readiness, generator, ba
       }
       return { batch, started: true };
     });
-    if (result.started) launch(result.batch);
-    return publicBatch(result.batch);
+    if (result.started && !enqueue) launch(result.batch);
+    if (enqueue) await pump();
+    return publicBatch(store.batch(result.batch.id));
   }
 
   async function resume(id) {
-    const current = reconcile();
-    if (current?.id !== id) throw new RunnerError(404, 'No se encuentra el lote.');
+    reconcile();
+    const current = store.batch(id);
+    if (!current) throw new RunnerError(404, 'No se encuentra el lote.');
     if (current.state !== 'paused') return publicBatch(current);
     await readiness(current.mode, current.engine);
     const result = store.transaction(() => {
-      const batch = store.latest();
-      if (batch?.id !== id) throw new RunnerError(409, 'El lote ha cambiado.');
+      const batch = store.batch(id);
+      if (all().some(other => other.id !== id && other.state === 'running')) throw new RunnerError(409, 'Hay un lote en marcha.');
       if (batch.state !== 'paused') return { batch };
       const prior = structuredClone(batch.jobs);
       batch.state = 'running';
@@ -124,6 +133,64 @@ export function createRunner(store, directory, { model, readiness, generator, ba
     return publicBatch(result.batch);
   }
 
-  return { start, resume, output, latest: () => publicBatch(reconcile()),
-    recent: () => store.recent().map(publicBatch), wait: () => active };
+  function pump() {
+    if (closed) return Promise.resolve();
+    if (pumping) return pumping;
+    pumping = (async () => {
+      reconcile();
+      if (all().some(batch => batch.state === 'running')) return;
+      // Resume once per restart. Receipts and fingerprints reuse completed steps;
+      // uncertain executor calls are never silently sent a second time.
+      const interrupted = all().find(batch => batch.managed && batch.state === 'paused' && batch.recoveryPid !== process.pid);
+      if (interrupted) {
+        try {
+          await readiness(interrupted.mode, interrupted.engine);
+          store.transaction(() => {
+            const batch = store.batch(interrupted.id);
+            batch.recoveryPid = process.pid;
+            store.update(batch);
+          });
+          await resume(interrupted.id);
+        } catch (error) {
+          if (error.status === 409) return;
+          store.transaction(() => {
+            const batch = store.batch(interrupted.id);
+            batch.error = error.message;
+            batch.recoveryPid = process.pid;
+            store.update(batch);
+          });
+        }
+        return;
+      }
+      const queued = all().find(batch => batch.state === 'queued');
+      if (!queued || queued.retryAfter > Date.now()) return;
+      try {
+        await readiness(queued.mode, queued.engine);
+        const base = queued.mode === 'implementacion' ? await baseRevision() : undefined;
+        const claimed = store.transaction(() => {
+          if (all().some(batch => batch.state === 'running')) return;
+          const batch = store.batch(queued.id);
+          if (batch.state !== 'queued') return;
+          Object.assign(batch, { base, state: 'running', pid: process.pid, error: undefined, startedAt: new Date().toISOString() });
+          store.update(batch);
+          return batch;
+        });
+        if (claimed) launch(claimed);
+      } catch (error) {
+        store.transaction(() => {
+          const batch = store.batch(queued.id);
+          if (batch.state !== 'queued') return;
+          batch.error = error.status === 409 ? 'Esperando a que termine la operación actual.' : error.message;
+          batch.retryAfter = error.status === 409 ? 0 : Date.now() + 15000;
+          store.update(batch);
+        });
+      }
+    })().finally(() => { pumping = undefined; });
+    return pumping;
+  }
+
+  return { start, resume, pump, output, latest: () => publicBatch(reconcile()),
+    close() { closed = true; },
+    queued: () => all().filter(batch => batch.state === 'queued').map(publicBatch),
+    recent: () => store.recent().map(publicBatch), async wait() { await pumping; await active; } };
 }

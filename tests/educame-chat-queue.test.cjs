@@ -79,7 +79,7 @@ test('el servidor retoma el chat al terminar otro encargo sin necesitar consulta
   ask:async()=>{answered();return{answer:'Ya está libre'};}
  }});
  server.listen(0,'127.0.0.1');await once(server,'listening');
- t.after(async()=>{release();await new Promise(resolve=>server.close(resolve));assert.equal(dirname(directory),tmpdir());await rm(directory,{recursive:true,force:true});});
+ t.after(async()=>{release();await new Promise(resolve=>server.close(resolve));assert.equal(dirname(directory),tmpdir());await rm(directory,{recursive:true,force:true,maxRetries:5,retryDelay:80});});
  const base='http://127.0.0.1:'+server.address().port;
  const post=(path,body)=>fetch(base+path,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body:JSON.stringify(body)});
  assert.equal((await post('/api/encargos',{mode:'real',engine:'codex',tasks:[{id:'otro',app:'control',agente:'codex',encargo:'Otro trabajo'}]})).status,202);
@@ -90,4 +90,59 @@ test('el servidor retoma el chat al terminar otro encargo sin necesitar consulta
  await done;
  const state=await (await fetch(base+'/api/chat')).json();
  assert.equal(state.messages[0].state,'answer');
+});
+
+test('el coordinador retoma un plan guardado sin volver a planificar ni duplicar el encargo', async t => {
+ const {createChat}=await import('../scripts/educame-dashboard/chat.mjs');
+ const {openPanelStore}=await import('../scripts/educame-dashboard/store.mjs');
+ const directory=await mkdtemp(join(tmpdir(),'educame-chat-queue-'));
+ let store=openPanelStore(directory,{tasks:[],reviews:{},pushes:{},revision:0}),chat,blocked=true,planned=0;
+ const ids=[],deliveries=new Map();
+ const options={instance:'ensayo',implementation:{},assertIdle(){},readDelivery:async id=>deliveries.get(id),
+  codex:{status:async()=>({ready:true}),models:async()=>[{id:'modelo'}],coordinate:async()=>{planned++;return{plan:{action:'implement',reply:'Preparando',
+   tasks:[{app:'ingles',agent:'juegos',request:'Mejora el juego sin borrar contenido',after:null}]}};}},
+  runner:{start:async input=>{
+   ids.push(input.tasks[0].id);
+   if(blocked)throw Object.assign(new Error('Operación en curso'),{status:409});
+   const task=input.tasks[0];deliveries.set(task.id,{id:task.id,app:task.app,draft:{resumen:'Terminado'},implementation:{verified:true,commit:'a'.repeat(40)}});
+   const batch={id:'guardado',state:'finished',tasks:input.tasks,jobs:{[task.id]:{status:'completado'}}};store.insert(batch);return batch;
+  }} };
+ chat=createChat({...options,store});
+ t.after(async()=>{chat.close();await chat.wait();store.close();assert.equal(dirname(directory),tmpdir());await rm(directory,{recursive:true,force:true});});
+ const message={id:randomUUID(),mode:'auto',model:'modelo',text:'Mejora el juego de Inglés'};
+ await chat.send(message);await chat.wait();
+ assert.equal(store.operation('terrace-chat-v1')[0].state,'queued');
+ assert.ok(store.operation('terrace-chat-v1')[0].plan);
+ chat.close();await chat.wait();store.close();
+ store=openPanelStore(directory,{});blocked=false;chat=createChat({...options,store});
+ await chat.pump();await chat.wait();
+ const result=await chat.read();
+ assert.equal(result.messages[0].state,'proposal');
+ assert.equal(planned,1);assert.equal(new Set(ids).size,1);
+});
+
+test('las preguntas automáticas se responden aunque otro agente esté implementando', {timeout:15000}, async t => {
+ const {createDashboard}=await import('../scripts/educame-dashboard.mjs');
+ const directory=await mkdtemp(join(tmpdir(),'educame-chat-queue-'));
+ let release;
+ const gate=new Promise(resolve=>{release=resolve;});
+ const server=await createDashboard({directory,apiKey:'',codex:{status:async()=>({ready:true}),models:async()=>[{id:'modelo'}],
+  generate:async()=>{await gate;return{draft:{resumen:'Terminado',entrega:'Ensayo',comprobaciones:[],pendientes:[]}};},
+  coordinate:async()=>({plan:{action:'answer',reply:'Puedes seguir preguntando.',tasks:[]}})
+ }});
+ server.listen(0,'127.0.0.1');await once(server,'listening');
+ t.after(async()=>{release();await new Promise(resolve=>server.close(resolve));assert.equal(dirname(directory),tmpdir());await rm(directory,{recursive:true,force:true,maxRetries:5,retryDelay:80});});
+ const base='http://127.0.0.1:'+server.address().port;
+ const get=path=>fetch(base+path).then(response=>response.json());
+ const post=(path,body)=>fetch(base+path,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body:JSON.stringify(body)});
+ await post('/api/encargos',{mode:'real',engine:'codex',tasks:[{id:'trabajando',app:'profesor',agente:'juegos',encargo:'Otro trabajo'}]});
+ assert.equal((await get('/api/panel')).batch.state,'running');
+ await post('/api/chat',{id:randomUUID(),model:'modelo',text:'¿Qué es una copia aislada?'});
+ for(let i=0;i<60;i++){
+  const chat=await get('/api/chat');
+  if(chat.messages[0]?.state==='answer')break;
+  await new Promise(resolve=>setTimeout(resolve,25));
+ }
+ assert.equal((await get('/api/chat')).messages[0].reply,'Puedes seguir preguntando.');
+ assert.equal((await get('/api/panel')).batch.state,'running');
 });

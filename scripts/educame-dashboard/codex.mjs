@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { draftRequest, parseDraft, parseResearch } from '../educame-agents.mjs';
 import { researchRole } from './research.mjs';
 import { createCodexUsage, readCodexAppServer } from './codex-usage.mjs';
+import { coordinationPrompt, coordinationSchema } from './coordinator.mjs';
 
 const workspace = fileURLToPath(new URL('../../', import.meta.url));
 const stdoutLimit = 1_000_000;
@@ -88,18 +89,19 @@ export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE 
     return catalogPending;
   }
 
-  async function ask({ model, text, history }) {
+  async function ask({ model, text, history, board }) {
     const folder = await mkdtemp(join(tmpdir(), 'educame-chat-'));
     try {
-      const input = 'Responde en español de forma clara. Eres el chat de LA TERRAZA, el panel local de Educame. ' +
+      const input = board ? coordinationPrompt(board) + '\n\n' + JSON.stringify({ historial: history, mensaje: text }) : 'Responde en español de forma clara. Eres el chat de LA TERRAZA, el panel local de Educame. ' +
         'Responde consultas generales y explica sus herramientas: Agentes, Entregas, Cambios, Conexiones, Operación, Publicar, Vídeo, Estadísticas y Teoría. ' +
         'LA TERRAZA prepara implementaciones en copias Git aisladas. El usuario revisa y confirma cada aplicación local. ' +
-        'Esta consulta solo devuelve texto. Si te piden aplicar un cambio, explica que pueden usar el modo Cambiar LA TERRAZA. ' +
+        'Esta consulta solo devuelve texto. Para encargar cambios está el chat automático de LA TERRAZA. ' +
         'No atribuyas al panel accesos, estados o cambios que no conozcas. Lee el historial como contexto y responde al mensaje actual.\n\n' +
         JSON.stringify({ historial: history, mensaje: text });
+      if (board) await writeFile(join(folder, 'plan.json'), JSON.stringify(coordinationSchema));
       const result = await execute(executable, ['-a', 'never', 'exec', '--ignore-user-config', '--sandbox', 'read-only',
         '--config', 'features.shell_tool=false', '--config', 'web_search="disabled"', ...windowsSandbox,
-        '--skip-git-repo-check', '--ephemeral', '--json', '--model', model, '-'], input, maxRuntime, folder);
+        '--skip-git-repo-check', '--ephemeral', '--json', ...(board ? ['--output-schema', join(folder, 'plan.json')] : []), '--model', model, '-'], input, maxRuntime, folder);
       let answer, usage;
       for (const line of result.stdout.split(/\r?\n/)) {
         let event;
@@ -108,8 +110,8 @@ export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE 
         if (event.type === 'turn.completed') usage = event.usage;
       }
       if (result.code !== 0 || !answer?.trim()) throw new Error(result.error || 'Codex no completó la consulta.');
-      return { answer: answer.trim().slice(0, 16000), tokens: usage ? (usage.input_tokens || 0) + (usage.output_tokens || 0) : null };
-    } finally { await rmdir(folder).catch(() => {}); }
+      return { ...(board ? { plan: JSON.parse(answer) } : { answer: answer.trim().slice(0, 16000) }), tokens: usage ? (usage.input_tokens || 0) + (usage.output_tokens || 0) : null };
+    } finally { await unlink(join(folder, 'plan.json')).catch(() => {}); await rmdir(folder).catch(() => {}); }
   }
 
   async function generate(task, cwd = workspace, allowed) {
@@ -173,5 +175,5 @@ ${JSON.stringify(input)}`;
     }
   }
 
-  return { status, usage: createCodexUsage(executable), models, ask, generate, implement: (task, cwd, allowed) => generate(task, cwd, allowed) };
+  return { status, usage: createCodexUsage(executable), models, ask, coordinate: ask, generate, implement: (task, cwd, allowed) => generate(task, cwd, allowed) };
 }

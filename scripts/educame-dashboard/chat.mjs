@@ -1,4 +1,5 @@
 import { OperationError } from './operations.mjs';
+import { normalizeCoordination } from './coordinator.mjs';
 
 const key = 'terrace-chat-v1';
 const messageId = /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
@@ -24,8 +25,28 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
   async function reconcile() {
     for (const row of entries()) {
       if (!(row.state === 'working' || (row.mode === 'change' && row.state === 'error')) || row.id === activeId) continue;
-      if (row.mode === 'change') {
-        const delivery = await readDelivery(row.taskId);
+      if (row.batchId || row.mode === 'change') {
+        const ids = row.taskIds || [row.taskId];
+        const deliveries = (await Promise.all(ids.map(readDelivery))).filter(Boolean);
+        const delivery = deliveries[0];
+        if (row.taskIds) {
+          const batch = row.batchId && store.batch(row.batchId);
+          const jobs = batch?.jobs || {};
+          const proposals = deliveries.filter(item => item.implementation?.verified).map(item => ({
+            taskId: item.id, app: item.app, commit: item.implementation.commit, files: item.implementation.files,
+            summary: item.draft?.resumen, checks: item.checks,
+          }));
+          const done = batch?.state === 'finished';
+          update(row.id, { state: done ? (proposals.length ? 'proposal' : 'error') : 'working',
+            progress: ids.map(id => ({ id, app: row.plan.tasks.find(task => task.id === id)?.app,
+              request: row.plan.tasks.find(task => task.id === id)?.encargo,
+              status: jobs[id]?.status || 'pendiente', error: jobs[id]?.error })),
+            waiting: batch?.state === 'queued', proposals,
+            reply: done ? proposals.length === ids.length ? 'Cambios preparados. Puedes subirlos juntos.' :
+              'Hay tareas que necesitan atención. Los resultados y las copias siguen guardados; los demás encargos pueden continuar.' : row.plan.reply,
+          }, row.state);
+          continue;
+        }
         if (delivery?.implementation?.verified) {
           update(row.id, { state: 'proposal', reply: delivery.draft?.resumen,
             proposal: { commit: delivery.implementation.commit, files: delivery.implementation.files,
@@ -37,30 +58,36 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
               'La propuesta se interrumpió. Vuelve a enviarla cuando quieras retomarla.' }, 'working');
           }
         }
-      } else update(row.id, { state: 'error', reply: 'La consulta se interrumpió. Puedes volver a enviarla.' }, 'working');
+      } else {
+        let alive = false;
+        if (row.plannerPid) { try { process.kill(row.plannerPid, 0); alive = true; } catch {} }
+        if (!alive) update(row.id, { state: 'queued', reply: undefined }, 'working');
+      }
     }
   }
   async function read() {
     await reconcile();
     void pump().catch(() => {});
     const messages = entries();
-    return { messages: messages.map(row => ({ ...row, retryable: row.state === 'error' && busyReply.test(row.reply || '') })),
+    return { messages: messages.map(row => ({ ...row, retryable: row.state === 'error' && ((!row.batchId && row.mode === 'auto') || busyReply.test(row.reply || '')) })),
       needsRestart: messages.some(item => item.restartInstance === instance) };
   }
 
   async function send(body) {
-    const { id, mode, model } = body;
+    const { id, model, replyTo } = body;
+    const mode = body.mode || 'auto';
     const text = typeof body.text === 'string' ? body.text.trim() : '';
-    if (typeof id !== 'string' || !messageId.test(id) || !['ask', 'change'].includes(mode) ||
+    if (typeof id !== 'string' || !messageId.test(id) || !['auto', 'ask', 'change'].includes(mode) ||
+        (replyTo !== undefined && (typeof replyTo !== 'string' || !messageId.test(replyTo))) ||
         typeof model !== 'string' || model.length > 100 || !text || text.length > 4000) {
       throw new OperationError(400, 'Elige un modelo y escribe un mensaje de hasta 4.000 caracteres.');
     }
     const duplicate = entries().find(row => row.id === id);
     if (duplicate) {
-      if (duplicate.mode !== mode || duplicate.model !== model || duplicate.text !== text) {
+      if (duplicate.mode !== mode || duplicate.model !== model || duplicate.text !== text || duplicate.replyTo !== replyTo) {
         throw new OperationError(409, 'Ese identificador ya pertenece a otro mensaje.');
       }
-      if (duplicate.state === 'error' && busyReply.test(duplicate.reply || '')) {
+      if (duplicate.state === 'error' && ((!duplicate.batchId && duplicate.mode === 'auto') || busyReply.test(duplicate.reply || ''))) {
         update(id, { state: 'queued', reply: undefined }, 'error');
         await pump();
       }
@@ -73,11 +100,21 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
     }
     await reconcile();
     const taskId = 'terraza-' + id;
+    const source = replyTo && entries().find(row => row.id === replyTo);
+    const continuations = {};
+    if (source?.taskIds) for (const task of source.plan.tasks) {
+      const delivery = await readDelivery(task.id);
+      if (delivery?.implementation?.base) continuations[task.app] = task.id;
+    }
     const previous = store.transaction(() => {
       const rows = entries();
       if (rows.some(row => row.id === id)) return null;
       if (rows.filter(row => row.state === 'queued').length >= 20) throw new OperationError(409, 'Hay veinte mensajes esperando. Deja que avancen antes de añadir más.');
-      write([...rows, { id, text, mode, model, state: 'queued', taskId, at: new Date().toISOString() }]);
+      const question = replyTo && rows.find(row => row.id === replyTo);
+      if (replyTo && (!question || !['question', 'proposal', 'error'].includes(question.state) || question.answeredBy)) throw new OperationError(409, 'Ese mensaje ya tiene respuesta o sigue trabajando. Escribe un mensaje nuevo.');
+      const context = question ? [question.context, 'Petición original: ' + question.text, 'Aclaración: ' + question.reply].filter(Boolean).join('\n').slice(-7000) : '';
+      write([...rows.map(row => row.id === replyTo ? { ...row, answeredBy: id } : row),
+        { id, text, mode, model, ...(replyTo ? { replyTo, context, continuations } : {}), state: 'queued', taskId, at: new Date().toISOString() }]);
       return rows;
     });
     if (!previous) return read();
@@ -94,27 +131,42 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
       await reconcile();
       if (closed) return;
       const rows = entries();
-      if (rows.some(row => row.state === 'working')) return;
+      if (rows.some(row => row.state === 'working' && !row.batchId)) return;
       const row = rows.find(row => row.state === 'queued');
       if (!row) return;
-      try { assertIdle(); }
+      try { if (row.mode !== 'auto') assertIdle(); }
       catch (error) { if (error.status === 409) return; throw error; }
       const { id, mode, model, text, taskId } = row;
       const previous = rows.slice(0, rows.findIndex(item => item.id === id));
-      const history = previous.filter(row => row.reply && ['answer', 'proposal', 'applied'].includes(row.state)).slice(-8)
+      const history = previous.filter(row => row.reply && ['answer', 'proposal', 'applied', 'question'].includes(row.state)).slice(-8)
       .map(row => ({ message: row.text.slice(0, 1700), answer: [
         row.proposal && (row.state === 'applied' ? 'Cambio aplicado localmente.' : 'Propuesta pendiente de aplicar.'),
         row.reply, row.proposal?.summary,
       ].filter(Boolean).join('\n').slice(0, 2000) }));
-      if (!update(id, { state: 'working', reply: undefined }, 'queued')) return;
+      if (!update(id, { state: 'working', reply: undefined, plannerPid: process.pid }, 'queued')) return;
       activeId = id;
       active = Promise.resolve().then(async () => {
-      if (mode === 'ask') {
+      if (mode === 'auto') {
+        let plan = row.plan;
+        if (!plan) {
+          if (!codex.coordinate) throw new OperationError(503, 'Reinicia LA TERRAZA para cargar el coordinador de encargos. Tu mensaje está guardado.');
+          const result = await codex.coordinate({ model, text: [row.context, text].filter(Boolean).join('\n\n'), history, board: store.board() });
+          plan = normalizeCoordination(result.plan, row, store.board());
+          // Persist the interpreted request BEFORE any implementation can start.
+          update(id, { plan, tokens: result.tokens }, 'working');
+        }
+        if (plan.action !== 'implement') {
+          update(id, { state: plan.action === 'clarify' ? 'question' : 'answer', reply: plan.reply }, 'working');
+        } else {
+          const batch = await runner.start({ mode: 'implementacion', engine: 'codex', codexModel: model, enqueue: true, tasks: plan.tasks });
+          update(id, { batchId: batch.id, taskIds: plan.tasks.map(task => task.id), reply: plan.reply, waiting: batch.state === 'queued' }, 'working');
+        }
+      } else if (mode === 'ask') {
         const result = await codex.ask({ model, text, history });
         update(id, { state: 'answer', reply: result.answer, tokens: result.tokens }, 'working');
       } else {
         const context = history.map(item => 'Mensaje anterior\n' + item.message + '\nRespuesta\n' + item.answer).join('\n\n').slice(-7600);
-        const batch = await runner.start({ mode: 'implementacion', engine: 'codex', codexModel: model,
+        const batch = await runner.start({ mode: 'implementacion', engine: 'codex', codexModel: model, enqueue: true,
           tasks: [{ id: taskId, app: 'control', agente: 'codex', encargo: text.slice(0, 2000),
             contexto: [text.length > 2000 && text.slice(2000), context.slice(-5500)].filter(Boolean).join('\n\n'), revisar: '' }] });
         update(id, { batchId: batch.id }, 'working');
@@ -159,7 +211,7 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
       } finally { applying = false; }
     },
     assertIdle() {
-      if (active || applying) throw new OperationError(409, 'Espera a que termine el trabajo del chat.');
+      if (applying) throw new OperationError(409, 'Espera a que termine el trabajo del chat.');
       assertIdle();
     },
   };

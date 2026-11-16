@@ -2,7 +2,7 @@ export function setupPublication({ api, element, button, feedback, getState, ref
   const host = document.getElementById('work-publication');
   let job, busy = false, timer, restarting = false, pending;
   try { pending = JSON.parse(sessionStorage.getItem('terrace-upload-pending')); } catch {}
-  const running = () => busy || ['preparing', 'publishing'].includes(job?.state);
+  const running = () => busy || ['queued', 'preparing', 'publishing'].includes(job?.state);
   function remember(value) {
     pending = value;
     try {
@@ -15,7 +15,7 @@ export function setupPublication({ api, element, button, feedback, getState, ref
     try {
       job = await api('/api/publicacion');
       render(getState());
-      if (['preparing', 'publishing'].includes(job?.state)) timer = setTimeout(load, 1200);
+      if (['queued', 'preparing', 'publishing'].includes(job?.state)) timer = setTimeout(load, 1200);
       if (job?.state === 'published') {
         remember(null);
         await refresh();
@@ -28,7 +28,7 @@ export function setupPublication({ api, element, button, feedback, getState, ref
       if (job?.state === 'failed') remember(null);
     } catch (error) {
       feedback(error.message, true);
-      if (['preparing', 'publishing'].includes(job?.state)) timer = setTimeout(load, 2400);
+      if (['queued', 'preparing', 'publishing'].includes(job?.state)) timer = setTimeout(load, 2400);
     }
   }
   async function upload(keys) {
@@ -96,7 +96,6 @@ export function setupPublication({ api, element, button, feedback, getState, ref
       for (const item of pendingItems) list.append(element('li', '', item.draft?.resumen || item.encargo));
       const submit = button('Subir', () => upload(pendingItems.map(item => item.key)));
       submit.className = 'button primary';
-      submit.disabled = state.batch?.running || state.batch?.state === 'paused';
       host.append(list, submit);
     } else if (['ready', 'retry', 'failed'].includes(job?.state) && job.keys?.length) {
       const submit = button('Subir', () => upload(job.keys));

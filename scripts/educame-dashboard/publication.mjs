@@ -8,6 +8,7 @@ import { OperationError } from './operations.mjs';
 const exec = promisify(execFile);
 const stateKey = 'simple-publication-v1';
 const lastPublishedKey = stateKey + '-last-published';
+const queuedKey = stateKey + '-queued';
 const revision = /^[a-f0-9]{40}$/;
 const privateFile = /(^|\/)(\.env(?:\.|$)|\.git(?:\/|$)|\.educame-agents(?:\/|$)|(?:secrets|credentials)(?:\.|\/|$))|\.(?:pem|key|p12|pfx|sqlite|dump)$/i;
 const credential = /^\+(?!\+\+).*?(?:-----BEGIN [A-Z ]*PRIVATE KEY-----|(?:sk-|ghp_|github_pat_|AIza)[A-Za-z0-9_-]{20,})/m;
@@ -15,10 +16,17 @@ const credential = /^\+(?!\+\+).*?(?:-----BEGIN [A-Z ]*PRIVATE KEY-----|(?:sk-|g
 export function createPublication({ root, directory, store, implementation, readDelivery, revalidate, repair, assertIdle,
   onApplied, localRemote = false }) {
   let active;
+  let pumping;
+  const pending = () => store.operation(queuedKey);
   const git = (args, cwd = root) => exec('git', ['-c', 'core.hooksPath=' + join(directory, 'agent-empty-hooks'),
     '-c', 'commit.gpgsign=false', ...args], { cwd, windowsHide: true, timeout: 120_000, maxBuffer: 8 * 1024 * 1024,
     env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'Never' } }).then(result => result.stdout.trim());
   const read = () => store.operation(stateKey);
+  const livePublication = () => {
+    const job = read();
+    if (!['preparing', 'publishing'].includes(job?.state) || !Number.isInteger(job.workerPid)) return false;
+    try { process.kill(job.workerPid, 0); return true; } catch { return false; }
+  };
   const save = update => {
     const next = { ...read(), ...update, updatedAt: new Date().toISOString() };
     store.writeOperation(stateKey, next);
@@ -42,14 +50,17 @@ export function createPublication({ root, directory, store, implementation, read
     return git(['rev-parse', 'HEAD']);
   }
   function status() {
+    const queued = pending();
+    if (queued) return { ...queued, lastPublished: store.operation(lastPublishedKey) };
     const job = read();
-    if (!active && ['preparing', 'publishing'].includes(job?.state)) {
+    if (!active && !livePublication() && ['preparing', 'publishing'].includes(job?.state)) {
       return save({ state: job.state === 'publishing' ? 'retry' : 'failed',
         message: 'El proceso se interrumpió. Puedes retomarlo desde aquí.' });
     }
     return job ? { ...job, lastPublished: store.operation(lastPublishedKey) } : job;
   }
   function background(action) {
+    save({ workerPid: process.pid });
     active = Promise.resolve().then(action).catch(error => {
       const publishing = read()?.state === 'publishing';
       save({ state: publishing ? 'retry' : 'failed', message: error.status ? error.message :
@@ -59,7 +70,7 @@ export function createPublication({ root, directory, store, implementation, read
   async function prepare({ keys, uploadId = null }) {
     if (!Array.isArray(keys) || keys.length > 12 || keys.some(key => !/^implementacion\/[a-z0-9][a-z0-9-]{0,63}$/.test(key)) ||
         new Set(keys).size !== keys.length) throw new OperationError(400, 'Selecciona las entregas que quieres preparar.');
-    if (active) throw new OperationError(409, 'Los cambios ya se están procesando.');
+    if (active || livePublication()) throw new OperationError(409, 'Los cambios ya se están procesando.');
     assertIdle();
     const id = randomUUID();
     save({ id, uploadId, undoOf: null, undoSources: [], state: 'preparing', phase: 'Preparando cambios', keys, sources: [], files: [], checks: [], candidate: null,
@@ -228,13 +239,45 @@ export function createPublication({ root, directory, store, implementation, read
   }
   async function upload({ keys, id }) {
     if (!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(id || '')) throw new OperationError(400, 'La solicitud de subida no es válida.');
+    if (!Array.isArray(keys) || !keys.length || keys.length > 12 || new Set(keys).size !== keys.length ||
+        keys.some(key => !/^implementacion\/[a-z0-9][a-z0-9-]{0,63}$/.test(key))) throw new OperationError(400, 'Selecciona las entregas que quieres subir.');
+    if (pending()) {
+      if (pending().uploadId === id && JSON.stringify(pending().keys) === JSON.stringify(keys)) return status();
+      throw new OperationError(409, 'Ya hay una subida guardada en espera. Se realizará al terminar el trabajo actual.');
+    }
     const current = status();
     if (current?.uploadId === id) {
       if (JSON.stringify(current.keys) !== JSON.stringify(keys)) throw new OperationError(409, 'La selección de cambios cambió.');
-      if (active || current.state === 'published' || current.state === 'failed') return current;
+      if (active || livePublication() || current.state === 'published' || current.state === 'failed') return current;
       if (['ready', 'retry'].includes(current.state)) return accept({ id: current.id, candidate: current.candidate });
+    }
+    try { assertIdle(); }
+    catch (error) {
+      if (error.status !== 409 || active) throw error;
+      // Resolve keys now, so only existing deliveries enter this durable queue.
+      await Promise.all(keys.map(readDelivery));
+      store.writeOperation(queuedKey, { id, uploadId: id, keys, state: 'queued',
+        phase: 'Subida guardada. Continuará al terminar el trabajo actual.', queuedAt: new Date().toISOString() });
+      return status();
     }
     return prepare({ keys, uploadId: id });
   }
-  return { status, prepare, accept, upload, undo, busy: () => Boolean(active), wait: () => active };
+  function pump() {
+    if (pumping) return pumping;
+    pumping = (async () => {
+      const queued = pending();
+      if (!queued || active || livePublication()) return;
+      try { assertIdle(); }
+      catch (error) { if (error.status === 409) return; throw error; }
+      store.writeOperation(queuedKey, null);
+      try { await prepare({ keys: queued.keys, uploadId: queued.uploadId }); }
+      catch (error) {
+        if (error.status === 409) store.writeOperation(queuedKey, queued);
+        else save({ ...queued, state: 'failed', message: error.message });
+      }
+    })().finally(() => { pumping = undefined; });
+    return pumping;
+  }
+  return { status, prepare, accept, upload, undo, pump, busy: (includeQueued = true) => Boolean(active || livePublication() || (includeQueued && pending())),
+    async wait() { await pumping; await active; } };
 }

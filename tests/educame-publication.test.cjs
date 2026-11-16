@@ -40,10 +40,10 @@ async function fixture(t) {
   const command = 'node --test --test-isolation=none --test-name-pattern="un caso" tests/check.test.cjs';
   const servers = [];
   let implementationCount = 0;
-  async function start() {
+  async function start({ generate } = {}) {
     const { createDashboard } = await import('../scripts/educame-dashboard.mjs');
     const server = await createDashboard({ directory: data, repositoryRoot: root, apiKey: '', implementationOptions: { localRemote: true },
-      codex: { status: async () => ({ ready: true }), implement: async (task, cwd) => {
+      codex: { status: async () => ({ ready: true }), generate, implement: async (task, cwd) => {
         implementationCount++;
         if (task.repair && task.id === 'roto') return { error: 'Necesita ajustar la consigna.' };
         if (task.integration) {
@@ -223,4 +223,26 @@ test('un intento fallido no borra la última subida que se puede deshacer', { ti
   const undone = await wait(request, '/api/publicacion', job => ['published', 'failed', 'retry'].includes(job?.state));
   assert.equal(undone.state, 'published', undone.message);
   assert.equal(await f.git('rev-parse', 'HEAD^{tree}'), await f.git('rev-parse', f.original + '^{tree}'));
+});
+
+test('Subir espera al encargo activo, conserva la solicitud al reabrir y publica una sola vez', { timeout: 45000 }, async t => {
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  t.after(() => release());
+  const f = await fixture(t), request = await f.start({ generate: async () => {
+    await gate; return { draft: { resumen: 'Otro trabajo', entrega: 'Terminado', comprobaciones: [], pendientes: [] } };
+  } });
+  await order(request, 'para-subir', 'Improved');
+  await request('/api/encargos', { mode: 'real', engine: 'codex', tasks: [{ id: 'ocupado', app: 'control', agente: 'codex', encargo: 'Otro trabajo' }] });
+  const payload = { id: randomUUID(), keys: ['implementacion/para-subir'] };
+  const queued = await request('/api/publicacion/subir', payload);
+  assert.equal(queued.status, 202);
+  assert.equal((await queued.json()).state, 'queued');
+  const reopened = await f.start();
+  assert.equal((await (await reopened('/api/publicacion/subir', payload)).json()).state, 'queued');
+  release();
+  const done = await wait(reopened, '/api/publicacion', job => ['published', 'failed', 'retry'].includes(job?.state));
+  assert.equal(done.state, 'published', done.message);
+  assert.equal((await (await request('/api/publicacion/subir', payload)).json()).candidate, done.candidate);
+  assert.equal((await f.git('ls-remote', 'origin', 'refs/heads/main')).split(/\s/)[0], done.candidate);
 });

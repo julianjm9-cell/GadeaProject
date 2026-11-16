@@ -288,3 +288,10 @@ dialog::backdrop { background: #1b2c25a3; }
 @media (prefers-reduced-motion: no-preference) {
   .button, .product-card, .team-tile, .sidebar nav a, .quick-card { transition: background-color .16s, border-color .16s, color .16s; }
 }
+.chat-options { max-width: 30rem; align-self: center; }
+.chat-options summary { cursor: pointer; color: var(--muted, #526458); }
+.chat-reply-context { display: flex; align-items: center; gap: 12px; padding: 12px; background: #edf2e8; border-radius: 12px; margin-bottom: 12px; }
+.chat-reply-context[hidden] { display: none; }
+.chat-task-progress { padding: 12px 12px 12px 26px; background: #f4f5ef; border-radius: 12px; overflow-wrap: anywhere; }
+.chat-task-progress li { margin: 8px 0; }
+.chat-task-progress small { display: block; }

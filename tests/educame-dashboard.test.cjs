@@ -205,7 +205,8 @@ test('tras cerrar el proceso a la fuerza se conservan criterios y se retoma solo
   assert.equal(done.batch.jobs['en-curso-2'].status, 'interrumpido');
   assert.equal(done.batch.jobs.pendiente.status, 'borrador');
   assert.equal((await request(base, '/api/encargos', body).then(response => response.json())).id, id);
-  assert.equal(done.history.length, 2);
+  assert.equal(done.history.length, 4);
+  assert.equal(done.history.filter(item => item.status === 'interrumpido').length, 2);
 });
 
 test('la cola ejecutada pasa al seguimiento y admite encargos nuevos durante el trabajo', async t => {
