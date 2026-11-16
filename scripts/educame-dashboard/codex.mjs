@@ -89,10 +89,10 @@ export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE 
     return catalogPending;
   }
 
-  async function ask({ model, text, history, board }) {
+  async function ask({ model, text, history, board, knowledge }) {
     const folder = await mkdtemp(join(tmpdir(), 'educame-chat-'));
     try {
-      const input = board ? coordinationPrompt(board) + '\n\n' + JSON.stringify({ historial: history, mensaje: text }) : 'Responde en español de forma clara. Eres el chat de LA TERRAZA, el panel local de Educame. ' +
+      const input = board ? coordinationPrompt(board) + '\n\n' + JSON.stringify({ historial: history, mensaje: text, contexto_verificado: knowledge }) : 'Responde en español de forma clara. Eres el chat de LA TERRAZA, el panel local de Educame. ' +
         'Responde consultas generales y explica sus herramientas: Agentes, Entregas, Cambios, Conexiones, Operación, Publicar, Vídeo, Estadísticas y Teoría. ' +
         'LA TERRAZA prepara implementaciones en copias Git aisladas. El usuario revisa y confirma cada aplicación local. ' +
         'Esta consulta solo devuelve texto. Para encargar cambios está el chat automático de LA TERRAZA. ' +

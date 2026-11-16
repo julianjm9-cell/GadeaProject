@@ -12,7 +12,7 @@ const commonPaths = ['backend/app/', 'backend/tests/', 'tests/', 'docs/', 'marke
 const terracePaths = ['scripts/educame-dashboard/', 'scripts/educame-dashboard.mjs', 'scripts/educame-agents.mjs',
   'docs/agentes-educame.md', 'docs/guia-desarrollo-educame.md', 'tests/educame-dashboard.test.cjs', 'tests/educame-dashboard-browser.test.cjs',
   'tests/educame-chat.test.cjs', 'tests/educame-chat-queue.test.cjs', 'tests/educame-coordinator.test.cjs', 'tests/educame-runner-queue.test.cjs',
-  'tests/educame-operations.test.cjs', 'tests/educame-changes.test.cjs', 'tests/educame-publication.test.cjs'];
+  'tests/educame-operations.test.cjs', 'tests/educame-changes.test.cjs', 'tests/educame-publication.test.cjs', 'tests/educame-knowledge.test.cjs'];
 const terraceFile = file => terracePaths.some(path => path.endsWith('/') ? file.startsWith(path) : file === path) && !excluded.test(file);
 const excluded = /(^|\/)(\.env(?:\.|$)|\.git(?:\/|$)|\.educame-agents(?:\/|$)|(?:credentials|secrets)(?:\.|\/|$))|\.(pem|key|p12|pfx|sqlite|dump)$/i;
 const credential = /^\+(?!\+\+).*?(?:-----BEGIN [A-Z ]*PRIVATE KEY-----|(?:sk-|ghp_|github_pat_|AIza)[A-Za-z0-9_-]{20,})/m;

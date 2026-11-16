@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const { once } = require('node:events');
-const { mkdtemp, rm } = require('node:fs/promises');
+const { mkdtemp, rm, readFile } = require('node:fs/promises');
 const { tmpdir } = require('node:os');
 const { join, relative, resolve } = require('node:path');
 const { test } = require('node:test');
@@ -23,6 +23,50 @@ for (const [name, engine, viewport] of [
   ['Chromium escritorio', chromium, { width: 1440, height: 950 }],
   ['WebKit móvil', webkit, { width: 390, height: 844 }],
 ]) {
+  test(`Memoria exporta, revisa e importa criterios sin sustituirlos en ${name}`, { timeout: 30000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
+    const server = await listen(t, directory, { codex: { status: async () => ({ ready: true }) } });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    t.after(() => browser.close());
+    const page = await browser.newPage({ viewport });
+    const errors = []; page.on('pageerror', error => errors.push(error.message));
+    const base = 'http://127.0.0.1:' + server.address().port;
+    await page.goto(base + '/#memoria');
+    await page.locator('#memory-app').selectOption('profesor');
+    await page.getByText('Añadir criterio', { exact: true }).click();
+    const form = page.locator('#memory-form');
+    await form.getByLabel('Criterio', { exact: true }).fill('Las pistas no tapan los botones.');
+    await form.getByLabel('Cómo comprobarlo').fill('Abrir una pista y seguir jugando.');
+    await form.getByRole('button', { name: 'Guardar criterio', exact: true }).click();
+    await page.locator('#memory-rules').getByText('Las pistas no tapan los botones.', { exact: true }).waitFor();
+    await page.getByText('Copiar o mover la memoria', { exact: true }).click();
+    const downloaded = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Descargar memoria completa' }).click();
+    const bundle = JSON.parse(await readFile(await (await downloaded).path(), 'utf8'));
+    assert.equal(bundle.rules.length, 1);
+    assert.equal(bundle.tasks, undefined); assert.equal(bundle.connections, undefined);
+    bundle.rules.push({ id: 'importado-ensayo', app: 'profesor', tema: 'pedagogia', criterio: 'Explica cada error con un ejemplo.', comprobacion: 'Equivocarse y leer la ayuda.', archived: false });
+    await page.locator('#memory-import').setInputFiles({ name: 'memoria.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(bundle)) });
+    await page.locator('#memory-import-preview').getByText('1 criterios y 0 perfiles nuevos.', { exact: false }).waitFor();
+    const before = await page.evaluate(async () => (await (await fetch('/api/panel')).json()).board.memory.length);
+    assert.equal(before, 1);
+    await page.getByRole('button', { name: 'Importar sin sustituir lo actual' }).click();
+    await page.locator('#memory-import-preview').getByText('Memoria importada.', { exact: false }).waitFor();
+    await page.locator('#memory-rules').getByText('Explica cada error con un ejemplo.', { exact: true }).waitFor();
+    const mdDownload = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Descargar contexto de esta app' }).click();
+    const md = await readFile(await (await mdDownload).path(), 'utf8');
+    assert.match(md, /Profesor Particular/); assert.match(md, /Explica cada error/);
+    await page.locator('#memory-import').setInputFiles({ name: 'memoria.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(bundle)) });
+    await page.locator('#memory-import-preview').getByText('0 criterios y 0 perfiles nuevos.', { exact: false }).waitFor();
+    assert.equal(await page.locator('#memory-import-apply').isVisible(), false);
+    await page.reload();
+    await page.locator('#memory-app').selectOption('profesor');
+    await page.locator('#memory-rules').getByText('Explica cada error con un ejemplo.', { exact: true }).waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    assert.deepEqual(errors, []);
+  });
+
   test(`Chat automático pregunta, conserva el borrador y permite responder en ${name}`, { timeout: 25000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
     const captured = [];

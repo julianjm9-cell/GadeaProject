@@ -295,3 +295,10 @@ dialog::backdrop { background: #1b2c25a3; }
 .chat-task-progress { padding: 12px 12px 12px 26px; background: #f4f5ef; border-radius: 12px; overflow-wrap: anywhere; }
 .chat-task-progress li { margin: 8px 0; }
 .chat-task-progress small { display: block; }
+.memory-knowledge { margin-top: 20px; }
+.memory-suggestion { border: 1px solid #d4ddce; background: #f5f7f0; padding: 16px; border-radius: 14px; margin-top: 12px; overflow-wrap: anywhere; }
+.memory-transfer { border-top: 1px solid #d8dfd1; padding-top: 16px; margin-top: 20px; }
+.memory-transfer summary { cursor: pointer; font-weight: 700; }
+.memory-file { display: grid; gap: 8px; margin: 20px 0 12px; }
+#memory-import-preview { overflow-wrap: anywhere; }
+#memory-import-preview ul { padding-left: 20px; }

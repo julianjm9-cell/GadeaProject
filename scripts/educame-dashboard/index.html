@@ -125,6 +125,20 @@
           <div id="memory-rules" class="item-list"></div>
         </section>
       </div>
+      <section class="card memory-knowledge" aria-labelledby="memory-knowledge-title">
+        <div class="card-heading"><h2 id="memory-knowledge-title">Contexto actualizado</h2><button class="button secondary" type="button" id="memory-refresh">Actualizar contexto</button></div>
+        <p id="memory-context-status" class="muted" role="status">La ficha y tus criterios se acompañan de la revisión del código y los cambios aceptados.</p>
+        <div id="memory-context-facts"></div>
+        <div id="memory-suggestions"></div>
+        <details class="memory-transfer"><summary>Copiar o mover la memoria</summary>
+          <p class="muted">El JSON conserva criterios y perfiles de agentes. El documento de la app sirve como contexto para cualquier proveedor de IA. No incluyen claves, conexiones, cuentas ni conversaciones.</p>
+          <div class="actions"><button id="memory-export" class="button secondary" type="button">Descargar memoria completa</button><button id="memory-export-app" class="button secondary" type="button">Descargar memoria de esta app</button><button id="memory-markdown" class="button secondary" type="button">Descargar contexto de esta app</button></div>
+          <label class="memory-file">Importar tu memoria de otro equipo<input id="memory-import" type="file" accept=".json,application/json"></label>
+          <div id="memory-import-preview" role="status"></div>
+          <button class="button primary" type="button" id="memory-import-apply" hidden>Importar sin sustituir lo actual</button>
+          <p id="memory-transfer-error" class="form-message" role="alert" hidden></p>
+        </details>
+      </section>
     </section>
 
     <section data-page="teoria" aria-labelledby="theory-title" hidden>

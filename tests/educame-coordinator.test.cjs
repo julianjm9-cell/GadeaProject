@@ -72,7 +72,9 @@ test('una aclaración genera cambios en apps y LA TERRAZA, respeta dependencias 
       const path = join(cwd, task.app === 'control' ? 'scripts/educame-dashboard/demo.js' : 'apps/profesor/demo.js');
       if (task.despues) assert.match(await readFile(path, 'utf8'), /Simplifica las tarjetas/);
       await writeFile(path, await readFile(path, 'utf8') + task.encargo + '\n');
-      return { draft: { resumen: task.encargo, entrega: 'Cambio de ensayo', comprobaciones: [], pendientes: [] }, checks: [{ command: 'node --test tests/check.test.cjs', passed: true }] };
+      return { draft: { resumen: task.encargo, entrega: 'Cambio de ensayo', comprobaciones: [], pendientes: [],
+        ...(task.app === 'profesor' ? { aprendizaje: { tema: 'pedagogia', criterio: 'Las pistas conservan el tablero visible.', comprobacion: 'Abrir una pista en móvil.' } } : {}) },
+        checks: [{ command: 'node --test tests/check.test.cjs', passed: true }] };
     } };
   const server = await createDashboard({ directory, repositoryRoot: root, codex, apiKey: '', implementationOptions: { localRemote: true } });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
@@ -103,6 +105,13 @@ test('una aclaración genera cambios en apps y LA TERRAZA, respeta dependencias 
   assert.match(await readFile(join(root, 'apps/profesor/demo.js'), 'utf8'), /Mejora el juego/);
   assert.match(await readFile(join(root, 'scripts/educame-dashboard/demo.js'), 'utf8'), /Ajusta el foco/);
   assert.equal((await git('ls-remote', 'origin', 'refs/heads/main')).split(/\s/)[0], await git('rev-parse', 'HEAD'));
+  const memory = await get('/api/memoria/contexto?app=profesor');
+  assert.equal(memory.context.accepted.length, 1);
+  assert.equal(memory.suggestions.length, 1);
+  assert.equal((await get('/api/panel')).board.memory.length, 0);
+  const confirmation = await post('/api/memoria/aprendizaje', { id: memory.suggestions[0].id, action: 'accept', revision: memory.revision });
+  assert.equal(confirmation.status, 200);
+  assert.equal((await confirmation.json()).memory.length, 1);
   await post('/api/chat', answer);
   assert.equal(implementations, 3);
 });

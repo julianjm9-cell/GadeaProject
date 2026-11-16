@@ -24,7 +24,7 @@ export function publicBatch(batch) {
     queuedAt, tasks: tasks.map(({ id, agente, encargo, app, despues }) => ({ id, agente, encargo, app, despues, agentName: (agents?.[agente] || defaultAgents[agente])?.name })), jobs, error };
 }
 
-export function createRunner(store, directory, { model, readiness, generator, baseRevision, recoverImplementation }) {
+export function createRunner(store, directory, { model, readiness, generator, baseRevision, recoverImplementation, contextSnapshot }) {
   let active;
   let pumping;
   let closed = false;
@@ -79,6 +79,7 @@ export function createRunner(store, directory, { model, readiness, generator, ba
     catch (error) { if (!enqueue || error.status !== 409) throw error; }
     const guidance = mode === 'prueba' ? '' : await readGuidance();
     const base = !enqueue && mode === 'implementacion' ? await baseRevision() : undefined;
+    const knowledge = !enqueue && mode !== 'prueba' ? await contextSnapshot?.(base) : undefined;
     reconcile();
     const result = store.transaction(() => {
       const existing = store.batch(id);
@@ -92,7 +93,8 @@ export function createRunner(store, directory, { model, readiness, generator, ba
       const directory = agentDirectory(board.agentEdits);
       const agents = Object.fromEntries(tasks.map(task => [task.agente, directory[task.agente]]));
       const batch = {
-        id, mode, engine, tasks, base, guidance, agents, codexModel, memory: board.memory, settings: contextSettings,
+        id, mode, engine, tasks, base, guidance, agents, codexModel, memory: board.memory,
+        settings: knowledge ? { ...contextSettings, knowledge } : contextSettings,
         pid: enqueue ? null : process.pid, state: enqueue ? 'queued' : 'running', managed: enqueue,
         ...(enqueue ? { queuedAt: new Date().toISOString() } : {}),
         model: mode === 'prueba' ? 'prueba-local' : engine === 'codex' ? 'Codex local' : model,
@@ -167,11 +169,13 @@ export function createRunner(store, directory, { model, readiness, generator, ba
       try {
         await readiness(queued.mode, queued.engine);
         const base = queued.mode === 'implementacion' ? await baseRevision() : undefined;
+        const knowledge = queued.mode !== 'prueba' ? await contextSnapshot?.(base) : undefined;
         const claimed = store.transaction(() => {
           if (all().some(batch => batch.state === 'running')) return;
           const batch = store.batch(queued.id);
           if (batch.state !== 'queued') return;
-          Object.assign(batch, { base, state: 'running', pid: process.pid, error: undefined, startedAt: new Date().toISOString() });
+          Object.assign(batch, { base, state: 'running', pid: process.pid, error: undefined, startedAt: new Date().toISOString(),
+            ...(knowledge ? { settings: { ...batch.settings, knowledge } } : {}) });
           store.update(batch);
           return batch;
         });

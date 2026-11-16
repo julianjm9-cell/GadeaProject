@@ -15,6 +15,7 @@ import { createRunner, RunnerError } from './educame-dashboard/runner.mjs';
 import { canRevalidate, createImplementation, ImplementationError } from './educame-dashboard/implementation.mjs';
 import { createChat } from './educame-dashboard/chat.mjs';
 import { createPublication } from './educame-dashboard/publication.mjs';
+import { createKnowledge } from './educame-dashboard/knowledge.mjs';
 import { researchRole } from './educame-dashboard/research.mjs';
 import { OperationError } from './educame-dashboard/operations.mjs';
 import { githubOperations } from './educame-dashboard/github-operations.mjs';
@@ -205,8 +206,11 @@ export async function createDashboard({
   const admin = adminOperations(fetchImpl);
   const implementation = createImplementation(repositoryRoot, directory, codex, implementationOptions);
   const implementationPreviews = new Map();
+  const knowledge = createKnowledge({ store, root: repositoryRoot,
+    readDelivery: key => implementationDelivery(key) });
   const runner = createRunner(store, directory, {
     model, baseRevision: implementation.base, recoverImplementation: implementation.recover,
+    contextSnapshot: revision => knowledge.snapshot(revision),
     async readiness(mode, engine) {
       if (publication.busy() || deliveryWork) throw new RunnerError(409, 'Espera a que termine la comprobación o publicación actual.');
       if (mode === 'implementacion' && engine !== 'codex') throw new RunnerError(400, 'Implementar requiere Codex local.');
@@ -236,6 +240,7 @@ export async function createDashboard({
   let deliveryWork;
   const implementationPath = id => join(runner.output('implementacion'), id + '.json');
   const chat = createChat({ store, runner, codex, implementation, instance: randomUUID(),
+    contextSnapshot: () => knowledge.snapshot(),
     readDelivery: id => readJson(implementationPath(id), null),
     assertIdle() {
       const job = hostinger.status().job;
@@ -624,6 +629,17 @@ export async function createDashboard({
       if (request.method === 'POST' && path === '/api/memoria') {
         const { revision, rule } = await bodyJson(request);
         return json(200, await changeBoard(revision, current => ({ memory: updateMemory(current.memory, rule) })));
+      }
+      if (request.method === 'GET' && path === '/api/memoria/contexto') return json(200, await knowledge.read(url.searchParams.get('app') || 'ecosistema'));
+      if (request.method === 'GET' && path === '/api/memoria/exportar') {
+        const app = url.searchParams.get('app') || undefined;
+        return json(200, url.searchParams.get('format') === 'md' ? await knowledge.markdown(app) : await knowledge.exportBundle(app));
+      }
+      if (request.method === 'POST' && ['/api/memoria/aprendizaje', '/api/memoria/importar/preparar', '/api/memoria/importar/aplicar'].includes(path)) {
+        if (request.headers.origin !== origin) throw new OperationError(403, 'Gestiona la memoria desde LA TERRAZA.');
+        const payload = await bodyJson(request);
+        return json(200, path.endsWith('/aprendizaje') ? await knowledge.decide(payload) :
+          path.endsWith('/preparar') ? knowledge.preview(payload.bundle) : knowledge.applyImport(payload));
       }
       throw new PanelError(404, 'Página no encontrada.');
     } catch (error) {

@@ -147,5 +147,6 @@ export function projectContext(task, rules = [], parent, settings = contextSetti
   }
   const confirmed = app === 'ecosistema' ? select(app, settings.appLimit + settings.sharedLimit) :
     [...select(app, settings.appLimit), ...select('ecosistema', settings.sharedLimit)];
-  return { app, profile: settings.profiles[app], confirmed };
+  return { app, profile: settings.profiles[app], confirmed,
+    ...(settings.knowledge?.[app] ? { evidence: settings.knowledge[app] } : {}) };
 }

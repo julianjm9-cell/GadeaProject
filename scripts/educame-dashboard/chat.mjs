@@ -5,7 +5,7 @@ const key = 'terrace-chat-v1';
 const messageId = /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
 const busyReply = /Hay un lote en marcha|Espera a que termine la comprobación o publicación actual|Termina o retoma el trabajo pendiente|Retoma primero el lote interrumpido|Todavía hay un mensaje en curso/;
 
-export function createChat({ store, codex, runner, implementation, readDelivery, assertIdle, instance }) {
+export function createChat({ store, codex, runner, implementation, readDelivery, assertIdle, instance, contextSnapshot }) {
   let active;
   let applying = false;
   let pumping = false;
@@ -150,7 +150,10 @@ export function createChat({ store, codex, runner, implementation, readDelivery,
         let plan = row.plan;
         if (!plan) {
           if (!codex.coordinate) throw new OperationError(503, 'Reinicia LA TERRAZA para cargar el coordinador de encargos. Tu mensaje está guardado.');
-          const result = await codex.coordinate({ model, text: [row.context, text].filter(Boolean).join('\n\n'), history, board: store.board() });
+          const context = await contextSnapshot?.();
+          const knowledge = context ? { revision: context.ecosistema?.revision,
+            apps: Object.entries(context).map(([app, info]) => ({ app, accepted: info.accepted.slice(0, 2).map(fact => ({ summary: fact.summary, commit: fact.commit })) })) } : undefined;
+          const result = await codex.coordinate({ model, text: [row.context, text].filter(Boolean).join('\n\n'), history, board: store.board(), knowledge });
           plan = normalizeCoordination(result.plan, row, store.board());
           // Persist the interpreted request BEFORE any implementation can start.
           update(id, { plan, tokens: result.tokens }, 'working');
