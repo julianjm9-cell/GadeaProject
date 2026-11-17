@@ -22,8 +22,7 @@
     <nav id="terrace-navigation" aria-label="Secciones de LA TERRAZA">
       <div class="nav-cluster"><p class="nav-group">Espacio de trabajo</p>
         <a href="#inicio" data-icon="home">Inicio</a>
-        <a href="#chat" data-icon="sparkles">Chat y encargos</a>
-        <a href="#agentes" data-icon="sparkles">Agentes</a>
+        <a href="#chat" data-icon="sparkles">Encargos</a>
       </div>
       <div class="nav-cluster"><p class="nav-group">Productos</p>
         <a href="#apps" data-icon="apps">Apps</a>
@@ -54,7 +53,7 @@
           <p class="eyebrow">TU ESPACIO DE TRABAJO</p>
           <h1 id="home-title">¿Qué quieres hacer hoy?</h1>
           <p>Prepara un encargo y sigue el trabajo de tus agentes desde un mismo espacio.</p>
-          <div class="actions"><a class="button primary" href="#chat">Pedir cambios o preguntar</a><a class="button secondary" href="#agentes">Ver trabajos</a></div>
+          <div class="actions"><a class="button primary" href="#chat">Crear un encargo</a></div>
         </div>
         <img class="terrace-photo" src="/terrace-hero.webp" width="1200" height="800" alt="" fetchpriority="high">
       </div>
@@ -72,36 +71,34 @@
     </section>
 
     <section data-page="chat" aria-labelledby="chat-title" hidden>
-      <div class="page-heading heading-actions"><h1 id="chat-title">Chat y encargos</h1><a class="text-link" href="#conexiones" data-open-connection="ia">Configurar motores →</a></div>
-      <section class="card chat-card" aria-label="Conversación con Codex">
-        <div class="chat-toolbar">
-          <label for="chat-provider">Motor<select id="chat-provider" name="provider" form="chat-form"><option value="codex">Codex local</option><option value="openai">OpenAI API</option><option value="claude">Claude API</option></select></label>
-          <label for="chat-model">Modelo<select id="chat-model" name="model" form="chat-form" required></select></label>
-          <details class="chat-options"><summary>Opciones</summary><label for="chat-mode">Tipo de mensaje<select id="chat-mode" name="mode" form="chat-form"><option value="auto">Automático · preguntas y cambios en cualquier app</option><option value="ask">Solo responder, sin cambios</option><option value="change">Cambio directo en LA TERRAZA</option></select></label></details>
-          <button class="button secondary" type="button" id="chat-refresh-models">Actualizar modelos</button>
-        </div>
-        <p class="inline-hint" id="chat-mode-hint"></p>
-        <div id="chat-messages" class="chat-messages" role="log" aria-label="Historial del chat" tabindex="0"></div>
+      <div class="page-heading heading-actions"><div><h1 id="chat-title">Encargos</h1><p class="muted">Pídelo. Sigue su estado. Queda guardado en GitHub.</p></div><button class="button secondary" id="open-agent-editor" type="button" data-icon="tool" disabled>Gestionar agentes</button></div>
+      <section class="card chat-card order-composer" aria-label="Nuevo encargo">
         <form id="chat-form">
           <div id="chat-reply-context" class="chat-reply-context" hidden></div>
-          <label id="chat-text-label">Tu mensaje<textarea name="text" rows="3" maxlength="4000" required></textarea></label>
-          <div class="actions"><button class="button primary" type="submit" data-icon="send" disabled>Enviar</button><span class="inline-hint" id="chat-status" role="status"></span></div>
+          <label id="chat-text-label">¿Qué quieres hacer?<textarea name="text" rows="3" maxlength="4000" required placeholder="Por ejemplo: mejora las pistas del juego de fracciones en Profesor Particular."></textarea></label>
+          <div class="actions"><button class="button primary" type="submit" data-icon="plus" disabled>Añadir a la cola</button><span class="inline-hint" id="chat-status" role="status"></span></div>
           <p class="form-message" role="alert" hidden></p>
         </form>
-        <aside class="chat-restart" id="chat-restart" hidden><p>Hay cambios locales listos. Reinicia el panel para cargar el código nuevo.</p><button class="button secondary" type="button">Reiniciar LA TERRAZA</button></aside>
+        <details class="order-settings"><summary>Motor y modelo</summary><div class="chat-toolbar">
+          <label for="chat-provider">Motor<select id="chat-provider" name="provider" form="chat-form"><option value="codex">Codex local</option><option value="openai">OpenAI API</option><option value="claude">Claude API</option></select></label>
+          <label for="chat-model">Modelo<select id="chat-model" name="model" form="chat-form" required></select></label>
+          <label for="chat-mode" hidden>Tipo de mensaje<select id="chat-mode" name="mode" form="chat-form"><option value="auto">Automático</option><option value="ask">Solo responder</option><option value="change">Cambio en LA TERRAZA</option></select></label>
+          <button class="button secondary" type="button" id="chat-refresh-models">Actualizar modelos</button>
+        </div><p class="inline-hint" id="chat-mode-hint"></p></details>
+        <aside class="chat-restart" id="chat-restart" hidden><p>La actualización del panel está preparada. Se cargará al quedar libre la cola.</p><button class="button secondary" type="button">Cargar actualización</button></aside>
       </section>
-      <dialog id="chat-review" aria-labelledby="chat-review-title">
-        <div class="dialog-heading"><h2 id="chat-review-title">Revisar propuesta</h2><button class="icon-button" type="button" data-close aria-label="Cerrar revisión">×</button></div>
-        <p id="chat-review-commit"></p>
-        <pre id="chat-review-diff" tabindex="0" aria-label="Diferencias de código"></pre>
-        <p class="inline-hint" id="chat-review-note"></p>
-        <p class="form-message" id="chat-review-error" role="alert" hidden></p>
-        <div class="actions"><button class="button secondary" type="button" data-close>Cancelar</button><button class="button primary" id="chat-apply" type="button">Subir</button></div>
-      </dialog>
+      <div class="queue-summary" aria-label="Resumen de encargos"><span><strong id="queue-waiting">0</strong> En cola</span><span><strong id="queue-active">0</strong> En curso</span><span><strong id="queue-done">0</strong> Completados</span></div>
+      <section class="card queue-publication" id="queue-publication" aria-live="polite"></section>
+      <div id="chat-messages" class="order-list" aria-label="Cola de encargos" tabindex="0"></div>
+      <details class="card operation-panel quota-panel">
+        <summary id="codex-quota-title">Uso disponible de Codex</summary><button class="button secondary" id="codex-usage-refresh" type="button">Actualizar</button>
+        <div id="codex-usage" class="quota-grid" aria-live="polite"><p class="muted">Consultando la sesión local…</p></div>
+      </details>
+
     </section>
 
     <section data-page="memoria" aria-labelledby="memory-title" hidden>
-      <div class="page-heading heading-actions"><h1 id="memory-title">Memoria de las apps</h1><a class="button secondary" href="#agentes" data-icon="sparkles">Abrir Agentes</a></div>
+      <div class="page-heading heading-actions"><h1 id="memory-title">Memoria de las apps</h1><a class="button secondary" href="#agentes" data-icon="sparkles">Ver encargos</a></div>
       <p class="muted">Cada encargo usa la ficha de su app y los criterios confirmados más pertinentes.</p>
       <div class="memory-layout">
         <section class="card compose-card" aria-labelledby="memory-profile-title">
@@ -179,7 +176,7 @@
       <div class="page-heading heading-actions"><h1 id="changes-title">Cambios</h1><button class="button secondary" id="changes-sync" type="button" data-icon="github">Sincronizar GitHub</button></div>
       <p id="changes-status" class="muted" role="status"></p>
       <div class="changes-grid">
-        <section class="card changes-card" aria-labelledby="changes-local-title">
+        <section class="card changes-card" aria-labelledby="changes-local-title" hidden>
           <div class="card-heading"><h2 class="icon-label" id="changes-local-title"><span class="tile-icon blue" data-icon="monitor"></span>Vista local</h2><span class="badge ready" id="changes-branch" hidden></span></div>
           <p>Abre tu versión actual con datos de ensayo. Recarga la pestaña para ver lo último que hayas guardado.</p>
           <label for="changes-preview">Aplicación</label>
@@ -280,8 +277,9 @@
       </form>
     </dialog>
 
-    <section data-page="agentes" aria-labelledby="compose-title" hidden>
-      <div class="page-heading heading-actions"><div><h1 id="compose-title">Agentes y trabajos</h1><p class="muted">Prepara, pon en marcha y revisa cada encargo.</p></div><div class="actions"><button class="button secondary" id="open-agent-editor" type="button" data-icon="tool" disabled>Gestionar agentes</button><a class="button primary" href="#agentes/nuevo" data-icon="plus">Nuevo encargo</a></div></div>
+    <dialog id="research-compose" aria-label="Analizar referencias"><div class="dialog-heading"><h2>Analizar referencias</h2><button class="icon-button" type="button" data-close aria-label="Cerrar análisis">×</button></div></dialog>
+    <section data-page="agentes" aria-labelledby="compose-title" hidden inert>
+      <div class="page-heading heading-actions"><div><h1 id="compose-title">Agentes y trabajos</h1><p class="muted">Prepara, pon en marcha y revisa cada encargo.</p></div><div class="actions"><a class="button primary" href="#agentes/nuevo" data-icon="plus">Nuevo encargo</a></div></div>
       <nav class="work-navigation" aria-label="Trabajo con agentes">
         <a href="#agentes/cola"><strong id="work-queue-count">0</strong><span>En cola</span><small>Preparados para empezar</small></a>
         <a href="#agentes/progreso"><strong id="work-running-count">0</strong><span>En curso</span><small>Trabajo de tus agentes</small></a>
@@ -309,10 +307,7 @@
         <div id="history" class="item-list"></div>
       </section>
       <details class="card run-history"><summary id="run-history-title">Historial de ejecuciones</summary><div id="run-history" class="item-list"></div></details>
-      <details class="card operation-panel quota-panel">
-        <summary id="codex-quota-title">Uso disponible de Codex</summary><button class="button secondary" id="codex-usage-refresh" type="button">Actualizar</button>
-        <div id="codex-usage" class="quota-grid" aria-live="polite"><p class="muted">Consultando la sesión local…</p></div>
-      </details>
+
       <details id="work-compose" class="work-compose">
       <summary id="new-order-title">Crear un nuevo encargo</summary>
       <p class="inline-hint">Escribe el objetivo y elige la app. Codex se selecciona al escribir. Puedes elegir un agente especializado o varios.</p>

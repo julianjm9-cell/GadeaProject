@@ -14,58 +14,17 @@ En Windows, crea **LA TERRAZA** en el escritorio con
 `powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File scripts/educame-dashboard/install-shortcut.ps1`.
 El acceso directo inicia el panel si hace falta y abre Inicio. Los registros de arranque están en `.educame-agents/`.
 
-Desde **Inicio → Crear un encargo** o **Agentes → Nuevo encargo**, elige la app y escribe el objetivo. El borrador y la selección de agentes se conservan al recargar. Codex se selecciona al escribir si todavía no has elegido un agente. Puedes seleccionar otros especialistas antes de enviar. **Motor de ejecución** permite cambiar de proveedor y elegir un modelo API disponible en tu cuenta. No cambia automáticamente de proveedor ante un fallo.
-En **Conexiones** y **Operación** hay guías cortas junto a cada configuración.
+Desde **Encargos**, escribe lo que necesitas en cualquier app o en LA TERRAZA y pulsa **Añadir a la cola**. También puedes preguntar. El coordinador elige los especialistas y pregunta en la misma pantalla cuando falta una decisión necesaria. Puedes seguir añadiendo encargos mientras trabaja; el borrador se conserva al recargar.
 
-En **Chat con Codex**, escribe una pregunta o un cambio indicando la app, por ejemplo: «Mejora las pistas de Inglés y simplifica las tarjetas de LA TERRAZA». El modo automático identifica el destino, divide el encargo y asigna especialistas. Si falta una decisión necesaria, aparece una pregunta: pulsa **Responder** y escribe la aclaración. El borrador y la respuesta pendiente se conservan al recargar. En **Opciones** siguen disponibles la consulta de solo texto y el cambio directo en LA TERRAZA para compatibilidad.
+Cada tarea tiene una tarjeta con su estado: **En cola**, **En curso**, **Subiendo a GitHub**, **Completado**, **Necesita atención** o **Deshecho**. Completado en una implementación significa que GitHub ha confirmado la subida. Los resúmenes y resultados se pueden desplegar en la tarjeta. No hay que aprobar, previsualizar ni pulsar Subir.
 
-El plan se guarda antes de arrancar las implementaciones. Las tareas independientes pueden avanzar en paralelo; las dependientes de la misma app continúan desde la revisión anterior. Cada parte muestra su estado y al terminar puedes pulsar **Subir** para reunir las entregas, o **Pedir ajustes** para continuar desde sus copias conservadas. La actualización de LA TERRAZA se recarga al terminar. El historial del chat se guarda localmente.
+La implementación, la revisión y las pruebas se hacen en copias aisladas. Una entrega con errores se conserva; los encargos independientes pueden continuar. **Pedir ajuste** continúa desde esa copia y utiliza el mismo formulario. **Reintentar** tras un fallo de subida retoma la publicación sin ejecutar de nuevo al implementador. Los identificadores y recibos se guardan en SQLite antes de iniciar cada operación para recuperar una interrupción sin duplicarla.
 
-Si hay otro encargo o una publicación en marcha, los cambios nuevos quedan guardados en **En espera**, incluso desde el formulario de Agentes. Se ejecutan automáticamente cuando corresponde, sin necesitar consultas del navegador. Las preguntas automáticas pueden responderse mientras otro agente implementa. Al reiniciar se recuperan los pasos confirmados y los pendientes de los nuevos lotes. Una llamada incierta no se repite a ciegas: queda marcada para atención con su copia, sin frenar los trabajos independientes. Los lotes antiguos interrumpidos conservan **Retomar trabajo** en su historial.
+**Deshacer última subida** publica un commit nuevo con el contenido anterior. Conserva el historial y comprueba que no haya cambios posteriores. La cola nunca vuelve a subir una entrega deshecha. Los enlaces antiguos a chat, agentes, cola o entregas abren ahora la misma pantalla Encargos.
 
-**Uso de Codex** muestra el porcentaje disponible y la fecha de renovación de
-cada ventana que devuelve la sesión de Codex CLI. Se actualiza cada minuto
-mientras el panel está visible y también bajo demanda. El total informado por
-Codex muestra sus ventanas de uso por separado.
-Si una consulta falla, el último dato disponible aparece con su fecha.
+En **Motor y modelo** puedes elegir Codex local, OpenAI API o Claude API. La API tiene su propia facturación. Las claves permanecen en Conexiones y el proveedor no cambia sin indicarlo. **Gestionar agentes** conserva el editor de perfiles. El contexto, criterios, modelo y revisión se fijan al empezar el encargo y se conservan al retomarlo.
 
-### Agentes y trabajos
-
-La misma pantalla reúne tres zonas.
-
-1. **En cola** guarda los encargos que has preparado. **Añadir a la cola** permite seguir preparando mientras otros agentes trabajan. **Empezar cola** inicia los cambios con Codex. Los encargos pasan al seguimiento al empezar y dejan espacio para los siguientes.
-2. **En curso** muestra el agente, la app, el objetivo y el estado real de cada encargo. **Ver resultado** abre su entrega.
-3. **Resultados** muestra directamente lo realizado y permite **Subir**. El historial conserva también análisis y simulaciones, que mantienen sus vistas de lectura.
-
-**Implementar con Codex** y **Analizar enlaces** ejecutan directamente. **Planificar o probar el encargo** permite preparar un borrador o simular con datos ficticios. **Opciones de la cola** permite simular los encargos guardados, cargar un ejemplo o editar instrucciones individuales.
-
-Los enlaces anteriores `#operaciones` y `#entregas` siguen llevando a sus zonas dentro de Agentes. **Historial de ejecuciones** conserva los grupos enviados.
-
-### Subir y deshacer
-
-**Subir** inicia todo el proceso con una sola pulsación: comprueba fuera del sandbox, corrige una vez los errores reproducibles con Codex, integra y sube a `main`. El botón general reúne las entregas pendientes. No hay una ficha detallada ni una segunda aceptación. **Deshacer última subida** crea una nueva revisión con el contenido anterior, sin borrar el historial; se bloquea si hay cambios posteriores. Los cambios de LA TERRAZA recargan el panel. Para la web se ofrece **Copiar comando de Hostinger**.
-
-Si aparece un fallo real, el estado conserva la versión: no anuncia una subida que no se haya confirmado. Subir retoma una publicación pendiente de confirmación sin duplicarla. Las comprobaciones y las protecciones de revisión siguen funcionando por detrás.
-
-Si pulsas **Subir** mientras otro encargo trabaja, la solicitud queda guardada en el servidor local. Espera a que termine, realiza la subida autorizada y después deja avanzar los encargos siguientes. No tienes que volver a pulsar el botón y la solicitud sobrevive al cierre de la pestaña o al reinicio del panel.
-
-Comprobación de este flujo (16 de noviembre de 2026): 161 pruebas unitarias y 22 de navegador, en Chromium escritorio y WebKit móvil. Los casos nuevos cubren aclaraciones, ajustes, dependencias, una publicación conjunta contra un remoto Git de ensayo, doble envío, cola persistente, dos instancias, recuperación sin reenviar llamadas inciertas y subida en espera. Las implementaciones de ensayo usan agentes simulados; se comprobó por separado una consulta real del coordinador con Codex, sin editar archivos ni iniciar encargos reales.
-
-### Motores y revisión automática
-
-En **Chat con Codex → Motor** puedes usar el mismo interlocutor con **Codex local**, **OpenAI API** o **Claude API**. Las claves se guardan en **Conexiones → Agentes e IA**, cifradas en este equipo y excluidas de Git. No las envíes por el chat. Cada proveedor muestra los modelos que devuelve su cuenta; la configuración de Claude no utiliza ni necesita una sesión de Claude Desktop.
-
-La API se factura por separado de la suscripción de Codex. Cada pasada admite hasta 24 peticiones o 120.000 tokens informados; la última petición puede superar el umbral antes de poder detenerse. Las implementaciones nuevas del chat y del formulario incluyen dos pasadas: implementación y revisión independiente, con el mismo proveedor y modelo. Subir puede realizar una corrección adicional si hay un error reproducible. En Conexiones se muestran llamadas y tokens API acumulados por este panel; son mediciones de uso, no saldo disponible ni cálculo de facturación.
-
-Los motores API reciben la misma ficha, memoria y criterios congelados. Disponen de herramientas para listar y buscar código, leer por líneas, escribir archivos, sustituir fragmentos con comprobación de revisión y ejecutar las pruebas compatibles. Se restringen al ámbito del producto en su copia Git. Los archivos privados, enlaces y rutas externas quedan rechazados. Las pruebas se ejecutan con el entorno reducido del panel; la copia Git no equivale a una máquina virtual ni a un aislamiento completo del sistema operativo. No hay herramienta de publicación en manos de los modelos API.
-
-La segunda pasada recibe la petición original, la entrega y criterios específicos del especialista. Las pruebas elegidas por el panel y las pruebas compatibles de ambos agentes se vuelven a ejecutar localmente. Si falla una prueba, hay puntos pendientes o no termina la revisión, la copia queda conservada y no se marca como completada. **Subir** vuelve a comprobar la versión integrada y el remoto antes de anunciar el resultado. La entrega y el historial conservan proveedor, modelo, revisor y resultados reales; **Ver en local** abre las apps verificadas con datos de ensayo, antes de subirlas. LA TERRAZA se recarga después de aplicar sus cambios.
-
-El revisor recibe primero los resultados que LA TERRAZA ejecutó fuera del sandbox. Un error de permisos `spawn EPERM` del agente no sustituye el resultado de esas pruebas locales. La revisión decide qué pendientes originales siguen sin resolver y el historial los conserva; no se exige otra revisión por el mero hecho de estar ejecutando la actual. Si el revisor cambia archivos, las pruebas se ejecutan de nuevo; si conserva exactamente los mismos archivos, se reutilizan sus resultados locales y solo se añaden comprobaciones nuevas. Una prueba que cambia la copia, un fallo local o un pendiente funcional sigue bloqueando la entrega.
-
-Las API de esta versión implementan código y consultan contexto; no disponen de una herramienta propia de generación de imágenes ni de navegación visual. Para analizar enlaces usa Copiador con Codex o OpenAI en el modo de investigación. Los ensayos de protocolo, edición, revisión, publicación y reinicio usan proveedores simulados y un remoto Git temporal. Probar una clave real y su facturación requiere conectar la cuenta correspondiente; no se anuncia como verificada por estos ensayos.
-
-Referencias de implementación: [OpenAI, llamadas a herramientas](https://developers.openai.com/api/docs/guides/function-calling), [OpenAI, catálogo de modelos](https://developers.openai.com/api/reference/resources/models/methods/list), [Claude, Messages](https://platform.claude.com/docs/en/api/messages/create) y [Claude, catálogo de modelos](https://platform.claude.com/docs/en/api/models/list).
+El programa local sigue funcionando con la ventana cerrada mientras permanezca encendido el proceso de LA TERRAZA. Al publicar cambios del propio panel, se carga la versión nueva al quedar libre la cola. Subir a GitHub y desplegar en Hostinger siguen siendo operaciones distintas: el despliegue está en Operación.
 
 ### Operación avanzada (opcional)
 
@@ -88,7 +47,7 @@ Referencias de implementación: [OpenAI, llamadas a herramientas](https://develo
    30 minutos como máximo y el panel usa los mismos permisos y registros de
    auditoría que la administración online.
 
-- **Agentes.** Selecciona la app, los agentes y el resultado que buscas. **Implementar con Codex** usa la sesión local de Codex CLI para editar una copia Git aislada. Con Juegos puedes crear, mejorar o combinar ambas acciones en un pack de hasta diez juegos. **Preparar borrador** usa Codex en modo de lectura u OpenAI API. **Simular** prueba el flujo sin hacer llamadas. Para un lote con instrucciones distintas por agente, edita cada encargo en **Cola de trabajo**.
+- **Encargos.** Pide crear o mejorar varios juegos en un mismo mensaje, indicando app, tema y nivel. La cola elige los especialistas, aplica sus criterios y conserva el contexto de cada parte. Gestionar agentes permite personalizar los perfiles; Copiador mantiene el análisis de fuentes públicas.
 - **Memoria.** Consulta la ficha de cada app con público, estética, funcionalidades, prioridades, reglas, errores a evitar y comprobaciones. Añade criterios sobre didáctica, accesibilidad, marketing, operación u otras categorías de la ficha. Un agente puede sugerir un aprendizaje. Para incorporarlo, pulsa **Usar propuesta del agente**, ajusta el texto y guarda la revisión con la casilla de Memoria marcada. Las notas y propuestas sin confirmar se quedan en su entrega. Edita o archiva criterios desde Memoria.
 
   **Contexto actualizado** muestra la revisión local, un inventario de archivos y los cambios de esa app integrados desde LA TERRAZA. Los nuevos lotes reciben ese contexto automáticamente y conservan la misma copia al retomarlos. Incluye referencias a ilustraciones del repositorio para reutilizar su estética. La referencia `origin/main` puede estar desactualizada; no describe el despliegue del VPS.
@@ -96,7 +55,7 @@ Referencias de implementación: [OpenAI, llamadas a herramientas](https://develo
   Después de subir una entrega, sus propuestas útiles aparecen en **Aprendizajes por confirmar**. **Guardar como criterio** las incorpora a futuros encargos; **Descartar propuesta** evita volver a ofrecerlas. Ningún borrador se convierte por sí solo en una regla permanente.
 
   En **Copiar o mover la memoria**, descarga un JSON con criterios y perfiles, o un Markdown de la app seleccionada para facilitarlo a otro proveedor de IA. No se exportan claves, conexiones, cuentas, conversaciones ni encargos. Al importar el JSON primero ves lo que se incorporará y los conflictos que se conservarán. **Importar sin sustituir lo actual** confirma las nuevas reglas y perfiles; la repetición del mismo archivo no duplica entradas. Las fichas y las guías base siguen versionadas en GitHub y el contexto Git se reconstruye en el equipo de destino. Importar memoria no añade soporte de ejecución para otro proveedor.
-- **Resultados de Agentes.** Lee el resumen y pulsa **Subir**. Un borrador de Marketing aprobado se puede llevar al editor de publicaciones.
+- **Resultados.** Lee el resumen en la tarjeta del encargo. La subida de implementaciones a GitHub es automática. Un borrador de Marketing aprobado se puede llevar al editor de publicaciones.
 - **Conexiones.** En **Agentes e IA** puedes comprobar Codex y configurar claves de OpenAI y Claude como alternativas para preguntar e implementar. Si el panel no detecta una sesión de Codex, inicia sesión con `codex login` y pulsa **Comprobar sesión**. En **Redes sociales**, vincula los perfiles en [Buffer](https://publish.buffer.com/) y guarda su clave API. En **Estadísticas**, habilita Search Console API en Google Cloud, crea un cliente OAuth web, registra la URL de retorno del panel y autoriza la lectura de la propiedad.
 - **Vídeo.** Conecta una clave de [Runway](https://dev.runwayml.com/) y describe un clip de cinco segundos en formato vertical u horizontal. La generación usa créditos de Runway. Descarga el MP4 cuando esté listo. Para programarlo después en Buffer, aloja primero el archivo en una URL pública estable.
 - **Apps.** Abre los siete productos de Educame, inicia un encargo con la app seleccionada o entra al dashboard online. La etiqueta **En pausa** refleja el estado público de la app.
@@ -144,7 +103,7 @@ Para responder a una implementación, escribe qué quieres ajustar y pulsa **Ped
 
 La copia aislada parte del `HEAD` confirmado en Git al iniciar el lote. Los cambios sin commit del escritorio quedan fuera. Revisión puede continuar desde el commit del agente que le precede. El panel marca **Completado** cuando la entrega tiene cambios permitidos, pasa las comprobaciones registradas y tiene un commit local. Si falta una comprobación o hay errores, la copia queda disponible para continuar el trabajo.
 
-El recorrido habitual termina con **Subir**. La operación avanzada permite además revisar solicitudes de GitHub y desplegar en Hostinger por SSH con confirmación, o generar el comando para su consola.
+El recorrido habitual termina con la subida automática confirmada por GitHub. La operación avanzada permite además revisar solicitudes de GitHub y desplegar en Hostinger por SSH con confirmación, o generar el comando para su consola.
 
 Las entregas de LA TERRAZA se aplican y recargan automáticamente al subirlas. Los archivos técnicos de la entrega siguen guardados para diagnóstico, aunque la pantalla no muestre sus pruebas.
 
@@ -176,4 +135,4 @@ Repetir un lote con los mismos identificadores, criterios y configuración reuti
 La [propuesta de evolución](plan-centro-de-mando.md) recoge ideas para los siguientes bloques.
 
 
-Las entregas de implementación se muestran en la lista, sin abrir un detalle. Subir comprueba e integra en main. Deshacer última subida crea otra revisión con el contenido anterior a esa subida; exige que main local y remoto sigan en esa revisión. Conserva el historial y no actualiza Hostinger automáticamente. Una subida conjunta se deshace completa.
+Las entregas de implementación se muestran en la lista, sin abrir un detalle. La cola comprueba e integra automáticamente en main. Deshacer última subida crea otra revisión con el contenido anterior a esa subida; exige que main local y remoto sigan en esa revisión. Conserva el historial y no actualiza Hostinger automáticamente. Una subida conjunta se deshace completa.

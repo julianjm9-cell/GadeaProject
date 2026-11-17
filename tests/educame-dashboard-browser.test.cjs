@@ -12,7 +12,7 @@ async function listen(t, directory, options) {
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
   t.after(async () => {
-    await new Promise(resolve => server.close(resolve));
+    await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); });
     assert.match(relative(resolve(tmpdir()), resolve(directory)), /^educame-(?:changes-)?browser-[\w-]+$/);
     await rm(directory, { recursive: true, force: true });
   });
@@ -38,12 +38,14 @@ for (const [name, engine, viewport] of [
     } });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
     t.after(() => browser.close()); const page = await browser.newPage({ viewport });
+    page.setDefaultTimeout(8000);
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     const base = 'http://127.0.0.1:' + server.address().port;
     await page.goto(base + '/#chat');
+    await page.locator('.order-settings').evaluate(node => { node.open = true; });
     await page.locator('#chat-provider').selectOption('claude');
     await page.getByText('Configura Claude API en Conexiones.', { exact: true }).waitFor();
-    assert.equal(await page.getByRole('button', { name: 'Enviar', exact: true }).isEnabled(), false);
+    assert.equal(await page.getByRole('button', { name: 'Añadir a la cola', exact: true }).isEnabled(), false);
     await page.goto(base + '/#conexiones');
     await page.getByRole('button', { name: 'Agentes e IA', exact: true }).click();
     await page.getByLabel('Clave API de Claude').fill('sk-ant-ensayo-no-real');
@@ -51,25 +53,21 @@ for (const [name, engine, viewport] of [
     await page.locator('#claude-status').getByText('Clave guardada', { exact: true }).waitFor();
     await page.goto(base + '/#chat');
     await page.getByRole('button', { name: 'Actualizar modelos', exact: true }).click();
+    await page.locator('.order-settings').evaluate(node => { node.open = true; });
     await page.locator('#chat-model').selectOption('claude-test');
-    await page.getByLabel('Tu mensaje').fill('Explícame la revisión de los juegos');
-    await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+    await page.getByLabel('¿Qué quieres hacer?').fill('Explícame la revisión de los juegos');
+    await page.getByRole('button', { name: 'Añadir a la cola', exact: true }).click();
     await page.getByText('Consulta respondida por Claude.', { exact: true }).waitFor();
     assert.match(await page.locator('#chat-messages').innerText(), /Claude API/);
     await page.reload();
     await page.waitForFunction(() => document.querySelector('#chat-model').value === 'claude-test');
     assert.equal(await page.locator('#chat-provider').inputValue(), 'claude');
-    await page.goto(base + '/#agentes/nuevo');
-    const form = page.locator('#agent-compose');
-    await page.locator('#engine-options summary').click();
-    await form.locator('[name=engine]').selectOption('claude');
-    await form.locator('[name=providerModel]').selectOption('claude-test');
-    await form.getByLabel('¿Qué necesitas?').fill('Mejora las pistas sin borrar contenido.');
-    assert.equal(await form.getByRole('button', { name: 'Implementar con Claude', exact: true }).isEnabled(), true);
+    await page.goto(base + '/#chat');
+    const form = page.locator('#chat-form');
+    await form.getByLabel('¿Qué quieres hacer?').fill('Mejora las pistas sin borrar contenido.');
     await page.reload();
-    await page.locator('#engine-options summary').click();
-    await page.waitForFunction(() => document.querySelector('#agent-provider-model').value === 'claude-test');
-    assert.equal(await form.getByLabel('¿Qué necesitas?').inputValue(), 'Mejora las pistas sin borrar contenido.');
+    await page.waitForFunction(() => document.querySelector('#chat-model').value === 'claude-test');
+    assert.equal(await form.getByLabel('¿Qué quieres hacer?').inputValue(), 'Mejora las pistas sin borrar contenido.');
     assert.equal(messages, 1); assert.ok(modelCalls >= 1);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     assert.deepEqual(errors, []);
@@ -81,6 +79,7 @@ for (const [name, engine, viewport] of [
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
     t.after(() => browser.close());
     const page = await browser.newPage({ viewport });
+    page.setDefaultTimeout(8000);
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     const base = 'http://127.0.0.1:' + server.address().port;
     await page.goto(base + '/#memoria');
@@ -131,83 +130,26 @@ for (const [name, engine, viewport] of [
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
     t.after(() => browser.close());
     const page = await browser.newPage({ viewport });
+    page.setDefaultTimeout(8000);
     await page.goto('http://127.0.0.1:' + server.address().port + '/#chat');
+    await page.locator('.order-settings').evaluate(node => { node.open = true; });
     await page.locator('#chat-model').selectOption('modelo');
     assert.equal(await page.locator('#chat-mode').inputValue(), 'auto');
-    await page.getByLabel('Tu mensaje').fill('Mejora el juego sin borrar contenido');
+    await page.getByLabel('¿Qué quieres hacer?').fill('Mejora el juego sin borrar contenido');
     await page.reload();
-    assert.equal(await page.getByLabel('Tu mensaje').inputValue(), 'Mejora el juego sin borrar contenido');
-    await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+    assert.equal(await page.getByLabel('¿Qué quieres hacer?').inputValue(), 'Mejora el juego sin borrar contenido');
+    await page.getByRole('button', { name: 'Añadir a la cola', exact: true }).click();
     await page.getByRole('button', { name: 'Responder', exact: true }).click();
-    await page.getByLabel('Tu mensaje').fill('Profesor Particular');
+    await page.getByLabel('¿Qué quieres hacer?').fill('Profesor Particular');
     await page.reload();
     await page.locator('#chat-reply-context').waitFor();
-    await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+    await page.getByRole('button', { name: 'Añadir a la cola', exact: true }).click();
     await page.getByText('Entendido, conservamos los juegos.', { exact: true }).waitFor();
     assert.equal(captured.length, 2);
     assert.match(captured[1].text, /sin borrar contenido/);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   });
 
-  test(`Publicación sencilla comprueba, acepta y reintenta en ${name}`, { timeout: 25_000 }, async t => {
-    const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
-    const server = await listen(t, directory, { codex: { status: async () => ({ ready: true }) } });
-    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
-    t.after(() => browser.close());
-    const page = await browser.newPage({ viewport });
-    page.setDefaultTimeout(8000);
-    const pageErrors = [];
-    page.on('pageerror', error => pageErrors.push(error.message));
-    t.after(() => assert.deepEqual(pageErrors, []));
-    const base = 'http://127.0.0.1:' + server.address().port, candidate = 'a'.repeat(40);
-    const key = 'implementacion/publicar-ensayo';
-    let job = null, accepts = 0, uploadId, queuedPolls = 0;
-    await page.route('**/api/panel', async route => {
-      const data = await (await route.fetch()).json();
-      data.history.unshift({ id: 'publicar-ensayo', key, mode: 'implementacion', app: 'ingles', agente: 'juegos',
-        model: 'Codex local', encargo: 'Mejora el juego', status: 'borrador', finishedAt: '2026-11-11T12:00:00Z',
-        implementation: { verified: false }, draft: { resumen: 'Mejora del juego', entrega: 'Tablero de ensayo.' } });
-      if (job?.state === 'published') data.board.pushes[key] = { integratedRevision: candidate };
-      return route.fulfill({ json: data });
-    });
-    await page.route('**/api/publicacion**', route => {
-      const path = new URL(route.request().url()).pathname;
-      if (path !== '/api/publicacion' && !path.startsWith('/api/publicacion/')) return route.continue();
-      if (path.endsWith('/subir')) {
-        assert.deepEqual(route.request().postDataJSON().keys, [key]);
-        if (uploadId) assert.equal(route.request().postDataJSON().id, uploadId);
-        uploadId = route.request().postDataJSON().id;
-        accepts++;
-        job = { id: 'ensayo', keys: [key], state: accepts === 1 ? 'queued' : 'published', candidate,
-          ...(accepts === 1 ? { phase: 'Subida guardada. Continuará al terminar el trabajo actual.' } : {}),
-          sources: [{ key, title: 'Mejora del juego' }], files: ['apps/cambridge/index.html'], requiresWeb: true };
-      }
-      if (path === '/api/publicacion' && job?.state === 'queued' && ++queuedPolls >= 2) job = { ...job, state: 'retry' };
-      if (path.endsWith('/deshacer')) {
-        assert.deepEqual(route.request().postDataJSON(), { id: 'ensayo', candidate });
-        job = { ...job, id: 'undo-ensayo', undoOf: 'ensayo', state: 'published' };
-      }
-      return route.fulfill({ json: job });
-    });
-    await page.route('**/api/cambios/hostinger', route => route.fulfill({ json: { revision: candidate, command: 'bash infra/deploy-hostinger.sh' } }));
-    await page.goto(base + '/#entregas/publicar-ensayo');
-    const publication = page.locator('#work-publication');
-    assert.equal(await page.locator('#delivery-dialog').isVisible(), false);
-    await publication.getByRole('button', { name: 'Subir', exact: true }).click();
-    await publication.getByText('Subida guardada.', { exact: false }).waitFor();
-    await publication.getByText('No se confirmó la subida.', { exact: false }).waitFor();
-    assert.equal(await page.getByRole('button', { name: /Comprobar|Aceptar y publicar/ }).count(), 0);
-    await publication.getByRole('button', { name: 'Subir', exact: true }).click();
-    await publication.getByText('Subido a GitHub', { exact: true }).waitFor();
-    assert.equal(accepts, 2);
-    await publication.getByRole('button', { name: 'Copiar comando de Hostinger' }).click();
-    await page.getByRole('dialog', { name: 'Comando para Hostinger' }).waitFor();
-    await page.getByRole('dialog', { name: 'Comando para Hostinger' }).getByRole('button', { name: 'Cerrar comando', exact: true }).click();
-    await publication.getByRole('button', { name: 'Deshacer última subida', exact: true }).click();
-    await publication.getByText('Última subida deshecha', { exact: true }).waitFor();
-    assert.equal(await publication.getByRole('button', { name: 'Deshacer última subida', exact: true }).count(), 0);
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-  });
 
   test(`El logo alterna el nombre del entorno y conserva la elección en ${name}`, { timeout: 25_000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
@@ -215,6 +157,7 @@ for (const [name, engine, viewport] of [
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
     t.after(() => browser.close());
     const page = await browser.newPage({ viewport });
+    page.setDefaultTimeout(8000);
     await page.goto('http://127.0.0.1:' + server.address().port + '/#inicio');
     const toggle = page.locator('#environment-name-toggle');
     assert.equal(await page.locator('.terrace-photo').isVisible(), true);
@@ -247,50 +190,6 @@ for (const [name, engine, viewport] of [
     assert.equal(await page.locator('[data-page="inicio"]').isVisible(), true);
   });
 
-  test(`Cola unificada conserva y simula encargos en ${name}`, { timeout: 35_000 }, async t => {
-    const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
-    const server = await listen(t, directory, { codex: { status: async () => ({ ready: false }) } });
-    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
-    t.after(() => browser.close());
-    const page = await browser.newPage({ viewport });
-    const base = 'http://127.0.0.1:' + server.address().port;
-    await page.goto(base + '/#agentes/nuevo');
-    await page.locator('#team-picker').getByRole('button', { name: /^Juegos/ }).click();
-    await page.locator('#agent-compose').getByLabel('¿Qué necesitas?').fill('Encargo ficticio para comprobar la cola.');
-    await page.getByRole('button', { name: 'Añadir a la cola', exact: true }).click();
-    await page.locator('#task-list').getByText('Encargo ficticio para comprobar la cola.', { exact: true }).waitFor();
-    assert.equal(await page.locator('[data-page="agentes"]').isVisible(), true);
-    assert.equal(await page.locator('#team-activity').isVisible(), false);
-    await page.reload();
-    await page.locator('#task-list').getByText('Encargo ficticio para comprobar la cola.', { exact: true }).waitFor();
-    assert.equal(await page.locator('#work-queue-count').innerText(), '1');
-    await page.getByText('Opciones de la cola', { exact: true }).click();
-    await page.getByRole('button', { name: 'Simular lote', exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('#team-activity progress')?.value === 1);
-    await page.locator('#team-activity').getByText('Encargo ficticio para comprobar la cola.', { exact: true }).waitFor();
-    assert.match(await page.locator('#team-activity').innerText(), /1 de 1 encargos procesados/);
-    assert.equal(await page.locator('#work-queue-count').innerText(), '0');
-    await page.locator('#team-activity').getByRole('button', { name: 'Ver resultado' }).click();
-    const detail = page.locator('#delivery-dialog');
-    await detail.getByRole('heading', { name: 'Qué se propone', exact: true }).waitFor();
-    await detail.getByRole('heading', { name: 'Qué falta', exact: true }).waitFor();
-    await detail.getByText('Es una simulación: no se han aplicado cambios.', { exact: true }).waitFor();
-    const original = detail.locator('summary').filter({ hasText: 'Ver encargo original' });
-    assert.equal(await original.locator('..').getAttribute('open'), null);
-    await original.focus();
-    await page.keyboard.press('Enter');
-    assert.equal(await original.locator('..').evaluate(node => node.open), true);
-    assert.ok(await detail.evaluate(node => node.scrollWidth <= node.clientWidth + 1));
-    await page.getByRole('dialog').getByRole('button', { name: 'Cerrar', exact: true }).click();
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    await page.getByRole('link', { name: 'Nuevo encargo', exact: true }).click();
-    await page.waitForFunction(() => document.activeElement?.name === 'objective');
-    await page.locator('.work-navigation').getByRole('link', { name: /Por revisar/ }).click();
-    await page.waitForFunction(() => document.querySelector('#history-filter').value === 'pendientes');
-    assert.equal(await page.locator('#history-filter').inputValue(), 'pendientes');
-    await page.locator('#history-filter').selectOption('todas');
-    await page.locator('#history').getByRole('button', { name: /Abrir/ }).first().waitFor();
-  });
 
   test(`Chat permite seguir escribiendo y retoma los mensajes en espera en ${name}`, { timeout: 25000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
@@ -306,17 +205,19 @@ for (const [name, engine, viewport] of [
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
     t.after(() => browser.close());
     const page = await browser.newPage({ viewport });
+    page.setDefaultTimeout(8000);
     await page.goto('http://127.0.0.1:' + server.address().port + '/#chat');
+    await page.locator('.order-settings').evaluate(node => { node.open = true; });
     await page.locator('#chat-model').selectOption('modelo');
-    await page.getByLabel('Tu mensaje').fill('Primera pregunta');
-    await page.getByRole('button', { name: 'Enviar', exact: true }).click();
-    await page.getByText('Leyendo tu mensaje…', { exact: true }).waitFor();
-    assert.equal(await page.getByRole('button', { name: 'Enviar', exact: true }).isEnabled(), true);
-    await page.getByLabel('Tu mensaje').fill('Segunda pregunta');
-    await page.getByRole('button', { name: 'Enviar', exact: true }).click();
-    await page.getByText('En espera. Se ejecutará automáticamente al terminar el trabajo anterior.', { exact: true }).waitFor();
+    await page.getByLabel('¿Qué quieres hacer?').fill('Primera pregunta');
+    await page.getByRole('button', { name: 'Añadir a la cola', exact: true }).click();
+    await page.getByText('Entendiendo tu petición…', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Añadir a la cola', exact: true }).isEnabled(), true);
+    await page.getByLabel('¿Qué quieres hacer?').fill('Segunda pregunta');
+    await page.getByRole('button', { name: 'Añadir a la cola', exact: true }).click();
+    await page.getByText('Mensaje guardado en la cola.', { exact: true }).waitFor();
     await page.reload();
-    await page.getByText('En espera. Se ejecutará automáticamente al terminar el trabajo anterior.', { exact: true }).waitFor();
+    await page.getByText('Mensaje guardado en la cola.', { exact: true }).waitFor();
     assert.deepEqual(received, ['Primera pregunta']);
     release();
     await page.getByText('Respuesta: Segunda pregunta', { exact: true }).waitFor();
@@ -324,182 +225,7 @@ for (const [name, engine, viewport] of [
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   });
 
-  test(`Chat con Codex selecciona modelo y revisa cambios en ${name}`, { timeout: 25_000 }, async t => {
-    const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
-    const server = await listen(t, directory, { codex: {
-      status: async () => ({ ready: true }),
-      models: async () => [{ id: 'modelo-a', label: 'Modelo A', recommended: true }, { id: 'modelo-b', label: 'Modelo B' }],
-      ask: async ({ model }) => ({ answer: 'Respuesta de ' + model, tokens: 24 }),
-      coordinate: async ({ model }) => ({ plan: { action: 'answer', reply: 'Respuesta de ' + model, tasks: [] }, tokens: 24 }),
-    } });
-    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
-    t.after(() => browser.close());
-    const page = await browser.newPage({ viewport });
-    const base = 'http://127.0.0.1:' + server.address().port;
-    let proposal;
-    let applied = false;
-    let prepared = false;
-    const commit = 'a'.repeat(40);
-    await page.route('**/api/publicacion/subir', route => {
-      assert.deepEqual(route.request().postDataJSON().keys, ['implementacion/terraza-' + proposal.id]);
-      prepared = true;
-      return route.fulfill({ json: { id: 'chat-ensayo', state: 'preparing', candidate: commit,
-        sources: [], files: ['scripts/educame-dashboard/theme.css'], checks: [] } });
-    });
-    await page.route('**/api/chat**', async route => {
-      const request = route.request();
-      const path = new URL(request.url()).pathname;
-      if (path === '/api/chat' && request.method() === 'POST' && request.postDataJSON().mode === 'change') {
-        proposal = { ...request.postDataJSON(), state: 'proposal', reply: 'Cambio preparado.',
-          proposal: { commit, files: ['scripts/educame-dashboard/theme.css'], checks: [{ command: 'node --test', passed: true }] } };
-        return route.fulfill({ json: { messages: [proposal], needsRestart: false } });
-      }
-      if (path === '/api/chat/propuesta') return route.fulfill({ json: { patch: '+ body { color: olive; }' } });
-      if (path === '/api/chat/aplicar') {
-        assert.deepEqual(request.postDataJSON(), { id: proposal.id, commit });
-        applied = true;
-        return route.fulfill({ json: { messages: [{ ...proposal, state: 'applied' }], needsRestart: true } });
-      }
-      return route.continue();
-    });
-    await page.goto(base + '/#chat');
-    const model = page.locator('#chat-model');
-    await model.selectOption('modelo-b');
-    await page.getByLabel('Tu mensaje').fill('¿Qué es Git?');
-    await page.getByRole('button', { name: 'Enviar', exact: true }).click();
-    await page.getByText('Respuesta de modelo-b', { exact: true }).waitFor();
-    await page.reload();
-    await page.getByText('Respuesta de modelo-b', { exact: true }).waitFor();
-    await page.waitForFunction(() => document.querySelector('#chat-model').value === 'modelo-b');
-    await page.locator('.chat-options summary').click();
-    await page.getByLabel('Tipo de mensaje').selectOption('change');
-    await page.getByLabel('Tu mensaje').fill('Ajusta los colores del panel.');
-    await page.getByRole('button', { name: 'Enviar', exact: true }).click();
-    assert.equal(applied, false);
-    await page.locator('#chat-messages').getByRole('button', { name: 'Subir', exact: true }).click();
-    await page.locator('#work-publication').getByText('Estamos preparando y subiendo tus cambios…', { exact: true }).waitFor();
-    assert.equal(applied, false, 'el chat no aplica antes de aceptar la publicación conjunta');
-    assert.equal(prepared, true);
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-  });
 
-  test(`LA TERRAZA conserva el borrador y retoma el envío sin duplicarlo en ${name}`, { timeout: 35_000 }, async t => {
-    const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
-    const received = [];
-    let finish;
-    const gate = new Promise(resolve => { finish = resolve; });
-    t.after(() => finish());
-    const server = await listen(t, directory, { codex: {
-      status: async () => ({ ready: true, message: 'Sesión local activa' }),
-      generate: async task => {
-        received.push(task);
-        if (received.length > 1) await gate;
-        return { draft: { resumen: 'Plan de ensayo ' + 'con una descripción larga '.repeat(9),
-          entrega: 'Prueba los botones desde el teclado.', comprobaciones: ['Revisión ficticia de navegación.'],
-          pendientes: ['Comprobar el foco en móvil.'] }, usage: { total_tokens: 9876 } };
-      },
-    } });
-    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
-    t.after(() => browser.close());
-    const page = await browser.newPage({ viewport });
-    const errors = [];
-    page.on('pageerror', error => errors.push(error.message));
-    const base = 'http://127.0.0.1:' + server.address().port;
-    const sent = [];
-    await page.route('**/api/encargos', async route => {
-      const data = route.request().postDataJSON();
-      sent.push(data);
-      if (sent.length === 1) {
-        await route.fetch();
-        await route.abort();
-      } else await route.continue();
-    });
-    await page.goto(base + '/#inicio');
-    assert.match(await page.title(), /^LA TERRAZA/);
-    await page.waitForFunction(() => document.querySelector('.terrace-photo').naturalWidth > 0);
-    assert.equal(await page.locator('#terrace-order').count(), 0);
-    await page.getByRole('link', { name: 'Ver trabajos', exact: true }).click();
-    await page.getByRole('link', { name: 'Nuevo encargo', exact: true }).click();
-    const order = page.locator('#agent-compose');
-    await order.locator('[name=app]').selectOption('profesor');
-    await order.getByLabel('¿Qué necesitas?').fill('Comprueba la navegación con teclado.');
-    await page.reload();
-    assert.equal(await order.getByLabel('¿Qué necesitas?').inputValue(), 'Comprueba la navegación con teclado.');
-    await order.getByText('Planificar o probar el encargo', { exact: true }).click();
-    await order.getByRole('button', { name: 'Preparar borrador', exact: true }).click();
-    await order.getByRole('alert').waitFor();
-    await order.getByRole('button', { name: 'Preparar borrador', exact: true }).click();
-    await page.locator('#team-activity').getByText('Por revisar', { exact: true }).waitFor();
-    assert.equal(received.length, 1);
-    assert.equal(received[0].agente, 'codex');
-    assert.equal(received[0].app, 'profesor');
-    assert.equal(sent[0].engine, 'codex');
-    assert.deepEqual(sent[0].tasks, sent[1].tasks);
-    await page.locator('#team-activity').getByRole('button', { name: 'Ver resultado' }).click();
-    assert.doesNotMatch(await page.locator('#delivery-meta').innerText(), /tokens|9876/i);
-    assert.match(await page.locator('#delivery-meta').innerText(), /Codex local/);
-    const body = page.locator('#delivery-body');
-    assert.deepEqual(await body.getByRole('heading', { level: 3 }).allTextContents(),
-      ['Qué se propone', 'Qué se ha comprobado', 'Qué falta', 'Siguiente paso']);
-    await body.getByText('Revisión ficticia de navegación.', { exact: true }).waitFor();
-    await body.getByText('Comprobar el foco en móvil.', { exact: true }).waitFor();
-    await body.getByText('Según la entrega del agente.', { exact: true }).waitFor();
-    const review = page.locator('#review-form');
-    await review.getByRole('button', { name: 'Pedir cambios', exact: true }).click();
-    await review.getByRole('alert').getByText('Escribe qué quieres cambiar para preparar los ajustes.').waitFor();
-    const adjustments = 'Haz visible el foco y explica cómo comprobarlo con teclado.';
-    await review.locator('[name=note]').fill(adjustments);
-    page.once('dialog', dialog => dialog.accept());
-    await review.getByRole('button', { name: 'Pedir cambios', exact: true }).click();
-    const composer = page.locator('#agent-compose');
-    await page.waitForFunction(() => !document.querySelector('#delivery-dialog').open);
-    assert.equal(await composer.getByLabel('¿Qué necesitas?').inputValue(), adjustments);
-    assert.match(await composer.locator('[name=context]').inputValue(), /Prueba los botones/);
-    assert.match(await composer.locator('[name=context]').inputValue(), /Entrega de referencia/);
-    assert.equal(await composer.locator('[name=app]').inputValue(), 'profesor');
-    await page.reload();
-    await page.waitForFunction(() => document.querySelector('#agent-compose [name=objective]').value.startsWith('Haz visible'));
-    assert.equal(await composer.getByLabel('¿Qué necesitas?').inputValue(), adjustments);
-    const savedReview = await page.evaluate(async () => (await (await fetch('/api/panel')).json()).board.reviews);
-    assert.ok(Object.values(savedReview).some(item => item.decision === 'cambios' && item.note === adjustments));
-    assert.equal(received.length, 1, 'preparar ajustes no ejecuta el encargo');
-    await composer.getByLabel('¿Qué necesitas?').fill('Trabajo que tarda.');
-    await composer.getByText('Planificar o probar el encargo', { exact: true }).click();
-    await composer.getByRole('button', { name: 'Preparar borrador', exact: true }).click();
-    await page.locator('#team-activity').getByText('En curso', { exact: true }).waitFor();
-    await composer.getByLabel('¿Qué necesitas?').fill('Trabajo para después.');
-    assert.equal(await composer.getByRole('button', { name: 'Añadir a la cola' }).isEnabled(), true);
-    assert.equal(await composer.getByRole('button', { name: 'Implementar con Codex' }).isEnabled(), true);
-    await composer.getByRole('button', { name: 'Añadir a la cola' }).click();
-    await page.locator('#task-list').getByText('Trabajo para después.', { exact: true }).waitFor();
-    finish();
-    await page.locator('#team-activity').getByText('Por revisar', { exact: true }).waitFor();
-    await page.reload();
-    await page.locator('#task-list').getByText('Trabajo para después.', { exact: true }).waitFor();
-    await page.goto(base + '/#conexiones');
-    const nav = page.getByRole('button', { name: 'Menú', exact: true });
-    if (await nav.isVisible()) {
-      await nav.click();
-      assert.equal(await nav.getAttribute('aria-expanded'), 'true');
-      await page.keyboard.press('Escape');
-      assert.equal(await nav.getAttribute('aria-expanded'), 'false');
-    }
-    await page.getByRole('button', { name: 'Agentes e IA' }).click();
-    await page.getByText('Cómo iniciar sesión en Codex', { exact: true }).click();
-    await page.getByText('codex login', { exact: true }).waitFor();
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    await page.setViewportSize({ width: 320, height: 790 });
-    for (const section of ['inicio', 'estadisticas']) {
-      await page.goto(base + '/#' + section);
-      await page.locator('[data-page="' + section + '"] h1').waitFor();
-      if (section === 'estadisticas') {
-        assert.match(await page.locator('#local-metrics').innerText(), /Entregas de agentes/);
-        assert.doesNotMatch(await page.locator('#local-metrics').innerText(), /tokens/i);
-      }
-      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), section);
-    }
-    assert.deepEqual(errors, []);
-  });
 
   test(`Crear, configurar y encargar agentes en ${name}`, { timeout: 35_000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
@@ -507,6 +233,7 @@ for (const [name, engine, viewport] of [
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
     t.after(() => browser.close());
     const page = await browser.newPage({ viewport });
+    page.setDefaultTimeout(8000);
     const base = 'http://127.0.0.1:' + server.address().port;
     await page.goto(base + '/#agentes/nuevo');
     const editorButton = page.getByRole('button', { name: 'Gestionar agentes' });
@@ -536,16 +263,13 @@ for (const [name, engine, viewport] of [
     assert.ok(await editor.evaluate(node => node.scrollWidth <= node.clientWidth + 1));
     await editor.getByRole('button', { name: 'Preparar encargo', exact: true }).click();
     await editor.waitFor({ state: 'hidden' });
-    await page.getByRole('button', { name: /Accesibilidad Revisa las interacciones/ }).waitFor();
-    assert.equal(await page.getByRole('button', { name: /Accesibilidad Revisa las interacciones/ }).getAttribute('aria-pressed'), 'true');
-    await page.getByLabel('¿Qué necesitas?').fill('Revisa la navegación con el teclado.');
-    await page.getByRole('button', { name: 'Añadir a la cola', exact: true }).click();
-    await page.locator('#task-list').getByText('Revisa la navegación con el teclado.').waitFor();
-    await page.locator('#task-list').getByRole('button', { name: 'Editar', exact: true }).click();
-    assert.equal(await page.locator('#task-form select[name=agente] option:checked').textContent(), 'Accesibilidad');
-    await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    await page.getByRole('heading', { name: 'Encargos', exact: true }).waitFor();
+    await page.getByLabel('¿Qué quieres hacer?').fill('Con el agente Accesibilidad: revisa la navegación de Inglés con teclado.');
     await page.reload();
-    await page.locator('#task-list').getByText(/Accesibilidad/).waitFor();
+    assert.match(await page.getByLabel('¿Qué quieres hacer?').inputValue(), /Accesibilidad/);
+    await page.getByRole('button', { name: 'Gestionar agentes' }).click();
+    await page.getByRole('dialog', { name: 'Gestionar agentes' }).getByRole('button', { name: 'Accesibilidad', exact: true }).waitFor();
+
   });
 
   test(`Operación y uso de Codex en ${name}`, { timeout: 35_000 }, async t => {
@@ -559,6 +283,7 @@ for (const [name, engine, viewport] of [
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
     t.after(() => browser.close());
     const page = await browser.newPage({ viewport });
+    page.setDefaultTimeout(8000);
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     const base = 'http://127.0.0.1:' + server.address().port;
@@ -646,7 +371,7 @@ for (const [name, engine, viewport] of [
     const quotaTitle = await page.locator('#codex-quota-chip').getAttribute('title');
     assert.match(quotaTitle, /Límite de 5 h · 78 % disponible · Se renueva el/);
     assert.match(quotaTitle, /Límite semanal · 59 % disponible · Se renueva el/);
-    await page.locator('#work-publication').getByRole('button', { name: 'Subir', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Encargos', exact: true }).waitFor();
     assert.equal(await page.locator('#delivery-dialog').isVisible(), false);
     const chip = page.locator('#codex-quota-chip'), tooltip = page.getByRole('tooltip');
     await chip.hover();
@@ -715,6 +440,7 @@ for (const [name, engine, viewport] of [
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
     t.after(() => browser.close());
     const page = await browser.newPage({ viewport });
+    page.setDefaultTimeout(8000);
     const base = 'http://127.0.0.1:' + server.address().port;
     const revision = '1'.repeat(40);
     const command = `cd /opt/educa-suite && git merge --ff-only ${revision} && bash infra/deploy-hostinger.sh`;
@@ -738,8 +464,7 @@ for (const [name, engine, viewport] of [
     await page.getByRole('heading', { name: 'Misión inglesa' }).waitFor();
     assert.equal(await page.locator('#changes-preview').inputValue(), 'ingles');
     await page.waitForFunction(() => document.querySelector('#changes-preview-logo img')?.naturalWidth > 0);
-    await page.getByText('1 archivo local sin commit', { exact: true }).click();
-    assert.match(await page.locator('#changes-dirty').innerText(), /apps\/cambridge\/index.html/);
+    assert.equal(await page.getByRole('link', { name: 'Abrir app local' }).count(), 0);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     await page.getByRole('button', { name: 'Generar comando' }).click();
     await page.getByRole('dialog', { name: 'Comando para Hostinger' }).waitFor();
@@ -747,9 +472,8 @@ for (const [name, engine, viewport] of [
     await page.getByRole('button', { name: 'Copiar comando' }).click();
     await page.getByText(/Comando copiado|Comando seleccionado/).waitFor();
     await page.getByRole('button', { name: 'Cerrar comando' }).click();
-    const opened = page.waitForEvent('popup');
-    await page.getByRole('link', { name: 'Abrir app local' }).click();
-    const preview = await opened;
+    const preview = await browser.newPage({ viewport });
+    await preview.goto(base + '/vista-local/ingles/app');
     await preview.locator('[data-tab-btn="juegos"]').click();
     await preview.locator('#tab-juegos').waitFor();
     assert.notEqual(new URL(preview.url()).origin, base);
@@ -805,6 +529,7 @@ for (const [name, engine, viewport] of [
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
     t.after(() => browser.close());
     const page = await browser.newPage({ viewport });
+    page.setDefaultTimeout(8000);
     const failures = [];
     page.on('pageerror', error => failures.push(error.message));
     const base = 'http://127.0.0.1:' + server.address().port;
@@ -883,75 +608,9 @@ for (const [name, engine, viewport] of [
     await page.locator('summary').getByText('Caché, reintentos e idempotencia').waitFor();
     await page.getByRole('link', { name: 'Guía de Educame' }).click();
     await page.getByText('1 de 29 lecciones aprendidas').waitFor();
-    await navigate('Agentes');
-    await page.getByRole('link', { name: 'Nuevo encargo', exact: true }).click();
-    await page.getByRole('button', { name: /Juegos Crea/ }).click();
-    await page.locator('#agent-app').selectOption('profesor');
-    await page.getByLabel('¿Qué necesitas?').fill('Prepara una misión sobre fracciones.');
-    await page.getByText('Planificar o probar el encargo', { exact: true }).click();
-    await page.getByRole('button', { name: 'Simular', exact: true }).click();
-    await page.locator('#team-activity').getByText('Simulación terminada').waitFor();
-    assert.equal(await page.locator('.batch-chip').count(), 1);
-    await page.getByRole('button', { name: 'Seleccionar equipo' }).click();
-    assert.equal(await page.locator('.team-tile[aria-pressed="true"]').count(), 5);
-    if (process.env.EDUCAME_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.EDUCAME_SCREENSHOT_DIR, `agentes-${name.split(' ')[0]}.png`) });
-    await page.getByRole('button', { name: 'Simular', exact: true }).click();
-    await page.waitForFunction(() => [...document.querySelectorAll('.batch-chip .badge')].filter(node => node.textContent === 'Simulación terminada').length === 5);
-    const panel = await (await page.request.get(base + '/api/panel')).json();
-    assert.equal(panel.history.length, 6);
-    await page.getByRole('button', { name: 'Quitar selección' }).click();
-    await page.getByRole('button', { name: /Juegos Crea/ }).click();
-    await page.locator('#game-pack select').selectOption('Crear y mejorar');
-    await page.getByLabel('Cantidad', { exact: true }).fill('3');
-    await page.waitForFunction(() => !document.querySelector('#agent-compose button[value="implementacion"]').disabled);
-    assert.equal(await page.getByRole('button', { name: 'Implementar con Codex' }).isEnabled(), true);
-    await page.getByRole('button', { name: 'Preparar borrador', exact: true }).click();
-    await page.locator('#team-activity').getByRole('heading', { name: 'Último trabajo' }).waitFor();
-    await page.locator('#team-activity').getByText('Por revisar', { exact: true }).waitFor();
-    const draftPanel = await (await page.request.get(base + '/api/panel')).json();
-    assert.match(draftPanel.history.find(item => item.mode === 'real').contexto, /Trabajo: Crear y mejorar\. Cantidad solicitada: 3/);
-    await navigate('Inicio');
-    await page.getByRole('button', { name: /Entrega de Codex/ }).click();
-    await page.getByRole('dialog', { name: 'Entrega de Codex' }).waitFor();
-    const delivery = page.getByRole('dialog', { name: 'Entrega de Codex' });
-    await delivery.getByText('Contexto usado en este encargo').click();
-    await delivery.getByText(/Respetar los modos Estudio, Academia y Sin fondo/).waitFor();
-    await delivery.getByText('Conservar un aprendizaje en Memoria').click();
-    await delivery.getByRole('button', { name: 'Usar propuesta del agente' }).click();
-    await delivery.getByRole('button', { name: 'Aprobar borrador' }).click();
-    await delivery.waitFor({ state: 'hidden' });
-    await navigate('Memoria');
-    await page.locator('#memory-app').selectOption('profesor');
-    await page.getByText('Los vagones muestran el destino de cada respuesta.').click();
-    await page.getByText(/Jugar una ronda en móvil/).waitFor();
-    await page.getByRole('button', { name: 'Archivar' }).click();
-    await page.getByText('Todavía no hay criterios para esta app.').waitFor();
-    await page.getByLabel('Mostrar archivados').check();
-    await page.getByText('Los vagones muestran el destino de cada respuesta.').click();
-    await page.getByRole('button', { name: 'Reactivar' }).click();
-    await page.getByText('Criterio reactivado.').waitFor();
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    if (process.env.EDUCAME_SCREENSHOT_DIR) await page.screenshot({ path: join(process.env.EDUCAME_SCREENSHOT_DIR, `memoria-${name.split(' ')[0]}.png`) });
-    const profile = page.locator('#memory-profile');
-    await profile.getByText('Prioridades de producto', { exact: true }).click();
-    await profile.getByText(/variantes infantil y adolescente/).waitFor();
-    await navigate('Agentes');
-    await page.getByRole('link', { name: 'Nuevo encargo', exact: true }).click();
-    await page.getByRole('button', { name: /Copiador Analiza/ }).click();
-    await page.locator('#agent-app').selectOption('ingles');
-    await page.getByLabel('¿Qué necesitas?').fill('');
-    await page.locator('#agent-sources textarea').fill(reference);
-    await page.getByRole('button', { name: 'Analizar enlaces', exact: true }).click();
-    await page.locator('#team-activity').getByRole('heading', { name: 'Último trabajo' }).waitFor();
-    await page.locator('#team-activity').getByText('Por revisar', { exact: true }).waitFor();
-    await navigate('Inicio');
-    await page.getByRole('button', { name: /Análisis de referencia/ }).click();
-    const analysis = page.getByRole('dialog', { name: 'Análisis de referencia' });
-    assert.equal(await analysis.getByRole('link', { name: 'Referencia de ensayo' }).first().getAttribute('href'), reference);
-    await analysis.getByRole('button', { name: 'Preparar encargo para Juegos' }).click();
-    await page.getByRole('button', { name: 'Implementar con Codex' }).waitFor();
-    assert.match(await page.getByLabel('¿Qué necesitas?').inputValue(), /Ruta con decisiones/);
-    assert.equal(await page.locator('#agent-app').inputValue(), 'ingles');
+    await navigate('Encargos');
+    await page.getByRole('heading', { name: 'Encargos', exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Subir', exact: true }).count(), 0);
     await navigate('Publicar');
     const post = page.locator('#publish-form');
     await post.getByLabel('Texto', { exact: true }).fill('Anuncio de ensayo');

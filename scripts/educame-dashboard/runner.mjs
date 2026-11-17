@@ -19,12 +19,12 @@ function running(pid) {
 
 export function publicBatch(batch) {
   if (!batch) return null;
-  const { id, mode, engine, startedAt, finishedAt, state, tasks, jobs, error, agents, queuedAt, providerModel } = batch;
-  return { id, mode, engine, providerModel, startedAt, finishedAt, state, running: state === 'running',
-    queuedAt, tasks: tasks.map(({ id, agente, encargo, app, despues }) => ({ id, agente, encargo, app, despues, agentName: (agents?.[agente] || defaultAgents[agente])?.name })), jobs, error };
+  const { id, mode, engine, startedAt, finishedAt, state, tasks, jobs, error, agents, queuedAt, providerModel, automaticPublication } = batch;
+  return { id, mode, engine, providerModel, startedAt, finishedAt, state, automaticPublication, running: state === 'running',
+    queuedAt, tasks: tasks.map(({ id, agente, encargo, app, despues, continuar }) => ({ id, agente, encargo, app, despues, continuar, agentName: (agents?.[agente] || defaultAgents[agente])?.name })), jobs, error };
 }
 
-export function createRunner(store, directory, { model, readiness, generator, baseRevision, recoverImplementation, contextSnapshot }) {
+export function createRunner(store, directory, { model, readiness, generator, baseRevision, recoverImplementation, contextSnapshot, automaticPublication = false }) {
   let active;
   let pumping;
   let closed = false;
@@ -96,6 +96,7 @@ export function createRunner(store, directory, { model, readiness, generator, ba
       if (qualityRequired) agents.revision = directory.revision;
       const batch = {
         id, mode, engine, tasks, base, guidance, agents, codexModel, providerModel, qualityRequired, memory: board.memory,
+        automaticPublication: automaticPublication && mode === 'implementacion',
         settings: knowledge ? { ...contextSettings, knowledge } : contextSettings,
         pid: enqueue ? null : process.pid, state: enqueue ? 'queued' : 'running', managed: enqueue,
         ...(enqueue ? { queuedAt: new Date().toISOString() } : {}),

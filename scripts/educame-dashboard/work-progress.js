@@ -12,8 +12,8 @@ export function setupWorkProgress({ element, button, badge, openDelivery, upload
     if (published?.integratedRevision || published?.pull?.merged) return ['Integrado en GitHub', 'ready'];
     if (published) return ['Pendiente de fusión', 'pending'];
     if (review?.decision === 'cambios') return ['Cambios solicitados', 'pending'];
-    if (delivery.implementation && !delivery.implementation.verified) return ['Por revisar', 'pending'];
-    if (delivery.implementation?.verified) return ['Listo para subir', 'ready'];
+    if (delivery.implementation && !delivery.implementation.verified) return ['Necesita atención', 'error'];
+    if (delivery.implementation?.verified) return ['Subiendo a GitHub', 'pending'];
     if (approved) return [delivery.implementation ? 'Listo para publicar' : 'Revisado', 'ready'];
     return ['Por revisar', 'pending'];
   }

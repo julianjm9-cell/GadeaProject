@@ -107,6 +107,11 @@ function setMenu(open) {
 
 function showPage() {
   const hash = location.hash.slice(1);
+  if (['agentes', 'entregas', 'flujos', 'operaciones'].includes(hash) || hash.startsWith('agentes/') || hash.startsWith('entregas/')) {
+    history.replaceState(null, '', '#chat');
+    if (hash === 'agentes/uso') requestAnimationFrame(() => { const usage = document.querySelector('.quota-panel'); usage.open = true; usage.scrollIntoView({ block: 'start' }); });
+    return showPage();
+  }
   const development = hash === 'teoria/desarrollo';
   const operation = /^control\/(github|hostinger|admin)(?:\/([a-f0-9]+))?$/.exec(hash);
   const deliveryId = /^entregas\/([a-z0-9][a-z0-9-]{0,63})$/.exec(hash)?.[1];
@@ -312,8 +317,7 @@ function render() {
     const copy = element('span', 'activity-copy');
     copy.append(element('strong', '', delivery.draft?.resumen || delivery.encargo),
       element('small', '', [agentName(delivery), delivery.mode === 'prueba' ? 'Simulación' : delivery.model].filter(Boolean).join(' · ')));
-    row.append(copy, delivery.implementation && !delivery.implementation.verified
-      ? element('span', 'badge pending', 'Pruebas pendientes') : badge(deliveryVerdict(delivery)?.decision || delivery.status));
+    row.append(copy, workProgress.statusBadge(delivery, state.board));
     row.addEventListener('click', () => openDelivery(delivery));
     return row;
   });
@@ -341,7 +345,7 @@ async function refresh() {
   state = next;
   render();
   clearTimeout(poll);
-  if (state.batch?.running) poll = setTimeout(() => refresh().catch(error => feedback(error.message, true)), 900);
+  poll = setTimeout(() => refresh().catch(error => feedback(error.message, true)), 1500);
 }
 
 async function saveBoard(changes) {
@@ -452,6 +456,11 @@ function deliveryFlow(delivery) {
 }
 
 function openDelivery(delivery) {
+  if (delivery.mode === 'implementacion') {
+    location.hash = 'chat';
+    chat.open();
+    return;
+  }
   if (delivery.mode === 'implementacion') {
     location.hash = 'agentes/publicar';
     document.querySelector('#work-publication').scrollIntoView({ block: 'start' });
@@ -709,8 +718,7 @@ const agentEditor = setupAgentEditor({ api, button, formMessage, getState: () =>
     render();
   },
 });
-const chat = setupChat({ api, element, button, feedback, formMessage, getState: () => state,
-  preparePublication: keys => publicationClient.upload(keys) });
+const chat = setupChat({ api, element, button, feedback, formMessage, getState: () => state, openDelivery });
 const workProgress = setupWorkProgress({ element, button, badge, openDelivery,
   upload: keys => publicationClient.upload(keys) });
 changes = setupChanges({ api, element });

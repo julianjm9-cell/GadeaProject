@@ -1,107 +1,41 @@
-export function setupPublication({ api, element, button, feedback, getState, refresh, restart, openCommand }) {
-  const host = document.getElementById('work-publication');
-  let job, busy = false, timer, restarting = false, pending;
-  try { pending = JSON.parse(sessionStorage.getItem('terrace-upload-pending')); } catch {}
-  const running = () => busy || ['queued', 'preparing', 'publishing'].includes(job?.state);
-  function remember(value) {
-    pending = value;
-    try {
-      if (value) sessionStorage.setItem('terrace-upload-pending', JSON.stringify(value));
-      else sessionStorage.removeItem('terrace-upload-pending');
-    } catch {}
-  }
-  async function load() {
-    clearTimeout(timer);
-    try {
-      job = await api('/api/publicacion');
-      render(getState());
-      if (['queued', 'preparing', 'publishing'].includes(job?.state)) timer = setTimeout(load, 1200);
-      if (job?.state === 'published') {
-        remember(null);
-        await refresh();
-        const panel = await api('/api/chat');
-        if (panel.needsRestart && !restarting) {
-          restarting = true;
-          await restart();
-        }
-      }
-      if (job?.state === 'failed') remember(null);
-    } catch (error) {
-      feedback(error.message, true);
-      if (['queued', 'preparing', 'publishing'].includes(job?.state)) timer = setTimeout(load, 2400);
-    }
-  }
-  async function upload(keys) {
-    if (running()) return;
-    busy = true;
-    render(getState());
-    if (!pending || JSON.stringify(pending.keys) !== JSON.stringify(keys)) remember({ id: crypto.randomUUID(), keys });
-    try {
-      job = await api('/api/publicacion/subir', 'POST', pending);
-      location.hash = 'agentes/publicar';
-      host.scrollIntoView({ block: 'start' });
-      timer = setTimeout(load, 500);
-    } catch (error) { feedback(error.message, true); }
-    finally { busy = false; render(getState()); }
-  }
+export function setupPublication({ api, element, button, feedback, getState, refresh, restart }) {
+  const host = document.getElementById('queue-publication');
+  let job, busy = false, restarting = false;
   async function undo() {
-    if (running()) return;
-    busy = true;
-    const previous = job.lastPublished || job;
-    const payload = { id: previous.id, candidate: previous.candidate };
-    render(getState());
+    if (busy) return;
+    const previous = job?.lastPublished || job;
+    busy = true; render(getState());
     try {
-      job = await api('/api/publicacion/deshacer', 'POST', payload);
-      timer = setTimeout(load, 500);
+      job = await api('/api/publicacion/deshacer', 'POST', { id: previous.id, candidate: previous.candidate });
+      await refresh();
     } catch (error) { feedback(error.message, true); }
     finally { busy = false; render(getState()); }
   }
   function render(state) {
     if (!state) return;
-    host.replaceChildren(element('h2', '', 'Subir cambios'));
-    if (running()) {
-      const progress = element('progress');
-      progress.setAttribute('aria-label', 'Subiendo cambios');
-      host.append(element('p', '', job?.phase && !job.phase.startsWith('Comprobando') ? job.phase + '…' : 'Estamos preparando y subiendo tus cambios…'), progress,
-        element('p', 'muted', 'Puedes dejar esta pantalla abierta. Todo el proceso es automático.'));
-      return;
-    }
-    const pendingItems = state.history.filter(item => item.mode === 'implementacion' &&
-      !state.board.pushes?.[item.key]?.integratedRevision && state.board.reviews[item.key]?.decision !== 'cambios');
-    if (job?.state === 'published') {
-      host.append(element('p', 'badge ready', job.undoOf ? 'Última subida deshecha' : 'Subido a GitHub'));
-      if (job.requiresWeb) host.append(button('Copiar comando de Hostinger', () => openCommand(job.candidate)));
-    }
+    job = state.publication || job;
+    host.replaceChildren();
+    const running = ['queued', 'preparing', 'publishing'].includes(job?.state);
     const last = job?.lastPublished || (job?.state === 'published' ? job : null);
-    if (last && !last.undoOf && last.files?.length) host.append(button('Deshacer última subida', undo));
-    if (job?.undoOf && job.state === 'retry') {
-      host.append(button('Reintentar deshacer', async () => {
-        if (running()) return;
-        busy = true;
-        render(getState());
-        try {
-          job = await api('/api/publicacion/aceptar', 'POST', { id: job.id, candidate: job.candidate });
-          timer = setTimeout(load, 500);
-        } catch (error) { feedback(error.message, true); }
-        finally { busy = false; render(getState()); }
-      }));
+    const canUndo = last && !last.undoOf && last.files?.length && (!state.currentRevision || state.currentRevision === last.candidate);
+    host.hidden = !running && !canUndo;
+    if (running) host.append(element('span', 'muted', job.undoOf ? 'Deshaciendo la última subida…' : 'Subiendo los encargos terminados a GitHub…'));
+    else if (canUndo) {
+      host.append(element('span', 'muted', 'Última subida · ' + last.candidate.slice(0, 7)));
+      const control = button('Deshacer última subida', undo);
+      control.disabled = busy;
+      host.append(control);
     }
-    if (['failed', 'retry'].includes(job?.state)) {
-      host.append(element('p', 'form-message', job.state === 'retry' ?
-        'No se confirmó la subida. Pulsa Subir para retomarla.' :
-        'No se pudo completar la subida. Tus cambios están guardados. Puedes pulsar Subir o pedir cambios en la entrega.'));
+    if (state.terraceNeedsRestart && !running && !state.batch?.running && !state.pendingBatches?.length && !restarting) {
+      restarting = true;
+      restart().catch(() => {}).finally(() => { restarting = false; });
     }
-    if (pendingItems.length) {
-      const list = element('ul');
-      for (const item of pendingItems) list.append(element('li', '', item.draft?.resumen || item.encargo));
-      const submit = button('Subir', () => upload(pendingItems.map(item => item.key)));
-      submit.className = 'button primary';
-      host.append(list, submit);
-    } else if (['ready', 'retry', 'failed'].includes(job?.state) && job.keys?.length) {
-      const submit = button('Subir', () => upload(job.keys));
-      submit.className = 'button primary';
-      host.append(submit);
-    } else if (job?.state !== 'published') host.append(element('p', 'muted', 'Las entregas aparecerán aquí cuando estén listas.'));
   }
-  return { render, upload, load };
+  return { render, async load() { job = await api('/api/publicacion'); render(getState()); },
+    async upload(keys) {
+      // Compatibility for saved links and old clients; the current queue never asks for this step.
+      await api('/api/publicacion/subir', 'POST', { id: crypto.randomUUID(), keys });
+      await refresh();
+    },
+  };
 }

@@ -1,21 +1,19 @@
+import { renderQueue } from './queue-view.js';
 const $ = id => document.getElementById(id);
 const preference = 'terrace-chat-model';
 const pendingKey = 'terrace-chat-pending';
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-export function setupChat({ api, element, button, feedback, formMessage, preparePublication, getState }) {
+export function setupChat({ api, element, button, feedback, formMessage, getState, openDelivery }) {
   const form = $('chat-form');
   const model = $('chat-model');
   const provider = $('chat-provider');
-  const providerLabel = id => ({ codex: 'Codex local', openai: 'OpenAI API', claude: 'Claude API' })[id || 'codex'];
   try { provider.value = localStorage.getItem('terrace-chat-provider') || 'codex'; } catch {}
   const mode = $('chat-mode');
   const input = form.elements.text;
   const submit = form.querySelector('[type=submit]');
   const log = $('chat-messages');
   const refresh = $('chat-refresh-models');
-  const review = $('chat-review');
-  const apply = $('chat-apply');
   const restart = $('chat-restart').querySelector('button');
   let snapshot;
   let pending;
@@ -24,17 +22,17 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
   let sending = false;
   let loading;
   let timer;
-  let selected;
   let publications;
   let replyTo;
+  let adjustment;
   const draftKey = 'terrace-chat-draft';
   try {
     const draft = JSON.parse(localStorage.getItem(draftKey));
-    if (draft && !pending) { input.value = draft.text || ''; replyTo = draft.replyTo; }
+    if (draft && !pending) { input.value = draft.text || ''; replyTo = draft.replyTo; adjustment = draft.adjustment; }
   } catch {}
   try {
     pending = JSON.parse(sessionStorage.getItem(pendingKey));
-    if (pending) { input.value = pending.text; mode.value = pending.mode; provider.value = pending.provider || 'codex'; replyTo = pending.replyTo; }
+    if (pending) { input.value = pending.text; mode.value = pending.mode || 'auto'; provider.value = pending.provider || 'codex'; replyTo = pending.replyTo; }
   } catch {}
 
   const visible = () => !$('chat-title').closest('[data-page]').hidden;
@@ -48,7 +46,7 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
       isWorking() ? 'El agente está trabajando. Puedes añadir otro mensaje.' : modelStatus;
     const change = mode.value === 'change';
     $('chat-mode-hint').textContent = mode.value === 'auto' ?
-      'Pregunta o pide cambios en tus apps y en LA TERRAZA. Si falta algo, te preguntará aquí. Después solo tendrás que pulsar Subir.' : change ?
+      'Pregunta o pide cambios en tus apps y en LA TERRAZA. Si falta algo, te preguntará aquí. El encargo se hace y se sube a GitHub automáticamente.' : change ?
       'Codex prepara el cambio. Si hay otro trabajo en marcha, lo guarda y continúa después.' :
       'Pregunta sobre LA TERRAZA o cualquier otro tema. El agente usa los mensajes recientes para seguir el hilo.';
     if (provider.value !== 'codex') $('chat-mode-hint').textContent += ' API de pago. Hasta 24 pasos o 120.000 tokens por pasada, incluida una segunda pasada para revisar las implementaciones.';
@@ -57,98 +55,42 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
     const context = $('chat-reply-context');
     if (context) {
       const question = snapshot?.messages.find(item => item.id === replyTo);
-      context.hidden = !question;
+      context.hidden = !question && !adjustment;
       context.replaceChildren();
       if (question) context.append(element('span', '', 'Respondiendo: ' + question.reply), button('Cancelar respuesta', () => { replyTo = undefined; saveDraft(); controls(); }));
+      if (adjustment) context.append(element('span', '', 'Ajustando: ' + adjustment.title), button('Cancelar ajuste', () => { adjustment = undefined; saveDraft(); controls(); }));
     }
   }
-  function saveDraft() { try { localStorage.setItem(draftKey, JSON.stringify({ text: input.value, replyTo })); } catch {} }
+  function saveDraft() { try { localStorage.setItem(draftKey, JSON.stringify({ text: input.value, replyTo, adjustment })); } catch {} }
   input.addEventListener('input', saveDraft);
-  function respond(item) { replyTo = item.id; mode.value = 'auto'; saveDraft(); controls(); input.focus(); }
+  window.addEventListener('terrace-compose', event => {
+    const detail = event.detail || {};
+    if (!input.value.trim()) input.value = detail.text || (detail.app ? 'En ' + (getState()?.projectProfiles?.[detail.app]?.name || detail.app) + ': ' : '');
+    saveDraft(); input.focus();
+  });
+  function respond(item) { adjustment = undefined; replyTo = item.id; mode.value = 'auto'; saveDraft(); controls(); form.scrollIntoView({ block: 'center' }); input.focus(); }
 
   function render(data) {
     clearTimeout(timer);
-    const published = JSON.stringify(getState()?.board.pushes);
+    const published = JSON.stringify([getState()?.board.pushes, getState()?.batches, getState()?.automaticUploads]);
     const changed = JSON.stringify(snapshot?.messages) !== JSON.stringify(data.messages) || publications !== published;
     publications = published;
     snapshot = data;
     $('chat-restart').hidden = !data.needsRestart;
     if (changed) {
-      const atEnd = log.scrollHeight - log.scrollTop - log.clientHeight < 80;
-      log.replaceChildren(...data.messages.map(turn));
-      if (!data.messages.length) log.append(element('p', 'muted', 'Escribe tu primer mensaje para empezar.'));
-      if (atEnd) log.scrollTop = log.scrollHeight;
+      renderQueue({ state: getState(), messages: data.messages, host: log, element, button, respond, openReport: openDelivery,
+        adjust: delivery => { replyTo = undefined; adjustment = { key: delivery.key, title: delivery.encargo }; saveDraft(); controls(); form.scrollIntoView({ block: 'center' }); input.focus(); },
+        retry: id => action('/api/encargos/reintentar-subida', { id }),
+        resume: id => action('/api/encargos/retomar', { id }),
+        retryMessage: item => action('/api/chat', { id: item.id, provider: item.provider || 'codex', mode: item.mode, model: item.model, text: item.text, ...(item.replyTo ? { replyTo: item.replyTo } : {}) }),
+      });
     }
     controls();
-    if (visible() && hasPending()) timer = setTimeout(load, 1200);
+    if (visible()) timer = setTimeout(load, 1500);
   }
-  function turn(item) {
-    const section = element('article', 'chat-turn');
-    const user = element('div', 'chat-bubble chat-user');
-    user.append(element('small', '', item.mode === 'change' ? 'Tú · Cambio en LA TERRAZA' : item.mode === 'auto' ? 'Tú' : 'Tú · Consulta'), element('p', '', item.text));
-    const reply = element('div', 'chat-bubble');
-    reply.append(element('small', '', providerLabel(item.provider) + ' · ' + (catalog.find(entry => entry.id === item.model)?.label || item.model)));
-    if (item.state === 'queued') {
-      reply.append(element('p', 'muted', 'En espera. Se ejecutará automáticamente al terminar el trabajo anterior.'));
-    } else if (item.state === 'working') {
-      reply.append(element('p', 'muted', item.waiting ? 'Encargo guardado. Empezará automáticamente cuando termine el anterior.' : item.batchId ? item.reply || 'Preparando los cambios…' : 'Leyendo tu mensaje…'));
-      if (item.batchId || item.mode === 'change') {
-        const queue = element('a', 'text-link', 'Ver cola de trabajo →');
-        queue.href = '#operaciones';
-        reply.append(queue);
-      }
-    } else {
-      reply.append(element('p', item.retryable ? 'muted' : item.state === 'error' ? 'form-message' : '', item.retryable ?
-        'Este mensaje no llegó a ejecutarse porque había otro trabajo en marcha.' : item.reply || 'Propuesta preparada.'));
-      if (item.retryable) {
-        const retry = button('Reintentar', async () => {
-          retry.disabled = true;
-          try { render(await api('/api/chat', 'POST', { id: item.id, provider: item.provider || 'codex', mode: item.mode, model: item.model, text: item.text, ...(item.replyTo ? { replyTo: item.replyTo } : {}) })); }
-          catch (error) { feedback(error.message, true); }
-          finally { retry.disabled = false; }
-        });
-        reply.append(retry);
-      }
-      if (item.state === 'question' && !item.answeredBy) reply.append(button('Responder', () => respond(item)));
-      if (item.taskIds?.length && ['proposal', 'error'].includes(item.state) && !item.answeredBy) {
-        reply.append(button('Pedir ajustes', () => respond(item)));
-      }
-      if (item.proposals?.length) {
-        const pending = item.proposals.filter(proposal => !getState()?.board.pushes?.['implementacion/' + proposal.taskId]?.integratedRevision);
-        reply.append(pending.length ? button('Subir', () => preparePublication(pending.map(proposal => 'implementacion/' + proposal.taskId))) :
-          element('strong', '', 'Aplicados y subidos a GitHub'));
-      }
-      if (item.proposal) {
-        if (item.proposal.summary) reply.append(element('p', 'muted', item.proposal.summary));
-        if (getState()?.board.pushes?.['implementacion/' + item.taskId]?.integratedRevision) reply.append(element('strong', '', 'Aplicada y subida a GitHub'));
-        else if (item.state === 'applied') reply.append(element('strong', '', 'Aplicada en este equipo'));
-        else reply.append(button('Subir', () => preparePublication(['implementacion/' + (item.taskId || 'terraza-' + item.id)])));
-      }
-      if (item.mode === 'change' && item.taskId) {
-        const delivery = element('a', 'text-link', 'Ir a los cambios →');
-        delivery.href = '#entregas/' + item.taskId;
-        reply.append(delivery);
-      }
-    }
-    if (item.progress?.length) {
-      const list = element('ul', 'chat-task-progress');
-      for (const task of item.progress) {
-        const title = getState()?.projectProfiles?.[task.app]?.name || task.app;
-        const label = task.status === 'en curso' ? 'En curso' : task.status === 'completado' ? 'Completado' :
-          ['fallido', 'interrumpido', 'bloqueado'].includes(task.status) ? 'Necesita atención' : 'En espera';
-        const row = element('li', '', title + ' · ' + label);
-        if (task.request) row.append(element('small', '', task.request));
-        if (task.error) row.append(element('small', 'muted', task.error));
-        if (['fallido', 'interrumpido', 'bloqueado'].includes(task.status)) {
-          const link = element('a', 'text-link', 'Ver trabajo →'); link.href = '#entregas/' + task.id; row.append(link);
-        }
-        list.append(row);
-      }
-      reply.append(list);
-    }
-    if (Number.isFinite(item.tokens)) reply.append(element('small', '', item.tokens.toLocaleString('es-ES') + ' tokens'));
-    section.append(user, reply);
-    return section;
+  async function action(path, body) {
+    try { await api(path, 'POST', body); await load(); }
+    catch (error) { feedback(error.message, true); }
   }
 
   function load() {
@@ -196,6 +138,24 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
     if (submit.disabled) return;
     const text = input.value.trim();
     if (!text) return formMessage(form, 'Escribe un mensaje para Codex.');
+    if (adjustment) {
+      if (!pending || pending.key !== adjustment.key || pending.text !== text) pending = { id: crypto.randomUUID(), key: adjustment.key, text };
+      try { sessionStorage.setItem(pendingKey, JSON.stringify(pending)); } catch {}
+      sending = true; controls(); formMessage(form);
+      try {
+        const submitted = pending;
+        await api('/api/encargos/ajustes', 'POST', { id: submitted.id, key: submitted.key, note: text });
+        pending = null;
+        if (adjustment?.key === submitted.key) adjustment = undefined;
+        if (input.value.trim() === text) input.value = '';
+        saveDraft();
+        try { sessionStorage.removeItem(pendingKey); } catch {}
+        await load();
+      } catch (error) { formMessage(form, error.message); }
+      finally { sending = false; controls(); }
+      return;
+    }
+    mode.value = pending?.text === text ? pending.mode || 'auto' : 'auto';
     const request = { text, provider: provider.value, model: model.value, mode: mode.value, ...(replyTo ? { replyTo } : {}) };
     if (!pending || ['text', 'provider', 'model', 'mode', 'replyTo'].some(key => request[key] !== (key === 'provider' ? pending[key] || 'codex' : pending[key]))) {
       pending = { id: crypto.randomUUID(), ...request };
@@ -209,45 +169,13 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
       render(await api('/api/chat', 'POST', pending));
       if (input.value.trim() === text && model.value === request.model && mode.value === request.mode) { input.value = ''; replyTo = undefined; saveDraft(); }
       pending = null;
+      mode.value = 'auto';
       try { sessionStorage.removeItem(pendingKey); } catch {}
-      log.scrollTop = log.scrollHeight;
+      input.focus();
     } catch (error) { formMessage(form, error.message); }
     finally { sending = false; controls(); }
   });
 
-  async function openReview(item) {
-    if (review.open) return;
-    selected = item;
-    $('chat-review-commit').textContent = 'Commit ' + item.proposal.commit.slice(0, 10);
-    $('chat-review-diff').textContent = 'Cargando las diferencias…';
-    $('chat-review-note').textContent = 'Subir aplica y guarda los cambios en GitHub. El resto se hace automáticamente.';
-    $('chat-review-error').hidden = true;
-    apply.disabled = true;
-    review.showModal();
-    try {
-      const result = await api('/api/chat/propuesta?id=' + encodeURIComponent(item.id));
-      if (selected !== item || !review.open) return;
-      $('chat-review-diff').textContent = result.patch;
-      if (result.truncated) $('chat-review-note').textContent += ' La vista muestra los primeros 90.000 caracteres del diff.';
-      apply.disabled = false;
-    } catch (error) {
-      $('chat-review-error').textContent = error.message;
-      $('chat-review-error').hidden = false;
-    }
-  }
-  apply.addEventListener('click', async () => {
-    if (apply.disabled || !selected) return;
-    const controls = review.querySelectorAll('button');
-    controls.forEach(node => { node.disabled = true; });
-    $('chat-review-error').hidden = true;
-    try {
-      review.close();
-      await preparePublication(['implementacion/' + (selected.taskId || 'terraza-' + selected.id)]);
-    } catch (error) {
-      $('chat-review-error').textContent = error.message;
-      $('chat-review-error').hidden = false;
-    } finally { controls.forEach(node => { node.disabled = false; }); }
-  });
   async function restartPanel() {
     restart.disabled = true;
     restart.textContent = 'Reiniciando…';
@@ -260,7 +188,7 @@ export function setupChat({ api, element, button, feedback, formMessage, prepare
       }
       throw new Error('El panel aún no responde. Abre el acceso directo de LA TERRAZA.');
     } catch (error) { feedback(error.message, true); }
-    finally { restart.disabled = false; restart.textContent = 'Reiniciar LA TERRAZA'; }
+    finally { restart.disabled = false; restart.textContent = 'Cargar actualización'; }
   }
   restart.addEventListener('click', restartPanel);
   return { restart: restartPanel, open() { load(); if (!catalog.length) loadModels(); } };

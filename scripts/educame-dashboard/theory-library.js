@@ -158,15 +158,15 @@ export const theoryLibrary = [
       },
       {
         id: 'codex', title: 'Codex local y una API', summary: 'Un agente puede usar la sesión local de Codex o llamar a un servicio con una clave.',
-        detail: 'Codex local, OpenAI API y Claude API pueden preguntar, coordinar y preparar cambios en copias Git aisladas. Elige el motor en el chat o en el encargo. La API tiene facturación propia. Los encargos nuevos conservan el modelo y la memoria; una segunda pasada revisa el cambio y se ejecutan pruebas antes de darlo por completado. Tú pulsas Subir para integrarlo. Copiador investiga con Codex o con la búsqueda de OpenAI.',
+        detail: 'Codex local, OpenAI API y Claude API pueden preguntar, coordinar y preparar cambios en copias Git aisladas. Elige el motor en el chat o en el encargo. La API tiene facturación propia. Los encargos nuevos conservan el modelo y la memoria; una segunda pasada revisa el cambio y se ejecutan pruebas antes de darlo por completado. La cola integra y sube automáticamente a GitHub los cambios que superan las comprobaciones. Puedes deshacer la última subida. Copiador investiga con Codex o con la búsqueda de OpenAI.',
         practice: 'Abre un resultado en Agentes y localiza su motor, su resultado y lo que queda por verificar.',
         link: ['Ver resultados', 'agentes/resultados'],
       },
       {
         id: 'automatizar', title: 'Cola, revisiones y límites', summary: 'Una automatización necesita pasos claros, dependencias y una salida comprobable.',
         detail: 'Si Marketing quiere enseñar un juego, necesita primero una versión revisada. Si dos encargos son independientes, pueden ejecutarse en paralelo. Una cola ayuda a identificar qué está pendiente y qué ya se puede revisar.',
-        practice: 'En Cola de trabajo, distingue un encargo listo de otro que espera el resultado de un paso anterior.',
-        link: ['Ver Cola de trabajo', 'operaciones'],
+        practice: 'En Encargos, distingue un encargo listo de otro que espera el resultado de un paso anterior.',
+        link: ['Ver encargos', 'chat'],
       },
     ],
   },

@@ -108,8 +108,21 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
   }
 
   function openComposer() {
-    $('#work-compose').open = true;
-    requestAnimationFrame(() => agentForm.elements.objective.focus());
+    location.hash = 'chat';
+    if (selectedAgents.has('copiador')) {
+      const dialog = $('#research-compose');
+      dialog.append($('#work-compose'));
+      $('#work-compose').open = true;
+      if (!dialog.open) dialog.showModal();
+      requestAnimationFrame(() => agentForm.elements.sources.focus());
+      return;
+    }
+    const specialist = [...selectedAgents].filter(id => id !== 'codex').map(id => agents[id]?.name).filter(Boolean).join(', ');
+    const app = agentForm.elements.app.value;
+    const objective = agentForm.elements.objective.value;
+    window.dispatchEvent(new CustomEvent('terrace-compose', { detail: {
+      app, text: objective || (specialist ? 'Con el agente ' + specialist + ', en ' + (apps[app]?.[0] || app) + ': ' : ''),
+    } }));
   }
 
   agentForm.addEventListener('input', () => {
@@ -159,8 +172,8 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
     const actions = element('div', 'product-actions');
     const task = button('Crear encargo', () => {
       agentForm.elements.app.value = id;
-      location.hash = 'agentes/nuevo';
-      requestAnimationFrame(() => agentForm.elements.objective.focus());
+      location.hash = 'chat';
+      window.dispatchEvent(new CustomEvent('terrace-compose', { detail: { app: id } }));
     });
     task.prepend(icon('plus'));
     const local = element('a', 'button secondary', id === 'hazlotu' ? 'Landing local' : 'Vista local');
@@ -339,7 +352,8 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
         try { sessionStorage.removeItem(batchDraftKey); } catch {}
         await refresh();
         renderTeam();
-        $('#team-activity').scrollIntoView({ block: 'nearest' });
+        if ($('#research-compose').open) $('#research-compose').close();
+        location.hash = 'chat';
       }
     } catch (error) {
       formMessage(agentForm, error.message);

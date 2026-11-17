@@ -48,7 +48,7 @@ export function createChat({ store, codex, providers, runner, implementation, re
               request: row.plan.tasks.find(task => task.id === id)?.encargo,
               status: jobs[id]?.status || 'pendiente', error: jobs[id]?.error })),
             waiting: batch?.state === 'queued', proposals,
-            reply: row.state === 'error' && !proposals.length ? row.reply : done ? integrated ? 'Cambios aplicados y subidos a GitHub.' : proposals.length === ids.length ? 'Cambios preparados. Puedes subirlos juntos.' :
+            reply: row.state === 'error' && !proposals.length ? row.reply : done ? integrated ? 'Cambios aplicados y subidos a GitHub.' : proposals.length === ids.length ? 'Implementación terminada. La cola continuará con la subida automática a GitHub.' :
               'Hay tareas que necesitan atención. Los resultados y las copias siguen guardados; los demás encargos pueden continuar.' : row.plan.reply,
             ...(row.state === 'error' && proposals.length ? { previousError: row.previousError || { reply: row.reply, recoveredAt: new Date().toISOString() } } : {}),
           };

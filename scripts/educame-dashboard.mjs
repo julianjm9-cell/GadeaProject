@@ -15,6 +15,7 @@ import { createRunner, RunnerError } from './educame-dashboard/runner.mjs';
 import { canRevalidate, createImplementation, ImplementationError } from './educame-dashboard/implementation.mjs';
 import { createChat } from './educame-dashboard/chat.mjs';
 import { createPublication } from './educame-dashboard/publication.mjs';
+import { createAutomaticPublication } from './educame-dashboard/automatic-publication.mjs';
 import { createKnowledge } from './educame-dashboard/knowledge.mjs';
 import { createProviders } from './educame-dashboard/api-agent.mjs';
 import { researchRole } from './educame-dashboard/research.mjs';
@@ -39,6 +40,7 @@ const assets = new Map([
   ['/terrace.css', ['terrace.css', 'text/css']],
   ['/terrace-hero.webp', ['terrace-hero.webp', 'image/webp']],
   ['/chat.js', ['chat.js', 'text/javascript']],
+  ['/queue-view.js', ['queue-view.js', 'text/javascript']],
   ['/agent-editor.js', ['agent-editor.js', 'text/javascript']],
   ['/icons.js', ['icons.js', 'text/javascript']],
   ['/icons.svg', ['icons.svg', 'image/svg+xml']],
@@ -195,6 +197,7 @@ export async function createDashboard({
   implementationOptions,
   ssh,
   restartProcess,
+  automaticPublication = false,
 } = {}) {
   await mkdir(directory, { recursive: true });
   const connections = await createConnections(directory, fetchImpl);
@@ -212,10 +215,11 @@ export async function createDashboard({
   const knowledge = createKnowledge({ store, root: repositoryRoot,
     readDelivery: key => implementationDelivery(key) });
   const runner = createRunner(store, directory, {
+    automaticPublication,
     model, baseRevision: implementation.base, recoverImplementation: implementation.recover,
     contextSnapshot: revision => knowledge.snapshot(revision),
     async readiness(mode, engine) {
-      if (publication.busy() || deliveryWork) throw new RunnerError(409, 'Espera a que termine la comprobación o publicación actual.');
+      if (publication.busy() || automatic?.ready() || deliveryWork) throw new RunnerError(409, 'Espera a que termine la comprobación o publicación actual.');
       if (mode !== 'prueba') {
         const status = await providers.get(engine).status();
         if (!status.ready) throw new RunnerError(503, status.message);
@@ -257,6 +261,8 @@ export async function createDashboard({
     readDelivery: implementationDelivery, revalidate,
     repair: async delivery => saveDelivery(delivery, await implementation.repair(delivery)), assertIdle: () => chat.assertIdle(),
     onApplied: () => { terraceNeedsRestart = true; }, localRemote: implementationOptions?.localRemote });
+  const automatic = automaticPublication ? createAutomaticPublication({ store, publication,
+    readDelivery: key => readJson(implementationPath(key.slice('implementacion/'.length)), null) }) : null;
   let appAvailability;
   let availabilityExpiry = 0;
 
@@ -350,7 +356,11 @@ export async function createDashboard({
     return changes.integrated(revision);
   }
 
+  const requests = new Set();
   const server = createServer(async (request, response) => {
+    let finishRequest;
+    const requestDone = new Promise(resolve => { finishRequest = resolve; });
+    requests.add(requestDone);
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Referrer-Policy', 'no-referrer');
@@ -369,6 +379,11 @@ export async function createDashboard({
       const path = url.pathname;
       if (restarting && request.method !== 'GET') throw new OperationError(409, 'LA TERRAZA se está reiniciando.');
       if (path === '/api/publicacion' && request.method === 'GET') return json(200, publication.status());
+      if (path === '/api/encargos/reintentar-subida' && request.method === 'POST') {
+        if (request.headers.origin !== origin) throw new OperationError(403, 'Usa la cola del panel local.');
+        if (!automatic) throw new OperationError(409, 'La cola automática no está activada en este servidor.');
+        return json(202, automatic.retry((await bodyJson(request)).id));
+      }
       if (path === '/api/encargos/ajustes' && request.method === 'POST') {
         if (request.headers.origin !== origin) throw new PanelError(403, 'Envía los ajustes desde el panel.');
         const { key, note, id } = await bodyJson(request);
@@ -566,7 +581,8 @@ export async function createDashboard({
         const history = await deliveries();
         const board = store.board();
         return json(200, { board, agentEditor: agentEditor(board.agentEdits), history: history.slice(0, 100), batch, batches, pendingBatches: runner.queued(),
-          terraceNeedsRestart,
+          terraceNeedsRestart, automaticPublication, automaticUploads: automatic?.status() || {}, publication: publication.status(),
+          currentRevision: await implementation.base().catch(() => null),
           model, apiReady: Boolean(activeApiKey()), providerAvailability: { codex: true, openai: Boolean(activeApiKey()), claude: Boolean(connections.claudeKey()) },
           concurrency, maxTasks, fixture, projectProfiles, memoryTopics });
       }
@@ -612,7 +628,7 @@ export async function createDashboard({
           providerModel || (await providers.get(engine).models())[0]?.id : providerModel;
         if (mode !== 'prueba' && engine !== 'codex' && (mode === 'implementacion' || engine === 'claude') && !chosenModel) throw new PanelError(503, 'Configura el proveedor y selecciona su modelo desde Conexiones.');
         return json(202, await runner.start({ mode, engine, providerModel: chosenModel, codexModel: engine === 'codex' ? providerModel : undefined,
-          qualityRequired: qualityRequired === true, tasks: selected, revision: queued ? revision : agentRevision,
+          qualityRequired: qualityRequired === true || (automaticPublication && mode === 'implementacion'), tasks: selected, revision: queued ? revision : agentRevision,
           consumeQueue: queued && consumeQueue === true, enqueue: true }));
       }
       if (request.method === 'POST' && path === '/api/encargos/retomar') {
@@ -661,20 +677,24 @@ export async function createDashboard({
             error instanceof RunnerError || error instanceof ImplementationError ||
             error instanceof OperationError)) console.error('Error del panel:', error.code || error.name);
       json(error.status || 500, { error: error.status ? error.message : 'No se pudo completar la operación local.' });
+    } finally {
+      requests.delete(requestDone);
+      finishRequest();
     }
   });
   let chatTimer;
   server.on('listening', () => {
-    chatTimer = setInterval(() => { publication.pump().then(() => runner.pump()).then(() => chat.pump()).catch(() => {}); }, 1000);
+    chatTimer = setInterval(() => { Promise.resolve(automatic?.pump()).then(() => publication.pump()).then(() => runner.pump()).then(() => chat.pump()).catch(() => {}); }, 1000);
     chatTimer.unref();
   });
   server.on('close', () => {
     clearInterval(chatTimer);
+    automatic?.close();
     chat.close();
     runner.close();
     previews.close();
     for (const view of implementationPreviews.values()) view.close();
-    Promise.allSettled([runner.wait(), hostinger.wait(), chat.wait(), deliveryWork, publication.wait()]).finally(store.close).catch(() => {});
+    Promise.allSettled([...requests, runner.wait(), hostinger.wait(), chat.wait(), deliveryWork, automatic?.wait(), publication.wait()]).finally(store.close).catch(() => {});
   });
   return server;
 }
@@ -683,6 +703,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const port = Number(process.env.EDUCAME_DASHBOARD_PORT || 4317);
   try {
     const server = await createDashboard({
+      automaticPublication: true,
       restartProcess() {
         const child = spawn(process.execPath, [fileURLToPath(import.meta.url)],
           { detached: true, windowsHide: true, stdio: 'ignore' });

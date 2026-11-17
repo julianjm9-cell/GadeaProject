@@ -40,10 +40,11 @@ async function fixture(t) {
   const command = 'node --test --test-isolation=none --test-name-pattern="un caso" tests/check.test.cjs';
   const servers = [];
   let implementationCount = 0;
-  async function start({ generate } = {}) {
+  async function start({ generate, automaticPublication = false } = {}) {
     const { createDashboard } = await import('../scripts/educame-dashboard.mjs');
-    const server = await createDashboard({ directory: data, repositoryRoot: root, apiKey: '', implementationOptions: { localRemote: true },
+    const server = await createDashboard({ automaticPublication, directory: data, repositoryRoot: root, apiKey: '', implementationOptions: { localRemote: true },
       codex: { status: async () => ({ ready: true }), generate, implement: async (task, cwd) => {
+        if (task.revision) return { draft: { resumen: 'Revisión de ensayo', entrega: 'Conservada la implementación.', comprobaciones: [], pendientes: [] }, checks: [{ command }] };
         implementationCount++;
         if (task.repair && task.id === 'roto') return { error: 'Necesita ajustar la consigna.' };
         if (task.integration) {
@@ -71,12 +72,14 @@ async function fixture(t) {
   return { root, git, remote, original, start, count: () => implementationCount };
 }
 async function wait(request, path, predicate) {
-  for (let i = 0; i < 500; i++) {
+  let latest;
+  for (let i = 0; i < 900; i++) {
     const result = await request(path).then(response => response.json());
+    latest = result;
     if (predicate(result)) return result;
     await new Promise(resolve => setTimeout(resolve, 20));
   }
-  assert.fail('La operación no terminó.');
+  assert.fail('La operación no terminó: ' + JSON.stringify({ uploads: latest?.automaticUploads, publication: latest?.publication, batch: latest?.batch }));
 }
 async function order(request, id, encargo) {
   assert.equal((await request('/api/encargos', { mode: 'implementacion', engine: 'codex',
@@ -245,4 +248,37 @@ test('Subir espera al encargo activo, conserva la solicitud al reabrir y publica
   assert.equal(done.state, 'published', done.message);
   assert.equal((await (await request('/api/publicacion/subir', payload)).json()).candidate, done.candidate);
   assert.equal((await f.git('ls-remote', 'origin', 'refs/heads/main')).split(/\s/)[0], done.candidate);
+});
+
+
+test('la cola implementa y sube sola, conserva recibos al reabrir y no vuelve a publicar lo deshecho', { timeout: 45000 }, async t => {
+  const f = await fixture(t), request = await f.start({ automaticPublication: true });
+  const initial = await order(request, 'automatico', 'Improved');
+  const batchId = initial.batch.id;
+  const done = await wait(request, '/api/panel', panel => panel.board.pushes['implementacion/automatico']?.integratedRevision);
+  const revision = done.board.pushes['implementacion/automatico'].integratedRevision;
+  assert.equal((await f.git('ls-remote', 'origin', 'refs/heads/main')).split(/\s/)[0], revision);
+  const reopened = await f.start({ automaticPublication: true });
+  await new Promise(resolve => setTimeout(resolve, 1300));
+  assert.equal(f.count(), 1, 'reabrir no repite la implementación');
+  assert.equal((await reopened('/api/panel').then(r => r.json())).automaticUploads.automatico.state, 'published');
+  const publication = await reopened('/api/publicacion').then(r => r.json());
+  await reopened('/api/publicacion/deshacer', { id: publication.id, candidate: publication.candidate });
+  const undone = await wait(reopened, '/api/panel', panel => panel.board.pushes['implementacion/automatico'].undoneRevision);
+  await new Promise(resolve => setTimeout(resolve, 1300));
+  assert.equal(await f.git('rev-parse', 'HEAD^{tree}'), await f.git('rev-parse', f.original + '^{tree}'));
+  assert.equal(f.count(), 1);
+  assert.equal((await reopened('/api/panel').then(r => r.json())).automaticUploads.automatico.state, 'undone');
+});
+
+test('un encargo incorrecto no se publica ni bloquea al siguiente de la cola automática', { timeout: 45000 }, async t => {
+  const f = await fixture(t), request = await f.start({ automaticPublication: true });
+  await request('/api/encargos', { mode: 'implementacion', engine: 'codex', tasks: [
+    { id: 'roto', app: 'ingles', agente: 'codex', encargo: 'Broken' },
+    { id: 'siguiente-auto', app: 'ingles', agente: 'codex', encargo: 'Improved' },
+  ] });
+  const done = await wait(request, '/api/panel', panel => panel.board.pushes['implementacion/siguiente-auto']?.integratedRevision);
+  assert.ok(['failed', 'attention'].includes(done.automaticUploads.roto.state));
+  assert.equal(done.board.pushes['implementacion/roto'], undefined);
+  assert.equal(f.count(), 3, 'implementación fallida, un intento de corrección y el siguiente encargo');
 });
