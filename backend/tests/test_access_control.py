@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import re
 from urllib.parse import parse_qs, urlparse
 from uuid import UUID
 
@@ -797,7 +798,9 @@ def test_cambridge_landing_has_direct_google_entry_and_working_assets(client):
     page = test_client.get("/cambridge-info").text
     assert 'href="/auth/google/login?next=%2Fcambridge"' in page
     assert 'id="previewDialog"' in page
-    assert page.count('data-preview-open=') == 3
+    assert sorted(re.findall(r'data-preview-open="([^"]+)"', page)) == [
+        'games', 'lessons', 'library', 'practice',
+    ]
     assert "https://educame.tech/cambridge-info" in test_client.get("/sitemap.xml").text
     for path in (
         "/assets/brand/ingles-simple.png",

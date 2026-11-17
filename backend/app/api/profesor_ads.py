@@ -24,15 +24,13 @@ from app.api.auth import rate_limit_key
 from app.auth.dependencies import require_superadmin
 from app.database.session import get_db
 from app.models import ProfesorAd, ProfesorAdReport, User
+from app.services.profesor_ad_policy import CONSENT_VERSION, TERMS_TEXT, PUBLICATION_TEXT
 
 
 router = APIRouter(tags=["profesor-ads"])
 IMAGE_DIR = Path("/app/data/documents/teacher-ads") if Path("/app").exists() else Path(__file__).resolve().parents[3] / "backend" / "data" / "documents" / "teacher-ads"
 MAX_IMAGE_BYTES = 5_000_000
 MAX_IMAGE_PIXELS = 12_000_000
-CONSENT_VERSION = "2026-11-13.1"
-TERMS_TEXT = "Soy mayor de edad, acepto las condiciones del tablón y tengo derecho a publicar este contenido e imagen. No incluyo datos de menores ni de terceros."
-PUBLICATION_TEXT = "Autorizo la publicación de mi anuncio e imagen. Mi contacto se conserva de forma privada para gestionar el anuncio y las solicitudes de contacto que reciba administración; no se muestra en el tablón. No incluyo contactos personales en el texto ni en la imagen. Puedo retirar mi consentimiento y borrar el anuncio con mi enlace privado o contactando con el titular."
 _ALL_SENDS: list[float] = []
 AD_COURSES = {
     "Infantil", *(f"{number}.º Primaria" for number in range(1, 7)),

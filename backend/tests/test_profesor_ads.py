@@ -102,6 +102,10 @@ def test_legal_pages_and_management_headers(client):
     web,_=client
     for path in ['/aviso-legal','/cookies','/privacidad','/profesor/condiciones']:
         assert web.get(path).status_code==200
+    terms = web.get('/profesor/condiciones').text
+    assert f'Versión {CONSENT_VERSION}.' in terms
+    assert 'El contacto se conserva de forma privada' in terms
+    assert 'El correo o teléfono profesional que decidas publicar también será público' not in terms
     page=web.get('/profesor/anunciar/gestionar')
     assert page.headers['referrer-policy']=='no-referrer'
     assert "frame-ancestors 'none'" in page.headers['content-security-policy']

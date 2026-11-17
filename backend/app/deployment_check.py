@@ -9,6 +9,7 @@ from sqlalchemy import inspect, text
 
 from app.database.session import engine
 from app.services.app_availability import PAUSE_MESSAGE
+from app.services.profesor_ad_policy import CONSENT_VERSION, TERMS_TEXT, PUBLICATION_TEXT
 
 
 PAUSABLE_PATHS = {
@@ -16,6 +17,19 @@ PAUSABLE_PATHS = {
     "/cambridge": "CAMBRIDGE",
     "/profesor-particular": "PROFESOR_PARTICULAR",
 }
+
+
+def verify_ad_policy(data: bytes) -> None:
+    try:
+        policy = json.loads(data)
+    except (ValueError, UnicodeDecodeError) as exc:
+        raise AssertionError("La política del tablón no devuelve JSON válido") from exc
+    assert isinstance(policy, dict), "La política del tablón no devuelve un objeto"
+    assert policy.get("version") == CONSENT_VERSION, "La API devuelve una versión de consentimiento distinta de la instalada"
+    assert policy.get("terms") == TERMS_TEXT, "Las condiciones de consentimiento de la API no coinciden con la versión instalada"
+    assert policy.get("publication") == PUBLICATION_TEXT, "La autorización de publicación de la API no coincide con la versión instalada"
+    assert policy.get("automatic_expiry") is False, "El tablón anuncia caducidad automática"
+    assert policy.get("automatic_deletion") is False, "El tablón anuncia borrado automático"
 
 
 def verify_expected_pause(exc: HTTPError, path: str, availability: dict) -> bool:
@@ -60,8 +74,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/privacidad": b"Pol\xc3\xadtica de privacidad",
         "/aviso-legal": b"06294184G",
         "/cookies": b"Cookies",
-        "/profesor/condiciones": b"2026-10-09.3",
-        "/api/profesor/ad-policy": b"2026-10-09.3",
+        "/profesor/condiciones": CONSENT_VERSION.encode("utf-8"),
+        "/api/profesor/ad-policy": CONSENT_VERSION.encode("utf-8"),
         "/profesor": b"/auth/google/login?next=%2Fprofesor-particular",
         "/profesor/seo.css": b".site-header",
         "/profesor/materiales-para-clases": b"Materiales para clase, sin empezar de cero",
@@ -367,6 +381,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
                 assert not product or not availability[product]["paused"], f"{path} responde aunque está pausada"
                 data = response.read()
                 assert response.status == 200 and expected in data, f"Respuesta incorrecta: {path}"
+                if path == "/api/profesor/ad-policy":
+                    verify_ad_policy(data)
                 if path == "/":
                     assert b'href="/profesor"' in data, "Falta Profesor Particular en la portada"
                 if path == "/profesor":
