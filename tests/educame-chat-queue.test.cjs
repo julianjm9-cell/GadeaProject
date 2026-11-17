@@ -146,3 +146,28 @@ test('las preguntas automáticas se responden aunque otro agente esté implement
  assert.equal((await get('/api/chat')).messages[0].reply,'Puedes seguir preguntando.');
  assert.equal((await get('/api/panel')).batch.state,'running');
 });
+
+test('el chat actualiza una entrega reparada y publicada sin reenviar agentes ni perder el error anterior', async t => {
+ const {createChat}=await import('../scripts/educame-dashboard/chat.mjs');
+ const {openPanelStore}=await import('../scripts/educame-dashboard/store.mjs');
+ const directory=await mkdtemp(join(tmpdir(),'educame-chat-queue-'));
+ const store=openPanelStore(directory,{tasks:[],reviews:{},pushes:{},revision:0});
+ const id=randomUUID(),taskId='reparada',commit='a'.repeat(40);let verified=false,calls=0,writes=0;
+ store.insert({id:'lote',state:'finished',jobs:{[taskId]:{status:'borrador'}}});
+ store.writeOperation('terrace-chat-v1',[{id,taskId,taskIds:[taskId],batchId:'lote',mode:'auto',state:'error',
+  text:'Arregla Inglés',reply:'Las pruebas necesitaban atención.',plan:{tasks:[{id:taskId,app:'ingles',encargo:'Arregla Inglés'}]}}]);
+ const write=store.writeOperation;store.writeOperation=(...args)=>{writes++;return write(...args);};
+ const chat=createChat({store,instance:'ensayo',implementation:{},assertIdle(){},
+  readDelivery:async()=>({id:taskId,app:'ingles',draft:{resumen:'Reparado'},implementation:{verified,commit,files:['apps/cambridge/index.html']}}),
+  runner:{start:async()=>{calls++;throw Error('No debe reenviar');}},codex:{coordinate:async()=>{calls++;throw Error('No debe consultar');}}});
+ t.after(async()=>{chat.close();await chat.wait();store.close();assert.equal(dirname(directory),tmpdir());await rm(directory,{recursive:true,force:true});});
+ assert.equal((await chat.read()).messages[0].state,'error');
+ verified=true;store.update({id:'lote',state:'finished',jobs:{[taskId]:{status:'completado'}}});
+ const repaired=(await chat.read()).messages[0];
+ assert.equal(repaired.state,'proposal');assert.equal(repaired.previousError.reply,'Las pruebas necesitaban atención.');
+ const board=store.board();store.writeBoard({...board,pushes:{['implementacion/'+taskId]:{commit,integratedRevision:commit}}});
+ const published=(await chat.read()).messages[0];
+ assert.match(published.reply,/subidos a GitHub/);assert.equal(published.proposals.length,1);
+ const before=writes;await chat.read();assert.equal(writes,before,'no reescribe estados idénticos');
+ await chat.wait();assert.equal(calls,0);
+});

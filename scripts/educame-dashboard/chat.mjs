@@ -24,7 +24,8 @@ export function createChat({ store, codex, providers, runner, implementation, re
 
   async function reconcile() {
     for (const row of entries()) {
-      if (!(row.state === 'working' || (row.mode === 'change' && row.state === 'error')) || row.id === activeId) continue;
+      if (!(row.state === 'working' || (row.mode === 'change' && row.state === 'error') ||
+        (row.batchId && row.taskIds && ['error', 'proposal'].includes(row.state))) || row.id === activeId) continue;
       if (row.batchId || row.mode === 'change') {
         const ids = row.taskIds || [row.taskId];
         const deliveries = (await Promise.all(ids.map(readDelivery))).filter(Boolean);
@@ -37,14 +38,21 @@ export function createChat({ store, codex, providers, runner, implementation, re
             summary: item.draft?.resumen, checks: item.checks,
           }));
           const done = batch?.state === 'finished';
-          update(row.id, { state: done ? (proposals.length ? 'proposal' : 'error') : 'working',
+          if (row.state !== 'working' && !done) continue;
+          const integrated = proposals.length === ids.length && proposals.every(proposal => {
+            const push = store.board().pushes?.['implementacion/' + proposal.taskId];
+            return push?.commit === proposal.commit && push.integratedRevision;
+          });
+          const next = { state: done ? (proposals.length ? 'proposal' : 'error') : 'working',
             progress: ids.map(id => ({ id, app: row.plan.tasks.find(task => task.id === id)?.app,
               request: row.plan.tasks.find(task => task.id === id)?.encargo,
               status: jobs[id]?.status || 'pendiente', error: jobs[id]?.error })),
             waiting: batch?.state === 'queued', proposals,
-            reply: done ? proposals.length === ids.length ? 'Cambios preparados. Puedes subirlos juntos.' :
+            reply: row.state === 'error' && !proposals.length ? row.reply : done ? integrated ? 'Cambios aplicados y subidos a GitHub.' : proposals.length === ids.length ? 'Cambios preparados. Puedes subirlos juntos.' :
               'Hay tareas que necesitan atención. Los resultados y las copias siguen guardados; los demás encargos pueden continuar.' : row.plan.reply,
-          }, row.state);
+            ...(row.state === 'error' && proposals.length ? { previousError: row.previousError || { reply: row.reply, recoveredAt: new Date().toISOString() } } : {}),
+          };
+          if (Object.entries(next).some(([name, value]) => JSON.stringify(row[name]) !== JSON.stringify(value))) update(row.id, next, row.state);
           continue;
         }
         if (delivery?.implementation?.verified) {
