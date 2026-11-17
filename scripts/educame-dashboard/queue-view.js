@@ -56,7 +56,11 @@ export function renderQueue({ state, messages, host, element, button, respond, r
       row.agent || ({ codex: 'Codex local', openai: 'OpenAI API', claude: 'Claude API' })[row.source?.provider || 'codex'], row.at && new Date(row.at).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })].filter(Boolean).join(' · ')),
       element('h3', '', row.title));
     heading.append(copy, element('span', 'order-status', labels[row.status]));
-    card.append(heading, element('p', 'order-detail', row.detail));
+    let detailText = row.detail;
+    if (row.source?.retryable) detailText = 'Este mensaje antiguo no llegó a ejecutarse. Puedes reintentarlo.';
+    else if (/^Falta la entrega de /.test(detailText || '')) detailText = 'Depende de otro encargo que todavía necesita una corrección.';
+    else if (/La revisión conserva puntos pendientes/.test(detailText || '')) detailText = 'Quedan ajustes pendientes. Pide al agente que los resuelva desde esta tarjeta.';
+    card.append(heading, element('p', 'order-detail', detailText));
     const actions = element('div', 'actions');
     if (row.delivery?.mode === 'real') actions.append(button('Ver resultado', () => openReport(row.delivery)));
     if (row.source?.state === 'question' && !row.source.answeredBy) actions.append(button('Responder', () => respond(row.source)));
