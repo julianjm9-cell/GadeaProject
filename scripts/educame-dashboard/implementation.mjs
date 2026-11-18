@@ -4,7 +4,7 @@ import { join, relative } from 'node:path';
 import { promisify } from 'node:util';
 import { randomUUID, createHash } from 'node:crypto';
 import { products } from './changes.mjs';
-import { qualityCommands, specialistAcceptance } from './quality-plan.mjs';
+import { qualityCommands, specialistAcceptance, checkTimeout } from './quality-plan.mjs';
 import { defaultAgents } from './agent-profiles.mjs';
 
 const exec = promisify(execFile);
@@ -96,7 +96,7 @@ export function createImplementation(root, directory, codex, { localRemote = fal
       if (!test) throw new ImplementationError(409, 'Hay una prueba que necesita ajustarse antes de ejecutarla en este equipo.');
       progress(command);
       const [program, args] = test;
-      const result = await exec(program, args, { cwd, env, windowsHide: true, timeout: 180_000, maxBuffer: 4 * 1024 * 1024 })
+      const result = await exec(program, args, { cwd, env, windowsHide: true, timeout: checkTimeout(command), maxBuffer: 4 * 1024 * 1024 })
         .then(() => ({ passed: true }), error => ({ passed: false,
           reason: error.killed ? 'timeout' : error.code === 'ENOENT' ? 'unavailable' : 'failed',
           diagnostic: String(error.stdout || error.stderr || error.message).slice(-6000) }));

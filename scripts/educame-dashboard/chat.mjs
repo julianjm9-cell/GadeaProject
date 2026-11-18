@@ -24,6 +24,17 @@ export function createChat({ store, codex, providers, runner, implementation, re
 
   async function reconcile() {
     for (const row of entries()) {
+      if (row.id === activeId) continue;
+      const ids = row.taskIds || (row.taskId ? [row.taskId] : []);
+      const jobs = row.batchId && store.batch?.(row.batchId)?.jobs;
+      if (ids.length && ids.every(id => /^[a-f0-9]{40}$/.test(jobs?.[id]?.externalCompletion?.revision || '') && typeof jobs[id].externalCompletion.summary === 'string')) {
+        const completions = ids.map(id => jobs[id].externalCompletion);
+        if (row.state !== 'answer' || JSON.stringify(row.externalCompletions) !== JSON.stringify(completions)) update(row.id, {
+          state: 'answer', previousError: row.previousError || { reply: row.reply }, waiting: false,
+          reply: 'Completado y subido a GitHub. ' + [...new Set(completions.map(item => item.summary))].join(' '), externalCompletions: completions,
+        }, row.state);
+        continue;
+      }
       if (!(row.state === 'working' || (row.mode === 'change' && row.state === 'error') ||
         (row.batchId && row.taskIds && ['error', 'proposal'].includes(row.state))) || row.id === activeId) continue;
       if (row.batchId || row.mode === 'change') {
@@ -33,12 +44,6 @@ export function createChat({ store, codex, providers, runner, implementation, re
         if (row.taskIds) {
           const batch = row.batchId && store.batch(row.batchId);
           const jobs = batch?.jobs || {};
-          if (ids.every(id => /^[a-f0-9]{40}$/.test(jobs[id]?.externalCompletion?.revision || '') && typeof jobs[id].externalCompletion.summary === 'string')) {
-            update(row.id, { state: 'answer', previousError: row.previousError || { reply: row.reply },
-              reply: 'Completado y subido a GitHub. ' + [...new Set(ids.map(id => jobs[id].externalCompletion.summary))].join(' '),
-              externalCompletions: ids.map(id => jobs[id].externalCompletion), waiting: false }, row.state);
-            continue;
-          }
           const proposals = deliveries.filter(item => item.implementation?.verified).map(item => ({
             taskId: item.id, app: item.app, commit: item.implementation.commit, files: item.implementation.files,
             summary: item.draft?.resumen, checks: item.checks,
@@ -89,7 +94,10 @@ export function createChat({ store, codex, providers, runner, implementation, re
 
   async function send(body) {
     const { id, model, replyTo, provider = 'codex' } = body;
-    const mode = body.mode || 'auto';
+    // Una aclaración de consulta conserva su modo también fuera de la interfaz.
+    const sourceMode = replyTo && entries().find(row => row.id === replyTo)?.mode;
+    const requestedMode = body.mode || 'auto';
+    const mode = sourceMode === 'ask' && ['auto', 'ask', 'change'].includes(requestedMode) ? 'ask' : requestedMode;
     const scope = body.scope ?? '';
     if (typeof scope !== 'string') throw new OperationError(400, 'Selecciona una conversación válida.');
     const [scopeApp, scopeArea] = scope.split('/');
@@ -192,8 +200,8 @@ export function createChat({ store, codex, providers, runner, implementation, re
           update(id, { batchId: batch.id, taskIds: plan.tasks.map(task => task.id), reply: plan.reply, waiting: batch.state === 'queued' }, 'working');
         }
       } else if (mode === 'ask') {
-        const result = await adapter.ask({ model, text: [row.scopeContext, text].filter(Boolean).join('\n\n'), history });
-        update(id, { state: 'answer', reply: result.answer, tokens: result.tokens }, 'working');
+        const result = await adapter.ask({ model, text: [row.scopeContext, row.context, text].filter(Boolean).join('\n\n'), history });
+        update(id, { state: result.action === 'clarify' ? 'question' : 'answer', reply: result.answer, tokens: result.tokens }, 'working');
       } else {
         const context = history.map(item => 'Mensaje anterior\n' + item.message + '\nRespuesta\n' + item.answer).join('\n\n').slice(-7600);
         const batch = await runner.start({ mode: 'implementacion', engine: provider, codexModel: provider === 'codex' ? model : undefined,

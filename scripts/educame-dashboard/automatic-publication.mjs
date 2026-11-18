@@ -63,7 +63,10 @@ export function createAutomaticPublication({ store, publication, readDelivery })
                 save(task.id, { state: 'failed', message: current.message }); continue;
               }
             }
-            if (['queued', 'preparing', 'publishing', 'published'].includes(current.state)) continue;
+            // Consume this receipt before another task can replace the shared publication.
+            // Its state can settle between status() and busy() in the same pump.
+            if (['queued', 'preparing', 'publishing'].includes(current.state)) return;
+            if (current.state === 'published') continue;
           }
           if (publication.busy() || store.batches().some(item => item.state === 'running')) return;
           attempt ||= save(task.id, { id: randomUUID(), state: 'waiting', keys, batchId: batch.id });

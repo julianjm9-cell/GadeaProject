@@ -1,6 +1,10 @@
 import { access } from 'node:fs/promises';
 import { join } from 'node:path';
 
+export function checkTimeout(command) {
+  return /^(?:npm(?:\.cmd)?\s+test(?:\s|$)|node(?:\.exe)?\s+tests[\\/]run-unit\.cjs(?:\s|$))/.test(command.trim()) ? 600_000 : 180_000;
+}
+
 export async function qualityCommands(cwd, app, files) {
   const candidates = {
     control: ['tests/educame-chat-queue.test.cjs', 'tests/educame-knowledge.test.cjs', 'tests/educame-providers.test.cjs'],

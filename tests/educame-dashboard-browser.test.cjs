@@ -25,6 +25,114 @@ for (const [name, engine, viewport] of [
   ['Chromium escritorio', chromium, { width: 1440, height: 950 }],
   ['WebKit móvil', webkit, { width: 390, height: 844 }],
 ]) {
+  test(`Entregas muestran pruebas y permiten ajustar sin catálogo en ${name}`, { timeout: 30000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
+    const server = await listen(t, directory, { codex: { status: async () => ({ ready: false }) } });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    server.browserForTest = browser;
+    const page = await browser.newPage({ viewport });
+    page.setDefaultTimeout(8000);
+    const errors = []; page.on('pageerror', error => errors.push(error.message));
+    let submitted;
+    const attempts = [];
+    let deliveryResult = 'Resultado ficticio';
+    await page.route('**/api/encargos/ajustes', async route => {
+      submitted = route.request().postDataJSON();
+      attempts.push(submitted);
+      if (attempts.length === 1) return route.fulfill({ status: 503, json: { error: 'Fallo ficticio al guardar el ajuste' } });
+      await route.fulfill({ status: 202, json: { id: 'ajuste-ficticio' } });
+    });
+    await page.route('**/api/panel', async route => {
+      const response = await route.fetch(), state = await response.json();
+      // Recibos antiguos sin fechas: no deben interrumpir el renderizado ni el sondeo.
+      state.batches = [{ id: 'lote-ficticio', state: 'finished', mode: 'implementacion', jobs: {}, tasks: [
+        { id: 'tarea-ficticia', app: 'control', agente: 'mantenimiento', encargo: 'Mejora ficticia del panel' },
+      ] }];
+      state.history = [{ id: 'tarea-ficticia', key: 'implementacion/tarea-ficticia', mode: 'implementacion',
+        encargo: 'Mejora ficticia del panel', implementation: { verified: true, commit: 'a'.repeat(40) },
+        draft: { entrega: deliveryResult, comprobaciones: ['Comprobación del agente'], pendientes: ['Validar con el propietario'] },
+        checks: [{ passed: true, command: 'node prueba-ficticia.cjs' }] }];
+      state.board.pushes = { 'implementacion/tarea-ficticia': { commit: 'a'.repeat(40), integratedRevision: 'b'.repeat(40) } };
+      await route.fulfill({ json: state });
+    });
+    await page.goto('http://127.0.0.1:' + server.address().port + '/#chat');
+    const card = page.locator('[data-order-id="tarea-ficticia"]');
+    await card.getByText('Completado', { exact: true }).waitFor();
+    await card.locator('summary').click();
+    await card.getByText('Comprobación del agente', { exact: true }).waitFor();
+    await card.getByText('Pasó · node prueba-ficticia.cjs', { exact: true }).waitFor();
+    await card.getByText('Validar con el propietario', { exact: true }).waitFor();
+    // Cambiar solo el historial debe actualizar la tarjeta durante el sondeo normal.
+    deliveryResult = 'Resultado ficticio actualizado';
+    await card.getByText(deliveryResult, { exact: true }).waitFor();
+    assert.deepEqual(errors, []);
+    assert.equal(await card.locator('details').evaluate(node => node.open), true);
+    // Simula una actualización de estado sin perder la lectura desplegada.
+    await page.evaluate(async () => {
+      const { renderQueue } = await import('/queue-view.js');
+      const state = await (await fetch('/api/panel')).json();
+      const host = document.createElement('div');
+      host.innerHTML = '<article data-order-id="tarea-ficticia"><details open></details></article>';
+      const element = (tag, cls = '', text = '') => { const node = document.createElement(tag); node.className = cls; node.textContent = text; return node; };
+      renderQueue({ state, host, element, button: text => element('button', '', text) });
+      if (!host.querySelector('details').open) throw Error('El resultado se ha cerrado');
+    });
+    await card.getByRole('button', { name: 'Pedir ajuste' }).click();
+    await page.getByLabel('¿Qué quieres hacer?').fill('Aclara el resultado ficticio');
+    await page.reload();
+    await page.getByRole('button', { name: 'Enviar ajuste', exact: true }).click();
+    await page.getByText('Fallo ficticio al guardar el ajuste', { exact: true }).waitFor();
+    // Una edición posterior al fallo es más reciente que el recibo pendiente.
+    await page.getByLabel('¿Qué quieres hacer?').fill('Ajuste ficticio editado después del fallo');
+    await page.reload();
+    assert.equal(await page.getByLabel('¿Qué quieres hacer?').inputValue(), 'Ajuste ficticio editado después del fallo');
+    await page.getByRole('button', { name: 'Enviar ajuste', exact: true }).waitFor();
+    // El recibo pendiente permite recuperar el ajuste aunque falte el borrador local.
+    await page.evaluate(() => localStorage.removeItem('terrace-chat-draft'));
+    await page.reload();
+    assert.equal(await page.getByLabel('¿Qué quieres hacer?').inputValue(), 'Aclara el resultado ficticio');
+    await page.getByRole('button', { name: 'Enviar ajuste', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('#chat-form textarea').value === '');
+    assert.equal(attempts.length, 2);
+    assert.equal(attempts[0].id, attempts[1].id);
+    assert.equal(submitted.key, 'implementacion/tarea-ficticia');
+    assert.equal(submitted.note, 'Aclara el resultado ficticio');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    assert.deepEqual(errors, []);
+  });
+
+
+  test(`Codex directo permite responder a una aclaración tras recargar en ${name}`, { timeout: 25000 }, async t => {
+    const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
+    const captured = [];
+    const server = await listen(t, directory, { codex: { status: async () => ({ ready: true }),
+      models: async () => [{ id: 'modelo', label: 'Modelo' }], ask: async input => {
+        captured.push(input);
+        return captured.length === 1 ? { action: 'clarify', answer: '¿Para qué nivel?' } :
+          { action: 'answer', answer: 'Clase ficticia preparada sin examen.' };
+      }, coordinate: () => assert.fail('Responder a una consulta directa no encarga cambios') } });
+    const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
+    server.browserForTest = browser;
+    const page = await browser.newPage({ viewport });
+    page.setDefaultTimeout(8000);
+    const base = 'http://127.0.0.1:' + server.address().port;
+    await page.goto(base + '/#chat');
+    const response = await page.request.post(base + '/api/chat', { headers: { Origin: base }, data: {
+      id: require('node:crypto').randomUUID(), mode: 'ask', model: 'modelo', text: 'Prepara una clase sin examen',
+    } });
+    assert.equal(response.status(), 202);
+    await page.getByRole('button', { name: 'Responder', exact: true }).click();
+    await page.getByLabel('¿Qué quieres hacer?').fill('Primero de ESO');
+    await page.reload();
+    await page.locator('#chat-reply-context').waitFor();
+    await page.getByRole('button', { name: 'Añadir a la cola', exact: true }).click();
+    await page.getByText('Clase ficticia preparada sin examen.', { exact: true }).waitFor();
+    assert.equal(captured.length, 2);
+    assert.match(captured[1].text, /Prepara una clase sin examen/);
+    assert.match(captured[1].text, /Primero de ESO/);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  });
+
   test(`Motores API se conectan, cambian de modelo y conservan el encargo en ${name}`, { timeout: 35000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
     let modelCalls = 0, messages = 0;

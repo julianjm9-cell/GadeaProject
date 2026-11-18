@@ -31,13 +31,22 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
   const draftKey = 'terrace-chat-draft';
   const scopedDraftKey = () => draftKey + (scope ? ':' + scope : '');
   const scopedPendingKey = () => pendingKey + (scope ? ':' + scope : '');
+  let restoredDraft;
   try {
     const draft = JSON.parse(localStorage.getItem(scopedDraftKey()));
+    restoredDraft = draft;
     if (draft && !pending) { input.value = draft.text || ''; replyTo = draft.replyTo; adjustment = draft.adjustment; }
   } catch {}
   try {
     pending = JSON.parse(sessionStorage.getItem(scopedPendingKey()));
-    if (pending) { input.value = pending.text; mode.value = pending.mode || 'auto'; provider.value = pending.provider || 'codex'; replyTo = pending.replyTo; }
+    if (pending) {
+      if (!restoredDraft) {
+        input.value = pending.text || '';
+        if (pending.key) { adjustment = { key: pending.key, title: pending.title || 'Entrega guardada' }; replyTo = undefined; }
+        else replyTo = pending.replyTo;
+      }
+      if (!pending.key) { mode.value = pending.mode || 'auto'; provider.value = pending.provider || 'codex'; }
+    }
   } catch {}
 
   function switchScope(next) {
@@ -49,9 +58,16 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
       if (draft) { input.value = draft.text || ''; replyTo = draft.replyTo; adjustment = draft.adjustment; }
       pending = JSON.parse(sessionStorage.getItem(scopedPendingKey()));
       if (pending) {
-        input.value = pending.text || '';
-        if (provider.value !== (pending.provider || 'codex')) { provider.value = pending.provider || 'codex'; catalog = []; model.replaceChildren(); loadModels(); }
-        else if (catalog.some(item => item.id === pending.model)) model.value = pending.model;
+        if (!draft) {
+          input.value = pending.text || '';
+          if (pending.key) { adjustment = { key: pending.key, title: pending.title || 'Entrega guardada' }; replyTo = undefined; }
+          else replyTo = pending.replyTo;
+        }
+        if (!pending.key) {
+          mode.value = pending.mode || 'auto';
+          if (provider.value !== (pending.provider || 'codex')) { provider.value = pending.provider || 'codex'; catalog = []; model.replaceChildren(); loadModels(); }
+          else if (catalog.some(item => item.id === pending.model)) model.value = pending.model;
+        }
       }
     } catch {}
     if (snapshot) { const previous = snapshot; snapshot = undefined; render(previous); }
@@ -75,10 +91,13 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
     $('chat-context-label').textContent = (scopeApps.find(app => app.id === scopeApp)?.name || scopeApp || '') + ' · ' + ({ app: 'App', landing: 'Landing', redes: 'Redes sociales' })[area];
     $('chat-general').disabled = sending;
 
-    submit.disabled = !snapshot || !model.value || sending;
+    submit.disabled = !snapshot || (!adjustment && !model.value) || sending;
+    submit.textContent = adjustment ? 'Enviar ajuste' : 'Añadir a la cola';
     $('chat-status').textContent = sending ? 'Enviando…' : queued() ?
       queued() + ' en espera. Se enviarán automáticamente cuando termine el trabajo actual.' :
-      isWorking() ? 'El agente está trabajando. Puedes añadir otro mensaje.' : modelStatus;
+      isWorking() ? 'El agente está trabajando. Puedes añadir otro mensaje.' : adjustment ? 'El ajuste continuará desde la copia guardada con su motor original.' : modelStatus;
+    model.required = !adjustment;
+    input.maxLength = adjustment ? 2000 : 4000;
     const change = mode.value === 'change';
     $('chat-mode-hint').textContent = mode.value === 'auto' ?
       'Pregunta o pide cambios en tus apps y en LA TERRAZA. Si falta algo, te preguntará aquí. El encargo se hace y se sube a GitHub automáticamente.' : change ?
@@ -93,7 +112,11 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
       context.hidden = !question && !adjustment;
       context.replaceChildren();
       if (question) context.append(element('span', '', 'Respondiendo: ' + question.reply), button('Cancelar respuesta', () => { replyTo = undefined; saveDraft(); controls(); }));
-      if (adjustment) context.append(element('span', '', 'Ajustando: ' + adjustment.title), button('Cancelar ajuste', () => { adjustment = undefined; saveDraft(); controls(); }));
+      if (adjustment) context.append(element('span', '', 'Ajustando: ' + adjustment.title), button('Cancelar ajuste', () => {
+        adjustment = undefined;
+        if (pending?.key) { pending = null; try { sessionStorage.removeItem(scopedPendingKey()); } catch {} }
+        saveDraft(); controls();
+      }));
     }
   }
   function saveDraft() { try { localStorage.setItem(scopedDraftKey(), JSON.stringify({ text: input.value, replyTo, adjustment })); } catch {} }
@@ -107,7 +130,7 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
 
   function render(data) {
     clearTimeout(timer);
-    const published = JSON.stringify([getState()?.board.pushes, getState()?.batches, getState()?.automaticUploads]);
+    const published = JSON.stringify([getState()?.board.pushes, getState()?.batches, getState()?.automaticUploads, getState()?.history]);
     const changed = JSON.stringify(snapshot?.messages) !== JSON.stringify(data.messages) || publications !== published;
     publications = published;
     snapshot = data;
@@ -174,7 +197,8 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
     const text = input.value.trim();
     if (!text) return formMessage(form, 'Escribe un mensaje para Codex.');
     if (adjustment) {
-      if (!pending || pending.key !== adjustment.key || pending.text !== text) pending = { id: crypto.randomUUID(), key: adjustment.key, text };
+      if (text.length > 2000) return formMessage(form, 'El ajuste admite hasta 2.000 caracteres. Acorta el texto; el borrador sigue guardado.');
+      if (!pending || pending.key !== adjustment.key || pending.text !== text) pending = { id: crypto.randomUUID(), key: adjustment.key, title: adjustment.title, text };
       try { sessionStorage.setItem(scopedPendingKey(), JSON.stringify(pending)); } catch {}
       sending = true; controls(); formMessage(form);
       try {
@@ -190,7 +214,8 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
       finally { sending = false; controls(); }
       return;
     }
-    mode.value = pending?.text === text ? pending.mode || 'auto' : 'auto';
+    mode.value = pending?.text === text ? pending.mode || 'auto' :
+      snapshot?.messages.find(item => item.id === replyTo)?.mode === 'ask' ? 'ask' : 'auto';
     const request = { ...(scope ? { scope } : {}), text, provider: provider.value, model: model.value, mode: mode.value, ...(replyTo ? { replyTo } : {}) };
     if (!pending || ['text', 'provider', 'model', 'mode', 'replyTo', 'scope'].some(key => request[key] !== (key === 'provider' ? pending[key] || 'codex' : pending[key]))) {
       pending = { id: crypto.randomUUID(), ...request };

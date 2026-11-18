@@ -11,6 +11,10 @@ import { coordinationPrompt, coordinationSchema } from './coordinator.mjs';
 const workspace = fileURLToPath(new URL('../../', import.meta.url));
 const stdoutLimit = 1_000_000;
 const maxRuntime = 180_000;
+const chatSchema = {
+  type: 'object', additionalProperties: false, required: ['action', 'answer'],
+  properties: { action: { type: 'string', enum: ['answer', 'clarify'] }, answer: { type: 'string' } },
+};
 const runnableTests = /^(?:node(?:\.exe)?\s+(?:--test\b|tests[\\/]run-unit\.cjs\b)|npm(?:\.cmd)?\s+(?:test\b|run\s+test:browser\b)|python(?:3)?\s+-m\s+pytest\b)/i;
 const baseEnv = /^(path|pathext|systemroot|windir|comspec|home|userprofile|appdata|localappdata|temp|tmp|programfiles(?:\(x86\))?|programdata|codex_home)$/i;
 
@@ -94,14 +98,17 @@ export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE 
     try {
       const input = board ? coordinationPrompt(board) + '\n\n' + JSON.stringify({ historial: history, mensaje: text, contexto_verificado: knowledge }) : 'Responde en español de forma clara. Eres el chat de LA TERRAZA, el panel local de Educame. ' +
         'Responde consultas generales y explica sus herramientas: Agentes, Entregas, Cambios, Conexiones, Operación, Publicar, Vídeo, Estadísticas y Teoría. ' +
-        'LA TERRAZA prepara implementaciones en copias Git aisladas. El usuario revisa y confirma cada aplicación local. ' +
+        'LA TERRAZA prepara implementaciones en copias Git aisladas; la cola revisa, comprueba e integra los cambios y los sube automáticamente a GitHub. Subir a GitHub y desplegar son pasos distintos. ' +
         'Esta consulta solo devuelve texto. Para encargar cambios está el chat automático de LA TERRAZA. ' +
+        'Si falta información o una decisión necesaria para responder bien, pregunta de forma breve y concreta y devuelve action clarify. ' +
+        'No inventes preferencias ni resuelvas por tu cuenta decisiones que cambian el objetivo. Si puedes responder con lo disponible, devuelve action answer. ' +
+        'Al recibir una aclaración, conserva la petición original y sus restricciones. Devuelve la respuesta o pregunta en answer según el esquema. ' +
         'No atribuyas al panel accesos, estados o cambios que no conozcas. Lee el historial como contexto y responde al mensaje actual.\n\n' +
         JSON.stringify({ historial: history, mensaje: text });
-      if (board) await writeFile(join(folder, 'plan.json'), JSON.stringify(coordinationSchema));
+      await writeFile(join(folder, 'plan.json'), JSON.stringify(board ? coordinationSchema : chatSchema));
       const result = await execute(executable, ['-a', 'never', 'exec', '--ignore-user-config', '--sandbox', 'read-only',
         '--config', 'features.shell_tool=false', '--config', 'web_search="disabled"', ...windowsSandbox,
-        '--skip-git-repo-check', '--ephemeral', '--json', ...(board ? ['--output-schema', join(folder, 'plan.json')] : []), '--model', model, '-'], input, maxRuntime, folder);
+        '--skip-git-repo-check', '--ephemeral', '--json', '--output-schema', join(folder, 'plan.json'), '--model', model, '-'], input, maxRuntime, folder);
       let answer, usage;
       for (const line of result.stdout.split(/\r?\n/)) {
         let event;
@@ -110,7 +117,11 @@ export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE 
         if (event.type === 'turn.completed') usage = event.usage;
       }
       if (result.code !== 0 || !answer?.trim()) throw new Error(result.error || 'Codex no completó la consulta.');
-      return { ...(board ? { plan: JSON.parse(answer) } : { answer: answer.trim().slice(0, 16000) }), tokens: usage ? (usage.input_tokens || 0) + (usage.output_tokens || 0) : null };
+      const value = JSON.parse(answer);
+      if (!board && (!['answer', 'clarify'].includes(value?.action) || typeof value.answer !== 'string' || !value.answer.trim())) {
+        throw new Error('Codex no devolvió una respuesta válida.');
+      }
+      return { ...(board ? { plan: value } : { action: value.action, answer: value.answer.trim().slice(0, 16000) }), tokens: usage ? (usage.input_tokens || 0) + (usage.output_tokens || 0) : null };
     } finally { await unlink(join(folder, 'plan.json')).catch(() => {}); await rmdir(folder).catch(() => {}); }
   }
 

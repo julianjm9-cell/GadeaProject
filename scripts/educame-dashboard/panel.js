@@ -46,6 +46,10 @@ environmentToggle.addEventListener('click', () => {
 });
 renderEnvironmentName();
 const dates = new Intl.DateTimeFormat('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+function displayDate(value) {
+  const date = new Date(value || '');
+  return Number.isNaN(date.getTime()) ? 'Fecha no disponible' : dates.format(date);
+}
 let state;
 let reviewing;
 let poll;
@@ -209,7 +213,7 @@ function renderHistory() {
     const copy = element('div');
     copy.append(
       element('p', 'item-title', delivery.externalCompletion?.summary || delivery.draft?.resumen || delivery.encargo),
-      element('p', 'item-meta', `${agentName(delivery)} · ${dates.format(new Date(delivery.finishedAt))}`),
+      element('p', 'item-meta', `${agentName(delivery)} · ${displayDate(delivery.finishedAt)}`),
     );
     const controls = element('div', 'actions');
     if (delivery.mode === 'prueba') controls.append(element('span', 'badge demo', 'Simulación'));
@@ -280,7 +284,7 @@ function render() {
     const detail = element('details', 'memory-detail');
     const kind = run.mode === 'implementacion' ? 'Implementación' : run.mode === 'prueba' ? 'Simulación' : 'Borrador';
     const label = run.state === 'queued' ? 'En espera' : run.state === 'running' ? 'En curso' : run.state === 'paused' ? 'Interrumpido' : 'Finalizado';
-    detail.append(element('summary', '', `${kind} · ${label} · ${dates.format(new Date(run.startedAt))}`));
+    detail.append(element('summary', '', `${kind} · ${label} · ${displayDate(run.startedAt || run.queuedAt)}`));
     for (const task of run.tasks) {
       const job = run.jobs[task.id];
       const row = element('p', '', agentName(task) + ' · ' + task.encargo + ' ');
@@ -471,7 +475,7 @@ function openDelivery(delivery) {
   const artifact = delivery.implementation;
   const verdict = deliveryVerdict(delivery);
   document.querySelector('#delivery-title').textContent = delivery.draft?.resumen || 'Detalle del encargo';
-  const meta = [delivery.mode === 'prueba' ? 'Simulación local' : delivery.model, dates.format(new Date(delivery.finishedAt))];
+  const meta = [delivery.mode === 'prueba' ? 'Simulación local' : delivery.model, displayDate(delivery.finishedAt)];
   if (delivery.app) meta.push(state.projectProfiles[delivery.app]?.name);
   if (verdict) meta.push(states[verdict.decision][0]);
   document.querySelector('#delivery-meta').textContent = meta.join(' · ');

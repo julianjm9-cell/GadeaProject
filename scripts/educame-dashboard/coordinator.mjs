@@ -22,6 +22,7 @@ export function coordinationPrompt(board) {
 Clasifica el mensaje como answer (consulta, sin editar), clarify (falta una decisión indispensable) o implement (petición de cambios autorizada).
 Una pregunta como «puedes arreglar ...» pide implementar. «Qué falta», «qué harías» o «explícame» pide una respuesta, salvo petición explícita de actuar.
 Si falta la app de destino y el historial no la aclara, pregunta antes de encargar. No supongas LA TERRAZA como destino por estar en este chat.
+También pregunta si falta información o una decisión indispensable sobre el objetivo, el alcance o el comportamiento esperado, aunque ya conozcas la app. Haz preguntas breves y concretas que permitan continuar; no inventes preferencias ni inicies tareas mientras esa decisión esté pendiente. Resuelve los detalles rutinarios con el contexto disponible sin pedir confirmaciones innecesarias.
 Si responde a una aclaración, conserva toda la petición original y sus restricciones. No pierdas partes de un encargo múltiple.
 Para implementar divide en un máximo de seis tareas concretas, una por app o pieza con objetivo propio; conserva varios juegos de la misma app en un pack.
 Usa after con el índice (desde cero) de una tarea anterior de la MISMA app si necesitan compartir código; si son independientes usa null.

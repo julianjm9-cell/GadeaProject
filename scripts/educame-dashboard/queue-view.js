@@ -45,6 +45,8 @@ export function queueEntries(state, messages = []) {
 }
 
 export function renderQueue({ state, messages, host, element, button, respond, retry, resume, retryMessage, adjust, openReport, scope = '' }) {
+  const expanded = new Set([...host.querySelectorAll('article[data-order-id]')]
+    .filter(card => card.querySelector('details')?.open).map(card => card.dataset.orderId));
   const labels = { queued: 'En cola', running: 'En curso', publishing: 'Subiendo a GitHub', completed: 'Completado',
     question: 'Necesita tu respuesta', attention: 'Necesita atención', undone: 'Deshecho' };
   const entries = queueEntries(state, messages).filter(row => !scope || row.source?.scope === scope);
@@ -70,12 +72,25 @@ export function renderQueue({ state, messages, host, element, button, respond, r
     if (row.publicationRetry) actions.append(button('Reintentar', () => retry(row.id)));
     else if (row.status !== 'completed' && row.batch?.state === 'paused') actions.append(button('Retomar', () => resume(row.batch.id)));
     else if (row.source?.retryable) actions.append(button('Reintentar', () => retryMessage(row.source)));
-    else if (row.status === 'attention' && row.delivery?.implementation) actions.append(button('Pedir ajuste', () => adjust(row.delivery)));
+    else if (['attention', 'completed'].includes(row.status) && row.delivery?.implementation && !row.delivery.externalCompletion) actions.append(button('Pedir ajuste', () => adjust(row.delivery)));
     else if (row.status === 'attention' && row.source && !row.source.answeredBy) actions.append(button('Pedir ajuste', () => respond(row.source)));
-    const result = row.delivery?.draft?.entrega || (row.delivery?.draft && JSON.stringify(row.delivery.draft, null, 2));
-    if (result) {
+    const draft = row.delivery?.draft;
+    const result = draft?.entrega || draft?.resumen;
+    if (result || row.delivery?.checks?.length || draft?.comprobaciones?.length || draft?.pendientes?.length) {
       const detail = element('details', 'order-result');
-      detail.append(element('summary', '', 'Resultado'), element('p', '', result));
+      detail.open = expanded.has(row.id);
+      detail.append(element('summary', '', 'Resultado y comprobaciones'));
+      if (result) detail.append(element('p', '', result));
+      for (const [title, items] of [
+        ['Comprobaciones indicadas por el agente', draft?.comprobaciones],
+        ['Pruebas registradas por el panel', Array.isArray(row.delivery?.checks) ? row.delivery.checks.map(check => `${check.passed ? 'Pasó' : 'No pasó'} · ${check.command}`) : []],
+        ['Pendientes indicados por el agente', draft?.pendientes],
+      ]) {
+        if (!Array.isArray(items) || !items.length) continue;
+        const list = element('ul');
+        list.append(...items.map(item => element('li', '', item)));
+        detail.append(element('h4', '', title), list);
+      }
       card.append(detail);
     }
     if (actions.childElementCount) card.append(actions);

@@ -101,9 +101,17 @@ El panel guarda cola, criterios, revisiones y progreso de los lotes en `.educame
 
 Para responder a una implementación, escribe qué quieres ajustar y pulsa **Pedir cambios**. El agente recibe la nota y continúa desde el código anterior. Los análisis sin implementación siguen preparando un encargo editable con el contexto original.
 
+El formulario de ajustes conserva el texto y el identificador del envío al recargar o fallar la conexión. La entrega ya fija el motor y el modelo: enviar un ajuste no depende de que el catálogo de modelos esté disponible en ese momento. **Resultado y comprobaciones** permite consultar el resultado sin abandonar la cola y mantiene abierto el detalle durante el sondeo.
+
+En el chat directo de consulta, Codex pregunta cuando falta una decisión necesaria. **Responder** conserva la petición original y sus restricciones, incluso tras recargar. Responder a esa aclaración sigue siendo una consulta; no convierte la conversación en una implementación por cambiar la opción del formulario.
+
 La copia aislada parte del `HEAD` confirmado en Git al iniciar el lote. Los cambios sin commit del escritorio quedan fuera. Revisión puede continuar desde el commit del agente que le precede. El panel marca **Completado** cuando la entrega tiene cambios permitidos, pasa las comprobaciones registradas y tiene un commit local. Si falta una comprobación o hay errores, la copia queda disponible para continuar el trabajo.
 
 El recorrido habitual termina con la subida automática confirmada por GitHub. La operación avanzada permite además revisar solicitudes de GitHub y desplegar en Hostinger por SSH con confirmación, o generar el comando para su consola.
+
+Cada subida guarda su resultado antes de empezar la siguiente. Una revisión fallida conserva su copia y no bloquea los encargos independientes. La batería completa `npm.cmd test` tiene un límite de diez minutos; las comprobaciones individuales mantienen tres minutos. Agotar el tiempo sigue siendo un fallo y no permite publicar.
+
+Si una entrega antigua se integra directamente en el repositorio, su cierre local debe señalar el commit comprobado en `main` remoto mediante `externalCompletion`. La reconciliación admite encargos antiguos con un solo `taskId` y los actuales con varios. Conserva el fallo original y las copias aisladas para diagnóstico; no vuelve a ejecutar ni presenta como verificada la copia antigua. Los recibos de publicación fallidos pueden quedar resueltos con esa referencia sin atribuirles una subida que no realizaron.
 
 Las entregas de LA TERRAZA se aplican y recargan automáticamente al subirlas. Los archivos técnicos de la entrega siguen guardados para diagnóstico, aunque la pantalla no muestre sus pruebas.
 

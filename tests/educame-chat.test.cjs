@@ -180,3 +180,75 @@ test('Chat usa el modelo elegido y aplica una revisión del panel solo después 
   assert.equal(await git('rev-parse', 'HEAD'), commit);
   assert.match(await readFile(join(root, file), 'utf8'), /Cambio desde GitHub/);
 });
+
+test('Codex directo devuelve preguntas estructuradas y rechaza respuestas inválidas', async () => {
+  const { createCodex } = await import('../scripts/educame-dashboard/codex.mjs');
+  let value = { action: 'clarify', answer: '¿Qué nivel necesitas?' };
+  const codex = createCodex({ execute: async (_program, args, input) => {
+    const schema = JSON.parse(await readFile(args[args.indexOf('--output-schema') + 1], 'utf8'));
+    assert.deepEqual(schema.properties.action.enum, ['answer', 'clarify']);
+    assert.ok(args.includes('read-only'));
+    assert.match(input, /pregunta de forma breve y concreta/);
+    return { code: 0, stdout: [
+      JSON.stringify({ type: 'item.completed', item: { type: 'agent_message', text: JSON.stringify(value) } }),
+      JSON.stringify({ type: 'turn.completed', usage: { input_tokens: 4, output_tokens: 3 } }),
+    ].join('\n') };
+  } });
+  const input = { text: 'Ayúdame a preparar una clase', model: 'ficticio', history: [] };
+  assert.deepEqual(await codex.ask(input), { action: 'clarify', answer: value.answer, tokens: 7 });
+  value = { action: 'answer', answer: 'Una propuesta de clase.' };
+  assert.equal((await codex.ask(input)).action, 'answer');
+  value = { action: 'implement', answer: 'No permitido' };
+  await assert.rejects(codex.ask(input), /respuesta válida/);
+});
+
+
+test('una pregunta directa sobrevive a recrear el chat y conserva el encargo al responder sin ejecutar cambios', async () => {
+  const { createChat } = await import('../scripts/educame-dashboard/chat.mjs');
+  let rows = [], calls = 0;
+  const options = { store: {
+    operation: () => rows, writeOperation: (_key, value) => { rows = value; }, transaction: work => work(),
+  }, codex: { status: async () => ({ ready: true }), models: async () => [{ id: 'ficticio' }],
+    ask: async input => {
+      calls++;
+      if (calls === 1) return { action: 'clarify', answer: '¿Qué nivel?' };
+      assert.match(input.text, /Petición original: Prepara una clase sin examen/);
+      assert.match(input.text, /Aclaración: ¿Qué nivel\?/);
+      assert.match(input.text, /Primero de ESO/);
+      return { action: 'answer', answer: 'Clase de ensayo para primero.' };
+    } }, runner: { start: () => assert.fail('Una consulta no inicia cambios') }, assertIdle() {} };
+  let chat = createChat(options);
+  const question = { id: randomUUID(), model: 'ficticio', mode: 'ask', text: 'Prepara una clase sin examen' };
+  await chat.send(question); await chat.wait();
+  assert.equal((await chat.read()).messages[0].state, 'question');
+  chat.close(); chat = createChat(options);
+  try {
+    assert.equal((await chat.read()).messages[0].reply, '¿Qué nivel?');
+    const reply = { ...question, mode: 'auto', id: randomUUID(), replyTo: question.id, text: 'Primero de ESO' };
+    await chat.send(reply); await chat.wait();
+    await chat.send(reply); await chat.wait();
+    assert.equal(calls, 2);
+    assert.equal(rows[0].answeredBy, reply.id);
+    assert.equal(rows[1].state, 'answer');
+    assert.equal(rows[1].mode, 'ask');
+    await assert.rejects(chat.send({ ...reply, id: randomUUID() }), { status: 409 });
+  } finally { chat.close(); await chat.wait(); }
+});
+
+test('una entrega directa reparada en main se cierra sin repetirla y conserva su fallo anterior', async () => {
+  const { createChat } = await import('../scripts/educame-dashboard/chat.mjs');
+  const id = randomUUID(), taskId = 'terraza-' + id;
+  let rows = [{ id, taskId, batchId: 'old-batch', mode: 'change', state: 'proposal', reply: 'Prueba pendiente' }], writes = 0;
+  const completion = { revision: 'a'.repeat(40), summary: 'Ajustes y aclaraciones reparados.' };
+  const store = { operation: () => rows, writeOperation: (_key, next) => { rows = next; writes++; }, transaction: work => work(),
+    batch: () => ({ jobs: { [taskId]: { externalCompletion: completion } } }) };
+  const chat = createChat({ store, readDelivery: () => assert.fail('No se debe reabrir la copia obsoleta'),
+    runner: { start: () => assert.fail('No debe repetirse el agente') } });
+  try {
+    const first = await chat.read();
+    assert.equal(first.messages[0].state, 'answer');
+    assert.equal(first.messages[0].previousError.reply, 'Prueba pendiente');
+    assert.deepEqual(first.messages[0].externalCompletions, [completion]);
+    await chat.read(); assert.equal(writes, 1);
+  } finally { chat.close(); await chat.wait(); }
+});

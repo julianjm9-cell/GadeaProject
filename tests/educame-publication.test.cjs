@@ -20,6 +20,33 @@ test('las comprobaciones de apps y pytest se reconocen sin aceptar comandos arbi
   assert.equal(ready('node --test tests/a.cjs; git push'), false);
 });
 
+test('la siguiente subida espera a registrar el fallo que termina durante el sondeo', async () => {
+  const { createAutomaticPublication } = await import('../scripts/educame-dashboard/automatic-publication.mjs');
+  const attempts = { primero: { id: 'subida-primera', state: 'uploading' } };
+  const data = { adopted: ['lote'], attempts };
+  let reads = 0, uploads = 0;
+  const automatic = createAutomaticPublication({
+    store: {
+      operation: () => data, writeOperation: (_, next) => Object.assign(data, next), transaction: fn => fn(),
+      batches: () => [{ id: 'lote', mode: 'implementacion', state: 'finished', jobs: {}, tasks: [{ id: 'primero' }, { id: 'segundo' }] }],
+      board: () => ({ reviews: {}, pushes: {} }),
+    },
+    readDelivery: async () => ({ implementation: { commit: 'a'.repeat(40) } }),
+    publication: {
+      status: () => ({ uploadId: 'subida-primera', state: ++reads === 1 ? 'preparing' : 'failed', message: 'Fallo ficticio conservado' }),
+      busy: () => false,
+      upload: async () => { uploads++; },
+    },
+  });
+  await automatic.pump();
+  assert.equal(uploads, 0, 'no reemplaza una publicación cuyo recibo está pendiente');
+  await automatic.pump();
+  assert.equal(attempts.primero.state, 'failed');
+  assert.equal(attempts.primero.message, 'Fallo ficticio conservado');
+  assert.equal(uploads, 1, 'el siguiente encargo continúa después de guardar el fallo');
+  automatic.close();
+});
+
 async function fixture(t) {
   const directory = await mkdtemp(join(tmpdir(), 'educame-publication-'));
   const root = join(directory, 'repo'), data = join(directory, 'data'), remote = join(directory, 'remote.git');
