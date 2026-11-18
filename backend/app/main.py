@@ -13,7 +13,7 @@ from app.database.runtime_schema import ensure_runtime_schema
 from starlette.responses import HTMLResponse, JSONResponse
 from app.services.app_availability import PAUSE_MESSAGE
 from app.services.app_registry import enforce_managed_access
-from app.api import private_apps
+from app.api import private_apps, chinchon
 
 
 settings = get_settings()
@@ -64,7 +64,7 @@ async def protect_ads(request, call_next):
         limit = 7_100_000
     elif path.startswith("/api/profesor/editor-drafts/"):
         limit = 1_100_000
-    bounded = protected or path in {"/api/state", "/api/study-appearance", "/api/chat", "/api/ocr", "/api/transcribe"} or path.startswith(("/auth/", "/api/profesor/", "/api/app-notifications/", "/api/private-apps/", "/admin/apps"))
+    bounded = protected or path in {"/api/state", "/api/study-appearance", "/api/chat", "/api/ocr", "/api/transcribe"} or path.startswith(("/auth/", "/api/profesor/", "/api/app-notifications/", "/api/private-apps/", "/api/arena-chinchon/", "/admin/apps"))
     if bounded and request.method in {"POST", "PUT", "PATCH"}:
         body = bytearray()
         async for chunk in request.stream():
@@ -100,6 +100,7 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=[host.strip() for host i
 
 app.include_router(auth.router)
 app.include_router(private_apps.router)
+app.include_router(chinchon.router)
 app.include_router(profesor_access.router)
 app.include_router(profesor_ads.router)
 app.include_router(profesor_material_sessions.router)

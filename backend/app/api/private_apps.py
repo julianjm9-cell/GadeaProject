@@ -10,7 +10,7 @@ from pathlib import Path
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, Field
 from PIL import Image, ImageOps, UnidentifiedImageError
 from sqlalchemy import delete, select, update
@@ -393,11 +393,13 @@ def app_page(db, app_id):
 
 @router.get("/gadeos")
 def gadeos_page(db: Session = Depends(get_db)):
-    return app_page(db, "gadeos")
+    return RedirectResponse(gadeos.PUBLIC_PATH, status_code=308, headers={"Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow"})
 
 
 @router.get("/a/{app_id}")
 def workspace_page(app_id: str, db: Session = Depends(get_db)):
+    if app_id == "gadeos":
+        return gadeos_page(db)
     return app_page(db, app_id)
 
 
@@ -415,7 +417,7 @@ def app_asset(template: str, filename: str):
 
 @router.get("/private-app-assets/gadeos/art/{filename}")
 def gadeos_art(filename: str):
-    if filename not in {"alliance-hero-v2.webp", "journey-v2.webp", "arena-v2.webp", "envelope-v2.webp", "emblem-v2.webp"}:
+    if filename not in {"alliance-hero-v2.webp", "journey-v2.webp", "arena-v2.webp", "envelope-v2.webp", "emblem-v2.webp", "title-lockup-v1.webp"}:
         raise HTTPException(404, "Ilustración no encontrada.")
     source = PROJECT_ROOT / "apps/gadeos/assets" / filename
     if not source.is_file():

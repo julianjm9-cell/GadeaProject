@@ -5,8 +5,8 @@ const { resolve } = require('node:path');
 
 test('La portada ofrece un único acceso identificado al espacio privado GADEOS', () => {
   const html = readFileSync(resolve(__dirname, '../marketing/app_landings_demo/index.html'), 'utf8');
-  const links = [...html.matchAll(/<a\b[^>]*href="\/gadeos"[^>]*>[\s\S]*?<\/a>/g)];
-  assert.equal(links.length, 1, 'Debe existir un único acceso directo a /gadeos');
+  const links = [...html.matchAll(/<a\b[^>]*href="\/juegos-del-hambre-chinchon"[^>]*>[\s\S]*?<\/a>/g)];
+  assert.equal(links.length, 1, 'Debe existir un único acceso directo a /juegos-del-hambre-chinchon');
   const link = links[0][0];
   assert.match(link, /Juegos del Hambre en Chinchón/);
   assert.match(link, /Acceso privado/);

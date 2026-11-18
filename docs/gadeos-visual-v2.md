@@ -40,7 +40,15 @@ Use case: stylized-concept. Asset type: single GADEOS fantasy collectible card f
 
 Use case: logo-brand. Asset type: GADEOS mobile game emblem for header and login, genuine transparent background. Both references are style references: fuse the GADEOS sapphire and gold compass emblem with the two golden yellow budgerigars and the fire ring. ONE compact circular icon: radiant eight-pointed gold compass star over a deep sapphire circular enamel medallion, encircled by half blue magical light and half amber flame. Two small golden budgerigar wing shapes frame the sides subtly, not a detailed busy scene. Centered symmetrical silhouette, premium fantasy game identity, glossy gold bevels, excellent readability when displayed at 48 pixels, clean alpha edges and generous transparent margin. No letters, words, numbers, title, ribbon, rectangle, scene or watermark: GADEOS will be typeset in HTML beside this emblem. Do not draw a user interface.
 
-## Comprobación
+## Título gráfico y nombre secreto · actualización
+
+La entrada y la cabecera usan `apps/gadeos/assets/title-lockup-v1.webp`, generado con la herramienta integrada `image_gen` y optimizado en WebP con transparencia. Se conserva el texto alternativo **JUEGOS DEL HAMBRE EN CHINCHÓN**. El título gráfico sustituye al nombre secreto en la navegación. Nueva dirección: `/juegos-del-hambre-chinchon`; API del jugador: `/api/arena-chinchon`; ilustraciones: `/aventura-chinchon-assets`.
+
+Prompt de generación del título:
+
+Use case: logo-brand. Asset type: production title artwork for a private mobile adventure game, transparent-background title lockup. Create a gorgeous yet very readable gold fantasy title with the EXACT Spanish text, no other words: 'JUEGOS DEL HAMBRE EN CHINCHÓN'. Arrange in THREE centered lines: line 1 'JUEGOS DEL', line 2 'HAMBRE', line 3 'EN CHINCHÓN'. Spell CHINCHÓN exactly including accent on the final Ó. Bold elegant monumental serif lettering with warm polished gold bevels, pale gold letter faces and deep sapphire blue outlines for strong contrast on a dark navy interface. Subtle ornate gold compass flourish behind the upper center, two SMALL golden yellow budgerigar wing motifs at the outer sides, a restrained sapphire magical glow on the left and warm amber fire glow on the right, all harmonious, premium illustrated fantasy adventure style. Prioritize readable letters and a compact coherent title silhouette when scaled to 300px wide. Landscape 3:2 composition, tight but safe margins, title fills roughly 85 percent of canvas. No background rectangle, no scene, no mockup, no extra wording, no GADEOS, no numeral, no watermark, no platform logo, no instructions. Genuine alpha transparency around the lettering and restrained decorative glow. Lettering is the main subject.
+
+## Verificación de la versión
 
 - Backend de ensayo: cuentas separadas, edición con revisión, migración de ocho a nueve sin pérdida, errores/aciertos, respuesta repetida, normalización de tildes, carta nueve y bloqueo de la batalla hasta terminar.
 - Chromium y WebKit móvil: entrada, planning, nueve pruebas, sobre y apertura, recarga, respuesta perdida recuperada, cartas y victoria.

@@ -19,6 +19,7 @@ PAUSABLE_PATHS = {
     "/cambridge": "CAMBRIDGE",
     "/profesor-particular": "PROFESOR_PARTICULAR",
     "/gadeos": "GADEOS",
+    "/juegos-del-hambre-chinchon": "GADEOS",
 }
 
 
@@ -107,8 +108,12 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/profesor/anuncios": "Tablón de profesores".encode("utf-8"),
         "/sitemap.xml": b"<urlset",
         "/gadeos": b"Nombre de tributo",
+        "/juegos-del-hambre-chinchon": b"Nombre de tributo",
+        "/aventura-chinchon-assets/app.js": b"/api/arena-chinchon",
+        "/aventura-chinchon-assets/style.css": b".journey",
+        "/aventura-chinchon-assets/art/title-lockup-v1.webp": b"RIFF",
         "/api/public/release": b"running_revision",
-        "/private-app-assets/gadeos/app.js": b"/api/private-apps/gadeos",
+        "/private-app-assets/gadeos/app.js": b"/api/arena-chinchon",
         "/private-app-assets/gadeos/style.css": b".journey",
         "/private-app-assets/gadeos/art/alliance-hero-v2.webp": b"RIFF",
         "/private-app-assets/gadeos/art/journey-v2.webp": b"RIFF",

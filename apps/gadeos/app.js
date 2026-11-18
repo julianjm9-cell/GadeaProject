@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
-const apiRoot = '/api/private-apps/gadeos';
-const art = name => '/private-app-assets/gadeos/art/' + name + '-v2.webp';
+const apiRoot = '/api/arena-chinchon';
+const art = name => '/aventura-chinchon-assets/art/' + name + '-v2.webp';
 const total = () => state.campaign.stations.length;
 let state, busy = false, selectedCard = null;
 const el = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; };
@@ -34,7 +34,7 @@ window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); }
 
 async function action(path, payload = {}) {
   const request = { ...payload, revision: state.revision, request_id: crypto.randomUUID() };
-  const storageKey = 'gadeos-pending:' + state.account.id;
+  const storageKey = 'arena-pending:' + state.account.id;
   try {
     const pending = JSON.parse(sessionStorage.getItem(storageKey));
     if (pending?.path === path && JSON.stringify(pending.payload) === JSON.stringify(payload) && pending.revision === state.revision) request.request_id = pending.id;
@@ -68,7 +68,7 @@ function packArt(className = '') {
 }
 function reward(card, sealed = true) {
   const host = $('reward-content'); host.replaceChildren();
-  const view = el('section', 'reward-view'); view.append(el('p', 'eyebrow', 'COLECCIÓN GADEOS'), el('h2', '', sealed ? '¡Sobre conseguido!' : card.title)); view.querySelector('h2').id = 'reward-title';
+  const view = el('section', 'reward-view'); view.append(el('p', 'eyebrow', state.collection_name ? 'COLECCIÓN ' + state.collection_name : 'COLECCIÓN DE LA ALIANZA'), el('h2', '', sealed ? '¡Sobre conseguido!' : card.title)); view.querySelector('h2').id = 'reward-title';
   function reveal() {
     envelope.replaceWith(cardArt(card, true)); open.remove();
     const keep = button('Continuar recorrido', () => {

@@ -13,6 +13,9 @@ from app.models.private_apps import PrivateAppProgress
 
 CONFIG_KEY = "private_campaign:gadeos"
 STATION_COUNT = 9
+PUBLIC_PATH = "/juegos-del-hambre-chinchon"
+PUBLIC_API = "/api/arena-chinchon"
+PUBLIC_ASSETS = "/aventura-chinchon-assets"
 
 
 def planning_config(value=None):
@@ -160,7 +163,9 @@ def progress_payload(db, account):
     data = copy.deepcopy(row.data or {})
     completed = data.get("completed", 0)
     config = campaign(db)
+    discovered = bool(data.get("secret_discovered")) or any(index < completed and normalized(station["solution"]) == "gadeos" for index, station in enumerate(config["stations"]))
     return {"account": {"id": str(account.id), "name": account.name}, "revision": row.revision, "completed": completed,
+            "secret_discovered": discovered, "collection_name": "GADEOS" if discovered else None,
             "cards": [{"id": i + 1, **(station["card"] if i < completed else {"title": "Sobre " + str(i + 1), "description": "", "image": None}), "owned": i < completed} for i, station in enumerate(config["stations"])],
             "campaign": public_campaign(config, completed), "battle": data.get("battle"), "victory": data.get("victory", False)}
 
@@ -203,6 +208,8 @@ def complete_station(db, account, payload):
         if not valid:
             raise HTTPException(422, "Esa respuesta no es correcta. Revisa la pista e inténtalo de nuevo.")
         data["completed"] = payload.station
+        if normalized(station["solution"]) == "gadeos":
+            data["secret_discovered"] = True
     return mutate(db, account, payload.revision, payload.request_id, apply)
 
 

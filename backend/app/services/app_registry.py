@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.database.session import get_db
 from app.models import AppSetting
 from app.services.app_availability import is_app_paused, PAUSE_MESSAGE, PRODUCT_CODES
+from app.services import gadeos
 
 REGISTRY_KEY = "managed_app_registry:v1"
 DEFAULTS = [
@@ -20,7 +21,7 @@ DEFAULTS = [
     {"id": "universidad", "name": "Universidad +25", "product": "UNIVERSIDAD_ADULTOS", "path": "/universidad-adultos", "landing": "/u25", "prefixes": ["/universidad-adultos", "/universidad-25", "/u25"]},
     {"id": "facturas", "name": "Facturas", "product": "OCR_FACTURAS", "path": "/facturas", "landing": "/ocr-facturas", "prefixes": ["/facturas", "/ocr-facturas", "/api/ocr"]},
     {"id": "hazlotu", "name": "HazloTú", "product": "HAZLOTU", "path": "/hazlo-tu", "landing": "/hazlo-tu", "prefixes": ["/hazlo-tu", "/hazlotu"]},
-    {"id": "gadeos", "name": "GADEOS · La arena de los recuerdos", "product": "GADEOS", "path": "/gadeos", "landing": None, "prefixes": [], "template": "arena", "state": "privada", "personal": True},
+    {"id": "gadeos", "name": "GADEOS · La arena de los recuerdos", "product": "GADEOS", "path": gadeos.PUBLIC_PATH, "landing": None, "prefixes": ["/gadeos"], "template": "arena", "state": "privada", "personal": True},
 ]
 ASSET_PREFIXES = {"profesor": ("/assets/profesor-", "/profesor-"), "ingles": ("/assets/cambridge-", "/assets/listening/"),
                   "eso": ("/assets/eso-",), "diplomator": ("/assets/diplomator-",)}
@@ -33,6 +34,8 @@ def registry(db: Session) -> dict:
     apps = [{"state": "publica", "template": "existing", **app, **overrides.pop(app["id"], {})} for app in DEFAULTS]
     apps.extend(overrides.values())
     for app in apps:
+        if app["id"] == "gadeos":
+            app["path"] = gadeos.PUBLIC_PATH
         app["visibility"] = app["state"]
         if is_app_paused(db, app["product"]):
             app["state"] = "pausada"
@@ -122,7 +125,7 @@ def touch_registry(db: Session):
 def enforce_managed_access(request: Request, db: Session = Depends(get_db)):
     """Global route dependency: changing a label never grants private access."""
     path = request.url.path
-    if path.startswith(("/admin", "/api/private-apps/", "/gadeos", "/a/", "/auth/google/", "/auth/login", "/auth/refresh", "/auth/logout")):
+    if path.startswith(("/admin", "/api/private-apps/", gadeos.PUBLIC_API + "/", gadeos.PUBLIC_PATH, "/gadeos", "/a/", "/auth/google/", "/auth/login", "/auth/refresh", "/auth/logout")):
         return
     raw = str(request.headers.get("x-client-app") or request.query_params.get("app") or "").lower().replace("-", "_")
     code = {"profesor_particular": "PROFESOR_PARTICULAR", "eso_adultos": "ESO_ADULTOS", "cambridge": "CAMBRIDGE",

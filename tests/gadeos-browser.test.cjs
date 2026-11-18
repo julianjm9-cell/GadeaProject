@@ -29,7 +29,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   config.media={poster:await upload(manifest.poster),envelope:materialRoot?await upload(manifest.envelope||manifest.poster):null,source:'b'.repeat(64),guide:[]};
   for(const entry of manifest.guide)config.media.guide.push({title:entry.title,image:await upload(entry.file),text:entry.text||''});
   assert.equal((await page.request.put(base+'/admin/apps/gadeos/campaign',{headers,data:config})).status(),200);
-  await page.context().clearCookies();await page.goto(base+'/gadeos');await page.getByRole('heading',{name:'JUEGOS DEL HAMBRE EN CHINCHÓN',exact:true}).waitFor();
+  await page.context().clearCookies();await page.goto(base+'/juegos-del-hambre-chinchon');await page.getByRole('heading',{name:'JUEGOS DEL HAMBRE EN CHINCHÓN',exact:true}).waitFor();
   await page.waitForFunction(()=>document.querySelector('.login-scene')?.naturalWidth>0);
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-login-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
   assert.equal((await page.request.get(base+config.media.poster)).status(),401);
@@ -37,7 +37,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   await page.getByLabel('Nombre de tributo').fill('Alma');await page.getByLabel('Contraseña',{exact:true}).fill('ensayo-seguro-123');await page.getByRole('button',{name:/Entrar en la arena/}).click();
   await page.getByText('TU TRIBUTO · Alma',{exact:true}).waitFor();
   await page.waitForFunction(()=>document.querySelector('.event-poster')?.naturalWidth>0);
-  assert.equal(await page.locator('.bottom-nav a').count(),3);
+  assert.equal(await page.locator('.bottom-nav a').count(),3);assert.doesNotMatch(await page.locator('body').innerText(),/GADEOS/);assert.ok(page.url().includes('/juegos-del-hambre-chinchon'));await page.waitForFunction(()=>document.querySelector('.brand-title')?.naturalWidth>0);
   await page.getByRole('heading',{name:'Vuestro planning',exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'Guía',exact:true}).count(),0);
   const cta=await page.locator('.next-step').boundingBox(),nav=await page.locator('.bottom-nav').boundingBox();assert.ok(cta.y+cta.height<=nav.y,'El siguiente paso queda visible por encima de la navegación.');
@@ -56,7 +56,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
    await input.fill(config.stations[i].solution);
    await dialog.getByRole('button',{name:'Comprobar y abrir sobre'}).click();
    if(i===0){await dialog.getByRole('alert').waitFor({state:'visible'});await dialog.getByRole('button',{name:'Comprobar y abrir sobre'}).click();}
-   await page.getByRole('button',{name:'Abrir sobre',exact:true}).waitFor().catch(async error=>{await page.screenshot({path:'.educame-agents/gadeos-failed.png',fullPage:true,animations:"disabled"});throw Error('Estación '+(i+1)+': '+await page.locator('#challenge').innerText()+'; errores='+JSON.stringify(errors));});await page.waitForFunction(()=>document.querySelector('.earned-pack img')?.naturalWidth>0);await page.locator('.earned-pack').evaluate(node=>Promise.all(node.getAnimations().map(animation=>animation.finished)));assert.equal(await page.locator('.earned-pack').evaluate(node=>getComputedStyle(node).opacity),'1');if(i===0&&process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-pack-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});await page.getByRole('button',{name:'Abrir sobre',exact:true}).click();await page.locator('.reward-card').waitFor();await page.getByRole('button',{name:'Continuar recorrido',exact:true}).click();
+   await page.getByRole('button',{name:'Abrir sobre',exact:true}).waitFor().catch(async error=>{await page.screenshot({path:'.educame-agents/gadeos-failed.png',fullPage:true,animations:"disabled"});throw Error('Estación '+(i+1)+': '+await page.locator('#challenge').innerText()+'; errores='+JSON.stringify(errors));});await page.waitForFunction(()=>document.querySelector('.earned-pack img')?.naturalWidth>0);if(i<7)assert.doesNotMatch(await page.locator('body').innerText(),/GADEOS/);if(i===7)assert.match(await page.locator('#reward').innerText(),/COLECCIÓN GADEOS/);await page.locator('.earned-pack').evaluate(node=>Promise.all(node.getAnimations().map(animation=>animation.finished)));assert.equal(await page.locator('.earned-pack').evaluate(node=>getComputedStyle(node).opacity),'1');if(i===0&&process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-pack-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});await page.getByRole('button',{name:'Abrir sobre',exact:true}).click();await page.locator('.reward-card').waitFor();await page.getByRole('button',{name:'Continuar recorrido',exact:true}).click();
    if(i===0){await page.reload();await page.locator('[data-station="2"]').waitFor();assert.equal(await page.locator('[data-station="2"]').isEnabled(),true);assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).cards.filter(card=>card.owned).length,1);}
   }
   assert.ok(lost);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
