@@ -209,13 +209,23 @@ dialog::backdrop { background:#020916de; backdrop-filter:blur(9px); -webkit-back
 .food-marker-body.clustered { border-radius:50%; background:#f4d592; color:#153026; }
 .food-marker-body.clustered>span { font:bold 17px system-ui,sans-serif; }
 .food-marker:focus-visible { outline:3px solid #126fd1; outline-offset:5px; border-radius:50%; }
+.refuge-bar { display:flex; align-items:center; gap:10px; margin:0 0 12px; padding:10px 12px; border:1px solid #e9c87588; border-radius:15px; background:#f6d88516; }
+.refuge-symbol { flex:none; display:grid; place-items:center; width:36px; height:36px; border-radius:11px; background:#e9c875; color:#17243a; font-size:26px; line-height:1; }
+.refuge-copy { flex:1; min-width:0; display:grid; gap:2px; }
+.refuge-copy strong { color:#ffe3a4; font-size:13px; }
+.refuge-copy small { color:var(--muted); font-size:11px; }
+.refuge-locate { min-height:38px; padding:7px 9px; font-size:11px; background:transparent; }
+.refuge-google { color:#ffe3a4; font-size:11px; white-space:nowrap; }
+.refuge-marker-body { display:grid; place-items:center; width:48px; height:48px; border:3px solid #fff0b3; border-radius:15px 15px 15px 5px; transform:rotate(-45deg); background:linear-gradient(140deg,#eebd64,#bd7a28); color:#11243c; font:bold 35px Georgia,serif; line-height:1; box-shadow:0 0 0 4px #163a67,0 6px 18px #0008; }
+.refuge-marker-body span { transform:rotate(45deg); }
+.refuge-marker:focus-visible { outline:3px solid #126fd1; outline-offset:5px; border-radius:15px; }
 .food-popup { min-width:160px; font-family:system-ui,sans-serif; }
 .food-popup strong { font-size:15px; color:#1a332d; }
 .food-popup p { color:#4e5e58; font-size:12px; line-height:1.5; }
 .food-popup .food-rating { color:#65420c; background:#f6e9c9; }
 .food-popup .food-google { display:block; color:#1c5948; }
 @media(max-width:799px) { .food-layout { grid-template-columns:1fr; } .food-map-column { position:static; } .food-map { height:360px; } .food-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media(max-width:550px) { .food-cards { grid-template-columns:1fr; } .food-card { padding:18px; } .bottom-nav a { font-size:10px; } .planning-time { width:91px; } .food-filters { gap:6px; } .food-filters button { padding:9px 11px; font-size:11px; } }
+@media(max-width:550px) { .food-cards { grid-template-columns:1fr; } .food-card { padding:18px; } .bottom-nav a { font-size:10px; } .planning-time { width:91px; } .food-filters { gap:6px; } .food-filters button { padding:9px 11px; font-size:11px; } .refuge-bar { flex-wrap:wrap; } .refuge-google { margin-left:46px; } }
 
 .planning-locked { display:flex; align-items:center; gap:12px; padding:18px 0; color:#b6c3d4; font-size:12px; letter-spacing:.08em; }
 .planning-locked svg { flex:none; width:18px; height:20px; fill:none; stroke:currentColor; stroke-width:1.6; }

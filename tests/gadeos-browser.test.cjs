@@ -50,6 +50,12 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   await page.waitForFunction(()=>document.querySelector('.leaflet-image-layer')?.naturalWidth>0).catch(async error=>{throw Error(error.message+'; JS='+JSON.stringify(errors)+'; mapa='+await page.locator('#restaurant-map').innerHTML());});
   assert.equal(await page.locator('[data-restaurant]').count(),12);
   assert.ok(await page.locator('.food-marker').count()>0);
+  assert.equal(await page.locator('.refuge-marker').count(),1);
+  assert.match(await page.locator('.refuge-bar .refuge-google').getAttribute('href'),/^https:\/\/www\.google\.com\/maps\/place\//);
+  await page.locator('.refuge-bar .refuge-locate').click();await page.locator('.leaflet-popup-content strong').getByText('Nuestro refugio',{exact:true}).waitFor();
+  assert.match(await page.locator('.leaflet-popup-content').innerText(),/Plaza Mayor, 36/);
+  await page.locator('.leaflet-popup-close-button').click();
+  await page.getByRole('button',{name:'Ver todos',exact:true}).click();
   const widthBeforeZoom=(await page.locator('.leaflet-image-layer').boundingBox()).width;await page.locator('.food-marker-body.clustered').first().click();
   await page.waitForFunction(width=>document.querySelector('.leaflet-image-layer').getBoundingClientRect().width>width,widthBeforeZoom);
   await page.getByRole('button',{name:'Ver todos',exact:true}).click();
@@ -59,9 +65,10 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   await coffee.getByRole('button',{name:'Ver en mapa',exact:true}).click();await page.locator('.leaflet-popup-content strong').getByText('Tomeguín & Colibrí',{exact:true}).waitFor();
   await page.locator('.leaflet-popup-close-button').click();
   await page.getByRole('button',{name:'Cuevas y vino',exact:true}).click();assert.equal(await page.locator('[data-restaurant]').count(),3);
+  assert.equal(await page.locator('.refuge-marker').count(),1);
   assert.match(await page.locator('[data-restaurant="bayona"]').innerText(),/Titulcia/);assert.equal(await page.locator('[data-restaurant="bayona"]').getByRole('button',{name:'Ver en mapa'}).count(),0);
   await page.getByRole('button',{name:'Todos',exact:true}).click();assert.equal(await page.locator('[data-restaurant]').count(),12);
-  await page.reload();await page.locator('.leaflet-container').waitFor();assert.equal(await page.locator('[data-restaurant]').count(),12);
+  await page.reload();await page.locator('.leaflet-container').waitFor();assert.equal(await page.locator('[data-restaurant]').count(),12);assert.equal(await page.locator('.refuge-marker').count(),1);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.locator('.bottom-nav a[href="#recorrido"]').click();assert.equal(await page.locator('[data-station="2"]').isEnabled(),false);
   assert.equal(await page.locator('[data-station]').count(),9);
