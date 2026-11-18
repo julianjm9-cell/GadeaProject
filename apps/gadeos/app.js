@@ -2,6 +2,8 @@ const $ = id => document.getElementById(id);
 const apiRoot = '/api/arena-chinchon';
 const art = name => '/aventura-chinchon-assets/art/' + name + '-v2.webp';
 const total = () => state.campaign.stations.length;
+// Percent coordinates on the native 1024 × 1536 illustration, from the start to the town.
+const routeStops = [[58,93], [47,82], [70,72], [40,65], [28,55.5], [64,50.5], [20,35.6], [75,28.5], [49,23.3]];
 let state, busy = false, selectedCard = null;
 const el = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; };
 const icon = name => { const node = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); const use = document.createElementNS(node.namespaceURI, 'use'); use.setAttribute('href', '#i-' + name); node.append(use); node.setAttribute('aria-hidden', 'true'); return node; };
@@ -30,6 +32,24 @@ $('login-form').addEventListener('submit', async event => {
 });
 $('logout').addEventListener('click', async () => { try { await api('/logout', {}); showLogin(); } catch (error) { note(error.message); } });
 document.querySelectorAll('dialog .close').forEach(node => node.addEventListener('click', () => node.closest('dialog').close()));
+const rewardDialog = $('reward');
+rewardDialog.addEventListener('click', () => { if (rewardDialog.dataset.rewardView === 'celebration') rewardDialog.close(); });
+rewardDialog.addEventListener('keydown', event => {
+  if (rewardDialog.dataset.rewardView === 'celebration' && ['Enter', ' '].includes(event.key)) { event.preventDefault(); rewardDialog.close(); }
+});
+rewardDialog.addEventListener('close', () => {
+  const celebrate = rewardDialog.dataset.rewardView === 'celebration';
+  delete rewardDialog.dataset.rewardView;
+  if (!celebrate || !state) return;
+  const page = state.completed >= total() ? 'batalla' : 'recorrido';
+  if (location.hash !== '#' + page) location.hash = page;
+  else render();
+  requestAnimationFrame(() => {
+    if (!state) return;
+    const next = document.querySelector('[data-station="' + (state.completed + 1) + '"]') || $('main');
+    next.focus({ preventScroll: true });
+  });
+});
 window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
 
 async function action(path, payload = {}) {
@@ -52,13 +72,12 @@ async function action(path, payload = {}) {
   }
 }
 
-function cardArt(card, large = false) {
-  const node = el(large ? 'div' : 'button', large ? 'reward-card' : 'collectible' + (card.owned ? '' : ' locked'));
-  if (!large) { node.type = 'button'; node.setAttribute('aria-label', card.owned ? 'Ver carta ' + card.title : 'Carta ' + card.id + ', bloqueada'); node.addEventListener('click', () => card.owned ? reward(card, false) : note('Esta carta se consigue al completar la estación ' + card.id + '.')); }
+function cardArt(card) {
+  const node = el('button', 'collectible' + (card.owned ? '' : ' locked'));
+  node.type = 'button'; node.setAttribute('aria-label', card.owned ? 'Ver carta ' + card.title : 'Carta ' + card.id + ', bloqueada');
   if (card.owned && card.image) { const img = el('img'); img.src = card.image; img.alt = ''; img.loading = 'lazy'; node.append(img); }
   else { const image = el('img', 'card-emblem'); image.src = art('emblem'); image.alt = ''; node.append(image); }
   node.append(el('strong', '', card.owned ? card.title : 'Sobre ' + card.id));
-  if (large) node.append(el('p', '', card.description));
   return node;
 }
 function packArt(className = '') {
@@ -66,21 +85,14 @@ function packArt(className = '') {
   const image = el('img'); image.src = state.campaign.media?.envelope || art('envelope'); image.alt = ''; pack.append(image);
   return pack;
 }
-function reward(card, sealed = true) {
+function reward() {
   const host = $('reward-content'); host.replaceChildren();
-  const view = el('section', 'reward-view'); view.append(el('p', 'eyebrow', state.collection_name ? 'COLECCIÓN ' + state.collection_name : 'COLECCIÓN DE LA ALIANZA'), el('h2', '', sealed ? '¡Sobre conseguido!' : card.title)); view.querySelector('h2').id = 'reward-title';
-  function reveal() {
-    envelope.replaceWith(cardArt(card, true)); open.remove();
-    const keep = button('Continuar recorrido', () => {
-      $('reward').close(); location.hash = state.completed >= total() ? 'batalla' : 'recorrido';
-      document.querySelector('[data-station="' + (state.completed + 1) + '"]')?.focus();
-    }, 'primary'); view.append(keep); keep.focus();
-  }
-  const envelope = packArt('earned-pack');
-  const open = button('Abrir sobre', reveal, 'primary');
-  if (sealed) view.append(el('p', 'earned-label', 'SOBRE ' + card.id + ' DE ' + total() + ' CONSEGUIDO'), envelope, open);
-  else view.append(cardArt(card, true), button('Volver', () => $('reward').close(), 'primary'));
-  host.append(view); if (!$('reward').open) $('reward').showModal();
+  const pair = el('div', 'reward-pair'); pair.append(packArt('earned-pack'), packArt('earned-pack')); host.append(pair);
+  rewardDialog.dataset.rewardView = 'celebration';
+  rewardDialog.removeAttribute('aria-labelledby');
+  rewardDialog.setAttribute('aria-label', 'Dos sobres conseguidos. Toca para continuar o pulsa Intro o Escape.');
+  if (!rewardDialog.open) rewardDialog.showModal();
+  rewardDialog.focus();
 }
 function home(host) {
   const schedule = state.campaign.planning || { day: 'Viernes', place: 'Chinchón', start: '16:00', final: '22:00' };
@@ -103,37 +115,46 @@ function home(host) {
 }
 
 function journey(host) {
-  const intro = el('header', 'journey-intro');
-  const image = el('img', 'collection-cover'); image.src = art('alliance-hero'); image.alt = ''; intro.append(image);
-  const copy = el('div', 'journey-copy'); copy.append(el('p', 'eyebrow', 'LA COLECCIÓN DE VUESTRA ALIANZA'), el('h1', '', 'Vuestro recorrido'), el('p', '', 'Responde. Abre tu sobre. Sigue la aventura.')); intro.append(copy); host.append(intro);
-  const progress = el('div', 'route-progress'), meter = el('progress'); meter.max = total(); meter.value = state.completed; meter.setAttribute('aria-label', 'Pruebas completadas');
-  progress.append(el('strong', '', state.completed + ' de ' + total() + ' sobres'), meter); host.append(progress);
+  const heading = el('header', 'journey-heading'), count = el('span', 'route-count', state.completed + ' / ' + total());
+  count.setAttribute('aria-label', state.completed + ' de ' + total() + ' pruebas completadas');
+  heading.append(el('h1', '', 'Recorrido'), count); host.append(heading);
   const list = el('div', 'journey');
+  list.setAttribute('role', 'group'); list.setAttribute('aria-label', 'Camino de las nueve pruebas');
+  const image = el('img', 'journey-map'); image.src = art('journey'); image.alt = ''; image.width = 1024; image.height = 1536; list.append(image);
   for (const station of state.campaign.stations) {
-    const node = button('', () => station.completed ? reward(state.cards[station.number - 1]) : challenge(station), 'station ' + (station.locked ? 'locked' : station.completed ? 'done' : 'current'));
+    const node = button(String(station.number), () => challenge(station), 'station ' + (station.locked ? 'locked' : station.completed ? 'done' : 'current'));
     node.disabled = station.locked; node.dataset.station = station.number;
-    const number = el('span', 'station-node'); number.append(station.locked ? icon('lock') : station.completed ? icon('check') : document.createTextNode(String(station.number).padStart(2, '0')));
-    const copy = el('span', 'station-copy'); copy.append(el('small', '', station.locked ? 'BLOQUEADA' : station.completed ? 'SOBRE CONSEGUIDO' : 'SIGUIENTE PRUEBA'), el('strong', '', station.title.split('\n')[0]));
-    node.append(number, copy, packArt('station-pack')); list.append(node);
+    node.setAttribute('aria-label', 'Prueba ' + station.number + (station.locked ? ', bloqueada' : station.completed ? ', completada' : ', siguiente prueba'));
+    if (!station.locked && !station.completed) node.setAttribute('aria-current', 'step');
+    const [x, y] = routeStops[station.number - 1]; node.style.left = x + '%'; node.style.top = y + '%'; list.append(node);
   }
   host.append(list);
-  const final = button(state.completed >= total() ? 'Entrar en la batalla final →' : 'La batalla se abre con los ' + total() + ' sobres', () => { location.hash = 'batalla'; }, 'primary'); final.disabled = state.completed < total(); host.append(final);
+  requestAnimationFrame(() => {
+    if (!list.isConnected) return;
+    const next = list.querySelector('.current'); if (!next) return;
+    const bounds = next.getBoundingClientRect(), bottom = document.querySelector('.bottom-nav').getBoundingClientRect().top;
+    if (bounds.top < 8 || bounds.bottom > bottom - 12) next.scrollIntoView({ block: 'center' });
+  });
 }
 
 function challenge(station) {
   const host = $('challenge-content'); host.replaceChildren();
   host.append(el('p', 'eyebrow', 'PRUEBA ' + String(station.number).padStart(2, '0') + ' / ' + total()));
   const title = el('h2', 'challenge-prompt', station.title); title.id = 'challenge-title'; host.append(title);
+  if (station.completed) {
+    host.append(button('Ver sobres', () => { $('challenge').close(); reward(); }, 'primary'));
+    $('challenge').showModal(); return;
+  }
   const form = el('form'), error = el('p', 'error'); error.setAttribute('role', 'alert'); error.hidden = true;
   const label = el('label', '', 'Tu respuesta'), input = el('input'); input.name = 'answer'; input.required = true; input.autocomplete = 'off'; input.maxLength = 100; label.append(input); form.append(label);
   let answer = ''; input.addEventListener('input', () => { answer = input.value; });
 
-  const submit = el('button', 'primary', 'Comprobar y abrir sobre'); submit.type = 'submit'; form.append(submit, error);
+  const submit = el('button', 'primary', 'Comprobar'); submit.type = 'submit'; form.append(submit, error);
   form.addEventListener('submit', async event => {
     event.preventDefault(); if (busy) return; error.hidden = true;
     if (!answer || (Array.isArray(answer) && !answer.length)) { error.textContent = 'Resuelve la prueba antes de comprobar.'; error.hidden = false; return; }
     busy = true; submit.disabled = true;
-    try { await action('/stations/answer', { station: station.number, campaign_revision: state.campaign.revision, answer }); $('challenge').close(); render(); reward(state.cards[station.number - 1]); }
+    try { await action('/stations/answer', { station: station.number, campaign_revision: state.campaign.revision, answer }); $('challenge').close(); render(); reward(); }
     catch (problem) { error.textContent = problem.message; error.hidden = false; }
     finally { busy = false; submit.disabled = false; }
   });
@@ -150,7 +171,7 @@ async function move(actionName) {
 }
 function battle(host) {
   host.append(el('p', 'eyebrow', 'LA ÚLTIMA ALIANZA'), el('h1', '', 'La batalla final'));
-  if (state.completed < total()) { const locked = el('section', 'battle-lock'); locked.append(icon('lock'), el('h2', '', 'La arena aún no está abierta'), el('p', '', 'Consigue los ' + total() + ' sobres del recorrido para enfrentarte al centinela.'), button('Volver al recorrido', () => { location.hash = 'recorrido'; }, 'primary')); host.append(locked); return; }
+  if (state.completed < total()) { const locked = el('section', 'battle-lock'); locked.append(icon('lock'), el('h2', '', 'La arena aún no está abierta'), el('p', '', 'Completa las ' + total() + ' pruebas del recorrido para enfrentarte al centinela.'), button('Volver al recorrido', () => { location.hash = 'recorrido'; }, 'primary')); host.append(locked); return; }
   const fight = state.battle;
   if (!fight || fight.state !== 'playing') {
     const start = el('section', 'battle-result'); start.append(el('div', 'trophy'), el('h2', '', fight?.state === 'won' ? 'Vuestra alianza ha vencido' : fight?.state === 'lost' ? 'La arena te da otra oportunidad' : state.campaign.boss),
@@ -168,6 +189,7 @@ function battle(host) {
   host.append(actions, button(selectedCard ? 'Carta preparada: ' + state.cards[selectedCard - 1].title + ' · cambiar' : 'Preparar una carta · bonus de alianza', chooseCard, 'card-select'), el('p', 'battle-log', fight.log));
 }
 function chooseCard() {
+  rewardDialog.dataset.rewardView = 'cards'; rewardDialog.removeAttribute('aria-label'); rewardDialog.setAttribute('aria-labelledby', 'reward-title');
   const host = $('reward-content'); host.replaceChildren(); const title = el('h2', '', 'Tu carta de alianza'); title.id = 'reward-title'; host.append(title, el('p', 'muted', 'Cada carta puede usarse una vez por batalla. Añade fuerza o recuperación a tu siguiente movimiento.'));
   const grid = el('div', 'collection'); for (const card of state.cards) { const node = cardArt(card); node.disabled = state.battle.used_cards.includes(card.id); const clone = node.cloneNode(true); clone.addEventListener('click', () => { selectedCard = card.id; $('reward').close(); render(); }); grid.append(clone); }
   host.append(grid, button('Jugar sin carta', () => { selectedCard = null; $('reward').close(); render(); }, 'quiet')); $('reward').showModal();

@@ -68,7 +68,7 @@ def default_campaign():
                'Completa la frase «Siempre ____».']
     solutions = ['ALIANZA', 'TIEMPO', 'CHINCHON', 'REFUGIO', 'HORIZONTE', 'BRINDIS', 'COMPLICIDAD', 'GADEOS', 'JUNTOS']
     prompts = [title + '\n' + prompt for title, prompt in zip(titles, prompts)]
-    return {"revision": 0, "challenge_format": 2, "title": "La arena de los recuerdos", "intro": "Un viaje a Chinchón. Nueve sobres. Vuestra propia alianza.",
+    return {"revision": 0, "challenge_format": 2, "title": "La arena de los recuerdos", "intro": "Un viaje a Chinchón. Nueve pruebas. Vuestra propia alianza.",
             "media": media_config(), "planning": planning_config(),
             "boss": "El centinela de la arena", "ending": "La mejor recompensa es haber recorrido este camino juntos.",
             "stations": [{"number": i + 1, "title": prompts[i], "story": "",
@@ -86,7 +86,7 @@ def campaign(db):
     defaults = default_campaign()["stations"]
     if len(result["stations"]) == STATION_COUNT - 1:
         result["stations"].append(copy.deepcopy(defaults[-1]))
-    if result.get("intro") == "Un viaje a Chinchón. Ocho sobres. Vuestra propia alianza.":
+    if result.get("intro") in {"Un viaje a Chinchón. Ocho sobres. Vuestra propia alianza.", "Un viaje a Chinchón. Nueve sobres. Vuestra propia alianza."}:
         result["intro"] = default_campaign()["intro"]
     old_prompts = ['Llega puntual al bus y consigue el código de esta primera parada.', None,
                    'Habéis llegado a Chinchón. Busca el código del siguiente sobre.',

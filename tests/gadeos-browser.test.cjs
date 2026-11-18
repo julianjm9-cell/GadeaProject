@@ -45,19 +45,53 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-home-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   await page.locator('.bottom-nav a[href="#recorrido"]').click();assert.equal(await page.locator('[data-station="2"]').isEnabled(),false);
   assert.equal(await page.locator('[data-station]').count(),9);
-  await page.waitForFunction(()=>document.querySelector('.collection-cover')?.naturalWidth>0);
+  await page.waitForFunction(()=>document.querySelector('.journey-map')?.naturalWidth>0);
+  async function checkRoute(){
+   const geometry=await page.locator('.journey').evaluate(root=>{
+    const image=root.querySelector('.journey-map').getBoundingClientRect();
+    return {width:image.width,height:image.height,ratio:image.height/image.width,nodes:[...root.querySelectorAll('[data-station]')].map(node=>{const box=node.getBoundingClientRect();return {text:node.textContent,width:box.width,height:box.height,x:100*(box.x+box.width/2-image.x)/image.width,y:100*(box.y+box.height/2-image.y)/image.height};})};
+   });
+   assert.ok(Math.abs(geometry.ratio-1.5)<.01,'La imagen conserva sus proporciones sin recortes.');
+   const stops=[[58,93],[47,82],[70,72],[40,65],[28,55.5],[64,50.5],[20,35.6],[75,28.5],[49,23.3]];
+   geometry.nodes.forEach((node,i)=>{assert.equal(node.text,String(i+1));assert.ok(node.width>=48&&node.width<=61&&Math.abs(node.width-node.height)<1);assert.ok(Math.abs(node.x-stops[i][0])<.4&&Math.abs(node.y-stops[i][1])<.4,'Cada número sigue el camino al cambiar de tamaño.');});
+   for(let i=0;i<geometry.nodes.length;i++)for(let j=i+1;j<geometry.nodes.length;j++){const a=geometry.nodes[i],b=geometry.nodes[j];assert.ok(Math.hypot((a.x-b.x)*geometry.width/100,(a.y-b.y)*geometry.height/100)>(a.width+b.width)/2,'Los botones circulares no se superponen.');}
+   assert.equal(await page.locator('.station-copy,.station-pack').count(),0);
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  }
+  for(const width of [320,768,1440]){await page.setViewportSize({width,height:viewport.height});await checkRoute();}
+  await page.setViewportSize(viewport);await checkRoute();
+  async function checkReward(){
+   const overlay=page.locator('#reward');await overlay.waitFor({state:'visible'});
+   assert.equal(await overlay.locator('.earned-pack').count(),2);
+   await page.waitForFunction(()=>[...document.querySelectorAll('.earned-pack img')].length===2&&[...document.querySelectorAll('.earned-pack img')].every(image=>image.naturalWidth>0));
+   await overlay.locator('.earned-pack').evaluateAll(nodes=>Promise.all(nodes.flatMap(node=>node.getAnimations().map(animation=>animation.finished))));
+   assert.equal((await overlay.innerText()).trim(),'');assert.equal(await overlay.getByRole('button').count(),0);
+   assert.deepEqual(await overlay.locator('.earned-pack').evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).opacity)),['1','1']);
+   const boxes=await overlay.locator('.earned-pack').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};}));
+   assert.ok(boxes.every(box=>box.left>=0&&box.right<=viewport.width&&box.top>=0&&box.bottom<=viewport.height),'Ambos sobres caben en la pantalla.');
+  }
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-route-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   let lost=false;await page.route('**/stations/answer',async route=>{const body=route.request().postDataJSON();if(!lost&&body.station===1&&body.answer===config.stations[0].solution){lost=true;await route.fetch();return route.abort();}return route.continue();});
   for(let i=0;i<9;i++){
    await page.locator(`[data-station="${i+1}"]`).click();const dialog=page.locator('#challenge');await dialog.waitFor();const input=dialog.getByLabel('Tu respuesta',{exact:true});
-   if(i===0){await input.fill('INCORRECTO');await dialog.getByRole('button',{name:'Comprobar y abrir sobre'}).click();await dialog.getByRole('alert').waitFor({state:'visible'});assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);}
+   if(i===0){if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-question-'+name.split(' ')[0]+'.png'),animations:'disabled'});await input.fill('INCORRECTO');await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();await dialog.getByRole('alert').waitFor({state:'visible'});assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);}
    assert.equal(await dialog.locator('input').count(),1);assert.equal(await dialog.locator('.choice-list,.memory-board,.order-slot').count(),0);
    assert.equal(await dialog.locator('.challenge-prompt').count(),1);
    await input.fill(config.stations[i].solution);
-   await dialog.getByRole('button',{name:'Comprobar y abrir sobre'}).click();
-   if(i===0){await dialog.getByRole('alert').waitFor({state:'visible'});await dialog.getByRole('button',{name:'Comprobar y abrir sobre'}).click();}
-   await page.getByRole('button',{name:'Abrir sobre',exact:true}).waitFor().catch(async error=>{await page.screenshot({path:'.educame-agents/gadeos-failed.png',fullPage:true,animations:"disabled"});throw Error('Estación '+(i+1)+': '+await page.locator('#challenge').innerText()+'; errores='+JSON.stringify(errors));});await page.waitForFunction(()=>document.querySelector('.earned-pack img')?.naturalWidth>0);if(i<7)assert.doesNotMatch(await page.locator('body').innerText(),/GADEOS/);if(i===7)assert.match(await page.locator('#reward').innerText(),/COLECCIÓN GADEOS/);await page.locator('.earned-pack').evaluate(node=>Promise.all(node.getAnimations().map(animation=>animation.finished)));assert.equal(await page.locator('.earned-pack').evaluate(node=>getComputedStyle(node).opacity),'1');if(i===0&&process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-pack-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});await page.getByRole('button',{name:'Abrir sobre',exact:true}).click();await page.locator('.reward-card').waitFor();await page.getByRole('button',{name:'Continuar recorrido',exact:true}).click();
-   if(i===0){await page.reload();await page.locator('[data-station="2"]').waitFor();assert.equal(await page.locator('[data-station="2"]').isEnabled(),true);assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).cards.filter(card=>card.owned).length,1);}
+   await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();
+   if(i===0){await dialog.getByRole('alert').waitFor({state:'visible'});await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();}
+   await checkReward();
+   const saved=await (await page.request.get(base+'/api/arena-chinchon/state')).json();assert.equal(saved.secret_discovered,i>=7);
+   if(i===0&&process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-pack-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
+   if(i%3===0)await page.keyboard.press('Enter');else if(i%3===1)await page.locator('#reward').click();else await page.keyboard.press('Escape');
+   await page.locator('#reward').waitFor({state:'hidden'});
+   if(i===0){await page.reload();await page.locator('[data-station="2"]').waitFor();assert.equal(await page.locator('[data-station="2"]').isEnabled(),true);assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).cards.filter(card=>card.owned).length,1);
+    const before=await (await page.request.get(base+'/api/arena-chinchon/state')).json();
+    await page.locator('[data-station="1"]').click();await page.locator('#challenge').getByRole('heading',{name:config.stations[0].title,exact:true}).waitFor();
+    await page.emulateMedia({reducedMotion:'reduce'});await page.locator('#challenge').getByRole('button',{name:'Ver sobres',exact:true}).click();await checkReward();assert.equal(await page.locator('.earned-pack').first().evaluate(node=>getComputedStyle(node).animationName),'none');await page.mouse.click(5,5);await page.locator('#reward').waitFor({state:'hidden'});
+    await page.emulateMedia({reducedMotion:'no-preference'});const after=await (await page.request.get(base+'/api/arena-chinchon/state')).json();assert.equal(after.revision,before.revision);assert.equal(after.completed,1);assert.equal(after.cards.filter(card=>card.owned).length,1);
+    await checkRoute();
+   }
   }
   assert.ok(lost);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.locator('.bottom-nav a[href="#batalla"]').click();await page.getByRole('button',{name:'Entrar en la arena',exact:true}).click();await page.locator('.battle-actions').waitFor();

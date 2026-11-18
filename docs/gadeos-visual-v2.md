@@ -51,6 +51,10 @@ Use case: logo-brand. Asset type: production title artwork for a private mobile 
 ## Verificación de la versión
 
 - Backend de ensayo: cuentas separadas, edición con revisión, migración de ocho a nueve sin pérdida, errores/aciertos, respuesta repetida, normalización de tildes, carta nueve y bloqueo de la batalla hasta terminar.
-- Chromium y WebKit móvil: entrada, planning, nueve pruebas, sobre y apertura, recarga, respuesta perdida recuperada, cartas y victoria.
+- Chromium y WebKit móvil: entrada, planning, nueve botones numerados dentro del camino, preguntas en popup, dos sobres animados sin texto ni botones, cierre táctil/teclado, recarga, respuesta perdida recuperada, cartas y victoria.
 - LA TERRAZA: nueve desplegables con exactamente dos campos por prueba; las cartas se editan aparte. El guardado mantiene las imágenes y el planning; el servidor rechaza una revisión antigua.
 - Despliegue: las cinco ilustraciones se comprueban con `app.deployment_check`; los materiales privados siguen bajo autenticación.
+
+## Recorrido integrado y recompensa sencilla
+
+La imagen conserva su proporción 2:3 sin recortes. Las nueve paradas se anclan por porcentajes al camino dibujado; solo muestran un número, y el color indica bloqueo, siguiente prueba o prueba completada. Las preguntas viven en un diálogo. La recompensa visual reutiliza el sobre existente dos veces, con entrada escalonada, giro, destello y partículas; respeta movimiento reducido. No hay título, texto, botón de abrir ni carta en esta celebración. Las cartas siguen guardadas para la batalla y su selector conserva sus controles.
