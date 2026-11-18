@@ -140,8 +140,8 @@ dialog::backdrop { background:#020916de; backdrop-filter:blur(9px); -webkit-back
   body[data-view=recorrido] #main,body[data-view=batalla] #main { max-width:720px; margin:auto; }
 }
 @media(max-width:650px) {
-  .login-screen { display:block; max-width:460px; padding:18px 18px 35px; }
-  .login-art { min-height:175px; margin-bottom:-20px; border-radius:24px; }
+  .login-screen { display:grid; grid-template-columns:minmax(0,1fr); align-content:start; gap:16px; max-width:460px; padding:18px 18px 35px; }
+  .login-art { min-height:175px; margin:0; border-radius:24px; }
   .art-caption { margin-bottom:20px; font-size:9px; }
   .login-panel { position:relative; padding:25px; }
   .login-panel h1 { font-size:32px; }
