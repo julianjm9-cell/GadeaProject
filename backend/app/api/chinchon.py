@@ -3,6 +3,7 @@ import copy
 import re
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.api import private_apps
@@ -49,6 +50,12 @@ def entry(db: Session = Depends(get_db)):
     return private_apps.app_page(db, "gadeos")
 
 
+@router.get("/juegos-del-hambre-chinchon")
+def old_entry():
+    return RedirectResponse(gadeos.PUBLIC_PATH, status_code=308, headers={"Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow"})
+
+
+@router.get("/aventura-chinchon-assets/{filename:path}", include_in_schema=False)
 @router.get(gadeos.PUBLIC_ASSETS + "/{filename:path}")
 def asset(filename: str):
     if filename.startswith("art/"):
@@ -56,36 +63,43 @@ def asset(filename: str):
     return private_apps.app_asset("gadeos", filename)
 
 
+@router.post("/api/arena-chinchon/login", include_in_schema=False)
 @router.post(gadeos.PUBLIC_API + "/login")
 def login(payload: private_apps.AccountCreate, request: Request, response: Response, db: Session = Depends(get_db)):
     return private_apps.private_login("gadeos", payload, request, response, db)
 
 
+@router.post("/api/arena-chinchon/logout", include_in_schema=False)
 @router.post(gadeos.PUBLIC_API + "/logout")
 def logout(request: Request, response: Response, db: Session = Depends(get_db)):
     return private_apps.private_logout("gadeos", request, response, db)
 
 
+@router.get("/api/arena-chinchon/state", include_in_schema=False)
 @router.get(gadeos.PUBLIC_API + "/state")
 def state(account=Depends(member), db: Session = Depends(get_db)):
     return public_payload(gadeos.progress_payload(db, account))
 
 
+@router.post("/api/arena-chinchon/stations/answer", include_in_schema=False)
 @router.post(gadeos.PUBLIC_API + "/stations/answer")
 def answer(payload: private_apps.StationAnswer, account=Depends(member), db: Session = Depends(get_db)):
     return public_payload(gadeos.complete_station(db, account, payload))
 
 
+@router.post("/api/arena-chinchon/battle/start", include_in_schema=False)
 @router.post(gadeos.PUBLIC_API + "/battle/start")
 def start(payload: private_apps.GameAction, account=Depends(member), db: Session = Depends(get_db)):
     return public_payload(gadeos.start_battle(db, account, payload))
 
 
+@router.post("/api/arena-chinchon/battle/action", include_in_schema=False)
 @router.post(gadeos.PUBLIC_API + "/battle/action")
 def turn(payload: private_apps.BattleAction, account=Depends(member), db: Session = Depends(get_db)):
     return public_payload(gadeos.battle_turn(db, account, payload))
 
 
+@router.get("/api/arena-chinchon/images/{filename}", include_in_schema=False)
 @router.get(gadeos.PUBLIC_API + "/images/{filename}")
 def image(filename: str, request: Request, account=Depends(member), db: Session = Depends(get_db)):
     data = public_payload(gadeos.progress_payload(db, account))

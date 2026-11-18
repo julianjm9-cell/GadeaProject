@@ -13,9 +13,9 @@ from app.models.private_apps import PrivateAppProgress
 
 CONFIG_KEY = "private_campaign:gadeos"
 STATION_COUNT = 9
-PUBLIC_PATH = "/juegos-del-hambre-chinchon"
-PUBLIC_API = "/api/arena-chinchon"
-PUBLIC_ASSETS = "/aventura-chinchon-assets"
+PUBLIC_PATH = "/juegos-del-hambre"
+PUBLIC_API = "/api/arena-hambre"
+PUBLIC_ASSETS = "/aventura-hambre-assets"
 
 
 def planning_config(value=None):

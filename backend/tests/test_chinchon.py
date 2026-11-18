@@ -9,26 +9,26 @@ from test_access_control import client
 from test_private_apps import admin, tribute
 from app.api import private_apps
 
-PATH = '/juegos-del-hambre-chinchon'
-API = '/api/arena-chinchon'
+PATH = '/juegos-del-hambre'
+API = '/api/arena-hambre'
 
 
 def test_neutral_entry_assets_and_old_links_keep_the_secret_out_of_visible_routes(client):
     web, _ = client
     page = web.get(PATH)
     assert page.status_code == 200 and 'gadeos' not in page.text.lower()
-    assert 'JUEGOS DEL HAMBRE EN CHINCHÓN' in page.text
+    assert 'JUEGOS DEL HAMBRE' in page.text
     assert page.headers['x-robots-tag'] == 'noindex, nofollow'
-    for old in ['/gadeos', '/a/gadeos']:
+    for old in ['/gadeos', '/a/gadeos', '/juegos-del-hambre-chinchon']:
         redirect = web.get(old, follow_redirects=False)
         assert redirect.status_code == 308 and redirect.headers['location'] == PATH
         assert web.get(old).status_code == 200
-    script = web.get('/aventura-chinchon-assets/app.js')
+    script = web.get('/aventura-hambre-assets/app.js')
     assert script.status_code == 200 and API in script.text and 'gadeos' not in script.text.lower()
-    for name in ['title-lockup-v1', 'alliance-hero-v2', 'emblem-v2', 'envelope-v2']:
-        image = web.get('/aventura-chinchon-assets/art/' + name + '.webp')
+    for name in ['title-lockup-v2', 'alliance-hero-v2', 'emblem-v2', 'envelope-v2']:
+        image = web.get('/aventura-hambre-assets/art/' + name + '.webp')
         assert image.status_code == 200 and image.content[:4] == b'RIFF'
-    assert web.get('/aventura-chinchon-assets/art/unknown.webp').status_code == 404
+    assert web.get('/aventura-hambre-assets/art/unknown.webp').status_code == 404
     assert web.get(API + '/state').status_code == 401
     assert PATH not in web.get('/sitemap.xml').text
 

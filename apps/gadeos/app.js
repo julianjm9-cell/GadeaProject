@@ -1,7 +1,7 @@
 import { restaurants, clearRestaurantMap } from './restaurants.js';
 const $ = id => document.getElementById(id);
-const apiRoot = '/api/arena-chinchon';
-const art = name => '/aventura-chinchon-assets/art/' + name + '-v2.webp';
+const apiRoot = '/api/arena-hambre';
+const art = name => '/aventura-hambre-assets/art/' + name + '-v2.webp';
 const total = () => state.campaign.stations.length;
 // Percent coordinates on the native 1024 × 1536 illustration, from the start to the town.
 const routeStops = [[58,93], [47,82], [70,72], [40,65], [28,55.5], [64,50.5], [20,35.6], [75,28.5], [49,23.3]];

@@ -37,7 +37,7 @@ export function restaurants(host){
   if(!globalThis.L){mapElement.append(node('p','muted','El mapa no ha podido cargarse. Puedes abrir cada local en Google Maps.'));}
   const L=globalThis.L, map=L ? L.map(mapElement,{crs:L.CRS.Simple,center:[450,600],zoom:-1,minZoom:-2,maxZoom:5,scrollWheelZoom:false,attributionControl:true,fadeAnimation:false,zoomAnimation:false,zoomControl:false}):null;
   activeMap=map;
-  if(map){L.control.zoom({zoomInTitle:'Ampliar mapa',zoomOutTitle:'Alejar mapa'}).addTo(map);L.imageOverlay('/aventura-chinchon-assets/town-map.svg',[[0,0],[900,1200]],{alt:'Plano de calles de Chinchón',interactive:false}).addTo(map);map.attributionControl.setPrefix(false);map.attributionControl.addAttribution('<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors · ODbL</a>');}
+  if(map){L.control.zoom({zoomInTitle:'Ampliar mapa',zoomOutTitle:'Alejar mapa'}).addTo(map);L.imageOverlay('/aventura-hambre-assets/town-map.svg',[[0,0],[900,1200]],{alt:'Plano de calles de Chinchón',interactive:false}).addTo(map);map.attributionControl.setPrefix(false);map.attributionControl.addAttribution('<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors · ODbL</a>');}
   const layer=map?L.layerGroup().addTo(map):null;
   let selected='todas', focused=null;
   function visible(){return places.filter(place=>selected==='todas'||place.group===selected);}

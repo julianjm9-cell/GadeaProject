@@ -1,7 +1,7 @@
 import { projectProfiles } from './project-context.mjs';
 const key = 'terrace-app-catalog-v2';
 const paths = { profesor: '/profesor-particular', eso: '/eso-adultos', ingles: '/cambridge', diplomator: '/app',
-  universidad: '/universidad-adultos', facturas: '/facturas', hazlotu: '/hazlo-tu', gadeos: '/juegos-del-hambre-chinchon' };
+  universidad: '/universidad-adultos', facturas: '/facturas', hazlotu: '/hazlo-tu', gadeos: '/juegos-del-hambre' };
 const products = { profesor: 'PROFESOR_PARTICULAR', eso: 'ESO_ADULTOS', ingles: 'CAMBRIDGE', diplomator: 'DIPLOMATOR',
   universidad: 'UNIVERSIDAD_ADULTOS', facturas: 'OCR_FACTURAS', hazlotu: 'HAZLOTU', gadeos: 'GADEOS' };
 export function createAppCatalog(store) {

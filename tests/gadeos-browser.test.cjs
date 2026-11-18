@@ -29,15 +29,15 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   config.media={poster:await upload(manifest.poster),envelope:materialRoot?await upload(manifest.envelope||manifest.poster):null,source:'b'.repeat(64),guide:[]};
   for(const entry of manifest.guide)config.media.guide.push({title:entry.title,image:await upload(entry.file),text:entry.text||''});
   assert.equal((await page.request.put(base+'/admin/apps/gadeos/campaign',{headers,data:config})).status(),200);
-  await page.context().clearCookies();await page.goto(base+'/juegos-del-hambre-chinchon');await page.getByRole('heading',{name:'JUEGOS DEL HAMBRE EN CHINCHÓN',exact:true}).waitFor();
+  await page.context().clearCookies();await page.goto(base+'/juegos-del-hambre');await page.getByRole('heading',{name:'JUEGOS DEL HAMBRE',exact:true}).waitFor();
   await page.waitForFunction(()=>document.querySelector('.login-scene')?.naturalWidth>0);
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-login-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
   assert.equal((await page.request.get(base+config.media.poster)).status(),401);
-  assert.equal(await page.getByRole('button',{name:'Crear cuenta',exact:true}).count(),0);assert.equal(await page.title(),'JUEGOS DEL HAMBRE EN CHINCHÓN');assert.doesNotMatch(await page.locator('body').innerText(),/GADEOS/);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  assert.equal(await page.getByRole('button',{name:'Crear cuenta',exact:true}).count(),0);assert.equal(await page.title(),'JUEGOS DEL HAMBRE');assert.doesNotMatch(await page.locator('body').innerText(),/GADEOS/);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.getByLabel('Nombre de tributo').fill('Alma');await page.getByLabel('Contraseña',{exact:true}).fill('ensayo-seguro-123');await page.getByRole('button',{name:/Entrar en la arena/}).click();
   await page.getByText('TU TRIBUTO · Alma',{exact:true}).waitFor();
   await page.waitForFunction(()=>document.querySelector('.event-poster')?.naturalWidth>0);
-  assert.equal(await page.locator('.bottom-nav a').count(),4);assert.doesNotMatch(await page.locator('body').innerText(),/GADEOS/);assert.ok(page.url().includes('/juegos-del-hambre-chinchon'));await page.waitForFunction(()=>document.querySelector('.brand-title')?.naturalWidth>0);
+  assert.equal(await page.locator('.bottom-nav a').count(),4);assert.doesNotMatch(await page.locator('body').innerText(),/GADEOS/);assert.ok(page.url().includes('/juegos-del-hambre'));await page.waitForFunction(()=>document.querySelector('.brand-title')?.naturalWidth>0);
   await page.getByRole('heading',{name:'Vuestro planning',exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'Guía',exact:true}).count(),0);
   const cta=await page.locator('.next-step').boundingBox(),nav=await page.locator('.bottom-nav').boundingBox();assert.ok(cta.y+cta.height<=nav.y,'El siguiente paso queda visible por encima de la navegación.');
@@ -46,7 +46,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   assert.deepEqual(await page.locator('.planning-day h3').allTextContents(),['Viernes 20','Sábado 21']);
   assert.equal(await page.locator('.planning-list li').count(),4);assert.deepEqual(await page.locator('.planning-time').allTextContents(),['18:00','21:00','22:00']);assert.equal(await page.locator('.planning-locked').count(),2);assert.doesNotMatch(await page.locator('.planning').innerText(),/Check-out|Torre del Reloj|11:30|19:45/);await page.getByText(/Autobús 337 · Salida/).waitFor();
   await page.locator('.bottom-nav a[href="#restaurantes"]').click();await page.locator('.leaflet-container').waitFor();
-  assert.equal((await page.request.get(base+'/aventura-chinchon-assets/town-map.svg')).status(),200);
+  assert.equal((await page.request.get(base+'/aventura-hambre-assets/town-map.svg')).status(),200);
   await page.waitForFunction(()=>document.querySelector('.leaflet-image-layer')?.naturalWidth>0).catch(async error=>{throw Error(error.message+'; JS='+JSON.stringify(errors)+'; mapa='+await page.locator('#restaurant-map').innerHTML());});
   assert.equal(await page.locator('[data-restaurant]').count(),12);
   assert.ok(await page.locator('.food-marker').count()>0);
@@ -101,15 +101,15 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
    await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();
    if(i===0){await dialog.getByRole('alert').waitFor({state:'visible'});await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();}
    await checkReward();
-   const saved=await (await page.request.get(base+'/api/arena-chinchon/state')).json();assert.equal(saved.secret_discovered,i>=7);
+   const saved=await (await page.request.get(base+'/api/arena-hambre/state')).json();assert.equal(saved.secret_discovered,i>=7);
    if(i===0&&process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-pack-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
    if(i%3===0)await page.keyboard.press('Enter');else if(i%3===1)await page.locator('#reward').click();else await page.keyboard.press('Escape');
    await page.locator('#reward').waitFor({state:'hidden'});
    if(i===0){await page.reload();await page.locator('[data-station="2"]').waitFor();assert.equal(await page.locator('[data-station="2"]').isEnabled(),true);assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).cards.filter(card=>card.owned).length,1);
-    const before=await (await page.request.get(base+'/api/arena-chinchon/state')).json();
+    const before=await (await page.request.get(base+'/api/arena-hambre/state')).json();
     await page.locator('[data-station="1"]').click();await page.locator('#challenge').getByRole('heading',{name:config.stations[0].title,exact:true}).waitFor();
     await page.emulateMedia({reducedMotion:'reduce'});await page.locator('#challenge').getByRole('button',{name:'Ver sobres',exact:true}).click();await checkReward();assert.equal(await page.locator('.earned-pack').first().evaluate(node=>getComputedStyle(node).animationName),'none');await page.mouse.click(5,5);await page.locator('#reward').waitFor({state:'hidden'});
-    await page.emulateMedia({reducedMotion:'no-preference'});const after=await (await page.request.get(base+'/api/arena-chinchon/state')).json();assert.equal(after.revision,before.revision);assert.equal(after.completed,1);assert.equal(after.cards.filter(card=>card.owned).length,1);
+    await page.emulateMedia({reducedMotion:'no-preference'});const after=await (await page.request.get(base+'/api/arena-hambre/state')).json();assert.equal(after.revision,before.revision);assert.equal(after.completed,1);assert.equal(after.cards.filter(card=>card.owned).length,1);
     await checkRoute();
    }
   }

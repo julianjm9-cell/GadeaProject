@@ -42,7 +42,7 @@ Use case: logo-brand. Asset type: GADEOS mobile game emblem for header and login
 
 ## Título gráfico y nombre secreto · actualización
 
-La entrada y la cabecera usan `apps/gadeos/assets/title-lockup-v1.webp`, generado con la herramienta integrada `image_gen` y optimizado en WebP con transparencia. Se conserva el texto alternativo **JUEGOS DEL HAMBRE EN CHINCHÓN**. El título gráfico sustituye al nombre secreto en la navegación. Nueva dirección: `/juegos-del-hambre-chinchon`; API del jugador: `/api/arena-chinchon`; ilustraciones: `/aventura-chinchon-assets`.
+La entrada y la cabecera usan ahora `apps/gadeos/assets/title-lockup-v2.webp`, generado a partir del logo anterior con fondo transparente. El texto alternativo es **JUEGOS DEL HAMBRE**. La dirección pública es `/juegos-del-hambre`; la API del jugador usa `/api/arena-hambre` y las ilustraciones `/aventura-hambre-assets`. La ruta anterior redirige a la nueva y las rutas antiguas de recursos siguen disponibles para pestañas abiertas. Se conservan las cuentas y el progreso interno.
 
 Prompt de generación del título:
 
