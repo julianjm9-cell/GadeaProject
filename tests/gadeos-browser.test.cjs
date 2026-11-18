@@ -44,7 +44,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-home-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   assert.deepEqual(await page.locator('.planning-day h3').allTextContents(),['Viernes 20','Sábado 21']);
-  assert.equal(await page.locator('.planning-list li').count(),13);await page.getByText(/Autobús 337 · Salida/).waitFor();
+  assert.equal(await page.locator('.planning-list li').count(),4);assert.deepEqual(await page.locator('.planning-time').allTextContents(),['18:00','21:00','22:00']);assert.equal(await page.locator('.planning-locked').count(),2);assert.doesNotMatch(await page.locator('.planning').innerText(),/Check-out|Torre del Reloj|11:30|19:45/);await page.getByText(/Autobús 337 · Salida/).waitFor();
   await page.locator('.bottom-nav a[href="#restaurantes"]').click();await page.locator('.leaflet-container').waitFor();
   assert.equal((await page.request.get(base+'/aventura-chinchon-assets/town-map.svg')).status(),200);
   await page.waitForFunction(()=>document.querySelector('.leaflet-image-layer')?.naturalWidth>0).catch(async error=>{throw Error(error.message+'; JS='+JSON.stringify(errors)+'; mapa='+await page.locator('#restaurant-map').innerHTML());});

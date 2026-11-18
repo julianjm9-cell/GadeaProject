@@ -21,12 +21,11 @@ PUBLIC_ASSETS = "/aventura-chinchon-assets"
 def planning_config(value=None):
     days = [
         {"title": "Viernes 20", "subtitle": "Atardecer, paseo y noche de juegos", "activities": [
-            {"time": "18:00", "text": "Llegada a Chinchón, dejar las mochilas en el apartamento y disfrutar de las últimas luces del atardecer."},
-            {"time": "18:30", "text": "Paseo por la Plaza Mayor iluminada y las callejuelas del casco histórico."},
-            {"time": "19:20–19:45", "text": "Visita a la Iglesia de Nuestra Señora de la Asunción y vistas desde el mirador."},
-            {"time": "19:45–20:45", "text": "Cena por el pueblo y paseo nocturno de regreso."},
-            {"time": "21:00", "text": "Vuelta al apartamento y noche de juegos."}]},
-        {"title": "Sábado 21", "subtitle": "Descubrir Chinchón", "activities": [
+            {"time": "18:00", "text": "Llegada a Chinchón, dejar las mochilas en el apartamento."},
+            {"time": "", "text": "", "locked": True},
+            {"time": "21:00", "text": "Llegada al piso."},
+            {"time": "22:00", "text": "Batallas Finales de los juegos del hambre."}]},
+        {"title": "Sábado 21", "subtitle": "Descubrir Chinchón", "locked": True, "activities": [
             {"time": "11:00", "text": "Check-out del apartamento."},
             {"time": "11:30", "text": "Desayuno tranquilo en una cafetería del centro."},
             {"time": "12:30", "text": "Subida a la Torre del Reloj y paseo por las calles antiguas."},
@@ -36,13 +35,24 @@ def planning_config(value=None):
             {"time": "16:15", "text": "Última vuelta por la plaza y tiendas tradicionales."},
             {"time": "17:00", "text": "Regreso en el autobús 337 hacia Madrid."}]}
     ]
-    defaults = {"day": "Viernes", "place": "Chinchón", "start": "16:00", "final": "22:00",
+    for day in days:
+        day.setdefault("locked", False)
+        for entry in day["activities"]:
+            entry.setdefault("locked", False)
+    defaults = {"version": 2, "day": "Viernes", "place": "Chinchón", "start": "16:00", "final": "22:00",
                 "transport": "Autobús 337 · Salida: Metro Pavones (Línea 9, Madrid) → Chinchón", "days": days}
     if value is None:
         return defaults
     if not isinstance(value, dict):
         raise HTTPException(422, "Revisa el planning del viaje.")
     result = {**defaults, **{key: value[key] for key in defaults if key in value}}
+    if type(result["version"]) is not int or not 1 <= result["version"] <= 2:
+        raise HTTPException(422, "Actualiza el editor del planning.")
+    if "version" not in value or value["version"] < 2:
+        old_days = result["days"]
+        if isinstance(old_days, list) and len(old_days) == 2 and all(isinstance(day, dict) for day in old_days) and [day.get("title") for day in old_days] == ["Viernes 20", "Sábado 21"]:
+            result["days"] = [copy.deepcopy(days[0]), {**old_days[1], "locked": True}]
+        result["version"] = 2
     if any(not isinstance(result[key], str) or not 1 <= len(result[key].strip()) <= 80 for key in ("day", "place")) or any(not isinstance(result[key], str) or not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", result[key]) for key in ("start", "final")):
         raise HTTPException(422, "Indica el día, el lugar y dos horas válidas para el planning.")
     if not isinstance(result["transport"], str) or len(result["transport"]) > 300 or not isinstance(result["days"], list) or not 1 <= len(result["days"]) <= 7:
@@ -51,13 +61,29 @@ def planning_config(value=None):
     for day in result["days"]:
         if not isinstance(day, dict) or any(not isinstance(day.get(key), str) or not 1 <= len(day[key].strip()) <= 120 for key in ("title", "subtitle")) or not isinstance(day.get("activities"), list) or not 1 <= len(day["activities"]) <= 24:
             raise HTTPException(422, "Cada día necesita título, descripción y entre una y veinticuatro actividades.")
+        if type(day.get("locked", False)) is not bool:
+            raise HTTPException(422, "El bloqueo del día debe ser verdadero o falso.")
         entries = []
         for entry in day["activities"]:
-            if not isinstance(entry, dict) or not isinstance(entry.get("time"), str) or not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d(?:[–-](?:[01]\d|2[0-3]):[0-5]\d)?", entry["time"]) or not isinstance(entry.get("text"), str) or not 1 <= len(entry["text"].strip()) <= 500:
-                raise HTTPException(422, "Cada actividad necesita una hora o intervalo válido y un texto.")
-            entries.append({"time": entry["time"], "text": entry["text"].strip()})
-        clean_days.append({"title": day["title"].strip(), "subtitle": day["subtitle"].strip(), "activities": entries})
+            if not isinstance(entry, dict) or type(entry.get("locked", False)) is not bool or not isinstance(entry.get("time"), str) or len(entry["time"]) > 11 or not isinstance(entry.get("text"), str) or len(entry["text"].strip()) > 500:
+                raise HTTPException(422, "Revisa los datos de la actividad y su bloqueo.")
+            if not entry.get("locked", False) and (not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d(?:[–-](?:[01]\d|2[0-3]):[0-5]\d)?", entry["time"]) or not entry["text"].strip()):
+                raise HTTPException(422, "Cada actividad visible necesita una hora o intervalo válido y un texto.")
+            entries.append({"time": entry["time"], "text": entry["text"].strip(), "locked": entry.get("locked", False)})
+        clean_days.append({"title": day["title"].strip(), "subtitle": day["subtitle"].strip(), "locked": day.get("locked", False), "activities": entries})
     return {**result, "transport": result["transport"].strip(), "days": clean_days}
+
+
+def public_planning(value):
+    result = copy.deepcopy(value)
+    for day in result.get("days", []):
+        if day.get("locked"):
+            day["subtitle"], day["activities"] = "", []
+        else:
+            for entry in day["activities"]:
+                if entry.get("locked"):
+                    entry["time"], entry["text"] = "", ""
+    return result
 
 
 def media_config(value=None):
@@ -178,7 +204,7 @@ def validate_campaign(data):
 def public_campaign(config, completed):
     result = {key: config[key] for key in ("revision", "title", "intro", "boss", "ending")}
     result["media"] = config.get("media", media_config())
-    result["planning"] = config.get("planning", planning_config())
+    result["planning"] = public_planning(config.get("planning", planning_config()))
     result["stations"] = []
     for index, station in enumerate(config["stations"]):
         entry = {"number": index + 1, "title": station["title"] if index <= completed else f"Prueba {index + 1}", "locked": index > completed, "completed": index < completed}

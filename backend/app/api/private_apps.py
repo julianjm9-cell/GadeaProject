@@ -210,6 +210,8 @@ def campaign_save(payload: dict, actor: User = Depends(require_superadmin), db: 
                 station["prompt"] = station.get("title")
             data["stations"][index] = {**previous, **station}
     if isinstance(data.get("planning"), dict):
+        if "days" in data["planning"] and data["planning"].get("version") != current["planning"]["version"]:
+            raise HTTPException(409, "El planning se ha actualizado. Recarga el editor antes de guardar.")
         data["planning"] = {**current["planning"], **data["planning"]}
     clean = gadeos.validate_campaign(data)
     if "planning" not in payload:

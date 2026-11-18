@@ -228,7 +228,7 @@ def test_planning_and_question_edits_preserve_progress_and_older_editors(client)
     first=web.post('/api/private-apps/gadeos/stations/answer',json={'revision':0,'request_id':str(uuid4()),'campaign_revision':1,'station':1,'answer':'ALIANZA'})
     assert first.status_code==200 and first.json()['completed']==1
     assert first.json()['campaign']['stations'][1]['prompt']=='¿Qué palabra habéis encontrado?'
-    assert first.json()['campaign']['planning']=={**gadeos.planning_config(),**config['planning']}
+    assert first.json()['campaign']['planning']==gadeos.public_planning({**gadeos.planning_config(),**config['planning']})
     old=saved.json();old.pop('planning');old['title']='Título cambiado'
     kept=web.put('/admin/apps/gadeos/campaign',headers=headers,json=old)
     assert kept.status_code==200 and kept.json()['planning']=={**gadeos.planning_config(),**config['planning']}
@@ -358,8 +358,8 @@ def test_poster_and_guide_are_private_preserved_and_do_not_unlock_cards(client, 
 def test_trip_days_survive_legacy_edit_reload_and_progress(client):
     web,factory=client;headers=admin(web,factory);tribute(web,headers)
     config=web.get('/admin/apps/gadeos/campaign',headers=headers).json()
-    assert [len(day['activities']) for day in config['planning']['days']]==[5,8]
-    config['planning']['days'][0]['activities'][0]={'time':'18:15','text':'Dejar las mochilas.'}
+    assert [len(day['activities']) for day in config['planning']['days']]==[4,8]
+    config['planning']['days'][0]['activities'][0]={'time':'18:15','text':'Dejar las mochilas.','locked':False}
     saved=web.put('/admin/apps/gadeos/campaign',headers=headers,json=config)
     assert saved.status_code==200
     legacy=saved.json();legacy['planning']={key:legacy['planning'][key] for key in ['day','place','start','final']}
@@ -367,9 +367,40 @@ def test_trip_days_survive_legacy_edit_reload_and_progress(client):
     assert kept.status_code==200
     assert kept.json()['planning']['days']==config['planning']['days']
     current=web.get('/api/arena-chinchon/state').json()
-    assert current['completed']==0 and current['campaign']['planning']['days']==config['planning']['days']
+    assert current['completed']==0 and current['campaign']['planning']['days']==gadeos.public_planning(config['planning'])['days']
     assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=config).status_code==409
     for value in [[],[{'title':'Viernes','subtitle':'Viaje','activities':[]}],[{'title':'Viernes','subtitle':'Viaje','activities':[{'time':'29:00','text':'Cena'}]}]]:
         invalid=kept.json();invalid['planning']['days']=value
         assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=invalid).status_code==422
     assert web.get('/admin/apps/gadeos/campaign',headers=headers).json()['planning']['days']==config['planning']['days']
+
+
+def test_locked_trip_content_is_private_editable_and_migrates_old_planning(client):
+    web,factory=client;headers=admin(web,factory);tribute(web,headers)
+    config=web.get('/admin/apps/gadeos/campaign',headers=headers).json()
+    friday,saturday=config['planning']['days']
+    assert [a['time'] for a in friday['activities']]==['18:00','','21:00','22:00']
+    assert friday['activities'][1]['locked'] and saturday['locked']
+    friday['activities'][1].update(time='19:00',text='SORPRESA PRIVADA VIERNES')
+    saturday['activities'][0]['text']='SORPRESA PRIVADA SABADO'
+    saved=web.put('/admin/apps/gadeos/campaign',headers=headers,json=config)
+    assert saved.status_code==200
+    response=web.get('/api/arena-chinchon/state')
+    assert 'SORPRESA PRIVADA' not in response.text
+    assert response.json()['campaign']['planning']['days'][1]['activities']==[]
+    assert response.json()['campaign']['planning']['days'][1]['subtitle']==''
+    old=saved.json();old['planning'].pop('version')
+    assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=old).status_code==409
+    unlock=saved.json();unlock['planning']['days'][0]['activities'][1]['locked']=False;unlock['planning']['days'][1]['locked']=False
+    updated=web.put('/admin/apps/gadeos/campaign',headers=headers,json=unlock)
+    assert updated.status_code==200
+    response=web.get('/api/arena-chinchon/state')
+    assert 'SORPRESA PRIVADA VIERNES' in response.text and 'SORPRESA PRIVADA SABADO' in response.text
+    assert response.json()['completed']==0
+    legacy={'day':'Viernes','place':'Chinchón','start':'16:00','final':'22:00','days':[
+        {'title':'Viernes 20','subtitle':'Antiguo viernes','activities':[{'time':'19:45','text':'Cena anterior'}]},
+        {'title':'Sábado 21','subtitle':'Antiguo sábado','activities':[{'time':'11:00','text':'Contenido guardado'}]}]}
+    migrated=gadeos.planning_config(legacy)
+    assert migrated['version']==2 and [a['time'] for a in migrated['days'][0]['activities']]==['18:00','','21:00','22:00']
+    assert migrated['days'][1]['locked'] and migrated['days'][1]['activities'][0]['text']=='Contenido guardado'
+    assert legacy['days'][0]['activities'][0]['time']=='19:45'

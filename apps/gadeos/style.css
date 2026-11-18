@@ -216,3 +216,6 @@ dialog::backdrop { background:#020916de; backdrop-filter:blur(9px); -webkit-back
 .food-popup .food-google { display:block; color:#1c5948; }
 @media(max-width:799px) { .food-layout { grid-template-columns:1fr; } .food-map-column { position:static; } .food-map { height:360px; } .food-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:550px) { .food-cards { grid-template-columns:1fr; } .food-card { padding:18px; } .bottom-nav a { font-size:10px; } .planning-time { width:91px; } .food-filters { gap:6px; } .food-filters button { padding:9px 11px; font-size:11px; } }
+
+.planning-locked { display:flex; align-items:center; gap:12px; padding:18px 0; color:#b6c3d4; font-size:12px; letter-spacing:.08em; }
+.planning-locked svg { flex:none; width:18px; height:20px; fill:none; stroke:currentColor; stroke-width:1.6; }

@@ -51,6 +51,13 @@ Antes de superar una prueba cuya respuesta correcta es GADEOS, se muestran sobre
 
 ### Planning por días y restaurantes · 18-11-2026
 
-Inicio muestra viernes 20 (cinco actividades) y sábado 21 (ocho), con el autobús 337 desde Pavones, siguiendo la nueva imagen. En LA TERRAZA → Editar recorrido y cartas → Planning por días se editan transporte, nombre de cada día, descripción, horarios y actividades; se pueden añadir y quitar días y actividades. El servidor conserva el planning cuando guarda un editor anterior, valida los horarios y rechaza revisiones antiguas. Cambiar el planning nunca completa una prueba ni cambia las cartas.
+Inicio muestra viernes 20 (cuatro entradas, una bloqueada) y sábado 21 (bloqueado), con el autobús 337 desde Pavones, siguiendo la última corrección del propietario. En LA TERRAZA → Editar recorrido y cartas → Planning por días se editan transporte, nombre de cada día, descripción, horarios y actividades; se pueden añadir y quitar días y actividades. El servidor conserva el planning cuando guarda un editor anterior, valida los horarios y rechaza revisiones antiguas. Cambiar el planning nunca completa una prueba ni cambia las cartas.
 
 Restaurantes es la cuarta pestaña. Mapa local de calles con Leaflet 1.9.4 y datos de OpenStreetMap, marcadores geográficos, grupos ampliables para los locales muy cercanos, búsqueda visual por cena/desayuno/comida/cuevas y enlace a Google Maps por local. La base del mapa se sirve desde la app; no requiere clave ni peticiones de mapas a terceros. Las puntuaciones son una instantánea de las fuentes, no una conexión a Google Places. Véase [fuentes, posiciones y licencias](chinchon-viaje-restaurantes.md). Los precios vienen de la guía del propietario. Viña Bayona está en Titulcia y queda fuera del mapa del centro.
+
+
+### Corrección del viernes y contenido bloqueado
+
+La versión 2 del planning fija el viernes en 18:00 llegada a Chinchón y mochilas, una actividad BLOQUEADA, 21:00 llegada al piso y 22:00 batallas finales. El sábado queda bloqueado por completo. LA TERRAZA añade «Bloquear este día» y «Bloquear actividad». El contenido privado se conserva para editarlo, pero la API del jugador omite los horarios y textos de la actividad bloqueada y todas las actividades y subtítulo del día bloqueado. No se revela al progresar por las pruebas.
+
+La actualización convierte el planning anterior de viernes 20 y sábado 21 a esta versión, conservando las actividades privadas del sábado. Un editor antiguo sin días conserva el planning nuevo; uno que intente reemplazar los días sin conocer la versión recibe un aviso de recarga. Las ediciones posteriores realizadas con la versión 2 se respetan.

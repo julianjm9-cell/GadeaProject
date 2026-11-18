@@ -107,9 +107,11 @@ function home(host) {
   if (schedule.transport) planning.append(el('p', 'planning-transport', schedule.transport));
   for (const [index, day] of (schedule.days || []).entries()) {
     const section = el('section', 'planning-day');
-    const head = el('div', 'planning-day-title'); head.append(el('span', 'day-symbol', index ? '☀' : '☾'), el('h3', '', day.title)); section.append(head, el('p', 'day-subtitle', day.subtitle));
+    const head = el('div', 'planning-day-title'); head.append(el('span', 'day-symbol', index ? '☀' : '☾'), el('h3', '', day.title)); section.append(head);
+    if (day.locked) { const blocked = el('p', 'planning-locked'); blocked.append(icon('lock'), document.createTextNode('BLOQUEADO')); section.append(blocked); planning.append(section); continue; }
+    section.append(el('p', 'day-subtitle', day.subtitle));
     const list = el('ol', 'planning-list');
-    for (const activity of day.activities) { const row = el('li'); row.append(el('time', 'planning-time', activity.time), el('span', '', activity.text)); list.append(row); }
+    for (const activity of day.activities) { const row = el('li', activity.locked ? 'planning-locked' : ''); if (activity.locked) row.append(icon('lock'), el('span', '', 'BLOQUEADO')); else row.append(el('time', 'planning-time', activity.time), el('span', '', activity.text)); list.append(row); }
     section.append(list); planning.append(section);
   }
   const food = el('a', 'planning-food-link', 'Dónde comer en Chinchón →'); food.href = '#restaurantes'; planning.append(food); host.append(planning);

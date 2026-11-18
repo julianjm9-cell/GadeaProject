@@ -193,21 +193,24 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
         const box = el('fieldset', 'campaign-day'); box.append(el('legend', '', 'Día del planning'));
         const name = field(box, 'Nombre del día', 'dayTitle', value.title), subtitle = field(box, 'Plan del día', 'daySubtitle', value.subtitle);
         name.required = subtitle.required = true; name.maxLength = subtitle.maxLength = 120;
+        const dayLockLabel = el('label', 'check-label', 'Bloquear este día'), dayLock = el('input'); dayLock.type = 'checkbox'; dayLock.checked = Boolean(value.locked); dayLock.disabled = schedule.version !== 2; dayLockLabel.append(dayLock); box.append(dayLockLabel);
         const activities = el('div', 'managed-app-form'), readers = []; box.append(activities);
         function addActivity(entry = {time:'12:00',text:''}) {
           const row = el('div', 'managed-app-form');
           const time = field(row, 'Hora o intervalo', 'activityTime', entry.time), text = field(row, 'Actividad', 'activityText', entry.text, true);
-          time.required = text.required = true; time.placeholder = '19:20–19:45'; time.maxLength = 11; text.maxLength = 500;
+          const activityLockLabel = el('label', 'check-label', 'Bloquear actividad'), activityLock = el('input'); activityLock.type = 'checkbox'; activityLock.checked = Boolean(entry.locked); activityLock.disabled = schedule.version !== 2; activityLockLabel.append(activityLock); row.append(activityLockLabel);
+          const applyLock = () => { time.required = text.required = !activityLock.checked; }; activityLock.addEventListener('change', applyLock); applyLock(); time.placeholder = '19:20–19:45'; time.maxLength = 11; text.maxLength = 500;
           const remove = el('button', 'button', 'Quitar actividad'); remove.type = 'button'; remove.addEventListener('click', () => row.remove()); row.append(remove); activities.append(row);
-          readers.push(() => row.isConnected ? {time:time.value,text:text.value} : null);
+          readers.push(() => row.isConnected ? {time:time.value,text:text.value,locked:activityLock.checked} : null);
         }
         for (const activity of value.activities || []) addActivity(activity);
         const add = el('button', 'button', 'Añadir actividad'); add.type = 'button'; add.addEventListener('click', () => addActivity());
         const remove = el('button', 'button', 'Quitar día'); remove.type = 'button'; remove.addEventListener('click', () => box.remove()); box.append(add, remove); itineraryDays.append(box);
-        dayReaders.push(() => box.isConnected ? {title:name.value,subtitle:subtitle.value,activities:readers.map(read => read()).filter(Boolean)} : null);
+        dayReaders.push(() => box.isConnected ? {title:name.value,subtitle:subtitle.value,locked:dayLock.checked,activities:readers.map(read => read()).filter(Boolean)} : null);
       }
       for (const value of schedule.days || []) addDay(value);
       const addDayButton = el('button', 'button', 'Añadir día'); addDayButton.type = 'button'; addDayButton.addEventListener('click', () => addDay()); itineraryFields.append(addDayButton); itinerary.append(itineraryFields); form.append(itinerary);
+      if (Array.isArray(schedule.days) && schedule.version !== 2) itineraryFields.append(el('p', 'form-message', 'Actualiza Hostinger para activar los bloqueos del planning.'));
       if (!Array.isArray(schedule.days)) { transport.disabled = addDayButton.disabled = true; itineraryFields.append(el('p', 'form-message', 'Actualiza Hostinger para editar el planning por días. Se conserva el planning actual.')); }
       form.append(el('p', 'muted', 'Nueve pruebas. Cada una tiene únicamente un título o pista y una respuesta correcta. Los cambios conservan el progreso de los tributos.'));
       const cards = el('details', 'campaign-cards'); cards.append(el('summary', '', 'Cartas de recompensa'));

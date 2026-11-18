@@ -1,6 +1,6 @@
 # Planning y restaurantes de Chinchón
 
-Consulta de fuentes: **18 de noviembre de 2026**. Las dos imágenes del propietario definen el planning y los intervalos de precio; no se copian los originales personales a Git. El viaje se divide en viernes 20 y sábado 21. El planning no representa horarios de apertura confirmados ni controla las nueve pruebas.
+Consulta de fuentes: **18 de noviembre de 2026**. Las dos imágenes del propietario definen el planning y los intervalos de precio; no se copian los originales personales a Git. El viaje se divide en viernes 20 y sábado 21. La última corrección del propietario sustituye el viernes por 18:00 llegada y mochilas, una actividad BLOQUEADA, 21:00 llegada al piso y 22:00 batallas finales. Todo el sábado queda BLOQUEADO; su contenido se conserva solo en administración hasta que el propietario lo muestre desde LA TERRAZA. El planning no representa horarios de apertura confirmados ni controla las nueve pruebas.
 
 ## Lugares y puntuaciones
 
@@ -30,4 +30,4 @@ Las cifras son puntuaciones de Google reproducidas por las fuentes enlazadas, co
 
 ## Comprobación
 
-Con datos ficticios: guardar planning por días desde LA TERRAZA, recargar, conservarlo al guardar con un editor anterior, rechazar revisión antigua y horario inválido. En Chromium y WebKit móvil: dos días y trece actividades, cuatro pestañas, mapa cargado, filtros, ampliación de grupos, selección del local, enlace a Google Maps, recarga, cero desbordamiento horizontal y partida de nueve pruebas con batalla final.
+Con datos ficticios: guardar planning por días desde LA TERRAZA, recargar, conservarlo al guardar con un editor anterior, rechazar revisión antigua y horario inválido. En Chromium y WebKit móvil: viernes con cuatro entradas y sábado oculto, cuatro pestañas, mapa cargado, filtros, ampliación de grupos, selección del local, enlace a Google Maps, recarga, cero desbordamiento horizontal y partida de nueve pruebas con batalla final.
