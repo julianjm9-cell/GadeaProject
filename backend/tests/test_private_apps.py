@@ -1,8 +1,9 @@
 from uuid import uuid4
+import json
 import pytest
 from sqlalchemy import select
 from test_access_control import client, seed_user, login
-from app.models import License, PrivateAppAccount, PrivateAppProgress
+from app.models import AppSetting, License, PrivateAppAccount, PrivateAppProgress
 from app.services import gadeos
 from app.api.auth import ensure_google_access
 
@@ -123,20 +124,41 @@ def test_battle_loss_retry_victory_and_account_isolation(client):
     assert web.post('/api/private-apps/gadeos/stations/answer',headers={'origin':'https://otro.example'},json={'revision':0}).status_code==403
 
 
-@pytest.mark.parametrize('kind,options,solution,answer',[
- ('choice',['A','B'],'B','B'),('choice',['A | B','C'],'A | B','A | B'),('order',['A','B','C'],['C','A','B'],['C','A','B']),
- ('memory',['A','B','A','B'],None,[0,2,1,3]),
+@pytest.mark.parametrize('kind,options,solution',[
+ ('choice',['A','B'],'B'),('order',['A','B','C'],['C','A','B']),
+ ('memory',['A','B','A','B'],None),
 ])
-def test_editable_station_modes_are_corrected_by_server(client,kind,options,solution,answer):
+def test_old_challenges_become_questions_without_exposing_or_losing_originals(client,kind,options,solution):
     web,factory=client;headers=admin(web,factory);tribute(web,headers)
+    earned=web.post('/api/private-apps/gadeos/stations/answer',json={'revision':0,'request_id':str(uuid4()),'campaign_revision':0,'station':1,'answer':'ALIANZA'})
+    assert earned.status_code==200
+    config=gadeos.default_campaign()
+    config['stations'][1].update(kind=kind,options=options,solution=solution)
+    with factory() as db:
+        db.add(AppSetting(key=gadeos.CONFIG_KEY,value=json.dumps(config)));db.commit()
+    public=web.get('/api/private-apps/gadeos/state').json()
+    assert public['campaign']['stations'][1]['kind']=='code'
+    assert public['completed']==1 and len([card for card in public['cards'] if card['owned']])==1
+    assert 'legacy_challenge' not in json.dumps(public)
     config=web.get('/admin/apps/gadeos/campaign',headers=headers).json()
-    config['stations'][0].update(kind=kind,options=options,solution=solution)
+    assert config['stations'][1]['legacy_challenge']['kind']==kind
+    expected=solution if kind=='choice' else 'TIEMPO'
+    assert config['stations'][1]['solution']==expected
     saved=web.put('/admin/apps/gadeos/campaign',headers=headers,json=config)
     assert saved.status_code==200,saved.text
+    assert saved.json()['stations'][1]['legacy_challenge']['kind']==kind
     assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=config).status_code==409
-    answer=web.post('/api/private-apps/gadeos/stations/answer',json={'revision':0,'request_id':str(uuid4()),'campaign_revision':1,'station':1,'answer':answer})
+    answer=web.post('/api/private-apps/gadeos/stations/answer',json={'revision':1,'request_id':str(uuid4()),'campaign_revision':1,'station':2,'answer':expected.lower()})
     assert answer.status_code==200,answer.text
-    assert answer.json()['completed']==1
+    assert answer.json()['completed']==2
+    assert 'legacy_challenge' not in json.dumps(answer.json())
+
+
+def test_each_station_requires_one_question_and_one_answer(client):
+    web,factory=client;headers=admin(web,factory)
+    for change in [dict(prompt=''),dict(solution='A|B'),dict(solution=''),dict(kind='memory')]:
+        config=gadeos.default_campaign();config['stations'][0].update(change)
+        assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=config).status_code==422
 
 
 def test_workspace_privacy_notes_and_stale_account_edits(client):
@@ -226,9 +248,9 @@ def test_poster_and_guide_are_private_preserved_and_do_not_unlock_cards(client, 
         result = web.post('/admin/apps/gadeos/images', headers=headers, json={'data':base64.b64encode(buffer.getvalue()).decode()})
         assert result.status_code == 201
         return result.json()['url']
-    poster, page, locked_card = upload('red'), upload('blue'), upload('green')
+    poster, page, locked_card, envelope = upload('red'), upload('blue'), upload('green'), upload('gold')
     config = web.get('/admin/apps/gadeos/campaign', headers=headers).json()
-    config['media'] = {'poster':poster,'guide':[{'title':'Reglas','image':page,'text':'Texto legible de la guía.'}],'source':'a'*64}
+    config['media'] = {'poster':poster,'envelope':envelope,'guide':[{'title':'Reglas','image':page,'text':'Texto legible de la guía.'}],'source':'a'*64}
     config['stations'][7]['card']['image'] = locked_card
     saved = web.put('/admin/apps/gadeos/campaign', headers=headers, json=config)
     assert saved.status_code == 200
@@ -236,7 +258,7 @@ def test_poster_and_guide_are_private_preserved_and_do_not_unlock_cards(client, 
     assert poster not in web.get('/gadeos').text
     assert 'media' not in web.get('/api/private-apps/gadeos/info').json()
     tribute(web, headers)
-    for url in [poster, page]:
+    for url in [poster, page, envelope]:
         result = web.get(url)
         assert result.status_code == 200 and result.headers['cache-control'] == 'private, no-store'
     assert web.get(locked_card).status_code in {401,403}
@@ -245,6 +267,10 @@ def test_poster_and_guide_are_private_preserved_and_do_not_unlock_cards(client, 
     old_editor = saved.json(); old_editor.pop('media'); old_editor['title'] = 'Título personalizado'
     kept = web.put('/admin/apps/gadeos/campaign', headers=headers, json=old_editor)
     assert kept.status_code == 200 and kept.json()['media']['poster'] == poster
+    assert kept.json()['media']['envelope'] == envelope
+    older_media_editor=kept.json();older_media_editor['media'].pop('envelope')
+    kept=web.put('/admin/apps/gadeos/campaign',headers=headers,json=older_media_editor)
+    assert kept.status_code==200 and kept.json()['media']['envelope']==envelope
     invalid = kept.json(); invalid['media']['poster'] = 'https://example.invalid/public.webp'
     assert web.put('/admin/apps/gadeos/campaign', headers=headers, json=invalid).status_code == 422
     assert web.post('/api/private-apps/gadeos/logout').status_code == 200

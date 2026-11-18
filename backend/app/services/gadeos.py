@@ -35,21 +35,21 @@ def media_config(value=None):
     source = value.get("source", "")
     if not isinstance(source, str) or (source and not re.fullmatch(r"[a-f0-9]{64}", source)):
         raise HTTPException(422, "La referencia del material no es válida.")
-    return {"poster": image(value.get("poster")), "guide": pages, "source": source}
+    return {"poster": image(value.get("poster")), "envelope": image(value.get("envelope")), "guide": pages, "source": source}
 
 
 def default_campaign():
     titles = ['A tiempo para el bus', 'La adivinanza', 'Llegada a Chinchón', 'Vuestro refugio', 'El atardecer', 'El banquete', 'El séptimo sobre', 'La última llave']
     cards = ['La partida', 'Ingenio', 'El distrito', 'Refugio', 'Fuego dorado', 'El banquete', 'Complicidad', 'Siempre juntos']
     kinds = ['code'] * 8
-    prompts = ['Llega puntual al bus y consigue el código de esta primera parada.',
+    prompts = ['¿Qué palabra de siete letras nombra vuestro pacto como tributos? Empieza por ALI.',
                'No tiene alas y vuela; no tiene pies y corre. Nunca vuelve atrás. ¿Qué es?',
-               'Habéis llegado a Chinchón. Busca el código del siguiente sobre.',
-               'Conseguid la habitación y dejad vuestros enseres. Abre el sobre de esta parada.',
-               'Buscad vuestro lugar para ver el atardecer y consigue el código de esta estación.',
-               'Conseguid la cena. El siguiente sobre os espera en esta parada.',
-               'Esta prueba está lista para que el organizador la personalice.',
-               'Esta prueba está lista para que el organizador la personalice antes de la batalla final.']
+               '¿Cómo se llama el pueblo al que habéis llegado?',
+               '¿Qué palabra de siete letras nombra un lugar que os protege? Empieza por REF.',
+               '¿Qué línea parece unir el cielo y la tierra al mirar el atardecer?',
+               '¿Cómo se llama el gesto de chocar las copas para celebrar? Empieza por BRI.',
+               '¿Qué palabra secreta aparece en el séptimo sobre?',
+               '¿Cómo se llama vuestra colección de cartas?']
     options = [[] for _ in range(8)]
     solutions = ['ALIANZA', 'TIEMPO', 'CHINCHON', 'REFUGIO', 'HORIZONTE', 'BRINDIS', 'COMPLICIDAD', 'GADEOS']
     return {"revision": 0, "title": "La arena de los recuerdos", "intro": "Un viaje a Chinchón. Ocho sobres. Vuestra propia alianza.",
@@ -65,7 +65,27 @@ def default_campaign():
 def campaign(db):
     row = db.get(AppSetting, CONFIG_KEY)
     result = json.loads(row.value) if row else default_campaign()
-    result.setdefault("media", media_config())
+    result["media"] = media_config(result.get("media"))
+    # Preserve old challenges privately while presenting only one-answer questions.
+    defaults = default_campaign()["stations"]
+    old_prompts = ['Llega puntual al bus y consigue el código de esta primera parada.', None,
+                   'Habéis llegado a Chinchón. Busca el código del siguiente sobre.',
+                   'Conseguid la habitación y dejad vuestros enseres. Abre el sobre de esta parada.',
+                   'Buscad vuestro lugar para ver el atardecer y consigue el código de esta estación.',
+                   'Conseguid la cena. El siguiente sobre os espera en esta parada.',
+                   'Esta prueba está lista para que el organizador la personalice.',
+                   'Esta prueba está lista para que el organizador la personalice antes de la batalla final.']
+    for index, station in enumerate(result["stations"]):
+        if station.get("kind") != "code":
+            station.setdefault("legacy_challenge", {key: copy.deepcopy(station.get(key)) for key in ("kind", "prompt", "options", "solution")})
+            if station.get("kind") != "choice":
+                station["prompt"], station["solution"] = defaults[index]["prompt"], defaults[index]["solution"]
+            station["kind"], station["options"] = "code", []
+        if station.get("prompt") == old_prompts[index]:
+            station["prompt"] = defaults[index]["prompt"]
+        if isinstance(station.get("solution"), str) and "|" in station["solution"]:
+            station.setdefault("legacy_challenge", {key: copy.deepcopy(station.get(key)) for key in ("kind", "prompt", "options", "solution")})
+            station["solution"] = station["solution"].split("|")[0].strip()
     return result
 
 
@@ -81,16 +101,12 @@ def validate_campaign(data):
         kind = station.get("kind")
         options = station.get("options", [])
         solution = station.get("solution")
-        if kind not in {"choice", "order", "memory", "code"} or not isinstance(options, list) or len(options) > 12 or any(not isinstance(item, str) or not 1 <= len(item) <= 150 for item in options):
-            raise HTTPException(422, "Revisa las opciones y el tipo de prueba.")
-        if kind == "choice" and (len(options) < 2 or len(set(options)) != len(options) or solution not in options):
-            raise HTTPException(422, "Una decisión necesita opciones distintas y una respuesta correcta.")
-        if kind == "order" and (len(options) < 3 or not isinstance(solution, list) or any(not isinstance(item, str) for item in solution) or sorted(options) != sorted(solution) or len(set(options)) != len(options)):
-            raise HTTPException(422, "El orden correcto debe incluir una vez cada opción.")
-        if kind == "memory" and (len(options) < 4 or any(options.count(option) != 2 for option in options)):
-            raise HTTPException(422, "Memoria necesita entre dos y seis parejas de símbolos.")
-        if kind == "code" and (not isinstance(solution, str) or not 1 <= len(solution.strip()) <= 100):
-            raise HTTPException(422, "Escribe la clave de la estación.")
+        if kind != "code" or options != []:
+            raise HTTPException(422, "Cada estación debe ser una pregunta con una única respuesta escrita.")
+        if not isinstance(solution, str) or not 1 <= len(solution.strip()) <= 100 or "|" in solution:
+            raise HTTPException(422, "Escribe una única respuesta correcta para la estación.")
+        if not isinstance(station.get("prompt"), str) or not station["prompt"].strip() or len(station["prompt"]) > 1500:
+            raise HTTPException(422, "Escribe la pregunta de cada estación.")
         card = station.get("card", {})
         clean["stations"].append({"number": index + 1, "kind": kind, "options": options, "solution": solution,
             **{key: str(station.get(key, ""))[:1500] for key in ("title", "story", "prompt", "clue")},
@@ -106,7 +122,7 @@ def public_campaign(config, completed):
     for index, station in enumerate(config["stations"]):
         entry = {"number": index + 1, "title": station["title"], "locked": index > completed, "completed": index < completed}
         if index <= completed:
-            entry.update({key: value for key, value in station.items() if key not in {"solution", "card"}})
+            entry.update({key: value for key, value in station.items() if key not in {"solution", "card", "legacy_challenge"}})
         result["stations"].append(entry)
     return result
 
@@ -152,15 +168,7 @@ def complete_station(db, account, payload):
         raise HTTPException(409, "La prueba se ha actualizado. Vuelve a abrir la estación.")
     station = config["stations"][payload.station - 1]
     answer = payload.answer
-    if station["kind"] == "memory":
-        valid = isinstance(answer, list) and all(type(i) is int for i in answer) and sorted(answer) == list(range(len(station["options"])))
-        valid = valid and all(station["options"][answer[i]] == station["options"][answer[i + 1]] for i in range(0, len(answer), 2))
-    elif station["kind"] == "order":
-        valid = answer == station["solution"]
-    elif station["kind"] == "choice":
-        valid = isinstance(answer, str) and answer == station["solution"]
-    else:
-        valid = isinstance(answer, str) and normalized(answer) in [normalized(option) for option in str(station["solution"]).split("|")]
+    valid = isinstance(answer, str) and normalized(answer) == normalized(str(station["solution"]).split("|")[0])
     def apply(data):
         if data.get("completed", 0) != payload.station - 1:
             raise HTTPException(409, "Completa primero la estación anterior. Las estaciones superadas permanecen guardadas.")

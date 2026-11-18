@@ -12,7 +12,7 @@ export function createPrivateMaterials({ directory, store, admin }) {
     try { manifest = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8')); }
     catch (error) { if (error.code === 'ENOENT') return null; throw new OperationError(400, 'No se puede leer el paquete privado de GADEOS.'); }
     if (manifest.version !== 1 || !Array.isArray(manifest.guide) || manifest.guide.length > 8 || typeof manifest.title !== 'string' || manifest.title.length > 120) throw new OperationError(400, 'El paquete privado no tiene un formato válido.');
-    const files = [manifest.poster, ...manifest.guide.map(page => page.file)];
+    const files = [manifest.poster, ...manifest.guide.map(page => page.file), ...(manifest.envelope ? [manifest.envelope] : [])];
     if (files.some(name => !/^[a-z0-9-]+\.webp$/.test(name || '')) || manifest.guide.some(page => typeof page.title !== 'string' || !page.title || page.title.length > 100)) throw new OperationError(400, 'Revisa los nombres de las imágenes preparadas.');
     const data = [];
     for (const name of files) {
@@ -29,7 +29,7 @@ export function createPrivateMaterials({ directory, store, admin }) {
       const campaign = await call('app-campaign-read', cookie, {}, response);
       const bundle = await readBundle();
       return bundle ? { available: true, title: bundle.manifest.title, pages: bundle.manifest.guide.length,
-        hash: bundle.hash, applied: campaign.media?.source === bundle.hash } : { available: false };
+        envelope: Boolean(bundle.manifest.envelope), hash: bundle.hash, applied: campaign.media?.source === bundle.hash } : { available: false };
     },
     async apply(cookie, response, expectedHash) {
       if (working) throw new OperationError(409, 'Se están importando los materiales. Espera a que termine.');
@@ -39,6 +39,7 @@ export function createPrivateMaterials({ directory, store, admin }) {
         if (!campaign.media) throw new OperationError(409, 'Actualiza Hostinger para activar el cartel y la guía privados.');
         const bundle = await readBundle();
         if (!bundle || bundle.hash !== expectedHash) throw new OperationError(409, 'Los materiales preparados han cambiado. Vuelve a abrir esta sección.');
+        if (bundle.manifest.envelope && !Object.hasOwn(campaign.media, 'envelope')) throw new OperationError(409, 'Actualiza Hostinger antes de aplicar el nuevo diseño de los sobres.');
         const saved = store.operation(key) || { uploads: {} };
         if (campaign.media.source === bundle.hash) return { applied: true, revision: campaign.revision, reused: true };
         for (const file of bundle.data) {
@@ -49,8 +50,9 @@ export function createPrivateMaterials({ directory, store, admin }) {
             store.writeOperation(key, saved); // Resume after a restart without repeating acknowledged uploads.
           }
         }
-        const media = { source: bundle.hash, poster: saved.uploads[bundle.data[0].hash],
+        const media = { ...campaign.media, source: bundle.hash, poster: saved.uploads[bundle.data[0].hash],
           guide: bundle.manifest.guide.map((page, i) => ({ title: page.title, image: saved.uploads[bundle.data[i + 1].hash], text: page.text || '' })) };
+        if (bundle.manifest.envelope) media.envelope = saved.uploads[bundle.data.at(-1).hash];
         const result = await call('app-campaign', cookie, { ...campaign, media }, response);
         saved.applied = { hash: bundle.hash, revision: result.revision, at: new Date().toISOString() };
         store.writeOperation(key, saved);

@@ -11,11 +11,11 @@ test('el material privado retoma subidas, conserva cambios recientes y no duplic
   let store = openPanelStore(directory, {});
   t.after(async () => { store.close(); await rm(directory, { recursive: true, force: true, maxRetries: 5 }); });
   const root = join(directory, 'private-materials', 'gadeos'); await mkdir(root, { recursive: true });
-  const manifest = { version: 1, title: 'Guía de ensayo', poster: 'poster.webp', guide: [{ title: 'Instrucciones', file: 'rules.webp', text: 'Texto accesible de ensayo.' }] };
+  const manifest = { version: 1, title: 'Guía de ensayo', poster: 'poster.webp', envelope: 'envelope.webp', guide: [{ title: 'Instrucciones', file: 'rules.webp', text: 'Texto accesible de ensayo.' }] };
   await writeFile(join(root, 'manifest.json'), JSON.stringify(manifest));
-  for (const [i, name] of ['poster.webp', 'rules.webp'].entries()) await writeFile(join(root, name), Buffer.from('RIFF0000WEBP' + i));
+  for (const [i, name] of ['poster.webp', 'rules.webp', 'envelope.webp'].entries()) await writeFile(join(root, name), Buffer.from('RIFF0000WEBP' + i));
   let failUpload = true, failSave = true, writes = 0;
-  const uploads = [0, 0]; let campaign = { revision: 0, title: 'Personalizado', stations: [{ title: 'Conservar' }], media: { source: '', poster: null, guide: [] } };
+  const uploads = [0, 0, 0]; let campaign = { revision: 0, title: 'Personalizado', stations: [{ title: 'Conservar' }], media: { source: '', poster: null, envelope: null, guide: [] } };
   const admin = { async handle(action, cookie, body) {
     if (cookie !== 'authenticated') throw Object.assign(Error('Entra en administración'), { status: 401 });
     if (action === 'app-campaign-read') return structuredClone(campaign);
@@ -31,13 +31,18 @@ test('el material privado retoma subidas, conserva cambios recientes y no duplic
   let service = createPrivateMaterials({ directory, store, admin });
   await assert.rejects(service.status('', {}), { status: 401 });
   const status = await service.status('authenticated', {}); assert.equal(status.applied, false);
+  delete campaign.media.envelope;
+  await assert.rejects(service.apply('authenticated', {}, status.hash), { status: 409 });
+  assert.deepEqual(uploads, [0, 0, 0], 'no sube arte a un backend que todavía no admite sobres');
+  campaign.media.envelope = null;
   await assert.rejects(service.apply('authenticated', {}, 'changed'), { status: 409 });
   await assert.rejects(service.apply('authenticated', {}, status.hash), /interrumpida/);
   store.close(); store = openPanelStore(directory, {}); service = createPrivateMaterials({ directory, store, admin });
   failUpload = false;
   await assert.rejects(service.apply('authenticated', {}, status.hash), { status: 409 });
   failSave = false; await service.apply('authenticated', {}, status.hash);
-  assert.deepEqual(uploads, [1, 2]); assert.equal(campaign.title, 'Editado en otra pestaña'); assert.equal(campaign.stations[0].title, 'Conservar');
+  assert.deepEqual(uploads, [1, 2, 1]); assert.equal(campaign.title, 'Editado en otra pestaña'); assert.equal(campaign.stations[0].title, 'Conservar');
+  assert.match(campaign.media.envelope, /22222222222222222222222222222222.webp$/);
   assert.equal(campaign.media.guide[0].text, 'Texto accesible de ensayo.');
   assert.equal((await service.apply('authenticated', {}, status.hash)).reused, true); assert.equal(writes, 2);
   assert.equal((await service.status('authenticated', {})).applied, true);

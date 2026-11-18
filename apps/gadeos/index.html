@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#191e1a">
+  <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#100b09">
   <title>GADEOS · Tu alianza</title>
   <link rel="stylesheet" href="/private-app-assets/gadeos/style.css">
   <script type="module" src="/private-app-assets/gadeos/app.js"></script>
@@ -17,18 +17,17 @@
     <symbol id="i-card" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="m12 6 3 5-3 5-3-5Zm-3 13h6"/></symbol>
   </defs></svg>
   <main id="login-screen" class="login-screen">
-    <div class="login-art" aria-hidden="true"><div class="arena-sun"></div><span class="sigil">G</span></div>
-    <section class="login-panel"><p class="eyebrow">GADEOS · ACCESO POR INVITACIÓN</p><h1>Vuestra alianza.<br><em>Vuestra arena.</em></h1><p class="muted">Un viaje, ocho sobres y una historia que solo vosotros podéis completar.</p>
+    <div class="login-art" aria-hidden="true"><div class="fire-ring"><svg><use href="#i-flame"/></svg></div><span class="art-caption">OCHO PRUEBAS · UNA ALIANZA</span></div>
+    <section class="login-panel"><p class="eyebrow">JUEGOS DEL HAMBRE EN CHINCHÓN</p><h1>GADEOS</h1><p class="muted">Vuestro viaje empieza aquí.</p>
       <form id="login-form"><label>Nombre de tributo<input name="name" autocomplete="username" minlength="2" maxlength="80" required></label><label>Contraseña<input name="password" type="password" autocomplete="current-password" minlength="8" maxlength="72" required></label><button class="primary" type="submit">Entrar en la arena <span aria-hidden="true">↗</span></button><p id="login-error" class="error" role="alert" hidden></p></form>
     </section>
   </main>
   <div id="game-screen" class="game-shell" hidden>
-    <header class="app-header"><a href="#inicio" class="brand" aria-label="GADEOS, inicio"><span>G</span><strong>GADEOS</strong></a><div class="header-actions"><button id="open-guide" class="quiet" type="button">Guía</button><button id="logout" class="quiet" type="button" aria-label="Cerrar sesión">Salir ↗</button></div></header>
+    <header class="app-header"><a href="#inicio" class="brand" aria-label="GADEOS, inicio"><svg aria-hidden="true"><use href="#i-flame"/></svg><strong>GADEOS</strong></a><button id="logout" class="quiet" type="button" aria-label="Cerrar sesión">Salir ↗</button></header>
     <main id="main" tabindex="-1"></main>
     <nav class="bottom-nav" aria-label="Secciones"><a href="#inicio"><svg><use href="#i-flame"/></svg><span>Inicio</span></a><a href="#recorrido"><svg><use href="#i-route"/></svg><span>Recorrido</span></a><a href="#batalla"><svg><use href="#i-battle"/></svg><span>Batalla final</span></a></nav>
   </div>
   <dialog id="challenge" aria-labelledby="challenge-title"><button class="close" type="button" aria-label="Cerrar prueba">×</button><div id="challenge-content"></div></dialog>
   <dialog id="reward" aria-labelledby="reward-title"><button class="close" type="button" aria-label="Cerrar sobre">×</button><div id="reward-content"></div></dialog>
-  <dialog id="guide" aria-labelledby="guide-title"><button class="close" type="button" aria-label="Cerrar guía">×</button><div id="guide-content"></div></dialog>
   <p id="notice" class="notice" role="status" hidden></p>
 </body></html>

@@ -135,22 +135,22 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
     heading(app.name); body.append(el('p', 'muted', 'Cargando…'));
     try {
       const tabs = el('div', 'actions'); tabs.append(button(app.id === 'gadeos' ? 'Tributos' : 'Cuentas', () => accounts(app)));
-      if (app.id === 'gadeos') tabs.append(button('Editar recorrido y cartas', campaign), button('Cartel y guía', materials));
+      if (app.id === 'gadeos') tabs.append(button('Editar recorrido y cartas', campaign), button('Imágenes', materials));
       body.replaceChildren(tabs); const content = el('div'); content.id = 'managed-app-content'; body.append(content); await accounts(app);
     } catch (error) { feedback(error.message, true); }
   }
   async function materials() {
     const host = document.getElementById('managed-app-content'); host.replaceChildren(el('p', 'muted', 'Consultando materiales privados…'));
     try {
-      const data = await api('/api/operacion/admin/app-materials'); host.replaceChildren(el('h3', '', 'Cartel y guía originales'));
+      const data = await api('/api/operacion/admin/app-materials'); host.replaceChildren(el('h3', '', 'Imágenes de GADEOS'));
       if (!data.available) { host.append(el('p', 'muted', 'No hay un paquete preparado en este equipo. Se conservan el recorrido y las cartas actuales.')); return; }
-      host.append(el('p', 'muted', data.title + ' · Un cartel y ' + data.pages + ' páginas. Se incorporan al espacio privado de GADEOS.'));
-      const apply = button(data.applied ? 'Volver a comprobar los materiales' : 'Aplicar cartel y guía', async () => {
+      host.append(el('p', 'muted', data.title + ' · Un cartel, ' + (data.envelope ? 'el diseño de los sobres y ' : '') + data.pages + ' páginas originales. Se incorporan al espacio privado de GADEOS.'));
+      const apply = button(data.applied ? 'Volver a comprobar los materiales' : 'Aplicar imágenes', async () => {
         apply.disabled = true; apply.textContent = 'Importando materiales…';
-        try { await api('/api/operacion/admin/app-materials', 'POST', { hash: data.hash }); await materials(); feedback('Cartel y guía preparados en GADEOS. La batalla y el progreso se conservan.'); }
+        try { await api('/api/operacion/admin/app-materials', 'POST', { hash: data.hash }); await materials(); feedback('Imágenes preparadas en GADEOS. La batalla y el progreso se conservan.'); }
         catch (error) { feedback(error.message, true); apply.disabled = false; apply.textContent = 'Reintentar importación'; }
       }); apply.className = 'button primary'; host.append(apply);
-      if (data.applied) host.append(el('p', 'form-message', 'Ya están aplicados. Entra en GADEOS para ver el cartel y abrir la guía.'));
+      if (data.applied) host.append(el('p', 'form-message', 'Ya están aplicados. Entra en GADEOS para ver el planning, el recorrido y los sobres.'));
     } catch (error) { host.replaceChildren(el('p', 'form-message', error.message)); }
   }
   async function accounts(app) {
@@ -177,21 +177,20 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       const config = await api('/api/operacion/admin/app-campaign'); host.replaceChildren();
       const form = el('form', 'managed-app-form');
       const title = field(form, 'Título del recorrido', 'title', config.title), intro = field(form, 'Introducción', 'intro', config.intro, true), boss = field(form, 'Nombre del rival final', 'boss', config.boss), ending = field(form, 'Mensaje de la victoria', 'ending', config.ending, true);
-      form.append(el('p', 'muted', 'Los códigos solo los ve administración. Pon en cada sobre la clave que configures aquí. Cambiar una prueba o imagen conserva el progreso de los tributos.'));
+      form.append(el('p', 'muted', 'Ocho preguntas, una respuesta correcta por etapa. Las soluciones solo las ve administración. Cambiar una pregunta o imagen conserva el progreso de los tributos.'));
       const entries = [];
       for (const [i, station] of config.stations.entries()) {
         const details = el('details', 'campaign-station'); details.append(el('summary', '', String(i + 1).padStart(2, '0') + ' · ' + station.title)); const fields = el('div', 'managed-app-form');
         const title = field(fields, 'Nombre de la estación', 'title', station.title), story = field(fields, 'Ambientación', 'story', station.story, true);
-        const kindLabel = el('label', '', 'Tipo de prueba'), kind = el('select'); for (const [value, title] of [['code', 'Código o adivinanza'], ['choice', 'Elegir una opción'], ['order', 'Ordenar los pasos'], ['memory', 'Encontrar parejas']]) { const option = el('option', '', title); option.value = value; kind.append(option); } kind.value = station.kind; kindLabel.append(kind); fields.append(kindLabel);
-        const prompt = field(fields, 'Prueba o adivinanza', 'prompt', station.prompt, true), options = field(fields, 'Opciones (una por línea; en parejas repite cada símbolo dos veces)', 'options', station.options.join('\n'), true), solution = field(fields, 'Solución: código, opción exacta u orden correcto (una por línea)', 'solution', Array.isArray(station.solution) ? station.solution.join('\n') : station.solution || '', true), clue = field(fields, 'Pista si falla', 'clue', station.clue), cardTitle = field(fields, 'Nombre de la carta del sobre', 'cardTitle', station.card.title), cardDescription = field(fields, 'Descripción de la carta', 'cardDescription', station.card.description, true);
+        const prompt = field(fields, 'Pregunta', 'prompt', station.prompt, true), solution = field(fields, 'Respuesta correcta', 'solution', station.solution || ''), clue = field(fields, 'Pista si falla', 'clue', station.clue), cardTitle = field(fields, 'Nombre de la carta del sobre', 'cardTitle', station.card.title), cardDescription = field(fields, 'Descripción de la carta', 'cardDescription', station.card.description, true);
+        prompt.required = true; solution.required = true; solution.maxLength = 100; solution.pattern = '[^|]+';
         const imageLabel = el('label', '', 'Imagen de la carta'), image = el('input'); image.type = 'file'; image.accept = 'image/png,image/jpeg,image/webp'; imageLabel.append(image); fields.append(imageLabel);
         let imageUrl = station.card.image;
         const preview = el('img', 'campaign-card-preview'); preview.alt = 'Vista previa de la carta ' + (i + 1); preview.hidden = true; fields.append(preview);
         if (imageUrl) api('/api/operacion/admin/app-image?name=' + encodeURIComponent(imageUrl.split('/').at(-1))).then(data => { if (preview.isConnected) { preview.src = data.data; preview.hidden = false; } }).catch(() => {});
         image.addEventListener('change', async () => { if (!image.files[0]) return; image.disabled = true; submit.disabled = true; try { const data = await compressedImage(image.files[0]); const uploaded = await api('/api/operacion/admin/app-image', 'POST', { data }); imageUrl = uploaded.url; preview.src = data; preview.hidden = false; feedback('Imagen preparada. Guarda el recorrido para asignarla a la carta.'); } catch (error) { feedback(error.message, true); } finally { image.disabled = false; submit.disabled = false; } });
-        const refreshKind = () => { options.parentElement.hidden = kind.value === 'code'; solution.parentElement.hidden = kind.value === 'memory'; }; kind.addEventListener('change', refreshKind); refreshKind();
-        entries.push(() => ({ number: i + 1, title: title.value, story: story.value, kind: kind.value, prompt: prompt.value,
-          options: options.value.split('\n').map(value => value.trim()).filter(Boolean), solution: kind.value === 'order' ? solution.value.split('\n').map(value => value.trim()).filter(Boolean) : kind.value === 'memory' ? null : solution.value,
+        entries.push(() => ({ number: i + 1, title: title.value, story: story.value, kind: 'code', prompt: prompt.value,
+          options: [], solution: solution.value,
           clue: clue.value, card: { title: cardTitle.value, description: cardDescription.value, image: imageUrl } }));
         details.append(fields); form.append(details);
       }

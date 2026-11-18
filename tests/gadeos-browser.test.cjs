@@ -26,44 +26,38 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   const materialRoot=process.env.EDUCAME_GADEOS_MATERIALS_DIR;
   const manifest=materialRoot?JSON.parse(await readFile(join(materialRoot,'manifest.json'),'utf8')):{poster:'fixture',guide:[{title:'Portada',file:'fixture'},{title:'Instrucciones',file:'fixture',text:'Texto legible de ensayo.'}]};
   async function upload(file){const bytes=await readFile(materialRoot?join(materialRoot,file):resolve('marketing/app_landings_demo/assets/landing/profesor-dashboard.png'));const response=await page.request.post(base+'/admin/apps/gadeos/images',{headers,data:{data:bytes.toString('base64')}});assert.equal(response.status(),201);return (await response.json()).url;}
-  config.media={poster:await upload(manifest.poster),source:'b'.repeat(64),guide:[]};
+  config.media={poster:await upload(manifest.poster),envelope:await upload(manifest.envelope||manifest.poster),source:'b'.repeat(64),guide:[]};
   for(const entry of manifest.guide)config.media.guide.push({title:entry.title,image:await upload(entry.file),text:entry.text||''});
-  config.stations[2] = {...config.stations[2], kind:'choice', options:['A','B'], solution:'B'};
-  config.stations[3] = {...config.stations[3], kind:'order', options:['A','B','C'], solution:['B','A','C']};
-  config.stations[4] = {...config.stations[4], kind:'memory', options:['Sol','Luna','Sol','Luna'], solution:null};
   assert.equal((await page.request.put(base+'/admin/apps/gadeos/campaign',{headers,data:config})).status(),200);
-  await page.context().clearCookies();await page.goto(base+'/gadeos');await page.getByRole('heading',{name:/Vuestra alianza/}).waitFor();
+  await page.context().clearCookies();await page.goto(base+'/gadeos');await page.getByRole('heading',{name:'GADEOS',exact:true}).waitFor();
   assert.equal((await page.request.get(base+config.media.poster)).status(),401);
   assert.equal(await page.getByRole('button',{name:'Crear cuenta',exact:true}).count(),0);
   await page.getByLabel('Nombre de tributo').fill('Alma');await page.getByLabel('Contraseña',{exact:true}).fill('ensayo-seguro-123');await page.getByRole('button',{name:/Entrar en la arena/}).click();
   await page.getByText('TU TRIBUTO · Alma',{exact:true}).waitFor();
   await page.waitForFunction(()=>document.querySelector('.event-poster')?.naturalWidth>0);
-  const cta=await page.locator('.poster-copy .primary').boundingBox(),nav=await page.locator('.bottom-nav').boundingBox();assert.ok(cta.y+cta.height<=nav.y,'El siguiente paso debe quedar visible por encima de la navegación.');
-  await page.getByRole('button',{name:'Guía',exact:true}).click();await page.locator('.guide-tile').nth(1).click();
-  await page.getByRole('button',{name:'Ampliar página',exact:true}).click();assert.ok(await page.locator('.guide-reading').evaluate(node=>node.scrollWidth>node.clientWidth));
-  await page.getByRole('button',{name:'Ajustar a la pantalla',exact:true}).click();await page.locator('.guide-text summary').click();assert.ok(await page.locator('.guide-text p').isVisible());
-  if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-guide-'+name.split(' ')[0]+'.png'),fullPage:true});
-  await page.getByRole('button',{name:'Cerrar guía',exact:true}).click();
+  assert.equal(await page.locator('.bottom-nav a').count(),3);
+  await page.getByRole('heading',{name:'Vuestro planning',exact:true}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'Guía',exact:true}).count(),0);
+  const cta=await page.locator('.next-step').boundingBox(),nav=await page.locator('.bottom-nav').boundingBox();assert.ok(cta.y+cta.height<=nav.y,'El siguiente paso queda visible por encima de la navegación.');
   assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);
-  if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-home-'+name.split(' ')[0]+'.png'),fullPage:true});
+  if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-home-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   await page.locator('.bottom-nav a[href="#recorrido"]').click();assert.equal(await page.locator('[data-station="2"]').isEnabled(),false);
-  if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-route-'+name.split(' ')[0]+'.png'),fullPage:true});
+  await page.waitForFunction(()=>document.querySelector('.collection-cover')?.naturalWidth>0);
+  if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-route-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   let lost=false;await page.route('**/stations/answer',async route=>{const body=route.request().postDataJSON();if(!lost&&body.station===1&&body.answer===config.stations[0].solution){lost=true;await route.fetch();return route.abort();}return route.continue();});
   for(let i=0;i<8;i++){
-   await page.locator(`[data-station="${i+1}"]`).click();const dialog=page.locator('#challenge');await dialog.waitFor();const input=dialog.getByLabel('Palabra o código de la estación');
+   await page.locator(`[data-station="${i+1}"]`).click();const dialog=page.locator('#challenge');await dialog.waitFor();const input=dialog.getByLabel('Tu respuesta',{exact:true});
    if(i===0){await input.fill('INCORRECTO');await dialog.getByRole('button',{name:'Comprobar y abrir sobre'}).click();await dialog.getByRole('alert').waitFor({state:'visible'});assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);}
-   if(config.stations[i].kind==='choice')await dialog.getByRole('button',{name:'B',exact:true}).click();
-   else if(config.stations[i].kind==='order')for(const letter of config.stations[i].solution)await dialog.getByRole('button',{name:letter,exact:true}).click();
-   else if(config.stations[i].kind==='memory')for(const index of [0,2,1,3])await dialog.locator(`[data-index="${index}"]`).click();
-   else await input.fill(config.stations[i].solution);
+   assert.equal(await dialog.locator('input').count(),1);assert.equal(await dialog.locator('.choice-list,.memory-board,.order-slot').count(),0);
+   await input.fill(config.stations[i].solution);
    await dialog.getByRole('button',{name:'Comprobar y abrir sobre'}).click();
    if(i===0){await dialog.getByRole('alert').waitFor({state:'visible'});await dialog.getByRole('button',{name:'Comprobar y abrir sobre'}).click();}
-   await page.getByRole('button',{name:'Abrir sobre',exact:true}).click().catch(async error=>{await page.screenshot({path:'.educame-agents/gadeos-failed.png',fullPage:true});throw Error('Estación '+(i+1)+': '+await page.locator('#challenge').innerText()+'; errores='+JSON.stringify(errors));});await page.locator('.reward-card').waitFor();await page.getByRole('button',{name:'Guardar en mi colección'}).click();
+   await page.getByRole('button',{name:'Abrir sobre',exact:true}).waitFor().catch(async error=>{await page.screenshot({path:'.educame-agents/gadeos-failed.png',fullPage:true,animations:"disabled"});throw Error('Estación '+(i+1)+': '+await page.locator('#challenge').innerText()+'; errores='+JSON.stringify(errors));});await page.waitForFunction(()=>document.querySelector('.earned-pack img')?.naturalWidth>0);await page.locator('.earned-pack').evaluate(node=>Promise.all(node.getAnimations().map(animation=>animation.finished)));assert.equal(await page.locator('.earned-pack').evaluate(node=>getComputedStyle(node).opacity),'1');if(i===0&&process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-pack-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});await page.getByRole('button',{name:'Abrir sobre',exact:true}).click();await page.locator('.reward-card').waitFor();await page.getByRole('button',{name:'Continuar recorrido',exact:true}).click();
    if(i===0){await page.reload();await page.locator('[data-station="2"]').waitFor();assert.equal(await page.locator('[data-station="2"]').isEnabled(),true);assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).cards.filter(card=>card.owned).length,1);}
   }
   assert.ok(lost);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.locator('.bottom-nav a[href="#batalla"]').click();await page.getByRole('button',{name:'Entrar en la arena',exact:true}).click();await page.locator('.battle-actions').waitFor();
-  if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-'+name.split(' ')[0]+'.png'),fullPage:true});
+  if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   let state=await (await page.request.get(base+'/api/private-apps/gadeos/state')).json();
   await page.getByRole('button',{name:'Preparar una carta · bonus de alianza',exact:true}).click();await page.locator('#reward').getByRole('button',{name:'Ver carta La partida',exact:true}).click();
   while(state.battle.state==='playing'){

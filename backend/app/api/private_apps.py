@@ -201,6 +201,11 @@ def campaign_save(payload: dict, actor: User = Depends(require_superadmin), db: 
     current = gadeos.campaign(db)
     if "media" not in payload:
         clean["media"] = current["media"]  # Older editors must preserve the private poster and guide.
+    elif isinstance(payload["media"], dict) and "envelope" not in payload["media"]:
+        clean["media"]["envelope"] = current["media"].get("envelope")
+    for station, previous in zip(clean["stations"], current["stations"]):
+        if "legacy_challenge" in previous:
+            station["legacy_challenge"] = previous["legacy_challenge"]
     if type(payload.get("revision")) is not int or payload["revision"] != current["revision"]:
         raise HTTPException(409, "El recorrido cambió. Actualiza antes de guardar.")
     clean["revision"] = current["revision"] + 1
@@ -345,7 +350,7 @@ def private_image(app_id: str, filename: str, request: Request, db: Session = De
         account = member(app_id, request, db)
         data = gadeos.progress_payload(db, account)
         media = data["campaign"]["media"]
-        permitted = {card["image"] for card in data["cards"] if card["owned"]} | {media["poster"]} | {page["image"] for page in media["guide"]}
+        permitted = {card["image"] for card in data["cards"] if card["owned"]} | {media["poster"], media.get("envelope")} | {page["image"] for page in media["guide"]}
         if "/api/private-apps/gadeos/images/" + filename not in permitted:
             raise HTTPException(403, "Esta carta todavía no se ha desbloqueado.")
     except HTTPException:
