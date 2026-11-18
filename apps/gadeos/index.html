@@ -4,7 +4,9 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#061126">
   <title>JUEGOS DEL HAMBRE EN CHINCHÓN</title>
+  <link rel="stylesheet" href="/aventura-chinchon-assets/leaflet.css">
   <link rel="stylesheet" href="/aventura-chinchon-assets/style.css">
+  <script defer src="/aventura-chinchon-assets/leaflet.js"></script>
   <script type="module" src="/aventura-chinchon-assets/app.js"></script>
 </head>
 <body>
@@ -14,6 +16,7 @@
     <symbol id="i-battle" viewBox="0 0 24 24"><path d="m4 3 7 5-3 3Zm16 0-7 5 3 3ZM8 11l12 11M16 11 4 22M2 17l5 5m15-5-5 5"/></symbol>
     <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="12" rx="3"/><path d="M8 10V6a4 4 0 0 1 8 0v4M12 15v3"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L21 5"/></symbol>
+    <symbol id="i-food" viewBox="0 0 24 24"><path d="M5 2v7m3-7v7M2 2v7c0 4 6 4 6 0M5 12v10M18 2c-4 4-4 10 0 10h2V2h-2Zm2 10v10"/></symbol>
     <symbol id="i-card" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="m12 6 3 5-3 5-3-5Zm-3 13h6"/></symbol>
   </defs></svg>
   <main id="login-screen" class="login-screen">
@@ -25,7 +28,7 @@
   <div id="game-screen" class="game-shell" hidden>
     <header class="app-header"><a href="#inicio" class="brand" aria-label="Juegos del Hambre en Chinchón, inicio"><img class="brand-title" src="/aventura-chinchon-assets/art/title-lockup-v1.webp" alt="JUEGOS DEL HAMBRE EN CHINCHÓN" width="180" height="120"></a><button id="logout" class="quiet" type="button" aria-label="Cerrar sesión">Salir ↗</button></header>
     <main id="main" tabindex="-1"></main>
-    <nav class="bottom-nav" aria-label="Secciones"><a href="#inicio"><svg><use href="#i-flame"/></svg><span>Inicio</span></a><a href="#recorrido"><svg><use href="#i-route"/></svg><span>Recorrido</span></a><a href="#batalla"><svg><use href="#i-battle"/></svg><span>Batalla final</span></a></nav>
+    <nav class="bottom-nav" aria-label="Secciones"><a href="#inicio"><svg><use href="#i-flame"/></svg><span>Inicio</span></a><a href="#recorrido"><svg><use href="#i-route"/></svg><span>Recorrido</span></a><a href="#batalla"><svg><use href="#i-battle"/></svg><span>Batalla final</span></a><a href="#restaurantes"><svg><use href="#i-food"/></svg><span>Restaurantes</span></a></nav>
   </div>
   <dialog id="challenge" aria-labelledby="challenge-title"><button class="close" type="button" aria-label="Cerrar prueba">×</button><div id="challenge-content"></div></dialog>
   <dialog id="reward" tabindex="-1" aria-label="Recompensa"><button class="close" type="button" aria-label="Cerrar">×</button><div id="reward-content"></div></dialog>

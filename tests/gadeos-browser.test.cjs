@@ -37,12 +37,32 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   await page.getByLabel('Nombre de tributo').fill('Alma');await page.getByLabel('Contraseña',{exact:true}).fill('ensayo-seguro-123');await page.getByRole('button',{name:/Entrar en la arena/}).click();
   await page.getByText('TU TRIBUTO · Alma',{exact:true}).waitFor();
   await page.waitForFunction(()=>document.querySelector('.event-poster')?.naturalWidth>0);
-  assert.equal(await page.locator('.bottom-nav a').count(),3);assert.doesNotMatch(await page.locator('body').innerText(),/GADEOS/);assert.ok(page.url().includes('/juegos-del-hambre-chinchon'));await page.waitForFunction(()=>document.querySelector('.brand-title')?.naturalWidth>0);
+  assert.equal(await page.locator('.bottom-nav a').count(),4);assert.doesNotMatch(await page.locator('body').innerText(),/GADEOS/);assert.ok(page.url().includes('/juegos-del-hambre-chinchon'));await page.waitForFunction(()=>document.querySelector('.brand-title')?.naturalWidth>0);
   await page.getByRole('heading',{name:'Vuestro planning',exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'Guía',exact:true}).count(),0);
   const cta=await page.locator('.next-step').boundingBox(),nav=await page.locator('.bottom-nav').boundingBox();assert.ok(cta.y+cta.height<=nav.y,'El siguiente paso queda visible por encima de la navegación.');
   assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-home-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
+  assert.deepEqual(await page.locator('.planning-day h3').allTextContents(),['Viernes 20','Sábado 21']);
+  assert.equal(await page.locator('.planning-list li').count(),13);await page.getByText(/Autobús 337 · Salida/).waitFor();
+  await page.locator('.bottom-nav a[href="#restaurantes"]').click();await page.locator('.leaflet-container').waitFor();
+  assert.equal((await page.request.get(base+'/aventura-chinchon-assets/town-map.svg')).status(),200);
+  await page.waitForFunction(()=>document.querySelector('.leaflet-image-layer')?.naturalWidth>0).catch(async error=>{throw Error(error.message+'; JS='+JSON.stringify(errors)+'; mapa='+await page.locator('#restaurant-map').innerHTML());});
+  assert.equal(await page.locator('[data-restaurant]').count(),12);
+  assert.ok(await page.locator('.food-marker').count()>0);
+  const widthBeforeZoom=(await page.locator('.leaflet-image-layer').boundingBox()).width;await page.locator('.food-marker-body.clustered').first().click();
+  await page.waitForFunction(width=>document.querySelector('.leaflet-image-layer').getBoundingClientRect().width>width,widthBeforeZoom);
+  await page.getByRole('button',{name:'Ver todos',exact:true}).click();
+  if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'chinchon-restaurants-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
+  await page.getByRole('button',{name:'Desayuno del sábado',exact:true}).click();assert.equal(await page.locator('[data-restaurant]').count(),3);
+  const coffee=page.locator('[data-restaurant="tomeguin"]');assert.match(await coffee.getByRole('link',{name:'Google Maps ↗',exact:true}).getAttribute('href'),/^https:\/\/www\.google\.com\/maps\/search\//);
+  await coffee.getByRole('button',{name:'Ver en mapa',exact:true}).click();await page.locator('.leaflet-popup-content strong').getByText('Tomeguín & Colibrí',{exact:true}).waitFor();
+  await page.locator('.leaflet-popup-close-button').click();
+  await page.getByRole('button',{name:'Cuevas y vino',exact:true}).click();assert.equal(await page.locator('[data-restaurant]').count(),3);
+  assert.match(await page.locator('[data-restaurant="bayona"]').innerText(),/Titulcia/);assert.equal(await page.locator('[data-restaurant="bayona"]').getByRole('button',{name:'Ver en mapa'}).count(),0);
+  await page.getByRole('button',{name:'Todos',exact:true}).click();assert.equal(await page.locator('[data-restaurant]').count(),12);
+  await page.reload();await page.locator('.leaflet-container').waitFor();assert.equal(await page.locator('[data-restaurant]').count(),12);
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.locator('.bottom-nav a[href="#recorrido"]').click();assert.equal(await page.locator('[data-station="2"]').isEnabled(),false);
   assert.equal(await page.locator('[data-station]').count(),9);
   await page.waitForFunction(()=>document.querySelector('.journey-map')?.naturalWidth>0);
@@ -73,7 +93,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-route-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   let lost=false;await page.route('**/stations/answer',async route=>{const body=route.request().postDataJSON();if(!lost&&body.station===1&&body.answer===config.stations[0].solution){lost=true;await route.fetch();return route.abort();}return route.continue();});
   for(let i=0;i<9;i++){
-   await page.locator(`[data-station="${i+1}"]`).click();const dialog=page.locator('#challenge');await dialog.waitFor();const input=dialog.getByLabel('Tu respuesta',{exact:true});
+   await page.locator(`[data-station="${i+1}"]`).click().catch(async error=>{await page.screenshot({path:'.educame-agents/chinchon-click-failed.png',fullPage:true,animations:'disabled'});throw Error(error.message+'; estado='+JSON.stringify(await page.locator(`[data-station="${i+1}"]`).evaluate(node=>({style:getComputedStyle(node).transform,box:node.getBoundingClientRect().toJSON(),animations:node.getAnimations().map(a=>({state:a.playState,time:a.currentTime})),dialogs:[...document.querySelectorAll('dialog[open]')].map(d=>d.id)}))));});const dialog=page.locator('#challenge');await dialog.waitFor();const input=dialog.getByLabel('Tu respuesta',{exact:true});
    if(i===0){if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-question-'+name.split(' ')[0]+'.png'),animations:'disabled'});await input.fill('INCORRECTO');await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();await dialog.getByRole('alert').waitFor({state:'visible'});assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);}
    assert.equal(await dialog.locator('input').count(),1);assert.equal(await dialog.locator('.choice-list,.memory-board,.order-slot').count(),0);
    assert.equal(await dialog.locator('.challenge-prompt').count(),1);

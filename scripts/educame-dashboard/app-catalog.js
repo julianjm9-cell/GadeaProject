@@ -185,6 +185,30 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       const schedule = config.planning || { day: 'Viernes', place: 'Chinchón', start: '16:00', final: '22:00' };
       const day = field(form, 'Día del viaje', 'day', schedule.day), place = field(form, 'Lugar del viaje', 'place', schedule.place), start = field(form, 'Hora de inicio', 'start', schedule.start), final = field(form, 'Hora de la batalla', 'final', schedule.final);
       day.required = place.required = start.required = final.required = true; day.maxLength = place.maxLength = 80; start.type = final.type = 'time';
+      const itinerary = el('details', 'campaign-itinerary'); itinerary.append(el('summary', '', 'Planning por días'));
+      const itineraryFields = el('div', 'managed-app-form');
+      const transport = field(itineraryFields, 'Transporte', 'transport', schedule.transport || '', true); transport.maxLength = 300;
+      const itineraryDays = el('div', 'managed-app-form'), dayReaders = []; itineraryFields.append(itineraryDays);
+      function addDay(value = { title: 'Nuevo día', subtitle: 'Plan del día', activities: [{time:'12:00',text:''}] }) {
+        const box = el('fieldset', 'campaign-day'); box.append(el('legend', '', 'Día del planning'));
+        const name = field(box, 'Nombre del día', 'dayTitle', value.title), subtitle = field(box, 'Plan del día', 'daySubtitle', value.subtitle);
+        name.required = subtitle.required = true; name.maxLength = subtitle.maxLength = 120;
+        const activities = el('div', 'managed-app-form'), readers = []; box.append(activities);
+        function addActivity(entry = {time:'12:00',text:''}) {
+          const row = el('div', 'managed-app-form');
+          const time = field(row, 'Hora o intervalo', 'activityTime', entry.time), text = field(row, 'Actividad', 'activityText', entry.text, true);
+          time.required = text.required = true; time.placeholder = '19:20–19:45'; time.maxLength = 11; text.maxLength = 500;
+          const remove = el('button', 'button', 'Quitar actividad'); remove.type = 'button'; remove.addEventListener('click', () => row.remove()); row.append(remove); activities.append(row);
+          readers.push(() => row.isConnected ? {time:time.value,text:text.value} : null);
+        }
+        for (const activity of value.activities || []) addActivity(activity);
+        const add = el('button', 'button', 'Añadir actividad'); add.type = 'button'; add.addEventListener('click', () => addActivity());
+        const remove = el('button', 'button', 'Quitar día'); remove.type = 'button'; remove.addEventListener('click', () => box.remove()); box.append(add, remove); itineraryDays.append(box);
+        dayReaders.push(() => box.isConnected ? {title:name.value,subtitle:subtitle.value,activities:readers.map(read => read()).filter(Boolean)} : null);
+      }
+      for (const value of schedule.days || []) addDay(value);
+      const addDayButton = el('button', 'button', 'Añadir día'); addDayButton.type = 'button'; addDayButton.addEventListener('click', () => addDay()); itineraryFields.append(addDayButton); itinerary.append(itineraryFields); form.append(itinerary);
+      if (!Array.isArray(schedule.days)) { transport.disabled = addDayButton.disabled = true; itineraryFields.append(el('p', 'form-message', 'Actualiza Hostinger para editar el planning por días. Se conserva el planning actual.')); }
       form.append(el('p', 'muted', 'Nueve pruebas. Cada una tiene únicamente un título o pista y una respuesta correcta. Los cambios conservan el progreso de los tributos.'));
       const cards = el('details', 'campaign-cards'); cards.append(el('summary', '', 'Cartas de recompensa'));
       let imageUploads = 0;
@@ -209,7 +233,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       form.append(cards);
       const submit = el('button', 'button primary', 'Guardar recorrido y cartas'); submit.type = 'submit'; form.append(submit);
       if (config.stations.length !== 9) { submit.disabled = true; form.append(el('p', 'form-message', 'Actualiza Hostinger para activar las nueve pruebas. El recorrido guardado se conserva.')); }
-      form.addEventListener('submit', async event => { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; try { const updated = await api('/api/operacion/admin/app-campaign', 'POST', { revision: config.revision, media: config.media, planning: { day: day.value, place: place.value, start: start.value, final: final.value }, title: title.value, intro: intro.value, boss: boss.value, ending: ending.value, stations: entries.map(read => read()) }); config.revision = updated.revision; feedback('Recorrido guardado. Se conservan las cuentas y las estaciones completadas.'); } catch (error) { feedback(error.message, true); } finally { submit.disabled = false; } });
+      form.addEventListener('submit', async event => { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; try { const updated = await api('/api/operacion/admin/app-campaign', 'POST', { revision: config.revision, media: config.media, planning: { ...schedule, day: day.value, place: place.value, start: start.value, final: final.value, ...(schedule.days || dayReaders.length ? {transport:transport.value,days:dayReaders.map(read => read()).filter(Boolean)} : {}) }, title: title.value, intro: intro.value, boss: boss.value, ending: ending.value, stations: entries.map(read => read()) }); config.revision = updated.revision; feedback('Recorrido guardado. Se conservan las cuentas y las estaciones completadas.'); } catch (error) { feedback(error.message, true); } finally { submit.disabled = false; } });
       host.append(form);
     } catch (error) { host.replaceChildren(el('p', 'form-message', error.message)); }
   }

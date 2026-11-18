@@ -1,3 +1,4 @@
+import { restaurants, clearRestaurantMap } from './restaurants.js';
 const $ = id => document.getElementById(id);
 const apiRoot = '/api/arena-chinchon';
 const art = name => '/aventura-chinchon-assets/art/' + name + '-v2.webp';
@@ -20,7 +21,7 @@ async function load() {
   try { state = await api('/state'); showGame(); render(); }
   catch (error) { if (error.status === 401) showLogin(); else note(error.message); }
 }
-function showLogin() { state = null; document.body.dataset.view = 'login'; $('login-screen').hidden = false; $('game-screen').hidden = true; for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close(); }
+function showLogin() { clearRestaurantMap(); state = null; document.body.dataset.view = 'login'; $('login-screen').hidden = false; $('game-screen').hidden = true; for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close(); }
 function showGame() { $('login-screen').hidden = true; $('game-screen').hidden = false; }
 
 $('login-form').addEventListener('submit', async event => {
@@ -96,22 +97,22 @@ function reward() {
 }
 function home(host) {
   const schedule = state.campaign.planning || { day: 'Viernes', place: 'Chinchón', start: '16:00', final: '22:00' };
-  host.append(el('p', 'greeting', 'TU TRIBUTO · ' + state.account.name));
+  const overview = el('div', 'home-overview'); host.append(overview);
+  overview.append(el('p', 'greeting', 'TU TRIBUTO · ' + state.account.name));
   const hero = el('section', 'home-hero');
   const image = el('img', 'event-poster'); image.src = art('alliance-hero'); image.alt = ''; image.fetchPriority = 'high'; hero.append(image);
-  const copy = el('div', 'poster-copy'); copy.append(el('p', 'eyebrow', schedule.day + ' · ' + schedule.place), el('h1', '', state.campaign.title), el('p', '', state.campaign.intro)); hero.append(copy); host.append(hero);
-  const next = el('a', 'primary next-step', state.completed >= total() ? 'Ir a la batalla final →' : state.completed ? 'Continuar: prueba ' + (state.completed + 1) + ' →' : 'Empezar el recorrido →'); next.href = state.completed >= total() ? '#batalla' : '#recorrido'; host.append(next);
-  const planning = el('section', 'planning'); planning.append(el('div', 'section-line'));
-  planning.firstChild.append(el('h2', '', 'Vuestro planning'), el('small', '', schedule.day.toLocaleUpperCase('es')));
-  planning.append(el('p', 'planning-start', schedule.start + ' · Empiezan los juegos · ' + schedule.place));
-  const list = el('ol', 'planning-list');
-  for (const station of state.campaign.stations) {
-    const row = el('li', station.completed ? 'is-done' : '');
-    row.append(el('span', 'planning-time', String(station.number).padStart(2, '0')),
-      el('span', '', station.title.split('\n')[0]), station.completed ? icon('check') : el('span', 'planning-dot'));
-    list.append(row);
+  const copy = el('div', 'poster-copy'); copy.append(el('p', 'eyebrow', schedule.day + ' · ' + schedule.place), el('h1', '', state.campaign.title), el('p', '', state.campaign.intro)); hero.append(copy); overview.append(hero);
+  const next = el('a', 'primary next-step', state.completed >= total() ? 'Ir a la batalla final →' : state.completed ? 'Continuar: prueba ' + (state.completed + 1) + ' →' : 'Empezar el recorrido →'); next.href = state.completed >= total() ? '#batalla' : '#recorrido'; overview.append(next);
+  const planning = el('section', 'planning'); planning.append(el('h2', '', 'Vuestro planning'));
+  if (schedule.transport) planning.append(el('p', 'planning-transport', schedule.transport));
+  for (const [index, day] of (schedule.days || []).entries()) {
+    const section = el('section', 'planning-day');
+    const head = el('div', 'planning-day-title'); head.append(el('span', 'day-symbol', index ? '☀' : '☾'), el('h3', '', day.title)); section.append(head, el('p', 'day-subtitle', day.subtitle));
+    const list = el('ol', 'planning-list');
+    for (const activity of day.activities) { const row = el('li'); row.append(el('time', 'planning-time', activity.time), el('span', '', activity.text)); list.append(row); }
+    section.append(list); planning.append(section);
   }
-  const finale = el('li', 'planning-finale'); finale.append(el('span', 'planning-time', schedule.final), el('strong', '', 'Batalla final'), icon('battle')); list.append(finale); planning.append(list); host.append(planning);
+  const food = el('a', 'planning-food-link', 'Dónde comer en Chinchón →'); food.href = '#restaurantes'; planning.append(food); host.append(planning);
 }
 
 function journey(host) {
@@ -196,10 +197,10 @@ function chooseCard() {
 }
 function render() {
   if (!state) return;
-  const page = ['inicio', 'recorrido', 'batalla'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'inicio';
+  const page = ['inicio', 'recorrido', 'batalla', 'restaurantes'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'inicio';
   document.body.dataset.view = page;
-  $('main').replaceChildren();
-  ({ inicio: home, recorrido: journey, batalla: battle })[page]($('main'));
+  clearRestaurantMap(); $('main').replaceChildren();
+  ({ inicio: home, recorrido: journey, batalla: battle, restaurantes: restaurants })[page]($('main'));
   document.querySelectorAll('.bottom-nav a').forEach(node => { if (node.hash === '#' + page) node.setAttribute('aria-current', 'page'); else node.removeAttribute('aria-current'); });
 }
 load();

@@ -209,6 +209,8 @@ def campaign_save(payload: dict, actor: User = Depends(require_superadmin), db: 
             if "prompt" not in station or (station.get("title") != previous["title"] and station.get("prompt") == previous["prompt"]):
                 station["prompt"] = station.get("title")
             data["stations"][index] = {**previous, **station}
+    if isinstance(data.get("planning"), dict):
+        data["planning"] = {**current["planning"], **data["planning"]}
     clean = gadeos.validate_campaign(data)
     if "planning" not in payload:
         clean["planning"] = current["planning"]
@@ -405,7 +407,7 @@ def workspace_page(app_id: str, db: Session = Depends(get_db)):
 
 @router.get("/private-app-assets/{template}/{filename}")
 def app_asset(template: str, filename: str):
-    if template not in {"gadeos", "private-workspace"} or filename not in {"app.js", "style.css", "arena.svg"}:
+    if template not in {"gadeos", "private-workspace"} or filename not in {"app.js", "style.css", "arena.svg", "restaurants.js", "leaflet.js", "leaflet.css", "town-map.svg", "leaflet-LICENSE.txt"}:
         raise HTTPException(404, "Archivo no encontrado.")
     source = PROJECT_ROOT / "apps" / template / filename
     if not source.is_file():

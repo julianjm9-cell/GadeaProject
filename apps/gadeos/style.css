@@ -59,7 +59,7 @@ h2 { font-size:28px; line-height:1.25; }
 .planning-list { list-style:none; padding:0; margin:0; }
 .planning-list li { display:flex; align-items:center; gap:13px; min-height:56px; padding:12px 0; border-bottom:1px solid #c4d7fa12; font-size:13px; line-height:1.45; }
 .planning-list li>span:nth-child(2) { flex:1; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-.planning-time { flex:none; width:30px; color:#86a4c9; font:15px Georgia,serif; }
+.planning-time { flex:none; width:94px; color:#86a4c9; font:15px Georgia,serif; }
 .planning-dot { width:5px; height:5px; background:#7691b5; border-radius:50%; }
 .planning-list svg { flex:none; width:17px; height:17px; fill:none; stroke:var(--gold); stroke-width:1.7; }
 .planning-list .is-done { color:#b6d3cd; }
@@ -76,7 +76,7 @@ progress::-webkit-progress-value { background:linear-gradient(90deg,#cc983f,#ffe
 progress::-moz-progress-bar { background:#efc976; border-radius:8px; }
 .journey { position:relative; isolation:isolate; width:100%; border:1px solid #eac16d66; border-radius:26px; overflow:hidden; margin-bottom:20px; background:#0a1c35; box-shadow:0 18px 55px #0004; }
 .journey-map { display:block; width:100%; height:auto; aspect-ratio:2/3; }
-.journey .station { position:absolute; z-index:1; display:grid; place-items:center; width:clamp(48px,7vw,60px); height:clamp(48px,7vw,60px); min-height:0; padding:0; border:2px solid #f2d493; border-radius:50%; background:radial-gradient(at 35% 20%,#315b8c,#091a36 80%); color:#fff0c7; font:700 24px Georgia,serif; transform:translate(-50%,-50%); box-shadow:0 0 0 4px #071329bf,0 7px 14px #0008,inset 0 1px 3px #fff5; }
+.journey .station { transition:border-color .18s,box-shadow .18s; position:absolute; z-index:1; display:grid; place-items:center; width:clamp(48px,7vw,60px); height:clamp(48px,7vw,60px); min-height:0; padding:0; border:2px solid #f2d493; border-radius:50%; background:radial-gradient(at 35% 20%,#315b8c,#091a36 80%); color:#fff0c7; font:700 24px Georgia,serif; transform:translate(-50%,-50%); box-shadow:0 0 0 4px #071329bf,0 7px 14px #0008,inset 0 1px 3px #fff5; }
 .journey .station:not(:disabled):hover { transform:translate(-50%,-50%) scale(1.09); box-shadow:0 0 0 4px #071329bf,0 0 25px #ffcf75aa; }
 .journey .station.current { color:#251907; background:linear-gradient(140deg,#fff3c6,#e0aa47); box-shadow:0 0 0 4px #091b35,0 0 0 6px #f4d382cc,0 0 30px #f5bb51b3; }
 .journey .station.done { background:linear-gradient(140deg,#215e70,#102a4a); border-color:#bce6dd; color:#e4fff7; }
@@ -135,9 +135,8 @@ dialog::backdrop { background:#020916de; backdrop-filter:blur(9px); -webkit-back
 @keyframes reward-sparks { from { opacity:0; transform:scale(.4) rotate(-12deg); } 40% { opacity:1; } to { opacity:.7; transform:scale(1) rotate(0deg); } }
 @media(min-width:800px) {
   body[data-view=inicio] #main { display:grid; grid-template-columns:1.2fr 1fr; column-gap:28px; align-items:start; }
-  .greeting { grid-column:1/-1; }
-  .home-hero,.next-step { grid-column:1; }
-  .planning { grid-column:2; grid-row:2/span 2; }
+  .home-overview { grid-column:1; grid-row:1; position:sticky; top:20px; }
+  .planning { grid-column:2; grid-row:1; }
   body[data-view=recorrido] #main,body[data-view=batalla] #main { max-width:720px; margin:auto; }
 }
 @media(max-width:650px) {
@@ -164,3 +163,56 @@ dialog::backdrop { background:#020916de; backdrop-filter:blur(9px); -webkit-back
 }
 @media(prefers-reduced-motion:no-preference) { button,a { transition:transform .18s,border-color .18s,box-shadow .18s; } }
 @media(prefers-reduced-motion:reduce) { *,*:before,*:after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+
+/* The travel itinerary is independent of the nine game challenges. */
+.planning>h2 { font-size:28px; margin-bottom:14px; }
+.planning-transport { padding:12px 15px; margin:0 0 24px; border:1px solid #d9bd7144; border-radius:13px; color:#e6d3a8; font-size:12px; line-height:1.7; background:#f1cf7510; }
+.planning-day+.planning-day { margin-top:26px; }
+.planning-day-title { display:flex; align-items:center; gap:12px; }
+.planning-day-title h3 { margin:0; font:25px Georgia,serif; color:var(--gold); }
+.day-symbol { display:grid; place-items:center; width:36px; height:36px; border:1px solid var(--line); border-radius:50%; font-size:23px; color:#ffdf8b; background:#d3aa4212; }
+.day-subtitle { margin:9px 0 12px 48px; color:var(--muted); font-size:12px; line-height:1.6; }
+.planning-list li { align-items:flex-start; padding:14px 0; }
+.planning-list li>span:nth-child(2) { display:block; overflow:visible; }
+.planning-time { color:#ebd2a0; font-size:13px; line-height:1.7; }
+.planning-food-link { display:block; padding-top:22px; color:var(--gold); text-decoration:none; font-size:14px; }
+.bottom-nav { width:min(580px,calc(100% - 24px)); }
+.food-title { font-size:34px; margin-bottom:20px; }
+.food-filters { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; }
+.food-filters button { min-height:44px; padding:10px 14px; font-size:12px; }
+.food-filters button[aria-pressed=true] { background:#f3d48b; color:#201b10; border-color:#ffe6af; }
+.food-layout { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); align-items:start; gap:22px; }
+.food-map-column { position:sticky; top:20px; min-width:0; }
+.food-map-column .section-line { margin-bottom:12px; }
+.food-map-column h2 { font-size:24px; }
+.food-map { height:490px; width:100%; border:1px solid #dfbd74; border-radius:22px; background:#e9ddc5; isolation:isolate; color:#263729; }
+.food-map .leaflet-control-zoom a { color:#253a31; background:#fff9ea; width:42px; height:42px; line-height:42px; }
+.food-map .leaflet-control-attribution { font-size:9px; background:#fff9eae6; color:#344234; }
+.food-map .leaflet-control-attribution a { color:#344234; }
+.food-map-status,.food-notes { color:var(--muted); font-size:11px; line-height:1.7; margin:12px 0 0; }
+.food-notes { margin-top:24px; }
+.food-cards { display:grid; gap:12px; }
+.food-card { min-width:0; padding:20px; border:1px solid var(--line); border-radius:19px; background:linear-gradient(130deg,#162d4a,#0b1b32); }
+.food-card-head { display:flex; align-items:center; gap:10px; }
+.food-kind { flex:none; display:grid; place-items:center; width:35px; height:35px; border-radius:12px; background:#eac46c18; font-size:22px; }
+.food-card h2 { flex:1; font-family:inherit; font-size:15px; line-height:1.4; margin:0; overflow-wrap:anywhere; }
+.food-rating { display:inline-block; flex:none; border-radius:12px; padding:6px 8px; color:#ffe1a0; background:#e6b85816; font-size:13px; font-weight:700; text-decoration:none; }
+.food-address { color:#c6d3e3; font-size:12px; margin:14px 0 8px; }
+.food-description { color:var(--muted); font-size:12px; line-height:1.7; margin-bottom:14px; }
+.food-card-footer { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.food-price { color:#dfc695; font-size:12px; }
+.food-locate { padding:8px 10px; min-height:44px; background:transparent; font-size:11px; }
+.food-google { display:inline-block; padding:12px 0 0; color:#ffdf99; text-decoration:none; font-size:12px; font-weight:700; }
+.food-marker-body { display:grid; place-items:center; width:44px; height:44px; border:2px solid #ffdf98; border-radius:50% 50% 50% 6px; transform:rotate(-45deg); background:#173854; color:#fff1cb; box-shadow:0 3px 12px #0006; }
+.food-marker-body>span { font-size:19px; transform:rotate(45deg); }
+.food-marker-body>small { position:absolute; bottom:-4px; right:-14px; min-width:30px; padding:2px 4px; border-radius:10px; color:#192a22; background:#fff0c3; font:bold 11px system-ui,sans-serif; transform:rotate(45deg); text-align:center; }
+.food-marker-body.clustered { border-radius:50%; background:#f4d592; color:#153026; }
+.food-marker-body.clustered>span { font:bold 17px system-ui,sans-serif; }
+.food-marker:focus-visible { outline:3px solid #126fd1; outline-offset:5px; border-radius:50%; }
+.food-popup { min-width:160px; font-family:system-ui,sans-serif; }
+.food-popup strong { font-size:15px; color:#1a332d; }
+.food-popup p { color:#4e5e58; font-size:12px; line-height:1.5; }
+.food-popup .food-rating { color:#65420c; background:#f6e9c9; }
+.food-popup .food-google { display:block; color:#1c5948; }
+@media(max-width:799px) { .food-layout { grid-template-columns:1fr; } .food-map-column { position:static; } .food-map { height:360px; } .food-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:550px) { .food-cards { grid-template-columns:1fr; } .food-card { padding:18px; } .bottom-nav a { font-size:10px; } .planning-time { width:91px; } .food-filters { gap:6px; } .food-filters button { padding:9px 11px; font-size:11px; } }

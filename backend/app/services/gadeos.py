@@ -19,7 +19,25 @@ PUBLIC_ASSETS = "/aventura-chinchon-assets"
 
 
 def planning_config(value=None):
-    defaults = {"day": "Viernes", "place": "Chinchón", "start": "16:00", "final": "22:00"}
+    days = [
+        {"title": "Viernes 20", "subtitle": "Atardecer, paseo y noche de juegos", "activities": [
+            {"time": "18:00", "text": "Llegada a Chinchón, dejar las mochilas en el apartamento y disfrutar de las últimas luces del atardecer."},
+            {"time": "18:30", "text": "Paseo por la Plaza Mayor iluminada y las callejuelas del casco histórico."},
+            {"time": "19:20–19:45", "text": "Visita a la Iglesia de Nuestra Señora de la Asunción y vistas desde el mirador."},
+            {"time": "19:45–20:45", "text": "Cena por el pueblo y paseo nocturno de regreso."},
+            {"time": "21:00", "text": "Vuelta al apartamento y noche de juegos."}]},
+        {"title": "Sábado 21", "subtitle": "Descubrir Chinchón", "activities": [
+            {"time": "11:00", "text": "Check-out del apartamento."},
+            {"time": "11:30", "text": "Desayuno tranquilo en una cafetería del centro."},
+            {"time": "12:30", "text": "Subida a la Torre del Reloj y paseo por las calles antiguas."},
+            {"time": "13:00", "text": "Mirador de la iglesia, vistas panorámicas y fotos."},
+            {"time": "13:30", "text": "Paseo hasta el Castillo de los Condes para verlo desde fuera."},
+            {"time": "14:30", "text": "Comida en un restaurante típico de Chinchón."},
+            {"time": "16:15", "text": "Última vuelta por la plaza y tiendas tradicionales."},
+            {"time": "17:00", "text": "Regreso en el autobús 337 hacia Madrid."}]}
+    ]
+    defaults = {"day": "Viernes", "place": "Chinchón", "start": "16:00", "final": "22:00",
+                "transport": "Autobús 337 · Salida: Metro Pavones (Línea 9, Madrid) → Chinchón", "days": days}
     if value is None:
         return defaults
     if not isinstance(value, dict):
@@ -27,7 +45,19 @@ def planning_config(value=None):
     result = {**defaults, **{key: value[key] for key in defaults if key in value}}
     if any(not isinstance(result[key], str) or not 1 <= len(result[key].strip()) <= 80 for key in ("day", "place")) or any(not isinstance(result[key], str) or not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", result[key]) for key in ("start", "final")):
         raise HTTPException(422, "Indica el día, el lugar y dos horas válidas para el planning.")
-    return result
+    if not isinstance(result["transport"], str) or len(result["transport"]) > 300 or not isinstance(result["days"], list) or not 1 <= len(result["days"]) <= 7:
+        raise HTTPException(422, "Indica el transporte y entre uno y siete días de planning.")
+    clean_days = []
+    for day in result["days"]:
+        if not isinstance(day, dict) or any(not isinstance(day.get(key), str) or not 1 <= len(day[key].strip()) <= 120 for key in ("title", "subtitle")) or not isinstance(day.get("activities"), list) or not 1 <= len(day["activities"]) <= 24:
+            raise HTTPException(422, "Cada día necesita título, descripción y entre una y veinticuatro actividades.")
+        entries = []
+        for entry in day["activities"]:
+            if not isinstance(entry, dict) or not isinstance(entry.get("time"), str) or not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d(?:[–-](?:[01]\d|2[0-3]):[0-5]\d)?", entry["time"]) or not isinstance(entry.get("text"), str) or not 1 <= len(entry["text"].strip()) <= 500:
+                raise HTTPException(422, "Cada actividad necesita una hora o intervalo válido y un texto.")
+            entries.append({"time": entry["time"], "text": entry["text"].strip()})
+        clean_days.append({"title": day["title"].strip(), "subtitle": day["subtitle"].strip(), "activities": entries})
+    return {**result, "transport": result["transport"].strip(), "days": clean_days}
 
 
 def media_config(value=None):

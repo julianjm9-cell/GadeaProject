@@ -1,6 +1,6 @@
 # GADEOS · Alianza de zafiro y fuego
 
-Renovación del 18 de noviembre de 2026. Solo Inicio, Recorrido y Batalla final. Nueve pruebas, cada una con título/pista y respuesta correcta. Las ocho pruebas anteriores, las cartas privadas, los sobres ganados y las victorias se conservan.
+Renovación del 18 de noviembre de 2026. Inicio, Recorrido, Batalla final y, tras la última petición del propietario, Restaurantes. Nueve pruebas, cada una con título/pista y respuesta correcta. Las ocho pruebas anteriores, las cartas privadas, los sobres ganados y las victorias se conservan.
 
 ## Ilustraciones integradas
 
