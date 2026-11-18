@@ -1,7 +1,4 @@
-export function setupWorkProgress({ element, button, badge, openDelivery, upload }) {
-  const terminal = new Set(['completado', 'borrador', 'fallido', 'bloqueado', 'interrumpido']);
-
-  function deliveryStatus(delivery, board) {
+export function deliveryStatus(delivery, board, attempt) {
     if (/^[a-f0-9]{40}$/.test(delivery.externalCompletion?.revision || '') && typeof delivery.externalCompletion.summary === 'string') return ['Completado en GitHub', 'ready'];
     if (delivery.mode === 'prueba') return ['Simulación terminada', 'demo'];
     if (!delivery.draft) return ['Necesita atención', 'error'];
@@ -12,21 +9,26 @@ export function setupWorkProgress({ element, button, badge, openDelivery, upload
     if (published?.undoneRevision) return ['Subida deshecha', 'pending'];
     if (published?.integratedRevision || published?.pull?.merged) return ['Integrado en GitHub', 'ready'];
     if (published) return ['Pendiente de fusión', 'pending'];
+    if (['failed', 'attention'].includes(attempt?.state)) return ['Necesita atención', 'error'];
     if (review?.decision === 'cambios') return ['Cambios solicitados', 'pending'];
     if (delivery.implementation && !delivery.implementation.verified) return ['Necesita atención', 'error'];
     if (delivery.implementation?.verified) return ['Subiendo a GitHub', 'pending'];
     if (approved) return [delivery.implementation ? 'Listo para publicar' : 'Revisado', 'ready'];
     return ['Por revisar', 'pending'];
-  }
+}
+
+export function setupWorkProgress({ element, button, badge, openDelivery, upload, getState }) {
+  const terminal = new Set(['completado', 'borrador', 'fallido', 'bloqueado', 'interrumpido']);
+  const attemptFor = delivery => getState?.()?.automaticUploads?.[delivery.id];
 
   function statusBadge(delivery, board) {
-    const [label, color] = deliveryStatus(delivery, board);
+    const [label, color] = deliveryStatus(delivery, board, attemptFor(delivery));
     return element('span', 'badge ' + color, label);
   }
 
   function needsAttention(delivery, board) {
     return delivery.mode !== 'prueba' && ['Necesita atención', 'Por revisar']
-      .includes(deliveryStatus(delivery, board)[0]);
+      .includes(deliveryStatus(delivery, board, attemptFor(delivery))[0]);
   }
 
   function render(state) {

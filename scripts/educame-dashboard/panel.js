@@ -721,7 +721,7 @@ const agentEditor = setupAgentEditor({ api, button, formMessage, getState: () =>
 });
 setupAppCatalog({ api, element, button, feedback });
 const chat = setupChat({ api, element, button, feedback, formMessage, getState: () => state, openDelivery });
-const workProgress = setupWorkProgress({ element, button, badge, openDelivery,
+const workProgress = setupWorkProgress({ element, button, badge, openDelivery, getState: () => state,
   upload: keys => publicationClient.upload(keys) });
 changes = setupChanges({ api, element });
 operations = setupOperations({ api, element, button, feedback, openCommand: changes.openCommand });

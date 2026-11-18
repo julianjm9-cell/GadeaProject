@@ -5,6 +5,16 @@ const { join } = require('node:path');
 const { tmpdir } = require('node:os');
 const { once } = require('node:events');
 
+test('Inicio no anuncia una subida en curso cuando el recibo de publicación conserva un fallo', async () => {
+  const { deliveryStatus } = await import('../scripts/educame-dashboard/work-progress.js');
+  const delivery = { id:'task', key:'implementacion/task', mode:'implementacion', draft:{}, implementation:{verified:true} };
+  const board = { reviews:{}, pushes:{} };
+  assert.equal(deliveryStatus(delivery,board,{state:'failed'})[0],'Necesita atención');
+  assert.equal(deliveryStatus(delivery,board,{state:'uploading'})[0],'Subiendo a GitHub');
+  delivery.externalCompletion={revision:'a'.repeat(40),summary:'Resuelto en la revisión publicada.'};
+  assert.equal(deliveryStatus(delivery,board,{state:'failed'})[0],'Completado en GitHub');
+});
+
 test('la sesión administrativa sobrevive al reinicio cifrada, conserva su caducidad y se revoca al salir', async t => {
   const { adminOperations } = await import('../scripts/educame-dashboard/admin-operations.mjs');
   const { createConnections } = await import('../scripts/educame-dashboard/connections.mjs');
