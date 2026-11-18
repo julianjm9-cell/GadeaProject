@@ -366,6 +366,10 @@ dialog::backdrop { background: #1b2c25a3; }
 .managed-account summary,.campaign-station summary { cursor:pointer; font-weight:650; font-size:.9rem; }
 .campaign-card-preview { max-width:150px; max-height:200px; object-fit:cover; border-radius:12px; border:1px solid #cbbb8e; }
 #app-editor { max-width:760px; }
+#apps-admin-connect { width:min(480px,calc(100% - 24px)); }
+#apps-admin-connect .managed-app-form input { font-size:16px; }
+.app-home-mark,.gadeos-home-mark { display:grid; place-items:center; width:28px; height:28px; font:22px Georgia; color:#285240; }
+.gadeos-home-mark { border-radius:50%; background:#273f32; border:1px solid #c6a966; color:#f2d394; }
 .chat-context { display:flex; align-items:center; gap:12px; padding:12px 16px; margin-bottom:16px; border:1px solid #d7ddca; border-radius:12px; background:#edf2e6; flex-wrap:wrap; }
 .chat-context strong { flex:1; font-size:.9rem; }
 .chat-context .button { font-size:.8rem; padding:8px 11px; }

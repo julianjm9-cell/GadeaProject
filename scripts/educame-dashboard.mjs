@@ -194,7 +194,7 @@ export async function createDashboard({
   apiKey = process.env.EDUCAME_AGENTS_API_KEY?.trim(),
   model = process.env.EDUCAME_AGENTS_MODEL?.trim() || defaultModel,
   generate,
-  fetchImpl,
+  fetchImpl = fetch,
   codex = createCodex(),
   repositoryRoot = fileURLToPath(new URL('../', import.meta.url)),
   implementationOptions,
@@ -211,7 +211,7 @@ export async function createDashboard({
   const appCatalog = createAppCatalog(store);
   const github = githubOperations(changes, connections, store, fetchImpl);
   const hostinger = hostingerOperations(store, changes, github, ssh);
-  const admin = adminOperations(fetchImpl);
+  const admin = adminOperations(fetchImpl, connections);
   const privateMaterials = createPrivateMaterials({ directory, store, admin });
   const providers = createProviders({ codex, connections, apiKey, root: repositoryRoot, fetchImpl, store,
     runChecks: (cwd, commands) => implementation.runChecks(cwd, commands) });
@@ -275,7 +275,7 @@ export async function createDashboard({
   function publicAppStatus() {
     if (Date.now() >= availabilityExpiry) {
       availabilityExpiry = Date.now() + 60_000;
-      appAvailability = fetch('https://educame.tech/api/public/app-availability', { signal: AbortSignal.timeout(5000), redirect: 'error' })
+      appAvailability = Promise.resolve().then(() => fetchImpl('https://educame.tech/api/public/app-availability', { signal: AbortSignal.timeout(5000), redirect: 'error' }))
         .then(response => response.ok ? response.json() : {})
         .then(data => ({ paused: Object.entries(data.apps || {}).filter(([, app]) => app?.paused === true).map(([key]) => key) }))
         .catch(() => ({ paused: [] }));
@@ -295,7 +295,10 @@ export async function createDashboard({
 
   async function deliveries() {
     const records = await Promise.all(['real', 'prueba', 'implementacion'].map(mode => readDeliveries(runner.output(mode), mode)));
-    return records.flat().sort((left, right) => right.finishedAt.localeCompare(left.finishedAt));
+    const resolved = new Map(store.batches().flatMap(batch => Object.entries(batch.jobs || {}).map(([id, job]) => [id, job.externalCompletion]))
+      .filter(([, value]) => /^[a-f0-9]{40}$/.test(value?.revision || '') && typeof value.summary === 'string'));
+    return records.flat().map(row => row.mode === 'implementacion' && resolved.has(row.id) ? { ...row, externalCompletion: resolved.get(row.id) } : row)
+      .sort((left, right) => right.finishedAt.localeCompare(left.finishedAt));
   }
 
   async function implementationDelivery(key) {

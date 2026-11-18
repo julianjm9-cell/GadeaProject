@@ -188,12 +188,8 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
   }
   for (const [id, [name, path, , color]] of Object.entries(apps)) {
     if (!path) continue;
-    $('#workspace-apps').append(productCard(id, name, path, color, false));
     $('#directory-apps').append(productCard(id, name, path, color, true));
   }
-  api('/api/apps/estado').then(({ paused }) => {
-    for (const card of document.querySelectorAll('[data-product]')) card.querySelector('.product-paused').hidden = !paused.includes(card.dataset.product);
-  }).catch(() => {});
 
   function renderTeam() {
     const state = getState();

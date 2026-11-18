@@ -84,7 +84,7 @@ async function api(path, method = 'GET', payload) {
     body: payload ? JSON.stringify(payload) : undefined,
   });
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error);
+  if (!response.ok) throw Object.assign(new Error(result.error), { status: response.status });
   return result;
 }
 
@@ -208,7 +208,7 @@ function renderHistory() {
     const row = element('article', 'item');
     const copy = element('div');
     copy.append(
-      element('p', 'item-title', delivery.draft?.resumen || delivery.encargo),
+      element('p', 'item-title', delivery.externalCompletion?.summary || delivery.draft?.resumen || delivery.encargo),
       element('p', 'item-meta', `${agentName(delivery)} · ${dates.format(new Date(delivery.finishedAt))}`),
     );
     const controls = element('div', 'actions');
@@ -216,7 +216,7 @@ function renderHistory() {
     controls.append(workProgress.statusBadge(delivery, state.board));
     if (delivery.mode === 'implementacion') {
       if (delivery.draft?.entrega) copy.append(element('p', '', delivery.draft.entrega));
-      if (!state.board.pushes?.[delivery.key]?.integratedRevision && delivery.implementation) {
+      if (!delivery.externalCompletion && !state.board.pushes?.[delivery.key]?.integratedRevision && delivery.implementation) {
         const submit = button('Subir', () => publicationClient.upload([delivery.key]));
         controls.append(submit);
       }
@@ -270,7 +270,7 @@ function render() {
   document.querySelector('#task-list').replaceChildren(...(rows.length ? rows : [element('p', 'empty', 'La cola está vacía. Pulsa Nuevo encargo para preparar el siguiente trabajo.')]));
   document.querySelector('#limits').textContent = `${tasks.length} de ${maxTasks} preparados · hasta ${concurrency} agentes a la vez`;
   const apiStatus = document.querySelector('#api-status');
-  apiStatus.textContent = !codex ? 'Comprobando Codex' : codex.ready ? 'Sesión activa' : 'Conectar Codex ↗';
+  apiStatus.textContent = !codex ? 'Comprobando Codex' : codex.ready ? 'Codex conectado' : 'Conectar Codex ↗';
   apiStatus.classList.toggle('ready', Boolean(codex?.ready));
   document.querySelector('#run-status').textContent = running ? 'Los agentes están trabajando. Puedes añadir encargos para después.'
     : paused ? 'Un trabajo necesita atención. Puedes retomarlo o enviar otros encargos.'
@@ -316,7 +316,7 @@ function render() {
     const row = element('button', 'activity-row');
     row.type = 'button';
     const copy = element('span', 'activity-copy');
-    copy.append(element('strong', '', delivery.draft?.resumen || delivery.encargo),
+    copy.append(element('strong', '', delivery.externalCompletion?.summary || delivery.draft?.resumen || delivery.encargo),
       element('small', '', [agentName(delivery), delivery.mode === 'prueba' ? 'Simulación' : delivery.model].filter(Boolean).join(' · ')));
     row.append(copy, workProgress.statusBadge(delivery, state.board));
     row.addEventListener('click', () => openDelivery(delivery));

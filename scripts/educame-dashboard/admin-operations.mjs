@@ -13,8 +13,10 @@ const string = (value, max) => typeof value === 'string' && value.length <= max;
 const email = value => string(value, 255) && /^[^\s@]+@[^\s@]+$/.test(value);
 const sameState = () => new OperationError(409, 'Los datos han cambiado. Actualiza y revisa de nuevo.');
 
-export function adminOperations(fetchImpl = fetch) {
-  const sessions = new Map();
+export function adminOperations(fetchImpl = fetch, sessionStore) {
+  const sessions = new Map(Object.entries(sessionStore?.adminSessions() || {}).filter(([id, value]) =>
+    uuid.test(id) && typeof value?.token === 'string' && Number.isFinite(value.expires) && value.expires > Date.now()));
+  const persist = () => sessionStore?.setAdminSessions(Object.fromEntries(sessions));
   let writing = false;
   const request = (path, token, method = 'GET', data) => jsonRequest(fetchImpl, origin + path,
     { token, method, data, label: 'Administración de Educame' });
@@ -38,17 +40,19 @@ export function adminOperations(fetchImpl = fetch) {
       sessions.delete(sid);
       const id = randomUUID();
       sessions.set(id, { token, expires: Date.now() + maxAge * 1000 });
+      await persist();
       setCookie(id, maxAge);
       return { connected: true };
     }
     if (action === 'logout') {
       sessions.delete(sid);
+      await persist();
       setCookie('', 0);
       if (session) await request('/auth/logout', session.token, 'POST').catch(() => {});
       return { connected: false };
     }
     if (!session || session.expires <= Date.now()) {
-      sessions.delete(sid);
+      if (sessions.delete(sid)) await persist();
       if (action === 'state') return { connected: false };
       throw new OperationError(401, 'Entra con tu cuenta de administración.');
     }
@@ -81,6 +85,7 @@ export function adminOperations(fetchImpl = fetch) {
     } catch (error) {
       if (error.status === 401 || error.status === 403) {
         sessions.delete(sid);
+        await persist();
         setCookie('', 0);
         if (action === 'state') return { connected: false };
       }

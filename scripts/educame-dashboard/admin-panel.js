@@ -165,7 +165,7 @@ export function setupAdminPanel({ get, post, element, button, confirm, onForm, b
     if (!loading) loading = get('admin').then(render).finally(() => { loading = null; });
     return loading;
   }
-  onForm(login, async values => { await send('login', values); await load(); });
+  onForm(login, async values => { await send('login', values); await load(); window.dispatchEvent(new Event('terrace-admin-changed')); });
   onForm(create, async values => {
     const account = await send('create-account', values);
     selectedId = account.id;
@@ -174,7 +174,7 @@ export function setupAdminPanel({ get, post, element, button, confirm, onForm, b
     $('admin-create').open = false;
     await load();
   });
-  logout.addEventListener('click', () => busy(logout, async () => { await send('logout'); render({ connected: false }); }));
+  logout.addEventListener('click', () => busy(logout, async () => { await send('logout'); render({ connected: false }); window.dispatchEvent(new Event('terrace-admin-changed')); }));
   search.addEventListener('input', renderAccounts);
   return { load };
 }

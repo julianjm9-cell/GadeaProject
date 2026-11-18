@@ -3,7 +3,7 @@
 ## Uso
 
 1. Actualiza Hostinger con el procedimiento habitual y abre LA TERRAZA → Apps.
-2. Si aparece **Conectar administración**, entra con tu cuenta de administrador. La sesión se guarda en el almacén local de conexiones; no se envía a los agentes.
+2. Pulsa **Crear aplicación**, un estado o **Tributos y recorrido**. Si hace falta conectar, el propio botón abre el acceso de administración y continúa la acción elegida al entrar. La conexión de Codex se indica por separado. La sesión administrativa se guarda cifrada en el almacén local durante su vigencia de treinta minutos y se conserva al reiniciar; la contraseña no se guarda y no se envía a los agentes. Cerrar sesión revoca el acceso.
 3. **Crear aplicación** pide nombre e identificador y crea un espacio privado en `/a/{identificador}` con cuentas y notas guardadas. Pública habilita las altas en ese espacio; Privada las reserva a administración; Pausada cierra su uso conservando todos los datos. Las apps anteriores mantienen su propio sistema de cuentas y licencias.
 4. App, Landing y Redes sociales abren conversaciones independientes que utilizan la misma cola y publicación automática. El código de una adaptación puede añadirse bajo `apps/custom/{identificador}/index.html`, con recursos servidos desde `/private-app-assets/custom/{identificador}/`.
 

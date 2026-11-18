@@ -654,8 +654,11 @@ for (const [name, engine, viewport] of [
     await page.locator('[data-catalog-app="gadeos"]').getByRole('heading', { name: 'GADEOS', exact: true }).waitFor();
     assert.equal(await page.locator('[data-catalog-app]').count(), 8);
     await page.getByRole('link', { name: 'Abrir dashboard online ↗' }).waitFor();
-    assert.equal(await page.getByRole('button', { name: 'Crear aplicación', exact: true }).isEnabled(), false);
-    await page.getByRole('link', { name: 'Conectar administración', exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Crear aplicación', exact: true }).isEnabled(), true);
+    await page.getByRole('button', { name: 'Crear aplicación', exact: true }).click();
+    await page.locator('#apps-admin-connect').getByLabel('Usuario o correo de administración').waitFor();
+    await page.locator('#apps-admin-connect').getByRole('button', { name: 'Cancelar', exact: true }).click();
+    await page.getByRole('button', { name: 'Conectar administración', exact: true }).waitFor();
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     assert.deepEqual(failures, []);
   });

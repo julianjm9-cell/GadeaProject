@@ -2,6 +2,7 @@ export function setupWorkProgress({ element, button, badge, openDelivery, upload
   const terminal = new Set(['completado', 'borrador', 'fallido', 'bloqueado', 'interrumpido']);
 
   function deliveryStatus(delivery, board) {
+    if (/^[a-f0-9]{40}$/.test(delivery.externalCompletion?.revision || '') && typeof delivery.externalCompletion.summary === 'string') return ['Completado en GitHub', 'ready'];
     if (delivery.mode === 'prueba') return ['Simulación terminada', 'demo'];
     if (!delivery.draft) return ['Necesita atención', 'error'];
     const review = board.reviews[delivery.key];

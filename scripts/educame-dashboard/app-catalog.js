@@ -1,16 +1,64 @@
+import { appLogo } from './workspace.js';
+import { icon } from './icons.js';
 const areas = [['app', 'App'], ['landing', 'Landing'], ['redes', 'Redes sociales']];
 const labels = { publica: 'Pública', privada: 'Privada', pausada: 'Pausada' };
 export function setupAppCatalog({ api, element: el, button, feedback }) {
   const root = document.getElementById('app-management'), dialog = document.getElementById('app-editor'), body = document.getElementById('app-editor-body');
-  let catalog, live = false, saving = false, loading;
+  let catalog, live = false, saving = false, loading, connectionIssue, pendingConnection;
+  let paused = [];
+  const connectDialog = document.getElementById('apps-admin-connect'), connectForm = document.getElementById('apps-admin-connect-form');
+  const connectError = connectForm.querySelector('.form-message'), connectSubmit = connectForm.querySelector('[type=submit]');
+  function connectionMessage(error) {
+    return error?.status === 404 ? 'El servidor necesita la actualización de Hostinger para gestionar estas apps.' :
+      error?.status === 403 ? 'Esta cuenta necesita permisos de administración de Educame.' :
+      error?.status && error.status !== 401 ? error.message : 'Conecta administración para crear apps y gestionar su acceso. La conexión con Codex es independiente.';
+  }
+  function acceptCatalog(data) {
+    if (!Array.isArray(data?.apps) || !Number.isInteger(data.revision)) throw Object.assign(new Error('El servidor no devolvió un catálogo válido.'), { status: 502 });
+    catalog = data; live = true; connectionIssue = null;
+  }
+  function connect(label, action) {
+    pendingConnection = { label, action };
+    document.getElementById('apps-admin-connect-copy').textContent = label + '. Entra con tu cuenta administradora de Educame; tu conexión de Codex es independiente.';
+    connectError.hidden = true;
+    if (!connectDialog.open) connectDialog.showModal();
+    connectForm.elements.identifier.focus();
+  }
+  async function connectedAction(label, action) {
+    if (!live) { connect(label, action); return; }
+    try { await action(); }
+    catch (error) {
+      if ([401, 403].includes(error.status)) { live = false; connectionIssue = error; render(); connect(label, action); }
+      else feedback(error.message, true);
+    }
+  }
+  const cancelConnection = () => { if (!connectSubmit.disabled) connectDialog.close(); };
+  connectDialog.querySelector('.icon-button').addEventListener('click', cancelConnection);
+  connectForm.querySelector('[data-cancel-admin]').addEventListener('click', cancelConnection);
+  connectDialog.addEventListener('cancel', event => { if (connectSubmit.disabled) event.preventDefault(); });
+  connectDialog.addEventListener('close', () => { pendingConnection = null; connectForm.elements.password.value = ''; });
+  connectForm.addEventListener('submit', async event => {
+    event.preventDefault(); if (connectSubmit.disabled) return;
+    const request = pendingConnection, credentials = Object.fromEntries(new FormData(connectForm));
+    connectForm.elements.password.value = ''; connectSubmit.disabled = true; connectError.hidden = true;
+    try {
+      await api('/api/operacion/admin/login', 'POST', credentials);
+      acceptCatalog(await api('/api/operacion/admin/apps')); render();
+      pendingConnection = null; connectDialog.close();
+      if (request) await request.action();
+    } catch (error) {
+      connectionIssue = error; connectError.textContent = error.status === 401 ? 'No se ha podido entrar. Revisa el usuario y la contraseña de administración.' : connectionMessage(error); connectError.hidden = false;
+    } finally { connectSubmit.disabled = false; }
+  });
   function heading(title) { document.getElementById('app-editor-title').textContent = title; body.replaceChildren(); if (!dialog.open) dialog.showModal(); }
   const field = (form, title, name, value = '', multiline = false) => { const label = el('label', '', title), input = el(multiline ? 'textarea' : 'input'); input.name = name; input.value = value; if (multiline) input.rows = 3; label.append(input); form.append(label); return input; };
   async function load() {
     if (loading) return loading;
     loading = (async () => {
       catalog = await api('/api/apps/catalogo');
-      try { catalog = await api('/api/operacion/admin/apps'); live = true; }
-      catch { live = false; }
+      try { acceptCatalog(await api('/api/operacion/admin/apps')); }
+      catch (error) { live = false; connectionIssue = error; }
+      if (!live) try { paused = (await api('/api/apps/estado')).paused || []; } catch {}
       render();
     })().catch(error => feedback(error.message, true)).finally(() => { loading = null; });
     return loading;
@@ -24,11 +72,12 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
   }
   function render() {
     if (!catalog) return;
+    renderHome();
     root.replaceChildren();
     const toolbar = el('div', 'app-management-toolbar');
-    const create = button('Crear aplicación', newApp); create.className = 'button primary'; create.disabled = !live;
-    toolbar.append(el('p', 'muted', live ? 'Los cambios de acceso se aplican en el servidor y conservan las cuentas y el progreso.' : 'Entra en Administración para crear apps y consultar o cambiar su acceso real.'), create);
-    if (!live) { const login = el('a', 'button secondary', 'Conectar administración'); login.href = '#control/admin'; toolbar.append(login); }
+    const create = button('Crear aplicación', () => connectedAction('Crear una aplicación', newApp)); create.className = 'button primary'; create.disabled = saving;
+    toolbar.append(el('p', 'muted', live ? 'Administración conectada. Los cambios conservan las cuentas y el progreso.' : connectionMessage(connectionIssue)), create);
+    if (!live) toolbar.append(button('Conectar administración', () => connect('Gestionar tus aplicaciones', async () => {})));
     root.append(toolbar);
     const grid = el('div', 'managed-app-grid');
     for (const app of catalog.apps) {
@@ -37,10 +86,16 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       top.append(monogram, el('h2', '', app.name)); card.append(top);
       const state = el('div', 'app-state-switch'); state.setAttribute('role', 'group'); state.setAttribute('aria-label', 'Acceso de ' + app.name);
       for (const [value, title] of Object.entries(labels)) {
-        const toggle = button(title, async () => { if (!live || saving || app.state === value) return; try { await save('app-state', { id: app.id, state: value, revision: catalog.revision }); feedback('Acceso actualizado en el servidor.'); } catch {} });
-        toggle.disabled = !live || saving; toggle.setAttribute('aria-pressed', String(app.state === value)); state.append(toggle);
+        const toggle = button(title, () => connectedAction('Cambiar el acceso de ' + app.name + ' a ' + title, async () => {
+          const current = catalog.apps.find(item => item.id === app.id);
+          if (saving || current?.state === value) return;
+          await save('app-state', { id: app.id, state: value, revision: catalog.revision }); feedback('Acceso actualizado en el servidor.');
+        }));
+        toggle.disabled = saving; toggle.setAttribute('aria-pressed', String(live && app.state === value));
+        if (!live) toggle.title = 'Conectar administración y cambiar a ' + title;
+        state.append(toggle);
       }
-      card.append(state, el('p', 'managed-app-state', live ? ({ publica: 'Visible con sus accesos habituales.', privada: 'Acceso por invitación.', pausada: 'Temporalmente cerrada. Sus datos se conservan.' })[app.state] : 'Acceso del servidor sin consultar.'));
+      card.append(state, el('p', 'managed-app-state', live ? ({ publica: 'Visible con sus accesos habituales.', privada: 'Acceso por invitación.', pausada: 'Temporalmente cerrada. Sus datos se conservan.' })[app.state] : 'Pulsa una opción para conectar y gestionar esta app.'));
       const actions = el('div', 'managed-app-sections');
       for (const [area, title] of (app.personal ? [['app', 'App']] : areas)) actions.append(button(title + ' →', () => {
         window.dispatchEvent(new CustomEvent('terrace-chat-scope', { detail: { app: app.id, area, name: app.name } })); location.hash = 'chat';
@@ -48,11 +103,23 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       card.append(actions);
       const footer = el('div', 'managed-app-footer');
       if (app.path) { const open = el('a', 'text-link', 'Abrir app ↗'); open.href = 'https://educame.tech' + app.path; open.target = '_blank'; open.rel = 'noopener noreferrer'; footer.append(open); }
-      if (app.id === 'gadeos') { const manage = button('Tributos y recorrido', () => manageApp(app)); manage.disabled = !live; footer.append(manage); }
-      else if (app.template === 'workspace') { const manage = button('Gestionar cuentas', () => manageApp(app)); manage.disabled = !live; footer.append(manage); }
+      if (app.id === 'gadeos') footer.append(button('Tributos y recorrido', () => connectedAction('Gestionar tributos y recorrido', () => manageApp(app))));
+      else if (app.template === 'workspace') footer.append(button('Gestionar cuentas', () => connectedAction('Gestionar las cuentas de ' + app.name, () => manageApp(app))));
       card.append(footer); grid.append(card);
     }
     root.append(grid);
+  }
+  function renderHome() {
+    const host = document.getElementById('workspace-apps');
+    host.replaceChildren(...catalog.apps.filter(app => app.path).map(app => {
+      const card = el('article', 'product-card'); card.dataset.homeApp = app.id; card.dataset.product = app.product || '';
+      const link = el('a', 'product-name'); link.href = 'https://educame.tech' + app.path; link.target = '_blank'; link.rel = 'noopener noreferrer';
+      const tile = el('span', 'tile-icon green'); tile.append(appLogo(app.id) || el('span', app.id === 'gadeos' ? 'gadeos-home-mark' : 'app-home-mark', app.id === 'gadeos' ? 'G' : app.name.slice(0, 1)));
+      const copy = el('span', 'product-copy'); copy.append(el('strong', '', app.name));
+      const status = live ? app.state : paused.includes(app.product) ? 'pausada' : null;
+      const badge = el('small', 'product-paused', status === 'privada' ? 'Privada' : 'En pausa'); badge.hidden = !['pausada', 'privada'].includes(status); copy.append(badge);
+      const arrow = icon('external'); arrow.classList.add('product-arrow'); link.append(tile, copy, arrow); card.append(link); return card;
+    }));
   }
   function newApp() {
     heading('Crear aplicación');
@@ -139,6 +206,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
     const image = new Image(); image.src = url; await image.decode(); const scale = Math.min(1, 720 / image.width, 1000 / image.height), canvas = document.createElement('canvas'); canvas.width = Math.round(image.width * scale); canvas.height = Math.round(image.height * scale); canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height); const data = canvas.toDataURL('image/webp', .75);
     if (data.length > 260000) throw new Error('Reduce un poco la imagen para guardarla.'); return data;
   }
-  window.addEventListener('hashchange', () => { if (location.hash === '#apps') load(); });
+  window.addEventListener('hashchange', () => { if (['#apps', '#inicio', ''].includes(location.hash)) load(); });
+  window.addEventListener('terrace-admin-changed', load);
   load();
 }

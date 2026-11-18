@@ -423,6 +423,8 @@ export async function createConnections(directory, fetchImpl = fetch) {
     claudeKey: () => vault.get('claude'),
     githubToken: () => vault.get('github'),
     setGithubToken: value => vault.set('github', value),
+    adminSessions: () => vault.get('adminSessions') || {},
+    setAdminSessions: value => vault.set('adminSessions', value),
     async handle(path, method, body, origin) {
       if (path === '/api/conexiones' && method === 'GET') return {
         buffer: Boolean(vault.get('buffer')), google: Boolean(vault.get('google')), openai: Boolean(vault.get('openai')), claude: Boolean(vault.get('claude')), runway: Boolean(vault.get('runway')),

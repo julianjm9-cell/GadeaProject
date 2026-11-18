@@ -602,5 +602,15 @@
       <div class="actions"><button class="button secondary" type="submit" name="decision" value="cambios">Pedir cambios</button><button class="button primary" type="submit" name="decision" value="aprobada">Aprobar borrador</button></div>
     </form>
   </dialog>
+  <dialog id="apps-admin-connect" aria-labelledby="apps-admin-connect-title">
+    <div class="dialog-heading"><h2 id="apps-admin-connect-title">Conectar administración</h2><button class="icon-button" type="button" aria-label="Cerrar conexión">×</button></div>
+    <p class="muted" id="apps-admin-connect-copy">Entra con tu cuenta administradora de Educame. La conexión con Codex es independiente.</p>
+    <form id="apps-admin-connect-form" class="managed-app-form">
+      <label>Usuario o correo de administración<input name="identifier" autocomplete="username" maxlength="255" required></label>
+      <label>Contraseña de administración<input name="password" type="password" autocomplete="current-password" required></label>
+      <p class="form-message" role="alert" hidden></p>
+      <div class="actions"><button class="button secondary" type="button" data-cancel-admin>Cancelar</button><button class="button primary" type="submit">Conectar y continuar</button></div>
+    </form>
+  </dialog>
 </body>
 </html>
