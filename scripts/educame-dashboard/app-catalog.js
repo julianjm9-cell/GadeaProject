@@ -185,24 +185,30 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       const schedule = config.planning || { day: 'Viernes', place: 'Chinchón', start: '16:00', final: '22:00' };
       const day = field(form, 'Día del viaje', 'day', schedule.day), place = field(form, 'Lugar del viaje', 'place', schedule.place), start = field(form, 'Hora de inicio', 'start', schedule.start), final = field(form, 'Hora de la batalla', 'final', schedule.final);
       day.required = place.required = start.required = final.required = true; day.maxLength = place.maxLength = 80; start.type = final.type = 'time';
-      form.append(el('p', 'muted', 'Ocho preguntas, una respuesta correcta por etapa. Las soluciones solo las ve administración. Cambiar una pregunta o imagen conserva el progreso de los tributos.'));
+      form.append(el('p', 'muted', 'Nueve pruebas. Cada una tiene únicamente un título o pista y una respuesta correcta. Los cambios conservan el progreso de los tributos.'));
+      const cards = el('details', 'campaign-cards'); cards.append(el('summary', '', 'Cartas de recompensa'));
+      let imageUploads = 0;
       const entries = [];
       for (const [i, station] of config.stations.entries()) {
         const details = el('details', 'campaign-station'); details.append(el('summary', '', String(i + 1).padStart(2, '0') + ' · ' + station.title)); const fields = el('div', 'managed-app-form');
-        const title = field(fields, 'Nombre de la estación', 'title', station.title), story = field(fields, 'Ambientación', 'story', station.story, true);
-        const prompt = field(fields, 'Pregunta', 'prompt', station.prompt, true), solution = field(fields, 'Respuesta correcta', 'solution', station.solution || ''), clue = field(fields, 'Pista si falla', 'clue', station.clue), cardTitle = field(fields, 'Nombre de la carta del sobre', 'cardTitle', station.card.title), cardDescription = field(fields, 'Descripción de la carta', 'cardDescription', station.card.description, true);
-        prompt.required = true; solution.required = true; solution.maxLength = 100; solution.pattern = '[^|]+';
-        const imageLabel = el('label', '', 'Imagen de la carta'), image = el('input'); image.type = 'file'; image.accept = 'image/png,image/jpeg,image/webp'; imageLabel.append(image); fields.append(imageLabel);
+        const title = field(fields, 'Título / pista', 'title', station.title, true), solution = field(fields, 'Respuesta correcta', 'solution', station.solution || '');
+        title.required = true; title.maxLength = 1500; solution.required = true; solution.maxLength = 100; solution.pattern = '[^|]+';
+        title.addEventListener('input', () => { details.querySelector('summary').textContent = String(i + 1).padStart(2, '0') + ' · ' + (title.value || 'Prueba sin título'); });
+        const cardFields = el('div', 'managed-app-form'); cardFields.append(el('h4', '', 'Sobre ' + (i + 1)));
+        const cardTitle = field(cardFields, 'Nombre de la carta del sobre', 'cardTitle', station.card.title), cardDescription = field(cardFields, 'Descripción de la carta', 'cardDescription', station.card.description, true);
+        const imageLabel = el('label', '', 'Imagen de la carta'), image = el('input'); image.type = 'file'; image.accept = 'image/png,image/jpeg,image/webp'; imageLabel.append(image); cardFields.append(imageLabel);
         let imageUrl = station.card.image;
-        const preview = el('img', 'campaign-card-preview'); preview.alt = 'Vista previa de la carta ' + (i + 1); preview.hidden = true; fields.append(preview);
+        const preview = el('img', 'campaign-card-preview'); preview.alt = 'Vista previa de la carta ' + (i + 1); preview.hidden = true; cardFields.append(preview); cards.append(cardFields);
         if (imageUrl) api('/api/operacion/admin/app-image?name=' + encodeURIComponent(imageUrl.split('/').at(-1))).then(data => { if (preview.isConnected) { preview.src = data.data; preview.hidden = false; } }).catch(() => {});
-        image.addEventListener('change', async () => { if (!image.files[0]) return; image.disabled = true; submit.disabled = true; try { const data = await compressedImage(image.files[0]); const uploaded = await api('/api/operacion/admin/app-image', 'POST', { data }); imageUrl = uploaded.url; preview.src = data; preview.hidden = false; feedback('Imagen preparada. Guarda el recorrido para asignarla a la carta.'); } catch (error) { feedback(error.message, true); } finally { image.disabled = false; submit.disabled = false; } });
-        entries.push(() => ({ number: i + 1, title: title.value, story: story.value, kind: 'code', prompt: prompt.value,
+        image.addEventListener('change', async () => { if (!image.files[0]) return; image.disabled = true; imageUploads++; submit.disabled = true; try { const data = await compressedImage(image.files[0]); const uploaded = await api('/api/operacion/admin/app-image', 'POST', { data }); imageUrl = uploaded.url; preview.src = data; preview.hidden = false; feedback('Imagen preparada. Guarda el recorrido para asignarla a la carta.'); } catch (error) { feedback(error.message, true); } finally { image.disabled = false; imageUploads--; submit.disabled = imageUploads > 0 || config.stations.length !== 9; } });
+        entries.push(() => ({ ...station, number: i + 1, title: title.value, kind: 'code', prompt: title.value,
           options: [], solution: solution.value,
-          clue: clue.value, card: { title: cardTitle.value, description: cardDescription.value, image: imageUrl } }));
+          card: { title: cardTitle.value, description: cardDescription.value, image: imageUrl } }));
         details.append(fields); form.append(details);
       }
+      form.append(cards);
       const submit = el('button', 'button primary', 'Guardar recorrido y cartas'); submit.type = 'submit'; form.append(submit);
+      if (config.stations.length !== 9) { submit.disabled = true; form.append(el('p', 'form-message', 'Actualiza Hostinger para activar las nueve pruebas. El recorrido guardado se conserva.')); }
       form.addEventListener('submit', async event => { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; try { const updated = await api('/api/operacion/admin/app-campaign', 'POST', { revision: config.revision, media: config.media, planning: { day: day.value, place: place.value, start: start.value, final: final.value }, title: title.value, intro: intro.value, boss: boss.value, ending: ending.value, stations: entries.map(read => read()) }); config.revision = updated.revision; feedback('Recorrido guardado. Se conservan las cuentas y las estaciones completadas.'); } catch (error) { feedback(error.message, true); } finally { submit.disabled = false; } });
       host.append(form);
     } catch (error) { host.replaceChildren(el('p', 'form-message', error.message)); }

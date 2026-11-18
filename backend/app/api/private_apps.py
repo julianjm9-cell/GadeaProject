@@ -1,4 +1,5 @@
 import base64
+import copy
 import hashlib
 import json
 import secrets
@@ -86,14 +87,14 @@ class GameAction(BaseModel):
 
 
 class StationAnswer(GameAction):
-    station: int = Field(ge=1, le=8)
+    station: int = Field(ge=1, le=gadeos.STATION_COUNT)
     campaign_revision: int = Field(ge=0)
-    answer: str | list[str | int] = Field(max_length=1000)
+    answer: str = Field(max_length=100)
 
 
 class BattleAction(GameAction):
     action: str = Field(pattern="^(attack|guard|focus)$")
-    card: int | None = Field(default=None, ge=1, le=8)
+    card: int | None = Field(default=None, ge=1, le=gadeos.STATION_COUNT)
 
 
 class WorkspaceNote(GameAction):
@@ -131,7 +132,7 @@ def admin_account(account):
 def accounts(app_id: str, _: User = Depends(require_superadmin), db: Session = Depends(get_db)):
     app_definition(db, app_id)
     rows = db.scalars(select(PrivateAppAccount).where(PrivateAppAccount.app_id == app_id).order_by(PrivateAppAccount.created_at)).all()
-    return {"accounts": [{**admin_account(row), "completed": (db.get(PrivateAppProgress, row.id).data or {}).get("completed", 0)} for row in rows]}
+    return {"station_count": gadeos.STATION_COUNT if app_id == "gadeos" else None, "accounts": [{**admin_account(row), "completed": (db.get(PrivateAppProgress, row.id).data or {}).get("completed", 0)} for row in rows]}
 
 
 @router.post("/admin/apps/{app_id}/accounts", status_code=201)
@@ -196,9 +197,19 @@ def campaign_admin(_: User = Depends(require_superadmin), db: Session = Depends(
 
 @router.put("/admin/apps/gadeos/campaign")
 def campaign_save(payload: dict, actor: User = Depends(require_superadmin), db: Session = Depends(get_db)):
-    clean = gadeos.validate_campaign(payload)
     original = db.get(AppSetting, gadeos.CONFIG_KEY)
     current = gadeos.campaign(db)
+    data = copy.deepcopy(payload)
+    if isinstance(data.get("stations"), list):
+        for index, station in enumerate(data["stations"]):
+            if not isinstance(station, dict) or index >= len(current["stations"]):
+                continue
+            previous = current["stations"][index]
+            # Minimal two-field editors retain the private card and legacy content.
+            if "prompt" not in station or (station.get("title") != previous["title"] and station.get("prompt") == previous["prompt"]):
+                station["prompt"] = station.get("title")
+            data["stations"][index] = {**previous, **station}
+    clean = gadeos.validate_campaign(data)
     if "planning" not in payload:
         clean["planning"] = current["planning"]
     if "media" not in payload:
@@ -400,6 +411,18 @@ def app_asset(template: str, filename: str):
     if not source.is_file():
         raise HTTPException(404, "Archivo no encontrado.")
     return FileResponse(source, headers={"X-Robots-Tag": "noindex, nofollow"})
+
+
+@router.get("/private-app-assets/gadeos/art/{filename}")
+def gadeos_art(filename: str):
+    if filename not in {"alliance-hero-v2.webp", "journey-v2.webp", "arena-v2.webp", "envelope-v2.webp", "emblem-v2.webp"}:
+        raise HTTPException(404, "Ilustración no encontrada.")
+    source = PROJECT_ROOT / "apps/gadeos/assets" / filename
+    if not source.is_file():
+        source = STATIC / "gadeos/assets" / filename
+    if not source.is_file():
+        raise HTTPException(404, "Ilustración no encontrada.")
+    return FileResponse(source, media_type="image/webp", headers={"X-Robots-Tag": "noindex, nofollow"})
 
 
 @router.get("/private-app-assets/custom/{app_id}/{filename:path}")

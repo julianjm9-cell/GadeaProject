@@ -4,7 +4,7 @@
   const node = (tag, text, cls) => { const item = document.createElement(tag); if (text !== undefined) item.textContent = text; if (cls) item.className = cls; return item; };
   const button = (text, action, cls) => { const item = node('button', text, cls); item.type = 'button'; item.addEventListener('click', action); return item; };
   let catalog = { apps: [], revision: 0 }, selected, loading, initialRoute = false, generation = 0;
-  const records = new Map(), requests = new Map();
+  const records = new Map(), requests = new Map(), stationCounts = new Map();
   const managed = () => catalog.apps.filter(app => ['arena', 'workspace'].includes(app.template));
   const label = app => app.id === 'gadeos' ? 'GADEOS' : app.name;
   const key = app => 'app/' + app.id;
@@ -45,19 +45,20 @@
     if (!Array.isArray(data.accounts)) throw Error('No se pudo leer la lista de usuarios.');
     if (requests.get(app.id) !== request) return;
     records.set(app.id, data.accounts);
+    if (app.id === 'gadeos') stationCounts.set(app.id, Number.isInteger(data.station_count) ? data.station_count : 9);
     if (selected?.id === app.id) paintAccounts(app);
   }
   function paintAccounts(app) {
-    const rows = records.get(app.id) || [], query = $('managedUserSearch').value.trim().toLocaleLowerCase('es');
+    const rows = records.get(app.id) || [], query = $('managedUserSearch').value.trim().toLocaleLowerCase('es'), total = stationCounts.get(app.id) || 9;
     const metrics = $('managedMetrics'); metrics.replaceChildren();
-    for (const [title, value] of [['Usuarios', rows.length], ['Accesos activos', rows.filter(row => row.active).length], ...(app.id === 'gadeos' ? [['Recorrido completado', rows.filter(row => row.completed === 8).length]] : [])]) {
+    for (const [title, value] of [['Usuarios', rows.length], ['Accesos activos', rows.filter(row => row.active).length], ...(app.id === 'gadeos' ? [['Recorrido completado', rows.filter(row => row.completed >= total).length]] : [])]) {
       const metric = node('div', undefined, 'metric'); metric.append(node('span', title), node('strong', String(value))); metrics.append(metric);
     }
     const list = $('managedUsers'); list.replaceChildren();
     for (const account of rows.filter(row => !query || row.name.toLocaleLowerCase('es').includes(query))) {
       const card = node('article', undefined, 'managed-user-card'); card.dataset.managedAccount = account.id;
       const copy = node('div'); copy.append(node('strong', account.name), node('p', account.active ? 'Acceso activo' : 'Acceso desactivado', 'muted'));
-      if (app.id === 'gadeos') copy.append(node('small', account.completed + ' / 8 etapas completadas', 'muted'));
+      if (app.id === 'gadeos') copy.append(node('small', account.completed + ' / ' + total + ' pruebas completadas', 'muted'));
       card.append(copy, button('Editar usuario', () => edit(app, structuredClone(account)))); list.append(card);
     }
     if (!list.childElementCount) list.append(node('p', rows.length ? 'No hay usuarios con ese nombre.' : 'Todavía no hay usuarios en esta aplicación.', 'empty'));

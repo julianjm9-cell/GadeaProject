@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 import json
 import pytest
 from sqlalchemy import select
@@ -33,6 +33,62 @@ def all_stations(web):
         response = web.post('/api/private-apps/gadeos/stations/answer', json={'station': station['number'], 'answer': station['solution'], 'campaign_revision': state['campaign']['revision'], 'revision': state['revision'], 'request_id': str(uuid4())})
         assert response.status_code == 200, response.text
     return response.json()
+
+
+def test_eight_station_campaign_gains_ninth_without_losing_personal_content_or_progress(client):
+    web, factory = client
+    headers = admin(web, factory)
+    account = tribute(web, headers)
+    old = gadeos.default_campaign()
+    old.pop('challenge_format')
+    old['stations'] = old['stations'][:8]
+    old['stations'][0].update(title='Nuestro autobús', prompt='¿Cuál es nuestra palabra?', solution='RECUERDO')
+    old['stations'][0]['card'].update(title='Carta personal conservada')
+    old['revision'] = 4
+    with factory() as db:
+        db.add(AppSetting(key=gadeos.CONFIG_KEY, value=json.dumps(old)))
+        progress = db.get(PrivateAppProgress, UUID(account['id']))
+        progress.data = {'completed': 8, 'victory': True, 'battle': {'state': 'won', 'used_cards': [1]}, 'receipts': ['old-receipt']}
+        db.commit()
+    state = web.get('/api/private-apps/gadeos/state').json()
+    assert state['completed'] == 8 and len(state['campaign']['stations']) == 9
+    assert len([card for card in state['cards'] if card['owned']]) == 8
+    assert state['cards'][0]['title'] == 'Carta personal conservada'
+    assert state['victory'] and state['battle']['state'] == 'won'
+    assert not state['campaign']['stations'][8]['locked']
+    start = {'revision': state['revision'], 'request_id': str(uuid4())}
+    assert web.post('/api/private-apps/gadeos/battle/start', json=start).status_code == 403
+    config = web.get('/admin/apps/gadeos/campaign', headers=headers).json()
+    assert config['stations'][0]['title'] == 'Nuestro autobús\n¿Cuál es nuestra palabra?'
+    assert config['stations'][0]['solution'] == 'RECUERDO'
+    stale_eight = {**config, 'stations': config['stations'][:8]}
+    assert web.put('/admin/apps/gadeos/campaign', headers=headers, json=stale_eight).status_code == 422
+    # The simple editor can send only a title/clue and one answer for every trial.
+    minimal = {**config, 'stations': [{'title': station['title'], 'solution': station['solution']} for station in config['stations']]}
+    minimal['stations'][8] = {'title': 'Novena pista personalizada', 'solution': 'CANCIÓN'}
+    saved = web.put('/admin/apps/gadeos/campaign', headers=headers, json=minimal)
+    assert saved.status_code == 200, saved.text
+    assert saved.json()['stations'][0]['card']['title'] == 'Carta personal conservada'
+    assert web.put('/admin/apps/gadeos/campaign', headers=headers, json=minimal).status_code == 409
+    body = {'revision': state['revision'], 'request_id': str(uuid4()), 'campaign_revision': 5, 'station': 9, 'answer': '  cancion '}
+    completed = web.post('/api/private-apps/gadeos/stations/answer', json=body)
+    assert completed.status_code == 200, completed.text
+    assert completed.json()['completed'] == 9 and completed.json()['cards'][8]['owned']
+    assert web.post('/api/private-apps/gadeos/stations/answer', json=body).json()['reused']
+    state = completed.json()
+    started = web.post('/api/private-apps/gadeos/battle/start', json={'revision': state['revision'], 'request_id': str(uuid4())}).json()
+    turn = web.post('/api/private-apps/gadeos/battle/action', json={'revision': started['revision'], 'request_id': str(uuid4()), 'action': 'guard', 'card': 9})
+    assert turn.status_code == 200 and turn.json()['battle']['used_cards'] == [9]
+    assert web.get('/admin/apps/gadeos/accounts', headers=headers).json()['station_count'] == 9
+
+
+def test_gadeos_generated_art_is_available_without_exposing_private_files(client):
+    web, _ = client
+    for name in ['alliance-hero', 'journey', 'arena', 'envelope', 'emblem']:
+        response = web.get('/private-app-assets/gadeos/art/' + name + '-v2.webp')
+        assert response.status_code == 200 and response.content[:4] == b'RIFF'
+        assert response.headers['content-type'] == 'image/webp'
+    assert web.get('/private-app-assets/gadeos/art/unknown.webp').status_code == 404
 
 
 def test_registry_creates_real_private_app_and_preserves_old_accounts(client):
@@ -83,6 +139,7 @@ def test_tribute_login_unlocks_in_order_and_duplicate_does_not_duplicate_rewards
     assert state['completed']==0 and state['campaign']['stations'][1]['locked']
     assert 'solution' not in str(state)
     assert 'prompt' not in state['campaign']['stations'][1]
+    assert state['campaign']['stations'][1]['title'] == 'Prueba 2'
     assert not any(card['owned'] for card in state['cards'])
     assert web.post('/api/private-apps/gadeos/battle/start',json={'revision':0,'request_id':str(uuid4())}).status_code==403
     body={'revision':0,'request_id':str(uuid4()),'campaign_revision':0,'station':2,'answer':'TIEMPO'}
@@ -110,7 +167,7 @@ def test_battle_loss_retry_victory_and_account_isolation(client):
         response=web.post('/api/private-apps/gadeos/battle/action',json={'revision':state['revision'],'request_id':str(uuid4()),'action':action,'card':card});assert response.status_code==200,response.text;return response.json()
     state=start(state)
     while state['battle']['state']=='playing':state=move(state,'attack')
-    assert state['battle']['state']=='lost' and state['completed']==8
+    assert state['battle']['state']=='lost' and state['completed']==9
     state=start(state)
     while state['battle']['state']=='playing':state=move(state,{'strike':'guard','feint':'attack','charge':'focus'}[state['battle']['intent']])
     assert state['victory'] and state['battle']['state']=='won'

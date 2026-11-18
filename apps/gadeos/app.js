@@ -1,5 +1,7 @@
 const $ = id => document.getElementById(id);
 const apiRoot = '/api/private-apps/gadeos';
+const art = name => '/private-app-assets/gadeos/art/' + name + '-v2.webp';
+const total = () => state.campaign.stations.length;
 let state, busy = false, selectedCard = null;
 const el = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; };
 const icon = name => { const node = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); const use = document.createElementNS(node.namespaceURI, 'use'); use.setAttribute('href', '#i-' + name); node.append(use); node.setAttribute('aria-hidden', 'true'); return node; };
@@ -54,16 +56,14 @@ function cardArt(card, large = false) {
   const node = el(large ? 'div' : 'button', large ? 'reward-card' : 'collectible' + (card.owned ? '' : ' locked'));
   if (!large) { node.type = 'button'; node.setAttribute('aria-label', card.owned ? 'Ver carta ' + card.title : 'Carta ' + card.id + ', bloqueada'); node.addEventListener('click', () => card.owned ? reward(card, false) : note('Esta carta se consigue al completar la estación ' + card.id + '.')); }
   if (card.owned && card.image) { const img = el('img'); img.src = card.image; img.alt = ''; img.loading = 'lazy'; node.append(img); }
-  else node.append(el('span', '', card.owned ? ['✦', '◇', '☽', '⌂', '☀', '♜', '∞', '✧'][card.id - 1] : '◇'));
+  else { const image = el('img', 'card-emblem'); image.src = art('emblem'); image.alt = ''; node.append(image); }
   node.append(el('strong', '', card.owned ? card.title : 'Sobre ' + card.id));
   if (large) node.append(el('p', '', card.description));
   return node;
 }
 function packArt(className = '') {
   const pack = el('div', 'envelope ' + className); pack.setAttribute('aria-hidden', 'true');
-  const url = state.campaign.media?.envelope;
-  if (url) { const image = el('img'); image.src = url; image.alt = ''; pack.append(image); }
-  else { pack.classList.add('pack-fallback'); pack.append(el('span', 'pack-star', '✧'), el('strong', '', 'GADEOS'), el('small', '', 'LA ALIANZA')); }
+  const image = el('img'); image.src = state.campaign.media?.envelope || art('envelope'); image.alt = ''; pack.append(image);
   return pack;
 }
 function reward(card, sealed = true) {
@@ -72,23 +72,23 @@ function reward(card, sealed = true) {
   function reveal() {
     envelope.replaceWith(cardArt(card, true)); open.remove();
     const keep = button('Continuar recorrido', () => {
-      $('reward').close(); location.hash = state.completed === 8 ? 'batalla' : 'recorrido';
+      $('reward').close(); location.hash = state.completed >= total() ? 'batalla' : 'recorrido';
       document.querySelector('[data-station="' + (state.completed + 1) + '"]')?.focus();
     }, 'primary'); view.append(keep); keep.focus();
   }
   const envelope = packArt('earned-pack');
   const open = button('Abrir sobre', reveal, 'primary');
-  if (sealed) view.append(el('p', 'earned-label', 'SOBRE ' + card.id + ' DE 8 CONSEGUIDO'), envelope, open);
+  if (sealed) view.append(el('p', 'earned-label', 'SOBRE ' + card.id + ' DE ' + total() + ' CONSEGUIDO'), envelope, open);
   else view.append(cardArt(card, true), button('Volver', () => $('reward').close(), 'primary'));
   host.append(view); if (!$('reward').open) $('reward').showModal();
 }
 function home(host) {
   const schedule = state.campaign.planning || { day: 'Viernes', place: 'Chinchón', start: '16:00', final: '22:00' };
   host.append(el('p', 'greeting', 'TU TRIBUTO · ' + state.account.name));
-  const hero = el('section', 'home-hero'), poster = state.campaign.media?.poster;
-  if (poster) { const image = el('img', 'event-poster'); image.src = poster; image.alt = ''; image.fetchPriority = 'high'; hero.append(image); }
+  const hero = el('section', 'home-hero');
+  const image = el('img', 'event-poster'); image.src = art('alliance-hero'); image.alt = ''; image.fetchPriority = 'high'; hero.append(image);
   const copy = el('div', 'poster-copy'); copy.append(el('p', 'eyebrow', schedule.day + ' · ' + schedule.place), el('h1', '', state.campaign.title), el('p', '', state.campaign.intro)); hero.append(copy); host.append(hero);
-  const next = el('a', 'primary next-step', state.completed === 8 ? 'Ir a la batalla final →' : state.completed ? 'Continuar: etapa ' + (state.completed + 1) + ' →' : 'Empezar el recorrido →'); next.href = state.completed === 8 ? '#batalla' : '#recorrido'; host.append(next);
+  const next = el('a', 'primary next-step', state.completed >= total() ? 'Ir a la batalla final →' : state.completed ? 'Continuar: prueba ' + (state.completed + 1) + ' →' : 'Empezar el recorrido →'); next.href = state.completed >= total() ? '#batalla' : '#recorrido'; host.append(next);
   const planning = el('section', 'planning'); planning.append(el('div', 'section-line'));
   planning.firstChild.append(el('h2', '', 'Vuestro planning'), el('small', '', schedule.day.toLocaleUpperCase('es')));
   planning.append(el('p', 'planning-start', schedule.start + ' · Empiezan los juegos · ' + schedule.place));
@@ -96,7 +96,7 @@ function home(host) {
   for (const station of state.campaign.stations) {
     const row = el('li', station.completed ? 'is-done' : '');
     row.append(el('span', 'planning-time', String(station.number).padStart(2, '0')),
-      el('span', '', station.title), station.completed ? icon('check') : el('span', 'planning-dot'));
+      el('span', '', station.title.split('\n')[0]), station.completed ? icon('check') : el('span', 'planning-dot'));
     list.append(row);
   }
   const finale = el('li', 'planning-finale'); finale.append(el('span', 'planning-time', schedule.final), el('strong', '', 'Batalla final'), icon('battle')); list.append(finale); planning.append(list); host.append(planning);
@@ -104,27 +104,26 @@ function home(host) {
 
 function journey(host) {
   const intro = el('header', 'journey-intro');
-  const cover = state.campaign.media?.guide?.[0]?.image;
-  if (cover) { const image = el('img', 'collection-cover'); image.src = cover; image.alt = ''; intro.append(image); }
+  const image = el('img', 'collection-cover'); image.src = art('alliance-hero'); image.alt = ''; intro.append(image);
   const copy = el('div', 'journey-copy'); copy.append(el('p', 'eyebrow', 'LA COLECCIÓN DE VUESTRA ALIANZA'), el('h1', '', 'Vuestro recorrido'), el('p', '', 'Responde. Abre tu sobre. Sigue la aventura.')); intro.append(copy); host.append(intro);
-  const progress = el('div', 'route-progress'), meter = el('progress'); meter.max = 8; meter.value = state.completed; meter.setAttribute('aria-label', 'Etapas completadas');
-  progress.append(el('strong', '', state.completed + ' de 8 sobres'), meter); host.append(progress);
+  const progress = el('div', 'route-progress'), meter = el('progress'); meter.max = total(); meter.value = state.completed; meter.setAttribute('aria-label', 'Pruebas completadas');
+  progress.append(el('strong', '', state.completed + ' de ' + total() + ' sobres'), meter); host.append(progress);
   const list = el('div', 'journey');
   for (const station of state.campaign.stations) {
     const node = button('', () => station.completed ? reward(state.cards[station.number - 1]) : challenge(station), 'station ' + (station.locked ? 'locked' : station.completed ? 'done' : 'current'));
     node.disabled = station.locked; node.dataset.station = station.number;
     const number = el('span', 'station-node'); number.append(station.locked ? icon('lock') : station.completed ? icon('check') : document.createTextNode(String(station.number).padStart(2, '0')));
-    const copy = el('span', 'station-copy'); copy.append(el('small', '', station.locked ? 'BLOQUEADA' : station.completed ? 'SOBRE CONSEGUIDO' : 'SIGUIENTE ETAPA'), el('strong', '', station.title));
+    const copy = el('span', 'station-copy'); copy.append(el('small', '', station.locked ? 'BLOQUEADA' : station.completed ? 'SOBRE CONSEGUIDO' : 'SIGUIENTE PRUEBA'), el('strong', '', station.title.split('\n')[0]));
     node.append(number, copy, packArt('station-pack')); list.append(node);
   }
   host.append(list);
-  const final = button(state.completed === 8 ? 'Entrar en la batalla final →' : 'La batalla se abre con los 8 sobres', () => { location.hash = 'batalla'; }, 'primary'); final.disabled = state.completed < 8; host.append(final);
+  const final = button(state.completed >= total() ? 'Entrar en la batalla final →' : 'La batalla se abre con los ' + total() + ' sobres', () => { location.hash = 'batalla'; }, 'primary'); final.disabled = state.completed < total(); host.append(final);
 }
 
 function challenge(station) {
   const host = $('challenge-content'); host.replaceChildren();
-  host.append(el('p', 'eyebrow', 'ESTACIÓN ' + String(station.number).padStart(2, '0')));
-  const title = el('h2', '', station.title); title.id = 'challenge-title'; host.append(title, el('p', 'challenge-prompt', station.prompt));
+  host.append(el('p', 'eyebrow', 'PRUEBA ' + String(station.number).padStart(2, '0') + ' / ' + total()));
+  const title = el('h2', 'challenge-prompt', station.title); title.id = 'challenge-title'; host.append(title);
   const form = el('form'), error = el('p', 'error'); error.setAttribute('role', 'alert'); error.hidden = true;
   const label = el('label', '', 'Tu respuesta'), input = el('input'); input.name = 'answer'; input.required = true; input.autocomplete = 'off'; input.maxLength = 100; label.append(input); form.append(label);
   let answer = ''; input.addEventListener('input', () => { answer = input.value; });
@@ -151,14 +150,14 @@ async function move(actionName) {
 }
 function battle(host) {
   host.append(el('p', 'eyebrow', 'LA ÚLTIMA ALIANZA'), el('h1', '', 'La batalla final'));
-  if (state.completed < 8) { const locked = el('section', 'battle-lock'); locked.append(icon('lock'), el('h2', '', 'La arena aún no está abierta'), el('p', '', 'Consigue las ocho cartas del recorrido para enfrentarte al centinela.'), button('Volver al recorrido', () => { location.hash = 'recorrido'; }, 'primary')); host.append(locked); return; }
+  if (state.completed < total()) { const locked = el('section', 'battle-lock'); locked.append(icon('lock'), el('h2', '', 'La arena aún no está abierta'), el('p', '', 'Consigue los ' + total() + ' sobres del recorrido para enfrentarte al centinela.'), button('Volver al recorrido', () => { location.hash = 'recorrido'; }, 'primary')); host.append(locked); return; }
   const fight = state.battle;
   if (!fight || fight.state !== 'playing') {
     const start = el('section', 'battle-result'); start.append(el('div', 'trophy'), el('h2', '', fight?.state === 'won' ? 'Vuestra alianza ha vencido' : fight?.state === 'lost' ? 'La arena te da otra oportunidad' : state.campaign.boss),
       el('p', '', fight?.state === 'won' ? state.campaign.ending : 'Lee la intención del centinela, elige tu estrategia y usa tus cartas. Tienes doce turnos. Tus sobres y estaciones siempre se conservan.'),
       button(fight ? 'Jugar otra batalla' : 'Entrar en la arena', startBattle, 'primary')); host.append(start); return;
   }
-  const arena = el('section', 'battle-arena'), fighters = el('div', 'combatants');
+  const arena = el('section', 'battle-arena'), fighters = el('div', 'combatants'); arena.dataset.intent = fight.intent;
   for (const [name, energy, max, symbol, cls] of [[state.account.name, fight.energy, 28, '✦', ''], [state.campaign.boss, fight.boss_energy, 30, '♜', ' boss']]) {
     const actor = el('div', 'combatant' + cls); const meter = el('progress'); meter.max = max; meter.value = energy; meter.setAttribute('aria-label', 'Energía de ' + name); actor.append(el('small', '', name), el('strong', '', symbol), meter, el('p', '', energy + '/' + max)); fighters.append(actor);
   }

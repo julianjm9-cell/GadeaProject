@@ -16,7 +16,7 @@ async function fixture(t){
  assert.fail('El backend de ensayo no responde.');
 }
 for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440,height:1000}],['WebKit móvil',webkit,{width:390,height:844}]]){
- test(`GADEOS completa ocho estaciones, recupera una respuesta perdida y gana la batalla con API real en ${name}`,{timeout:90000},async t=>{
+ test(`GADEOS completa nueve pruebas, recupera una respuesta perdida y gana la batalla con API real en ${name}`,{timeout:90000},async t=>{
   const base=await fixture(t),browser=await engine.launch(name.startsWith('Chromium')?{channel:'msedge'}:{});t.after(()=>browser.close());
   const page=await browser.newPage({viewport});page.setDefaultTimeout(10000);const errors=[];page.on('pageerror',error=>errors.push(error.message));
   const signed=await page.request.post(base+'/auth/login',{data:{email:'organizador@example.invalid',password:'ensayo-temporal-123'}});assert.equal(signed.status(),200);const token=(await signed.json()).access_token;
@@ -26,10 +26,12 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   const materialRoot=process.env.EDUCAME_GADEOS_MATERIALS_DIR;
   const manifest=materialRoot?JSON.parse(await readFile(join(materialRoot,'manifest.json'),'utf8')):{poster:'fixture',guide:[{title:'Portada',file:'fixture'},{title:'Instrucciones',file:'fixture',text:'Texto legible de ensayo.'}]};
   async function upload(file){const bytes=await readFile(materialRoot?join(materialRoot,file):resolve('marketing/app_landings_demo/assets/landing/profesor-dashboard.png'));const response=await page.request.post(base+'/admin/apps/gadeos/images',{headers,data:{data:bytes.toString('base64')}});assert.equal(response.status(),201);return (await response.json()).url;}
-  config.media={poster:await upload(manifest.poster),envelope:await upload(manifest.envelope||manifest.poster),source:'b'.repeat(64),guide:[]};
+  config.media={poster:await upload(manifest.poster),envelope:materialRoot?await upload(manifest.envelope||manifest.poster):null,source:'b'.repeat(64),guide:[]};
   for(const entry of manifest.guide)config.media.guide.push({title:entry.title,image:await upload(entry.file),text:entry.text||''});
   assert.equal((await page.request.put(base+'/admin/apps/gadeos/campaign',{headers,data:config})).status(),200);
   await page.context().clearCookies();await page.goto(base+'/gadeos');await page.getByRole('heading',{name:'GADEOS',exact:true}).waitFor();
+  await page.waitForFunction(()=>document.querySelector('.login-scene')?.naturalWidth>0);
+  if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-login-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
   assert.equal((await page.request.get(base+config.media.poster)).status(),401);
   assert.equal(await page.getByRole('button',{name:'Crear cuenta',exact:true}).count(),0);
   await page.getByLabel('Nombre de tributo').fill('Alma');await page.getByLabel('Contraseña',{exact:true}).fill('ensayo-seguro-123');await page.getByRole('button',{name:/Entrar en la arena/}).click();
@@ -42,13 +44,15 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-home-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   await page.locator('.bottom-nav a[href="#recorrido"]').click();assert.equal(await page.locator('[data-station="2"]').isEnabled(),false);
+  assert.equal(await page.locator('[data-station]').count(),9);
   await page.waitForFunction(()=>document.querySelector('.collection-cover')?.naturalWidth>0);
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-route-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   let lost=false;await page.route('**/stations/answer',async route=>{const body=route.request().postDataJSON();if(!lost&&body.station===1&&body.answer===config.stations[0].solution){lost=true;await route.fetch();return route.abort();}return route.continue();});
-  for(let i=0;i<8;i++){
+  for(let i=0;i<9;i++){
    await page.locator(`[data-station="${i+1}"]`).click();const dialog=page.locator('#challenge');await dialog.waitFor();const input=dialog.getByLabel('Tu respuesta',{exact:true});
    if(i===0){await input.fill('INCORRECTO');await dialog.getByRole('button',{name:'Comprobar y abrir sobre'}).click();await dialog.getByRole('alert').waitFor({state:'visible'});assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);}
    assert.equal(await dialog.locator('input').count(),1);assert.equal(await dialog.locator('.choice-list,.memory-board,.order-slot').count(),0);
+   assert.equal(await dialog.locator('.challenge-prompt').count(),1);
    await input.fill(config.stations[i].solution);
    await dialog.getByRole('button',{name:'Comprobar y abrir sobre'}).click();
    if(i===0){await dialog.getByRole('alert').waitFor({state:'visible'});await dialog.getByRole('button',{name:'Comprobar y abrir sobre'}).click();}
