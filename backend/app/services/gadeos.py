@@ -14,6 +14,18 @@ from app.models.private_apps import PrivateAppProgress
 CONFIG_KEY = "private_campaign:gadeos"
 
 
+def planning_config(value=None):
+    defaults = {"day": "Viernes", "place": "Chinchón", "start": "16:00", "final": "22:00"}
+    if value is None:
+        return defaults
+    if not isinstance(value, dict):
+        raise HTTPException(422, "Revisa el planning del viaje.")
+    result = {**defaults, **{key: value[key] for key in defaults if key in value}}
+    if any(not isinstance(result[key], str) or not 1 <= len(result[key].strip()) <= 80 for key in ("day", "place")) or any(not isinstance(result[key], str) or not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", result[key]) for key in ("start", "final")):
+        raise HTTPException(422, "Indica el día, el lugar y dos horas válidas para el planning.")
+    return result
+
+
 def media_config(value=None):
     value = {} if value is None else value
     if not isinstance(value, dict) or not isinstance(value.get("guide", []), list) or len(value.get("guide", [])) > 8:
@@ -53,7 +65,7 @@ def default_campaign():
     options = [[] for _ in range(8)]
     solutions = ['ALIANZA', 'TIEMPO', 'CHINCHON', 'REFUGIO', 'HORIZONTE', 'BRINDIS', 'COMPLICIDAD', 'GADEOS']
     return {"revision": 0, "title": "La arena de los recuerdos", "intro": "Un viaje a Chinchón. Ocho sobres. Vuestra propia alianza.",
-            "media": media_config(),
+            "media": media_config(), "planning": planning_config(),
             "boss": "El centinela de la arena", "ending": "La mejor recompensa es haber recorrido este camino juntos.",
             "stations": [{"number": i + 1, "title": titles[i], "story": "Supera la prueba y abre un sobre de vuestra colección.",
                           "kind": kinds[i], "prompt": prompts[i], "options": options[i], "solution": solutions[i],
@@ -66,6 +78,7 @@ def campaign(db):
     row = db.get(AppSetting, CONFIG_KEY)
     result = json.loads(row.value) if row else default_campaign()
     result["media"] = media_config(result.get("media"))
+    result["planning"] = planning_config(result.get("planning"))
     # Preserve old challenges privately while presenting only one-answer questions.
     defaults = default_campaign()["stations"]
     old_prompts = ['Llega puntual al bus y consigue el código de esta primera parada.', None,
@@ -94,6 +107,7 @@ def validate_campaign(data):
         raise HTTPException(422, "El recorrido debe contener exactamente ocho estaciones.")
     clean = {key: str(data.get(key, ""))[:1500] for key in ("title", "intro", "boss", "ending")}
     clean["media"] = media_config(data.get("media"))
+    clean["planning"] = planning_config(data.get("planning"))
     clean["stations"] = []
     for index, station in enumerate(data["stations"]):
         if not isinstance(station, dict) or not isinstance(station.get("card", {}), dict):
@@ -118,6 +132,7 @@ def validate_campaign(data):
 def public_campaign(config, completed):
     result = {key: config[key] for key in ("revision", "title", "intro", "boss", "ending")}
     result["media"] = config.get("media", media_config())
+    result["planning"] = config.get("planning", planning_config())
     result["stations"] = []
     for index, station in enumerate(config["stations"]):
         entry = {"number": index + 1, "title": station["title"], "locked": index > completed, "completed": index < completed}

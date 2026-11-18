@@ -83,14 +83,15 @@ function reward(card, sealed = true) {
   host.append(view); if (!$('reward').open) $('reward').showModal();
 }
 function home(host) {
+  const schedule = state.campaign.planning || { day: 'Viernes', place: 'Chinchón', start: '16:00', final: '22:00' };
   host.append(el('p', 'greeting', 'TU TRIBUTO · ' + state.account.name));
   const hero = el('section', 'home-hero'), poster = state.campaign.media?.poster;
   if (poster) { const image = el('img', 'event-poster'); image.src = poster; image.alt = ''; image.fetchPriority = 'high'; hero.append(image); }
-  const copy = el('div', 'poster-copy'); copy.append(el('p', 'eyebrow', 'VIERNES · CHINCHÓN'), el('h1', '', 'Que empiecen\nlos juegos.'), el('p', '', 'Ocho paradas. Ocho sobres. Una batalla final.')); hero.append(copy); host.append(hero);
+  const copy = el('div', 'poster-copy'); copy.append(el('p', 'eyebrow', schedule.day + ' · ' + schedule.place), el('h1', '', state.campaign.title), el('p', '', state.campaign.intro)); hero.append(copy); host.append(hero);
   const next = el('a', 'primary next-step', state.completed === 8 ? 'Ir a la batalla final →' : state.completed ? 'Continuar: etapa ' + (state.completed + 1) + ' →' : 'Empezar el recorrido →'); next.href = state.completed === 8 ? '#batalla' : '#recorrido'; host.append(next);
   const planning = el('section', 'planning'); planning.append(el('div', 'section-line'));
-  planning.firstChild.append(el('h2', '', 'Vuestro planning'), el('small', '', 'VIERNES'));
-  planning.append(el('p', 'planning-start', '16:00 · Empiezan los juegos'));
+  planning.firstChild.append(el('h2', '', 'Vuestro planning'), el('small', '', schedule.day.toLocaleUpperCase('es')));
+  planning.append(el('p', 'planning-start', schedule.start + ' · Empiezan los juegos · ' + schedule.place));
   const list = el('ol', 'planning-list');
   for (const station of state.campaign.stations) {
     const row = el('li', station.completed ? 'is-done' : '');
@@ -98,7 +99,7 @@ function home(host) {
       el('span', '', station.title), station.completed ? icon('check') : el('span', 'planning-dot'));
     list.append(row);
   }
-  const finale = el('li', 'planning-finale'); finale.append(el('span', 'planning-time', '22:00'), el('strong', '', 'Batalla final'), icon('battle')); list.append(finale); planning.append(list); host.append(planning);
+  const finale = el('li', 'planning-finale'); finale.append(el('span', 'planning-time', schedule.final), el('strong', '', 'Batalla final'), icon('battle')); list.append(finale); planning.append(list); host.append(planning);
 }
 
 function journey(host) {

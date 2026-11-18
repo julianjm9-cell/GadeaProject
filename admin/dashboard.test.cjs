@@ -19,7 +19,7 @@ function loadDashboard() {
   const context = vm.createContext({
     document: { getElementById: element, querySelector: element, querySelectorAll: () => [] },
     localStorage: { getItem: () => '', removeItem() {} },
-    window: {}, setTimeout: () => 0, clearTimeout() {},
+    window: { addEventListener() {} }, location: { hash: '' }, history: { replaceState() {} }, setTimeout: () => 0, clearTimeout() {},
     console, Date, Math, JSON
   });
   vm.runInContext(script, context);

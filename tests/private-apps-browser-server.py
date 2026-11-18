@@ -9,6 +9,8 @@ os.environ["PUBLIC_BASE_URL"]=url
 os.environ["CORS_ORIGINS"]=url
 from app.database.session import Base, SessionLocal, engine
 from app.main import app
+from fastapi.staticfiles import StaticFiles
+app.mount('/admin-dashboard', StaticFiles(directory='admin', html=True), name='admin-browser-fixture')
 from app.api import private_apps
 private_apps.IMAGE_ROOT = Path(os.environ["EDUCAME_PRIVATE_IMAGE_DIR"])
 from app.models import Organization, User

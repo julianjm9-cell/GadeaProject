@@ -199,6 +199,8 @@ def campaign_save(payload: dict, actor: User = Depends(require_superadmin), db: 
     clean = gadeos.validate_campaign(payload)
     original = db.get(AppSetting, gadeos.CONFIG_KEY)
     current = gadeos.campaign(db)
+    if "planning" not in payload:
+        clean["planning"] = current["planning"]
     if "media" not in payload:
         clean["media"] = current["media"]  # Older editors must preserve the private poster and guide.
     elif isinstance(payload["media"], dict) and "envelope" not in payload["media"]:

@@ -1,4 +1,3 @@
-import { setupAdminPanel } from './admin-panel.js';
 
 const $ = id => document.getElementById(id);
 const number = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
@@ -224,8 +223,7 @@ export function setupOperations({ api, element, button, feedback, openCommand })
       },
     });
   }));
-  const admin = setupAdminPanel({ get, post, element, button, confirm, onForm, busy });
-  const loaders = { github: loadGitHub, hostinger: loadHostinger, admin: admin.load };
+  const loaders = { github: loadGitHub, hostinger: loadHostinger, admin: async () => {} };
   const load = () => loaders[tab]().catch(fail);
   const tabs = document.querySelectorAll('[data-operation]');
   function open(selected = tab, reference) {

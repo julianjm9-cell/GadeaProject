@@ -168,7 +168,7 @@
     </section>
 
     <section data-page="apps" aria-labelledby="apps-title" hidden>
-      <div class="page-heading heading-actions"><h1 id="apps-title">Apps y administración</h1><a class="button primary" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noreferrer">Abrir dashboard online ↗</a></div>
+      <div class="page-heading heading-actions"><h1 id="apps-title">Apps</h1><a class="button primary" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noreferrer">Abrir dashboard online ↗</a></div>
       <div id="app-management"></div>
       <div class="product-grid" id="directory-apps" hidden></div>
       <dialog id="app-editor" aria-labelledby="app-editor-title"><div class="dialog-heading"><h2 id="app-editor-title">Aplicación</h2><button class="icon-button" type="button" data-close aria-label="Cerrar aplicación">×</button></div><div id="app-editor-body"></div></dialog>
@@ -209,7 +209,7 @@
       <div class="operation-tabs" role="group" aria-label="Operación">
         <button class="button secondary" data-operation="github" type="button" aria-pressed="true">GitHub</button>
         <button class="button secondary" data-operation="hostinger" type="button" aria-pressed="false">Hostinger</button>
-        <button class="button secondary" data-operation="admin" type="button" aria-pressed="false">Cuentas y apps</button>
+        <button class="button secondary" data-operation="admin" type="button" aria-pressed="false">Dashboard online</button>
       </div>
       <section id="operation-github" class="card operation-panel" aria-label="GitHub">
         <div class="card-heading"><h2>Solicitudes de cambios</h2><button class="button secondary" data-operation-refresh type="button">Actualizar</button></div>
@@ -249,28 +249,9 @@
         <div id="hostinger-job" class="operation-detail" role="status"></div>
         <details id="hostinger-history" hidden><summary>Historial de despliegues</summary><ul></ul></details>
       </section>
-      <section id="operation-admin" class="card operation-panel" aria-label="Cuentas y apps" hidden>
-        <div class="card-heading"><h2>Administración de Educame</h2><div class="actions"><button class="button secondary" data-operation-refresh type="button">Actualizar</button><button class="button secondary" id="admin-logout" type="button" hidden>Cerrar sesión</button></div></div>
-        <form id="admin-login" class="operation-form" hidden>
-          <label>Correo del administrador<input name="identifier" autocomplete="username" required></label>
-          <label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label>
-          <button class="button primary">Entrar</button>
-        </form>
-        <details class="setup-guide"><summary>Qué cuenta necesitas</summary><p>Usa tu cuenta de superadministración de Educame. Desde aquí puedes editar cuentas y licencias, o pausar una app concreta después de confirmar.</p></details>
-        <div id="admin-content" class="operation-admin-content" hidden>
-          <section class="operation-detail"><h3>Disponibilidad de las apps</h3><div id="admin-apps" class="operation-apps"></div></section>
-          <details id="admin-create"><summary>Crear cuenta</summary><form class="operation-form">
-            <label>Organización<select name="organization_id" required></select></label>
-            <label>Nombre<input name="full_name" maxlength="255"></label>
-            <label>Correo<input name="email" type="email" required maxlength="255"></label>
-            <label>Contraseña inicial<input name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></label>
-            <button class="button secondary">Crear cuenta</button>
-          </form></details>
-          <div class="operation-split">
-            <section class="operation-detail"><h3>Cuentas</h3><label>Buscar cuenta<input id="admin-search" type="search" placeholder="Nombre, correo u organización"></label><div class="operation-list" id="admin-accounts"></div></section>
-            <div class="operation-detail" id="admin-account"></div>
-          </div>
-        </div>
+      <section id="operation-admin" class="card operation-panel" aria-label="Dashboard online" hidden>
+        <h2>Administración de Educame</h2><p class="muted">Usuarios, contraseñas, licencias, accesos y modelos de IA se gestionan en el dashboard online.</p>
+        <a class="button primary" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noopener noreferrer">Abrir administración online ↗</a>
       </section>
     </section>
     <dialog id="operation-confirm" aria-labelledby="operation-confirm-title">
@@ -479,7 +460,7 @@
         <section class="card compose-card provider-card"><div class="provider-head"><span class="tile-icon blue" data-icon="apps"></span><span class="badge">Acceso web</span></div>
           <h2>Educame</h2><p>Entra con tu sesión habitual para abrir o administrar los productos.</p>
           <div class="actions"><a class="button primary" href="#apps">Ver las apps</a><a class="button secondary" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noreferrer">Abrir dashboard ↗</a></div>
-          <details class="setup-guide"><summary>Dónde gestionar cuentas y licencias</summary><p>En <a class="text-link" href="#control/admin">Operación → Cuentas y apps</a> puedes iniciar sesión como superadministrador y gestionar accesos y disponibilidad.</p></details>
+          <details class="setup-guide"><summary>Dónde gestionar cuentas y licencias</summary><p>En el <a class="text-link" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noopener noreferrer">dashboard online</a> puedes gestionar usuarios, licencias, accesos y modelos de IA. LA TERRAZA se ocupa del contenido y los cambios de tus apps.</p></details>
         </section>
       </div>
     </section>

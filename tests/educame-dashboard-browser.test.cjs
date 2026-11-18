@@ -522,20 +522,12 @@ for (const [name, engine, viewport] of [
     await page.getByText('[5/5] Comprobado', { exact: true }).waitFor();
     assert.equal(deploymentCount, 1);
 
-    await page.getByRole('button', { name: 'Cuentas y apps' }).click();
-    await page.getByLabel('Correo del administrador').fill('admin@example.invalid');
-    await page.getByLabel('Contraseña', { exact: true }).fill('fixture-password');
-    await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-    await page.getByRole('button', { name: 'Docente de ensayo' }).click();
-    await page.getByRole('heading', { name: 'Licencias' }).waitFor();
-    await page.getByRole('button', { name: 'Pausar', exact: true }).click();
-    await page.getByRole('dialog', { name: 'Pausar Inglés' }).getByRole('button', { name: 'Pausar', exact: true }).click();
-    await page.getByRole('button', { name: 'Reactivar', exact: true }).waitFor();
-    assert.equal(paused, true);
+    await page.getByRole('button', { name: 'Dashboard online', exact: true }).click();
+    const online = page.getByRole('link', { name: 'Abrir administración online ↗', exact: true });
+    await online.waitFor();assert.equal(await online.getAttribute('href'), 'https://educame.tech/admin-dashboard/');
+    assert.equal(await page.getByLabel('Correo del administrador').count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'Crear cuenta', exact: true }).count(), 0);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    await page.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
-    await page.getByLabel('Correo del administrador').waitFor();
-    assert.equal(await page.getByText('Docente de ensayo').count(), 0);
 
     await page.getByRole('link', { name: 'Codex · 78 % disponible' }).click();
     await page.getByText('Uso disponible de Codex', { exact: true }).waitFor();

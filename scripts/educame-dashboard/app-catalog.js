@@ -11,7 +11,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
   function connectionMessage(error) {
     return error?.status === 404 ? 'El servidor necesita la actualización de Hostinger para gestionar estas apps.' :
       error?.status === 403 ? 'Esta cuenta necesita permisos de administración de Educame.' :
-      error?.status && error.status !== 401 ? error.message : 'Conecta administración para crear apps y gestionar su acceso. La conexión con Codex es independiente.';
+      error?.status && error.status !== 401 ? error.message : 'Conecta administración para crear apps y editar su contenido. Usuarios y accesos están en el dashboard online.';
   }
   function acceptCatalog(data) {
     if (!Array.isArray(data?.apps) || !Number.isInteger(data.revision)) throw Object.assign(new Error('El servidor no devolvió un catálogo válido.'), { status: 502 });
@@ -76,7 +76,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
     root.replaceChildren();
     const toolbar = el('div', 'app-management-toolbar');
     const create = button('Crear aplicación', () => connectedAction('Crear una aplicación', newApp)); create.className = 'button primary'; create.disabled = saving;
-    toolbar.append(el('p', 'muted', live ? 'Administración conectada. Los cambios conservan las cuentas y el progreso.' : connectionMessage(connectionIssue)), create);
+    toolbar.append(el('p', 'muted', live ? 'Edición conectada. Las cuentas y los accesos se gestionan en el dashboard online.' : connectionMessage(connectionIssue)), create);
     if (!live) toolbar.append(button('Conectar administración', () => connect('Gestionar tus aplicaciones', async () => {})));
     root.append(toolbar);
     const grid = el('div', 'managed-app-grid');
@@ -84,18 +84,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       const card = el('article', 'card managed-app'); card.dataset.catalogApp = app.id;
       const top = el('div', 'managed-app-heading'), monogram = el('span', 'managed-app-monogram', app.id === 'gadeos' ? 'G' : app.name.slice(0, 1));
       top.append(monogram, el('h2', '', app.name)); card.append(top);
-      const state = el('div', 'app-state-switch'); state.setAttribute('role', 'group'); state.setAttribute('aria-label', 'Acceso de ' + app.name);
-      for (const [value, title] of Object.entries(labels)) {
-        const toggle = button(title, () => connectedAction('Cambiar el acceso de ' + app.name + ' a ' + title, async () => {
-          const current = catalog.apps.find(item => item.id === app.id);
-          if (saving || current?.state === value) return;
-          await save('app-state', { id: app.id, state: value, revision: catalog.revision }); feedback('Acceso actualizado en el servidor.');
-        }));
-        toggle.disabled = saving; toggle.setAttribute('aria-pressed', String(live && app.state === value));
-        if (!live) toggle.title = 'Conectar administración y cambiar a ' + title;
-        state.append(toggle);
-      }
-      card.append(state, el('p', 'managed-app-state', live ? ({ publica: 'Visible con sus accesos habituales.', privada: 'Acceso por invitación.', pausada: 'Temporalmente cerrada. Sus datos se conservan.' })[app.state] : 'Pulsa una opción para conectar y gestionar esta app.'));
+      card.append(el('p', 'managed-app-state', (live ? labels[app.state] : 'Estado del servidor sin consultar') + ' · Usuarios y accesos en el dashboard online.'));
       const actions = el('div', 'managed-app-sections');
       for (const [area, title] of (app.personal ? [['app', 'App']] : areas)) actions.append(button(title + ' →', () => {
         window.dispatchEvent(new CustomEvent('terrace-chat-scope', { detail: { app: app.id, area, name: app.name } })); location.hash = 'chat';
@@ -103,8 +92,10 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       card.append(actions);
       const footer = el('div', 'managed-app-footer');
       if (app.path) { const open = el('a', 'text-link', 'Abrir app ↗'); open.href = 'https://educame.tech' + app.path; open.target = '_blank'; open.rel = 'noopener noreferrer'; footer.append(open); }
-      if (app.id === 'gadeos') footer.append(button('Tributos y recorrido', () => connectedAction('Gestionar tributos y recorrido', () => manageApp(app))));
-      else if (app.template === 'workspace') footer.append(button('Gestionar cuentas', () => connectedAction('Gestionar las cuentas de ' + app.name, () => manageApp(app))));
+      if (app.id === 'gadeos') footer.append(button('Editar contenido', () => connectedAction('Editar GADEOS', () => manageApp(app))));
+      const admin = el('a', 'text-link', 'Gestionar usuarios ↗');
+      const target = ['arena', 'workspace'].includes(app.template) ? 'app/' + app.id : ({ ingles: 'cambridge', facturas: 'ocr' })[app.id] || app.id;
+      admin.href = 'https://educame.tech/admin-dashboard/#' + target; admin.target = '_blank'; admin.rel = 'noopener noreferrer'; footer.append(admin);
       card.append(footer); grid.append(card);
     }
     root.append(grid);
@@ -128,21 +119,23 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
     let custom = false; id.addEventListener('input', () => { custom = true; }); name.addEventListener('input', () => { if (!custom) id.value = name.value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 49); });
     form.append(el('p', 'muted', 'Se crea con acceso privado, cuentas propias y un espacio personal que se guarda. Después puedes pedir al agente que la adapte desde su sección App.'));
     const submit = el('button', 'button primary', 'Crear aplicación privada'); submit.type = 'submit'; form.append(submit);
-    form.addEventListener('submit', async event => { event.preventDefault(); if (saving) return; submit.disabled = true; try { await save('create-app', { name: name.value, id: id.value, state: 'privada', revision: catalog.revision }); dialog.close(); feedback('Aplicación creada. Ya puedes gestionar sus cuentas y pedir cambios en App.'); } catch {} finally { submit.disabled = false; } });
+    form.addEventListener('submit', async event => { event.preventDefault(); if (saving) return; submit.disabled = true; try { await save('create-app', { name: name.value, id: id.value, state: 'privada', revision: catalog.revision }); dialog.close(); feedback('Aplicación creada. Pide cambios en App y gestiona sus usuarios en el dashboard online.'); } catch {} finally { submit.disabled = false; } });
     body.append(form);
   }
   async function manageApp(app) {
     heading(app.name); body.append(el('p', 'muted', 'Cargando…'));
     try {
-      const tabs = el('div', 'actions'); tabs.append(button(app.id === 'gadeos' ? 'Tributos' : 'Cuentas', () => accounts(app)));
+      const tabs = el('div', 'actions');
       if (app.id === 'gadeos') tabs.append(button('Editar recorrido y cartas', campaign), button('Imágenes', materials));
-      body.replaceChildren(tabs); const content = el('div'); content.id = 'managed-app-content'; body.append(content); await accounts(app);
+      body.replaceChildren(tabs); const content = el('div'); content.id = 'managed-app-content'; body.append(content); await campaign();
     } catch (error) { feedback(error.message, true); }
   }
   async function materials() {
     const host = document.getElementById('managed-app-content'); host.replaceChildren(el('p', 'muted', 'Consultando materiales privados…'));
     try {
       const data = await api('/api/operacion/admin/app-materials'); host.replaceChildren(el('h3', '', 'Imágenes de GADEOS'));
+      const config = await api('/api/operacion/admin/app-campaign');
+      mediaEditor(host, config);
       if (!data.available) { host.append(el('p', 'muted', 'No hay un paquete preparado en este equipo. Se conservan el recorrido y las cartas actuales.')); return; }
       host.append(el('p', 'muted', data.title + ' · Un cartel, ' + (data.envelope ? 'el diseño de los sobres y ' : '') + data.pages + ' páginas originales. Se incorporan al espacio privado de GADEOS.'));
       const apply = button(data.applied ? 'Volver a comprobar los materiales' : 'Aplicar imágenes', async () => {
@@ -153,23 +146,35 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       if (data.applied) host.append(el('p', 'form-message', 'Ya están aplicados. Entra en GADEOS para ver el planning, el recorrido y los sobres.'));
     } catch (error) { host.replaceChildren(el('p', 'form-message', error.message)); }
   }
-  async function accounts(app) {
-    const host = document.getElementById('managed-app-content'); host.replaceChildren(el('p', 'muted', 'Cargando cuentas…'));
-    try {
-      const data = await api('/api/operacion/admin/app-accounts?app=' + app.id);
-      host.replaceChildren(); const form = el('form', 'managed-app-form'); form.append(el('h3', '', app.id === 'gadeos' ? 'Nuevo tributo' : 'Nueva cuenta'));
-      const name = field(form, 'Nombre', 'name'), password = field(form, 'Contraseña inicial', 'password'); password.type = 'password'; password.autocomplete = 'new-password'; password.minLength = 8; password.maxLength = 72; name.required = password.required = true; name.maxLength = 80;
-      const submit = el('button', 'button primary', app.id === 'gadeos' ? 'Crear tributo' : 'Crear cuenta'); submit.type = 'submit'; form.append(submit);
-      form.addEventListener('submit', async event => { event.preventDefault(); submit.disabled = true; try { await api('/api/operacion/admin/app-account-create', 'POST', { app: app.id, name: name.value, password: password.value }); password.value = ''; await accounts(app); feedback('Cuenta creada. Ya puede entrar con su nombre y contraseña.'); } catch (error) { feedback(error.message, true); } finally { submit.disabled = false; } });
-      host.append(form);
-      for (const account of data.accounts) {
-        const details = el('details', 'managed-account'); details.append(el('summary', '', account.name + ' · ' + (account.active ? 'Activa' : 'Desactivada') + (app.id === 'gadeos' ? ' · ' + account.completed + '/8 estaciones' : '')));
-        const edit = el('form', 'managed-app-form'), name = field(edit, 'Nombre de la cuenta', 'name', account.name), password = field(edit, 'Nueva contraseña (opcional)', 'password'); password.type = 'password'; password.autocomplete = 'new-password'; password.minLength = 8; password.maxLength = 72;
-        const label = el('label', 'check-label', 'Cuenta activa'), active = el('input'); active.type = 'checkbox'; active.checked = account.active; label.prepend(active); edit.append(label);
-        const saveButton = el('button', 'button secondary', 'Guardar cuenta'); saveButton.type = 'submit'; edit.append(saveButton); details.append(edit);
-        edit.addEventListener('submit', async event => { event.preventDefault(); saveButton.disabled = true; try { await api('/api/operacion/admin/app-account-update', 'POST', { app: app.id, id: account.id, revision: account.revision, name: name.value, active: active.checked, ...(password.value ? { password: password.value } : {}) }); password.value = ''; await accounts(app); feedback('Cuenta actualizada. Su progreso se conserva.'); } catch (error) { feedback(error.message, true); } finally { saveButton.disabled = false; } }); host.append(details);
-      }
-    } catch (error) { host.replaceChildren(el('p', 'form-message', error.message)); }
+  function mediaEditor(host, config) {
+    const form = el('form', 'managed-app-form'), media = structuredClone(config.media || { poster: null, envelope: null, guide: [], source: '' });
+    const submit = el('button', 'button primary', 'Guardar imágenes'); submit.type = 'submit';
+    let uploads = 0, changed = false;
+    form.append(el('p', 'muted', 'Elige el cartel de Inicio, el paisaje de Recorrido y el diseño de los sobres. Las imágenes de cada carta se editan en su etapa.'));
+    for (const [key, title, original] of [['poster', 'Cartel de Inicio', media.poster], ['cover', 'Imagen de Recorrido', media.guide[0]?.image], ['envelope', 'Diseño del sobre', media.envelope]]) {
+      const label = el('label', '', title), image = el('input'); image.type = 'file'; image.accept = 'image/png,image/jpeg,image/webp'; label.append(image); form.append(label);
+      const preview = el('img', 'campaign-card-preview'); preview.alt = title; preview.hidden = true; form.append(preview);
+      if (original) api('/api/operacion/admin/app-image?name=' + encodeURIComponent(original.split('/').at(-1))).then(data => { if (preview.isConnected && !image.files.length) { preview.src = data.data; preview.hidden = false; } }).catch(() => {});
+      image.addEventListener('change', async () => {
+        if (!image.files[0]) return; uploads++; image.disabled = submit.disabled = true;
+        try {
+          const data = await compressedImage(image.files[0]), uploaded = await api('/api/operacion/admin/app-image', 'POST', { data });
+          if (key === 'cover') media.guide[0] = { ...(media.guide[0] || { title: 'Portada de la colección', text: '' }), image: uploaded.url };
+          else media[key] = uploaded.url;
+          media.source = ''; changed = true; preview.src = data; preview.hidden = false; feedback('Imagen preparada. Pulsa Guardar imágenes para aplicarla.');
+        } catch (error) { feedback(error.message, true); }
+        finally { uploads--; image.disabled = false; submit.disabled = uploads > 0; }
+      });
+    }
+    form.append(submit); host.append(form);
+    form.addEventListener('submit', async event => {
+      event.preventDefault(); if (uploads || submit.disabled) return;
+      if (!changed) { feedback('Elige una imagen para cambiarla.'); return; }
+      submit.disabled = true;
+      try { const saved = await api('/api/operacion/admin/app-campaign', 'POST', { ...config, media }); config.revision = saved.revision; config.media = saved.media; changed = false; feedback('Imágenes guardadas. El progreso se conserva.'); }
+      catch (error) { feedback(error.message, true); }
+      finally { submit.disabled = false; }
+    });
   }
   async function campaign() {
     const host = document.getElementById('managed-app-content'); host.replaceChildren(el('p', 'muted', 'Cargando recorrido…'));
@@ -177,6 +182,9 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       const config = await api('/api/operacion/admin/app-campaign'); host.replaceChildren();
       const form = el('form', 'managed-app-form');
       const title = field(form, 'Título del recorrido', 'title', config.title), intro = field(form, 'Introducción', 'intro', config.intro, true), boss = field(form, 'Nombre del rival final', 'boss', config.boss), ending = field(form, 'Mensaje de la victoria', 'ending', config.ending, true);
+      const schedule = config.planning || { day: 'Viernes', place: 'Chinchón', start: '16:00', final: '22:00' };
+      const day = field(form, 'Día del viaje', 'day', schedule.day), place = field(form, 'Lugar del viaje', 'place', schedule.place), start = field(form, 'Hora de inicio', 'start', schedule.start), final = field(form, 'Hora de la batalla', 'final', schedule.final);
+      day.required = place.required = start.required = final.required = true; day.maxLength = place.maxLength = 80; start.type = final.type = 'time';
       form.append(el('p', 'muted', 'Ocho preguntas, una respuesta correcta por etapa. Las soluciones solo las ve administración. Cambiar una pregunta o imagen conserva el progreso de los tributos.'));
       const entries = [];
       for (const [i, station] of config.stations.entries()) {
@@ -195,7 +203,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
         details.append(fields); form.append(details);
       }
       const submit = el('button', 'button primary', 'Guardar recorrido y cartas'); submit.type = 'submit'; form.append(submit);
-      form.addEventListener('submit', async event => { event.preventDefault(); submit.disabled = true; try { const updated = await api('/api/operacion/admin/app-campaign', 'POST', { revision: config.revision, media: config.media, title: title.value, intro: intro.value, boss: boss.value, ending: ending.value, stations: entries.map(read => read()) }); config.revision = updated.revision; feedback('Recorrido guardado. Se conservan las cuentas y las estaciones completadas.'); } catch (error) { feedback(error.message, true); } finally { submit.disabled = false; } });
+      form.addEventListener('submit', async event => { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; try { const updated = await api('/api/operacion/admin/app-campaign', 'POST', { revision: config.revision, media: config.media, planning: { day: day.value, place: place.value, start: start.value, final: final.value }, title: title.value, intro: intro.value, boss: boss.value, ending: ending.value, stations: entries.map(read => read()) }); config.revision = updated.revision; feedback('Recorrido guardado. Se conservan las cuentas y las estaciones completadas.'); } catch (error) { feedback(error.message, true); } finally { submit.disabled = false; } });
       host.append(form);
     } catch (error) { host.replaceChildren(el('p', 'form-message', error.message)); }
   }

@@ -161,6 +161,27 @@ def test_each_station_requires_one_question_and_one_answer(client):
         assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=config).status_code==422
 
 
+def test_planning_and_question_edits_preserve_progress_and_older_editors(client):
+    web,factory=client;headers=admin(web,factory);tribute(web,headers)
+    config=gadeos.default_campaign()
+    config['planning']={'day':'Sábado','place':'Chinchón','start':'15:30','final':'21:45'}
+    config['stations'][1].update(prompt='¿Qué palabra habéis encontrado?',solution='RECUERDO')
+    saved=web.put('/admin/apps/gadeos/campaign',headers=headers,json=config)
+    assert saved.status_code==200
+    first=web.post('/api/private-apps/gadeos/stations/answer',json={'revision':0,'request_id':str(uuid4()),'campaign_revision':1,'station':1,'answer':'ALIANZA'})
+    assert first.status_code==200 and first.json()['completed']==1
+    assert first.json()['campaign']['stations'][1]['prompt']=='¿Qué palabra habéis encontrado?'
+    assert first.json()['campaign']['planning']==config['planning']
+    old=saved.json();old.pop('planning');old['title']='Título cambiado'
+    kept=web.put('/admin/apps/gadeos/campaign',headers=headers,json=old)
+    assert kept.status_code==200 and kept.json()['planning']==config['planning']
+    invalid=kept.json();invalid['planning']['start']='28:00'
+    assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=invalid).status_code==422
+    current=web.get('/api/private-apps/gadeos/state').json()
+    assert current['completed']==1 and current['cards'][0]['owned']
+    assert current['campaign']['planning']['start']=='15:30'
+
+
 def test_workspace_privacy_notes_and_stale_account_edits(client):
     web, factory = client
     headers = admin(web, factory)
