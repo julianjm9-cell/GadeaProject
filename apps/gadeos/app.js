@@ -101,6 +101,7 @@ function home(host) {
   overview.append(el('p', 'greeting', 'TU TRIBUTO · ' + state.account.name));
   const hero = el('section', 'home-hero');
   const image = el('img', 'event-poster'); image.src = art('alliance-hero'); image.alt = ''; image.fetchPriority = 'high'; hero.append(image);
+  const companions = el('img', 'hero-companions'); companions.src = apiRoot + '/companions.png'; companions.alt = ''; companions.setAttribute('aria-hidden', 'true'); companions.width = 480; companions.height = 728; hero.append(companions);
   const copy = el('div', 'poster-copy'); copy.append(el('p', 'eyebrow', schedule.day + ' · ' + schedule.place), el('h1', '', state.campaign.title), el('p', '', state.campaign.intro)); hero.append(copy); overview.append(hero);
   const next = el('a', 'primary next-step', state.completed >= total() ? 'Ir a la batalla final →' : state.completed ? 'Continuar: prueba ' + (state.completed + 1) + ' →' : 'Empezar el recorrido →'); next.href = state.completed >= total() ? '#batalla' : '#recorrido'; overview.append(next);
   const planning = el('section', 'planning'); planning.append(el('h2', '', 'Vuestro planning'));

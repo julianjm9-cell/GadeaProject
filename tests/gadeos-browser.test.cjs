@@ -30,6 +30,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   for(const entry of manifest.guide)config.media.guide.push({title:entry.title,image:await upload(entry.file),text:entry.text||''});
   assert.equal((await page.request.put(base+'/admin/apps/gadeos/campaign',{headers,data:config})).status(),200);
   await page.context().clearCookies();await page.goto(base+'/juegos-del-hambre');await page.getByRole('heading',{name:'JUEGOS DEL HAMBRE',exact:true}).waitFor();
+  assert.equal(await page.locator('.hero-companions').count(),0);assert.equal((await page.request.get(base+'/api/arena-hambre/companions.png')).status(),401);
   await page.waitForFunction(()=>document.querySelector('.login-scene')?.naturalWidth>0);
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-login-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
   assert.equal((await page.request.get(base+config.media.poster)).status(),401);
@@ -37,6 +38,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   await page.getByLabel('Nombre de tributo').fill('Alma');await page.getByLabel('Contraseña',{exact:true}).fill('ensayo-seguro-123');await page.getByRole('button',{name:/Entrar en la arena/}).click();
   await page.getByText('TU TRIBUTO · Alma',{exact:true}).waitFor();
   await page.waitForFunction(()=>document.querySelector('.event-poster')?.naturalWidth>0);
+  await page.waitForFunction(()=>document.querySelector('.hero-companions')?.naturalWidth>0);
   assert.equal(await page.locator('.bottom-nav a').count(),4);assert.doesNotMatch(await page.locator('body').innerText(),/GADEOS/);assert.ok(page.url().includes('/juegos-del-hambre'));await page.waitForFunction(()=>document.querySelector('.brand-title')?.naturalWidth>0);
   await page.getByRole('heading',{name:'Vuestro planning',exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'Guía',exact:true}).count(),0);

@@ -30,6 +30,7 @@ def test_neutral_entry_assets_and_old_links_keep_the_secret_out_of_visible_route
         assert image.status_code == 200 and image.content[:4] == b'RIFF'
     assert web.get('/aventura-hambre-assets/art/unknown.webp').status_code == 404
     assert web.get(API + '/state').status_code == 401
+    assert web.get(API + '/companions.png').status_code == 401
     assert PATH not in web.get('/sitemap.xml').text
 
 
@@ -49,6 +50,8 @@ def test_existing_session_reveals_collection_only_after_its_trial_and_keeps_prog
     assert web.put('/admin/apps/gadeos/campaign', headers=headers, json=config).status_code == 200
     state = web.get(API + '/state').json()
     assert state['account']['id'] == account['id'] and state['completed'] == 0
+    companions = web.get(API + '/companions.png')
+    assert companions.status_code == 200 and companions.headers['content-type'].startswith('image/png')
     assert not state['secret_discovered'] and 'gadeos' not in json.dumps(state).lower()
     neutral_image = API + '/images/' + url.rsplit('/', 1)[-1]
     assert web.get(neutral_image).status_code == 403

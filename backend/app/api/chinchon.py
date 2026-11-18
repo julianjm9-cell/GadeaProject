@@ -3,7 +3,7 @@ import copy
 import re
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.api import private_apps
@@ -61,6 +61,15 @@ def asset(filename: str):
     if filename.startswith("art/"):
         return private_apps.gadeos_art(filename.removeprefix("art/"))
     return private_apps.app_asset("gadeos", filename)
+
+
+@router.get(gadeos.PUBLIC_API + "/companions.png")
+def companions(account=Depends(member)):
+    for root in (private_apps.PROJECT_ROOT / "apps/gadeos/assets", private_apps.STATIC / "gadeos/assets"):
+        source = root / "arena-companions-v1.png"
+        if source.is_file():
+            return FileResponse(source, media_type="image/png", headers={"Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow"})
+    raise HTTPException(404, "Ilustración no encontrada.")
 
 
 @router.post("/api/arena-chinchon/login", include_in_schema=False)
