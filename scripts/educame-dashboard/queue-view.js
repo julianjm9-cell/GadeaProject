@@ -26,7 +26,7 @@ export function queueEntries(state, messages = []) {
       else { status = 'attention'; detail = delivery?.error || 'No se ha podido completar el encargo. Su copia sigue guardada.'; }
     } else if (job?.status === 'en curso' || (job?.status === 'completado' && batch.state === 'running')) { status = 'running'; detail = 'El agente está implementando y comprobando el encargo.'; }
     entries.push({ id: task.id, title: task.encargo, app: task.app, agent: task.agentName || task.agente,
-      status, detail, at: batch.queuedAt || batch.startedAt, batch, delivery, source,
+      status, detail, at: batch.queuedAt || batch.startedAt, batch, delivery, source, attachmentPreviews: task.attachmentPreviews,
       publicationRetry: attempt?.state === 'failed' });
   }
   for (const message of messages) {
@@ -66,6 +66,18 @@ export function renderQueue({ state, messages, host, element, button, respond, r
     else if (/^Falta la entrega de /.test(detailText || '')) detailText = 'Depende de otro encargo que todavía necesita una corrección.';
     else if (/La revisión conserva puntos pendientes/.test(detailText || '')) detailText = 'Quedan ajustes pendientes. Pide al agente que los resuelva desde esta tarjeta.';
     card.append(heading, element('p', 'order-detail', detailText));
+    const references = row.attachmentPreviews || row.source?.attachmentPreviews || [];
+    if (references.length) {
+      const images = element('div', 'order-images');
+      images.setAttribute('aria-label', 'Referencias del encargo');
+      for (const item of references) {
+        if (!/^[a-f0-9]{64}$/.test(item.id) || item.url !== '/api/chat/imagenes/' + item.id) continue;
+        const link = element('a'); link.href = item.url; link.target = '_blank'; link.rel = 'noopener';
+        link.setAttribute('aria-label', 'Ampliar ' + item.name);
+        const image = element('img'); image.src = item.url; image.alt = item.name; image.loading = 'lazy'; link.append(image); images.append(link);
+      }
+      card.append(images);
+    }
     const actions = element('div', 'actions');
     if (row.delivery?.mode === 'real') actions.append(button('Ver resultado', () => openReport(row.delivery)));
     if (row.source?.state === 'question' && !row.source.answeredBy) actions.append(button('Responder', () => respond(row.source)));

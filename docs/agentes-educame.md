@@ -26,6 +26,14 @@ En **Motor y modelo** puedes elegir Codex local, OpenAI API o Claude API. La API
 
 El programa local sigue funcionando con la ventana cerrada mientras permanezca encendido el proceso de LA TERRAZA. Al publicar cambios del propio panel, se carga la versión nueva al quedar libre la cola. Subir a GitHub y desplegar en Hostinger siguen siendo operaciones distintas: el despliegue está en Operación.
 
+### Imágenes de referencia
+
+Pulsa **Adjuntar imágenes**, pega una captura con Ctrl+V o arrastra archivos al formulario. Admite hasta cuatro PNG, JPG o WebP de 5 MB cada uno. Las miniaturas permiten ampliar y quitar referencias antes de enviar. Escribe junto a ellas lo que quieres hacer.
+
+Las referencias se conservan con el borrador de cada subchat, el mensaje en cola y sus aclaraciones. Llegan también al implementador y al revisor; **Pedir ajuste** recupera las del trabajo anterior y permite cambiarlas. Un reintento conserva los mismos identificadores y no duplica la subida ni el encargo.
+
+Los archivos permanecen en `.educame-agents/chat-images/`, con su índice en SQLite. No se añaden a GitHub ni a las exportaciones de memoria. Codex los recibe como imágenes locales; OpenAI y Claude reciben el contenido visual por su API. Las subidas y las miniaturas son locales y no requieren actualizar Hostinger. Conserva todo el directorio `.educame-agents/` en tus copias locales para recuperar conversaciones y referencias.
+
 ### Operación avanzada (opcional)
 
 1. En **GitHub**, conecta un token de acceso limitado al repositorio de Educame

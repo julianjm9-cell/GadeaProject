@@ -77,6 +77,8 @@
         <form id="chat-form">
           <div id="chat-reply-context" class="chat-reply-context" hidden></div>
           <label id="chat-text-label">¿Qué quieres hacer?<textarea name="text" rows="3" maxlength="4000" required placeholder="Por ejemplo: mejora las pistas del juego de fracciones en Profesor Particular."></textarea></label>
+          <div id="chat-attachments" class="chat-attachments" aria-label="Imágenes adjuntas" hidden></div>
+          <div class="chat-attachment-tools"><button class="button secondary" type="button" id="chat-attach-image" data-icon="image">Adjuntar imágenes</button><input id="chat-images-input" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden><span id="chat-attachment-status" class="inline-hint" role="status"></span></div>
           <div class="actions"><button class="button primary" type="submit" data-icon="plus" disabled>Añadir a la cola</button><span class="inline-hint" id="chat-status" role="status"></span></div>
           <p class="form-message" role="alert" hidden></p>
         </form>

@@ -1,4 +1,5 @@
 import { renderQueue } from './queue-view.js';
+import { setupChatAttachments } from './chat-attachments.js';
 const $ = id => document.getElementById(id);
 const preference = 'terrace-chat-model';
 const pendingKey = 'terrace-chat-pending';
@@ -20,6 +21,8 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
   let catalog = [];
   let modelStatus = 'Consultando modelos…';
   let sending = false;
+  let uploading = false;
+  let attachments;
   let loading;
   let timer;
   let publications;
@@ -50,16 +53,19 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
   } catch {}
 
   function switchScope(next) {
-    if (sending) { feedback('El mensaje se está guardando. Puedes cambiar de sección enseguida.'); return; }
+    if (sending || uploading) { feedback('El mensaje o sus imágenes se están guardando. Puedes cambiar de sección enseguida.'); return; }
     saveDraft(); scope = next || ''; replyTo = undefined; adjustment = undefined; input.value = ''; pending = undefined;
+    attachments.restore();
     try {
       localStorage.setItem('terrace-chat-scope', scope);
       const draft = JSON.parse(localStorage.getItem(scopedDraftKey()));
       if (draft) { input.value = draft.text || ''; replyTo = draft.replyTo; adjustment = draft.adjustment; }
+      attachments.restore(draft?.attachments || []);
       pending = JSON.parse(sessionStorage.getItem(scopedPendingKey()));
       if (pending) {
         if (!draft) {
           input.value = pending.text || '';
+          attachments.restore(pending.attachmentPreviews || []);
           if (pending.key) { adjustment = { key: pending.key, title: pending.title || 'Entrega guardada' }; replyTo = undefined; }
           else replyTo = pending.replyTo;
         }
@@ -89,9 +95,10 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
     strip.hidden = !scope;
     const [scopeApp, area] = scope.split('/');
     $('chat-context-label').textContent = (scopeApps.find(app => app.id === scopeApp)?.name || scopeApp || '') + ' · ' + ({ app: 'App', landing: 'Landing', redes: 'Redes sociales' })[area];
-    $('chat-general').disabled = sending;
+    $('chat-general').disabled = sending || uploading;
+    $('chat-attach-image').disabled = sending;
 
-    submit.disabled = !snapshot || (!adjustment && !model.value) || sending;
+    submit.disabled = !snapshot || (!adjustment && !model.value) || sending || uploading;
     submit.textContent = adjustment ? 'Enviar ajuste' : 'Añadir a la cola';
     $('chat-status').textContent = sending ? 'Enviando…' : queued() ?
       queued() + ' en espera. Se enviarán automáticamente cuando termine el trabajo actual.' :
@@ -119,14 +126,17 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
       }));
     }
   }
-  function saveDraft() { try { localStorage.setItem(scopedDraftKey(), JSON.stringify({ text: input.value, replyTo, adjustment })); } catch {} }
+  function saveDraft() { try { localStorage.setItem(scopedDraftKey(), JSON.stringify({ text: input.value, replyTo, adjustment, attachments: attachments?.items() || [] })); } catch {} }
+  attachments = setupChatAttachments({ api, form, changed: saveDraft, busy: value => { uploading = value; controls(); },
+    canAdd: () => !sending, error: message => formMessage(form, message) });
+  attachments.restore(restoredDraft?.attachments || pending?.attachmentPreviews || []);
   input.addEventListener('input', saveDraft);
   window.addEventListener('terrace-compose', event => {
     const detail = event.detail || {};
     if (!input.value.trim()) input.value = detail.text || (detail.app ? 'En ' + (getState()?.projectProfiles?.[detail.app]?.name || detail.app) + ': ' : '');
     saveDraft(); input.focus();
   });
-  function respond(item) { if ((item.scope || '') !== scope) switchScope(item.scope || ''); adjustment = undefined; replyTo = item.id; mode.value = 'auto'; saveDraft(); controls(); form.scrollIntoView({ block: 'center' }); input.focus(); }
+  function respond(item) { if (sending || uploading) return; if ((item.scope || '') !== scope) switchScope(item.scope || ''); adjustment = undefined; replyTo = item.id; mode.value = 'auto'; attachments.restore(item.attachmentPreviews || []); saveDraft(); controls(); form.scrollIntoView({ block: 'center' }); input.focus(); }
 
   function render(data) {
     clearTimeout(timer);
@@ -137,10 +147,10 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
     $('chat-restart').hidden = !data.needsRestart;
     if (changed) {
       renderQueue({ state: getState(), messages: data.messages, host: log, element, button, respond, scope, openReport: openDelivery,
-        adjust: delivery => { replyTo = undefined; adjustment = { key: delivery.key, title: delivery.encargo }; saveDraft(); controls(); form.scrollIntoView({ block: 'center' }); input.focus(); },
+        adjust: delivery => { if (sending || uploading) return; replyTo = undefined; adjustment = { key: delivery.key, title: delivery.encargo }; if (delivery.attachmentPreviews) attachments.restore(delivery.attachmentPreviews); else attachments.restoreIds(delivery.attachments || []); saveDraft(); controls(); form.scrollIntoView({ block: 'center' }); input.focus(); },
         retry: id => action('/api/encargos/reintentar-subida', { id }),
         resume: id => action('/api/encargos/retomar', { id }),
-        retryMessage: item => action('/api/chat', { id: item.id, provider: item.provider || 'codex', mode: item.mode, model: item.model, text: item.text, ...(item.scope ? { scope: item.scope } : {}), ...(item.replyTo ? { replyTo: item.replyTo } : {}) }),
+        retryMessage: item => action('/api/chat', { id: item.id, provider: item.provider || 'codex', mode: item.mode, model: item.model, text: item.text, ...(item.attachments?.length ? { attachments: item.attachments } : {}), ...(item.scope ? { scope: item.scope } : {}), ...(item.replyTo ? { replyTo: item.replyTo } : {}) }),
       });
     }
     controls();
@@ -195,18 +205,19 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
     event.preventDefault();
     if (submit.disabled) return;
     const text = input.value.trim();
+    const imageIds = attachments.ids();
     if (!text) return formMessage(form, 'Escribe un mensaje para Codex.');
     if (adjustment) {
       if (text.length > 2000) return formMessage(form, 'El ajuste admite hasta 2.000 caracteres. Acorta el texto; el borrador sigue guardado.');
-      if (!pending || pending.key !== adjustment.key || pending.text !== text) pending = { id: crypto.randomUUID(), key: adjustment.key, title: adjustment.title, text };
+      if (!pending || pending.key !== adjustment.key || pending.text !== text || JSON.stringify(pending.attachments || []) !== JSON.stringify(imageIds)) pending = { id: crypto.randomUUID(), key: adjustment.key, title: adjustment.title, text, attachments: imageIds, attachmentPreviews: attachments.items() };
       try { sessionStorage.setItem(scopedPendingKey(), JSON.stringify(pending)); } catch {}
       sending = true; controls(); formMessage(form);
       try {
         const submitted = pending;
-        await api('/api/encargos/ajustes', 'POST', { id: submitted.id, key: submitted.key, note: text });
+        await api('/api/encargos/ajustes', 'POST', { id: submitted.id, key: submitted.key, note: text, attachments: submitted.attachments });
         pending = null;
         if (adjustment?.key === submitted.key) adjustment = undefined;
-        if (input.value.trim() === text) input.value = '';
+        if (input.value.trim() === text) { input.value = ''; attachments.restore(); }
         saveDraft();
         try { sessionStorage.removeItem(scopedPendingKey()); } catch {}
         await load();
@@ -217,8 +228,9 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
     mode.value = pending?.text === text ? pending.mode || 'auto' :
       snapshot?.messages.find(item => item.id === replyTo)?.mode === 'ask' ? 'ask' : 'auto';
     const request = { ...(scope ? { scope } : {}), text, provider: provider.value, model: model.value, mode: mode.value, ...(replyTo ? { replyTo } : {}) };
-    if (!pending || ['text', 'provider', 'model', 'mode', 'replyTo', 'scope'].some(key => request[key] !== (key === 'provider' ? pending[key] || 'codex' : pending[key]))) {
-      pending = { id: crypto.randomUUID(), ...request };
+    request.attachments = imageIds;
+    if (!pending || JSON.stringify(pending.attachments || []) !== JSON.stringify(imageIds) || ['text', 'provider', 'model', 'mode', 'replyTo', 'scope'].some(key => request[key] !== (key === 'provider' ? pending[key] || 'codex' : pending[key]))) {
+      pending = { id: crypto.randomUUID(), ...request, attachmentPreviews: attachments.items() };
     }
     try { sessionStorage.setItem(scopedPendingKey(), JSON.stringify(pending)); } catch {}
     sending = true;
@@ -227,7 +239,7 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
     try {
       if (loading) await loading;
       render(await api('/api/chat', 'POST', pending));
-      if (input.value.trim() === text && model.value === request.model && mode.value === request.mode) { input.value = ''; replyTo = undefined; saveDraft(); }
+      if (input.value.trim() === text && model.value === request.model && mode.value === request.mode) { input.value = ''; replyTo = undefined; attachments.restore(); saveDraft(); }
       pending = null;
       mode.value = 'auto';
       try { sessionStorage.removeItem(scopedPendingKey()); } catch {}

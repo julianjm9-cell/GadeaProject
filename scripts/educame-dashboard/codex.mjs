@@ -7,6 +7,7 @@ import { draftRequest, parseDraft, parseResearch } from '../educame-agents.mjs';
 import { researchRole } from './research.mjs';
 import { createCodexUsage, readCodexAppServer } from './codex-usage.mjs';
 import { coordinationPrompt, coordinationSchema } from './coordinator.mjs';
+import { imageInputs, imageReferenceInstruction } from './chat-images.mjs';
 
 const workspace = fileURLToPath(new URL('../../', import.meta.url));
 const stdoutLimit = 1_000_000;
@@ -56,7 +57,7 @@ function run(executable, args, input, timeout, cwd = workspace) {
   });
 }
 
-export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE || (process.platform === 'win32' ? 'codex.exe' : 'codex'), execute = run } = {}) {
+export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE || (process.platform === 'win32' ? 'codex.exe' : 'codex'), execute = run, images } = {}) {
   let checked;
   let expires = 0;
   let catalog;
@@ -93,7 +94,9 @@ export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE 
     return catalogPending;
   }
 
-  async function ask({ model, text, history, board, knowledge }) {
+  async function ask({ model, text, history, board, knowledge, attachments }) {
+    const references = await imageInputs(images, attachments);
+    const imageArgs = references.flatMap(image => ['--image', image.path]);
     const folder = await mkdtemp(join(tmpdir(), 'educame-chat-'));
     try {
       const input = board ? coordinationPrompt(board) + '\n\n' + JSON.stringify({ historial: history, mensaje: text, contexto_verificado: knowledge }) : 'Responde en español de forma clara. Eres el chat de LA TERRAZA, el panel local de Educame. ' +
@@ -108,7 +111,7 @@ export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE 
       await writeFile(join(folder, 'plan.json'), JSON.stringify(board ? coordinationSchema : chatSchema));
       const result = await execute(executable, ['-a', 'never', 'exec', '--ignore-user-config', '--sandbox', 'read-only',
         '--config', 'features.shell_tool=false', '--config', 'web_search="disabled"', ...windowsSandbox,
-        '--skip-git-repo-check', '--ephemeral', '--json', '--output-schema', join(folder, 'plan.json'), '--model', model, '-'], input, maxRuntime, folder);
+        '--skip-git-repo-check', '--ephemeral', '--json', '--output-schema', join(folder, 'plan.json'), '--model', model, ...imageArgs, '-'], input + (references.length ? '\n' + imageReferenceInstruction : ''), maxRuntime, folder);
       let answer, usage;
       for (const line of result.stdout.split(/\r?\n/)) {
         let event;
@@ -126,6 +129,7 @@ export function createCodex({ executable = process.env.EDUCAME_CODEX_EXECUTABLE 
   }
 
   async function generate(task, cwd = workspace, allowed) {
+    const references = await imageInputs(images, task.attachments);
     const implement = Boolean(allowed);
     const research = task.agente === researchRole;
     const testInstructions = process.platform === 'win32'
@@ -145,11 +149,12 @@ Una vez editados los archivos, ejecuta cada comando de prueba por separado para 
     'Puedes consultar código y documentación del producto para fundamentar la propuesta. Excluye datos privados, archivos .env, claves, copias de bases de datos y el almacén .educame-agents. Trabaja en modo de solo lectura. Entrega la propuesta en el esquema solicitado.'}
 
 Encargo y contexto proporcionados
-${JSON.stringify(input)}`;
+${JSON.stringify(input)}${references.length ? '\n' + imageReferenceInstruction : ''}`;
       const result = await execute(executable, ['-a', 'never', 'exec', '--ignore-user-config', '--sandbox', implement ? 'workspace-write' : 'read-only',
         '--config', 'shell_environment_policy.inherit="core"',
         ...windowsSandbox,
         ...(task.codexModel ? ['--model', task.codexModel] : []),
+        ...references.flatMap(image => ['--image', image.path]),
         ...(implement ? ['--config', 'sandbox_workspace_write.network_access=false', '--config', 'web_search="disabled"'] : []),
         ...(research ? ['--skip-git-repo-check', '--config', 'web_search="live"', '--config', 'features.shell_tool=false'] : []),
         '--ephemeral', '--json', '--output-schema', schemaFile, '-'], prompt, implement ? 720_000 : research ? 300_000 : maxRuntime, research ? folder : cwd);

@@ -21,7 +21,7 @@ export function publicBatch(batch) {
   if (!batch) return null;
   const { id, mode, engine, startedAt, finishedAt, state, tasks, jobs, error, agents, queuedAt, providerModel, automaticPublication } = batch;
   return { id, mode, engine, providerModel, startedAt, finishedAt, state, automaticPublication, running: state === 'running',
-    queuedAt, tasks: tasks.map(({ id, agente, encargo, app, despues, continuar }) => ({ id, agente, encargo, app, despues, continuar, agentName: (agents?.[agente] || defaultAgents[agente])?.name })), jobs, error };
+    queuedAt, tasks: tasks.map(({ id, agente, encargo, app, despues, continuar, attachments }) => ({ id, agente, encargo, app, despues, continuar, ...(attachments?.length ? { attachments } : {}), agentName: (agents?.[agente] || defaultAgents[agente])?.name })), jobs, error };
 }
 
 export function createRunner(store, directory, { model, readiness, generator, baseRevision, recoverImplementation, contextSnapshot, automaticPublication = false }) {

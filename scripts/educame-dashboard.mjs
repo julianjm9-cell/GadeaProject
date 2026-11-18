@@ -15,6 +15,7 @@ import { openPanelStore } from './educame-dashboard/store.mjs';
 import { createRunner, RunnerError } from './educame-dashboard/runner.mjs';
 import { canRevalidate, createImplementation, ImplementationError } from './educame-dashboard/implementation.mjs';
 import { createChat } from './educame-dashboard/chat.mjs';
+import { createChatImages, imageIds } from './educame-dashboard/chat-images.mjs';
 import { createPublication } from './educame-dashboard/publication.mjs';
 import { createAutomaticPublication } from './educame-dashboard/automatic-publication.mjs';
 import { createAppCatalog } from './educame-dashboard/app-catalog.mjs';
@@ -44,6 +45,7 @@ const assets = new Map([
   ['/terrace.css', ['terrace.css', 'text/css']],
   ['/terrace-hero.webp', ['terrace-hero.webp', 'image/webp']],
   ['/chat.js', ['chat.js', 'text/javascript']],
+  ['/chat-attachments.js', ['chat-attachments.js', 'text/javascript']],
   ['/queue-view.js', ['queue-view.js', 'text/javascript']],
   ['/app-catalog.js', ['app-catalog.js', 'text/javascript']],
   ['/agent-editor.js', ['agent-editor.js', 'text/javascript']],
@@ -130,7 +132,7 @@ function updateMemory(rules, input, source) {
   return [...rules.filter(item => item !== existing), rule];
 }
 
-async function bodyJson(request) {
+async function bodyJson(request, limit = 300_000) {
   if (!/^application\/json(?:;|$)/i.test(request.headers['content-type'] || '')) {
     throw new PanelError(415, 'Envía un documento JSON.');
   }
@@ -138,7 +140,7 @@ async function bodyJson(request) {
   let size = 0;
   for await (const chunk of request.iterator({ destroyOnReturn: false })) {
     size += chunk.length;
-    if (size > 300_000) {
+    if (size > limit) {
       request.resume();
       throw new PanelError(413, 'El documento es demasiado grande.');
     }
@@ -197,7 +199,7 @@ export async function createDashboard({
   model = process.env.EDUCAME_AGENTS_MODEL?.trim() || defaultModel,
   generate,
   fetchImpl = fetch,
-  codex = createCodex(),
+  codex,
   repositoryRoot = fileURLToPath(new URL('../', import.meta.url)),
   implementationOptions,
   ssh,
@@ -211,12 +213,14 @@ export async function createDashboard({
   const previews = createPreviews(repositoryRoot);
   const activeApiKey = () => connections.openaiKey() || apiKey;
   const store = openPanelStore(directory, { memory: [], revision: 0, tasks: [], links: initialLinks, reviews: {}, pushes: {} });
+  const images = createChatImages({ directory, store });
+  codex ||= createCodex({ images });
   const appCatalog = createAppCatalog(store);
   const github = githubOperations(changes, connections, store, fetchImpl);
   const hostinger = hostingerOperations(store, changes, github, ssh);
   const admin = adminOperations(fetchImpl, connections);
   const privateMaterials = createPrivateMaterials({ directory, store, admin });
-  const providers = createProviders({ codex, connections, apiKey, root: repositoryRoot, fetchImpl, store,
+  const providers = createProviders({ codex, connections, apiKey, root: repositoryRoot, fetchImpl, store, images,
     runChecks: (cwd, commands) => implementation.runChecks(cwd, commands) });
   const implementation = createImplementation(repositoryRoot, directory, providers, implementationOptions);
   const implementationPreviews = new Map();
@@ -246,16 +250,16 @@ export async function createDashboard({
       };
       if (batch.engine === 'codex') return codex.generate;
       if (batch.engine === 'claude' || batch.providerModel) return task => task.agente === researchRole && batch.engine === 'openai' ?
-        requestDraft(task, { apiKey: activeApiKey(), model: batch.providerModel || batch.model, fetchImpl }) : providers.get(batch.engine).generate(task);
+        requestDraft(task, { apiKey: activeApiKey(), model: batch.providerModel || batch.model, fetchImpl, images }) : providers.get(batch.engine).generate(task);
       const key = activeApiKey();
-      return generate || (task => requestDraft(task, { apiKey: key, model: batch.model, fetchImpl }));
+      return generate || (task => requestDraft(task, { apiKey: key, model: batch.model, fetchImpl, images }));
     },
   });
   let restarting = false;
   let terraceNeedsRestart = false;
   let deliveryWork;
   const implementationPath = id => join(runner.output('implementacion'), id + '.json');
-  const chat = createChat({ store, runner, codex, providers, implementation, instance: randomUUID(),
+  const chat = createChat({ store, runner, codex, providers, implementation, images, instance: randomUUID(),
     appCatalog: appCatalog.read,
     contextSnapshot: () => knowledge.snapshot(),
     readDelivery: id => readJson(implementationPath(id), null),
@@ -301,6 +305,7 @@ export async function createDashboard({
     const resolved = new Map(store.batches().flatMap(batch => Object.entries(batch.jobs || {}).map(([id, job]) => [id, job.externalCompletion]))
       .filter(([, value]) => /^[a-f0-9]{40}$/.test(value?.revision || '') && typeof value.summary === 'string'));
     return records.flat().map(row => row.mode === 'implementacion' && resolved.has(row.id) ? { ...row, externalCompletion: resolved.get(row.id) } : row)
+      .map(row => row.attachments?.length ? { ...row, attachmentPreviews: images.previews(row.attachments) } : row)
       .sort((left, right) => right.finishedAt.localeCompare(left.finishedAt));
   }
 
@@ -392,6 +397,17 @@ export async function createDashboard({
       if (restarting && request.method !== 'GET') throw new OperationError(409, 'LA TERRAZA se está reiniciando.');
       if (path === '/api/publicacion' && request.method === 'GET') return json(200, publication.status());
       if (path === '/api/apps/catalogo' && request.method === 'GET') return json(200, appCatalog.read());
+      if (path === '/api/chat/imagenes' && request.method === 'POST') {
+        if (request.headers.origin !== origin) throw new OperationError(403, 'Adjunta las imágenes desde LA TERRAZA.');
+        return json(201, await images.save(await bodyJson(request, 6_700_000)));
+      }
+      if (path === '/api/chat/imagenes' && request.method === 'GET') return json(200, images.describe(url.searchParams.get('ids')?.split(',').filter(Boolean) || []));
+      if (request.method === 'GET' && path.startsWith('/api/chat/imagenes/')) {
+        if (request.headers['sec-fetch-site'] === 'cross-site') throw new OperationError(403, 'Abre las imágenes desde LA TERRAZA.');
+        const [image] = await images.load([path.slice('/api/chat/imagenes/'.length)]);
+        response.writeHead(200, { 'Content-Type': image.type, 'Content-Length': image.size, 'Cross-Origin-Resource-Policy': 'same-origin' });
+        response.end(image.bytes); return;
+      }
       if (path === '/api/encargos/reintentar-subida' && request.method === 'POST') {
         if (request.headers.origin !== origin) throw new OperationError(403, 'Usa la cola del panel local.');
         if (!automatic) throw new OperationError(409, 'La cola automática no está activada en este servidor.');
@@ -399,11 +415,14 @@ export async function createDashboard({
       }
       if (path === '/api/encargos/ajustes' && request.method === 'POST') {
         if (request.headers.origin !== origin) throw new PanelError(403, 'Envía los ajustes desde el panel.');
-        const { key, note, id } = await bodyJson(request);
+        const { key, note, id, attachments } = await bodyJson(request);
         if (!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(id || '') ||
             typeof note !== 'string' || !note.trim() || note.length > 2000) throw new PanelError(400, 'Escribe qué quieres ajustar.');
         const source = await implementationDelivery(key);
+        const references = imageIds(attachments ?? source.attachments ?? []);
+        await images.load(references);
         const task = { id: 'ajuste-' + id, app: source.app, agente: source.agente, encargo: note.trim(), continuar: source.id,
+          ...(references.length ? { attachments: references } : {}),
           contexto: ('Ajusta esta entrega conservando el trabajo ya hecho.\nEncargo original\n' + source.encargo +
             '\nContexto original\n' + (source.contexto || '') + '\nResultado anterior\n' + (source.draft?.entrega || source.error || '')).slice(0, 7500) };
         const batch = await runner.start({ mode: 'implementacion', engine: source.provider || 'codex', providerModel: source.providerModel,
@@ -599,6 +618,7 @@ export async function createDashboard({
       if (request.method === 'GET' && path === '/api/panel') {
         const batch = runner.latest();
         const batches = runner.recent();
+        for (const item of batches) for (const task of item.tasks) if (task.attachments?.length) task.attachmentPreviews = images.previews(task.attachments);
         const history = await deliveries();
         const board = store.board();
         return json(200, { board, agentEditor: agentEditor(board.agentEdits), history: history.slice(0, 100), batch, batches, pendingBatches: runner.queued(),

@@ -1,11 +1,12 @@
 import { OperationError } from './operations.mjs';
 import { normalizeCoordination } from './coordinator.mjs';
+import { imageIds } from './chat-images.mjs';
 
 const key = 'terrace-chat-v1';
 const messageId = /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
 const busyReply = /Hay un lote en marcha|Espera a que termine la comprobación o publicación actual|Termina o retoma el trabajo pendiente|Retoma primero el lote interrumpido|Todavía hay un mensaje en curso/;
 
-export function createChat({ store, codex, providers, runner, implementation, readDelivery, assertIdle, instance, contextSnapshot, appCatalog }) {
+export function createChat({ store, codex, providers, runner, implementation, readDelivery, assertIdle, instance, contextSnapshot, appCatalog, images }) {
   let active;
   let applying = false;
   let pumping = false;
@@ -88,7 +89,7 @@ export function createChat({ store, codex, providers, runner, implementation, re
     await reconcile();
     void pump().catch(() => {});
     const messages = entries();
-    return { messages: messages.map(row => ({ ...row, retryable: row.state === 'error' && ((!row.batchId && row.mode === 'auto') || busyReply.test(row.reply || '')) })),
+    return { messages: messages.map(row => ({ ...row, ...(row.attachments?.length ? { attachmentPreviews: images?.previews(row.attachments) || [] } : {}), retryable: row.state === 'error' && ((!row.batchId && row.mode === 'auto') || busyReply.test(row.reply || '')) })),
       needsRestart: messages.some(item => item.restartInstance === instance) };
   }
 
@@ -108,6 +109,12 @@ export function createChat({ store, codex, providers, runner, implementation, re
     if (scope && mode === 'change') throw new OperationError(400, 'Usa el modo automático para cambios en esta aplicación.');
     if (scopedApp?.personal && scopeArea !== 'app') throw new OperationError(400, 'Esta app personal no tiene landing ni redes públicas.');
     const text = typeof body.text === 'string' ? body.text.trim() : '';
+    const source = replyTo && entries().find(row => row.id === replyTo);
+    const attachments = imageIds(body.attachments ?? source?.attachments ?? []);
+    if (attachments.length) {
+      if (!images) throw new OperationError(503, 'Reinicia LA TERRAZA para recibir imágenes.');
+      await images.load(attachments);
+    }
     if (typeof id !== 'string' || !messageId.test(id) || !['auto', 'ask', 'change'].includes(mode) || !['codex', 'openai', 'claude'].includes(provider) ||
         (replyTo !== undefined && (typeof replyTo !== 'string' || !messageId.test(replyTo))) ||
         typeof model !== 'string' || model.length > 100 || !text || text.length > 4000) {
@@ -115,7 +122,7 @@ export function createChat({ store, codex, providers, runner, implementation, re
     }
     const duplicate = entries().find(row => row.id === id);
     if (duplicate) {
-      if ((duplicate.scope || '') !== scope || duplicate.mode !== mode || duplicate.model !== model || duplicate.text !== text || duplicate.replyTo !== replyTo || (duplicate.provider || 'codex') !== provider) {
+      if ((duplicate.scope || '') !== scope || duplicate.mode !== mode || duplicate.model !== model || duplicate.text !== text || duplicate.replyTo !== replyTo || (duplicate.provider || 'codex') !== provider || JSON.stringify(duplicate.attachments || []) !== JSON.stringify(attachments)) {
         throw new OperationError(409, 'Ese identificador ya pertenece a otro mensaje.');
       }
       if (duplicate.state === 'error' && ((!duplicate.batchId && duplicate.mode === 'auto') || busyReply.test(duplicate.reply || ''))) {
@@ -132,7 +139,6 @@ export function createChat({ store, codex, providers, runner, implementation, re
     }
     await reconcile();
     const taskId = 'terraza-' + id;
-    const source = replyTo && entries().find(row => row.id === replyTo);
     const continuations = {};
     if (source?.taskIds) for (const task of source.plan.tasks) {
       const delivery = await readDelivery(task.id);
@@ -147,6 +153,7 @@ export function createChat({ store, codex, providers, runner, implementation, re
       const context = question ? [question.context, 'Petición original: ' + question.text, 'Aclaración: ' + question.reply].filter(Boolean).join('\n').slice(-7000) : '';
       write([...rows.map(row => row.id === replyTo ? { ...row, answeredBy: id } : row),
         { id, text, mode, model, provider, ...(scope ? { scope, scopeContext: `Aplicación: ${scopedApp.name} (${scopeApp}). Sección: ${scopeArea}. Ruta de la app: ${scopedApp.path || '/a/' + scopeApp}. ${scopedApp.personal ? 'Es una aplicación personal privada, sin landing ni campañas públicas. No publiques datos personales ni cartas privadas en el repositorio.' : ''} ${scopedApp.existing ? '' : 'Si la app no figura entre los destinos del coordinador, usa ecosistema y limita el cambio a apps/custom/' + scopeApp + '/ y a su integración explícita. No inventes un destino desconocido.'}` } : {}), ...(replyTo ? { replyTo, context, continuations } : {}), state: 'queued', taskId, at: new Date().toISOString() }]);
+      if (attachments.length) write(entries().map(row => row.id === id ? { ...row, attachments } : row));
       return rows;
     });
     if (!previous) return read();
@@ -187,7 +194,7 @@ export function createChat({ store, codex, providers, runner, implementation, re
           const context = await contextSnapshot?.();
           const knowledge = context ? { revision: context.ecosistema?.revision,
             apps: Object.entries(context).map(([app, info]) => ({ app, accepted: info.accepted.slice(0, 2).map(fact => ({ summary: fact.summary, commit: fact.commit })) })) } : undefined;
-          const result = await adapter.coordinate({ model, text: [row.scopeContext, row.context, text].filter(Boolean).join('\n\n'), history, board: store.board(), knowledge });
+          const result = await adapter.coordinate({ model, text: [row.scopeContext, row.context, text].filter(Boolean).join('\n\n'), history, board: store.board(), knowledge, attachments: row.attachments });
           plan = normalizeCoordination(result.plan, { ...row, context: [row.scopeContext, row.context].filter(Boolean).join('\n\n') }, store.board());
           // Persist the interpreted request BEFORE any implementation can start.
           update(id, { plan, tokens: result.tokens }, 'working');
@@ -200,13 +207,14 @@ export function createChat({ store, codex, providers, runner, implementation, re
           update(id, { batchId: batch.id, taskIds: plan.tasks.map(task => task.id), reply: plan.reply, waiting: batch.state === 'queued' }, 'working');
         }
       } else if (mode === 'ask') {
-        const result = await adapter.ask({ model, text: [row.scopeContext, row.context, text].filter(Boolean).join('\n\n'), history });
+        const result = await adapter.ask({ model, text: [row.scopeContext, row.context, text].filter(Boolean).join('\n\n'), history, attachments: row.attachments });
         update(id, { state: result.action === 'clarify' ? 'question' : 'answer', reply: result.answer, tokens: result.tokens }, 'working');
       } else {
         const context = history.map(item => 'Mensaje anterior\n' + item.message + '\nRespuesta\n' + item.answer).join('\n\n').slice(-7600);
         const batch = await runner.start({ mode: 'implementacion', engine: provider, codexModel: provider === 'codex' ? model : undefined,
           providerModel: provider === 'codex' ? undefined : model, qualityRequired: Boolean(providers), enqueue: true,
           tasks: [{ id: taskId, app: 'control', agente: 'codex', encargo: text.slice(0, 2000),
+            ...(row.attachments?.length ? { attachments: row.attachments } : {}),
             contexto: [text.length > 2000 && text.slice(2000), context.slice(-5500)].filter(Boolean).join('\n\n'), revisar: '' }] });
         update(id, { batchId: batch.id }, 'working');
       }

@@ -51,6 +51,7 @@ export function normalizeCoordination(plan, row, board) {
         (task.after !== null && (!Number.isInteger(task.after) || task.after < 0 || task.after >= index ||
           plan.tasks[task.after]?.app !== task.app))) throw new Error('Revisa la aplicación o la dependencia del encargo.');
     return { id: `${row.taskId}-${index + 1}`, app: task.app, agente: task.agent, encargo: task.request,
+      ...(row.attachments?.length ? { attachments: row.attachments } : {}),
       contexto: ['Petición completa del usuario:', row.text, row.context || ''].filter(Boolean).join('\n').slice(0, 8000),
       ...(task.after !== null ? { despues: `${row.taskId}-${task.after + 1}` } :
         row.continuations?.[task.app] ? { continuar: row.continuations[task.app] } : {}) };

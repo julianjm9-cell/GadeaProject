@@ -6,6 +6,7 @@ import { cleanRule, memoryTopics, projectContext, projectProfiles } from './educ
 import { readMemory } from './educame-dashboard/store.mjs';
 import { normalizeResearch, researchRole, researchSchema, validateSources } from './educame-dashboard/research.mjs';
 import { agentInstructions, defaultAgents } from './educame-dashboard/agent-profiles.mjs';
+import { imageIds, imageInputs, imageReferenceInstruction } from './educame-dashboard/chat-images.mjs';
 export const maxTasks = 6;
 export const concurrency = 2;
 const maxOutputTokens = 2000;
@@ -59,6 +60,7 @@ export function validateTasks(input, agents = defaultAgents) {
       throw new Error('Cada encargo necesita un id único con minúsculas, números o guiones, de hasta 64 caracteres.');
     }
     const { id, agente, encargo, contexto = '', revisar = '', app, fuentes, continuar, despues } = task;
+    const attachments = imageIds(task.attachments);
     if (typeof agente !== 'string' || !Object.hasOwn(agents, agente)) throw new Error(`${id}: el agente no existe.`);
     if (typeof encargo !== 'string' || !encargo.trim() || encargo.length > 2000 ||
         typeof contexto !== 'string' || contexto.length > 8000) {
@@ -72,9 +74,10 @@ export function validateTasks(input, agents = defaultAgents) {
     if (despues !== undefined && (typeof despues !== 'string' || !seen.has(despues) || seen.get(despues).app !== app || revisar || continuar)) {
       throw new Error(`${id}: la dependencia debe ser una tarea anterior de la misma app, sin otra continuación.`);
     }
-    if (Object.keys(task).some(key => !['id', 'agente', 'encargo', 'contexto', 'revisar', 'app', 'continuar', 'despues', ...(agente === researchRole ? ['fuentes'] : [])].includes(key)) ||
+    if (Object.keys(task).some(key => !['id', 'agente', 'encargo', 'contexto', 'revisar', 'app', 'continuar', 'despues', 'attachments', ...(agente === researchRole ? ['fuentes'] : [])].includes(key)) ||
         typeof revisar !== 'string') throw new Error(`${id}: hay campos que el piloto no reconoce.`);
     const normalized = { id, agente, encargo, contexto, revisar, ...(app ? { app } : {}), ...(continuar ? { continuar } : {}), ...(despues ? { despues } : {}),
+      ...(attachments.length ? { attachments } : {}),
       ...(agente === researchRole ? { fuentes: validateSources(fuentes) } : {}) };
     seen.set(id, normalized);
     return normalized;
@@ -115,14 +118,17 @@ export function parseResearch(text, task, evidence) {
   return { draft, research: normalizeResearch(investigacion, task.fuentes, evidence) };
 }
 
-export async function requestDraft(task, { apiKey, model, fetchImpl = fetch }) {
+export async function requestDraft(task, { apiKey, model, fetchImpl = fetch, images }) {
   const { instructions, input } = await draftRequest(task);
   const research = task.agente === researchRole;
+  const references = await imageInputs(images, task.attachments);
   const response = await fetchImpl('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model, instructions, input: JSON.stringify(input),
+      model, instructions: instructions + (references.length ? '\n' + imageReferenceInstruction : ''), input: references.length ? [{ role: 'user', content: [
+        { type: 'input_text', text: JSON.stringify(input) }, ...references.map(image => ({ type: 'input_image', image_url: `data:${image.type};base64,${image.bytes.toString('base64')}` })),
+      ] }] : JSON.stringify(input),
       max_output_tokens: research ? 4500 : maxOutputTokens, store: false, text: { format: research ? researchFormat : format },
       ...(research ? { tools: [{ type: 'web_search' }], max_tool_calls: 12 } : {}),
     }),
@@ -168,6 +174,7 @@ async function runTask(task, { directory, model, generate, guidance, memory, set
       id: task.id, agente: task.agente, agentName: agentProfile.name, encargo: task.encargo, contexto: task.contexto,
       revisar: task.revisar, ...(task.despues ? { despues: task.despues } : {}), app: productContext.app, productContext, model, fingerprint, finishedAt: new Date().toISOString(),
       ...(task.fuentes ? { fuentes: task.fuentes } : {}),
+      ...(task.attachments?.length ? { attachments: task.attachments } : {}),
       durationMs: Date.now() - started,
       ...(provider ? { provider } : {}), ...(providerModel ? { providerModel } : {}), ...(codexModel ? { codexModel } : {}),
       ...(qualityRequired ? { qualityRequired: true, reviewerProfile: agents.revision } : {}),
