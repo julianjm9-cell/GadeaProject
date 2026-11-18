@@ -21,7 +21,7 @@ for (const [name, engine] of [['Chromium', chromium], ['WebKit', webkit]]) {
       const link = page.locator('a[href="/gadeos"]');
       assert.equal(await link.count(), 1);
       assert.equal(await link.isVisible(), true);
-      assert.match(await link.innerText(), /GADEOS · La arena de los recuerdos/);
+      assert.match(await link.innerText(), /Juegos del Hambre en Chinchón/);
       assert.match(await link.innerText(), /Acceso privado/);
       assert.equal(await link.locator('svg[aria-hidden="true"]').count(), 1);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));

@@ -29,11 +29,11 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   config.media={poster:await upload(manifest.poster),envelope:materialRoot?await upload(manifest.envelope||manifest.poster):null,source:'b'.repeat(64),guide:[]};
   for(const entry of manifest.guide)config.media.guide.push({title:entry.title,image:await upload(entry.file),text:entry.text||''});
   assert.equal((await page.request.put(base+'/admin/apps/gadeos/campaign',{headers,data:config})).status(),200);
-  await page.context().clearCookies();await page.goto(base+'/gadeos');await page.getByRole('heading',{name:'GADEOS',exact:true}).waitFor();
+  await page.context().clearCookies();await page.goto(base+'/gadeos');await page.getByRole('heading',{name:'JUEGOS DEL HAMBRE EN CHINCHÓN',exact:true}).waitFor();
   await page.waitForFunction(()=>document.querySelector('.login-scene')?.naturalWidth>0);
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-login-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
   assert.equal((await page.request.get(base+config.media.poster)).status(),401);
-  assert.equal(await page.getByRole('button',{name:'Crear cuenta',exact:true}).count(),0);
+  assert.equal(await page.getByRole('button',{name:'Crear cuenta',exact:true}).count(),0);assert.equal(await page.title(),'JUEGOS DEL HAMBRE EN CHINCHÓN');assert.doesNotMatch(await page.locator('body').innerText(),/GADEOS/);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.getByLabel('Nombre de tributo').fill('Alma');await page.getByLabel('Contraseña',{exact:true}).fill('ensayo-seguro-123');await page.getByRole('button',{name:/Entrar en la arena/}).click();
   await page.getByText('TU TRIBUTO · Alma',{exact:true}).waitFor();
   await page.waitForFunction(()=>document.querySelector('.event-poster')?.naturalWidth>0);

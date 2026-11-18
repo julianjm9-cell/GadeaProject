@@ -33,7 +33,7 @@ h2 { font-size:28px; line-height:1.25; }
 .login-art:after { content:''; position:absolute; inset:0; background:linear-gradient(transparent 65%,#061126); pointer-events:none; }
 .art-caption { z-index:1; margin-bottom:35px; text-align:center; font-size:11px; letter-spacing:.18em; color:var(--gold); }
 .login-panel { padding:32px; border:1px solid var(--line); border-radius:24px; background:linear-gradient(140deg,#17305296,#0b172cde); box-shadow:0 25px 80px #0003; }
-.login-panel h1 { color:var(--gold); font-size:clamp(50px,6vw,72px); letter-spacing:.04em; margin-bottom:10px; }
+.login-panel h1 { color:var(--gold); font-size:clamp(30px,3.5vw,43px); line-height:1.15; letter-spacing:.015em; margin-bottom:18px; text-wrap:balance; }
 .login-panel .muted { margin-bottom:28px; }
 .game-shell { max-width:1140px; margin:auto; min-height:100vh; min-height:100svh; padding:0 32px 125px; }
 .app-header { display:flex; align-items:center; justify-content:space-between; height:86px; margin-bottom:24px; border-bottom:1px solid var(--line); }
@@ -157,7 +157,7 @@ dialog::backdrop { background:#020916de; backdrop-filter:blur(9px); -webkit-back
   .login-art { min-height:235px; margin-bottom:-20px; border-radius:24px; }
   .art-caption { margin-bottom:20px; font-size:9px; }
   .login-panel { position:relative; padding:25px; }
-  .login-panel h1 { font-size:49px; }
+  .login-panel h1 { font-size:32px; }
   .login-panel .eyebrow { font-size:9px; }
   .game-shell { padding:0 16px 115px; }
   .app-header { height:72px; margin-bottom:18px; }

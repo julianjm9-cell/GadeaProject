@@ -8,7 +8,7 @@ test('La portada ofrece un único acceso identificado al espacio privado GADEOS'
   const links = [...html.matchAll(/<a\b[^>]*href="\/gadeos"[^>]*>[\s\S]*?<\/a>/g)];
   assert.equal(links.length, 1, 'Debe existir un único acceso directo a /gadeos');
   const link = links[0][0];
-  assert.match(link, /GADEOS · La arena de los recuerdos/);
+  assert.match(link, /Juegos del Hambre en Chinchón/);
   assert.match(link, /Acceso privado/);
   assert.match(link, /<svg\b[^>]*aria-hidden="true"/);
   // El acceso solicitado no es una ficha comercial filtrada por disponibilidad pública.
