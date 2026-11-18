@@ -127,6 +127,8 @@ def complete_station(db, account, payload):
         valid = valid and all(station["options"][answer[i]] == station["options"][answer[i + 1]] for i in range(0, len(answer), 2))
     elif station["kind"] == "order":
         valid = answer == station["solution"]
+    elif station["kind"] == "choice":
+        valid = isinstance(answer, str) and answer == station["solution"]
     else:
         valid = isinstance(answer, str) and normalized(answer) in [normalized(option) for option in str(station["solution"]).split("|")]
     def apply(data):

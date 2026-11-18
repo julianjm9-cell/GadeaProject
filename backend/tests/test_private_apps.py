@@ -124,7 +124,7 @@ def test_battle_loss_retry_victory_and_account_isolation(client):
 
 
 @pytest.mark.parametrize('kind,options,solution,answer',[
- ('choice',['A','B'],'B','B'),('order',['A','B','C'],['C','A','B'],['C','A','B']),
+ ('choice',['A','B'],'B','B'),('choice',['A | B','C'],'A | B','A | B'),('order',['A','B','C'],['C','A','B'],['C','A','B']),
  ('memory',['A','B','A','B'],None,[0,2,1,3]),
 ])
 def test_editable_station_modes_are_corrected_by_server(client,kind,options,solution,answer):
