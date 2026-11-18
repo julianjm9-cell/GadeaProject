@@ -12,9 +12,11 @@ async function listen(t, directory, options) {
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
   t.after(async () => {
+    for (const context of server.browserForTest?.contexts() || []) for (const page of context.pages()) await page.unrouteAll({ behavior: 'wait' });
+    await server.browserForTest?.close();
     await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); });
     assert.match(relative(resolve(tmpdir()), resolve(directory)), /^educame-(?:changes-)?browser-[\w-]+$/);
-    await rm(directory, { recursive: true, force: true });
+    await rm(directory, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   });
   return server;
 }
@@ -37,7 +39,7 @@ for (const [name, engine, viewport] of [
       return new Response(JSON.stringify({ paused: [] }));
     } });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
-    t.after(() => browser.close()); const page = await browser.newPage({ viewport });
+    server.browserForTest = browser; const page = await browser.newPage({ viewport });
     page.setDefaultTimeout(8000);
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     const base = 'http://127.0.0.1:' + server.address().port;
@@ -77,7 +79,7 @@ for (const [name, engine, viewport] of [
     const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
     const server = await listen(t, directory, { codex: { status: async () => ({ ready: true }) } });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
-    t.after(() => browser.close());
+    server.browserForTest = browser;
     const page = await browser.newPage({ viewport });
     page.setDefaultTimeout(8000);
     const errors = []; page.on('pageerror', error => errors.push(error.message));
@@ -128,7 +130,7 @@ for (const [name, engine, viewport] of [
           reply: input.text.includes('Profesor Particular') ? 'Entendido, conservamos los juegos.' : '¿En qué aplicación quieres cambiar el juego?', tasks: [] } };
       } } });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
-    t.after(() => browser.close());
+    server.browserForTest = browser;
     const page = await browser.newPage({ viewport });
     page.setDefaultTimeout(8000);
     await page.goto('http://127.0.0.1:' + server.address().port + '/#chat');
@@ -155,7 +157,7 @@ for (const [name, engine, viewport] of [
     const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
     const server = await listen(t, directory, { codex: { status: async () => ({ ready: false }) } });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
-    t.after(() => browser.close());
+    server.browserForTest = browser;
     const page = await browser.newPage({ viewport });
     page.setDefaultTimeout(8000);
     await page.goto('http://127.0.0.1:' + server.address().port + '/#inicio');
@@ -203,7 +205,7 @@ for (const [name, engine, viewport] of [
       coordinate: async ({ text }) => { received.push(text); await gate; return { plan: { action: 'answer', reply: 'Respuesta: ' + text, tasks: [] } }; },
     } });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
-    t.after(() => browser.close());
+    server.browserForTest = browser;
     const page = await browser.newPage({ viewport });
     page.setDefaultTimeout(8000);
     await page.goto('http://127.0.0.1:' + server.address().port + '/#chat');
@@ -231,7 +233,7 @@ for (const [name, engine, viewport] of [
     const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
     const server = await listen(t, directory, { codex: { status: async () => ({ ready: true }) } });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
-    t.after(() => browser.close());
+    server.browserForTest = browser;
     const page = await browser.newPage({ viewport });
     page.setDefaultTimeout(8000);
     const base = 'http://127.0.0.1:' + server.address().port;
@@ -281,7 +283,7 @@ for (const [name, engine, viewport] of [
         limitsFresh: true, accountTokens: 1234, tokensFresh: true }),
     } });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
-    t.after(() => browser.close());
+    server.browserForTest = browser;
     const page = await browser.newPage({ viewport });
     page.setDefaultTimeout(8000);
     const errors = [];
@@ -354,6 +356,7 @@ for (const [name, engine, viewport] of [
         json = job;
       }
       if (path === 'admin') json = signed ? { connected: true, accounts: [account], organizations: [], apps: { CAMBRIDGE: { paused } } } : { connected: false };
+      if (path === 'admin/apps') json = { revision: 0, apps: [] };
       if (path === 'admin/login') { signed = true; json = { connected: true }; }
       if (path === 'admin/logout') { signed = false; json = { connected: false }; }
       if (path === 'admin/pause') { paused = route.request().postDataJSON().paused; json = { paused }; }
@@ -438,7 +441,7 @@ for (const [name, engine, viewport] of [
     const directory = await mkdtemp(join(tmpdir(), 'educame-changes-browser-'));
     const server = await listen(t, directory, { codex: { status: async () => ({ ready: false }) } });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
-    t.after(() => browser.close());
+    server.browserForTest = browser;
     const page = await browser.newPage({ viewport });
     page.setDefaultTimeout(8000);
     const base = 'http://127.0.0.1:' + server.address().port;
@@ -527,7 +530,7 @@ for (const [name, engine, viewport] of [
     };
     const server = await listen(t, directory, { codex });
     const browser = await engine.launch(name.startsWith('Chromium') ? { channel: 'msedge' } : {});
-    t.after(() => browser.close());
+    server.browserForTest = browser;
     const page = await browser.newPage({ viewport });
     page.setDefaultTimeout(8000);
     const failures = [];
@@ -648,15 +651,11 @@ for (const [name, engine, viewport] of [
     await page.getByRole('link', { name: 'Descargar MP4' }).waitFor();
     assert.equal(clips.length, 1);
     await navigate('Apps');
-    assert.equal(await page.locator('#directory-apps img').count(), 7);
-    await page.waitForFunction(() => [...document.querySelectorAll('#directory-apps img')].every(img => img.complete && img.naturalWidth > 0));
+    await page.locator('[data-catalog-app="gadeos"]').getByRole('heading', { name: 'GADEOS', exact: true }).waitFor();
+    assert.equal(await page.locator('[data-catalog-app]').count(), 8);
     await page.getByRole('link', { name: 'Abrir dashboard online ↗' }).waitFor();
-    await page.getByRole('link', { name: /Universidad \+25 En pausa/ }).waitFor();
-    const opened = page.waitForEvent('popup');
-    await page.getByRole('link', { name: 'Vista local de Profesor Particular' }).click();
-    const preview = await opened;
-    await preview.getByText('Mis alumnos', { exact: false }).first().waitFor();
-    await preview.close();
+    assert.equal(await page.getByRole('button', { name: 'Crear aplicación', exact: true }).isEnabled(), false);
+    await page.getByRole('link', { name: 'Conectar administración', exact: true }).waitFor();
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     assert.deepEqual(failures, []);
   });

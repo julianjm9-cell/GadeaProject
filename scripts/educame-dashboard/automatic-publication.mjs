@@ -34,6 +34,7 @@ export function createAutomaticPublication({ store, publication, readDelivery })
       for (const batch of batches) {
         if (batch.state !== 'finished') continue;
         for (const task of batch.tasks) {
+          if (/^[a-f0-9]{40}$/.test(batch.jobs?.[task.id]?.externalCompletion?.revision || '') && typeof batch.jobs[task.id].externalCompletion.summary === 'string') continue;
           const deliveryKey = 'implementacion/' + task.id;
           const keys = [deliveryKey];
           const push = store.board().pushes?.[deliveryKey];
@@ -82,6 +83,7 @@ export function createAutomaticPublication({ store, publication, readDelivery })
 
   return { pump, close() { closed = true; }, status: () => read().attempts,
     ready: () => store.batches().some(batch => eligible(batch) && batch.state === 'finished' && batch.tasks.some(task =>
+      !(/^[a-f0-9]{40}$/.test(batch.jobs?.[task.id]?.externalCompletion?.revision || '') && typeof batch.jobs[task.id].externalCompletion.summary === 'string') &&
       !store.board().pushes?.['implementacion/' + task.id]?.integratedRevision &&
       !['failed', 'attention', 'published', 'undone'].includes(read().attempts[task.id]?.state))),
     retry(id) {

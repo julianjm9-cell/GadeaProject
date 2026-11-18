@@ -29,6 +29,7 @@ import logging
 from app.services.audit import audit
 from app.services.licenses import PROFESOR_PREMIUM_PLAN, check_access, license_for_user, profesor_account_plan
 from app.services.app_availability import require_app_available
+from app.services.app_registry import product_is_public
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -210,6 +211,8 @@ def ensure_google_access(db: Session, user: User, product_codes: tuple[str, ...]
     settings = get_settings()
     now = datetime.now(timezone.utc)
     for product_code in product_codes:
+        if not product_is_public(db, product_code):
+            continue  # Private apps require an existing invitation, never an automatic grant.
         if product_code in {"DIPLOMATOR", "OCR_FACTURAS"}:
             continue  # Access is assigned by administration only.
         # Never renew suspended/expired access or replenish credits on login.
@@ -289,9 +292,9 @@ def get_or_create_google_user(db: Session, info: dict, product_codes: tuple[str,
 
 
 @router.get("/eso/signup-settings")
-def eso_signup_settings():
+def eso_signup_settings(db: Session = Depends(get_db)):
     settings = get_settings()
-    return {"enabled": settings.eso_signup_enabled, "email_enabled": mail_enabled(), "credits": settings.eso_signup_credits, "days": settings.eso_signup_days}
+    return {"enabled": settings.eso_signup_enabled and product_is_public(db, "ESO_ADULTOS"), "email_enabled": mail_enabled(), "credits": settings.eso_signup_credits, "days": settings.eso_signup_days}
 
 
 @router.post("/eso/register", status_code=201)
@@ -327,9 +330,9 @@ def register_eso(payload: EsoRegisterRequest, request: Request, response: Respon
 
 
 @router.get("/profesor/signup-settings")
-def profesor_signup_settings():
+def profesor_signup_settings(db: Session = Depends(get_db)):
     settings = get_settings()
-    return {"enabled": settings.profesor_signup_enabled, "credits": settings.profesor_signup_credits, "days": settings.profesor_signup_days,
+    return {"enabled": settings.profesor_signup_enabled and product_is_public(db, "PROFESOR_PARTICULAR"), "credits": settings.profesor_signup_credits, "days": settings.profesor_signup_days,
             "email_enabled": mail_enabled(),
             "plan": "premium" if settings.profesor_signup_plan == PROFESOR_PREMIUM_PLAN else "normal"}
 

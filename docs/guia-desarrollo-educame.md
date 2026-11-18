@@ -32,6 +32,14 @@ Educame reúne herramientas para profesores particulares y para personas que pre
 
 ## Qué debe superar una partida
 
+### Apps y espacios personales
+
+El catálogo de **Apps** usa el estado del servidor: **Pública**, **Privada** o **Pausada**. Cambiarlo conserva cuentas, licencias y progreso. Una etiqueta local nunca demuestra que el acceso haya cambiado; sin sesión de administración los controles permanecen desactivados. Las apps existentes mantienen sus accesos habituales. Una app privada exige una invitación y Google no la concede automáticamente. Una pausa mantiene el contenido guardado.
+
+**App**, **Landing** y **Redes sociales** abren subchats con historial, borrador y contexto separados, dentro de la misma cola de Encargos. El usuario no vuelve a escoger el producto en cada mensaje. Crear una app genera un espacio funcional con cuentas y guardado; su adaptación se pide desde su subchat. El código específico se guarda en `apps/custom/{identificador}/` y se incluye en Docker. El catálogo administrativo se conserva en la base del servidor y su copia local solo permite recuperar el contexto.
+
+**GADEOS** es una excepción personal: no tiene landing, registro público ni sección de redes. Entrada con nombre de tributo y contraseña creada por el propietario; navegación Inicio, Recorrido y Batalla final. Ocho estaciones consecutivas; ninguna se abre antes de superar la anterior. Las seis primeras siguen el viaje indicado por el propietario: bus, adivinanza, Chinchón, habitación, atardecer y cena. La adivinanza y las estaciones 7 y 8 son editables. Cada sobre concede una carta una sola vez; al terminar se abre una batalla por turnos que admite derrota y reintento sin perder las estaciones. El servidor comprueba respuestas y revisiones. Las imágenes personales se suben al volumen de documentos protegido, nunca a Git. Verificar cuenta distinta, recarga, petición reenviada, código erróneo y partida completa en Chromium y WebKit móvil.
+
 1. Una persona identifica el objetivo, entiende dónde tocar y puede empezar sin leer un manual. El escenario sugiere la acción, como elegir un vagón, ordenar una ruta o colocar una pista.
 2. Cada consigna tiene nivel y objetivo. Las soluciones son verificables y las alternativas admitidas están documentadas. Una respuesta errónea explica qué revisar. Un resultado distingue aciertos, intentos y avance.
 3. El tablero y los botones caben en pantallas pequeñas. Las soluciones y avisos tienen su espacio y se pueden cerrar. Si hay arrastre, ofrece también una forma de elegir origen y destino por toque o teclado cuando corresponda.

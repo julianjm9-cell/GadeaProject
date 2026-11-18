@@ -8,6 +8,47 @@ const { tmpdir } = require('node:os');
 const { join, dirname } = require('node:path');
 const run = require('node:util').promisify(execFile);
 
+test('Subchats separan contexto, historial, respuestas e identificadores sin borrar el chat general', async () => {
+  const { createChat } = await import('../scripts/educame-dashboard/chat.mjs');
+  let rows = [];
+  const received = [];
+  const batches = [];
+  const chat = createChat({ store: {
+    operation: () => rows, writeOperation: (_key, value) => { rows = value; }, transaction: work => work(),
+    board: () => ({ tasks: [], links: [] }), batch: () => ({ state: 'queued', jobs: {} }),
+  }, codex: { status: async () => ({ ready: true }), models: async () => [{ id: 'ficticio' }],
+    coordinate: async () => ({ plan: { action: 'implement', reply: 'Preparar landing',
+      tasks: [{ app: 'ecosistema', agent: 'codex', request: 'Crear landing para Demo', after: null }] } }),
+    ask: async input => { received.push(input); return { answer: 'Respuesta ficticia' }; } },
+    runner: { start: async batch => { batches.push(batch); return { id: 'lote-ficticio', state: 'queued' }; } }, readDelivery: async () => null,
+    appCatalog: () => ({ apps: [{ id: 'demo', name: 'Demo', existing: false }] }), assertIdle() {}, instance: 'test' });
+  const send = async (scope, text) => {
+    const body = { id: randomUUID(), model: 'ficticio', mode: 'ask', text, ...(scope ? { scope } : {}) };
+    await chat.send(body); await chat.wait(); return body;
+  };
+  try {
+    await send('', 'General');
+    const first = await send('demo/app', 'App');
+    assert.equal(received[1].history.length, 0);
+    assert.match(received[1].text, /Aplicación: Demo.*Sección: app/);
+    await send('demo/landing', 'Landing');
+    assert.equal(received[2].history.length, 0);
+    await send('demo/app', 'Otra pregunta');
+    assert.equal(received[3].history[0].message, 'App');
+    await assert.rejects(chat.send({ ...first, scope: 'demo/redes' }), { status: 409 });
+    rows = rows.map(row => row.id === first.id ? { ...row, state: 'question' } : row);
+    await assert.rejects(chat.send({ ...first, id: randomUUID(), scope: 'demo/redes', replyTo: first.id }), { status: 409 });
+    await assert.rejects(chat.send({ ...first, id: randomUUID(), scope: {} }), { status: 400 });
+    await assert.rejects(chat.send({ ...first, id: randomUUID(), scope: 'desconocida/app' }), { status: 400 });
+    await assert.rejects(chat.send({ ...first, id: randomUUID(), mode: 'change' }), { status: 400 });
+    assert.equal((await chat.read()).messages.length, 4);
+    await chat.send({ id: randomUUID(), model: 'ficticio', mode: 'auto', scope: 'demo/landing', text: 'Crea la landing' });
+    await chat.wait();
+    assert.match(batches[0].tasks[0].contexto, /Aplicación: Demo.*Sección: landing/);
+    assert.match(batches[0].tasks[0].contexto, /ecosistema/);
+  } finally { chat.close(); await chat.wait(); }
+});
+
 test('Chat usa el modelo elegido y aplica una revisión del panel solo después de confirmarla', { timeout: 45_000 }, async t => {
   const { createDashboard } = await import('../scripts/educame-dashboard.mjs');
   const temporary = await mkdtemp(join(tmpdir(), 'educame-chat-test-'));

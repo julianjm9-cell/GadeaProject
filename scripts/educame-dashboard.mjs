@@ -16,6 +16,7 @@ import { canRevalidate, createImplementation, ImplementationError } from './educ
 import { createChat } from './educame-dashboard/chat.mjs';
 import { createPublication } from './educame-dashboard/publication.mjs';
 import { createAutomaticPublication } from './educame-dashboard/automatic-publication.mjs';
+import { createAppCatalog } from './educame-dashboard/app-catalog.mjs';
 import { createKnowledge } from './educame-dashboard/knowledge.mjs';
 import { createProviders } from './educame-dashboard/api-agent.mjs';
 import { researchRole } from './educame-dashboard/research.mjs';
@@ -41,6 +42,7 @@ const assets = new Map([
   ['/terrace-hero.webp', ['terrace-hero.webp', 'image/webp']],
   ['/chat.js', ['chat.js', 'text/javascript']],
   ['/queue-view.js', ['queue-view.js', 'text/javascript']],
+  ['/app-catalog.js', ['app-catalog.js', 'text/javascript']],
   ['/agent-editor.js', ['agent-editor.js', 'text/javascript']],
   ['/icons.js', ['icons.js', 'text/javascript']],
   ['/icons.svg', ['icons.svg', 'image/svg+xml']],
@@ -205,6 +207,7 @@ export async function createDashboard({
   const previews = createPreviews(repositoryRoot);
   const activeApiKey = () => connections.openaiKey() || apiKey;
   const store = openPanelStore(directory, { memory: [], revision: 0, tasks: [], links: initialLinks, reviews: {}, pushes: {} });
+  const appCatalog = createAppCatalog(store);
   const github = githubOperations(changes, connections, store, fetchImpl);
   const hostinger = hostingerOperations(store, changes, github, ssh);
   const admin = adminOperations(fetchImpl);
@@ -248,6 +251,7 @@ export async function createDashboard({
   let deliveryWork;
   const implementationPath = id => join(runner.output('implementacion'), id + '.json');
   const chat = createChat({ store, runner, codex, providers, implementation, instance: randomUUID(),
+    appCatalog: appCatalog.read,
     contextSnapshot: () => knowledge.snapshot(),
     readDelivery: id => readJson(implementationPath(id), null),
     assertIdle() {
@@ -364,7 +368,7 @@ export async function createDashboard({
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Referrer-Policy', 'no-referrer');
-    response.setHeader('Content-Security-Policy', "default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+    response.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
     function json(status, data) {
       response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
       response.end(JSON.stringify(data));
@@ -379,6 +383,7 @@ export async function createDashboard({
       const path = url.pathname;
       if (restarting && request.method !== 'GET') throw new OperationError(409, 'LA TERRAZA se está reiniciando.');
       if (path === '/api/publicacion' && request.method === 'GET') return json(200, publication.status());
+      if (path === '/api/apps/catalogo' && request.method === 'GET') return json(200, appCatalog.read());
       if (path === '/api/encargos/reintentar-subida' && request.method === 'POST') {
         if (request.headers.origin !== origin) throw new OperationError(403, 'Usa la cola del panel local.');
         if (!automatic) throw new OperationError(409, 'La cola automática no está activada en este servidor.');
@@ -392,7 +397,7 @@ export async function createDashboard({
         const source = await implementationDelivery(key);
         const task = { id: 'ajuste-' + id, app: source.app, agente: source.agente, encargo: note.trim(), continuar: source.id,
           contexto: ('Ajusta esta entrega conservando el trabajo ya hecho.\nEncargo original\n' + source.encargo +
-            '\nResultado anterior\n' + (source.draft?.entrega || source.error || '')).slice(0, 7500) };
+            '\nContexto original\n' + (source.contexto || '') + '\nResultado anterior\n' + (source.draft?.entrega || source.error || '')).slice(0, 7500) };
         const batch = await runner.start({ mode: 'implementacion', engine: source.provider || 'codex', providerModel: source.providerModel,
           codexModel: source.codexModel, qualityRequired: source.qualityRequired === true, tasks: [task], enqueue: true });
         store.transaction(() => {
@@ -492,6 +497,10 @@ export async function createDashboard({
             'github/detalle': () => github.detail(url.searchParams.get('numero')),
             'hostinger': hostinger.status, 'hostinger/estado': hostinger.readRemote,
             'admin': () => admin.handle('state', request.headers.cookie, {}, response),
+            'admin/apps': async () => appCatalog.remember(await admin.handle('apps', request.headers.cookie, {}, response)),
+            'admin/app-accounts': () => admin.handle('app-accounts', request.headers.cookie, { app: url.searchParams.get('app') }, response),
+            'admin/app-campaign': () => admin.handle('app-campaign-read', request.headers.cookie, {}, response),
+            'admin/app-image': () => admin.handle('app-image-read', request.headers.cookie, { name: url.searchParams.get('name') }, response),
           };
           if (Object.hasOwn(reads, route)) return json(200, await reads[route]());
         }
@@ -515,10 +524,11 @@ export async function createDashboard({
             'hostinger/preparar': () => hostinger.prepare(payload.revision), 'hostinger/desplegar': () => hostinger.start(payload),
           };
           if (Object.hasOwn(writes, route)) return json(200, await writes[route]());
-          const action = route.match(/^admin\/(login|logout|pause|create-account|account|license)$/)?.[1];
+          const action = route.match(/^admin\/(login|logout|pause|create-account|account|license|create-app|app-state|app-account-create|app-account-update|app-campaign|app-image)$/)?.[1];
           if (action) {
             const result = await admin.handle(action, request.headers.cookie, payload, response);
             if (action === 'pause') availabilityExpiry = 0;
+            if (['create-app', 'app-state'].includes(action)) { appCatalog.remember(result); availabilityExpiry = 0; }
             return json(200, result);
           }
         }

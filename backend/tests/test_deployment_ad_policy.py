@@ -29,3 +29,17 @@ def test_deployment_rejects_stale_or_incomplete_policy(changes):
 def test_deployment_rejects_non_policy_responses(data):
     with pytest.raises(AssertionError):
         verify_ad_policy(data)
+
+
+@pytest.mark.parametrize('status,private,message,expected', [
+    (401, True, 'Aplicación privada. Entra con una cuenta invitada.', True),
+    (401, False, 'Aplicación privada. Entra con una cuenta invitada.', False),
+    (503, True, 'Aplicación privada. Entra con una cuenta invitada.', False),
+    (403, True, 'Fallo desconocido', False),
+])
+def test_deployment_only_accepts_declared_private_access(status, private, message, expected):
+    from io import BytesIO
+    from urllib.error import HTTPError
+    from app.deployment_check import verify_expected_private
+    error = HTTPError('https://example.invalid/cambridge-info', status, 'test', {'Cache-Control':'private, no-store'}, BytesIO(json.dumps({'detail':message}).encode()))
+    assert verify_expected_private(error, '/cambridge-info', {'CAMBRIDGE':{'private':private}}) is expected

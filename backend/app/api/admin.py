@@ -113,6 +113,8 @@ def update_app_availability(product_code: str, payload: dict, actor: User = Depe
     previous = is_app_paused(db, product_code)
     if previous != paused:
         set_setting(db, f"app_paused:{product_code}", "1" if paused else "0")
+        from app.services.app_registry import touch_registry
+        touch_registry(db)
         audit(db, actor=actor, organization_id=actor.organization_id, action="app_paused" if paused else "app_resumed", entity_type="app_settings", entity_id=product_code, metadata={"previous_paused": previous})
         db.commit()
     return {"product_code": product_code, "paused": paused}

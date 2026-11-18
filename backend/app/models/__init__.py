@@ -24,6 +24,9 @@ from app.models.core import (
 )
 
 __all__ = [
+    "PrivateAppAccount",
+    "PrivateAppSession",
+    "PrivateAppProgress",
     "AuthSession",
     "AccountToken",
     "ProfesorEditorDraft",
@@ -56,3 +59,4 @@ __all__ = [
 from app.models.ocr import OcrJob
 from app.models.teacher_generation import ProfesorGenerationJob, ProviderCall, AiRequest
 from app.models.profesor_notifications import ProfesorNotification, ProfesorNotificationRecipient
+from app.models.private_apps import PrivateAppAccount, PrivateAppSession, PrivateAppProgress

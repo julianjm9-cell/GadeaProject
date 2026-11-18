@@ -33,3 +33,20 @@ test('la cola no duplica tareas del chat ni anuncia completado antes de confirma
  state.board.pushes['implementacion/juego'].undoneRevision='e'.repeat(40);
  assert.equal(queueEntries(state,messages)[0].status,'undone');
 });
+
+
+test('una reparación terminada fuera del lote conserva el fallo original y no vuelve a publicar la copia antigua', async () => {
+ const {queueEntries}=await import('../scripts/educame-dashboard/queue-view.js');
+ const {createAutomaticPublication}=await import('../scripts/educame-dashboard/automatic-publication.mjs');
+ const task={id:'reparado',app:'gadeos',encargo:'Crear recorrido privado'};
+ const batch={id:'antiguo',mode:'implementacion',state:'finished',automaticPublication:true,tasks:[task],jobs:{reparado:{status:'borrador',error:'Copia incompleta'}}};
+ const state={board:{pushes:{},reviews:{}},history:[],batches:[batch]};
+ assert.equal(queueEntries(state)[0].status,'attention');
+ batch.jobs.reparado.externalCompletion={revision:'a'.repeat(40),summary:'Recorrido y gestión terminados con pruebas.'};
+ assert.equal(queueEntries(state)[0].status,'completed');
+ assert.equal(batch.jobs.reparado.error,'Copia incompleta');
+ const operations=new Map();
+ const store={operation:key=>operations.get(key),writeOperation:(key,value)=>operations.set(key,value),transaction:fn=>fn(),batches:()=>state.batches,board:()=>state.board};
+ const service=createAutomaticPublication({store,publication:{upload:()=>assert.fail('No debe subir la copia antigua')},readDelivery:()=>assert.fail('No debe retomar la implementación antigua')});
+ await service.pump();assert.equal(service.ready(),false);
+});

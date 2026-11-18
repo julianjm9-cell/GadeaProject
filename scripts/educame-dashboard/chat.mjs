@@ -5,7 +5,7 @@ const key = 'terrace-chat-v1';
 const messageId = /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
 const busyReply = /Hay un lote en marcha|Espera a que termine la comprobación o publicación actual|Termina o retoma el trabajo pendiente|Retoma primero el lote interrumpido|Todavía hay un mensaje en curso/;
 
-export function createChat({ store, codex, providers, runner, implementation, readDelivery, assertIdle, instance, contextSnapshot }) {
+export function createChat({ store, codex, providers, runner, implementation, readDelivery, assertIdle, instance, contextSnapshot, appCatalog }) {
   let active;
   let applying = false;
   let pumping = false;
@@ -33,6 +33,12 @@ export function createChat({ store, codex, providers, runner, implementation, re
         if (row.taskIds) {
           const batch = row.batchId && store.batch(row.batchId);
           const jobs = batch?.jobs || {};
+          if (ids.every(id => /^[a-f0-9]{40}$/.test(jobs[id]?.externalCompletion?.revision || '') && typeof jobs[id].externalCompletion.summary === 'string')) {
+            update(row.id, { state: 'answer', previousError: row.previousError || { reply: row.reply },
+              reply: 'Completado y subido a GitHub. ' + [...new Set(ids.map(id => jobs[id].externalCompletion.summary))].join(' '),
+              externalCompletions: ids.map(id => jobs[id].externalCompletion), waiting: false }, row.state);
+            continue;
+          }
           const proposals = deliveries.filter(item => item.implementation?.verified).map(item => ({
             taskId: item.id, app: item.app, commit: item.implementation.commit, files: item.implementation.files,
             summary: item.draft?.resumen, checks: item.checks,
@@ -84,6 +90,15 @@ export function createChat({ store, codex, providers, runner, implementation, re
   async function send(body) {
     const { id, model, replyTo, provider = 'codex' } = body;
     const mode = body.mode || 'auto';
+    const scope = body.scope ?? '';
+    if (typeof scope !== 'string') throw new OperationError(400, 'Selecciona una conversación válida.');
+    const [scopeApp, scopeArea] = scope.split('/');
+    const scopedApp = scope && appCatalog?.().apps.find(app => app.id === scopeApp);
+    if (typeof scope !== 'string' || (scope && (!scopedApp || !['app', 'landing', 'redes'].includes(scopeArea) || scope.split('/').length !== 2))) {
+      throw new OperationError(400, 'Selecciona una conversación válida.');
+    }
+    if (scope && mode === 'change') throw new OperationError(400, 'Usa el modo automático para cambios en esta aplicación.');
+    if (scopedApp?.personal && scopeArea !== 'app') throw new OperationError(400, 'Esta app personal no tiene landing ni redes públicas.');
     const text = typeof body.text === 'string' ? body.text.trim() : '';
     if (typeof id !== 'string' || !messageId.test(id) || !['auto', 'ask', 'change'].includes(mode) || !['codex', 'openai', 'claude'].includes(provider) ||
         (replyTo !== undefined && (typeof replyTo !== 'string' || !messageId.test(replyTo))) ||
@@ -92,7 +107,7 @@ export function createChat({ store, codex, providers, runner, implementation, re
     }
     const duplicate = entries().find(row => row.id === id);
     if (duplicate) {
-      if (duplicate.mode !== mode || duplicate.model !== model || duplicate.text !== text || duplicate.replyTo !== replyTo || (duplicate.provider || 'codex') !== provider) {
+      if ((duplicate.scope || '') !== scope || duplicate.mode !== mode || duplicate.model !== model || duplicate.text !== text || duplicate.replyTo !== replyTo || (duplicate.provider || 'codex') !== provider) {
         throw new OperationError(409, 'Ese identificador ya pertenece a otro mensaje.');
       }
       if (duplicate.state === 'error' && ((!duplicate.batchId && duplicate.mode === 'auto') || busyReply.test(duplicate.reply || ''))) {
@@ -120,10 +135,10 @@ export function createChat({ store, codex, providers, runner, implementation, re
       if (rows.some(row => row.id === id)) return null;
       if (rows.filter(row => row.state === 'queued').length >= 20) throw new OperationError(409, 'Hay veinte mensajes esperando. Deja que avancen antes de añadir más.');
       const question = replyTo && rows.find(row => row.id === replyTo);
-      if (replyTo && (!question || !['question', 'proposal', 'error'].includes(question.state) || question.answeredBy)) throw new OperationError(409, 'Ese mensaje ya tiene respuesta o sigue trabajando. Escribe un mensaje nuevo.');
+      if (replyTo && (!question || (question.scope || '') !== scope || !['question', 'proposal', 'error'].includes(question.state) || question.answeredBy)) throw new OperationError(409, 'Ese mensaje ya tiene respuesta o sigue trabajando. Escribe un mensaje nuevo.');
       const context = question ? [question.context, 'Petición original: ' + question.text, 'Aclaración: ' + question.reply].filter(Boolean).join('\n').slice(-7000) : '';
       write([...rows.map(row => row.id === replyTo ? { ...row, answeredBy: id } : row),
-        { id, text, mode, model, provider, ...(replyTo ? { replyTo, context, continuations } : {}), state: 'queued', taskId, at: new Date().toISOString() }]);
+        { id, text, mode, model, provider, ...(scope ? { scope, scopeContext: `Aplicación: ${scopedApp.name} (${scopeApp}). Sección: ${scopeArea}. Ruta de la app: ${scopedApp.path || '/a/' + scopeApp}. ${scopedApp.personal ? 'Es una aplicación personal privada, sin landing ni campañas públicas. No publiques datos personales ni cartas privadas en el repositorio.' : ''} ${scopedApp.existing ? '' : 'Si la app no figura entre los destinos del coordinador, usa ecosistema y limita el cambio a apps/custom/' + scopeApp + '/ y a su integración explícita. No inventes un destino desconocido.'}` } : {}), ...(replyTo ? { replyTo, context, continuations } : {}), state: 'queued', taskId, at: new Date().toISOString() }]);
       return rows;
     });
     if (!previous) return read();
@@ -149,7 +164,7 @@ export function createChat({ store, codex, providers, runner, implementation, re
       const provider = row.provider || 'codex';
       const adapter = providers ? providers.get(provider) : codex;
       const previous = rows.slice(0, rows.findIndex(item => item.id === id));
-      const history = previous.filter(row => row.reply && ['answer', 'proposal', 'applied', 'question'].includes(row.state)).slice(-8)
+      const history = previous.filter(item => (item.scope || '') === (row.scope || '')).filter(row => row.reply && ['answer', 'proposal', 'applied', 'question'].includes(row.state)).slice(-8)
       .map(row => ({ message: row.text.slice(0, 1700), answer: [
         row.proposal && (row.state === 'applied' ? 'Cambio aplicado localmente.' : 'Propuesta pendiente de aplicar.'),
         row.reply, row.proposal?.summary,
@@ -164,8 +179,8 @@ export function createChat({ store, codex, providers, runner, implementation, re
           const context = await contextSnapshot?.();
           const knowledge = context ? { revision: context.ecosistema?.revision,
             apps: Object.entries(context).map(([app, info]) => ({ app, accepted: info.accepted.slice(0, 2).map(fact => ({ summary: fact.summary, commit: fact.commit })) })) } : undefined;
-          const result = await adapter.coordinate({ model, text: [row.context, text].filter(Boolean).join('\n\n'), history, board: store.board(), knowledge });
-          plan = normalizeCoordination(result.plan, row, store.board());
+          const result = await adapter.coordinate({ model, text: [row.scopeContext, row.context, text].filter(Boolean).join('\n\n'), history, board: store.board(), knowledge });
+          plan = normalizeCoordination(result.plan, { ...row, context: [row.scopeContext, row.context].filter(Boolean).join('\n\n') }, store.board());
           // Persist the interpreted request BEFORE any implementation can start.
           update(id, { plan, tokens: result.tokens }, 'working');
         }
@@ -177,7 +192,7 @@ export function createChat({ store, codex, providers, runner, implementation, re
           update(id, { batchId: batch.id, taskIds: plan.tasks.map(task => task.id), reply: plan.reply, waiting: batch.state === 'queued' }, 'working');
         }
       } else if (mode === 'ask') {
-        const result = await adapter.ask({ model, text, history });
+        const result = await adapter.ask({ model, text: [row.scopeContext, text].filter(Boolean).join('\n\n'), history });
         update(id, { state: 'answer', reply: result.answer, tokens: result.tokens }, 'working');
       } else {
         const context = history.map(item => 'Mensaje anterior\n' + item.message + '\nRespuesta\n' + item.answer).join('\n\n').slice(-7600);

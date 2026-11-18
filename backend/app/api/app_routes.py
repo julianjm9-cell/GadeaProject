@@ -579,7 +579,7 @@ def robots_txt():
 
 
 @router.get("/sitemap.xml")
-def sitemap_xml():
+def sitemap_xml(db: Session = Depends(get_db)):
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
@@ -594,7 +594,10 @@ def sitemap_xml():
         '  <url><loc>https://educame.tech/cambridge-info</loc></url>\n'
         '</urlset>\n'
     )
-    return Response(xml, media_type="application/xml")
+    from app.services.app_registry import registry
+    private_paths = [path for item in registry(db)["apps"] if item["visibility"] == "privada" for path in (item["path"], item["landing"]) if path]
+    xml = '\n'.join(line for line in xml.split('\n') if not any('https://educame.tech' + path in line for path in private_paths))
+    return Response(xml, media_type="application/xml", headers={"Cache-Control": "no-store"})
 
 
 @router.get("/suite")
@@ -1418,7 +1421,9 @@ def api_apps(user: User = Depends(current_user), db: Session = Depends(get_db)) 
 @router.get("/api/public/app-availability")
 def public_app_availability(response: Response, db: Session = Depends(get_db)) -> dict:
     response.headers["Cache-Control"] = "no-store"
-    return {"apps": {code: {"paused": is_app_paused(db, code)} for code in PAUSABLE_PRODUCTS}}
+    from app.services.app_registry import registry
+    visibility = {item["product"]: item["visibility"] for item in registry(db)["apps"]}
+    return {"apps": {code: {"paused": is_app_paused(db, code), "private": visibility.get(code) == "privada"} for code in PAUSABLE_PRODUCTS}}
 
 
 @router.get("/api/status")

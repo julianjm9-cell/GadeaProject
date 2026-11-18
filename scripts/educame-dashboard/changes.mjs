@@ -7,6 +7,7 @@ const pageSize = 20;
 const shared = ['backend/', 'infra/', 'scripts/', 'tests/', 'docs/', '.github/', 'docker-compose.yml', 'compose.yml'];
 
 export const products = {
+  gadeos: { name: 'GADEOS', app: '/gadeos', paths: ['apps/gadeos/', 'backend/app/services/gadeos.py', 'backend/app/api/private_apps.py', 'backend/app/models/private_apps.py'] },
   profesor: { name: 'Profesor Particular', app: '/profesor-particular?demo=1', landing: '/profesor', paths: ['apps/profesor/', 'marketing/app_landings_demo/profesor'] },
   eso: { name: 'ESO Adultos', app: '/eso-adultos', landing: '/eso-adultos-info', paths: ['apps/e25/', 'marketing/app_landings_demo/eso-adultos'] },
   ingles: { name: 'Inglés', app: '/cambridge', landing: '/cambridge-info', paths: ['apps/cambridge/', 'marketing/app_landings_demo/cambridge'] },

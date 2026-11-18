@@ -239,7 +239,7 @@ def test_profesor_signup_can_be_disabled(client, monkeypatch):
     assert test_client.get("/api/state?app=profesor_particular").status_code == 402
 
 
-@pytest.mark.parametrize("case", ["active", "paused", "unexpected_503", "paused_with_unrelated_503"])
+@pytest.mark.parametrize("case", ["active", "paused", "private", "private_paused", "unexpected_503", "paused_with_unrelated_503", "private_with_unrelated_503"])
 def test_deployment_smoke_check_routes(client, monkeypatch, case):
     from io import BytesIO
     import json
@@ -248,6 +248,13 @@ def test_deployment_smoke_check_routes(client, monkeypatch, case):
     from app import deployment_check
 
     test_client, db_factory = client
+    if case.startswith("private"):
+        from app.services.app_registry import save_app
+        with db_factory() as db:
+            save_app(db, {"id": "profesor", "state": "privada", "revision": 0})
+            if case == "private_paused":
+                save_app(db, {"id": "profesor", "state": "pausada", "revision": 1})
+            db.commit()
     if case in {"paused", "paused_with_unrelated_503"}:
         with db_factory() as db:
             db.add(AppSetting(key="app_paused:OCR_FACTURAS", value="1"))

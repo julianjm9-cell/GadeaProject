@@ -6,16 +6,19 @@ from urllib.error import HTTPError
 from urllib.request import urlopen
 
 from sqlalchemy import inspect, text
+from sqlalchemy.orm import Session
 
 from app.database.session import engine
 from app.services.app_availability import PAUSE_MESSAGE
 from app.services.profesor_ad_policy import CONSENT_VERSION, TERMS_TEXT, PUBLICATION_TEXT
+from app.services.app_registry import known_app_for_path, app_definition
 
 
 PAUSABLE_PATHS = {
     "/facturas": "OCR_FACTURAS",
     "/cambridge": "CAMBRIDGE",
     "/profesor-particular": "PROFESOR_PARTICULAR",
+    "/gadeos": "GADEOS",
 }
 
 
@@ -34,11 +37,26 @@ def verify_ad_policy(data: bytes) -> None:
 
 def verify_expected_pause(exc: HTTPError, path: str, availability: dict) -> bool:
     product = PAUSABLE_PATHS.get(path)
+    candidate = known_app_for_path(path)
+    if not product and candidate and availability.get(candidate["product"], {}).get("private") is True:
+        product = candidate["product"]
     if exc.code != 503 or not product or availability.get(product, {}).get("paused") is not True:
         return False
     try:
         with exc:
             return bool(exc.headers.get("Retry-After")) and json.load(exc).get("detail") == PAUSE_MESSAGE
+    except (ValueError, AttributeError):
+        return False
+
+
+def verify_expected_private(exc: HTTPError, path: str, availability: dict) -> bool:
+    product = known_app_for_path(path)
+    if not product or availability.get(product["product"], {}).get("private") is not True or exc.code not in {401, 403}:
+        return False
+    try:
+        with exc:
+            return (exc.headers.get("Cache-Control") == "private, no-store" and
+                    json.load(exc).get("detail") in {"Aplicación privada. Entra con una cuenta invitada.", "Esta aplicación requiere una invitación de administración."})
     except (ValueError, AttributeError):
         return False
 
@@ -62,6 +80,9 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         connection.execute(text("SELECT id, expires_at FROM profesor_editor_drafts LIMIT 0"))
         connection.execute(text("SELECT id, estimated_usd, product_code FROM profesor_provider_calls LIMIT 0"))
         connection.execute(text("SELECT id, request_id, status FROM ai_requests LIMIT 0"))
+        connection.execute(text("SELECT id, app_id, revision FROM private_app_accounts LIMIT 0"))
+        connection.execute(text("SELECT id, account_id, expires_at FROM private_app_sessions LIMIT 0"))
+        connection.execute(text("SELECT account_id, revision, data FROM private_app_progress LIMIT 0"))
         connection.execute(text("SELECT id, send_key, product_code FROM profesor_notifications LIMIT 0"))
         connection.execute(text("SELECT notification_id, user_id, read_at, dismissed_at FROM profesor_notification_recipients LIMIT 0"))
     checks = {
@@ -84,7 +105,11 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/profesor/accesos-alumnos": b"Accesos Alumnos",
         "/profesor/anunciar": b"Publica tu anuncio gratis",
         "/profesor/anuncios": "Tablón de profesores".encode("utf-8"),
-        "/sitemap.xml": b"/profesor/juegos-interactivos",
+        "/sitemap.xml": b"<urlset",
+        "/gadeos": b"Nombre de tributo",
+        "/private-app-assets/gadeos/app.js": b"/api/private-apps/gadeos",
+        "/private-app-assets/gadeos/style.css": b".journey",
+        "/private-app-assets/gadeos/arena.svg": b"<svg",
         "/api/profesor/ads": b'"ads"',
         "/cambridge-info": b"/auth/google/login?next=%2Fcambridge",
         "/cambridge": b"/auth/google/login?next=%2Fcambridge",
@@ -371,6 +396,9 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
     }
     with urlopen(base + "/api/public/app-availability", timeout=20) as response:
         availability = json.load(response)["apps"]
+    with Session(engine) as db:
+        gadeos = app_definition(db, "gadeos")
+        availability["GADEOS"] = {"paused": gadeos["state"] == "pausada", "private": True}
     for product in PAUSABLE_PATHS.values():
         assert isinstance(availability[product]["paused"], bool), f"Estado de pausa inválido: {product}"
     print("OK /api/public/app-availability")
@@ -383,6 +411,9 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
                 assert response.status == 200 and expected in data, f"Respuesta incorrecta: {path}"
                 if path == "/api/profesor/ad-policy":
                     verify_ad_policy(data)
+                if path == "/sitemap.xml":
+                    for product, url in [("PROFESOR_PARTICULAR", b"/profesor/juegos-interactivos"), ("CAMBRIDGE", b"/cambridge-info")]:
+                        assert (url not in data) if availability[product].get("private") else (url in data), "El sitemap no respeta el acceso configurado"
                 if path == "/":
                     assert b'href="/profesor"' in data, "Falta Profesor Particular en la portada"
                 if path == "/profesor":
@@ -397,6 +428,9 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
                 if path == "/e25":
                     assert b'href="/e25/register"' not in data and b'href="/e25/login"' not in data, "La landing de ESO Adultos ofrece un acceso distinto de Google"
         except HTTPError as exc:
+            if verify_expected_private(exc, path, availability):
+                print(f"OK {path} (acceso privado configurado)")
+                continue
             if verify_expected_pause(exc, path, availability):
                 print(f"OK {path} (pausa configurada)")
                 continue
@@ -409,7 +443,11 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         try:
             urlopen(base + f"/api/state?app={product}", timeout=20)
         except HTTPError as exc:
-            assert exc.code == 401, f"El estado privado de {product} debe requerir autenticación"
+            code, path = ("PROFESOR_PARTICULAR", "/profesor-particular") if product == "profesor_particular" else ("CAMBRIDGE", "/cambridge")
+            if exc.code == 503:
+                assert availability.get(code, {}).get("private") is True and verify_expected_pause(exc, path, availability), f"Pausa inesperada del estado privado de {product}"
+            else:
+                assert exc.code == 401, f"El estado privado de {product} debe requerir autenticación"
             assert exc.headers.get("Cache-Control") == "private, no-store", f"El estado privado de {product} permite caché"
             assert exc.headers.get("X-Robots-Tag") == "noindex, nofollow", f"El estado privado de {product} permite indexación"
         else:

@@ -25,21 +25,56 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
   let publications;
   let replyTo;
   let adjustment;
+  let scope = '';
+  let scopeApps = [];
+  try { scope = localStorage.getItem('terrace-chat-scope') || ''; } catch {}
   const draftKey = 'terrace-chat-draft';
+  const scopedDraftKey = () => draftKey + (scope ? ':' + scope : '');
+  const scopedPendingKey = () => pendingKey + (scope ? ':' + scope : '');
   try {
-    const draft = JSON.parse(localStorage.getItem(draftKey));
+    const draft = JSON.parse(localStorage.getItem(scopedDraftKey()));
     if (draft && !pending) { input.value = draft.text || ''; replyTo = draft.replyTo; adjustment = draft.adjustment; }
   } catch {}
   try {
-    pending = JSON.parse(sessionStorage.getItem(pendingKey));
+    pending = JSON.parse(sessionStorage.getItem(scopedPendingKey()));
     if (pending) { input.value = pending.text; mode.value = pending.mode || 'auto'; provider.value = pending.provider || 'codex'; replyTo = pending.replyTo; }
   } catch {}
+
+  function switchScope(next) {
+    if (sending) { feedback('El mensaje se está guardando. Puedes cambiar de sección enseguida.'); return; }
+    saveDraft(); scope = next || ''; replyTo = undefined; adjustment = undefined; input.value = ''; pending = undefined;
+    try {
+      localStorage.setItem('terrace-chat-scope', scope);
+      const draft = JSON.parse(localStorage.getItem(scopedDraftKey()));
+      if (draft) { input.value = draft.text || ''; replyTo = draft.replyTo; adjustment = draft.adjustment; }
+      pending = JSON.parse(sessionStorage.getItem(scopedPendingKey()));
+      if (pending) {
+        input.value = pending.text || '';
+        if (provider.value !== (pending.provider || 'codex')) { provider.value = pending.provider || 'codex'; catalog = []; model.replaceChildren(); loadModels(); }
+        else if (catalog.some(item => item.id === pending.model)) model.value = pending.model;
+      }
+    } catch {}
+    if (snapshot) { const previous = snapshot; snapshot = undefined; render(previous); }
+    controls();
+  }
+  $('chat-general').addEventListener('click', () => switchScope(''));
+  window.addEventListener('terrace-chat-scope', event => {
+    if (!scopeApps.some(app => app.id === event.detail.app)) scopeApps.push({ id: event.detail.app, name: event.detail.name || event.detail.app });
+    switchScope(event.detail.app + '/' + event.detail.area); input.focus();
+  });
+  api('/api/apps/catalogo').then(data => { scopeApps = data.apps; controls(); }).catch(() => {});
 
   const visible = () => !$('chat-title').closest('[data-page]').hidden;
   const isWorking = () => snapshot?.messages.some(item => item.state === 'working');
   const queued = () => snapshot?.messages.filter(item => item.state === 'queued').length || 0;
   const hasPending = () => isWorking() || queued() > 0;
   function controls() {
+    const strip = $('chat-context');
+    strip.hidden = !scope;
+    const [scopeApp, area] = scope.split('/');
+    $('chat-context-label').textContent = (scopeApps.find(app => app.id === scopeApp)?.name || scopeApp || '') + ' · ' + ({ app: 'App', landing: 'Landing', redes: 'Redes sociales' })[area];
+    $('chat-general').disabled = sending;
+
     submit.disabled = !snapshot || !model.value || sending;
     $('chat-status').textContent = sending ? 'Enviando…' : queued() ?
       queued() + ' en espera. Se enviarán automáticamente cuando termine el trabajo actual.' :
@@ -61,14 +96,14 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
       if (adjustment) context.append(element('span', '', 'Ajustando: ' + adjustment.title), button('Cancelar ajuste', () => { adjustment = undefined; saveDraft(); controls(); }));
     }
   }
-  function saveDraft() { try { localStorage.setItem(draftKey, JSON.stringify({ text: input.value, replyTo, adjustment })); } catch {} }
+  function saveDraft() { try { localStorage.setItem(scopedDraftKey(), JSON.stringify({ text: input.value, replyTo, adjustment })); } catch {} }
   input.addEventListener('input', saveDraft);
   window.addEventListener('terrace-compose', event => {
     const detail = event.detail || {};
     if (!input.value.trim()) input.value = detail.text || (detail.app ? 'En ' + (getState()?.projectProfiles?.[detail.app]?.name || detail.app) + ': ' : '');
     saveDraft(); input.focus();
   });
-  function respond(item) { adjustment = undefined; replyTo = item.id; mode.value = 'auto'; saveDraft(); controls(); form.scrollIntoView({ block: 'center' }); input.focus(); }
+  function respond(item) { if ((item.scope || '') !== scope) switchScope(item.scope || ''); adjustment = undefined; replyTo = item.id; mode.value = 'auto'; saveDraft(); controls(); form.scrollIntoView({ block: 'center' }); input.focus(); }
 
   function render(data) {
     clearTimeout(timer);
@@ -78,11 +113,11 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
     snapshot = data;
     $('chat-restart').hidden = !data.needsRestart;
     if (changed) {
-      renderQueue({ state: getState(), messages: data.messages, host: log, element, button, respond, openReport: openDelivery,
+      renderQueue({ state: getState(), messages: data.messages, host: log, element, button, respond, scope, openReport: openDelivery,
         adjust: delivery => { replyTo = undefined; adjustment = { key: delivery.key, title: delivery.encargo }; saveDraft(); controls(); form.scrollIntoView({ block: 'center' }); input.focus(); },
         retry: id => action('/api/encargos/reintentar-subida', { id }),
         resume: id => action('/api/encargos/retomar', { id }),
-        retryMessage: item => action('/api/chat', { id: item.id, provider: item.provider || 'codex', mode: item.mode, model: item.model, text: item.text, ...(item.replyTo ? { replyTo: item.replyTo } : {}) }),
+        retryMessage: item => action('/api/chat', { id: item.id, provider: item.provider || 'codex', mode: item.mode, model: item.model, text: item.text, ...(item.scope ? { scope: item.scope } : {}), ...(item.replyTo ? { replyTo: item.replyTo } : {}) }),
       });
     }
     controls();
@@ -140,7 +175,7 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
     if (!text) return formMessage(form, 'Escribe un mensaje para Codex.');
     if (adjustment) {
       if (!pending || pending.key !== adjustment.key || pending.text !== text) pending = { id: crypto.randomUUID(), key: adjustment.key, text };
-      try { sessionStorage.setItem(pendingKey, JSON.stringify(pending)); } catch {}
+      try { sessionStorage.setItem(scopedPendingKey(), JSON.stringify(pending)); } catch {}
       sending = true; controls(); formMessage(form);
       try {
         const submitted = pending;
@@ -149,18 +184,18 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
         if (adjustment?.key === submitted.key) adjustment = undefined;
         if (input.value.trim() === text) input.value = '';
         saveDraft();
-        try { sessionStorage.removeItem(pendingKey); } catch {}
+        try { sessionStorage.removeItem(scopedPendingKey()); } catch {}
         await load();
       } catch (error) { formMessage(form, error.message); }
       finally { sending = false; controls(); }
       return;
     }
     mode.value = pending?.text === text ? pending.mode || 'auto' : 'auto';
-    const request = { text, provider: provider.value, model: model.value, mode: mode.value, ...(replyTo ? { replyTo } : {}) };
-    if (!pending || ['text', 'provider', 'model', 'mode', 'replyTo'].some(key => request[key] !== (key === 'provider' ? pending[key] || 'codex' : pending[key]))) {
+    const request = { ...(scope ? { scope } : {}), text, provider: provider.value, model: model.value, mode: mode.value, ...(replyTo ? { replyTo } : {}) };
+    if (!pending || ['text', 'provider', 'model', 'mode', 'replyTo', 'scope'].some(key => request[key] !== (key === 'provider' ? pending[key] || 'codex' : pending[key]))) {
       pending = { id: crypto.randomUUID(), ...request };
     }
-    try { sessionStorage.setItem(pendingKey, JSON.stringify(pending)); } catch {}
+    try { sessionStorage.setItem(scopedPendingKey(), JSON.stringify(pending)); } catch {}
     sending = true;
     formMessage(form);
     controls();
@@ -170,7 +205,7 @@ export function setupChat({ api, element, button, feedback, formMessage, getStat
       if (input.value.trim() === text && model.value === request.model && mode.value === request.mode) { input.value = ''; replyTo = undefined; saveDraft(); }
       pending = null;
       mode.value = 'auto';
-      try { sessionStorage.removeItem(pendingKey); } catch {}
+      try { sessionStorage.removeItem(scopedPendingKey()); } catch {}
       input.focus();
     } catch (error) { formMessage(form, error.message); }
     finally { sending = false; controls(); }

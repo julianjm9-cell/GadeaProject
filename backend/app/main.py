@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -12,6 +12,8 @@ from app.config import get_settings
 from app.database.runtime_schema import ensure_runtime_schema
 from starlette.responses import HTMLResponse, JSONResponse
 from app.services.app_availability import PAUSE_MESSAGE
+from app.services.app_registry import enforce_managed_access
+from app.api import private_apps
 
 
 settings = get_settings()
@@ -19,11 +21,15 @@ try:
     ensure_runtime_schema()
 except Exception:
     pass
-app = FastAPI(title=settings.app_name)
+app = FastAPI(title=settings.app_name, dependencies=[Depends(enforce_managed_access)])
 
 
 @app.exception_handler(HTTPException)
 async def paused_application_page(request: Request, exc: HTTPException):
+    if exc.status_code == 401 and str(exc.detail).startswith("Aplicación privada") and "text/html" in request.headers.get("accept", ""):
+        from starlette.responses import RedirectResponse
+        from urllib.parse import quote
+        return RedirectResponse('/login?next=' + quote(request.url.path, safe=''), status_code=303, headers={"Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow"})
     if exc.status_code != 503 or exc.detail != PAUSE_MESSAGE or "text/html" not in request.headers.get("accept", ""):
         return await http_exception_handler(request, exc)
     html = ('<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
@@ -37,7 +43,7 @@ async def paused_application_page(request: Request, exc: HTTPException):
 @app.middleware("http")
 async def protect_ads(request, call_next):
     path = request.scope.get("path", "")
-    if request.method in {"POST", "PUT", "PATCH", "DELETE"} and (request.cookies.get("diplomator_access") or request.cookies.get("profesor_student_access")):
+    if request.method in {"POST", "PUT", "PATCH", "DELETE"} and (request.cookies.get("diplomator_access") or request.cookies.get("profesor_student_access") or any(name.startswith("educame_private_") for name in request.cookies)):
         origin=request.headers.get("origin")
         if origin and origin not in {*settings.cors_origin_list, settings.public_base_url.rstrip("/")}:
             return JSONResponse({"detail":"Origen no permitido."},status_code=403,headers={"Cache-Control":"private, no-store"})
@@ -54,9 +60,11 @@ async def protect_ads(request, call_next):
         limit = 11_300_000  # Preserve existing 8 MiB uploads encoded as base64.
     elif protected:
         limit = 7_100_000
+    elif path == "/admin/apps/gadeos/images":
+        limit = 7_100_000
     elif path.startswith("/api/profesor/editor-drafts/"):
         limit = 1_100_000
-    bounded = protected or path in {"/api/state", "/api/study-appearance", "/api/chat", "/api/ocr", "/api/transcribe"} or path.startswith(("/auth/", "/api/profesor/", "/api/app-notifications/"))
+    bounded = protected or path in {"/api/state", "/api/study-appearance", "/api/chat", "/api/ocr", "/api/transcribe"} or path.startswith(("/auth/", "/api/profesor/", "/api/app-notifications/", "/api/private-apps/", "/admin/apps"))
     if bounded and request.method in {"POST", "PUT", "PATCH"}:
         body = bytearray()
         async for chunk in request.stream():
@@ -74,7 +82,7 @@ async def protect_ads(request, call_next):
             response.headers["X-Robots-Tag"] = "noindex, nofollow"
         if path.startswith("/profesor/anunc"):
             response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'"
-    if private_data:
+    if private_data or getattr(request.state, 'managed_private', False):
         response.headers["Cache-Control"] = "private, no-store"
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["X-Robots-Tag"] = "noindex, nofollow"
@@ -91,6 +99,7 @@ app.add_middleware(
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=[host.strip() for host in settings.allowed_hosts.split(",") if host.strip()], www_redirect=False)
 
 app.include_router(auth.router)
+app.include_router(private_apps.router)
 app.include_router(profesor_access.router)
 app.include_router(profesor_ads.router)
 app.include_router(profesor_material_sessions.router)

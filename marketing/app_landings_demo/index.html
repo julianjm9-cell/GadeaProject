@@ -34,6 +34,7 @@
 <script>
 fetch('/api/public/app-availability',{credentials:'same-origin'}).then(response=>response.ok?response.json():null).then(data=>{
   for(const card of document.querySelectorAll('[data-product]')){
+    if(data?.apps?.[card.dataset.product]?.private){card.hidden=true;continue;}
     if(!data?.apps?.[card.dataset.product]?.paused)continue;
     card.classList.add('paused');card.setAttribute('aria-disabled','true');card.removeAttribute('href');
     const state=card.querySelector('.state');if(state)state.textContent='Pausado temporalmente';

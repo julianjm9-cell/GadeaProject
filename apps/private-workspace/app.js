@@ -1,0 +1,13 @@
+const $ = id => document.getElementById(id), app = location.pathname.split('/').filter(Boolean).at(-1), root = '/api/private-apps/' + encodeURIComponent(app);
+let state;
+async function api(path, body) { const response = await fetch(root + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}); const data = await response.json(); if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Revisa los datos.'); return data; }
+function render() { $('access').hidden = true; $('workspace').hidden = false; $('title').textContent = state.app.name; document.title = state.app.name; $('greeting').textContent = 'Hola, ' + state.account.name; $('notes').elements.text.value = state.text; tabs(); }
+function tabs() { $('home').hidden = location.hash === '#espacio'; $('notes').hidden = location.hash !== '#espacio'; }
+window.addEventListener('hashchange', tabs);
+$('login').addEventListener('submit', async event => { event.preventDefault(); const submit = event.target.querySelector('button'); submit.disabled = true; try { await api('/login', Object.fromEntries(new FormData(event.target))); event.target.elements.password.value = ''; state = await api('/state'); render(); $('message').textContent = ''; } catch (error) { $('message').textContent = error.message; } finally { submit.disabled = false; } });
+$('notes').addEventListener('submit', async event => { event.preventDefault(); const submit = event.target.querySelector('button'), text = event.target.elements.text.value; submit.disabled = true; try { state = await api('/workspace', { text, revision: state.revision, request_id: crypto.randomUUID() }); $('message').textContent = 'Guardado.'; } catch (error) { $('message').textContent = error.message; } finally { submit.disabled = false; } });
+$('logout').addEventListener('click', async () => { try { await api('/logout', {}); state = null; $('access').hidden = false; $('workspace').hidden = true; } catch (error) { $('message').textContent = error.message; } });
+api('/state').then(data => { state = data; render(); }).catch(() => {});
+
+api('/info').then(data => { document.title = data.name; document.querySelector('#access h1').textContent = data.name; $('register').hidden = !data.registration_enabled; }).catch(() => {});
+$('register').addEventListener('click', async () => { const form=$('login');if(!form.reportValidity())return;$('register').disabled=true;try{await api('/register',Object.fromEntries(new FormData(form)));$('message').textContent='Cuenta creada. Ya puedes entrar.';}catch(error){$('message').textContent=error.message;}finally{$('register').disabled=false;}});

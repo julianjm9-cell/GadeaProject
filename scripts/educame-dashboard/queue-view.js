@@ -6,14 +6,17 @@ export function queueEntries(state, messages = []) {
   for (const batch of state.batches || []) for (const task of batch.tasks) {
     if (seen.has(task.id) || continued.has(task.id)) continue;
     seen.add(task.id);
-    const source = messages.find(message => message.batchId === batch.id);
+    const source = messages.find(message => message.batchId === batch.id) || (task.continuar && messages.find(message => message.taskIds?.includes(task.continuar) || message.taskId === task.continuar));
     const delivery = state.history.find(item => item.id === task.id && item.mode === batch.mode);
     const push = state.board.pushes?.['implementacion/' + task.id];
     const uploaded = push?.integratedRevision && (!delivery || push.commit === delivery.implementation?.commit);
     const attempt = state.automaticUploads?.[task.id];
     const job = batch.jobs[task.id];
+    const external = job?.externalCompletion;
+    const resolved = /^[a-f0-9]{40}$/.test(external?.revision || '') && typeof external.summary === 'string';
     let status = 'queued', detail = 'Empezará automáticamente cuando llegue su turno.';
-    if (uploaded) { status = push.undoneRevision ? 'undone' : 'completed'; detail = push.undoneRevision ? 'Se ha deshecho esta subida.' : 'Guardado en GitHub · ' + push.integratedRevision.slice(0, 7); }
+    if (resolved) { status = 'completed'; detail = external.summary + ' · GitHub ' + external.revision.slice(0, 7); }
+    else if (uploaded) { status = push.undoneRevision ? 'undone' : 'completed'; detail = push.undoneRevision ? 'Se ha deshecho esta subida.' : 'Guardado en GitHub · ' + push.integratedRevision.slice(0, 7); }
     else if (['failed', 'attention'].includes(attempt?.state)) { status = 'attention'; detail = attempt.message; }
     else if (attempt?.state === 'uploading') { status = 'publishing'; detail = 'Comprobando e integrando los cambios para subirlos a GitHub.'; }
     else if (batch.state === 'paused' || failing.has(job?.status)) { status = 'attention'; detail = job?.error || batch.error || delivery?.error || 'El encargo necesita una corrección. Su copia sigue guardada.'; }
@@ -41,10 +44,10 @@ export function queueEntries(state, messages = []) {
   return entries.sort((a, b) => order[a.status] - order[b.status] || (b.at || '').localeCompare(a.at || ''));
 }
 
-export function renderQueue({ state, messages, host, element, button, respond, retry, resume, retryMessage, adjust, openReport }) {
+export function renderQueue({ state, messages, host, element, button, respond, retry, resume, retryMessage, adjust, openReport, scope = '' }) {
   const labels = { queued: 'En cola', running: 'En curso', publishing: 'Subiendo a GitHub', completed: 'Completado',
     question: 'Necesita tu respuesta', attention: 'Necesita atención', undone: 'Deshecho' };
-  const entries = queueEntries(state, messages);
+  const entries = queueEntries(state, messages).filter(row => !scope || row.source?.scope === scope);
   for (const [id, statuses] of [['queue-waiting', ['queued']], ['queue-active', ['running', 'publishing']], ['queue-done', ['completed']]]) {
     document.getElementById(id).textContent = entries.filter(row => statuses.includes(row.status)).length;
   }
@@ -65,7 +68,7 @@ export function renderQueue({ state, messages, host, element, button, respond, r
     if (row.delivery?.mode === 'real') actions.append(button('Ver resultado', () => openReport(row.delivery)));
     if (row.source?.state === 'question' && !row.source.answeredBy) actions.append(button('Responder', () => respond(row.source)));
     if (row.publicationRetry) actions.append(button('Reintentar', () => retry(row.id)));
-    else if (row.batch?.state === 'paused') actions.append(button('Retomar', () => resume(row.batch.id)));
+    else if (row.status !== 'completed' && row.batch?.state === 'paused') actions.append(button('Retomar', () => resume(row.batch.id)));
     else if (row.source?.retryable) actions.append(button('Reintentar', () => retryMessage(row.source)));
     else if (row.status === 'attention' && row.delivery?.implementation) actions.append(button('Pedir ajuste', () => adjust(row.delivery)));
     else if (row.status === 'attention' && row.source && !row.source.answeredBy) actions.append(button('Pedir ajuste', () => respond(row.source)));

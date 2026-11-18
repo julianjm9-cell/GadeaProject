@@ -8,6 +8,7 @@ import { setupAgentEditor } from './agent-editor.js';
 import { setupChat } from './chat.js';
 import { setupWorkProgress } from './work-progress.js';
 import { setupPublication } from './publication.js';
+import { setupAppCatalog } from './app-catalog.js';
 
 const agents = Object.create(null);
 const agentName = item => item.agentName || agents[item.agente]?.name || item.agente;
@@ -718,6 +719,7 @@ const agentEditor = setupAgentEditor({ api, button, formMessage, getState: () =>
     render();
   },
 });
+setupAppCatalog({ api, element, button, feedback });
 const chat = setupChat({ api, element, button, feedback, formMessage, getState: () => state, openDelivery });
 const workProgress = setupWorkProgress({ element, button, badge, openDelivery,
   upload: keys => publicationClient.upload(keys) });

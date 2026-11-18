@@ -9,6 +9,9 @@ COPY backend/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY backend /app
+COPY apps/gadeos /app/app/static/gadeos
+COPY apps/private-workspace /app/app/static/private-workspace
+COPY apps/custom /app/app/static/custom
 COPY apps/ocr/index.html /app/app/ocr_engine/aliot-suite.html
 COPY apps/diplomator/index.html /app/app/static/student.html
 COPY apps/diplomator/assets/diplomator-refresh.css /app/app/static/assets/diplomator-refresh.css
