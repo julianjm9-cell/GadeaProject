@@ -16,7 +16,7 @@ async function fixture(t){
  assert.fail('El backend de ensayo no responde.');
 }
 for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440,height:1000}],['WebKit móvil',webkit,{width:390,height:844}]]){
- test(`GADEOS completa nueve pruebas, recupera una respuesta perdida y gana la batalla con API real en ${name}`,{timeout:90000},async t=>{
+ test(`GADEOS completa diez pruebas, recupera una respuesta perdida y gana la batalla con API real en ${name}`,{timeout:90000},async t=>{
   const base=await fixture(t),browser=await engine.launch(name.startsWith('Chromium')?{channel:'msedge'}:{});t.after(()=>browser.close());
   const page=await browser.newPage({viewport});page.setDefaultTimeout(10000);const errors=[];page.on('pageerror',error=>errors.push(error.message));
   const signed=await page.request.post(base+'/auth/login',{data:{email:'organizador@example.invalid',password:'ensayo-temporal-123'}});assert.equal(signed.status(),200);const token=(await signed.json()).access_token;
@@ -73,22 +73,14 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   await page.reload();await page.locator('.leaflet-container').waitFor();assert.equal(await page.locator('[data-restaurant]').count(),12);assert.equal(await page.locator('.refuge-marker').count(),1);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.locator('.bottom-nav a[href="#recorrido"]').click();assert.equal(await page.locator('[data-station="2"]').isEnabled(),false);
-  assert.equal(await page.locator('[data-station]').count(),9);
-  await page.waitForFunction(()=>document.querySelector('.journey-map')?.naturalWidth>0);
+  assert.equal(await page.locator('[data-station]').count(),2);
+  await page.waitForFunction(()=>document.querySelector('.journey-bus .journey-map')?.naturalWidth>0);
   async function checkRoute(){
-   const geometry=await page.locator('.journey').evaluate(root=>{
-    const image=root.querySelector('.journey-map').getBoundingClientRect();
-    return {width:image.width,height:image.height,ratio:image.height/image.width,nodes:[...root.querySelectorAll('[data-station]')].map(node=>{const box=node.getBoundingClientRect();return {text:node.textContent,width:box.width,height:box.height,x:100*(box.x+box.width/2-image.x)/image.width,y:100*(box.y+box.height/2-image.y)/image.height};})};
-   });
-   assert.ok(Math.abs(geometry.ratio-1.5)<.01,'La imagen conserva sus proporciones sin recortes.');
-   const stops=[[58,93],[47,82],[70,72],[40,65],[28,55.5],[64,50.5],[20,35.6],[75,28.5],[49,23.3]];
-   geometry.nodes.forEach((node,i)=>{assert.equal(node.text,String(i+1));assert.ok(node.width>=48&&node.width<=61&&Math.abs(node.width-node.height)<1);assert.ok(Math.abs(node.x-stops[i][0])<.4&&Math.abs(node.y-stops[i][1])<.4,'Cada número sigue el camino al cambiar de tamaño.');});
-   for(let i=0;i<geometry.nodes.length;i++)for(let j=i+1;j<geometry.nodes.length;j++){const a=geometry.nodes[i],b=geometry.nodes[j];assert.ok(Math.hypot((a.x-b.x)*geometry.width/100,(a.y-b.y)*geometry.height/100)>(a.width+b.width)/2,'Los botones circulares no se superponen.');}
-   assert.equal(await page.locator('.station-copy,.station-pack').count(),0);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+   assert.equal(await page.locator('.journey-town .town-anchor').count(),6);
+   const pins=await page.locator('.journey-town .station').evaluateAll(nodes=>nodes.map(node=>node.getBoundingClientRect().toJSON()));
+   for(let i=0;i<pins.length;i++)for(let j=i+1;j<pins.length;j++)assert.ok(Math.hypot(pins[i].x-pins[j].x,pins[i].y-pins[j].y)>=48,'Los puntos del mapa se pueden pulsar por separado.');
   }
-  for(const width of [320,768,1440]){await page.setViewportSize({width,height:viewport.height});await checkRoute();}
-  await page.setViewportSize(viewport);await checkRoute();
   async function checkReward(){
    const overlay=page.locator('#reward');await overlay.waitFor({state:'visible'});
    assert.equal(await overlay.locator('.earned-pack').count(),2);
@@ -101,7 +93,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   }
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-route-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   let lost=false;await page.route('**/stations/answer',async route=>{const body=route.request().postDataJSON();if(!lost&&body.station===1&&body.answer===config.stations[0].solution){lost=true;await route.fetch();return route.abort();}return route.continue();});
-  for(let i=0;i<9;i++){
+  for(const i of [0,1,7,3,6,4,2,5,9,8]){
    await page.locator(`[data-station="${i+1}"]`).click().catch(async error=>{await page.screenshot({path:'.educame-agents/chinchon-click-failed.png',fullPage:true,animations:'disabled'});throw Error(error.message+'; estado='+JSON.stringify(await page.locator(`[data-station="${i+1}"]`).evaluate(node=>({style:getComputedStyle(node).transform,box:node.getBoundingClientRect().toJSON(),animations:node.getAnimations().map(a=>({state:a.playState,time:a.currentTime})),dialogs:[...document.querySelectorAll('dialog[open]')].map(d=>d.id)}))));});const dialog=page.locator('#challenge');await dialog.waitFor();const input=dialog.getByLabel('Tu respuesta',{exact:true});
    if(i===0){if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-question-'+name.split(' ')[0]+'.png'),animations:'disabled'});await input.fill('INCORRECTO');await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();await dialog.getByRole('alert').waitFor({state:'visible'});assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);}
    assert.equal(await dialog.locator('input').count(),1);assert.equal(await dialog.locator('.choice-list,.memory-board,.order-slot').count(),0);
@@ -110,16 +102,46 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
    await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();
    if(i===0){await dialog.getByRole('alert').waitFor({state:'visible'});await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();}
    await checkReward();
-   const saved=await (await page.request.get(base+'/api/arena-hambre/state')).json();assert.equal(saved.secret_discovered,i>=7);
+   const saved=await (await page.request.get(base+'/api/arena-hambre/state')).json();assert.equal(saved.secret_discovered,false);
    if(i===0&&process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-pack-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
    if(i%3===0)await page.keyboard.press('Enter');else if(i%3===1)await page.locator('#reward').click();else await page.keyboard.press('Escape');
    await page.locator('#reward').waitFor({state:'hidden'});
+   if(i===1){
+    assert.equal(await page.locator('.journey-bus').count(),0);
+    await page.waitForFunction(()=>document.querySelector('.journey-town .journey-map')?.naturalWidth>0);
+    for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:viewport.height});await checkRoute();}
+    await page.setViewportSize(viewport);
+    assert.equal(await page.locator('[data-station="8"]').isEnabled(),true);
+    assert.equal(await page.locator('[data-station="9"]').isEnabled(),false);
+    assert.equal(await page.locator('[data-station="10"]').isEnabled(),false);
+    await page.locator('.bottom-nav a[href="#batalla"]').click();
+    await page.getByRole('heading',{name:'La arena aún no está abierta'}).waitFor();
+    await page.locator('.bottom-nav a[href="#recorrido"]').click();
+    await page.waitForFunction(()=>document.querySelector('.journey-town .journey-map')?.naturalWidth>0);
+    if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-town-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
+    const current=await (await page.request.get(base+'/admin/apps/gadeos/campaign',{headers})).json();
+    for(const index of [8,9]){
+     Object.assign(current.stations[index],{title:'Pregunta de ensayo '+index,prompt:'Pregunta de ensayo '+index,solution:'Clave '+index});
+     config.stations[index]=current.stations[index];
+    }
+    assert.equal((await page.request.put(base+'/admin/apps/gadeos/campaign',{headers,data:current})).status(),200);
+    await page.goto(base+'/juegos-del-hambre#recorrido');
+    await page.reload();
+    await page.locator('.journey-town').waitFor();
+   }
+   if(i===7){
+    await page.reload();
+    await page.locator('.journey-town').waitFor();
+    const reopened=await (await page.request.get(base+'/api/arena-hambre/state')).json();
+    assert.deepEqual(reopened.cards.filter(card=>card.owned).map(card=>card.id),[1,2,8]);
+   }
+
    if(i===0){await page.reload();await page.locator('[data-station="2"]').waitFor();assert.equal(await page.locator('[data-station="2"]').isEnabled(),true);assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).cards.filter(card=>card.owned).length,1);
     const before=await (await page.request.get(base+'/api/arena-hambre/state')).json();
     await page.locator('[data-station="1"]').click();await page.locator('#challenge').getByRole('heading',{name:config.stations[0].title,exact:true}).waitFor();
     await page.emulateMedia({reducedMotion:'reduce'});await page.locator('#challenge').getByRole('button',{name:'Ver sobres',exact:true}).click();await checkReward();assert.equal(await page.locator('.earned-pack').first().evaluate(node=>getComputedStyle(node).animationName),'none');await page.mouse.click(5,5);await page.locator('#reward').waitFor({state:'hidden'});
     await page.emulateMedia({reducedMotion:'no-preference'});const after=await (await page.request.get(base+'/api/arena-hambre/state')).json();assert.equal(after.revision,before.revision);assert.equal(after.completed,1);assert.equal(after.cards.filter(card=>card.owned).length,1);
-    await checkRoute();
+
    }
   }
   assert.ok(lost);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

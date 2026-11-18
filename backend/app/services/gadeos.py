@@ -12,7 +12,7 @@ from app.models import AppSetting
 from app.models.private_apps import PrivateAppProgress
 
 CONFIG_KEY = "private_campaign:gadeos"
-STATION_COUNT = 9
+STATION_COUNT = 10
 PUBLIC_PATH = "/juegos-del-hambre"
 PUBLIC_API = "/api/arena-hambre"
 PUBLIC_ASSETS = "/aventura-hambre-assets"
@@ -111,26 +111,25 @@ def media_config(value=None):
 
 
 def default_campaign():
-    titles = ['A tiempo para el bus', 'La adivinanza', 'Llegada a Chinchón', 'Vuestro refugio', 'El atardecer', 'El banquete', 'El séptimo sobre', 'La última llave', 'La novena alianza']
-    cards = ['La partida', 'Ingenio', 'El distrito', 'Refugio', 'Fuego dorado', 'El banquete', 'Complicidad', 'Siempre juntos', 'La novena alianza']
-    prompts = ['¿Qué palabra de siete letras nombra vuestro pacto como tributos? Empieza por ALI.',
-               'No tiene alas y vuela; no tiene pies y corre. Nunca vuelve atrás. ¿Qué es?',
-               '¿Cómo se llama el pueblo al que habéis llegado?',
-               '¿Qué palabra de siete letras nombra un lugar que os protege? Empieza por REF.',
-               '¿Qué línea parece unir el cielo y la tierra al mirar el atardecer?',
-               '¿Cómo se llama el gesto de chocar las copas para celebrar? Empieza por BRI.',
-               '¿Qué palabra secreta aparece en el séptimo sobre?',
-               '¿Cómo se llama vuestra colección de cartas?',
-               'Completa la frase «Siempre ____».']
-    solutions = ['ALIANZA', 'TIEMPO', 'CHINCHON', 'REFUGIO', 'HORIZONTE', 'BRINDIS', 'COMPLICIDAD', 'GADEOS', 'JUNTOS']
-    prompts = [title + '\n' + prompt for title, prompt in zip(titles, prompts)]
-    return {"revision": 0, "challenge_format": 2, "title": "La arena de los recuerdos", "intro": "Un viaje a Chinchón. Nueve pruebas. Vuestra propia alianza.",
+    challenges = [
+        ("¿Cuál es el número del autobús que nos llevó?", "337", "La partida"),
+        ("No tengo alas, pero vuelo. No tengo voz, pero sueno a peligro. Si el tributo acierta, elijo matar. ¿Qué soy?", "Flecha", "Ingenio"),
+        ("¿Cómo se llama nuestro refugio?", "Villa Elisa", "El refugio"),
+        ("¿En qué calle está la Torre del Reloj?", "San Esteban Baja", "La torre"),
+        ("¿A qué advocación de la Virgen está dedicada la iglesia?", "Asunción", "El mirador"),
+        ("¿Con qué apodo se identifica al dueño de la taberna junto al ayuntamiento?", "Arriero", "La taberna"),
+        ("¿Cómo se llama el dramaturgo que ya es amigo por segunda vez?", "Lope de Vega", "El teatro"),
+        ("¿Qué animal aparece en el escudo del pueblo?", "Cabra", "El escudo"),
+        ("", "", "Noveno sobre"),
+        ("", "", "Décimo sobre"),
+    ]
+    return {"revision": 0, "challenge_format": 3, "title": "La arena de los recuerdos", "intro": "Un viaje a Chinchón. Diez pruebas. Vuestra propia alianza.",
             "media": media_config(), "planning": planning_config(),
             "boss": "El centinela de la arena", "ending": "La mejor recompensa es haber recorrido este camino juntos.",
-            "stations": [{"number": i + 1, "title": prompts[i], "story": "",
-                          "kind": "code", "prompt": prompts[i], "options": [], "solution": solutions[i], "clue": "",
-                          "card": {"title": cards[i], "description": "Una carta de vuestra alianza para la batalla final.", "image": None}}
-                         for i in range(STATION_COUNT)]}
+            "stations": [{"number": number, "title": prompt, "story": "",
+                          "kind": "code", "prompt": prompt, "options": [], "solution": solution, "clue": "",
+                          "card": {"title": card, "description": "Una carta de vuestra alianza para la batalla final.", "image": None}}
+                         for number, (prompt, solution, card) in enumerate(challenges, 1)]}
 
 
 def campaign(db):
@@ -138,46 +137,26 @@ def campaign(db):
     result = json.loads(row.value) if row else default_campaign()
     result["media"] = media_config(result.get("media"))
     result["planning"] = planning_config(result.get("planning"))
-    # Preserve old challenges privately while presenting only one-answer questions.
-    defaults = default_campaign()["stations"]
-    if len(result["stations"]) == STATION_COUNT - 1:
-        result["stations"].append(copy.deepcopy(defaults[-1]))
-    if result.get("intro") in {"Un viaje a Chinchón. Ocho sobres. Vuestra propia alianza.", "Un viaje a Chinchón. Nueve sobres. Vuestra propia alianza."}:
-        result["intro"] = default_campaign()["intro"]
-    old_prompts = ['Llega puntual al bus y consigue el código de esta primera parada.', None,
-                   'Habéis llegado a Chinchón. Busca el código del siguiente sobre.',
-                   'Conseguid la habitación y dejad vuestros enseres. Abre el sobre de esta parada.',
-                   'Buscad vuestro lugar para ver el atardecer y consigue el código de esta estación.',
-                   'Conseguid la cena. El siguiente sobre os espera en esta parada.',
-                   'Esta prueba está lista para que el organizador la personalice.',
-                   'Esta prueba está lista para que el organizador la personalice antes de la batalla final.', None]
-    for index, station in enumerate(result["stations"]):
-        if station.get("kind") != "code":
-            station.setdefault("legacy_challenge", {key: copy.deepcopy(station.get(key)) for key in ("kind", "prompt", "options", "solution")})
-            if station.get("kind") != "choice":
-                station["prompt"], station["solution"] = defaults[index]["prompt"], defaults[index]["solution"]
-            station["kind"], station["options"] = "code", []
-        if station.get("prompt") == old_prompts[index]:
-            station["prompt"] = defaults[index]["prompt"]
-        if isinstance(station.get("solution"), str) and "|" in station["solution"]:
-            station.setdefault("legacy_challenge", {key: copy.deepcopy(station.get(key)) for key in ("kind", "prompt", "options", "solution")})
-            station["solution"] = station["solution"].split("|")[0].strip()
-        if result.get("challenge_format") != 2:
-            # Collapse old title/question fields without dropping a personalised clue.
-            title, prompt = station.get("title", "").strip(), station.get("prompt", "").strip()
-            station["title"] = "\n".join(dict.fromkeys(line.strip() for text in (title, prompt) for line in text.splitlines() if line.strip()))
-        station["prompt"] = station["title"]
-    result["challenge_format"] = 2
+    if result.get("challenge_format") != 3:
+        defaults = default_campaign()
+        for new, previous in zip(defaults["stations"], result["stations"]):
+            new["card"] = previous.get("card", new["card"])
+            new["legacy_challenge"] = {key: value for key, value in previous.items() if key != "card"}
+        result["stations"] = defaults["stations"]
+        result["revision"] += 1
+        result["challenge_format"] = 3
+        if re.fullmatch(r"Un viaje a Chinchón\. (?:Ocho|Nueve) (?:sobres|pruebas)\. Vuestra propia alianza\.", result["intro"]):
+            result["intro"] = defaults["intro"]
     return result
 
 
 def validate_campaign(data):
     if not isinstance(data, dict) or not isinstance(data.get("stations"), list) or len(data["stations"]) != STATION_COUNT:
-        raise HTTPException(422, "El recorrido debe contener exactamente nueve pruebas.")
+        raise HTTPException(422, "El recorrido debe contener exactamente diez pruebas.")
     clean = {key: str(data.get(key, ""))[:1500] for key in ("title", "intro", "boss", "ending")}
     clean["media"] = media_config(data.get("media"))
     clean["planning"] = planning_config(data.get("planning"))
-    clean["challenge_format"] = 2
+    clean["challenge_format"] = 3
     clean["stations"] = []
     for index, station in enumerate(data["stations"]):
         if not isinstance(station, dict) or not isinstance(station.get("card", {}), dict):
@@ -187,10 +166,11 @@ def validate_campaign(data):
         solution = station.get("solution")
         if kind != "code" or options != []:
             raise HTTPException(422, "Cada estación debe ser una pregunta con una única respuesta escrita.")
-        if not isinstance(solution, str) or not 1 <= len(solution.strip()) <= 100 or "|" in solution:
-            raise HTTPException(422, "Escribe una única respuesta correcta para la estación.")
         text = station.get("prompt", station.get("title"))
-        if not isinstance(text, str) or not text.strip() or len(text) > 1500:
+        pending = index >= 8 and text == "" and solution == ""
+        if not pending and (not isinstance(solution, str) or not 1 <= len(solution.strip()) <= 100 or "|" in solution):
+            raise HTTPException(422, "Escribe una única respuesta correcta para la estación.")
+        if not pending and (not isinstance(text, str) or not text.strip() or len(text) > 1500):
             raise HTTPException(422, "Escribe el título o pista de cada prueba.")
         card = station.get("card", {})
         clean["stations"].append({"number": index + 1, "kind": kind, "options": options, "solution": solution,
@@ -201,15 +181,38 @@ def validate_campaign(data):
     return clean
 
 
+def completed_stations(data):
+    return set(data.get("completed_stations", range(1, data.get("completed", 0) + 1)))
+
+
+def station_available(number, station, completed):
+    return bool(station["solution"]) and (number == 1 or 1 in completed and (number == 2 or 2 in completed))
+
+
+def collection_discovered(data, config):
+    if data.get("secret_discovered"):
+        return True
+    if "completed_stations" in data:
+        return False
+    return any(
+        normalized(station.get("legacy_challenge", {}).get("solution")) == "gadeos"
+        for station in config["stations"][:data.get("completed", 0)]
+    )
+
+
 def public_campaign(config, completed):
     result = {key: config[key] for key in ("revision", "title", "intro", "boss", "ending")}
     result["media"] = config.get("media", media_config())
     result["planning"] = public_planning(config.get("planning", planning_config()))
     result["stations"] = []
-    for index, station in enumerate(config["stations"]):
-        entry = {"number": index + 1, "title": station["title"] if index <= completed else f"Prueba {index + 1}", "locked": index > completed, "completed": index < completed}
-        if index <= completed:
-            entry.update({"prompt": station["title"], "kind": "code", "options": []})
+    for number, station in enumerate(config["stations"], 1):
+        done = number in completed
+        available = done or station_available(number, station, completed)
+        title = station["title"] or f"Prueba {number}"
+        entry = {"number": number, "title": title if available else f"Prueba {number}", "locked": not available,
+                 "completed": done, "pending": not done and not station["solution"]}
+        if available:
+            entry.update({"prompt": title, "kind": "code", "options": []})
         result["stations"].append(entry)
     return result
 
@@ -217,12 +220,12 @@ def public_campaign(config, completed):
 def progress_payload(db, account):
     row = db.get(PrivateAppProgress, account.id)
     data = copy.deepcopy(row.data or {})
-    completed = data.get("completed", 0)
+    completed = completed_stations(data)
     config = campaign(db)
-    discovered = bool(data.get("secret_discovered")) or any(index < completed and normalized(station["solution"]) == "gadeos" for index, station in enumerate(config["stations"]))
-    return {"account": {"id": str(account.id), "name": account.name}, "revision": row.revision, "completed": completed,
+    discovered = collection_discovered(data, config)
+    return {"account": {"id": str(account.id), "name": account.name}, "revision": row.revision, "completed": len(completed),
             "secret_discovered": discovered, "collection_name": "GADEOS" if discovered else None,
-            "cards": [{"id": i + 1, **(station["card"] if i < completed else {"title": "Sobre " + str(i + 1), "description": "", "image": None}), "owned": i < completed} for i, station in enumerate(config["stations"])],
+            "cards": [{"id": number, **(station["card"] if number in completed else {"title": f"Sobre {number}", "description": "", "image": None}), "owned": number in completed} for number, station in enumerate(config["stations"], 1)],
             "campaign": public_campaign(config, completed), "battle": data.get("battle"), "victory": data.get("victory", False)}
 
 
@@ -257,15 +260,24 @@ def complete_station(db, account, payload):
         raise HTTPException(409, "La prueba se ha actualizado. Vuelve a abrir la estación.")
     station = config["stations"][payload.station - 1]
     answer = payload.answer
-    valid = isinstance(answer, str) and normalized(answer) == normalized(str(station["solution"]).split("|")[0])
+    expected = normalized(station["solution"])
+    submitted = normalized(answer)
+    valid = submitted == expected or (payload.station == 4 and expected == "san esteban baja" and submitted == "san estaban baja")
     def apply(data):
-        if data.get("completed", 0) != payload.station - 1:
-            raise HTTPException(409, "Completa primero la estación anterior. Las estaciones superadas permanecen guardadas.")
+        completed = completed_stations(data)
+        if payload.station in completed:
+            raise HTTPException(409, "Esta prueba ya está completada.")
+        if not station["solution"]:
+            raise HTTPException(409, "Esta prueba aún está pendiente de configurar.")
+        if not station_available(payload.station, station, completed):
+            raise HTTPException(409, "Completa primero las pruebas del autobús.")
         if not valid:
             raise HTTPException(422, "Esa respuesta no es correcta. Revisa la pista e inténtalo de nuevo.")
-        data["completed"] = payload.station
-        if normalized(station["solution"]) == "gadeos":
+        if collection_discovered(data, config) or expected == "gadeos":
             data["secret_discovered"] = True
+        completed.add(payload.station)
+        data["completed_stations"] = sorted(completed)
+        data["completed"] = len(completed)
     return mutate(db, account, payload.revision, payload.request_id, apply)
 
 
@@ -274,8 +286,8 @@ INTENTS = ["strike", "feint", "charge"]
 
 def start_battle(db, account, payload):
     def apply(data):
-        if data.get("completed") != STATION_COUNT:
-            raise HTTPException(403, "La batalla se abre al completar las nueve pruebas.")
+        if len(completed_stations(data)) != STATION_COUNT:
+            raise HTTPException(403, "La batalla se abre al completar las diez pruebas.")
         if not data.get("battle") or data["battle"]["state"] != "playing":
             data["battle"] = {"state": "playing", "energy": 28, "boss_energy": 30, "turn": 0, "focus": 0,
                               "used_cards": [], "intent": "strike", "log": "El centinela prepara un ataque. Elige tu estrategia."}
@@ -285,7 +297,7 @@ def start_battle(db, account, payload):
 def battle_turn(db, account, payload):
     def apply(data):
         battle = data.get("battle")
-        if data.get("completed") != STATION_COUNT or not battle or battle["state"] != "playing":
+        if len(completed_stations(data)) != STATION_COUNT or not battle or battle["state"] != "playing":
             raise HTTPException(409, "Inicia una batalla para jugar este turno.")
         bonus = 0
         if payload.card is not None:

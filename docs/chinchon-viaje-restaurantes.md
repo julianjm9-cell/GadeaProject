@@ -31,4 +31,6 @@ Las cifras son puntuaciones de Google reproducidas por las fuentes enlazadas, co
 
 ## Comprobación
 
-Con datos ficticios: guardar planning por días desde LA TERRAZA, recargar, conservarlo al guardar con un editor anterior, rechazar revisión antigua y horario inválido. En Chromium y WebKit móvil: viernes con cuatro entradas y sábado oculto, cuatro pestañas, mapa cargado, refugio visible y enfocable con todos los filtros, ampliación de grupos, selección del local, enlace a Google Maps, recarga, cero desbordamiento horizontal y partida de nueve pruebas con batalla final.
+El recorrido del juego reutiliza esta geometría con una paleta nocturna y un encuadre en el casco histórico. Los puntos corresponden al [refugio](https://www.openstreetmap.org/node/13249626732), la [torre](https://www.openstreetmap.org/way/1144478502), la [iglesia](https://www.openstreetmap.org/way/1144478506), la [taberna](https://www.openstreetmap.org/node/13249570475), el [teatro](https://www.openstreetmap.org/way/1144478512) y el [ayuntamiento](https://www.openstreetmap.org/way/446651301). Cada número desplazado se une con una línea a su punto real.
+
+Con datos ficticios: guardar planning por días desde LA TERRAZA, recargar, conservarlo al guardar con un editor anterior, rechazar revisión antigua y horario inválido. En Chromium y WebKit móvil: viernes con cuatro entradas y sábado oculto, cuatro pestañas, mapa de restaurantes cargado, refugio visible con todos los filtros, selección del local, enlace a Google Maps, recarga y partida de diez pruebas con recorrido libre tras el autobús.

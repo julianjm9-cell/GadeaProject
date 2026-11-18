@@ -212,14 +212,14 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       const addDayButton = el('button', 'button', 'Añadir día'); addDayButton.type = 'button'; addDayButton.addEventListener('click', () => addDay()); itineraryFields.append(addDayButton); itinerary.append(itineraryFields); form.append(itinerary);
       if (Array.isArray(schedule.days) && schedule.version !== 2) itineraryFields.append(el('p', 'form-message', 'Actualiza Hostinger para activar los bloqueos del planning.'));
       if (!Array.isArray(schedule.days)) { transport.disabled = addDayButton.disabled = true; itineraryFields.append(el('p', 'form-message', 'Actualiza Hostinger para editar el planning por días. Se conserva el planning actual.')); }
-      form.append(el('p', 'muted', 'Nueve pruebas. Cada una tiene únicamente un título o pista y una respuesta correcta. Los cambios conservan el progreso de los tributos.'));
+      form.append(el('p', 'muted', 'Diez pruebas. Las dos últimas quedan pendientes hasta que guardes su pista y respuesta. El progreso de los tributos se conserva.'));
       const cards = el('details', 'campaign-cards'); cards.append(el('summary', '', 'Cartas de recompensa'));
       let imageUploads = 0;
       const entries = [];
       for (const [i, station] of config.stations.entries()) {
-        const details = el('details', 'campaign-station'); details.append(el('summary', '', String(i + 1).padStart(2, '0') + ' · ' + station.title)); const fields = el('div', 'managed-app-form');
+        const details = el('details', 'campaign-station'); details.append(el('summary', '', String(i + 1).padStart(2, '0') + ' · ' + (station.title || 'Pendiente'))); const fields = el('div', 'managed-app-form');
         const title = field(fields, 'Título / pista', 'title', station.title, true), solution = field(fields, 'Respuesta correcta', 'solution', station.solution || '');
-        title.required = true; title.maxLength = 1500; solution.required = true; solution.maxLength = 100; solution.pattern = '[^|]+';
+        title.required = i < 8; title.maxLength = 1500; solution.required = i < 8; solution.maxLength = 100; solution.pattern = '[^|]+';
         title.addEventListener('input', () => { details.querySelector('summary').textContent = String(i + 1).padStart(2, '0') + ' · ' + (title.value || 'Prueba sin título'); });
         const cardFields = el('div', 'managed-app-form'); cardFields.append(el('h4', '', 'Sobre ' + (i + 1)));
         const cardTitle = field(cardFields, 'Nombre de la carta del sobre', 'cardTitle', station.card.title), cardDescription = field(cardFields, 'Descripción de la carta', 'cardDescription', station.card.description, true);
@@ -227,7 +227,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
         let imageUrl = station.card.image;
         const preview = el('img', 'campaign-card-preview'); preview.alt = 'Vista previa de la carta ' + (i + 1); preview.hidden = true; cardFields.append(preview); cards.append(cardFields);
         if (imageUrl) api('/api/operacion/admin/app-image?name=' + encodeURIComponent(imageUrl.split('/').at(-1))).then(data => { if (preview.isConnected) { preview.src = data.data; preview.hidden = false; } }).catch(() => {});
-        image.addEventListener('change', async () => { if (!image.files[0]) return; image.disabled = true; imageUploads++; submit.disabled = true; try { const data = await compressedImage(image.files[0]); const uploaded = await api('/api/operacion/admin/app-image', 'POST', { data }); imageUrl = uploaded.url; preview.src = data; preview.hidden = false; feedback('Imagen preparada. Guarda el recorrido para asignarla a la carta.'); } catch (error) { feedback(error.message, true); } finally { image.disabled = false; imageUploads--; submit.disabled = imageUploads > 0 || config.stations.length !== 9; } });
+        image.addEventListener('change', async () => { if (!image.files[0]) return; image.disabled = true; imageUploads++; submit.disabled = true; try { const data = await compressedImage(image.files[0]); const uploaded = await api('/api/operacion/admin/app-image', 'POST', { data }); imageUrl = uploaded.url; preview.src = data; preview.hidden = false; feedback('Imagen preparada. Guarda el recorrido para asignarla a la carta.'); } catch (error) { feedback(error.message, true); } finally { image.disabled = false; imageUploads--; submit.disabled = imageUploads > 0 || config.stations.length !== 10; } });
         entries.push(() => ({ ...station, number: i + 1, title: title.value, kind: 'code', prompt: title.value,
           options: [], solution: solution.value,
           card: { title: cardTitle.value, description: cardDescription.value, image: imageUrl } }));
@@ -235,7 +235,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       }
       form.append(cards);
       const submit = el('button', 'button primary', 'Guardar recorrido y cartas'); submit.type = 'submit'; form.append(submit);
-      if (config.stations.length !== 9) { submit.disabled = true; form.append(el('p', 'form-message', 'Actualiza Hostinger para activar las nueve pruebas. El recorrido guardado se conserva.')); }
+      if (config.stations.length !== 10) { submit.disabled = true; form.append(el('p', 'form-message', 'Actualiza Hostinger para activar el recorrido de diez pruebas.')); }
       form.addEventListener('submit', async event => { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; try { const updated = await api('/api/operacion/admin/app-campaign', 'POST', { revision: config.revision, media: config.media, planning: { ...schedule, day: day.value, place: place.value, start: start.value, final: final.value, ...(schedule.days || dayReaders.length ? {transport:transport.value,days:dayReaders.map(read => read()).filter(Boolean)} : {}) }, title: title.value, intro: intro.value, boss: boss.value, ending: ending.value, stations: entries.map(read => read()) }); config.revision = updated.revision; feedback('Recorrido guardado. Se conservan las cuentas y las estaciones completadas.'); } catch (error) { feedback(error.message, true); } finally { submit.disabled = false; } });
       host.append(form);
     } catch (error) { host.replaceChildren(el('p', 'form-message', error.message)); }

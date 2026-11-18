@@ -115,6 +115,8 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/aventura-hambre-assets/leaflet.js": b"Leaflet",
         "/aventura-hambre-assets/leaflet.css": b".leaflet-container",
         "/aventura-hambre-assets/town-map.svg": b"<svg",
+        "/aventura-hambre-assets/journey-town.svg": b"<svg",
+        "/aventura-hambre-assets/art/journey-bus-v2.webp": b"RIFF",
         "/aventura-hambre-assets/art/title-lockup-v2.webp": b"RIFF",
         "/api/public/release": b"running_revision",
         "/private-app-assets/gadeos/app.js": b"/api/arena-hambre",

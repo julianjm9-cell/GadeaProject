@@ -3,8 +3,15 @@ const $ = id => document.getElementById(id);
 const apiRoot = '/api/arena-hambre';
 const art = name => '/aventura-hambre-assets/art/' + name + '-v2.webp';
 const total = () => state.campaign.stations.length;
-// Percent coordinates on the native 1024 × 1536 illustration, from the start to the town.
-const routeStops = [[58,93], [47,82], [70,72], [40,65], [28,55.5], [64,50.5], [20,35.6], [75,28.5], [49,23.3]];
+// Geographic coordinates and offsets as percentages of the map.
+const townStops = {
+  3: [40.1398503, -3.4224314, 8, 9], // Refugio
+  4: [40.1408669, -3.4234410, -4, -7], // Torre del Reloj
+  5: [40.1410785, -3.4222572, 10, 0], // Iglesia
+  6: [40.1398678, -3.4229153, 0, -10], // Taberna
+  7: [40.1413820, -3.4228909, 0, -4], // Teatro
+  8: [40.1399504, -3.4230726, -12, 4], // Escudo: ayuntamiento
+};
 let state, busy = false, selectedCard = null;
 const el = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; };
 const icon = name => { const node = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); const use = document.createElementNS(node.namespaceURI, 'use'); use.setAttribute('href', '#i-' + name); node.append(use); node.setAttribute('aria-hidden', 'true'); return node; };
@@ -103,7 +110,7 @@ function home(host) {
   const image = el('img', 'event-poster'); image.src = art('alliance-hero'); image.alt = ''; image.fetchPriority = 'high'; hero.append(image);
   const companions = el('img', 'hero-companions'); companions.src = apiRoot + '/companions.png'; companions.alt = ''; companions.setAttribute('aria-hidden', 'true'); companions.width = 480; companions.height = 728; hero.append(companions);
   const copy = el('div', 'poster-copy'); copy.append(el('p', 'eyebrow', schedule.day + ' · ' + schedule.place), el('h1', '', state.campaign.title), el('p', '', state.campaign.intro)); hero.append(copy); overview.append(hero);
-  const next = el('a', 'primary next-step', state.completed >= total() ? 'Ir a la batalla final →' : state.completed ? 'Continuar: prueba ' + (state.completed + 1) + ' →' : 'Empezar el recorrido →'); next.href = state.completed >= total() ? '#batalla' : '#recorrido'; overview.append(next);
+  const next = el('a', 'primary next-step', state.completed >= total() ? 'Ir a la batalla final →' : state.completed ? 'Continuar el recorrido →' : 'Empezar el recorrido →'); next.href = state.completed >= total() ? '#batalla' : '#recorrido'; overview.append(next);
   const planning = el('section', 'planning'); planning.append(el('h2', '', 'Vuestro planning'));
   if (schedule.transport) planning.append(el('p', 'planning-transport', schedule.transport));
   for (const [index, day] of (schedule.days || []).entries()) {
@@ -122,23 +129,69 @@ function journey(host) {
   const heading = el('header', 'journey-heading'), count = el('span', 'route-count', state.completed + ' / ' + total());
   count.setAttribute('aria-label', state.completed + ' de ' + total() + ' pruebas completadas');
   heading.append(el('h1', '', 'Recorrido'), count); host.append(heading);
-  const list = el('div', 'journey');
-  list.setAttribute('role', 'group'); list.setAttribute('aria-label', 'Camino de las nueve pruebas');
-  const image = el('img', 'journey-map'); image.src = art('journey'); image.alt = ''; image.width = 1024; image.height = 1536; list.append(image);
-  for (const station of state.campaign.stations) {
-    const node = button(String(station.number), () => challenge(station), 'station ' + (station.locked ? 'locked' : station.completed ? 'done' : 'current'));
-    node.disabled = station.locked; node.dataset.station = station.number;
-    node.setAttribute('aria-label', 'Prueba ' + station.number + (station.locked ? ', bloqueada' : station.completed ? ', completada' : ', siguiente prueba'));
-    if (!station.locked && !station.completed) node.setAttribute('aria-current', 'step');
-    const [x, y] = routeStops[station.number - 1]; node.style.left = x + '%'; node.style.top = y + '%'; list.append(node);
+  const [bus, riddle, ...town] = state.campaign.stations;
+  const inTown = riddle.completed;
+  const scene = el('section', 'journey ' + (inTown ? 'journey-town' : 'journey-bus'));
+  scene.setAttribute('aria-label', inTown ? 'Mapa de Chinchón' : 'Viaje en autobús');
+  const image = el('img', 'journey-map');
+  image.src = inTown ? '/aventura-hambre-assets/journey-town.svg' : art('journey-bus');
+  image.alt = '';
+  scene.append(image);
+  host.append(scene);
+  function stop(station, text = String(station.number)) {
+    const control = button(text, () => challenge(station), 'station ' + (station.locked ? 'locked' : station.completed ? 'done' : 'current'));
+    control.disabled = station.locked;
+    control.dataset.station = station.number;
+    const status = station.pending ? 'pendiente de configurar' : station.locked ? 'bloqueada' : station.completed ? 'completada' : 'disponible';
+    control.setAttribute('aria-label', 'Prueba ' + station.number + ', ' + status);
+    return control;
   }
-  host.append(list);
-  requestAnimationFrame(() => {
-    if (!list.isConnected) return;
-    const next = list.querySelector('.current'); if (!next) return;
-    const bounds = next.getBoundingClientRect(), bottom = document.querySelector('.bottom-nav').getBoundingClientRect().top;
-    if (bounds.top < 8 || bounds.bottom > bottom - 12) next.scrollIntoView({ block: 'center' });
-  });
+  if (!inTown) {
+    scene.append(el('h2', 'bus-title', 'De camino a Chinchón'));
+    const stops = el('div', 'bus-stops');
+    stops.append(stop(bus), stop(riddle));
+    scene.append(stops);
+    return;
+  }
+  const lines = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  lines.classList.add('town-lines');
+  lines.setAttribute('aria-hidden', 'true');
+  scene.append(lines);
+  for (const station of town.slice(0, 6)) {
+    const [lat, lon, dx, dy] = townStops[station.number];
+    // The town SVG retains the projection of the restaurants map with a tighter viewBox.
+    const x = ((lon + 3.4255) / .0092 * 1200 - 180) / 390 * 100;
+    const y = ((40.1427 - lat) / .0052 * 900 - 155) / 435 * 100;
+    const line = document.createElementNS(lines.namespaceURI, 'line');
+    for (const [key, value] of Object.entries({ x1: x, y1: y, x2: x + dx, y2: y + dy })) {
+      line.setAttribute(key, value + '%');
+    }
+    lines.append(line);
+    const anchor = el('span', 'town-anchor');
+    anchor.style.left = x + '%';
+    anchor.style.top = y + '%';
+    scene.append(anchor);
+    const control = stop(station);
+    control.style.left = (x + dx) + '%';
+    control.style.top = (y + dy) + '%';
+    scene.append(control);
+  }
+  const credit = el('a', 'town-credit', '© OpenStreetMap · ODbL');
+  credit.href = 'https://www.openstreetmap.org/copyright';
+  credit.target = '_blank';
+  credit.rel = 'noopener noreferrer';
+  scene.append(credit);
+  const extras = el('div', 'journey-extras');
+  for (const station of town.slice(6)) extras.append(stop(station, 'Prueba ' + station.number + (station.pending ? ' · Pendiente' : '')));
+  host.append(extras);
+  const previous = el('div', 'journey-extras journey-previous');
+  previous.append(stop(bus, '1 · Autobús'), stop(riddle, '2 · Adivinanza'));
+  host.append(previous);
+  if (state.completed === total()) {
+    const finale = el('a', 'primary', 'Ir a la batalla final →');
+    finale.href = '#batalla';
+    host.append(finale);
+  }
 }
 
 function challenge(station) {

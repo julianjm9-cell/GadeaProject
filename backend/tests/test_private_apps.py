@@ -27,15 +27,19 @@ def tribute(web, headers, name='Alma'):
     return created.json()
 
 
-def all_stations(web):
-    for station in gadeos.default_campaign()['stations']:
+def all_stations(web, headers):
+    config = web.get('/admin/apps/gadeos/campaign', headers=headers).json()
+    for number in (9, 10):
+        config['stations'][number - 1].update(title=f'Pista {number}', prompt=f'Pista {number}', solution=f'Clave {number}')
+    assert web.put('/admin/apps/gadeos/campaign', headers=headers, json=config).status_code == 200
+    for station in config['stations']:
         state = web.get('/api/private-apps/gadeos/state').json()
         response = web.post('/api/private-apps/gadeos/stations/answer', json={'station': station['number'], 'answer': station['solution'], 'campaign_revision': state['campaign']['revision'], 'revision': state['revision'], 'request_id': str(uuid4())})
         assert response.status_code == 200, response.text
     return response.json()
 
 
-def test_eight_station_campaign_gains_ninth_without_losing_personal_content_or_progress(client):
+def test_eight_station_campaign_gains_pending_trials_without_losing_personal_content_or_progress(client):
     web, factory = client
     headers = admin(web, factory)
     account = tribute(web, headers)
@@ -51,35 +55,40 @@ def test_eight_station_campaign_gains_ninth_without_losing_personal_content_or_p
         progress.data = {'completed': 8, 'victory': True, 'battle': {'state': 'won', 'used_cards': [1]}, 'receipts': ['old-receipt']}
         db.commit()
     state = web.get('/api/private-apps/gadeos/state').json()
-    assert state['completed'] == 8 and len(state['campaign']['stations']) == 9
+    assert state['completed'] == 8 and len(state['campaign']['stations']) == 10
     assert len([card for card in state['cards'] if card['owned']]) == 8
     assert state['cards'][0]['title'] == 'Carta personal conservada'
     assert state['victory'] and state['battle']['state'] == 'won'
-    assert not state['campaign']['stations'][8]['locked']
+    assert all(station['pending'] for station in state['campaign']['stations'][8:])
     start = {'revision': state['revision'], 'request_id': str(uuid4())}
     assert web.post('/api/private-apps/gadeos/battle/start', json=start).status_code == 403
     config = web.get('/admin/apps/gadeos/campaign', headers=headers).json()
-    assert config['stations'][0]['title'] == 'Nuestro autobús\n¿Cuál es nuestra palabra?'
-    assert config['stations'][0]['solution'] == 'RECUERDO'
+    assert config['stations'][0]['legacy_challenge']['title'] == 'Nuestro autobús'
+    assert config['stations'][0]['legacy_challenge']['solution'] == 'RECUERDO'
     stale_eight = {**config, 'stations': config['stations'][:8]}
     assert web.put('/admin/apps/gadeos/campaign', headers=headers, json=stale_eight).status_code == 422
     # The simple editor can send only a title/clue and one answer for every trial.
     minimal = {**config, 'stations': [{'title': station['title'], 'solution': station['solution']} for station in config['stations']]}
+    minimal['stations'][9] = {'title': 'Décima pista personalizada', 'solution': 'ÚLTIMA'}
     minimal['stations'][8] = {'title': 'Novena pista personalizada', 'solution': 'CANCIÓN'}
     saved = web.put('/admin/apps/gadeos/campaign', headers=headers, json=minimal)
     assert saved.status_code == 200, saved.text
     assert saved.json()['stations'][0]['card']['title'] == 'Carta personal conservada'
     assert web.put('/admin/apps/gadeos/campaign', headers=headers, json=minimal).status_code == 409
-    body = {'revision': state['revision'], 'request_id': str(uuid4()), 'campaign_revision': 5, 'station': 9, 'answer': '  cancion '}
+    body = {'revision': state['revision'], 'request_id': str(uuid4()), 'campaign_revision': saved.json()['revision'], 'station': 9, 'answer': '  cancion '}
     completed = web.post('/api/private-apps/gadeos/stations/answer', json=body)
     assert completed.status_code == 200, completed.text
     assert completed.json()['completed'] == 9 and completed.json()['cards'][8]['owned']
     assert web.post('/api/private-apps/gadeos/stations/answer', json=body).json()['reused']
     state = completed.json()
+    assert web.post('/api/private-apps/gadeos/battle/start', json={'revision': state['revision'], 'request_id': str(uuid4())}).status_code == 403
+    last = web.post('/api/private-apps/gadeos/stations/answer', json={**body, 'station': 10, 'answer': 'ultima', 'revision': state['revision'], 'request_id': str(uuid4())})
+    assert last.status_code == 200
+    state = last.json()
     started = web.post('/api/private-apps/gadeos/battle/start', json={'revision': state['revision'], 'request_id': str(uuid4())}).json()
     turn = web.post('/api/private-apps/gadeos/battle/action', json={'revision': started['revision'], 'request_id': str(uuid4()), 'action': 'guard', 'card': 9})
     assert turn.status_code == 200 and turn.json()['battle']['used_cards'] == [9]
-    assert web.get('/admin/apps/gadeos/accounts', headers=headers).json()['station_count'] == 9
+    assert web.get('/admin/apps/gadeos/accounts', headers=headers).json()['station_count'] == 10
 
 
 def test_gadeos_generated_art_is_available_without_exposing_private_files(client):
@@ -142,32 +151,32 @@ def test_tribute_login_unlocks_in_order_and_duplicate_does_not_duplicate_rewards
     assert state['campaign']['stations'][1]['title'] == 'Prueba 2'
     assert not any(card['owned'] for card in state['cards'])
     assert web.post('/api/private-apps/gadeos/battle/start',json={'revision':0,'request_id':str(uuid4())}).status_code==403
-    body={'revision':0,'request_id':str(uuid4()),'campaign_revision':0,'station':2,'answer':'TIEMPO'}
+    body={'revision':0,'request_id':str(uuid4()),'campaign_revision':0,'station':2,'answer':'Flecha'}
     assert web.post('/api/private-apps/gadeos/stations/answer',json=body).status_code==409
     body.update(station=1,answer='NO')
     assert web.post('/api/private-apps/gadeos/stations/answer',json=body).status_code==422
-    body.update(answer='ALIANZA',request_id=str(uuid4()))
+    body.update(answer='337',request_id=str(uuid4()))
     correct=web.post('/api/private-apps/gadeos/stations/answer',json=body)
     assert correct.status_code==200,correct.text
     assert correct.json()['completed']==1
     duplicate=web.post('/api/private-apps/gadeos/stations/answer',json=body)
     assert duplicate.json()['reused'] and duplicate.json()['revision']==1
     assert len([card for card in duplicate.json()['cards'] if card['owned']])==1
-    body.update(station=2,answer='TIEMPO',request_id=str(uuid4()))
+    body.update(station=2,answer='Flecha',request_id=str(uuid4()))
     assert web.post('/api/private-apps/gadeos/stations/answer',json=body).status_code==409
     assert web.get('/api/private-apps/gadeos/state').json()['completed']==1
 
 
 def test_battle_loss_retry_victory_and_account_isolation(client):
     web,factory=client;headers=admin(web,factory);account=tribute(web,headers)
-    state=all_stations(web)
+    state=all_stations(web, headers)
     def start(state):
         response=web.post('/api/private-apps/gadeos/battle/start',json={'revision':state['revision'],'request_id':str(uuid4())});assert response.status_code==200;return response.json()
     def move(state,action,card=None):
         response=web.post('/api/private-apps/gadeos/battle/action',json={'revision':state['revision'],'request_id':str(uuid4()),'action':action,'card':card});assert response.status_code==200,response.text;return response.json()
     state=start(state)
     while state['battle']['state']=='playing':state=move(state,'attack')
-    assert state['battle']['state']=='lost' and state['completed']==9
+    assert state['battle']['state']=='lost' and state['completed']==10
     state=start(state)
     while state['battle']['state']=='playing':state=move(state,{'strike':'guard','feint':'attack','charge':'focus'}[state['battle']['intent']])
     assert state['victory'] and state['battle']['state']=='won'
@@ -187,9 +196,10 @@ def test_battle_loss_retry_victory_and_account_isolation(client):
 ])
 def test_old_challenges_become_questions_without_exposing_or_losing_originals(client,kind,options,solution):
     web,factory=client;headers=admin(web,factory);tribute(web,headers)
-    earned=web.post('/api/private-apps/gadeos/stations/answer',json={'revision':0,'request_id':str(uuid4()),'campaign_revision':0,'station':1,'answer':'ALIANZA'})
+    earned=web.post('/api/private-apps/gadeos/stations/answer',json={'revision':0,'request_id':str(uuid4()),'campaign_revision':0,'station':1,'answer':'337'})
     assert earned.status_code==200
     config=gadeos.default_campaign()
+    config['challenge_format'] = 2
     config['stations'][1].update(kind=kind,options=options,solution=solution)
     with factory() as db:
         db.add(AppSetting(key=gadeos.CONFIG_KEY,value=json.dumps(config)));db.commit()
@@ -199,13 +209,13 @@ def test_old_challenges_become_questions_without_exposing_or_losing_originals(cl
     assert 'legacy_challenge' not in json.dumps(public)
     config=web.get('/admin/apps/gadeos/campaign',headers=headers).json()
     assert config['stations'][1]['legacy_challenge']['kind']==kind
-    expected=solution if kind=='choice' else 'TIEMPO'
+    expected='Flecha'
     assert config['stations'][1]['solution']==expected
     saved=web.put('/admin/apps/gadeos/campaign',headers=headers,json=config)
     assert saved.status_code==200,saved.text
     assert saved.json()['stations'][1]['legacy_challenge']['kind']==kind
     assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=config).status_code==409
-    answer=web.post('/api/private-apps/gadeos/stations/answer',json={'revision':1,'request_id':str(uuid4()),'campaign_revision':1,'station':2,'answer':expected.lower()})
+    answer=web.post('/api/private-apps/gadeos/stations/answer',json={'revision':1,'request_id':str(uuid4()),'campaign_revision':saved.json()['revision'],'station':2,'answer':expected.lower()})
     assert answer.status_code==200,answer.text
     assert answer.json()['completed']==2
     assert 'legacy_challenge' not in json.dumps(answer.json())
@@ -225,7 +235,7 @@ def test_planning_and_question_edits_preserve_progress_and_older_editors(client)
     config['stations'][1].update(prompt='¿Qué palabra habéis encontrado?',solution='RECUERDO')
     saved=web.put('/admin/apps/gadeos/campaign',headers=headers,json=config)
     assert saved.status_code==200
-    first=web.post('/api/private-apps/gadeos/stations/answer',json={'revision':0,'request_id':str(uuid4()),'campaign_revision':1,'station':1,'answer':'ALIANZA'})
+    first=web.post('/api/private-apps/gadeos/stations/answer',json={'revision':0,'request_id':str(uuid4()),'campaign_revision':1,'station':1,'answer':'337'})
     assert first.status_code==200 and first.json()['completed']==1
     assert first.json()['campaign']['stations'][1]['prompt']=='¿Qué palabra habéis encontrado?'
     assert first.json()['campaign']['planning']==gadeos.public_planning({**gadeos.planning_config(),**config['planning']})
@@ -291,7 +301,7 @@ def test_private_images_unlock_with_card_and_admin_keeps_access(client, monkeypa
     tribute(web, headers)
     assert web.get(url).status_code in {401, 403}
     assert not web.get('/api/private-apps/gadeos/state').json()['cards'][0]['image']
-    assert web.post('/api/private-apps/gadeos/stations/answer', json={'revision':0,'request_id':str(uuid4()),'campaign_revision':1,'station':1,'answer':'ALIANZA'}).status_code == 200
+    assert web.post('/api/private-apps/gadeos/stations/answer', json={'revision':0,'request_id':str(uuid4()),'campaign_revision':1,'station':1,'answer':'337'}).status_code == 200
     response = web.get(url)
     assert response.status_code == 200 and response.headers['cache-control'] == 'private, no-store'
     assert Image.open(BytesIO(response.content)).format == 'WEBP'

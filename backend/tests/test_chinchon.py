@@ -44,6 +44,9 @@ def test_existing_session_reveals_collection_only_after_its_trial_and_keeps_prog
     upload = web.post('/admin/apps/gadeos/images', headers=headers, json={'data': base64.b64encode(data.getvalue()).decode()})
     url = upload.json()['url']
     config = web.get('/admin/apps/gadeos/campaign', headers=headers).json()
+    for number in (9, 10):
+        config['stations'][number - 1].update(title=f'Pista {number}', prompt=f'Pista {number}', solution=f'Clave {number}')
+    config['stations'][7]['solution'] = 'GADEOS'
     config['title'] = 'GADEOS: la colección secreta'
     config['media']['envelope'] = url
     config['stations'][0]['card'].update(title='Carta GADEOS', image=url)
@@ -71,8 +74,8 @@ def test_existing_session_reveals_collection_only_after_its_trial_and_keeps_prog
             assert state['cards'][0]['image'] == neutral_image
             assert web.get(neutral_image).status_code == 200
         assert web.post(API + '/stations/answer', json=body).json()['reused']
-    assert state['completed'] == 9
-    assert web.get('/api/private-apps/gadeos/state').json()['completed'] == 9
+    assert state['completed'] == 10
+    assert web.get('/api/private-apps/gadeos/state').json()['completed'] == 10
     battle = web.post(API + '/battle/start', json={'revision': state['revision'], 'request_id': str(uuid4())})
     assert battle.status_code == 200
     # Subsequent content edits cannot make an already discovered name secret again.

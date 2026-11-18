@@ -409,7 +409,7 @@ def workspace_page(app_id: str, db: Session = Depends(get_db)):
 
 @router.get("/private-app-assets/{template}/{filename}")
 def app_asset(template: str, filename: str):
-    if template not in {"gadeos", "private-workspace"} or filename not in {"app.js", "style.css", "arena.svg", "restaurants.js", "leaflet.js", "leaflet.css", "town-map.svg", "leaflet-LICENSE.txt"}:
+    if template not in {"gadeos", "private-workspace"} or filename not in {"app.js", "style.css", "arena.svg", "restaurants.js", "leaflet.js", "leaflet.css", "town-map.svg", "journey-town.svg", "leaflet-LICENSE.txt"}:
         raise HTTPException(404, "Archivo no encontrado.")
     source = PROJECT_ROOT / "apps" / template / filename
     if not source.is_file():
@@ -421,7 +421,7 @@ def app_asset(template: str, filename: str):
 
 @router.get("/private-app-assets/gadeos/art/{filename}")
 def gadeos_art(filename: str):
-    if filename not in {"alliance-hero-v2.webp", "journey-v2.webp", "arena-v2.webp", "envelope-v2.webp", "emblem-v2.webp", "title-lockup-v1.webp", "title-lockup-v2.webp"}:
+    if filename not in {"alliance-hero-v2.webp", "journey-v2.webp", "journey-bus-v2.webp", "arena-v2.webp", "envelope-v2.webp", "emblem-v2.webp", "title-lockup-v1.webp", "title-lockup-v2.webp"}:
         raise HTTPException(404, "Ilustración no encontrada.")
     source = PROJECT_ROOT / "apps/gadeos/assets" / filename
     if not source.is_file():
