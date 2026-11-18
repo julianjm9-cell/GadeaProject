@@ -373,3 +373,6 @@ dialog::backdrop { background: #1b2c25a3; }
 .chat-context { display:flex; align-items:center; gap:12px; padding:12px 16px; margin-bottom:16px; border:1px solid #d7ddca; border-radius:12px; background:#edf2e6; flex-wrap:wrap; }
 .chat-context strong { flex:1; font-size:.9rem; }
 .chat-context .button { font-size:.8rem; padding:8px 11px; }
+
+/* Deployment is verified separately from GitHub publication. */
+.topline{flex-wrap:wrap}.topline>.actions{flex-wrap:wrap}.deployment-chip{background:#ece9df;color:#665e4d}.deployment-chip[data-state=pending]{background:#f5e8c8;color:#805c21}.deployment-chip[data-state=synced]{background:#e2ede1;color:#23523d}.deployment-summary{font-size:14px;line-height:1.6;margin:16px 0 8px}.deployment-summary[data-state=pending]{color:#805c21}.deployment-summary[data-state=synced]{color:#23523d}.deployment-versions{font-size:11px;line-height:1.6;overflow-wrap:anywhere}

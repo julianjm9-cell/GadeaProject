@@ -165,7 +165,7 @@ export function setupOperations({ api, element, button, feedback, openCommand })
     const target = $('hostinger-connect').elements.target;
     if (document.activeElement !== target) target.value = result.target || '';
     message($('hostinger-status'), result.target ? 'Conexión configurada · ' + result.target +
-      (result.head ? ' · revisión actual ' + short(result.head) : '') : 'Configura primero el acceso SSH al VPS.');
+      (result.head ? ' · checkout Git ' + short(result.head) + ' (no identifica la imagen en ejecución)' : '') : 'Configura primero el acceso SSH al VPS.');
     const job = result.job;
     const running = ['running', 'uncertain'].includes(job?.state);
     $('hostinger-prepare').disabled = !result.target || running;

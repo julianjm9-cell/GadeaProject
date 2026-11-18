@@ -42,6 +42,10 @@ COPY apps/profesor/assets /app/app/static/assets
 COPY apps/e25/assets/desk /app/app/static/assets/desk
 COPY marketing/app_landings_demo /app/app/static/marketing
 
+ARG EDUCAME_BUILD_REVISION=unknown
+RUN printf '%s\n' "$EDUCAME_BUILD_REVISION" > /app/BUILD_REVISION
+LABEL org.opencontainers.image.revision=$EDUCAME_BUILD_REVISION
+
 EXPOSE 8000
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]

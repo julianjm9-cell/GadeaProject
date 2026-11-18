@@ -107,6 +107,7 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         "/profesor/anuncios": "Tablón de profesores".encode("utf-8"),
         "/sitemap.xml": b"<urlset",
         "/gadeos": b"Nombre de tributo",
+        "/api/public/release": b"running_revision",
         "/private-app-assets/gadeos/app.js": b"/api/private-apps/gadeos",
         "/private-app-assets/gadeos/style.css": b".journey",
         "/private-app-assets/gadeos/arena.svg": b"<svg",

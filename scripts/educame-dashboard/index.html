@@ -44,7 +44,7 @@
   </aside>
 
   <main id="main" tabindex="-1">
-    <header class="topline"><div class="terrace-location"><span data-environment-name>LA TERRAZA</span><span id="page-location">Inicio</span></div><div class="actions"><span class="quota-hint"><a class="status-chip" id="codex-quota-chip" href="#agentes/uso" aria-describedby="codex-quota-tooltip">Uso de Codex</a><span id="codex-quota-tooltip" role="tooltip">Consultando los límites de Codex…</span></span><a class="status-chip" id="api-status" href="#conexiones" data-open-connection="ia">Comprobando Codex</a></div></header>
+    <header class="topline"><div class="terrace-location"><span data-environment-name>LA TERRAZA</span><span id="page-location">Inicio</span></div><div class="actions"><a class="status-chip deployment-chip" id="deployment-chip" href="#cambios" data-state="unknown">Hostinger · sin verificar</a><span class="quota-hint"><a class="status-chip" id="codex-quota-chip" href="#agentes/uso" aria-describedby="codex-quota-tooltip">Uso de Codex</a><span id="codex-quota-tooltip" role="tooltip">Consultando los límites de Codex…</span></span><a class="status-chip" id="api-status" href="#conexiones" data-open-connection="ia">Comprobando Codex</a></div></header>
     <div id="feedback" class="feedback" role="status" hidden><span id="feedback-text"></span><button type="button" class="feedback-close" aria-label="Cerrar aviso">×</button></div>
 
     <section data-page="inicio" aria-labelledby="home-title">
@@ -176,7 +176,7 @@
     </section>
 
     <section data-page="cambios" aria-labelledby="changes-title" hidden>
-      <div class="page-heading heading-actions"><h1 id="changes-title">Cambios</h1><button class="button secondary" id="changes-sync" type="button" data-icon="github">Sincronizar GitHub</button></div>
+      <div class="page-heading heading-actions"><h1 id="changes-title">Cambios</h1><button class="button secondary" id="changes-sync" type="button" data-icon="github">Consultar GitHub</button></div>
       <p id="changes-status" class="muted" role="status"></p>
       <div class="changes-grid">
         <section class="card changes-card" aria-labelledby="changes-local-title" hidden>
@@ -188,10 +188,11 @@
           <details id="changes-dirty" hidden><summary></summary><ul class="changes-files"></ul><p class="muted" hidden></p></details>
         </section>
         <section class="card changes-card" aria-labelledby="changes-deploy-title">
-          <div class="card-heading"><h2 class="icon-label" id="changes-deploy-title"><span class="tile-icon violet" data-icon="hostinger"></span>Hostinger</h2><a class="text-link icon-label" id="changes-repo" data-icon="github" target="_blank" rel="noopener noreferrer" hidden>GitHub</a></div>
+          <div class="card-heading"><h2 class="icon-label" id="changes-deploy-title"><span class="tile-icon violet" data-icon="hostinger"></span>GitHub y Hostinger</h2><a class="text-link icon-label" id="changes-repo" data-icon="github" target="_blank" rel="noopener noreferrer" hidden>GitHub</a></div>
           <p id="changes-release">Consultando la revisión de GitHub…</p>
           <p id="changes-divergence" class="muted"></p>
-          <div class="actions"><button class="button primary" type="button" id="changes-deploy" data-icon="terminal" disabled>Generar comando</button></div>
+          <p class="deployment-summary" data-deployment-summary>Hostinger sin verificar.</p><p class="muted deployment-versions" data-deployment-versions></p>
+          <div class="actions"><button class="button primary" type="button" id="changes-deploy" data-icon="terminal" disabled>Generar comando</button><button class="button secondary" type="button" data-check-deployment>Comprobar Hostinger</button></div>
         </section>
       </div>
       <section class="card changes-history" aria-labelledby="changes-history-title">
@@ -234,7 +235,7 @@
       </section>
       <section id="operation-hostinger" class="card operation-panel" aria-label="Hostinger" hidden>
         <div class="card-heading"><h2>Despliegue en Hostinger</h2><button class="button secondary" data-operation-refresh type="button">Actualizar</button></div>
-        <p class="muted" id="hostinger-status" role="status"></p>
+        <p class="muted" id="hostinger-status" role="status"></p><p class="deployment-summary" data-deployment-summary>Hostinger sin verificar.</p><p class="muted deployment-versions" data-deployment-versions></p>
         <form id="hostinger-connect" class="operation-form">
           <label>Alias SSH o usuario@servidor<input name="target" autocomplete="off" placeholder="educame-vps" required></label>
           <button class="button secondary">Probar conexión</button>

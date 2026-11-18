@@ -24,6 +24,15 @@ if [[ -n "${ENV_FILE:-}" && "$ENV_FILE" != .env ]]; then
 fi
 docker compose --profile proxy config --quiet
 
+# A Git checkout is not proof of what the current container is serving.
+export EDUCAME_BUILD_REVISION=unknown
+if git rev-parse --verify HEAD >/dev/null 2>&1 && [[ -z "$(git status --porcelain --untracked-files=no)" ]]; then
+  build_revision="$(git rev-parse HEAD)"
+  if [[ "$build_revision" =~ ^[a-f0-9]{40}$ ]]; then
+    export EDUCAME_BUILD_REVISION="$build_revision"
+  fi
+fi
+
 printf '\n[1/5] Construyendo la nueva imagen (la app actual sigue funcionando)…\n'
 docker compose build backend ocr-worker
 
@@ -80,6 +89,10 @@ fi
 if [[ -f RELEASE_REVISION ]]; then
   rm -- RELEASE_REVISION
 fi
+if [[ "$EDUCAME_BUILD_REVISION" != unknown ]]; then
+  [[ "$(git rev-parse HEAD)" == "$EDUCAME_BUILD_REVISION" && -z "$(git status --porcelain --untracked-files=no)" ]]
+fi
+docker compose exec -T backend python -m app.services.release_status stamp "$EDUCAME_BUILD_REVISION"
 printf '\nActualización completada. Abre estas rutas en tu dominio o IP habitual:\n'
 printf '  /                     Portada con las seis apps\n  /privacidad           Política de privacidad pública\n  /profesor             Landing de Profesor Particular\n  /profesor/anuncios    Tablón de profesores\n  /profesor/anunciar    Publicar anuncio gratis\n  /profesor/login       Login y registro\n  /profesor/demo        Demo sin cuenta\n  /profesor-particular  App privada\n  /admin-dashboard/     Dashboard de administración\n'
 printf '\nCopia de seguridad: %s\n' "$BACKUP_DIR"

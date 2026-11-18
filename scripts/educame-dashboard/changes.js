@@ -69,7 +69,7 @@ export function setupChanges({ api, element }) {
     repo.hidden = !repository;
     if (repository) repo.href = repository;
     $('changes-release').textContent = upstream
-      ? `Revisión de GitHub ${short(upstream)} · main`
+      ? `Referencia local de GitHub ${short(upstream)} · main`
       : 'Sin referencia de GitHub. Sincroniza para consultar main.';
     const differences = [];
     if (local.total) differences.push(`${local.total} ${local.total === 1 ? 'archivo local sin commit' : 'archivos locales sin commit'}`);
@@ -77,7 +77,7 @@ export function setupChanges({ api, element }) {
     if (behind) differences.push(`${behind} ${behind === 1 ? 'commit de GitHub pendiente' : 'commits de GitHub pendientes'} en local`);
     $('changes-divergence').textContent = differences.length
       ? `La vista local y el despliegue pueden diferir. ${differences.join(' · ')}.`
-      : upstream && head === upstream ? 'La revisión local coincide con main de GitHub.' : '';
+      : upstream && head === upstream ? 'Local y GitHub coinciden. El despliegue de Hostinger se comprueba por separado.' : '';
     deploy.disabled = !upstream;
     feedback(syncedAt ? `GitHub consultado el ${dates.format(new Date(syncedAt))}.` : 'Mostrando la última referencia de GitHub disponible en este equipo.');
 

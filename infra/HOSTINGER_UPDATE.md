@@ -10,6 +10,18 @@ Si prefieres subir el ZIP de entrega, descomprímelo **dentro de la carpeta de l
 
 El script construye primero la imagen, espera a PostgreSQL, guarda una copia verificada de la base de datos y del `.env` en `backups/`, ejecuta las migraciones, actualiza los contenedores y comprueba las rutas públicas, el acceso privado, el dashboard y la configuración de Caddy. Un error detiene el proceso: no continúa con los pasos siguientes ni anuncia éxito.
 
+La imagen incorpora la revisión Git usada al construirla. Solo al terminar todas
+las comprobaciones, el script registra esa revisión como despliegue verificado.
+`/api/public/release` informa de la imagen en ejecución y de ese recibo, sin
+credenciales y sin caché. LA TERRAZA compara estos datos con `main` consultado en
+GitHub: **Sincronizado**, **Pendiente** o **Sin verificar**, con la fecha de consulta.
+No necesita SSH para leer este estado; SSH sigue siendo necesario para desplegar
+desde el panel. Un `git pull`, generar un comando o una entrega subida a GitHub
+no acredita el despliegue. La primera actualización de una instalación antigua
+activa esta identificación; hasta entonces debe mostrarse Sin verificar. Un ZIP
+sin revisión comprobable o un checkout modificado puede desplegarse, pero su
+revisión queda sin identificar y no se anuncia como sincronizada.
+
 También compara el contenido de los escritorios de Profesor Particular antes y
 después de migrar. Una alteración detiene el despliegue y conserva la copia previa
 para revisarla; no restaura automáticamente datos encima del trabajo actual.

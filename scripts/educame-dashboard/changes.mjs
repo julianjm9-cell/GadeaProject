@@ -133,5 +133,12 @@ export function createChanges(cwd) {
     if (!included) throw new ChangesError(409, 'La entrega aún no figura en main. Comprueba la fusión en GitHub.');
     return { revision };
   }
-  return { history, sync, deploy, repository, integrated };
+  const versions = async () => {
+    const [head, upstream, status] = await Promise.all([readRef('HEAD'), readRef(remoteRef),
+      git(['status', '--porcelain', '--untracked-files=no'])]);
+    return { head, upstream, dirty: Boolean(status.trim()) };
+  };
+  const remoteRevision = async () => (await git(['ls-remote', '--refs', 'origin', 'refs/heads/main'],
+    'No se pudo verificar main en GitHub.')).trim().split(/\s+/)[0];
+  return { history, sync, deploy, repository, integrated, versions, remoteRevision };
 }

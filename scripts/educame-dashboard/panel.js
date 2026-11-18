@@ -9,6 +9,7 @@ import { setupChat } from './chat.js';
 import { setupWorkProgress } from './work-progress.js';
 import { setupPublication } from './publication.js';
 import { setupAppCatalog } from './app-catalog.js';
+import { setupDeploymentStatus } from './deployment-status.js';
 
 const agents = Object.create(null);
 const agentName = item => item.agentName || agents[item.agente]?.name || item.agente;
@@ -57,6 +58,7 @@ let workspace;
 let changes;
 let operations;
 let publicationClient;
+let deploymentStatus;
 const pendingReplies = new Map();
 try {
   for (const [key, value] of JSON.parse(sessionStorage.getItem('educame-delivery-replies') || '[]')) pendingReplies.set(key, value);
@@ -348,6 +350,7 @@ async function refresh() {
     next.agentEditor = state.agentEditor;
   }
   state = next;
+  deploymentStatus?.update();
   render();
   clearTimeout(poll);
   poll = setTimeout(() => refresh().catch(error => feedback(error.message, true)), 1500);
@@ -728,6 +731,7 @@ const chat = setupChat({ api, element, button, feedback, formMessage, getState: 
 const workProgress = setupWorkProgress({ element, button, badge, openDelivery, getState: () => state,
   upload: keys => publicationClient.upload(keys) });
 changes = setupChanges({ api, element });
+deploymentStatus = setupDeploymentStatus({ api, getState: () => state });
 operations = setupOperations({ api, element, button, feedback, openCommand: changes.openCommand });
 publicationClient = setupPublication({ api, element, button, feedback, getState: () => state, refresh,
   restart: () => chat.restart(), openCommand: changes.openCommand });

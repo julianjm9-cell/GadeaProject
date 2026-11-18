@@ -8,6 +8,7 @@ import { concurrency, defaultModel, maxTasks, outputDir, requestDraft, validateT
 import { ConnectionError, createConnections, googleCallback } from './educame-dashboard/connections.mjs';
 import { createCodex } from './educame-dashboard/codex.mjs';
 import { ChangesError, createChanges } from './educame-dashboard/changes.mjs';
+import { createDeploymentStatus } from './educame-dashboard/deployment-status.mjs';
 import { createPreviews } from './educame-dashboard/preview.mjs';
 import { cleanRule, memoryTopics, projectProfiles } from './educame-dashboard/project-context.mjs';
 import { openPanelStore } from './educame-dashboard/store.mjs';
@@ -31,6 +32,7 @@ const assets = new Map([
   ['/', ['index.html', 'text/html']],
   ['/panel.css', ['panel.css', 'text/css']],
   ['/panel.js', ['panel.js', 'text/javascript']],
+  ['/deployment-status.js', ['deployment-status.js', 'text/javascript']],
   ['/workspace.js', ['workspace.js', 'text/javascript']],
   ['/work-progress.js', ['work-progress.js', 'text/javascript']],
   ['/publication.js', ['publication.js', 'text/javascript']],
@@ -205,6 +207,7 @@ export async function createDashboard({
   await mkdir(directory, { recursive: true });
   const connections = await createConnections(directory, fetchImpl);
   const changes = createChanges(repositoryRoot);
+  const deploymentStatus = createDeploymentStatus({ changes, fetchImpl });
   const previews = createPreviews(repositoryRoot);
   const activeApiKey = () => connections.openaiKey() || apiKey;
   const store = openPanelStore(directory, { memory: [], revision: 0, tasks: [], links: initialLinks, reviews: {}, pushes: {} });
@@ -560,6 +563,7 @@ export async function createDashboard({
         response.end();
         return;
       }
+      if (request.method === 'GET' && path === '/api/despliegue/estado') return json(200, await deploymentStatus(url.searchParams.get('actualizar') === '1'));
       if (request.method === 'GET' && path === '/api/cambios') return json(200, await changes.history(url.searchParams));
       if (request.method === 'POST' && path === '/api/cambios/sincronizar') return json(200, await changes.sync());
       if (request.method === 'POST' && path === '/api/cambios/hostinger') {

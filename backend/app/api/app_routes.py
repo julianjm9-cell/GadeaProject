@@ -567,6 +567,14 @@ def health() -> dict:
     return {"ok": True, "app": "Apps Suite"}
 
 
+@router.get("/api/public/release")
+def public_release(response: Response) -> dict:
+    from app.services.release_status import release_status
+    response.headers['Cache-Control'] = 'no-store, max-age=0'
+    response.headers['X-Robots-Tag'] = 'noindex, nofollow'
+    return release_status()
+
+
 @router.get("/")
 @router.get("/index.html")
 def root():
