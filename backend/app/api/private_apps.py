@@ -199,6 +199,8 @@ def campaign_save(payload: dict, actor: User = Depends(require_superadmin), db: 
     clean = gadeos.validate_campaign(payload)
     original = db.get(AppSetting, gadeos.CONFIG_KEY)
     current = gadeos.campaign(db)
+    if "media" not in payload:
+        clean["media"] = current["media"]  # Older editors must preserve the private poster and guide.
     if type(payload.get("revision")) is not int or payload["revision"] != current["revision"]:
         raise HTTPException(409, "El recorrido cambió. Actualiza antes de guardar.")
     clean["revision"] = current["revision"] + 1
@@ -341,7 +343,10 @@ def private_image(app_id: str, filename: str, request: Request, db: Session = De
         raise HTTPException(404, "Imagen no encontrada.")
     try:
         account = member(app_id, request, db)
-        if "/api/private-apps/gadeos/images/" + filename not in {card["image"] for card in gadeos.progress_payload(db, account)["cards"] if card["owned"]}:
+        data = gadeos.progress_payload(db, account)
+        media = data["campaign"]["media"]
+        permitted = {card["image"] for card in data["cards"] if card["owned"]} | {media["poster"]} | {page["image"] for page in media["guide"]}
+        if "/api/private-apps/gadeos/images/" + filename not in permitted:
             raise HTTPException(403, "Esta carta todavía no se ha desbloqueado.")
     except HTTPException:
         from app.auth.dependencies import current_user

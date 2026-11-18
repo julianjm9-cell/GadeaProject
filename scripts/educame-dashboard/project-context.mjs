@@ -3,9 +3,9 @@ export const projectProfiles = {
   gadeos: {
     name: 'GADEOS', audience: 'Aplicación personal por invitación para un viaje en pareja a Chinchón.',
     priorities: 'Inicio claro, recorrido de ocho estaciones consecutivas, sobres y cartas personales y batalla final por turnos. Primero bus puntual, adivinanza, llegada a Chinchón, habitación y enseres, atardecer y cena. Estaciones 7 y 8 editables.',
-    style: 'Móvil primero. Arena oscura elegante, cobre, oro y burdeos; mapa integrado, sobres reconocibles y cartas grandes con imágenes propias.',
+    style: 'Móvil primero. Carbón, fuego y oro del cartel; azul y oro de la guía original. Cartel integrado en Inicio tras entrar, sobres reconocibles, cartas grandes y guía ampliable con lectura en texto.',
     flows: 'Acceso por nombre de tributo y contraseña administrados por el propietario. Inicio, Recorrido y Batalla. Completar una prueba desbloquea la siguiente en el servidor.',
-    rules: 'Sin registro público, landing ni marketing. Guardar progreso y cuentas en servidor. Nunca guardar contraseñas o imágenes personales en Git. Textos, claves e imágenes se editan desde administración.',
+    rules: 'Sin registro público, landing ni marketing. Guardar progreso y cuentas en servidor. Nunca guardar contraseñas o imágenes personales en Git. Importar cartel y PDF desde el paquete privado local. La integración visual de la guía conserva la batalla digital actual; no inventar las cartas que faltan. Textos, claves e imágenes se editan desde administración.',
     pitfalls: 'No simular privacidad ocultando un botón. No desbloquear pruebas con un cambio del navegador. No perder progreso al cambiar textos. No publicar soluciones o imágenes privadas por rutas públicas.',
     verify: 'Login, sesiones revocadas, desbloqueo secuencial, error, reintento, sobres sin duplicar, recarga, batalla completa, permisos y móvil en WebKit y Chromium.',
     files: ['apps/gadeos/', 'backend/app/api/private_apps.py', 'backend/app/services/gadeos.py', 'backend/app/models/private_apps.py'],

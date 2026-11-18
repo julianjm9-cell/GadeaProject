@@ -212,3 +212,40 @@ def test_private_app_migration_is_repeatable_and_preserves_existing_data():
             module['upgrade'](); module['upgrade']()
         assert connection.execute(sa.text('SELECT * FROM users')).one() == ('existing','unchanged')
         assert {'private_app_accounts','private_app_sessions','private_app_progress'} <= set(sa.inspect(connection).get_table_names())
+
+
+def test_poster_and_guide_are_private_preserved_and_do_not_unlock_cards(client, monkeypatch, tmp_path):
+    import base64
+    from io import BytesIO
+    from PIL import Image
+    from app.api import private_apps
+    monkeypatch.setattr(private_apps, 'IMAGE_ROOT', tmp_path)
+    web, factory = client; headers = admin(web, factory)
+    def upload(color):
+        buffer = BytesIO(); Image.new('RGB', (30, 40), color).save(buffer, 'PNG')
+        result = web.post('/admin/apps/gadeos/images', headers=headers, json={'data':base64.b64encode(buffer.getvalue()).decode()})
+        assert result.status_code == 201
+        return result.json()['url']
+    poster, page, locked_card = upload('red'), upload('blue'), upload('green')
+    config = web.get('/admin/apps/gadeos/campaign', headers=headers).json()
+    config['media'] = {'poster':poster,'guide':[{'title':'Reglas','image':page,'text':'Texto legible de la guía.'}],'source':'a'*64}
+    config['stations'][7]['card']['image'] = locked_card
+    saved = web.put('/admin/apps/gadeos/campaign', headers=headers, json=config)
+    assert saved.status_code == 200
+    assert web.get(poster).status_code == 401
+    assert poster not in web.get('/gadeos').text
+    assert 'media' not in web.get('/api/private-apps/gadeos/info').json()
+    tribute(web, headers)
+    for url in [poster, page]:
+        result = web.get(url)
+        assert result.status_code == 200 and result.headers['cache-control'] == 'private, no-store'
+    assert web.get(locked_card).status_code in {401,403}
+    state = web.get('/api/private-apps/gadeos/state').json()
+    assert state['completed'] == 0 and state['campaign']['media']['guide'][0]['text'] == 'Texto legible de la guía.'
+    old_editor = saved.json(); old_editor.pop('media'); old_editor['title'] = 'Título personalizado'
+    kept = web.put('/admin/apps/gadeos/campaign', headers=headers, json=old_editor)
+    assert kept.status_code == 200 and kept.json()['media']['poster'] == poster
+    invalid = kept.json(); invalid['media']['poster'] = 'https://example.invalid/public.webp'
+    assert web.put('/admin/apps/gadeos/campaign', headers=headers, json=invalid).status_code == 422
+    assert web.post('/api/private-apps/gadeos/logout').status_code == 200
+    assert web.get(page).status_code == 401

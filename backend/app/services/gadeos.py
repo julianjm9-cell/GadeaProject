@@ -1,6 +1,7 @@
 """Server-owned station unlocks, envelopes and turn-based final battle."""
 import copy
 import json
+import re
 import unicodedata
 from datetime import datetime, timezone
 
@@ -11,6 +12,30 @@ from app.models import AppSetting
 from app.models.private_apps import PrivateAppProgress
 
 CONFIG_KEY = "private_campaign:gadeos"
+
+
+def media_config(value=None):
+    value = {} if value is None else value
+    if not isinstance(value, dict) or not isinstance(value.get("guide", []), list) or len(value.get("guide", [])) > 8:
+        raise HTTPException(422, "Revisa el cartel y las páginas de la guía.")
+    def image(path):
+        if path is None:
+            return None
+        if not isinstance(path, str) or not re.fullmatch(r"/api/private-apps/gadeos/images/[a-f0-9]{32}\.webp", path):
+            raise HTTPException(422, "Usa imágenes privadas subidas a GADEOS.")
+        return path
+    pages = []
+    for page in value.get("guide", []):
+        if not isinstance(page, dict) or not isinstance(page.get("title"), str) or not 1 <= len(page["title"]) <= 100 or not page.get("image"):
+            raise HTTPException(422, "Cada página necesita título e imagen.")
+        text = page.get("text", "")
+        if not isinstance(text, str) or len(text) > 6000:
+            raise HTTPException(422, "El texto de la guía supera el límite.")
+        pages.append({"title": page["title"], "image": image(page["image"]), "text": text})
+    source = value.get("source", "")
+    if not isinstance(source, str) or (source and not re.fullmatch(r"[a-f0-9]{64}", source)):
+        raise HTTPException(422, "La referencia del material no es válida.")
+    return {"poster": image(value.get("poster")), "guide": pages, "source": source}
 
 
 def default_campaign():
@@ -28,6 +53,7 @@ def default_campaign():
     options = [[] for _ in range(8)]
     solutions = ['ALIANZA', 'TIEMPO', 'CHINCHON', 'REFUGIO', 'HORIZONTE', 'BRINDIS', 'COMPLICIDAD', 'GADEOS']
     return {"revision": 0, "title": "La arena de los recuerdos", "intro": "Un viaje a Chinchón. Ocho sobres. Vuestra propia alianza.",
+            "media": media_config(),
             "boss": "El centinela de la arena", "ending": "La mejor recompensa es haber recorrido este camino juntos.",
             "stations": [{"number": i + 1, "title": titles[i], "story": "Supera la prueba y abre un sobre de vuestra colección.",
                           "kind": kinds[i], "prompt": prompts[i], "options": options[i], "solution": solutions[i],
@@ -38,13 +64,16 @@ def default_campaign():
 
 def campaign(db):
     row = db.get(AppSetting, CONFIG_KEY)
-    return json.loads(row.value) if row else default_campaign()
+    result = json.loads(row.value) if row else default_campaign()
+    result.setdefault("media", media_config())
+    return result
 
 
 def validate_campaign(data):
     if not isinstance(data, dict) or not isinstance(data.get("stations"), list) or len(data["stations"]) != 8:
         raise HTTPException(422, "El recorrido debe contener exactamente ocho estaciones.")
     clean = {key: str(data.get(key, ""))[:1500] for key in ("title", "intro", "boss", "ending")}
+    clean["media"] = media_config(data.get("media"))
     clean["stations"] = []
     for index, station in enumerate(data["stations"]):
         if not isinstance(station, dict) or not isinstance(station.get("card", {}), dict):
@@ -72,6 +101,7 @@ def validate_campaign(data):
 
 def public_campaign(config, completed):
     result = {key: config[key] for key in ("revision", "title", "intro", "boss", "ending")}
+    result["media"] = config.get("media", media_config())
     result["stations"] = []
     for index, station in enumerate(config["stations"]):
         entry = {"number": index + 1, "title": station["title"], "locked": index > completed, "completed": index < completed}

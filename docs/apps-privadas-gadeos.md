@@ -15,6 +15,12 @@ En Apps → GADEOS → **Tributos y recorrido**, crea un tributo con su contrase
 
 GADEOS abre directamente en `/gadeos`, sin landing ni registro. La persona introduce nombre de tributo y contraseña. Cada estación superada entrega su carta y abre la siguiente. Tras ocho estaciones, la batalla permite atacar, defender, concentrar y utilizar las cartas. Una derrota conserva la colección; ganar guarda la victoria. Las cuentas tienen progresos independientes.
 
+### Cartel y guía originales
+
+En **Tributos y recorrido → Cartel y guía → Aplicar cartel y guía**, LA TERRAZA importa el paquete preparado en este equipo. El cartel se integra en Inicio después de entrar y **Guía** abre las páginas originales, con ampliación, navegación y lectura en texto. La guía de las cartas físicas se presenta junto a la ayuda de la aventura; la batalla digital conserva sus reglas actuales.
+
+Los materiales preparados están en `.educame-agents/private-materials/gadeos/`, fuera de Git y del contexto Docker. El manifiesto local contiene el cartel y las páginas WebP extraídas de los PDF. Solo se envían al servidor después de entrar en Administración y pulsar Aplicar. El recibo de cada subida se guarda en SQLite para recuperar una interrupción. Una revisión de campaña antigua se rechaza; al reintentar se conserva la edición reciente. Repetir una importación ya aplicada no vuelve a modificar la campaña. Las páginas y el cartel solo se sirven a tributos autenticados y a administración, sin caché pública. Editar pruebas desde una versión anterior del editor conserva estos materiales.
+
 ## Datos y despliegue
 
 - El catálogo y la campaña se guardan en `app_settings`, con revisión para rechazar escrituras antiguas.

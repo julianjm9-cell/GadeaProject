@@ -17,6 +17,7 @@ import { createChat } from './educame-dashboard/chat.mjs';
 import { createPublication } from './educame-dashboard/publication.mjs';
 import { createAutomaticPublication } from './educame-dashboard/automatic-publication.mjs';
 import { createAppCatalog } from './educame-dashboard/app-catalog.mjs';
+import { createPrivateMaterials } from './educame-dashboard/private-materials.mjs';
 import { createKnowledge } from './educame-dashboard/knowledge.mjs';
 import { createProviders } from './educame-dashboard/api-agent.mjs';
 import { researchRole } from './educame-dashboard/research.mjs';
@@ -211,6 +212,7 @@ export async function createDashboard({
   const github = githubOperations(changes, connections, store, fetchImpl);
   const hostinger = hostingerOperations(store, changes, github, ssh);
   const admin = adminOperations(fetchImpl);
+  const privateMaterials = createPrivateMaterials({ directory, store, admin });
   const providers = createProviders({ codex, connections, apiKey, root: repositoryRoot, fetchImpl, store,
     runChecks: (cwd, commands) => implementation.runChecks(cwd, commands) });
   const implementation = createImplementation(repositoryRoot, directory, providers, implementationOptions);
@@ -501,6 +503,7 @@ export async function createDashboard({
             'admin/app-accounts': () => admin.handle('app-accounts', request.headers.cookie, { app: url.searchParams.get('app') }, response),
             'admin/app-campaign': () => admin.handle('app-campaign-read', request.headers.cookie, {}, response),
             'admin/app-image': () => admin.handle('app-image-read', request.headers.cookie, { name: url.searchParams.get('name') }, response),
+            'admin/app-materials': () => privateMaterials.status(request.headers.cookie, response),
           };
           if (Object.hasOwn(reads, route)) return json(200, await reads[route]());
         }
@@ -511,6 +514,7 @@ export async function createDashboard({
           const payload = await bodyJson(request);
           if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new OperationError(400, 'Formulario no válido.');
           const writes = {
+            'admin/app-materials': () => privateMaterials.apply(request.headers.cookie, response, payload.hash),
             'github/conectar': () => github.connect(payload.token), 'github/desconectar': github.disconnect,
             'github/crear': () => github.create(payload.branch),
             'github/fusionar': async () => {

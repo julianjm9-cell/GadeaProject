@@ -27,6 +27,7 @@ $('login-form').addEventListener('submit', async event => {
   finally { busy = false; submit.disabled = false; }
 });
 $('logout').addEventListener('click', async () => { try { await api('/logout', {}); showLogin(); } catch (error) { note(error.message); } });
+$('open-guide').addEventListener('click', () => { guide(); $('guide').showModal(); });
 document.querySelectorAll('dialog .close').forEach(node => node.addEventListener('click', () => node.closest('dialog').close()));
 window.addEventListener('hashchange', render);
 
@@ -70,15 +71,49 @@ function reward(card, sealed = true) {
   host.append(view); if (!$('reward').open) $('reward').showModal();
 }
 function home(host) {
-  host.append(el('p', 'greeting', 'TU TRIBUTO · ' + state.account.name), el('h1', '', 'Toda gran historia\nempieza con una alianza.'));
+  host.append(el('p', 'greeting', 'TU TRIBUTO · ' + state.account.name));
+  const poster = state.campaign.media?.poster;
+  if (!poster) host.append(el('h1', '', 'Toda gran historia\nempieza con una alianza.'));
   const hero = el('section', 'home-hero'); hero.append(el('p', 'eyebrow', 'RUMBO A CHINCHÓN'), el('h2', '', state.campaign.title), el('p', '', state.campaign.intro));
-  const start = el('a', 'primary', state.completed === 8 ? 'Entrar en la batalla final ↗' : state.completed ? 'Continuar recorrido ↗' : 'Comenzar el recorrido ↗'); start.href = state.completed === 8 ? '#batalla' : '#recorrido'; hero.append(start); host.append(hero);
+  const start = el('a', 'primary', state.completed === 8 ? 'Entrar en la batalla final ↗' : state.completed ? 'Continuar recorrido ↗' : 'Comenzar el recorrido ↗'); start.href = state.completed === 8 ? '#batalla' : '#recorrido'; hero.append(start);
+  if (poster) {
+    hero.classList.add('has-poster'); const copy = el('div', 'poster-copy'); copy.append(...hero.childNodes);
+    copy.insertBefore(start, copy.querySelector('h2').nextSibling);
+    const image = el('img', 'event-poster'); image.src = poster; image.alt = 'Cartel original de los Juegos del Hambre en Chinchón: viernes a las 16:00, ocho pruebas y batallas finales a las 22:00.'; image.fetchPriority = 'high';
+    hero.append(image, copy);
+  }
+  host.append(hero);
   const strip = el('section', 'progress-strip'), medal = el('div', 'progress-medal'); medal.style.setProperty('--angle', (state.completed * 45) + 'deg'); medal.append(el('span', '', state.completed + '/8'));
   const copy = el('div'); copy.append(el('strong', '', state.completed === 8 ? 'Los ocho sobres son vuestros' : 'Próxima parada: ' + state.campaign.stations[state.completed].title), el('p', '', state.completed === 8 ? 'La arena final os espera.' : 'Una estación cada vez. Tu progreso siempre queda guardado.'));
   strip.append(medal, copy); host.append(strip);
   const line = el('div', 'section-line'); line.append(el('h2', '', 'Vuestra colección'), el('small', '', state.completed + ' de 8 cartas')); host.append(line);
   const collection = el('div', 'collection'); collection.append(...state.cards.map(card => cardArt(card))); host.append(collection);
   if (state.victory) { const trophy = el('section', 'battle-result'); trophy.append(el('div', 'trophy'), el('h2', '', 'Vuestra alianza ha vencido'), el('p', '', state.campaign.ending)); host.append(trophy); }
+}
+
+function guide() {
+  const host = $('guide-content'); host.replaceChildren();
+  const title = el('h2', '', 'Vuestra guía'); title.id = 'guide-title'; host.append(el('p', 'eyebrow', 'GADEOS · LA ALIANZA'), title);
+  const steps = el('section', 'adventure-guide');
+  steps.append(el('h3', '', 'La aventura en la app'));
+  const list = el('ol');
+  for (const text of ['Supera las estaciones en orden y escribe la clave de cada sobre.', 'Abre los sobres para guardar las ocho cartas de vuestra alianza.', 'En la batalla, lee la intención del centinela y elige atacar, defender o concentrar.', 'Cada carta aporta un bonus una vez por batalla. Una derrota permite reintentar conservando el recorrido.']) list.append(el('li', '', text));
+  steps.append(list); host.append(steps);
+  const pages = state.campaign.media?.guide || [];
+  if (pages.length) {
+    host.append(el('h3', 'physical-guide-title', 'Guía original de las cartas'), el('p', 'muted', 'Consulta el juego de mesa, sus tipos y recursos. Puedes ampliar las páginas o leer su texto.'));
+    const gallery = el('div', 'guide-gallery');
+    pages.forEach((page, i) => { const open = button('', () => guidePage(i), 'guide-tile'); const image = el('img'); image.src = page.image; image.alt = ''; image.loading = 'lazy'; open.append(image, el('span', '', page.title + ' ↗')); gallery.append(open); }); host.append(gallery);
+  }
+}
+function guidePage(index) {
+  const pages = state.campaign.media.guide, page = pages[index], host = $('guide-content'); host.replaceChildren();
+  host.append(button('← Volver a la guía', guide, 'quiet'));
+  const title = el('h2', '', page.title); title.id = 'guide-title'; host.append(title);
+  const tools = el('div', 'guide-tools'), zoom = button('Ampliar página', () => { const enlarged = reading.classList.toggle('is-zoomed'); zoom.setAttribute('aria-pressed', String(enlarged)); zoom.textContent = enlarged ? 'Ajustar a la pantalla' : 'Ampliar página'; }); zoom.setAttribute('aria-pressed', 'false'); tools.append(zoom, el('small', '', (index + 1) + ' / ' + pages.length)); host.append(tools);
+  const reading = el('div', 'guide-reading'), image = el('img'); image.src = page.image; image.alt = page.title; reading.append(image); host.append(reading);
+  if (page.text) { const text = el('details', 'guide-text'); text.append(el('summary', '', 'Leer en texto'), el('p', '', page.text)); host.append(text); }
+  const navigation = el('div', 'guide-pagination'); const previous = button('← Anterior', () => guidePage(index - 1)), next = button('Siguiente →', () => guidePage(index + 1)); previous.disabled = index === 0; next.disabled = index === pages.length - 1; navigation.append(previous, next); host.append(navigation); $('guide').scrollTop = 0;
 }
 function journey(host) {
   const intro = el('header', 'journey-intro'); intro.append(el('p', 'eyebrow', 'VUESTRO VIAJE'), el('h1', '', 'Ocho estaciones.\nUn mismo destino.'), el('p', '', state.completed + '/8 completadas · Cada sobre se abre al superar su prueba.')); host.append(intro);

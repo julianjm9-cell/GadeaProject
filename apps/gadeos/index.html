@@ -23,11 +23,12 @@
     </section>
   </main>
   <div id="game-screen" class="game-shell" hidden>
-    <header class="app-header"><a href="#inicio" class="brand" aria-label="GADEOS, inicio"><span>G</span><strong>GADEOS</strong></a><button id="logout" class="quiet" type="button" aria-label="Cerrar sesión">Salir ↗</button></header>
+    <header class="app-header"><a href="#inicio" class="brand" aria-label="GADEOS, inicio"><span>G</span><strong>GADEOS</strong></a><div class="header-actions"><button id="open-guide" class="quiet" type="button">Guía</button><button id="logout" class="quiet" type="button" aria-label="Cerrar sesión">Salir ↗</button></div></header>
     <main id="main" tabindex="-1"></main>
     <nav class="bottom-nav" aria-label="Secciones"><a href="#inicio"><svg><use href="#i-flame"/></svg><span>Inicio</span></a><a href="#recorrido"><svg><use href="#i-route"/></svg><span>Recorrido</span></a><a href="#batalla"><svg><use href="#i-battle"/></svg><span>Batalla final</span></a></nav>
   </div>
   <dialog id="challenge" aria-labelledby="challenge-title"><button class="close" type="button" aria-label="Cerrar prueba">×</button><div id="challenge-content"></div></dialog>
   <dialog id="reward" aria-labelledby="reward-title"><button class="close" type="button" aria-label="Cerrar sobre">×</button><div id="reward-content"></div></dialog>
+  <dialog id="guide" aria-labelledby="guide-title"><button class="close" type="button" aria-label="Cerrar guía">×</button><div id="guide-content"></div></dialog>
   <p id="notice" class="notice" role="status" hidden></p>
 </body></html>

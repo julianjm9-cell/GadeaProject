@@ -34,6 +34,8 @@ Educame reúne herramientas para profesores particulares y para personas que pre
 
 ### Apps y espacios personales
 
+En GADEOS, el propietario ha confirmado integrar el cartel y los PDF originales como estética y guía, **manteniendo la batalla digital actual**. El cartel se muestra tras entrar; las páginas originales se pueden ampliar y leer en texto desde Guía. El material personal se importa de forma autenticada desde LA TERRAZA y queda fuera de Git. No interpretar las reglas de los PDF como autorización para sustituir el motor de batalla o inventar las cartas que faltan.
+
 El catálogo de **Apps** usa el estado del servidor: **Pública**, **Privada** o **Pausada**. Cambiarlo conserva cuentas, licencias y progreso. Una etiqueta local nunca demuestra que el acceso haya cambiado; sin sesión de administración los controles permanecen desactivados. Las apps existentes mantienen sus accesos habituales. Una app privada exige una invitación y Google no la concede automáticamente. Una pausa mantiene el contenido guardado.
 
 **App**, **Landing** y **Redes sociales** abren subchats con historial, borrador y contexto separados, dentro de la misma cola de Encargos. El usuario no vuelve a escoger el producto en cada mensaje. Crear una app genera un espacio funcional con cuentas y guardado; su adaptación se pide desde su subchat. El código específico se guarda en `apps/custom/{identificador}/` y se incluye en Docker. El catálogo administrativo se conserva en la base del servidor y su copia local solo permite recuperar el contexto.

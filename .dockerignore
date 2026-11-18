@@ -6,6 +6,7 @@ juegos/
 backend/.pytest_cache/
 backend/data/
 .agents
+.educame-agents/
 .codex
 .env
 .env.*

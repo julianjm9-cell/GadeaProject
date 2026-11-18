@@ -2,12 +2,15 @@
 import json
 import socket
 import os
+from pathlib import Path
 sock=socket.socket();sock.bind(("127.0.0.1",0))
 url="http://127.0.0.1:"+str(sock.getsockname()[1])
 os.environ["PUBLIC_BASE_URL"]=url
 os.environ["CORS_ORIGINS"]=url
 from app.database.session import Base, SessionLocal, engine
 from app.main import app
+from app.api import private_apps
+private_apps.IMAGE_ROOT = Path(os.environ["EDUCAME_PRIVATE_IMAGE_DIR"])
 from app.models import Organization, User
 from app.security.passwords import hash_password
 import uvicorn

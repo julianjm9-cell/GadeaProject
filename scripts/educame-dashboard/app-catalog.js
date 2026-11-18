@@ -68,9 +68,23 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
     heading(app.name); body.append(el('p', 'muted', 'Cargando…'));
     try {
       const tabs = el('div', 'actions'); tabs.append(button(app.id === 'gadeos' ? 'Tributos' : 'Cuentas', () => accounts(app)));
-      if (app.id === 'gadeos') tabs.append(button('Editar recorrido y cartas', campaign));
+      if (app.id === 'gadeos') tabs.append(button('Editar recorrido y cartas', campaign), button('Cartel y guía', materials));
       body.replaceChildren(tabs); const content = el('div'); content.id = 'managed-app-content'; body.append(content); await accounts(app);
     } catch (error) { feedback(error.message, true); }
+  }
+  async function materials() {
+    const host = document.getElementById('managed-app-content'); host.replaceChildren(el('p', 'muted', 'Consultando materiales privados…'));
+    try {
+      const data = await api('/api/operacion/admin/app-materials'); host.replaceChildren(el('h3', '', 'Cartel y guía originales'));
+      if (!data.available) { host.append(el('p', 'muted', 'No hay un paquete preparado en este equipo. Se conservan el recorrido y las cartas actuales.')); return; }
+      host.append(el('p', 'muted', data.title + ' · Un cartel y ' + data.pages + ' páginas. Se incorporan al espacio privado de GADEOS.'));
+      const apply = button(data.applied ? 'Volver a comprobar los materiales' : 'Aplicar cartel y guía', async () => {
+        apply.disabled = true; apply.textContent = 'Importando materiales…';
+        try { await api('/api/operacion/admin/app-materials', 'POST', { hash: data.hash }); await materials(); feedback('Cartel y guía preparados en GADEOS. La batalla y el progreso se conservan.'); }
+        catch (error) { feedback(error.message, true); apply.disabled = false; apply.textContent = 'Reintentar importación'; }
+      }); apply.className = 'button primary'; host.append(apply);
+      if (data.applied) host.append(el('p', 'form-message', 'Ya están aplicados. Entra en GADEOS para ver el cartel y abrir la guía.'));
+    } catch (error) { host.replaceChildren(el('p', 'form-message', error.message)); }
   }
   async function accounts(app) {
     const host = document.getElementById('managed-app-content'); host.replaceChildren(el('p', 'muted', 'Cargando cuentas…'));
@@ -115,7 +129,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
         details.append(fields); form.append(details);
       }
       const submit = el('button', 'button primary', 'Guardar recorrido y cartas'); submit.type = 'submit'; form.append(submit);
-      form.addEventListener('submit', async event => { event.preventDefault(); submit.disabled = true; try { const updated = await api('/api/operacion/admin/app-campaign', 'POST', { revision: config.revision, title: title.value, intro: intro.value, boss: boss.value, ending: ending.value, stations: entries.map(read => read()) }); config.revision = updated.revision; feedback('Recorrido guardado. Se conservan las cuentas y las estaciones completadas.'); } catch (error) { feedback(error.message, true); } finally { submit.disabled = false; } });
+      form.addEventListener('submit', async event => { event.preventDefault(); submit.disabled = true; try { const updated = await api('/api/operacion/admin/app-campaign', 'POST', { revision: config.revision, media: config.media, title: title.value, intro: intro.value, boss: boss.value, ending: ending.value, stations: entries.map(read => read()) }); config.revision = updated.revision; feedback('Recorrido guardado. Se conservan las cuentas y las estaciones completadas.'); } catch (error) { feedback(error.message, true); } finally { submit.disabled = false; } });
       host.append(form);
     } catch (error) { host.replaceChildren(el('p', 'form-message', error.message)); }
   }
