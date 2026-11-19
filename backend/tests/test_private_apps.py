@@ -389,7 +389,8 @@ def test_locked_trip_content_is_private_editable_and_migrates_old_planning(clien
     web,factory=client;headers=admin(web,factory);tribute(web,headers)
     config=web.get('/admin/apps/gadeos/campaign',headers=headers).json()
     friday,saturday=config['planning']['days']
-    assert [a['time'] for a in friday['activities']]==['18:00','','21:00','22:00']
+    assert [a['time'] for a in friday['activities']]==['','','21:00','22:00']
+    assert friday['subtitle']=='' and 'Chinchón' not in config['planning']['transport']
     assert friday['activities'][1]['locked'] and saturday['locked']
     friday['activities'][1].update(time='19:00',text='SORPRESA PRIVADA VIERNES')
     saturday['activities'][0]['text']='SORPRESA PRIVADA SABADO'
@@ -411,6 +412,12 @@ def test_locked_trip_content_is_private_editable_and_migrates_old_planning(clien
         {'title':'Viernes 20','subtitle':'Antiguo viernes','activities':[{'time':'19:45','text':'Cena anterior'}]},
         {'title':'Sábado 21','subtitle':'Antiguo sábado','activities':[{'time':'11:00','text':'Contenido guardado'}]}]}
     migrated=gadeos.planning_config(legacy)
-    assert migrated['version']==2 and [a['time'] for a in migrated['days'][0]['activities']]==['18:00','','21:00','22:00']
+    assert migrated['version']==3 and [a['time'] for a in migrated['days'][0]['activities']]==['','','21:00','22:00']
     assert migrated['days'][1]['locked'] and migrated['days'][1]['activities'][0]['text']=='Contenido guardado'
     assert legacy['days'][0]['activities'][0]['time']=='19:45'
+    previous = gadeos.planning_config()
+    previous['version'] = 2
+    previous['transport'] += ' → Chinchón'
+    previous['days'][0]['subtitle'] = 'Atardecer, paseo y noche de juegos'
+    previous['days'][0]['activities'][0]['time'] = '18:00'
+    assert gadeos.planning_config(previous) == gadeos.planning_config()

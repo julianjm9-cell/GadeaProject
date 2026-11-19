@@ -77,16 +77,22 @@ progress::-webkit-progress-value { background:linear-gradient(90deg,#cc983f,#ffe
 progress::-moz-progress-bar { background:#efc976; border-radius:8px; }
 .journey { position:relative; isolation:isolate; width:100%; border:1px solid #eac16d66; border-radius:26px; overflow:hidden; margin-bottom:20px; background:#0a1c35; box-shadow:0 18px 55px #0004; }
 .journey-map { display:block; width:100%; height:auto; }
-.journey-town .journey-map { aspect-ratio:390/435; }
+.journey-town-section { max-width:520px; margin:0 auto 16px; }
+.town-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+.town-toolbar h2 { margin:0; font-size:23px; }
+.town-reset { border-color:var(--line); }
+.journey-town { aspect-ratio:390/435; background:#101e31; }
+.journey-town .town-marker .station { position:relative; transform:none; width:48px; height:48px; }
+.journey-town .town-marker .station:not(:disabled):hover { transform:scale(1.07); }
+.journey-town .leaflet-control-zoom a { width:44px; height:44px; line-height:44px; background:#102641; color:var(--gold); border-color:var(--line); }
+.journey-town .leaflet-control-zoom a.leaflet-disabled { color:#9ba9bc; }
+.journey-town .leaflet-control-attribution { padding:3px 7px; background:#061126e8; font-size:10px; }
+.journey-town .leaflet-control-attribution a { color:var(--gold); }
 .journey-bus .journey-map { aspect-ratio:3/2; min-height:250px; object-fit:cover; }
 .bus-title { position:absolute; inset:auto 0 76px; margin:0; text-align:center; font-size:clamp(23px,5vw,36px); }
 .bus-stops { position:absolute; inset:auto 0 16px; display:flex; justify-content:center; gap:18px; }
 .journey .bus-stops .station { position:relative; transform:none; }
 .journey .bus-stops .station:not(:disabled):hover { transform:scale(1.06); }
-.town-anchor,.town-lines { pointer-events:none; position:absolute; }
-.town-anchor { width:9px; height:9px; transform:translate(-50%,-50%); border:1px solid #fff2bb; border-radius:50%; background:#e1a24e; }
-.town-lines { inset:0; width:100%; height:100%; stroke:#f4d285; stroke-width:1.5; }
-.town-credit { position:absolute; bottom:6px; right:10px; padding:4px 7px; border-radius:6px; background:#061126e8; color:#f4d285; font-size:10px; }
 .journey-extras { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:0 0 12px; }
 .journey-extras .station { font-size:12px; padding:10px 8px; }
 .journey-previous .station { background:transparent; color:var(--muted); }
@@ -189,7 +195,7 @@ dialog::backdrop { background:#020916de; backdrop-filter:blur(9px); -webkit-back
 .day-symbol { display:grid; place-items:center; width:36px; height:36px; border:1px solid var(--line); border-radius:50%; font-size:23px; color:#ffdf8b; background:#d3aa4212; }
 .day-subtitle { margin:9px 0 12px 48px; color:var(--muted); font-size:12px; line-height:1.6; }
 .planning-list li { align-items:flex-start; padding:14px 0; }
-.planning-list li>span:nth-child(2) { display:block; overflow:visible; }
+.planning-list li>span:last-child { flex:1; display:block; overflow:visible; }
 .planning-time { color:#ebd2a0; font-size:13px; line-height:1.7; }
 .planning-food-link { display:block; padding-top:22px; color:var(--gold); text-decoration:none; font-size:14px; }
 .bottom-nav { width:min(580px,calc(100% - 24px)); }

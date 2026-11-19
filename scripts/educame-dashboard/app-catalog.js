@@ -192,14 +192,14 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       function addDay(value = { title: 'Nuevo día', subtitle: 'Plan del día', activities: [{time:'12:00',text:''}] }) {
         const box = el('fieldset', 'campaign-day'); box.append(el('legend', '', 'Día del planning'));
         const name = field(box, 'Nombre del día', 'dayTitle', value.title), subtitle = field(box, 'Plan del día', 'daySubtitle', value.subtitle);
-        name.required = subtitle.required = true; name.maxLength = subtitle.maxLength = 120;
-        const dayLockLabel = el('label', 'check-label', 'Bloquear este día'), dayLock = el('input'); dayLock.type = 'checkbox'; dayLock.checked = Boolean(value.locked); dayLock.disabled = schedule.version !== 2; dayLockLabel.append(dayLock); box.append(dayLockLabel);
+        name.required = true; subtitle.required = !(schedule.version >= 3); name.maxLength = subtitle.maxLength = 120;
+        const dayLockLabel = el('label', 'check-label', 'Bloquear este día'), dayLock = el('input'); dayLock.type = 'checkbox'; dayLock.checked = Boolean(value.locked); dayLock.disabled = !(schedule.version >= 2); dayLockLabel.append(dayLock); box.append(dayLockLabel);
         const activities = el('div', 'managed-app-form'), readers = []; box.append(activities);
         function addActivity(entry = {time:'12:00',text:''}) {
           const row = el('div', 'managed-app-form');
           const time = field(row, 'Hora o intervalo', 'activityTime', entry.time), text = field(row, 'Actividad', 'activityText', entry.text, true);
-          const activityLockLabel = el('label', 'check-label', 'Bloquear actividad'), activityLock = el('input'); activityLock.type = 'checkbox'; activityLock.checked = Boolean(entry.locked); activityLock.disabled = schedule.version !== 2; activityLockLabel.append(activityLock); row.append(activityLockLabel);
-          const applyLock = () => { time.required = text.required = !activityLock.checked; }; activityLock.addEventListener('change', applyLock); applyLock(); time.placeholder = '19:20–19:45'; time.maxLength = 11; text.maxLength = 500;
+          const activityLockLabel = el('label', 'check-label', 'Bloquear actividad'), activityLock = el('input'); activityLock.type = 'checkbox'; activityLock.checked = Boolean(entry.locked); activityLock.disabled = !(schedule.version >= 2); activityLockLabel.append(activityLock); row.append(activityLockLabel);
+          const applyLock = () => { text.required = !activityLock.checked; time.required = text.required && !(schedule.version >= 3); }; activityLock.addEventListener('change', applyLock); applyLock(); time.placeholder = '19:20–19:45'; time.maxLength = 11; text.maxLength = 500;
           const remove = el('button', 'button', 'Quitar actividad'); remove.type = 'button'; remove.addEventListener('click', () => row.remove()); row.append(remove); activities.append(row);
           readers.push(() => row.isConnected ? {time:time.value,text:text.value,locked:activityLock.checked} : null);
         }
@@ -210,7 +210,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       }
       for (const value of schedule.days || []) addDay(value);
       const addDayButton = el('button', 'button', 'Añadir día'); addDayButton.type = 'button'; addDayButton.addEventListener('click', () => addDay()); itineraryFields.append(addDayButton); itinerary.append(itineraryFields); form.append(itinerary);
-      if (Array.isArray(schedule.days) && schedule.version !== 2) itineraryFields.append(el('p', 'form-message', 'Actualiza Hostinger para activar los bloqueos del planning.'));
+      if (Array.isArray(schedule.days) && !(schedule.version >= 2)) itineraryFields.append(el('p', 'form-message', 'Actualiza Hostinger para activar los bloqueos del planning.'));
       if (!Array.isArray(schedule.days)) { transport.disabled = addDayButton.disabled = true; itineraryFields.append(el('p', 'form-message', 'Actualiza Hostinger para editar el planning por días. Se conserva el planning actual.')); }
       form.append(el('p', 'muted', 'Diez pruebas. Las dos últimas quedan pendientes hasta que guardes su pista y respuesta. El progreso de los tributos se conserva.'));
       const cards = el('details', 'campaign-cards'); cards.append(el('summary', '', 'Cartas de recompensa'));

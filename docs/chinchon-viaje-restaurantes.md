@@ -1,6 +1,6 @@
 # Planning y restaurantes de Chinchón
 
-Consulta de fuentes: **18 de noviembre de 2026**. Las dos imágenes del propietario definen el planning y los intervalos de precio; no se copian los originales personales a Git. El viaje se divide en viernes 20 y sábado 21. La última corrección del propietario sustituye el viernes por 18:00 llegada y mochilas, una actividad BLOQUEADA, 21:00 llegada al piso y 22:00 batallas finales. Todo el sábado queda BLOQUEADO; su contenido se conserva solo en administración hasta que el propietario lo muestre desde LA TERRAZA. El planning no representa horarios de apertura confirmados ni controla las nueve pruebas.
+Consulta de fuentes: **18 de noviembre de 2026**. Las dos imágenes del propietario definen el planning y los intervalos de precio; no se copian los originales personales a Git. El viaje se divide en viernes 20 y sábado 21. La última corrección del propietario sustituye el viernes por llegada y mochilas sin hora fijada, una actividad BLOQUEADA, 21:00 llegada al piso y 22:00 batallas finales. Todo el sábado queda BLOQUEADO; su contenido se conserva solo en administración hasta que el propietario lo muestre desde LA TERRAZA. El planning no representa horarios de apertura confirmados ni controla las nueve pruebas.
 
 ## Lugares y puntuaciones
 
@@ -31,6 +31,6 @@ Las cifras son puntuaciones de Google reproducidas por las fuentes enlazadas, co
 
 ## Comprobación
 
-El recorrido del juego reutiliza esta geometría con una paleta nocturna y un encuadre en el casco histórico. Los puntos corresponden al [refugio](https://www.openstreetmap.org/node/13249626732), la [torre](https://www.openstreetmap.org/way/1144478502), la [iglesia](https://www.openstreetmap.org/way/1144478506), la [taberna](https://www.openstreetmap.org/node/13249570475), el [teatro](https://www.openstreetmap.org/way/1144478512) y el [ayuntamiento](https://www.openstreetmap.org/way/446651301). Cada número desplazado se une con una línea a su punto real.
+El recorrido del juego reutiliza esta geometría con una paleta nocturna y un encuadre en el casco histórico. Los puntos corresponden al [refugio](https://www.openstreetmap.org/node/13249626732), la [torre](https://www.openstreetmap.org/way/1144478502), la [iglesia](https://www.openstreetmap.org/way/1144478506), la [taberna](https://www.openstreetmap.org/node/13249570475), el [teatro](https://www.openstreetmap.org/way/1144478512) y el [ayuntamiento](https://www.openstreetmap.org/way/446651301). Cada número desplazado se une con una línea a su punto real. La subsección solo se muestra al completar las dos pruebas del autobús y permite arrastrar, ampliar, alejar y centrar el mapa.
 
 Con datos ficticios: guardar planning por días desde LA TERRAZA, recargar, conservarlo al guardar con un editor anterior, rechazar revisión antigua y horario inválido. En Chromium y WebKit móvil: viernes con cuatro entradas y sábado oculto, cuatro pestañas, mapa de restaurantes cargado, refugio visible con todos los filtros, selección del local, enlace a Google Maps, recarga y partida de diez pruebas con recorrido libre tras el autobús.

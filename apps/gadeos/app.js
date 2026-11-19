@@ -1,8 +1,10 @@
-import { restaurants, clearRestaurantMap } from './restaurants.js';
+import { restaurants, clearRestaurantMap, projectTownPoint } from './restaurants.js';
 const $ = id => document.getElementById(id);
 const apiRoot = '/api/arena-hambre';
 const art = name => '/aventura-hambre-assets/art/' + name + '-v2.webp';
 const total = () => state.campaign.stations.length;
+// Geographic frame of the town artwork in the shared 1200 × 900 projection.
+const townBounds = [[310, 180], [745, 570]];
 // Geographic coordinates and offsets as percentages of the map.
 const townStops = {
   3: [40.1398503, -3.4224314, 8, 9], // Refugio
@@ -13,6 +15,7 @@ const townStops = {
   8: [40.1399504, -3.4230726, -12, 4], // Escudo: ayuntamiento
 };
 let state, busy = false, selectedCard = null;
+let townMap, townView;
 const el = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; };
 const icon = name => { const node = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); const use = document.createElementNS(node.namespaceURI, 'use'); use.setAttribute('href', '#i-' + name); node.append(use); node.setAttribute('aria-hidden', 'true'); return node; };
 function button(text, action, className = '') { const node = el('button', className, text); node.type = 'button'; node.addEventListener('click', action); return node; }
@@ -28,7 +31,7 @@ async function load() {
   try { state = await api('/state'); showGame(); render(); }
   catch (error) { if (error.status === 401) showLogin(); else note(error.message); }
 }
-function showLogin() { clearRestaurantMap(); state = null; document.body.dataset.view = 'login'; $('login-screen').hidden = false; $('game-screen').hidden = true; for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close(); }
+function showLogin() { clearRestaurantMap(); clearTownMap(); townView = null; state = null; document.body.dataset.view = 'login'; $('login-screen').hidden = false; $('game-screen').hidden = true; for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close(); }
 function showGame() { $('login-screen').hidden = true; $('game-screen').hidden = false; }
 
 $('login-form').addEventListener('submit', async event => {
@@ -117,12 +120,80 @@ function home(host) {
     const section = el('section', 'planning-day');
     const head = el('div', 'planning-day-title'); head.append(el('span', 'day-symbol', index ? '☀' : '☾'), el('h3', '', day.title)); section.append(head);
     if (day.locked) { const blocked = el('p', 'planning-locked'); blocked.append(icon('lock'), document.createTextNode('BLOQUEADO')); section.append(blocked); planning.append(section); continue; }
-    section.append(el('p', 'day-subtitle', day.subtitle));
+    if (day.subtitle) section.append(el('p', 'day-subtitle', day.subtitle));
     const list = el('ol', 'planning-list');
-    for (const activity of day.activities) { const row = el('li', activity.locked ? 'planning-locked' : ''); if (activity.locked) row.append(icon('lock'), el('span', '', 'BLOQUEADO')); else row.append(el('time', 'planning-time', activity.time), el('span', '', activity.text)); list.append(row); }
+    for (const activity of day.activities) {
+      const row = el('li', activity.locked ? 'planning-locked' : '');
+      if (activity.locked) {
+        row.append(icon('lock'), el('span', '', 'BLOQUEADO'));
+      } else {
+        if (activity.time) row.append(el('time', 'planning-time', activity.time));
+        row.append(el('span', '', activity.text));
+      }
+      list.append(row);
+    }
     section.append(list); planning.append(section);
   }
   const food = el('a', 'planning-food-link', 'Dónde comer en Chinchón →'); food.href = '#restaurantes'; planning.append(food); host.append(planning);
+}
+
+function clearTownMap() {
+  if (!townMap) return;
+  townMap.remove();
+  townMap = null;
+}
+
+function townChallenges(section, frame, stations, stop) {
+  const L = globalThis.L;
+  if (!L) {
+    frame.remove();
+    const shortcuts = el('div', 'journey-extras');
+    for (const station of stations) shortcuts.append(stop(station, 'Prueba ' + station.number));
+    section.append(shortcuts);
+    return;
+  }
+
+  const bounds = L.latLngBounds(townBounds);
+  const map = L.map(frame, {
+    crs: L.CRS.Simple,
+    minZoom: -2,
+    maxZoom: 2,
+    zoomSnap: 0.1,
+    zoomDelta: 0.5,
+    maxBounds: bounds.pad(0.45),
+    scrollWheelZoom: false,
+    zoomControl: false,
+    zoomAnimation: false,
+    fadeAnimation: false
+  });
+  townMap = map;
+  const fitTown = () => map.fitBounds(bounds, { animate: false });
+  if (townView) map.setView(townView.center, townView.zoom);
+  else fitTown();
+  map.on('moveend', () => { townView = { center: map.getCenter(), zoom: map.getZoom() }; });
+  L.control.zoom({ zoomInTitle: 'Ampliar mapa', zoomOutTitle: 'Alejar mapa' }).addTo(map);
+  map.attributionControl.setPrefix(false);
+  L.imageOverlay('/aventura-hambre-assets/journey-town.svg', bounds, {
+    alt: '',
+    className: 'journey-map',
+    attribution: '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap · ODbL</a>'
+  }).addTo(map);
+  section.querySelector('.town-reset').addEventListener('click', fitTown);
+
+  for (const station of stations) {
+    const [lat, lon, dx, dy] = townStops[station.number];
+    const [y, x] = projectTownPoint([lat, lon]);
+    const point = [y, x];
+    const label = [y - dy * 4.35, x + dx * 3.9];
+    const control = stop(station);
+    L.polyline([point, label], { color: '#f4d285', weight: 1.5, interactive: false }).addTo(map);
+    L.circleMarker(point, { className: 'town-anchor', radius: 4, color: '#fff2bb', weight: 1, fillColor: '#e1a24e', fillOpacity: 1, interactive: false }).addTo(map);
+    L.DomEvent.disableClickPropagation(control);
+    L.marker(label, {
+      icon: L.divIcon({ html: control, className: 'town-marker', iconSize: [48, 48], iconAnchor: [24, 24] }),
+      keyboard: false
+    }).addTo(map);
+  }
 }
 
 function journey(host) {
@@ -130,14 +201,6 @@ function journey(host) {
   count.setAttribute('aria-label', state.completed + ' de ' + total() + ' pruebas completadas');
   heading.append(el('h1', '', 'Recorrido'), count); host.append(heading);
   const [bus, riddle, ...town] = state.campaign.stations;
-  const inTown = riddle.completed;
-  const scene = el('section', 'journey ' + (inTown ? 'journey-town' : 'journey-bus'));
-  scene.setAttribute('aria-label', inTown ? 'Mapa de Chinchón' : 'Viaje en autobús');
-  const image = el('img', 'journey-map');
-  image.src = inTown ? '/aventura-hambre-assets/journey-town.svg' : art('journey-bus');
-  image.alt = '';
-  scene.append(image);
-  host.append(scene);
   function stop(station, text = String(station.number)) {
     const control = button(text, () => challenge(station), 'station ' + (station.locked ? 'locked' : station.completed ? 'done' : 'current'));
     control.disabled = station.locked;
@@ -146,44 +209,39 @@ function journey(host) {
     control.setAttribute('aria-label', 'Prueba ' + station.number + ', ' + status);
     return control;
   }
-  if (!inTown) {
-    scene.append(el('h2', 'bus-title', 'De camino a Chinchón'));
+  if (!bus.completed || !riddle.completed) {
+    const scene = el('section', 'journey journey-bus');
+    scene.setAttribute('aria-label', 'Viaje en autobús');
+    const image = el('img', 'journey-map');
+    image.src = art('journey-bus');
+    image.alt = '';
+    scene.append(image, el('h2', 'bus-title', 'De camino'));
     const stops = el('div', 'bus-stops');
     stops.append(stop(bus), stop(riddle));
     scene.append(stops);
+    host.append(scene);
     return;
   }
-  const lines = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  lines.classList.add('town-lines');
-  lines.setAttribute('aria-hidden', 'true');
-  scene.append(lines);
-  for (const station of town.slice(0, 6)) {
-    const [lat, lon, dx, dy] = townStops[station.number];
-    // The town SVG retains the projection of the restaurants map with a tighter viewBox.
-    const x = ((lon + 3.4255) / .0092 * 1200 - 180) / 390 * 100;
-    const y = ((40.1427 - lat) / .0052 * 900 - 155) / 435 * 100;
-    const line = document.createElementNS(lines.namespaceURI, 'line');
-    for (const [key, value] of Object.entries({ x1: x, y1: y, x2: x + dx, y2: y + dy })) {
-      line.setAttribute(key, value + '%');
-    }
-    lines.append(line);
-    const anchor = el('span', 'town-anchor');
-    anchor.style.left = x + '%';
-    anchor.style.top = y + '%';
-    scene.append(anchor);
-    const control = stop(station);
-    control.style.left = (x + dx) + '%';
-    control.style.top = (y + dy) + '%';
-    scene.append(control);
+  const section = el('section', 'journey-town-section');
+  const toolbar = el('div', 'town-toolbar');
+  const mapTitle = el('h2', '', 'Mapa de Chinchón');
+  mapTitle.id = 'town-map-title';
+  section.setAttribute('aria-labelledby', mapTitle.id);
+  toolbar.append(mapTitle);
+  if (globalThis.L) {
+    const reset = el('button', 'quiet town-reset', 'Centrar');
+    reset.type = 'button';
+    toolbar.append(reset);
   }
-  const credit = el('a', 'town-credit', '© OpenStreetMap · ODbL');
-  credit.href = 'https://www.openstreetmap.org/copyright';
-  credit.target = '_blank';
-  credit.rel = 'noopener noreferrer';
-  scene.append(credit);
+  const frame = el('div', 'journey journey-town');
+  frame.setAttribute('role', 'region');
+  frame.setAttribute('aria-labelledby', mapTitle.id);
+  section.append(toolbar, frame);
+  host.append(section);
+  townChallenges(section, frame, town.slice(0, 6), stop);
   const extras = el('div', 'journey-extras');
   for (const station of town.slice(6)) extras.append(stop(station, 'Prueba ' + station.number + (station.pending ? ' · Pendiente' : '')));
-  host.append(extras);
+  section.append(extras);
   const previous = el('div', 'journey-extras journey-previous');
   previous.append(stop(bus, '1 · Autobús'), stop(riddle, '2 · Adivinanza'));
   host.append(previous);
@@ -255,7 +313,7 @@ function render() {
   if (!state) return;
   const page = ['inicio', 'recorrido', 'batalla', 'restaurantes'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'inicio';
   document.body.dataset.view = page;
-  clearRestaurantMap(); $('main').replaceChildren();
+  clearRestaurantMap(); clearTownMap(); $('main').replaceChildren();
   ({ inicio: home, recorrido: journey, batalla: battle, restaurantes: restaurants })[page]($('main'));
   document.querySelectorAll('.bottom-nav a').forEach(node => { if (node.hash === '#' + page) node.setAttribute('aria-current', 'page'); else node.removeAttribute('aria-current'); });
 }

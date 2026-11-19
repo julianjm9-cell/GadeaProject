@@ -20,8 +20,8 @@ PUBLIC_ASSETS = "/aventura-hambre-assets"
 
 def planning_config(value=None):
     days = [
-        {"title": "Viernes 20", "subtitle": "Atardecer, paseo y noche de juegos", "activities": [
-            {"time": "18:00", "text": "Llegada a Chinchón, dejar las mochilas en el apartamento."},
+        {"title": "Viernes 20", "subtitle": "", "activities": [
+            {"time": "", "text": "Llegada a Chinchón, dejar las mochilas en el apartamento."},
             {"time": "", "text": "", "locked": True},
             {"time": "21:00", "text": "Llegada al piso."},
             {"time": "22:00", "text": "Batallas Finales de los juegos del hambre."}]},
@@ -39,38 +39,50 @@ def planning_config(value=None):
         day.setdefault("locked", False)
         for entry in day["activities"]:
             entry.setdefault("locked", False)
-    defaults = {"version": 2, "day": "Viernes", "place": "Chinchón", "start": "16:00", "final": "22:00",
-                "transport": "Autobús 337 · Salida: Metro Pavones (Línea 9, Madrid) → Chinchón", "days": days}
+    defaults = {"version": 3, "day": "Viernes", "place": "Chinchón", "start": "16:00", "final": "22:00",
+                "transport": "Autobús 337 · Salida: Metro Pavones (Línea 9, Madrid)", "days": days}
     if value is None:
         return defaults
     if not isinstance(value, dict):
         raise HTTPException(422, "Revisa el planning del viaje.")
-    result = {**defaults, **{key: value[key] for key in defaults if key in value}}
-    if type(result["version"]) is not int or not 1 <= result["version"] <= 2:
+    result = {**defaults, **{key: copy.deepcopy(value[key]) for key in defaults if key in value}}
+    version = value.get("version", 1)
+    if type(version) is not int or not 1 <= version <= defaults["version"]:
         raise HTTPException(422, "Actualiza el editor del planning.")
-    if "version" not in value or value["version"] < 2:
+    if version < 2:
         old_days = result["days"]
         if isinstance(old_days, list) and len(old_days) == 2 and all(isinstance(day, dict) for day in old_days) and [day.get("title") for day in old_days] == ["Viernes 20", "Sábado 21"]:
             result["days"] = [copy.deepcopy(days[0]), {**old_days[1], "locked": True}]
-        result["version"] = 2
+    result["version"] = defaults["version"]
     if any(not isinstance(result[key], str) or not 1 <= len(result[key].strip()) <= 80 for key in ("day", "place")) or any(not isinstance(result[key], str) or not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", result[key]) for key in ("start", "final")):
         raise HTTPException(422, "Indica el día, el lugar y dos horas válidas para el planning.")
     if not isinstance(result["transport"], str) or len(result["transport"]) > 300 or not isinstance(result["days"], list) or not 1 <= len(result["days"]) <= 7:
         raise HTTPException(422, "Indica el transporte y entre uno y siete días de planning.")
     clean_days = []
     for day in result["days"]:
-        if not isinstance(day, dict) or any(not isinstance(day.get(key), str) or not 1 <= len(day[key].strip()) <= 120 for key in ("title", "subtitle")) or not isinstance(day.get("activities"), list) or not 1 <= len(day["activities"]) <= 24:
-            raise HTTPException(422, "Cada día necesita título, descripción y entre una y veinticuatro actividades.")
+        if not isinstance(day, dict) or not isinstance(day.get("title"), str) or not 1 <= len(day["title"].strip()) <= 120 or not isinstance(day.get("subtitle"), str) or len(day["subtitle"].strip()) > 120 or not isinstance(day.get("activities"), list) or not 1 <= len(day["activities"]) <= 24:
+            raise HTTPException(422, "Cada día necesita título y entre una y veinticuatro actividades.")
         if type(day.get("locked", False)) is not bool:
             raise HTTPException(422, "El bloqueo del día debe ser verdadero o falso.")
         entries = []
         for entry in day["activities"]:
             if not isinstance(entry, dict) or type(entry.get("locked", False)) is not bool or not isinstance(entry.get("time"), str) or len(entry["time"]) > 11 or not isinstance(entry.get("text"), str) or len(entry["text"].strip()) > 500:
                 raise HTTPException(422, "Revisa los datos de la actividad y su bloqueo.")
-            if not entry.get("locked", False) and (not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d(?:[–-](?:[01]\d|2[0-3]):[0-5]\d)?", entry["time"]) or not entry["text"].strip()):
-                raise HTTPException(422, "Cada actividad visible necesita una hora o intervalo válido y un texto.")
+            if not entry.get("locked", False) and (not entry["text"].strip() or (entry["time"] and not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d(?:[–-](?:[01]\d|2[0-3]):[0-5]\d)?", entry["time"]))):
+                raise HTTPException(422, "Escribe el texto de la actividad. Si indicas una hora, usa un horario válido.")
             entries.append({"time": entry["time"], "text": entry["text"].strip(), "locked": entry.get("locked", False)})
         clean_days.append({"title": day["title"].strip(), "subtitle": day["subtitle"].strip(), "locked": day.get("locked", False), "activities": entries})
+    if version < 3:
+        if result["transport"].strip() == defaults["transport"] + " → Chinchón":
+            result["transport"] = defaults["transport"]
+        for day in clean_days:
+            if day["title"] != "Viernes 20":
+                continue
+            if day["subtitle"] == "Atardecer, paseo y noche de juegos":
+                day["subtitle"] = ""
+            for entry in day["activities"]:
+                if entry["time"] == "18:00" and entry["text"] == days[0]["activities"][0]["text"]:
+                    entry["time"] = ""
     return {**result, "transport": result["transport"].strip(), "days": clean_days}
 
 

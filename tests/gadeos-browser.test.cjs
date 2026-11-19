@@ -46,7 +46,9 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-home-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   assert.deepEqual(await page.locator('.planning-day h3').allTextContents(),['Viernes 20','Sábado 21']);
-  assert.equal(await page.locator('.planning-list li').count(),4);assert.deepEqual(await page.locator('.planning-time').allTextContents(),['18:00','21:00','22:00']);assert.equal(await page.locator('.planning-locked').count(),2);assert.doesNotMatch(await page.locator('.planning').innerText(),/Check-out|Torre del Reloj|11:30|19:45/);await page.getByText(/Autobús 337 · Salida/).waitFor();
+  assert.equal(await page.locator('.planning-list li').count(),4);assert.deepEqual(await page.locator('.planning-time').allTextContents(),['21:00','22:00']);assert.equal(await page.locator('.planning-locked').count(),2);assert.doesNotMatch(await page.locator('.planning').innerText(),/Check-out|Torre del Reloj|11:30|19:45|Atardecer, paseo y noche de juegos/);
+  assert.match(await page.locator('.planning-transport').innerText(),/Autobús 337 · Salida/);
+  assert.doesNotMatch(await page.locator('.planning-transport').innerText(),/Chinchón/);
   await page.locator('.bottom-nav a[href="#restaurantes"]').click();await page.locator('.leaflet-container').waitFor();
   assert.equal((await page.request.get(base+'/aventura-hambre-assets/town-map.svg')).status(),200);
   await page.waitForFunction(()=>document.querySelector('.leaflet-image-layer')?.naturalWidth>0).catch(async error=>{throw Error(error.message+'; JS='+JSON.stringify(errors)+'; mapa='+await page.locator('#restaurant-map').innerHTML());});
@@ -74,6 +76,8 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await page.locator('.bottom-nav a[href="#recorrido"]').click();assert.equal(await page.locator('[data-station="2"]').isEnabled(),false);
   assert.equal(await page.locator('[data-station]').count(),2);
+  assert.equal(await page.locator('.journey-town-section').count(),0);
+  assert.doesNotMatch(await page.locator('.journey-bus').innerText(),/Chinchón/);
   await page.waitForFunction(()=>document.querySelector('.journey-bus .journey-map')?.naturalWidth>0);
   async function checkRoute(){
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
@@ -109,8 +113,28 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
    if(i===1){
     assert.equal(await page.locator('.journey-bus').count(),0);
     await page.waitForFunction(()=>document.querySelector('.journey-town .journey-map')?.naturalWidth>0);
-    for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:viewport.height});await checkRoute();}
+    for(const width of [320,390,768,1440]){
+     await page.setViewportSize({width,height:viewport.height});
+     await page.getByRole('button',{name:'Centrar',exact:true}).click();
+     await checkRoute();
+    }
     await page.setViewportSize(viewport);
+    await page.getByRole('button',{name:'Centrar',exact:true}).click();
+    const townMap=page.locator('.journey-town');
+    const mapImage=townMap.locator('.journey-map');
+    const startWidth=(await mapImage.boundingBox()).width;
+    await townMap.getByRole('button',{name:'Ampliar mapa',exact:true}).click();
+    assert.ok((await mapImage.boundingBox()).width>startWidth);
+    const mapBox=await townMap.boundingBox();
+    const beforeDrag=await mapImage.boundingBox();
+    await page.mouse.move(mapBox.x+mapBox.width*.70,mapBox.y+mapBox.height*.83);
+    await page.mouse.down();
+    await page.mouse.move(mapBox.x+mapBox.width*.58,mapBox.y+mapBox.height*.90,{steps:8});
+    await page.mouse.up();
+    assert.ok(Math.abs((await mapImage.boundingBox()).x-beforeDrag.x)>12);
+    await townMap.getByRole('button',{name:'Alejar mapa',exact:true}).click();
+    await page.getByRole('button',{name:'Centrar',exact:true}).click();
+    await checkRoute();
     assert.equal(await page.locator('[data-station="8"]').isEnabled(),true);
     assert.equal(await page.locator('[data-station="9"]').isEnabled(),false);
     assert.equal(await page.locator('[data-station="10"]').isEnabled(),false);
@@ -136,7 +160,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
     assert.deepEqual(reopened.cards.filter(card=>card.owned).map(card=>card.id),[1,2,8]);
    }
 
-   if(i===0){await page.reload();await page.locator('[data-station="2"]').waitFor();assert.equal(await page.locator('[data-station="2"]').isEnabled(),true);assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).cards.filter(card=>card.owned).length,1);
+   if(i===0){await page.reload();await page.locator('[data-station="2"]').waitFor();assert.equal(await page.locator('[data-station="2"]').isEnabled(),true);assert.equal(await page.locator('.journey-town-section').count(),0);assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).cards.filter(card=>card.owned).length,1);
     const before=await (await page.request.get(base+'/api/arena-hambre/state')).json();
     await page.locator('[data-station="1"]').click();await page.locator('#challenge').getByRole('heading',{name:config.stations[0].title,exact:true}).waitFor();
     await page.emulateMedia({reducedMotion:'reduce'});await page.locator('#challenge').getByRole('button',{name:'Ver sobres',exact:true}).click();await checkReward();assert.equal(await page.locator('.earned-pack').first().evaluate(node=>getComputedStyle(node).animationName),'none');await page.mouse.click(5,5);await page.locator('#reward').waitFor({state:'hidden'});
