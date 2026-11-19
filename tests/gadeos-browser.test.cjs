@@ -74,11 +74,13 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   assert.equal(await page.locator('.next-step,.planning-food-link').count(),0);
   await page.getByText('Llegada a Chinchón.',{exact:true}).waitFor();
   await page.getByText('Misiones.',{exact:true}).waitFor();
-  await page.getByText('Check-out del apartamento.',{exact:true}).waitFor();
-  assert.equal(await page.locator('.planning-locked,.planning-unlock').count(),0);
+  await page.getByText('Check-out del refugio.',{exact:true}).waitFor();
+  assert.equal(await page.locator('.planning-locked').count(),1);
+  assert.equal(await page.locator('.planning-unlock').count(),0);
+  assert.doesNotMatch(await page.locator('.planning').innerText(),/Desayuno|Castillo|Descubrir|11:30|17:00/);
   assert.deepEqual((await page.locator('.planning-time').allTextContents()).slice(0,3),['20:00','20:00–22:00','23:00']);
   await page.reload();
-  await page.getByText('Check-out del apartamento.',{exact:true}).waitFor();
+  await page.getByText('Check-out del refugio.',{exact:true}).waitFor();
   assert.equal(await page.locator('.planning-unlock').count(),0);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
  });
@@ -116,9 +118,9 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-home-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   assert.deepEqual(await page.locator('.planning-day h3').allTextContents(),['Viernes 20','Sábado 21']);
-  assert.equal(await page.locator('.planning-list li').count(),11);
+  assert.equal(await page.locator('.planning-list li').count(),5);
   assert.deepEqual((await page.locator('.planning-time').allTextContents()).slice(0,3),['20:00','20:00–22:00','23:00']);
-  assert.equal(await page.locator('.planning-locked').count(),0);
+  assert.equal(await page.locator('.planning-locked').count(),1);
   await page.getByText('Llegada a Chinchón.',{exact:true}).waitFor();
   assert.match(await page.locator('.planning-transport').innerText(),/^Autobús 337 · Salida: Metro Pavones/);
   assert.equal(await page.locator('.planning-food-link').count(),0);

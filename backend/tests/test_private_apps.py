@@ -491,7 +491,7 @@ def test_trip_days_survive_legacy_edit_reload_and_progress(client):
     assert current['completed']==0
     assert current['campaign']['planning']['days'][0]['activities'][0]['time']=='18:15'
     assert current['campaign']['planning']['days'][0]['activities'][0]['text']=='Dejar las mochilas.'
-    assert len(current['campaign']['planning']['days'][1]['activities'])==8
+    assert len(current['campaign']['planning']['days'][1]['activities'])==2
     assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=config).status_code==409
     for value in [[],[{'title':'Viernes','subtitle':'Viaje','activities':[{'time':'29:00','text':'Cena'}]}]]:
         invalid=kept.json();invalid['planning']['days']=value
@@ -552,8 +552,8 @@ def test_locked_trip_content_is_private_editable_and_migrates_old_planning(clien
         {'title':'Viernes 20','subtitle':'Antiguo viernes','activities':[{'time':'19:45','text':'Cena anterior'}]},
         {'title':'Sábado 21','subtitle':'Antiguo sábado','activities':[{'time':'11:00','text':'Contenido guardado'}]}]}
     migrated=gadeos.planning_config(legacy)
-    assert migrated['version']==6 and [a['time'] for a in migrated['days'][0]['activities']]==['20:00','20:00–22:00','23:00']
-    assert not migrated['days'][1]['locked'] and migrated['days'][1]['activities'][0]['text']=='Contenido guardado'
+    assert migrated['version']==7 and [a['time'] for a in migrated['days'][0]['activities']]==['20:00','20:00–22:00','23:00']
+    assert not migrated['days'][1]['locked'] and migrated['days'][1]['activities'][1]['text']=='Contenido guardado'
     assert legacy['days'][0]['activities'][0]['time']=='19:45'
     previous = gadeos.planning_config()
     previous['version'] = 2
@@ -584,9 +584,12 @@ def test_open_itinerary_migrates_saved_passwords_once_and_preserves_saturday():
     legacy['days'][1]['activities'][0].update(time='10:30', text='Desayuno personalizado.', locked=True)
     migrated = gadeos.planning_config(legacy)
     assert [a['time'] for a in migrated['days'][0]['activities']] == ['20:00','20:00–22:00','23:00']
-    assert migrated['days'][1]['activities'][0]['text'] == 'Desayuno personalizado.'
-    assert all(not day['locked'] and all(not a['locked'] for a in day['activities']) for day in migrated['days'])
-    assert gadeos.public_planning(migrated) == migrated
+    assert migrated['days'][1]['activities'][1]['text'] == 'Desayuno personalizado.'
+    assert not migrated['days'][1]['activities'][0]['locked']
+    assert all(a['locked'] for a in migrated['days'][1]['activities'][1:])
+    public = gadeos.public_planning(migrated)
+    assert public['days'][1]['activities'] == [migrated['days'][1]['activities'][0], {'time':'','text':'','locked':True}]
+    assert 'Desayuno personalizado' not in str(public)
     assert legacy['days'][1]['locked']
     migrated['days'][0]['activities'][0]['time'] = '20:15'
     assert gadeos.planning_config(migrated) == migrated
@@ -627,3 +630,24 @@ def test_profile_reset_and_unlock_are_isolated_durable_and_idempotent(client, mo
         assert db.get(PrivateAppProgress, UUID(first['id'])).revision == 2
     web.cookies.clear()
     assert web.post('/api/arena-hambre/profile', json=payload).status_code == 401
+
+
+def test_version_six_saturday_hides_remainder_but_retains_checkout_and_admin_content():
+    saved = gadeos.planning_config()
+    saved['version'] = 6
+    saturday = saved['days'][1]
+    saturday['subtitle'] = 'Descubrir Chinchón'
+    saturday['activities'][0]['text'] = 'Check-out del apartamento.'
+    for entry in saturday['activities']:
+        entry['locked'] = False
+    migrated = gadeos.planning_config(saved)
+    public = gadeos.public_planning(migrated)['days'][1]
+    assert public['subtitle'] == ''
+    assert public['activities'] == [
+        {'time':'11:00','text':'Check-out del refugio.','locked':False},
+        {'time':'','text':'','locked':True}]
+    assert len(migrated['days'][1]['activities']) == 8
+    assert migrated['days'][1]['activities'][1]['time'] == '11:30'
+    assert saved['days'][1]['activities'][1]['locked'] is False
+    assert len(gadeos.public_planning(migrated, {'*'})['days'][1]['activities']) == 8
+    assert gadeos.planning_config(migrated) == migrated

@@ -31,8 +31,8 @@ def planning_config(value=None):
             {"time": "20:00", "text": "Llegada a Chinchón."},
             {"time": "20:00–22:00", "text": "Misiones."},
             {"time": "23:00", "text": "Batalla final."}]},
-        {"title": "Sábado 21", "subtitle": "Descubrir Chinchón", "activities": [
-            {"time": "11:00", "text": "Check-out del apartamento."},
+        {"title": "Sábado 21", "subtitle": "", "activities": [
+            {"time": "11:00", "text": "Check-out del refugio."},
             {"time": "11:30", "text": "Desayuno tranquilo en una cafetería del centro."},
             {"time": "12:30", "text": "Subida a la Torre del Reloj y paseo por las calles antiguas."},
             {"time": "13:00", "text": "Mirador de la iglesia, vistas panorámicas y fotos."},
@@ -45,7 +45,9 @@ def planning_config(value=None):
         day.setdefault("locked", False)
         for entry in day["activities"]:
             entry.setdefault("locked", False)
-    defaults = {"version": 6, "day": "Viernes", "place": "Chinchón", "start": "20:00", "final": "23:00",
+    for entry in days[1]["activities"][1:]:
+        entry["locked"] = True
+    defaults = {"version": 7, "day": "Viernes", "place": "Chinchón", "start": "20:00", "final": "23:00",
                 "transport": "Autobús 337 · Salida: Metro Pavones (Línea 9, Madrid)", "days": days}
     if value is None:
         return defaults
@@ -119,6 +121,20 @@ def planning_config(value=None):
             for entry in day["activities"]:
                 entry["locked"] = False
                 entry.pop("unlock_key", None)
+    if version < 7:
+        for day in clean_days:
+            if day["title"] != "Sábado 21":
+                continue
+            day.update(subtitle="", locked=False)
+            day.pop("unlock_key", None)
+            checkout = next((entry for entry in day["activities"] if "check-out" in entry["text"].casefold() or "check out" in entry["text"].casefold()), None)
+            if checkout is None:
+                checkout = copy.deepcopy(days[1]["activities"][0])
+                day["activities"].insert(0, checkout)
+            for entry in day["activities"]:
+                entry["locked"] = entry is not checkout
+                entry.pop("unlock_key", None)
+            checkout["text"] = "Check-out del refugio."
     return {**result, "transport": result["transport"].strip(), "days": clean_days}
 
 
@@ -135,6 +151,12 @@ def public_planning(value, unlocked=()):
                     entry["locked"] = False
                 if entry.get("locked"):
                     entry["time"], entry["text"] = "", ""
+            visible = []
+            for entry in day["activities"]:
+                if visible and entry.get("locked") and not entry.get("unlock_key") and visible[-1].get("locked") and not visible[-1].get("unlock_key"):
+                    continue
+                visible.append(entry)
+            day["activities"] = visible
     return result
 
 
