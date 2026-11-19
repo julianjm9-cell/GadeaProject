@@ -44,8 +44,48 @@ $('login-form').addEventListener('submit', async event => {
   finally { busy = false; submit.disabled = false; }
 });
 $('logout').addEventListener('click', async () => { try { await api('/logout', {}); showLogin(); } catch (error) { note(error.message); } });
+let settingsPassword = '';
+$('settings').addEventListener('close', () => { settingsPassword = ''; $('settings-content').replaceChildren(); });
 $('settings-button').addEventListener('click', () => {
   if (!state || busy) return;
+  settingsPassword = '';
+  const form = el('form');
+  const label = el('label', '', 'Contraseña de Ajustes');
+  const password = el('input');
+  password.type = 'password';
+  password.required = true;
+  password.maxLength = 72;
+  password.autocomplete = 'off';
+  label.append(password);
+  const submit = el('button', 'primary', 'Entrar en Ajustes');
+  submit.type = 'submit';
+  const error = el('p', 'error');
+  error.setAttribute('role', 'alert');
+  error.hidden = true;
+  form.append(label, submit, error);
+  $('settings-content').replaceChildren(form);
+  $('settings').showModal();
+  password.focus();
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (submit.disabled) return;
+    submit.disabled = true;
+    error.hidden = true;
+    try {
+      const entered = password.value;
+      await api('/settings/access', { password: entered });
+      if (!$('settings').open || !form.isConnected) return;
+      settingsPassword = entered;
+      password.value = '';
+      showProfileSettings();
+    } catch (problem) {
+      if (problem.status === 401) showLogin();
+      else { error.textContent = problem.message; error.hidden = false; }
+    } finally { submit.disabled = false; }
+  });
+});
+
+function showProfileSettings() {
   const content = $('settings-content');
   content.replaceChildren(el('p', '', 'Perfil de ' + state.account.name));
   const reset = button('Reiniciar mi perfil', () => {
@@ -56,8 +96,8 @@ $('settings-button').addEventListener('click', () => {
   }, 'quiet');
   content.append(el('p', '', 'Empieza de nuevo o abre todas las misiones, sobres y secciones para este perfil.'), reset,
     button('Desbloquear todo', () => changeProfile('unlock_all'), 'primary'));
-  $('settings').showModal();
-});
+  reset.focus({ preventScroll: true });
+}
 
 async function changeProfile(profileAction) {
   if (busy) return;
@@ -66,7 +106,7 @@ async function changeProfile(profileAction) {
   const controls = [...$('settings').querySelectorAll('button')];
   controls.forEach(control => { control.disabled = true; });
   try {
-    await action('/profile', { action: profileAction });
+    await action('/profile', { action: profileAction }, { password: settingsPassword });
     townView = null;
     $('settings').close();
     history.replaceState(null, '', '#inicio');
@@ -101,7 +141,7 @@ rewardDialog.addEventListener('close', () => {
 });
 window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
 
-async function action(path, payload = {}) {
+async function action(path, payload = {}, privateFields = {}) {
   const request = { ...payload, revision: state.revision, request_id: crypto.randomUUID() };
   const storageKey = 'arena-pending:' + state.account.id;
   try {
@@ -110,7 +150,7 @@ async function action(path, payload = {}) {
     sessionStorage.setItem(storageKey, JSON.stringify({ path, payload, revision: state.revision, id: request.request_id }));
   } catch {}
   try {
-    const result = await api(path, request);
+    const result = await api(path, { ...request, ...privateFields });
     state = result;
     try { sessionStorage.removeItem(storageKey); } catch {}
     return result;

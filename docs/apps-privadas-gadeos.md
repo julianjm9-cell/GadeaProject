@@ -68,3 +68,6 @@ La actualización convierte el planning anterior de viernes 20 y sábado 21 a es
 
 
 Desde Ajustes en la cabecera, el tributo puede reiniciar su perfil con confirmación o desbloquear todo. El desbloqueo completa las diez misiones, entrega sus sobres y abre todas las secciones para esa cuenta. El reinicio elimina su progreso y los permisos personales. La cuenta y el marcador compartido de victorias se conservan. Se guarda en el servidor con revisión y recibos, también tras recargar.
+
+
+Ajustes requiere la contraseña `ajustes` cada vez que se abre. El servidor la comprueba también al reiniciar el perfil o desbloquear todo. La clave permanece solo en memoria mientras el panel está abierto y se borra al cerrarlo. Los reintentos conservan su recibo sin guardar la contraseña en el navegador.

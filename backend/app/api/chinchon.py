@@ -33,6 +33,18 @@ class Win(BaseModel):
 
 class ProfileAction(private_apps.GameAction):
     action: Literal["reset", "unlock_all"]
+    password: str = Field(default="", max_length=72)
+
+
+class SettingsAccess(BaseModel):
+    password: str = Field(max_length=72)
+
+
+def check_settings_password(account, password):
+    from app.api.auth import rate_limit_key
+    rate_limit_key("gadeos-settings:" + str(account.id), limit=20)
+    if gadeos.normalized(password) != "ajustes":
+        raise HTTPException(403, "La contraseña no es correcta.")
 
 
 def public_payload(value):
@@ -122,7 +134,14 @@ def win(payload: Win, account=Depends(member), db: Session = Depends(get_db)):
 
 @router.post(gadeos.PUBLIC_API + "/profile")
 def profile(payload: ProfileAction, account=Depends(member), db: Session = Depends(get_db)):
+    check_settings_password(account, payload.password)
     return public_payload(gadeos.change_profile(db, account, payload))
+
+
+@router.post(gadeos.PUBLIC_API + "/settings/access")
+def settings_access(payload: SettingsAccess, account=Depends(member)):
+    check_settings_password(account, payload.password)
+    return {"ok": True}
 
 
 @router.post("/api/arena-chinchon/stations/answer", include_in_schema=False)

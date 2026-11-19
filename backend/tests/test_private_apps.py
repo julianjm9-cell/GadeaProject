@@ -600,7 +600,14 @@ def test_profile_reset_and_unlock_are_isolated_durable_and_idempotent(client, mo
     web, factory = client
     headers = admin(web, factory)
     first = tribute(web, headers)
-    payload = {'action':'unlock_all', 'revision':0, 'request_id':str(uuid4())}
+    payload = {'action':'unlock_all', 'password':'ajustes', 'revision':0, 'request_id':str(uuid4())}
+    assert web.post('/api/arena-hambre/settings/access', json={'password':'incorrecta'}).status_code == 403
+    assert web.post('/api/arena-hambre/settings/access', json={'password':'ajustes'}).status_code == 200
+    for fields in ({}, {'password':'incorrecta'}):
+        denied = {key:value for key,value in payload.items() if key != 'password'}
+        denied.update(fields)
+        assert web.post('/api/arena-hambre/profile', json=denied).status_code == 403
+    assert web.get('/api/arena-hambre/state').json()['completed'] == 0
     opened = web.post('/api/arena-hambre/profile', json=payload)
     assert opened.status_code == 200
     state = opened.json()
@@ -610,10 +617,10 @@ def test_profile_reset_and_unlock_are_isolated_durable_and_idempotent(client, mo
     assert web.post('/api/arena-hambre/profile', json=payload).json()['reused']
     web.post('/api/arena-hambre/battle/win', json={'tribute':1,'score_revision':0,'request_id':str(uuid4())})
     assert web.get('/api/arena-hambre/state').json()['completed'] == 10
-    stale = web.post('/api/arena-hambre/profile', json={'action':'reset','revision':0,'request_id':str(uuid4())})
+    stale = web.post('/api/arena-hambre/profile', json={'action':'reset','password':'ajustes','revision':0,'request_id':str(uuid4())})
     assert stale.status_code == 409
     assert web.get('/api/arena-hambre/state').json()['completed'] == 10
-    reset = {'action':'reset', 'revision':state['revision'], 'request_id':str(uuid4())}
+    reset = {'action':'reset', 'password':'ajustes', 'revision':state['revision'], 'request_id':str(uuid4())}
     fresh = web.post('/api/arena-hambre/profile', json=reset)
     assert fresh.status_code == 200
     assert fresh.json()['completed'] == 0 and not fresh.json()['secret_discovered']

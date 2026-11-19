@@ -41,6 +41,7 @@ h2 { font-size:28px; line-height:1.25; }
 .header-actions { display:flex; align-items:center; gap:8px; }
 #settings-content { display:grid; gap:14px; line-height:1.6; }
 #settings-content p { margin:0; }
+#settings button:not(:disabled):hover { transform:none; }
 @media(max-width:550px) { .app-header .brand-title { width:clamp(110px,32vw,150px); } .header-actions { gap:4px; } .header-actions button { padding:10px; font-size:12px; } }
 .brand { display:flex; align-items:center; gap:10px; color:var(--gold); text-decoration:none; font:25px Georgia,serif; letter-spacing:.06em; }
 .brand img { object-fit:contain; filter:drop-shadow(0 0 14px #c9861125); }
