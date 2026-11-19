@@ -146,6 +146,18 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
     await page.getByRole('button',{name:'Centrar',exact:true}).click();
     const townMap=page.locator('.journey-town');
     const mapImage=townMap.locator('.journey-map');
+    async function checkOverview(){
+     const image=await mapImage.boundingBox(),frame=await townMap.boundingBox();
+     assert.ok(image.width>=frame.width*.92&&image.height>=frame.height*.92,'El mapa completo ocupa el visor al alejarlo.');
+     assert.ok(image.x>=frame.x-2&&image.y>=frame.y-2&&image.x+image.width<=frame.x+frame.width+2&&image.y+image.height<=frame.y+frame.height+2,'La vista completa conserva todos los bordes. '+JSON.stringify({image,frame}));
+    }
+    for(const width of [320,768,390]){
+     await page.setViewportSize({width,height:viewport.height});
+     await page.waitForTimeout(150);
+     await checkOverview();
+    }
+    await page.setViewportSize(viewport);
+    await page.waitForTimeout(150);
     const startWidth=(await mapImage.boundingBox()).width;
     await townMap.getByRole('button',{name:'Ampliar mapa',exact:true}).click();
     assert.ok((await mapImage.boundingBox()).width>startWidth);
@@ -157,6 +169,9 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
     await page.mouse.up();
     assert.ok(Math.abs((await mapImage.boundingBox()).x-beforeDrag.x)>12);
     await townMap.getByRole('button',{name:'Alejar mapa',exact:true}).click();
+    for(let zoom=0;zoom<8&&await townMap.locator('.leaflet-control-zoom-out').getAttribute('aria-disabled')!=='true';zoom++)await townMap.getByRole('button',{name:'Alejar mapa',exact:true}).click();
+    assert.equal(await townMap.locator('.leaflet-control-zoom-out').getAttribute('aria-disabled'),'true');
+    await checkOverview();
     await page.getByRole('button',{name:'Centrar',exact:true}).click();
     await checkRoute();
     assert.equal(await page.locator('[data-station="8"]').isEnabled(),true);

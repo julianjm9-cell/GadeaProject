@@ -17,7 +17,7 @@ const townStops = {
   8: [40.1399504, -3.4230726, -12, 4], // Escudo: ayuntamiento
 };
 let state, busy = false;
-let townMap, townView;
+let townMap, townView, townResize;
 const el = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; };
 const icon = name => { const node = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); const use = document.createElementNS(node.namespaceURI, 'use'); use.setAttribute('href', '#i-' + name); node.append(use); node.setAttribute('aria-hidden', 'true'); return node; };
 function button(text, action, className = '') { const node = el('button', className, text); node.type = 'button'; node.addEventListener('click', action); return node; }
@@ -161,6 +161,8 @@ function planningLock(host, key, title, label) {
 }
 
 function clearTownMap() {
+  townResize?.disconnect();
+  townResize = null;
   if (!townMap) return;
   townMap.remove();
   townMap = null;
@@ -183,7 +185,8 @@ function townChallenges(section, frame, stations, stop) {
     maxZoom: 2,
     zoomSnap: 0.1,
     zoomDelta: 0.5,
-    maxBounds: bounds.pad(0.45),
+    maxBounds: bounds,
+    maxBoundsViscosity: 1,
     scrollWheelZoom: false,
     zoomControl: false,
     zoomAnimation: false,
@@ -191,12 +194,24 @@ function townChallenges(section, frame, stations, stop) {
   });
   townMap = map;
   const fitTown = () => map.fitBounds(bounds, { animate: false });
-  if (townView) map.setView(townView.center, townView.zoom);
+  const fitZoom = () => map.getBoundsZoom(bounds);
+  map.setMinZoom(fitZoom());
+  if (townView) map.setView(townView.center, Math.max(map.getMinZoom(), townView.zoom));
   else fitTown();
+  townResize = new ResizeObserver(() => {
+    if (townMap !== map) return;
+    const wasOverview = map.getZoom() <= map.getMinZoom() + 0.1;
+    map.invalidateSize({ animate: false, pan: false });
+    map.setMinZoom(-2);
+    map.setMinZoom(fitZoom());
+    if (wasOverview) fitTown();
+    else map.panInsideBounds(bounds, { animate: false });
+  });
+  townResize.observe(frame);
   map.on('moveend', () => { townView = { center: map.getCenter(), zoom: map.getZoom() }; });
   L.control.zoom({ zoomInTitle: 'Ampliar mapa', zoomOutTitle: 'Alejar mapa' }).addTo(map);
   map.attributionControl.setPrefix(false);
-  L.imageOverlay('/aventura-hambre-assets/journey-town.svg', bounds, {
+  L.imageOverlay('/aventura-hambre-assets/journey-town.svg?v=atlas', bounds, {
     alt: '',
     className: 'journey-map',
     attribution: '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap · ODbL</a>'
