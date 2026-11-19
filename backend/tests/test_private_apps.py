@@ -238,7 +238,8 @@ def test_planning_and_question_edits_preserve_progress_and_older_editors(client)
     first=web.post('/api/private-apps/gadeos/stations/answer',json={'revision':0,'request_id':str(uuid4()),'campaign_revision':1,'station':1,'answer':'337'})
     assert first.status_code==200 and first.json()['completed']==1
     assert first.json()['campaign']['stations'][1]['prompt']=='¿Qué palabra habéis encontrado?'
-    assert first.json()['campaign']['planning']==gadeos.public_planning({**gadeos.planning_config(),**config['planning']})
+    assert first.json()['campaign']['planning']['place']==''
+    assert 'chinchón' not in first.text.lower()
     old=saved.json();old.pop('planning');old['title']='Título cambiado'
     kept=web.put('/admin/apps/gadeos/campaign',headers=headers,json=old)
     assert kept.status_code==200 and kept.json()['planning']=={**gadeos.planning_config(),**config['planning']}
@@ -377,7 +378,10 @@ def test_trip_days_survive_legacy_edit_reload_and_progress(client):
     assert kept.status_code==200
     assert kept.json()['planning']['days']==config['planning']['days']
     current=web.get('/api/arena-chinchon/state').json()
-    assert current['completed']==0 and current['campaign']['planning']['days']==gadeos.public_planning(config['planning'])['days']
+    assert current['completed']==0
+    assert current['campaign']['planning']['days'][0]['activities'][0]['time']=='18:15'
+    assert current['campaign']['planning']['days'][0]['activities'][0]['text']=='Dejar las mochilas.'
+    assert current['campaign']['planning']['days'][1]['activities']==[]
     assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=config).status_code==409
     for value in [[],[{'title':'Viernes','subtitle':'Viaje','activities':[]}],[{'title':'Viernes','subtitle':'Viaje','activities':[{'time':'29:00','text':'Cena'}]}]]:
         invalid=kept.json();invalid['planning']['days']=value

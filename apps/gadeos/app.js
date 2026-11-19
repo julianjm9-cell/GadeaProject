@@ -3,6 +3,7 @@ const $ = id => document.getElementById(id);
 const apiRoot = '/api/arena-hambre';
 const art = name => '/aventura-hambre-assets/art/' + name + '-v2.webp';
 const total = () => state.campaign.stations.length;
+const arrived = () => state.campaign.stations[0].completed && state.campaign.stations[1].completed;
 // Geographic frame of the town artwork in the shared 1200 × 900 projection.
 const townBounds = [[310, 180], [745, 570]];
 // Geographic coordinates and offsets as percentages of the map.
@@ -106,13 +107,14 @@ function reward() {
   rewardDialog.focus();
 }
 function home(host) {
-  const schedule = state.campaign.planning || { day: 'Viernes', place: 'Chinchón', start: '16:00', final: '22:00' };
+  const schedule = state.campaign.planning || { day: 'Viernes' };
   const overview = el('div', 'home-overview'); host.append(overview);
   overview.append(el('p', 'greeting', 'TU TRIBUTO · ' + state.account.name));
   const hero = el('section', 'home-hero');
   const image = el('img', 'event-poster'); image.src = art('alliance-hero'); image.alt = ''; image.fetchPriority = 'high'; hero.append(image);
   const companions = el('img', 'hero-companions'); companions.src = apiRoot + '/companions.png'; companions.alt = ''; companions.setAttribute('aria-hidden', 'true'); companions.width = 480; companions.height = 728; hero.append(companions);
-  const copy = el('div', 'poster-copy'); copy.append(el('p', 'eyebrow', schedule.day + ' · ' + schedule.place), el('h1', '', state.campaign.title), el('p', '', state.campaign.intro)); hero.append(copy); overview.append(hero);
+  const caption = arrived() && schedule.place ? schedule.day + ' · ' + schedule.place : schedule.day;
+  const copy = el('div', 'poster-copy'); copy.append(el('p', 'eyebrow', caption), el('h1', '', state.campaign.title), el('p', '', state.campaign.intro)); hero.append(copy); overview.append(hero);
   const next = el('a', 'primary next-step', state.completed >= total() ? 'Ir a la batalla final →' : state.completed ? 'Continuar el recorrido →' : 'Empezar el recorrido →'); next.href = state.completed >= total() ? '#batalla' : '#recorrido'; overview.append(next);
   const planning = el('section', 'planning'); planning.append(el('h2', '', 'Vuestro planning'));
   if (schedule.transport) planning.append(el('p', 'planning-transport', schedule.transport));
@@ -134,7 +136,12 @@ function home(host) {
     }
     section.append(list); planning.append(section);
   }
-  const food = el('a', 'planning-food-link', 'Dónde comer en Chinchón →'); food.href = '#restaurantes'; planning.append(food); host.append(planning);
+  if (arrived()) {
+    const food = el('a', 'planning-food-link', 'Dónde comer en Chinchón →');
+    food.href = '#restaurantes';
+    planning.append(food);
+  }
+  host.append(planning);
 }
 
 function clearTownMap() {
@@ -209,7 +216,7 @@ function journey(host) {
     control.setAttribute('aria-label', 'Prueba ' + station.number + ', ' + status);
     return control;
   }
-  if (!bus.completed || !riddle.completed) {
+  if (!arrived()) {
     const scene = el('section', 'journey journey-bus');
     scene.setAttribute('aria-label', 'Viaje en autobús');
     const image = el('img', 'journey-map');
@@ -309,12 +316,26 @@ function chooseCard() {
   const grid = el('div', 'collection'); for (const card of state.cards) { const node = cardArt(card); node.disabled = state.battle.used_cards.includes(card.id); const clone = node.cloneNode(true); clone.addEventListener('click', () => { selectedCard = card.id; $('reward').close(); render(); }); grid.append(clone); }
   host.append(grid, button('Jugar sin carta', () => { selectedCard = null; $('reward').close(); render(); }, 'quiet')); $('reward').showModal();
 }
+function dining(host) {
+  if (arrived()) {
+    restaurants(host);
+    return;
+  }
+  host.append(el('h1', 'food-title', 'Restaurantes'));
+  const locked = el('section', 'battle-lock');
+  locked.append(icon('lock'), el('p', '', 'Completa las dos pruebas del autobús para descubrir dónde comer.'));
+  const route = el('a', 'primary', 'Ir al recorrido →');
+  route.href = '#recorrido';
+  locked.append(route);
+  host.append(locked);
+}
+
 function render() {
   if (!state) return;
   const page = ['inicio', 'recorrido', 'batalla', 'restaurantes'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'inicio';
   document.body.dataset.view = page;
   clearRestaurantMap(); clearTownMap(); $('main').replaceChildren();
-  ({ inicio: home, recorrido: journey, batalla: battle, restaurantes: restaurants })[page]($('main'));
+  ({ inicio: home, recorrido: journey, batalla: battle, restaurantes: dining })[page]($('main'));
   document.querySelectorAll('.bottom-nav a').forEach(node => { if (node.hash === '#' + page) node.setAttribute('aria-current', 'page'); else node.removeAttribute('aria-current'); });
 }
 load();

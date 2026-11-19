@@ -226,7 +226,23 @@ def public_campaign(config, completed):
         if available:
             entry.update({"prompt": title, "kind": "code", "options": []})
         result["stations"].append(entry)
-    return result
+    if {1, 2}.issubset(completed):
+        return result
+
+    # Preserve the organiser's wording while keeping the destination a surprise in the player view.
+    result["planning"]["place"] = ""
+    return without_town_name(result)
+
+
+def without_town_name(value):
+    if isinstance(value, str):
+        value = re.sub(r"\ba Chinch[oó]n\b", "al pueblo", value, flags=re.IGNORECASE)
+        return re.sub(r"\bChinch[oó]n\b", "el pueblo", value, flags=re.IGNORECASE)
+    if isinstance(value, list):
+        return [without_town_name(item) for item in value]
+    if isinstance(value, dict):
+        return {key: without_town_name(item) for key, item in value.items()}
+    return value
 
 
 def progress_payload(db, account):
