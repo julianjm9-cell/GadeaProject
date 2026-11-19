@@ -47,7 +47,8 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-home-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   assert.deepEqual(await page.locator('.planning-day h3').allTextContents(),['Viernes 20','Sábado 21']);
   assert.equal(await page.locator('.planning-list li').count(),4);assert.deepEqual(await page.locator('.planning-time').allTextContents(),['21:00','22:00']);assert.equal(await page.locator('.planning-locked').count(),2);assert.doesNotMatch(await page.locator('.planning').innerText(),/Check-out|Torre del Reloj|11:30|19:45|Atardecer, paseo y noche de juegos/);
-  assert.match(await page.locator('.planning-transport').innerText(),/Autobús 337 · Salida/);
+  assert.match(await page.locator('.planning-transport').innerText(),/Autobús · Salida: Metro Pavones/);
+  assert.doesNotMatch(await page.locator('.planning').innerText(),/\b337\b/);
   assert.doesNotMatch(await page.locator('.planning-transport').innerText(),/Chinchón/);
   assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n/i);
   assert.equal(await page.locator('.planning-food-link').count(),0);
@@ -170,6 +171,10 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
    }
 
    if(i===0){await page.reload();await page.locator('[data-station="2"]').waitFor();assert.equal(await page.locator('[data-station="2"]').isEnabled(),true);assert.equal(await page.locator('.journey-town-section').count(),0);assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).cards.filter(card=>card.owned).length,1);
+    await page.locator('.bottom-nav a[href="#inicio"]').click();
+    await page.getByText(/Autobús 337 · Salida: Metro Pavones/).waitFor();
+    assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n/i);
+    await page.locator('.bottom-nav a[href="#recorrido"]').click();
     const before=await (await page.request.get(base+'/api/arena-hambre/state')).json();
     await page.locator('[data-station="1"]').click();await page.locator('#challenge').getByRole('heading',{name:config.stations[0].title,exact:true}).waitFor();
     await page.emulateMedia({reducedMotion:'reduce'});await page.locator('#challenge').getByRole('button',{name:'Ver sobres',exact:true}).click();await checkReward();assert.equal(await page.locator('.earned-pack').first().evaluate(node=>getComputedStyle(node).animationName),'none');await page.mouse.click(5,5);await page.locator('#reward').waitFor({state:'hidden'});

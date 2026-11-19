@@ -146,6 +146,7 @@ def test_tribute_login_unlocks_in_order_and_duplicate_does_not_duplicate_rewards
     assert '/gadeos' not in web.get('/sitemap.xml').text
     state=web.get('/api/private-apps/gadeos/state').json()
     assert state['completed']==0 and state['campaign']['stations'][1]['locked']
+    assert state['campaign']['planning']['transport']=='Autobús · Salida: Metro Pavones (Línea 9, Madrid)'
     assert 'solution' not in str(state)
     assert 'prompt' not in state['campaign']['stations'][1]
     assert state['campaign']['stations'][1]['title'] == 'Prueba 2'
@@ -159,6 +160,7 @@ def test_tribute_login_unlocks_in_order_and_duplicate_does_not_duplicate_rewards
     correct=web.post('/api/private-apps/gadeos/stations/answer',json=body)
     assert correct.status_code==200,correct.text
     assert correct.json()['completed']==1
+    assert correct.json()['campaign']['planning']['transport'].startswith('Autobús 337 · Salida:')
     duplicate=web.post('/api/private-apps/gadeos/stations/answer',json=body)
     assert duplicate.json()['reused'] and duplicate.json()['revision']==1
     assert len([card for card in duplicate.json()['cards'] if card['owned']])==1

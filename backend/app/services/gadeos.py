@@ -216,6 +216,8 @@ def public_campaign(config, completed):
     result = {key: config[key] for key in ("revision", "title", "intro", "boss", "ending")}
     result["media"] = config.get("media", media_config())
     result["planning"] = public_planning(config.get("planning", planning_config()))
+    if 1 not in completed:
+        result["planning"] = map_text(result["planning"], lambda text: re.sub(r"[ \t]*\b337\b", "", text).strip())
     result["stations"] = []
     for number, station in enumerate(config["stations"], 1):
         done = number in completed
@@ -231,17 +233,21 @@ def public_campaign(config, completed):
 
     # Preserve the organiser's wording while keeping the destination a surprise in the player view.
     result["planning"]["place"] = ""
-    return without_town_name(result)
+    return map_text(result, without_town_name)
 
 
-def without_town_name(value):
+def without_town_name(text):
+    text = re.sub(r"\ba Chinch[oó]n\b", "al pueblo", text, flags=re.IGNORECASE)
+    return re.sub(r"\bChinch[oó]n\b", "el pueblo", text, flags=re.IGNORECASE)
+
+
+def map_text(value, transform):
     if isinstance(value, str):
-        value = re.sub(r"\ba Chinch[oó]n\b", "al pueblo", value, flags=re.IGNORECASE)
-        return re.sub(r"\bChinch[oó]n\b", "el pueblo", value, flags=re.IGNORECASE)
+        return transform(value)
     if isinstance(value, list):
-        return [without_town_name(item) for item in value]
+        return [map_text(item, transform) for item in value]
     if isinstance(value, dict):
-        return {key: without_town_name(item) for key, item in value.items()}
+        return {key: map_text(item, transform) for key, item in value.items()}
     return value
 
 
