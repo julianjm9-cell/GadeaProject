@@ -28,10 +28,10 @@ PUBLIC_ASSETS = "/aventura-hambre-assets"
 def planning_config(value=None):
     days = [
         {"title": "Viernes 20", "subtitle": "", "activities": [
-            {"time": "", "text": "", "locked": True, "unlock_key": "plan_viernes"},
-            {"time": "21:00", "text": "Llegada al refugio."},
-            {"time": "22:00", "text": "Batallas Finales de los juegos del hambre."}]},
-        {"title": "Sábado 21", "subtitle": "Descubrir Chinchón", "locked": True, "unlock_key": "plan_sabado", "activities": [
+            {"time": "20:00", "text": "Llegada a Chinchón."},
+            {"time": "20:00–22:00", "text": "Misiones."},
+            {"time": "23:00", "text": "Batalla final."}]},
+        {"title": "Sábado 21", "subtitle": "Descubrir Chinchón", "activities": [
             {"time": "11:00", "text": "Check-out del apartamento."},
             {"time": "11:30", "text": "Desayuno tranquilo en una cafetería del centro."},
             {"time": "12:30", "text": "Subida a la Torre del Reloj y paseo por las calles antiguas."},
@@ -45,7 +45,7 @@ def planning_config(value=None):
         day.setdefault("locked", False)
         for entry in day["activities"]:
             entry.setdefault("locked", False)
-    defaults = {"version": 5, "day": "Viernes", "place": "Chinchón", "start": "16:00", "final": "22:00",
+    defaults = {"version": 6, "day": "Viernes", "place": "Chinchón", "start": "20:00", "final": "23:00",
                 "transport": "Autobús 337 · Salida: Metro Pavones (Línea 9, Madrid)", "days": days}
     if value is None:
         return defaults
@@ -108,6 +108,17 @@ def planning_config(value=None):
                     first_locked["unlock_key"] = "plan_viernes"
             if day["title"] == "Sábado 21":
                 day["unlock_key"] = "plan_sabado"
+    if version < 6:
+        result["start"], result["final"] = "20:00", "23:00"
+        result["transport"] = defaults["transport"]
+        for day in clean_days:
+            if day["title"] == "Viernes 20":
+                day.update(copy.deepcopy(days[0]))
+            day["locked"] = False
+            day.pop("unlock_key", None)
+            for entry in day["activities"]:
+                entry["locked"] = False
+                entry.pop("unlock_key", None)
     return {**result, "transport": result["transport"].strip(), "days": clean_days}
 
 
@@ -352,10 +363,7 @@ def collection_discovered(data, config):
 def public_campaign(config, completed, route_open, unlocked_planning):
     result = {key: config[key] for key in ("revision", "title", "intro", "boss", "ending")}
     result["media"] = config.get("media", media_config())
-    planning = map_text(public_planning(config["planning"], unlocked_planning), without_town_name)
-    planning = map_text(planning, lambda text: re.sub(r"[ \t]*\b337\b", "", text).strip())
-    planning["place"] = ""
-    planning["transport"] = re.sub(r"^Autobús\s*·\s*", "", planning["transport"], flags=re.IGNORECASE)
+    planning = public_planning(config["planning"], unlocked_planning)
     result["planning"] = planning
     result["title"] = without_town_name(result["title"])
     result["intro"] = without_town_name(result["intro"])
@@ -372,7 +380,9 @@ def public_campaign(config, completed, route_open, unlocked_planning):
     if route_open and {1, 2}.issubset(completed):
         return result
 
-    return map_text(result, without_town_name)
+    result = map_text(result, without_town_name)
+    result["planning"] = planning
+    return result
 
 
 def without_town_name(text):

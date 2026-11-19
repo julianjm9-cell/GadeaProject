@@ -267,6 +267,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       for (const [id, title, planningKey] of entries) {
         const access = config.section_access[id];
         if (!access) continue;
+        if (planningKey && config.planning?.version >= 6 && !config.planning.days.some(day => day.unlock_key === id || day.activities.some(entry => entry.unlock_key === id))) continue;
         if (id === 'plan_viernes') form.append(el('h4', '', 'Contraseñas del planning'));
         const box = el('fieldset', 'campaign-day');
         box.append(el('legend', '', title));

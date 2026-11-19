@@ -254,7 +254,7 @@ def test_tribute_login_unlocks_in_order_and_duplicate_does_not_duplicate_rewards
     assert '/gadeos' not in web.get('/sitemap.xml').text
     state=web.get('/api/private-apps/gadeos/state').json()
     assert state['completed']==0 and state['campaign']['stations'][1]['locked']
-    assert state['campaign']['planning']['transport']=='Salida: Metro Pavones (Línea 9, Madrid)'
+    assert state['campaign']['planning']['transport']=='Autobús 337 · Salida: Metro Pavones (Línea 9, Madrid)'
     assert 'solution' not in str(state)
     assert 'prompt' not in state['campaign']['stations'][1]
     assert state['campaign']['stations'][1]['title'] == 'Prueba 2'
@@ -268,7 +268,7 @@ def test_tribute_login_unlocks_in_order_and_duplicate_does_not_duplicate_rewards
     correct=web.post('/api/private-apps/gadeos/stations/answer',json=body)
     assert correct.status_code==200,correct.text
     assert correct.json()['completed']==1
-    assert correct.json()['campaign']['planning']['transport'].startswith('Salida:')
+    assert correct.json()['campaign']['planning']['transport'].startswith('Autobús 337 · Salida:')
     duplicate=web.post('/api/private-apps/gadeos/stations/answer',json=body)
     assert duplicate.json()['reused'] and duplicate.json()['revision']==1
     assert len([card for card in duplicate.json()['cards'] if card['owned']])==1
@@ -348,8 +348,8 @@ def test_planning_and_question_edits_preserve_progress_and_older_editors(client)
     first=web.post('/api/private-apps/gadeos/stations/answer',json={'revision':0,'request_id':str(uuid4()),'campaign_revision':1,'station':1,'answer':'337'})
     assert first.status_code==200 and first.json()['completed']==1
     assert first.json()['campaign']['stations'][1]['prompt']=='¿Qué palabra habéis encontrado?'
-    assert first.json()['campaign']['planning']['place']==''
-    assert 'chinchón' not in first.text.lower()
+    assert first.json()['campaign']['planning']['place']=='Chinchón'
+    assert first.json()['campaign']['planning']['days'][0]['activities'][0]['text']=='Llegada a Chinchón.'
     old=saved.json();old.pop('planning');old['title']='Título cambiado'
     kept=web.put('/admin/apps/gadeos/campaign',headers=headers,json=old)
     assert kept.status_code==200 and kept.json()['planning']=={**gadeos.planning_config(),**config['planning']}
@@ -491,7 +491,7 @@ def test_trip_days_survive_legacy_edit_reload_and_progress(client):
     assert current['completed']==0
     assert current['campaign']['planning']['days'][0]['activities'][0]['time']=='18:15'
     assert current['campaign']['planning']['days'][0]['activities'][0]['text']=='Dejar las mochilas.'
-    assert current['campaign']['planning']['days'][1]['activities']==[]
+    assert len(current['campaign']['planning']['days'][1]['activities'])==8
     assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=config).status_code==409
     for value in [[],[{'title':'Viernes','subtitle':'Viaje','activities':[{'time':'29:00','text':'Cena'}]}]]:
         invalid=kept.json();invalid['planning']['days']=value
@@ -503,10 +503,12 @@ def test_locked_trip_content_is_private_editable_and_migrates_old_planning(clien
     web,factory=client;headers=admin(web,factory);tribute(web,headers)
     config=web.get('/admin/apps/gadeos/campaign',headers=headers).json()
     friday,saturday=config['planning']['days']
-    assert [a['time'] for a in friday['activities']]==['','21:00','22:00']
-    assert friday['activities'][1]['text']=='Llegada al refugio.'
+    assert [a['time'] for a in friday['activities']]==['20:00','20:00–22:00','23:00']
+    assert friday['activities'][1]['text']=='Misiones.'
     assert friday['subtitle']=='' and 'Chinchón' not in config['planning']['transport']
-    assert friday['activities'][0]['locked'] and saturday['locked']
+    assert not friday['activities'][0]['locked'] and not saturday['locked']
+    friday['activities'][0].update(locked=True,unlock_key='plan_viernes')
+    saturday.update(locked=True,unlock_key='plan_sabado')
     friday['activities'][0].update(time='19:00',text='SORPRESA PRIVADA VIERNES')
     saturday['activities'][0]['text']='SORPRESA PRIVADA SABADO'
     config['section_access']['plan_viernes']['password'] = 'La primera sorpresa'
@@ -550,8 +552,8 @@ def test_locked_trip_content_is_private_editable_and_migrates_old_planning(clien
         {'title':'Viernes 20','subtitle':'Antiguo viernes','activities':[{'time':'19:45','text':'Cena anterior'}]},
         {'title':'Sábado 21','subtitle':'Antiguo sábado','activities':[{'time':'11:00','text':'Contenido guardado'}]}]}
     migrated=gadeos.planning_config(legacy)
-    assert migrated['version']==5 and [a['time'] for a in migrated['days'][0]['activities']]==['','21:00','22:00']
-    assert migrated['days'][1]['locked'] and migrated['days'][1]['activities'][0]['text']=='Contenido guardado'
+    assert migrated['version']==6 and [a['time'] for a in migrated['days'][0]['activities']]==['20:00','20:00–22:00','23:00']
+    assert not migrated['days'][1]['locked'] and migrated['days'][1]['activities'][0]['text']=='Contenido guardado'
     assert legacy['days'][0]['activities'][0]['time']=='19:45'
     previous = gadeos.planning_config()
     previous['version'] = 2
@@ -567,6 +569,24 @@ def test_locked_trip_content_is_private_editable_and_migrates_old_planning(clien
     assert gadeos.planning_config(previous) == gadeos.planning_config()
     previous = gadeos.planning_config()
     previous['version'] = 4
-    previous['days'][0]['activities'][0].pop('unlock_key')
-    previous['days'][1].pop('unlock_key')
+    previous['days'][0]['activities'][0].pop('unlock_key', None)
+    previous['days'][1].pop('unlock_key', None)
     assert gadeos.planning_config(previous) == gadeos.planning_config()
+
+
+def test_open_itinerary_migrates_saved_passwords_once_and_preserves_saturday():
+    legacy = gadeos.planning_config()
+    legacy.update(version=5, start='16:00', final='22:00')
+    legacy['days'][0]['activities'] = [
+        {'time':'', 'text':'', 'locked':True, 'unlock_key':'plan_viernes'},
+        {'time':'21:00', 'text':'Llegada al refugio.'}]
+    legacy['days'][1].update(locked=True, unlock_key='plan_sabado')
+    legacy['days'][1]['activities'][0].update(time='10:30', text='Desayuno personalizado.', locked=True)
+    migrated = gadeos.planning_config(legacy)
+    assert [a['time'] for a in migrated['days'][0]['activities']] == ['20:00','20:00–22:00','23:00']
+    assert migrated['days'][1]['activities'][0]['text'] == 'Desayuno personalizado.'
+    assert all(not day['locked'] and all(not a['locked'] for a in day['activities']) for day in migrated['days'])
+    assert gadeos.public_planning(migrated) == migrated
+    assert legacy['days'][1]['locked']
+    migrated['days'][0]['activities'][0]['time'] = '20:15'
+    assert gadeos.planning_config(migrated) == migrated

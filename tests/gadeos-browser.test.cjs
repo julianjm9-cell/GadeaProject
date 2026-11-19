@@ -33,21 +33,13 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
    await page.evaluate(section=>{location.hash=section;},section);
    await page.waitForURL('**/juegos-del-hambre#inicio');
   }
-  assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n|\b337\b/i);
-  assert.equal(await page.locator('.planning-transport').innerText(),'Salida: Metro Pavones (Línea 9, Madrid)');
+  assert.equal(await page.locator('.planning-transport').innerText(),'Autobús 337 · Salida: Metro Pavones (Línea 9, Madrid)');
   assert.equal(await page.locator('.next-step,.planning-food-link').count(),0);
-  await page.getByText('Desbloquear actividad',{exact:true}).click();
-  await page.getByLabel('Contraseña de Viernes',{exact:true}).fill('Sábado');
-  await page.getByRole('button',{name:'Desbloquear',exact:true}).click();
-  await page.getByText('La contraseña no es correcta.',{exact:true}).waitFor();
-  await page.getByLabel('Contraseña de Viernes',{exact:true}).fill('Viernes');
-  await page.getByRole('button',{name:'Desbloquear',exact:true}).click();
-  await page.getByText('Actividad pendiente de definir.',{exact:true}).waitFor();
-  assert.equal(await page.getByText('Check-out del apartamento.',{exact:true}).count(),0);
-  await page.getByText('Desbloquear sábado',{exact:true}).click();
-  await page.getByLabel('Contraseña de Sábado',{exact:true}).fill('Sábado');
-  await page.getByRole('button',{name:'Desbloquear',exact:true}).click();
+  await page.getByText('Llegada a Chinchón.',{exact:true}).waitFor();
+  await page.getByText('Misiones.',{exact:true}).waitFor();
   await page.getByText('Check-out del apartamento.',{exact:true}).waitFor();
+  assert.equal(await page.locator('.planning-locked,.planning-unlock').count(),0);
+  assert.deepEqual((await page.locator('.planning-time').allTextContents()).slice(0,3),['20:00','20:00–22:00','23:00']);
   await page.reload();
   await page.getByText('Check-out del apartamento.',{exact:true}).waitFor();
   assert.equal(await page.locator('.planning-unlock').count(),0);
@@ -87,12 +79,11 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-home-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   assert.deepEqual(await page.locator('.planning-day h3').allTextContents(),['Viernes 20','Sábado 21']);
-  assert.equal(await page.locator('.planning-list li').count(),3);assert.deepEqual(await page.locator('.planning-time').allTextContents(),['21:00','22:00']);assert.equal(await page.locator('.planning-locked').count(),2);assert.doesNotMatch(await page.locator('.planning').innerText(),/mochilas|Llegada al piso|Check-out|Torre del Reloj|11:30|19:45|Atardecer, paseo y noche de juegos/);
-  await page.getByText('Llegada al refugio.',{exact:true}).waitFor();
-  assert.match(await page.locator('.planning-transport').innerText(),/^Salida: Metro Pavones/);
-  assert.doesNotMatch(await page.locator('.planning').innerText(),/\b337\b/);
-  assert.doesNotMatch(await page.locator('.planning-transport').innerText(),/Chinchón/);
-  assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n/i);
+  assert.equal(await page.locator('.planning-list li').count(),11);
+  assert.deepEqual((await page.locator('.planning-time').allTextContents()).slice(0,3),['20:00','20:00–22:00','23:00']);
+  assert.equal(await page.locator('.planning-locked').count(),0);
+  await page.getByText('Llegada a Chinchón.',{exact:true}).waitFor();
+  assert.match(await page.locator('.planning-transport').innerText(),/^Autobús 337 · Salida: Metro Pavones/);
   assert.equal(await page.locator('.planning-food-link').count(),0);
   await page.locator('.bottom-nav a[href="#restaurantes"]').click();
   await page.getByText('Completa las dos pruebas del autobús para descubrir dónde comer.').waitFor();
@@ -179,7 +170,8 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
     await page.locator('.bottom-nav a[href="#inicio"]').click();
     await page.getByRole('link',{name:'Dónde comer →'}).waitFor();
     assert.equal(await page.locator('.poster-copy .eyebrow').innerText(),'Viernes');
-    assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n|\b337\b/i);
+    await page.getByText('Llegada a Chinchón.',{exact:true}).waitFor();
+    assert.equal(await page.locator('.planning-unlock').count(),0);
     await page.locator('.bottom-nav a[href="#restaurantes"]').click();
     await unlock('Restaurantes');
     await page.locator('.leaflet-container').waitFor();
@@ -226,8 +218,8 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
 
    if(i===0){await page.reload();await page.locator('[data-station="2"]').waitFor();assert.equal(await page.locator('[data-station="2"]').isEnabled(),true);assert.equal(await page.locator('.journey-town-section').count(),0);assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).cards.filter(card=>card.owned).length,1);
     await page.locator('.bottom-nav a[href="#inicio"]').click();
-    await page.getByText(/^Salida: Metro Pavones/).waitFor();
-    assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n/i);
+    await page.getByText(/^Autobús 337 · Salida: Metro Pavones/).waitFor();
+    await page.getByText('Llegada a Chinchón.',{exact:true}).waitFor();
     await page.locator('.bottom-nav a[href="#recorrido"]').click();
     const before=await (await page.request.get(base+'/api/arena-hambre/state')).json();
     await page.locator('[data-station="1"]').click();await page.locator('#challenge').getByRole('heading',{name:config.stations[0].title,exact:true}).waitFor();
