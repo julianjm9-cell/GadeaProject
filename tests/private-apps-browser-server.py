@@ -7,6 +7,7 @@ sock=socket.socket();sock.bind(("127.0.0.1",0))
 url="http://127.0.0.1:"+str(sock.getsockname()[1])
 os.environ["PUBLIC_BASE_URL"]=url
 os.environ["CORS_ORIGINS"]=url
+os.environ.setdefault("GADEOS_HOME_ONLY", "false")
 from app.database.session import Base, SessionLocal, engine
 from app.main import app
 from fastapi.staticfiles import StaticFiles

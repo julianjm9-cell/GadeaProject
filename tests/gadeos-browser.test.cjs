@@ -6,9 +6,9 @@ const {mkdtemp,rm,readFile}=require('node:fs/promises');
 const {tmpdir}=require('node:os');
 const {join,resolve,relative}=require('node:path');
 const {chromium,webkit}=require('./browser-runtime.cjs');
-async function fixture(t){
+async function fixture(t, homeOnly = false){
  const directory=await mkdtemp(join(tmpdir(),'gadeos-browser-'));
- const child=spawn(process.env.PYTHON||'python',['tests/private-apps-browser-server.py'],{cwd:resolve(__dirname,'..'),windowsHide:true,env:{...process.env,ENVIRONMENT:'test',DATABASE_URL:'sqlite:///'+join(directory,'test.sqlite').replaceAll('\\','/'),EDUCAME_PRIVATE_IMAGE_DIR:join(directory,'images'),JWT_SECRET:'gadeos-browser-isolated-signing-key-32-bytes',COOKIE_SECURE:'false',PYTHONPATH:'backend',PYTHONUNBUFFERED:'1'}});
+ const child=spawn(process.env.PYTHON||'python',['tests/private-apps-browser-server.py'],{cwd:resolve(__dirname,'..'),windowsHide:true,env:{...process.env,ENVIRONMENT:'test',GADEOS_HOME_ONLY:String(homeOnly),DATABASE_URL:'sqlite:///'+join(directory,'test.sqlite').replaceAll('\\','/'),EDUCAME_PRIVATE_IMAGE_DIR:join(directory,'images'),JWT_SECRET:'gadeos-browser-isolated-signing-key-32-bytes',COOKIE_SECURE:'false',PYTHONPATH:'backend',PYTHONUNBUFFERED:'1'}});
  t.after(async()=>{if(child.exitCode===null){child.kill();await once(child,'exit',{signal:AbortSignal.timeout(5000)}).catch(()=>{});}assert.match(relative(resolve(tmpdir()),resolve(directory)),/^gadeos-browser-[\w-]+$/);await rm(directory,{recursive:true,force:true,maxRetries:4,retryDelay:100});});
  let output='',errors='';child.stderr.on('data',chunk=>{errors+=chunk;});
  const base=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('El backend de ensayo no arrancó: '+errors)),15000);child.once('error',reject);child.once('exit',()=>reject(Error('Backend de ensayo detenido: '+errors)));child.stdout.on('data',chunk=>{output+=chunk;const line=output.split(/\r?\n/).find(line=>line.startsWith('{"url"'));if(line){clearTimeout(timer);resolve(JSON.parse(line).url);}});});
@@ -16,6 +16,29 @@ async function fixture(t){
  assert.fail('El backend de ensayo no responde.');
 }
 for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440,height:1000}],['WebKit móvil',webkit,{width:390,height:844}]]){
+ test(`GADEOS solo permite abrir Inicio en ${name}`,{timeout:45000},async t=>{
+  const base=await fixture(t,true),browser=await engine.launch(name.startsWith('Chromium')?{channel:'msedge'}:{});
+  t.after(()=>browser.close());
+  const page=await browser.newPage({viewport});
+  const signed=await page.request.post(base+'/auth/login',{data:{email:'organizador@example.invalid',password:'ensayo-temporal-123'}});
+  const headers={Authorization:'Bearer '+(await signed.json()).access_token};
+  assert.equal((await page.request.post(base+'/admin/apps/gadeos/accounts',{headers,data:{name:'Alma',password:'ensayo-seguro-123'}})).status(),201);
+  assert.equal((await page.request.post(base+'/api/arena-hambre/login',{data:{name:'Alma',password:'ensayo-seguro-123'}})).status(),200);
+  await page.goto(base+'/juegos-del-hambre#recorrido');
+  await page.getByRole('heading',{name:'Vuestro planning'}).waitFor();
+  for(const section of ['recorrido','batalla','restaurantes']){
+   const control=page.locator(`.bottom-nav [data-section="${section}"]`);
+   assert.equal(await control.getAttribute('aria-disabled'),'true');
+   assert.equal(await control.getAttribute('href'),null);
+   await page.evaluate(section=>{location.hash=section;},section);
+   await page.waitForURL('**/juegos-del-hambre#inicio');
+  }
+  assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n|\b337\b/i);
+  assert.equal(await page.locator('.planning-transport').innerText(),'Salida: Metro Pavones (Línea 9, Madrid)');
+  assert.equal(await page.locator('.next-step,.planning-food-link').count(),0);
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+ });
+
  test(`GADEOS completa diez pruebas, recupera una respuesta perdida y gana la batalla con API real en ${name}`,{timeout:90000},async t=>{
   const base=await fixture(t),browser=await engine.launch(name.startsWith('Chromium')?{channel:'msedge'}:{});t.after(()=>browser.close());
   const page=await browser.newPage({viewport});page.setDefaultTimeout(10000);const errors=[];page.on('pageerror',error=>errors.push(error.message));
@@ -47,7 +70,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-home-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   assert.deepEqual(await page.locator('.planning-day h3').allTextContents(),['Viernes 20','Sábado 21']);
   assert.equal(await page.locator('.planning-list li').count(),4);assert.deepEqual(await page.locator('.planning-time').allTextContents(),['21:00','22:00']);assert.equal(await page.locator('.planning-locked').count(),2);assert.doesNotMatch(await page.locator('.planning').innerText(),/Check-out|Torre del Reloj|11:30|19:45|Atardecer, paseo y noche de juegos/);
-  assert.match(await page.locator('.planning-transport').innerText(),/Autobús · Salida: Metro Pavones/);
+  assert.match(await page.locator('.planning-transport').innerText(),/^Salida: Metro Pavones/);
   assert.doesNotMatch(await page.locator('.planning').innerText(),/\b337\b/);
   assert.doesNotMatch(await page.locator('.planning-transport').innerText(),/Chinchón/);
   assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n/i);
@@ -126,8 +149,9 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
     await page.waitForFunction(()=>document.querySelector('.journey-town .journey-map')?.naturalWidth>0);
     if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-town-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
     await page.locator('.bottom-nav a[href="#inicio"]').click();
-    await page.locator('.poster-copy .eyebrow').getByText(/Chinchón/).waitFor();
-    await page.getByRole('link',{name:'Dónde comer en Chinchón →'}).waitFor();
+    await page.getByRole('link',{name:'Dónde comer →'}).waitFor();
+    assert.equal(await page.locator('.poster-copy .eyebrow').innerText(),'Viernes');
+    assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n|\b337\b/i);
     await page.locator('.bottom-nav a[href="#restaurantes"]').click();await page.locator('.leaflet-container').waitFor();
     assert.equal((await page.request.get(base+'/aventura-hambre-assets/town-map.svg')).status(),200);
     await page.waitForFunction(()=>document.querySelector('.leaflet-image-layer')?.naturalWidth>0).catch(async error=>{throw Error(error.message+'; JS='+JSON.stringify(errors)+'; mapa='+await page.locator('#restaurant-map').innerHTML());});
@@ -172,7 +196,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
 
    if(i===0){await page.reload();await page.locator('[data-station="2"]').waitFor();assert.equal(await page.locator('[data-station="2"]').isEnabled(),true);assert.equal(await page.locator('.journey-town-section').count(),0);assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).cards.filter(card=>card.owned).length,1);
     await page.locator('.bottom-nav a[href="#inicio"]').click();
-    await page.getByText(/Autobús 337 · Salida: Metro Pavones/).waitFor();
+    await page.getByText(/^Salida: Metro Pavones/).waitFor();
     assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n/i);
     await page.locator('.bottom-nav a[href="#recorrido"]').click();
     const before=await (await page.request.get(base+'/api/arena-hambre/state')).json();

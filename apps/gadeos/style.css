@@ -139,6 +139,7 @@ progress::-moz-progress-bar { background:#efc976; border-radius:8px; }
 .bottom-nav { position:fixed; bottom:max(12px,env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); width:min(520px,calc(100% - 24px)); display:flex; padding:6px; z-index:10; border:1px solid #d8b56788; border-radius:20px; background:#08172bf2; box-shadow:0 12px 45px #0009; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
 .bottom-nav a { flex:1; display:grid; place-items:center; gap:5px; padding:10px 5px; text-decoration:none; font-size:11px; border-radius:14px; color:#b8cbe3; }
 .bottom-nav a[aria-current=page] { color:#ffe6a4; background:linear-gradient(120deg,#a17a242b,#4075b42b); box-shadow:inset 0 0 0 1px #dabb6c33; }
+.bottom-nav a[aria-disabled=true] { color:#8d9caf; cursor:default; }
 .bottom-nav svg { width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.6; }
 .bottom-nav a:first-child svg { fill:currentColor; stroke:none; }
 dialog { position:fixed; width:min(470px,calc(100% - 28px)); max-height:88vh; max-height:88svh; overflow:auto; padding:42px 26px 28px; border:1px solid #e0bc75aa; border-radius:25px; color:var(--ink); background:radial-gradient(at 50% 0,#2b5b9455,transparent 65%),#0a172d; overscroll-behavior:contain; box-shadow:0 25px 100px #000b; }

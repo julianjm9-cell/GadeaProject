@@ -113,9 +113,12 @@ function home(host) {
   const hero = el('section', 'home-hero');
   const image = el('img', 'event-poster'); image.src = art('alliance-hero'); image.alt = ''; image.fetchPriority = 'high'; hero.append(image);
   const companions = el('img', 'hero-companions'); companions.src = apiRoot + '/companions.png'; companions.alt = ''; companions.setAttribute('aria-hidden', 'true'); companions.width = 480; companions.height = 728; hero.append(companions);
-  const caption = arrived() && schedule.place ? schedule.day + ' · ' + schedule.place : schedule.day;
-  const copy = el('div', 'poster-copy'); copy.append(el('p', 'eyebrow', caption), el('h1', '', state.campaign.title), el('p', '', state.campaign.intro)); hero.append(copy); overview.append(hero);
-  const next = el('a', 'primary next-step', state.completed >= total() ? 'Ir a la batalla final →' : state.completed ? 'Continuar el recorrido →' : 'Empezar el recorrido →'); next.href = state.completed >= total() ? '#batalla' : '#recorrido'; overview.append(next);
+  const copy = el('div', 'poster-copy'); copy.append(el('p', 'eyebrow', schedule.day), el('h1', '', state.campaign.title), el('p', '', state.campaign.intro)); hero.append(copy); overview.append(hero);
+  if (!state.home_only) {
+    const next = el('a', 'primary next-step', state.completed >= total() ? 'Ir a la batalla final →' : state.completed ? 'Continuar el recorrido →' : 'Empezar el recorrido →');
+    next.href = state.completed >= total() ? '#batalla' : '#recorrido';
+    overview.append(next);
+  }
   const planning = el('section', 'planning'); planning.append(el('h2', '', 'Vuestro planning'));
   if (schedule.transport) planning.append(el('p', 'planning-transport', schedule.transport));
   for (const [index, day] of (schedule.days || []).entries()) {
@@ -136,8 +139,8 @@ function home(host) {
     }
     section.append(list); planning.append(section);
   }
-  if (arrived()) {
-    const food = el('a', 'planning-food-link', 'Dónde comer en Chinchón →');
+  if (!state.home_only && arrived()) {
+    const food = el('a', 'planning-food-link', 'Dónde comer →');
     food.href = '#restaurantes';
     planning.append(food);
   }
@@ -332,10 +335,28 @@ function dining(host) {
 
 function render() {
   if (!state) return;
-  const page = ['inicio', 'recorrido', 'batalla', 'restaurantes'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'inicio';
+  const pages = { inicio: home, recorrido: journey, batalla: battle, restaurantes: dining };
+  const requested = location.hash.slice(1);
+  const page = !state.home_only && Object.keys(pages).includes(requested) ? requested : 'inicio';
+  if (state.home_only && requested && requested !== 'inicio') history.replaceState(null, '', '#inicio');
   document.body.dataset.view = page;
   clearRestaurantMap(); clearTownMap(); $('main').replaceChildren();
-  ({ inicio: home, recorrido: journey, batalla: battle, restaurantes: dining })[page]($('main'));
-  document.querySelectorAll('.bottom-nav a').forEach(node => { if (node.hash === '#' + page) node.setAttribute('aria-current', 'page'); else node.removeAttribute('aria-current'); });
+  pages[page]($('main'));
+  for (const link of document.querySelectorAll('.bottom-nav a')) {
+    const section = link.dataset.section;
+    const locked = state.home_only && section !== 'inicio';
+    if (locked) {
+      link.removeAttribute('href');
+      link.setAttribute('role', 'link');
+      link.setAttribute('aria-disabled', 'true');
+    } else {
+      link.href = '#' + section;
+      link.removeAttribute('role');
+      link.removeAttribute('aria-disabled');
+    }
+    link.querySelector('use').setAttribute('href', '#i-' + (locked ? 'lock' : link.dataset.icon));
+    if (section === page) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  }
 }
 load();

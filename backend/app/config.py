@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     smtp_ssl: bool = False
     oauth_token_encryption_key: str = ""
     max_state_bytes: int = Field(default=8_000_000, ge=100_000, le=30_000_000)
+    gadeos_home_only: bool = True
 
     ai_provider: str = "groq"
     openai_api_key: str = ""

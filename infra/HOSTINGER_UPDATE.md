@@ -43,3 +43,5 @@ El registro inicial utiliza el plan `PROFESOR_FREE` por defecto. Los días de ac
 Si Git informa de cambios locales o divergencia, no uses `reset --hard`: revisa esos cambios antes de actualizar. Si falla Docker, consulta `docker compose logs --tail=80 backend reverse-proxy`. Una migración fallida requiere revisar el error antes de repetir; no se restaura automáticamente una copia sobre la base de datos activa.
 
 Las comprobaciones del script se ejecutan dentro de la red Docker. Tras completarlo, abre la portada y `/profesor/login` usando el dominio o la IP habituales para confirmar también el acceso público, DNS y HTTPS.
+
+GADEOS ofrece solo Inicio mientras `GADEOS_HOME_ONLY` esté activado. El valor predeterminado es `true`. Para reabrir el juego, establece `GADEOS_HOME_ONLY=false` en el `.env` del VPS y actualiza con el mismo procedimiento. Las pruebas completadas y las cartas se conservan.

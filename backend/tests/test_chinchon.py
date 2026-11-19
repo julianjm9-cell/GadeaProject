@@ -6,7 +6,7 @@ import json
 from PIL import Image
 
 from test_access_control import client
-from test_private_apps import admin, tribute
+from test_private_apps import admin, playable_campaign, tribute
 from app.api import private_apps
 
 PATH = '/juegos-del-hambre'

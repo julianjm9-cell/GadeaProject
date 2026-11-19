@@ -8,6 +8,11 @@ from app.services import gadeos
 from app.api.auth import ensure_google_access
 
 
+@pytest.fixture(autouse=True)
+def playable_campaign(monkeypatch):
+    monkeypatch.setattr(gadeos.get_settings(), "gadeos_home_only", False)
+
+
 def admin(web, factory):
     seed_user(factory, role='superadmin', email='organizador@example.invalid')
     response = login(web, email='organizador@example.invalid')
@@ -25,6 +30,37 @@ def tribute(web, headers, name='Alma'):
     assert signed.status_code == 200, signed.text
     assert 'HttpOnly' in signed.headers['set-cookie'] and 'SameSite=strict' in signed.headers['set-cookie']
     return created.json()
+
+
+def test_home_only_keeps_saved_progress_and_rejects_game_actions(client, monkeypatch):
+    web, factory = client
+    account = tribute(web, admin(web, factory))
+    with factory() as db:
+        progress = db.get(PrivateAppProgress, UUID(account['id']))
+        progress.data = {'completed': 2}
+        progress.revision = 2
+        db.commit()
+
+    settings = gadeos.get_settings()
+    monkeypatch.setattr(settings, 'gadeos_home_only', True)
+    for api in ('/api/arena-hambre', '/api/private-apps/gadeos'):
+        state = web.get(api + '/state').json()
+        assert state['home_only'] and state['completed'] == 2 and state['revision'] == 2
+        assert all(station['locked'] and 'prompt' not in station for station in state['campaign']['stations'])
+        base = {'revision': 2, 'request_id': str(uuid4())}
+        for path, fields in (
+            ('/stations/answer', {'campaign_revision': 0, 'station': 3, 'answer': 'Villa Elisa'}),
+            ('/battle/start', {}),
+            ('/battle/action', {'action': 'guard'}),
+        ):
+            action = web.post(api + path, json={**base, **fields})
+            assert action.status_code == 403
+            assert action.json()['detail'] == 'Por ahora solo está disponible Inicio.'
+
+    monkeypatch.setattr(settings, 'gadeos_home_only', False)
+    resumed = web.get('/api/arena-hambre/state').json()
+    assert resumed['completed'] == 2 and resumed['revision'] == 2
+    assert not resumed['campaign']['stations'][2]['locked']
 
 
 def all_stations(web, headers):
@@ -146,7 +182,7 @@ def test_tribute_login_unlocks_in_order_and_duplicate_does_not_duplicate_rewards
     assert '/gadeos' not in web.get('/sitemap.xml').text
     state=web.get('/api/private-apps/gadeos/state').json()
     assert state['completed']==0 and state['campaign']['stations'][1]['locked']
-    assert state['campaign']['planning']['transport']=='Autobús · Salida: Metro Pavones (Línea 9, Madrid)'
+    assert state['campaign']['planning']['transport']=='Salida: Metro Pavones (Línea 9, Madrid)'
     assert 'solution' not in str(state)
     assert 'prompt' not in state['campaign']['stations'][1]
     assert state['campaign']['stations'][1]['title'] == 'Prueba 2'
@@ -160,7 +196,7 @@ def test_tribute_login_unlocks_in_order_and_duplicate_does_not_duplicate_rewards
     correct=web.post('/api/private-apps/gadeos/stations/answer',json=body)
     assert correct.status_code==200,correct.text
     assert correct.json()['completed']==1
-    assert correct.json()['campaign']['planning']['transport'].startswith('Autobús 337 · Salida:')
+    assert correct.json()['campaign']['planning']['transport'].startswith('Salida:')
     duplicate=web.post('/api/private-apps/gadeos/stations/answer',json=body)
     assert duplicate.json()['reused'] and duplicate.json()['revision']==1
     assert len([card for card in duplicate.json()['cards'] if card['owned']])==1

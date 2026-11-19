@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from fastapi import HTTPException
 from sqlalchemy import update
 
+from app.config import get_settings
 from app.models import AppSetting
 from app.models.private_apps import PrivateAppProgress
 
@@ -212,27 +213,29 @@ def collection_discovered(data, config):
     )
 
 
-def public_campaign(config, completed):
+def public_campaign(config, completed, home_only):
     result = {key: config[key] for key in ("revision", "title", "intro", "boss", "ending")}
     result["media"] = config.get("media", media_config())
-    result["planning"] = public_planning(config.get("planning", planning_config()))
-    if 1 not in completed:
-        result["planning"] = map_text(result["planning"], lambda text: re.sub(r"[ \t]*\b337\b", "", text).strip())
+    planning = map_text(public_planning(config["planning"]), without_town_name)
+    planning = map_text(planning, lambda text: re.sub(r"[ \t]*\b337\b", "", text).strip())
+    planning["place"] = ""
+    planning["transport"] = re.sub(r"^Autobús\s*·\s*", "", planning["transport"], flags=re.IGNORECASE)
+    result["planning"] = planning
+    result["title"] = without_town_name(result["title"])
+    result["intro"] = without_town_name(result["intro"])
     result["stations"] = []
     for number, station in enumerate(config["stations"], 1):
         done = number in completed
-        available = done or station_available(number, station, completed)
+        available = not home_only and (done or station_available(number, station, completed))
         title = station["title"] or f"Prueba {number}"
         entry = {"number": number, "title": title if available else f"Prueba {number}", "locked": not available,
                  "completed": done, "pending": not done and not station["solution"]}
         if available:
             entry.update({"prompt": title, "kind": "code", "options": []})
         result["stations"].append(entry)
-    if {1, 2}.issubset(completed):
+    if not home_only and {1, 2}.issubset(completed):
         return result
 
-    # Preserve the organiser's wording while keeping the destination a surprise in the player view.
-    result["planning"]["place"] = ""
     return map_text(result, without_town_name)
 
 
@@ -257,10 +260,12 @@ def progress_payload(db, account):
     completed = completed_stations(data)
     config = campaign(db)
     discovered = collection_discovered(data, config)
+    home_only = get_settings().gadeos_home_only
     return {"account": {"id": str(account.id), "name": account.name}, "revision": row.revision, "completed": len(completed),
+            "home_only": home_only,
             "secret_discovered": discovered, "collection_name": "GADEOS" if discovered else None,
             "cards": [{"id": number, **(station["card"] if number in completed else {"title": f"Sobre {number}", "description": "", "image": None}), "owned": number in completed} for number, station in enumerate(config["stations"], 1)],
-            "campaign": public_campaign(config, completed), "battle": data.get("battle"), "victory": data.get("victory", False)}
+            "campaign": public_campaign(config, completed, home_only), "battle": data.get("battle"), "victory": data.get("victory", False)}
 
 
 def mutate(db, account, revision, request_id, action, render=None):
@@ -288,7 +293,13 @@ def normalized(value):
     return " ".join("".join(c for c in unicodedata.normalize("NFKD", str(value)) if not unicodedata.combining(c)).casefold().split())
 
 
+def require_open_game():
+    if get_settings().gadeos_home_only:
+        raise HTTPException(403, "Por ahora solo está disponible Inicio.")
+
+
 def complete_station(db, account, payload):
+    require_open_game()
     config = campaign(db)
     if payload.campaign_revision != config["revision"]:
         raise HTTPException(409, "La prueba se ha actualizado. Vuelve a abrir la estación.")
@@ -319,6 +330,7 @@ INTENTS = ["strike", "feint", "charge"]
 
 
 def start_battle(db, account, payload):
+    require_open_game()
     def apply(data):
         if len(completed_stations(data)) != STATION_COUNT:
             raise HTTPException(403, "La batalla se abre al completar las diez pruebas.")
@@ -329,6 +341,7 @@ def start_battle(db, account, payload):
 
 
 def battle_turn(db, account, payload):
+    require_open_game()
     def apply(data):
         battle = data.get("battle")
         if len(completed_stations(data)) != STATION_COUNT or not battle or battle["state"] != "playing":
