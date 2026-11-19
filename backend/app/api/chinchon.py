@@ -31,6 +31,10 @@ class Win(BaseModel):
     tribute: int = Field(ge=1, le=2)
 
 
+class ProfileAction(private_apps.GameAction):
+    action: Literal["reset", "unlock_all"]
+
+
 def public_payload(value):
     result = copy.deepcopy(value)
     if not result["secret_discovered"]:
@@ -114,6 +118,11 @@ def unlock(payload: SectionUnlock, account=Depends(member), db: Session = Depend
 @router.post(gadeos.PUBLIC_API + "/battle/win")
 def win(payload: Win, account=Depends(member), db: Session = Depends(get_db)):
     return public_payload(gadeos.record_win(db, account, payload))
+
+
+@router.post(gadeos.PUBLIC_API + "/profile")
+def profile(payload: ProfileAction, account=Depends(member), db: Session = Depends(get_db)):
+    return public_payload(gadeos.change_profile(db, account, payload))
 
 
 @router.post("/api/arena-chinchon/stations/answer", include_in_schema=False)

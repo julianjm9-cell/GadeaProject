@@ -590,3 +590,40 @@ def test_open_itinerary_migrates_saved_passwords_once_and_preserves_saturday():
     assert legacy['days'][1]['locked']
     migrated['days'][0]['activities'][0]['time'] = '20:15'
     assert gadeos.planning_config(migrated) == migrated
+
+
+def test_profile_reset_and_unlock_are_isolated_durable_and_idempotent(client, monkeypatch):
+    monkeypatch.setattr(gadeos, 'section_status', real_section_status)
+    web, factory = client
+    headers = admin(web, factory)
+    first = tribute(web, headers)
+    payload = {'action':'unlock_all', 'revision':0, 'request_id':str(uuid4())}
+    opened = web.post('/api/arena-hambre/profile', json=payload)
+    assert opened.status_code == 200
+    state = opened.json()
+    assert state['completed'] == 10 and state['secret_discovered']
+    assert all(status == 'open' for status in state['sections'].values())
+    assert all(card['owned'] for card in state['cards'])
+    assert web.post('/api/arena-hambre/profile', json=payload).json()['reused']
+    web.post('/api/arena-hambre/battle/win', json={'tribute':1,'score_revision':0,'request_id':str(uuid4())})
+    assert web.get('/api/arena-hambre/state').json()['completed'] == 10
+    stale = web.post('/api/arena-hambre/profile', json={'action':'reset','revision':0,'request_id':str(uuid4())})
+    assert stale.status_code == 409
+    assert web.get('/api/arena-hambre/state').json()['completed'] == 10
+    reset = {'action':'reset', 'revision':state['revision'], 'request_id':str(uuid4())}
+    fresh = web.post('/api/arena-hambre/profile', json=reset)
+    assert fresh.status_code == 200
+    assert fresh.json()['completed'] == 0 and not fresh.json()['secret_discovered']
+    assert not any(card['owned'] for card in fresh.json()['cards'])
+    assert fresh.json()['sections']['recorrido'] == 'locked'
+    assert fresh.json()['sections']['batalla'] == 'disabled'
+    assert web.post('/api/arena-hambre/profile', json=reset).json()['reused']
+    assert web.post('/api/arena-hambre/profile', json=payload).json()['completed'] == 0
+    second = tribute(web, headers, name='Otro tributo')
+    assert second['id'] != first['id']
+    assert web.get('/api/arena-hambre/state').json()['completed'] == 0
+    with factory() as db:
+        assert gadeos.battle_score(db.get(AppSetting, gadeos.SCORE_KEY))['wins'] == [1,0]
+        assert db.get(PrivateAppProgress, UUID(first['id'])).revision == 2
+    web.cookies.clear()
+    assert web.post('/api/arena-hambre/profile', json=payload).status_code == 401

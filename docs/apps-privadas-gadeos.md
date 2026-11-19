@@ -65,3 +65,6 @@ Restaurantes es la cuarta pestaña. Mapa local de calles con Leaflet 1.9.4 y dat
 Histórico, sustituido por la versión 6. La versión 2 del planning fijaba el viernes en 18:00 llegada a Chinchón y mochilas, una actividad BLOQUEADA, 21:00 llegada al piso y 22:00 batallas finales. El sábado queda bloqueado por completo. LA TERRAZA añade «Bloquear este día» y «Bloquear actividad». El contenido privado se conserva para editarlo, pero la API del jugador omite los horarios y textos de la actividad bloqueada y todas las actividades y subtítulo del día bloqueado. No se revela al progresar por las pruebas.
 
 La actualización convierte el planning anterior de viernes 20 y sábado 21 a esta versión, conservando las actividades privadas del sábado. Un editor antiguo sin días conserva el planning nuevo; uno que intente reemplazar los días sin conocer la versión recibe un aviso de recarga. Las ediciones posteriores realizadas con la versión 2 se respetan.
+
+
+Desde Ajustes en la cabecera, el tributo puede reiniciar su perfil con confirmación o desbloquear todo. El desbloqueo completa las diez misiones, entrega sus sobres y abre todas las secciones para esa cuenta. El reinicio elimina su progreso y los permisos personales. La cuenta y el marcador compartido de victorias se conservan. Se guarda en el servidor con revisión y recibos, también tras recargar.

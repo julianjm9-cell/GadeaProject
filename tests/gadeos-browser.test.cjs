@@ -16,6 +16,43 @@ async function fixture(t, homeOnly = false){
  assert.fail('El backend de ensayo no responde.');
 }
 for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440,height:1000}],['WebKit móvil',webkit,{width:390,height:844}]]){
+ test(`Ajustes reinicia y desbloquea solo el perfil actual en ${name}`,{timeout:45000},async t=>{
+  const base=await fixture(t),browser=await engine.launch(name.startsWith('Chromium')?{channel:'msedge'}:{});t.after(()=>browser.close());
+  const page=await browser.newPage({viewport});
+  const signed=await page.request.post(base+'/auth/login',{data:{email:'organizador@example.invalid',password:'ensayo-temporal-123'}});
+  const headers={Authorization:'Bearer '+(await signed.json()).access_token};
+  await page.request.post(base+'/admin/apps/gadeos/accounts',{headers,data:{name:'Alma',password:'ensayo-seguro-123'}});
+  await page.request.post(base+'/api/arena-hambre/login',{data:{name:'Alma',password:'ensayo-seguro-123'}});
+  await page.goto(base+'/juegos-del-hambre');
+  const settings=page.getByRole('dialog',{name:'Ajustes',exact:true});
+  await page.getByRole('button',{name:'Ajustes',exact:true}).click();
+  await page.route('**/api/arena-hambre/profile',route=>route.abort(),{times:1});
+  await settings.getByRole('button',{name:'Desbloquear todo',exact:true}).click();
+  await settings.getByRole('alert').waitFor();
+  await settings.getByRole('button',{name:'Desbloquear todo',exact:true}).click();
+  await settings.waitFor({state:'hidden'});
+  await page.locator('.bottom-nav a[href="#recorrido"]').click();
+  await page.locator('.journey-town').waitFor();
+  assert.equal(await page.locator('.route-count').innerText(),'10 / 10');
+  await page.reload();await page.locator('.journey-town').waitFor();
+  await page.locator('.bottom-nav a[href="#batalla"]').click();await page.locator('.tribute-scoreboard').waitFor();
+  await page.getByRole('button',{name:'Ajustes',exact:true}).click();
+  await settings.getByRole('button',{name:'Reiniciar mi perfil',exact:true}).click();
+  await settings.getByRole('button',{name:'Cancelar',exact:true}).click();
+  assert.equal((await (await page.request.get(base+'/api/arena-hambre/state')).json()).completed,10);
+  await page.getByRole('button',{name:'Ajustes',exact:true}).click();
+  await settings.getByRole('button',{name:'Reiniciar mi perfil',exact:true}).click();
+  await settings.getByRole('button',{name:'Confirmar reinicio',exact:true}).click();
+  await settings.waitFor({state:'hidden'});await page.reload();
+  await page.getByRole('heading',{name:'Vuestro planning',exact:true}).waitFor();
+  const fresh=await (await page.request.get(base+'/api/arena-hambre/state')).json();
+  assert.equal(fresh.completed,0);assert.equal(fresh.secret_discovered,false);
+  await page.locator('.bottom-nav a[href="#recorrido"]').click();
+  await page.getByLabel('Contraseña de Recorrido').waitFor();
+  assert.equal(await page.locator('.journey-town').count(),0);
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+ });
+
  test(`GADEOS solo permite abrir Inicio en ${name}`,{timeout:45000},async t=>{
   const base=await fixture(t,true),browser=await engine.launch(name.startsWith('Chromium')?{channel:'msedge'}:{});
   t.after(()=>browser.close());

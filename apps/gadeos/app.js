@@ -44,6 +44,42 @@ $('login-form').addEventListener('submit', async event => {
   finally { busy = false; submit.disabled = false; }
 });
 $('logout').addEventListener('click', async () => { try { await api('/logout', {}); showLogin(); } catch (error) { note(error.message); } });
+$('settings-button').addEventListener('click', () => {
+  if (!state || busy) return;
+  const content = $('settings-content');
+  content.replaceChildren(el('p', '', 'Perfil de ' + state.account.name));
+  const reset = button('Reiniciar mi perfil', () => {
+    content.replaceChildren(el('p', '', 'Volverás al inicio con cero misiones y sin sobres ni desbloqueos. Tu cuenta y el marcador compartido de la batalla se conservan.'));
+    const cancel = button('Cancelar', () => $('settings').close(), 'quiet');
+    content.append(cancel, button('Confirmar reinicio', () => changeProfile('reset'), 'primary'));
+    cancel.focus();
+  }, 'quiet');
+  content.append(el('p', '', 'Empieza de nuevo o abre todas las misiones, sobres y secciones para este perfil.'), reset,
+    button('Desbloquear todo', () => changeProfile('unlock_all'), 'primary'));
+  $('settings').showModal();
+});
+
+async function changeProfile(profileAction) {
+  if (busy) return;
+  busy = true;
+  $('settings-content').querySelector('[role="alert"]')?.remove();
+  const controls = [...$('settings').querySelectorAll('button')];
+  controls.forEach(control => { control.disabled = true; });
+  try {
+    await action('/profile', { action: profileAction });
+    townView = null;
+    $('settings').close();
+    history.replaceState(null, '', '#inicio');
+    render();
+    $('main').focus({ preventScroll: true });
+    note(profileAction === 'reset' ? 'Perfil reiniciado.' : 'Todo desbloqueado para tu perfil.');
+  } catch (error) {
+    const message = el('p', 'error', error.message);
+    message.setAttribute('role', 'alert');
+    $('settings-content').append(message);
+  }
+  finally { busy = false; controls.forEach(control => { control.disabled = false; }); }
+}
 document.querySelectorAll('dialog .close').forEach(node => node.addEventListener('click', () => node.closest('dialog').close()));
 const rewardDialog = $('reward');
 rewardDialog.addEventListener('click', () => { if (rewardDialog.dataset.rewardView === 'celebration') rewardDialog.close(); });

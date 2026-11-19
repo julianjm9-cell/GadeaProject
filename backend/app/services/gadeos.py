@@ -125,13 +125,13 @@ def planning_config(value=None):
 def public_planning(value, unlocked=()):
     result = copy.deepcopy(value)
     for day in result.get("days", []):
-        if day.get("unlock_key") in unlocked:
+        if "*" in unlocked or day.get("unlock_key") in unlocked:
             day["locked"] = False
         if day.get("locked"):
             day["subtitle"], day["activities"] = "", []
         else:
             for entry in day["activities"]:
-                if entry.get("unlock_key") in unlocked:
+                if "*" in unlocked or entry.get("unlock_key") in unlocked:
                     entry["locked"] = False
                 if entry.get("locked"):
                     entry["time"], entry["text"] = "", ""
@@ -285,6 +285,8 @@ def completed_stations(data):
 
 
 def section_status(config, data, key):
+    if data.get("all_unlocked"):
+        return "open"
     access = config["section_access"][key]
     if get_settings().gadeos_home_only or not access["enabled"]:
         return "disabled"
@@ -313,10 +315,10 @@ def planning_is_locked(planning, key):
 
 
 def require_section(db, account, key, config=None):
-    if get_settings().gadeos_home_only:
-        raise HTTPException(403, "Por ahora solo está disponible Inicio.")
     config = config if config is not None else campaign(db)
     data = db.get(PrivateAppProgress, account.id).data or {}
+    if get_settings().gadeos_home_only and not data.get("all_unlocked"):
+        raise HTTPException(403, "Por ahora solo está disponible Inicio.")
     if section_status(config, data, key) != "open":
         raise HTTPException(403, "La sección está bloqueada.")
 
@@ -406,9 +408,11 @@ def progress_payload(db, account):
     completed = completed_stations(data)
     config = campaign(db)
     discovered = collection_discovered(data, config)
-    home_only = get_settings().gadeos_home_only
+    home_only = get_settings().gadeos_home_only and not data.get("all_unlocked", False)
     sections = {key: section_status(config, data, key) for key in SECTION_NAMES}
     unlocked_planning = {key for key in PLANNING_NAMES if has_access(data, key, config["section_access"][key])}
+    if data.get("all_unlocked"):
+        unlocked_planning.add("*")
     score = battle_score(db.get(AppSetting, SCORE_KEY)) if sections["batalla"] == "open" else None
     return {"account": {"id": str(account.id), "name": account.name}, "revision": row.revision, "completed": len(completed),
             "home_only": home_only, "sections": sections,
@@ -441,6 +445,16 @@ def mutate(db, account, revision, request_id, action, render=None):
 
 def normalized(value):
     return " ".join("".join(c for c in unicodedata.normalize("NFKD", str(value)) if not unicodedata.combining(c)).casefold().split())
+
+
+def change_profile(db, account, payload):
+    def apply(data):
+        for key in ("completed_stations", "completed", "section_grants", "battle", "victory", "secret_discovered", "all_unlocked"):
+            data.pop(key, None)
+        if payload.action == "unlock_all":
+            data.update(completed_stations=list(range(1, STATION_COUNT + 1)), completed=STATION_COUNT,
+                        secret_discovered=True, all_unlocked=True)
+    return mutate(db, account, payload.revision, payload.request_id, apply)
 
 
 def complete_station(db, account, payload):
