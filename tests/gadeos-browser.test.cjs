@@ -40,6 +40,9 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   assert.doesNotMatch(pending.join(''),/ajustes/);
   await settings.getByRole('button',{name:'Desbloquear todo',exact:true}).click();
   await settings.waitFor({state:'hidden'});
+  await page.getByText('Ruta al Castillo de los Condes.',{exact:true}).waitFor();
+  assert.deepEqual(await page.locator('.planning-day').last().locator('.planning-time').allTextContents(),['11:00','11:30','12:00–13:30','14:00','15:00']);
+  await page.getByText('Regreso a Madrid · hora por determinar.',{exact:true}).waitFor();
   await page.locator('.bottom-nav a[href="#recorrido"]').click();
   await page.locator('.journey-town').waitFor();
   assert.equal(await page.locator('.route-count').innerText(),'10 / 10');
