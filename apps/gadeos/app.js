@@ -118,16 +118,22 @@ function home(host) {
   for (const [index, day] of (schedule.days || []).entries()) {
     const section = el('section', 'planning-day');
     const head = el('div', 'planning-day-title'); head.append(el('span', 'day-symbol', index ? '☀' : '☾'), el('h3', '', day.title)); section.append(head);
-    if (day.locked) { const blocked = el('p', 'planning-locked'); blocked.append(icon('lock'), document.createTextNode('BLOQUEADO')); section.append(blocked); planning.append(section); continue; }
+    if (day.locked) {
+      const blocked = el('div', 'planning-locked');
+      planningLock(blocked, day.unlock_key, 'Desbloquear sábado', 'Sábado');
+      section.append(blocked);
+      planning.append(section);
+      continue;
+    }
     if (day.subtitle) section.append(el('p', 'day-subtitle', day.subtitle));
     const list = el('ol', 'planning-list');
     for (const activity of day.activities) {
       const row = el('li', activity.locked ? 'planning-locked' : '');
       if (activity.locked) {
-        row.append(icon('lock'), el('span', '', 'BLOQUEADO'));
+        planningLock(row, activity.unlock_key, 'Desbloquear actividad', 'Viernes');
       } else {
         if (activity.time) row.append(el('time', 'planning-time', activity.time));
-        row.append(el('span', '', activity.text));
+        row.append(el('span', '', activity.text || 'Actividad pendiente de definir.'));
       }
       list.append(row);
     }
@@ -139,6 +145,19 @@ function home(host) {
     planning.append(food);
   }
   host.append(planning);
+}
+
+function planningLock(host, key, title, label) {
+  host.append(icon('lock'));
+  if (!key) {
+    host.append(el('span', '', 'BLOQUEADO'));
+    return;
+  }
+  host.classList.add('planning-has-key');
+  const details = el('details', 'planning-unlock');
+  details.append(el('summary', '', title));
+  unlockForm(details, key, label);
+  host.append(details);
 }
 
 function clearTownMap() {
@@ -329,6 +348,10 @@ function sectionGate(host, section) {
     return;
   }
 
+  unlockForm(panel, section, label);
+}
+
+function unlockForm(host, section, label) {
   const form = el('form');
   const field = el('label', '', 'Contraseña de ' + label);
   const password = el('input');
@@ -343,7 +366,7 @@ function sectionGate(host, section) {
   error.setAttribute('role', 'alert');
   error.hidden = true;
   form.append(field, submit, error);
-  panel.append(form);
+  host.append(form);
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (busy) return;

@@ -21,7 +21,7 @@ def member(request: Request, db: Session = Depends(get_db)):
 
 
 class SectionUnlock(private_apps.GameAction):
-    section: Literal["recorrido", "batalla", "restaurantes"]
+    section: Literal["recorrido", "batalla", "restaurantes", "plan_viernes", "plan_sabado"]
     password: str = Field(min_length=1, max_length=72)
 
 

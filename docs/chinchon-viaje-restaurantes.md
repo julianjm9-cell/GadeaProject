@@ -1,6 +1,6 @@
 # Planning y restaurantes de Chinchón
 
-Consulta de fuentes: **18 de noviembre de 2026**. Las dos imágenes del propietario definen el planning y los intervalos de precio; no se copian los originales personales a Git. El viaje se divide en viernes 20 y sábado 21. La última corrección del propietario sustituye el viernes por una actividad BLOQUEADA, 21:00 llegada al refugio y 22:00 batallas finales. Todo el sábado queda BLOQUEADO; su contenido se conserva solo en administración hasta que el propietario lo muestre desde LA TERRAZA. El planning no representa horarios de apertura confirmados ni controla las nueve pruebas.
+Consulta de fuentes: **18 de noviembre de 2026**. Las dos imágenes del propietario definen el planning y los intervalos de precio; no se copian los originales personales a Git. El viaje se divide en viernes 20 y sábado 21. La última corrección del propietario sustituye el viernes por una actividad BLOQUEADA, 21:00 llegada al refugio y 22:00 batallas finales. El sábado y la actividad bloqueada del viernes tienen claves propias. El contenido se muestra en el planning del jugador al introducir la clave correspondiente. El planning no representa horarios de apertura confirmados ni controla las nueve pruebas.
 
 ## Lugares y puntuaciones
 

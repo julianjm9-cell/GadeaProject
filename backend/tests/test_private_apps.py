@@ -509,12 +509,35 @@ def test_locked_trip_content_is_private_editable_and_migrates_old_planning(clien
     assert friday['activities'][0]['locked'] and saturday['locked']
     friday['activities'][0].update(time='19:00',text='SORPRESA PRIVADA VIERNES')
     saturday['activities'][0]['text']='SORPRESA PRIVADA SABADO'
+    config['section_access']['plan_viernes']['password'] = 'La primera sorpresa'
+    config['section_access']['plan_sabado']['password'] = 'La segunda sorpresa'
     saved=web.put('/admin/apps/gadeos/campaign',headers=headers,json=config)
     assert saved.status_code==200
     response=web.get('/api/arena-chinchon/state')
     assert 'SORPRESA PRIVADA' not in response.text
     assert response.json()['campaign']['planning']['days'][1]['activities']==[]
     assert response.json()['campaign']['planning']['days'][1]['subtitle']==''
+    def unlock_plan(section, password, revision):
+        return web.post('/api/arena-hambre/sections/unlock', json={
+            'section': section, 'password': password, 'revision': revision, 'request_id': str(uuid4()),
+        })
+    assert unlock_plan('plan_viernes', 'La segunda sorpresa', 0).status_code == 403
+    friday_open = unlock_plan('plan_viernes', 'La primera sorpresa', 0)
+    assert friday_open.status_code == 200
+    assert 'SORPRESA PRIVADA VIERNES' in friday_open.text and 'SORPRESA PRIVADA SABADO' not in friday_open.text
+    saturday_open = unlock_plan('plan_sabado', 'La segunda sorpresa', friday_open.json()['revision'])
+    assert saturday_open.status_code == 200
+    fresh = web.get('/api/arena-hambre/state')
+    assert 'SORPRESA PRIVADA VIERNES' in fresh.text and 'SORPRESA PRIVADA SABADO' in fresh.text
+    rotated = saved.json()
+    rotated['section_access']['plan_viernes']['password'] = 'La segunda sorpresa'
+    assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=rotated).status_code == 422
+    rotated['section_access']['plan_viernes']['password'] = 'Otra clave del viernes'
+    rotation = web.put('/admin/apps/gadeos/campaign',headers=headers,json=rotated)
+    assert rotation.status_code == 200
+    fresh = web.get('/api/arena-hambre/state')
+    assert 'SORPRESA PRIVADA VIERNES' not in fresh.text and 'SORPRESA PRIVADA SABADO' in fresh.text
+    saved = rotation
     old=saved.json();old['planning'].pop('version')
     assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=old).status_code==409
     unlock=saved.json();unlock['planning']['days'][0]['activities'][0]['locked']=False;unlock['planning']['days'][1]['locked']=False
@@ -527,7 +550,7 @@ def test_locked_trip_content_is_private_editable_and_migrates_old_planning(clien
         {'title':'Viernes 20','subtitle':'Antiguo viernes','activities':[{'time':'19:45','text':'Cena anterior'}]},
         {'title':'Sábado 21','subtitle':'Antiguo sábado','activities':[{'time':'11:00','text':'Contenido guardado'}]}]}
     migrated=gadeos.planning_config(legacy)
-    assert migrated['version']==4 and [a['time'] for a in migrated['days'][0]['activities']]==['','21:00','22:00']
+    assert migrated['version']==5 and [a['time'] for a in migrated['days'][0]['activities']]==['','21:00','22:00']
     assert migrated['days'][1]['locked'] and migrated['days'][1]['activities'][0]['text']=='Contenido guardado'
     assert legacy['days'][0]['activities'][0]['time']=='19:45'
     previous = gadeos.planning_config()
@@ -541,4 +564,9 @@ def test_locked_trip_content_is_private_editable_and_migrates_old_planning(clien
     previous['transport'] = gadeos.planning_config()['transport']
     previous['days'][0]['subtitle'] = ''
     previous['days'][0]['activities'][0]['time'] = ''
+    assert gadeos.planning_config(previous) == gadeos.planning_config()
+    previous = gadeos.planning_config()
+    previous['version'] = 4
+    previous['days'][0]['activities'][0].pop('unlock_key')
+    previous['days'][1].pop('unlock_key')
     assert gadeos.planning_config(previous) == gadeos.planning_config()

@@ -17,6 +17,8 @@ from app.security.passwords import hash_password, verify_password
 CONFIG_KEY = "private_campaign:gadeos"
 SCORE_KEY = "private_score:gadeos"
 SECTION_NAMES = {"recorrido": "Recorrido", "batalla": "Batalla final", "restaurantes": "Restaurantes"}
+PLANNING_NAMES = {"plan_viernes": "Viernes", "plan_sabado": "Sábado"}
+ACCESS_NAMES = {**SECTION_NAMES, **PLANNING_NAMES}
 STATION_COUNT = 10
 PUBLIC_PATH = "/juegos-del-hambre"
 PUBLIC_API = "/api/arena-hambre"
@@ -26,10 +28,10 @@ PUBLIC_ASSETS = "/aventura-hambre-assets"
 def planning_config(value=None):
     days = [
         {"title": "Viernes 20", "subtitle": "", "activities": [
-            {"time": "", "text": "", "locked": True},
+            {"time": "", "text": "", "locked": True, "unlock_key": "plan_viernes"},
             {"time": "21:00", "text": "Llegada al refugio."},
             {"time": "22:00", "text": "Batallas Finales de los juegos del hambre."}]},
-        {"title": "Sábado 21", "subtitle": "Descubrir Chinchón", "locked": True, "activities": [
+        {"title": "Sábado 21", "subtitle": "Descubrir Chinchón", "locked": True, "unlock_key": "plan_sabado", "activities": [
             {"time": "11:00", "text": "Check-out del apartamento."},
             {"time": "11:30", "text": "Desayuno tranquilo en una cafetería del centro."},
             {"time": "12:30", "text": "Subida a la Torre del Reloj y paseo por las calles antiguas."},
@@ -43,7 +45,7 @@ def planning_config(value=None):
         day.setdefault("locked", False)
         for entry in day["activities"]:
             entry.setdefault("locked", False)
-    defaults = {"version": 4, "day": "Viernes", "place": "Chinchón", "start": "16:00", "final": "22:00",
+    defaults = {"version": 5, "day": "Viernes", "place": "Chinchón", "start": "16:00", "final": "22:00",
                 "transport": "Autobús 337 · Salida: Metro Pavones (Línea 9, Madrid)", "days": days}
     if value is None:
         return defaults
@@ -75,7 +77,11 @@ def planning_config(value=None):
             if not entry.get("locked", False) and (not entry["text"].strip() or (entry["time"] and not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d(?:[–-](?:[01]\d|2[0-3]):[0-5]\d)?", entry["time"]))):
                 raise HTTPException(422, "Escribe el texto de la actividad. Si indicas una hora, usa un horario válido.")
             entries.append({"time": entry["time"], "text": entry["text"].strip(), "locked": entry.get("locked", False)})
+            if entry.get("unlock_key") == "plan_viernes":
+                entries[-1]["unlock_key"] = "plan_viernes"
         clean_days.append({"title": day["title"].strip(), "subtitle": day["subtitle"].strip(), "locked": day.get("locked", False), "activities": entries})
+        if day.get("unlock_key") == "plan_sabado":
+            clean_days[-1]["unlock_key"] = "plan_sabado"
     if version < 3 and result["transport"].strip() == defaults["transport"] + " → Chinchón":
         result["transport"] = defaults["transport"]
     if version < 4:
@@ -94,16 +100,28 @@ def planning_config(value=None):
             for entry in day["activities"]:
                 if entry["text"].casefold().rstrip(".") == "llegada al piso":
                     entry["text"] = "Llegada al refugio."
+    if version < 5:
+        for day in clean_days:
+            if day["title"] == "Viernes 20" and not any(entry.get("unlock_key") for entry in day["activities"]):
+                first_locked = next((entry for entry in day["activities"] if entry["locked"]), None)
+                if first_locked is not None:
+                    first_locked["unlock_key"] = "plan_viernes"
+            if day["title"] == "Sábado 21":
+                day["unlock_key"] = "plan_sabado"
     return {**result, "transport": result["transport"].strip(), "days": clean_days}
 
 
-def public_planning(value):
+def public_planning(value, unlocked=()):
     result = copy.deepcopy(value)
     for day in result.get("days", []):
+        if day.get("unlock_key") in unlocked:
+            day["locked"] = False
         if day.get("locked"):
             day["subtitle"], day["activities"] = "", []
         else:
             for entry in day["activities"]:
+                if entry.get("unlock_key") in unlocked:
+                    entry["locked"] = False
                 if entry.get("locked"):
                     entry["time"], entry["text"] = "", ""
     return result
@@ -161,9 +179,9 @@ def campaign(db):
     result["media"] = media_config(result.get("media"))
     result["planning"] = planning_config(result.get("planning"))
     result["section_access"] = {
-        key: {"enabled": key == "recorrido", "version": 0, "password_hash": None,
+        key: {"enabled": key == "recorrido" or key in PLANNING_NAMES, "version": 0, "password_hash": None,
               **result.get("section_access", {}).get(key, {})}
-        for key in SECTION_NAMES
+        for key in ACCESS_NAMES
     }
     if result.get("challenge_format") != 3:
         defaults = default_campaign()
@@ -186,18 +204,18 @@ def admin_campaign(config):
 
 
 def update_section_access(current, changes):
-    if not isinstance(changes, dict) or not changes.keys() <= SECTION_NAMES.keys():
+    if not isinstance(changes, dict) or not changes.keys() <= ACCESS_NAMES.keys():
         raise HTTPException(422, "Revisa los accesos por sección.")
     sections = copy.deepcopy(current)
     for key, change in changes.items():
         if not isinstance(change, dict):
-            raise HTTPException(422, "Revisa el acceso de " + SECTION_NAMES[key] + ".")
+            raise HTTPException(422, "Revisa el acceso de " + ACCESS_NAMES[key] + ".")
         access = sections[key]
-        enabled = change.get("enabled", access["enabled"])
+        enabled = True if key in PLANNING_NAMES else change.get("enabled", access["enabled"])
         password = change.get("password", "")
         reset = change.get("reset_password", False)
         if type(enabled) is not bool or type(reset) is not bool or not isinstance(password, str):
-            raise HTTPException(422, "Revisa el acceso de " + SECTION_NAMES[key] + ".")
+            raise HTTPException(422, "Revisa el acceso de " + ACCESS_NAMES[key] + ".")
         key_text = normalized(password)
         if password and (not key_text or len(key_text.encode()) > 72 or reset):
             raise HTTPException(422, "Escribe una clave válida o restaura la clave predeterminada.")
@@ -206,7 +224,18 @@ def update_section_access(current, changes):
             access["enabled"] = enabled
             if password or reset:
                 access["password_hash"] = hash_password(key_text) if password else None
+    for key, other in (("plan_viernes", "plan_sabado"), ("plan_sabado", "plan_viernes")):
+        change = changes.get(key, {})
+        if change.get("password") or change.get("reset_password"):
+            password = normalized(change.get("password") or ACCESS_NAMES[key])
+            if matches_access_key(other, sections[other], password):
+                raise HTTPException(422, "Usa contraseñas distintas para el viernes y el sábado.")
     return sections
+
+
+def matches_access_key(key, access, password):
+    password_hash = access["password_hash"]
+    return verify_password(password, password_hash) if password_hash else password == normalized(ACCESS_NAMES[key])
 
 
 def validate_campaign(data):
@@ -253,9 +282,23 @@ def section_status(config, data, key):
         return "waiting"
     if key == "restaurantes" and not {1, 2}.issubset(completed):
         return "waiting"
-    if data.get("section_grants", {}).get(key) == access["version"]:
+    if has_access(data, key, access):
         return "open"
     return "locked"
+
+
+def has_access(data, key, access):
+    return data.get("section_grants", {}).get(key) == access["version"]
+
+
+def planning_is_locked(planning, key):
+    for day in planning["days"]:
+        if day["locked"]:
+            if day.get("unlock_key") == key:
+                return True
+        elif any(entry["locked"] and entry.get("unlock_key") == key for entry in day["activities"]):
+            return True
+    return False
 
 
 def require_section(db, account, key, config=None):
@@ -272,7 +315,12 @@ def unlock_section(db, account, payload):
     key = payload.section
     access = config["section_access"][key]
     def apply(data):
-        status = section_status(config, data, key)
+        if key in PLANNING_NAMES:
+            if not planning_is_locked(config["planning"], key):
+                raise HTTPException(403, "Este contenido del planning ya está disponible.")
+            status = "open" if has_access(data, key, access) else "locked"
+        else:
+            status = section_status(config, data, key)
         if status == "open":
             return
         if status != "locked":
@@ -280,9 +328,7 @@ def unlock_section(db, account, payload):
         password = normalized(payload.password)
         if not password or len(password.encode()) > 72:
             raise HTTPException(403, "La contraseña no es correcta.")
-        password_hash = access["password_hash"]
-        valid = verify_password(password, password_hash) if password_hash else password == normalized(SECTION_NAMES[key])
-        if not valid:
+        if not matches_access_key(key, access, password):
             raise HTTPException(403, "La contraseña no es correcta.")
         data.setdefault("section_grants", {})[key] = access["version"]
     return mutate(db, account, payload.revision, payload.request_id, apply)
@@ -303,10 +349,10 @@ def collection_discovered(data, config):
     )
 
 
-def public_campaign(config, completed, route_open):
+def public_campaign(config, completed, route_open, unlocked_planning):
     result = {key: config[key] for key in ("revision", "title", "intro", "boss", "ending")}
     result["media"] = config.get("media", media_config())
-    planning = map_text(public_planning(config["planning"]), without_town_name)
+    planning = map_text(public_planning(config["planning"], unlocked_planning), without_town_name)
     planning = map_text(planning, lambda text: re.sub(r"[ \t]*\b337\b", "", text).strip())
     planning["place"] = ""
     planning["transport"] = re.sub(r"^Autobús\s*·\s*", "", planning["transport"], flags=re.IGNORECASE)
@@ -352,13 +398,14 @@ def progress_payload(db, account):
     discovered = collection_discovered(data, config)
     home_only = get_settings().gadeos_home_only
     sections = {key: section_status(config, data, key) for key in SECTION_NAMES}
+    unlocked_planning = {key for key in PLANNING_NAMES if has_access(data, key, config["section_access"][key])}
     score = battle_score(db.get(AppSetting, SCORE_KEY)) if sections["batalla"] == "open" else None
     return {"account": {"id": str(account.id), "name": account.name}, "revision": row.revision, "completed": len(completed),
             "home_only": home_only, "sections": sections,
             "score": {key: score[key] for key in ("revision", "wins")} if score else None,
             "secret_discovered": discovered, "collection_name": "GADEOS" if discovered else None,
             "cards": [{"id": number, **(station["card"] if number in completed else {"title": f"Sobre {number}", "description": "", "image": None}), "owned": number in completed} for number, station in enumerate(config["stations"], 1)],
-            "campaign": public_campaign(config, completed, sections["recorrido"] == "open"), "battle": data.get("battle"), "victory": data.get("victory", False)}
+            "campaign": public_campaign(config, completed, sections["recorrido"] == "open", unlocked_planning), "battle": data.get("battle"), "victory": data.get("victory", False)}
 
 
 def mutate(db, account, revision, request_id, action, render=None):

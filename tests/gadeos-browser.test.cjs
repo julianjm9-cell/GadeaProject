@@ -36,6 +36,21 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n|\b337\b/i);
   assert.equal(await page.locator('.planning-transport').innerText(),'Salida: Metro Pavones (Línea 9, Madrid)');
   assert.equal(await page.locator('.next-step,.planning-food-link').count(),0);
+  await page.getByText('Desbloquear actividad',{exact:true}).click();
+  await page.getByLabel('Contraseña de Viernes',{exact:true}).fill('Sábado');
+  await page.getByRole('button',{name:'Desbloquear',exact:true}).click();
+  await page.getByText('La contraseña no es correcta.',{exact:true}).waitFor();
+  await page.getByLabel('Contraseña de Viernes',{exact:true}).fill('Viernes');
+  await page.getByRole('button',{name:'Desbloquear',exact:true}).click();
+  await page.getByText('Actividad pendiente de definir.',{exact:true}).waitFor();
+  assert.equal(await page.getByText('Check-out del apartamento.',{exact:true}).count(),0);
+  await page.getByText('Desbloquear sábado',{exact:true}).click();
+  await page.getByLabel('Contraseña de Sábado',{exact:true}).fill('Sábado');
+  await page.getByRole('button',{name:'Desbloquear',exact:true}).click();
+  await page.getByText('Check-out del apartamento.',{exact:true}).waitFor();
+  await page.reload();
+  await page.getByText('Check-out del apartamento.',{exact:true}).waitFor();
+  assert.equal(await page.locator('.planning-unlock').count(),0);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
  });
 
@@ -46,7 +61,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   const headers={Authorization:'Bearer '+token};
   const created=await page.request.post(base+'/admin/apps/gadeos/accounts',{headers,data:{name:'Alma',password:'ensayo-seguro-123'}});assert.equal(created.status(),201);
   const config=await (await page.request.get(base+'/admin/apps/gadeos/campaign',{headers})).json();
-  assert.deepEqual(Object.values(config.section_access).map(item=>item.enabled),[true,false,false]);
+  assert.deepEqual(Object.values(config.section_access).map(item=>item.enabled),[true,false,false,true,true]);
   config.section_access.batalla.enabled=true;
   config.section_access.restaurantes.enabled=true;
   const materialRoot=process.env.EDUCAME_GADEOS_MATERIALS_DIR;

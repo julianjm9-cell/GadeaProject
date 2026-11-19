@@ -232,3 +232,7 @@ dialog::backdrop { background:#020916de; backdrop-filter:blur(9px); -webkit-back
 
 .planning-locked { display:flex; align-items:center; gap:12px; padding:18px 0; color:#b6c3d4; font-size:12px; letter-spacing:.08em; }
 .planning-locked svg { flex:none; width:18px; height:20px; fill:none; stroke:currentColor; stroke-width:1.6; }
+.planning-has-key { align-items:flex-start; }
+.planning-unlock { flex:1; min-width:0; }
+.planning-unlock summary { min-height:28px; cursor:pointer; color:var(--gold); font-size:13px; letter-spacing:normal; line-height:1.5; }
+.planning-unlock form { gap:10px; max-width:360px; margin-top:8px; letter-spacing:normal; }
