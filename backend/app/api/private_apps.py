@@ -192,7 +192,7 @@ def patch_account(app_id: str, account_id: UUID, payload: AccountPatch, actor: U
 
 @router.get("/admin/apps/gadeos/campaign")
 def campaign_admin(_: User = Depends(require_superadmin), db: Session = Depends(get_db)):
-    return gadeos.campaign(db)
+    return gadeos.admin_campaign(gadeos.campaign(db))
 
 
 @router.put("/admin/apps/gadeos/campaign")
@@ -225,6 +225,7 @@ def campaign_save(payload: dict, actor: User = Depends(require_superadmin), db: 
             station["legacy_challenge"] = previous["legacy_challenge"]
     if type(payload.get("revision")) is not int or payload["revision"] != current["revision"]:
         raise HTTPException(409, "El recorrido cambió. Actualiza antes de guardar.")
+    clean["section_access"] = gadeos.update_section_access(current["section_access"], payload.get("section_access", {}))
     clean["revision"] = current["revision"] + 1
     value = json.dumps(clean, ensure_ascii=False)
     if original:
@@ -239,7 +240,7 @@ def campaign_save(payload: dict, actor: User = Depends(require_superadmin), db: 
     except IntegrityError:
         db.rollback()
         raise HTTPException(409, "Otra edición llegó antes. Actualiza el recorrido.")
-    return clean
+    return gadeos.admin_campaign(clean)
 
 
 @router.post("/admin/apps/gadeos/images", status_code=201)

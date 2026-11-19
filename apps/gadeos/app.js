@@ -3,6 +3,7 @@ const $ = id => document.getElementById(id);
 const apiRoot = '/api/arena-hambre';
 const art = name => '/aventura-hambre-assets/art/' + name + '-v2.webp';
 const total = () => state.campaign.stations.length;
+const sectionLabels = { recorrido: 'Recorrido', batalla: 'Batalla final', restaurantes: 'Restaurantes' };
 const arrived = () => state.campaign.stations[0].completed && state.campaign.stations[1].completed;
 // Geographic frame of the town artwork in the shared 1200 × 900 projection.
 const townBounds = [[310, 180], [745, 570]];
@@ -15,7 +16,7 @@ const townStops = {
   7: [40.1413820, -3.4228909, 0, -4], // Teatro
   8: [40.1399504, -3.4230726, -12, 4], // Escudo: ayuntamiento
 };
-let state, busy = false, selectedCard = null;
+let state, busy = false;
 let townMap, townView;
 const el = (tag, className, text) => { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; };
 const icon = name => { const node = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); const use = document.createElementNS(node.namespaceURI, 'use'); use.setAttribute('href', '#i-' + name); node.append(use); node.setAttribute('aria-hidden', 'true'); return node; };
@@ -53,7 +54,7 @@ rewardDialog.addEventListener('close', () => {
   const celebrate = rewardDialog.dataset.rewardView === 'celebration';
   delete rewardDialog.dataset.rewardView;
   if (!celebrate || !state) return;
-  const page = state.completed >= total() ? 'batalla' : 'recorrido';
+  const page = state.completed >= total() && state.sections.batalla !== 'disabled' ? 'batalla' : 'recorrido';
   if (location.hash !== '#' + page) location.hash = page;
   else render();
   requestAnimationFrame(() => {
@@ -84,14 +85,6 @@ async function action(path, payload = {}) {
   }
 }
 
-function cardArt(card) {
-  const node = el('button', 'collectible' + (card.owned ? '' : ' locked'));
-  node.type = 'button'; node.setAttribute('aria-label', card.owned ? 'Ver carta ' + card.title : 'Carta ' + card.id + ', bloqueada');
-  if (card.owned && card.image) { const img = el('img'); img.src = card.image; img.alt = ''; img.loading = 'lazy'; node.append(img); }
-  else { const image = el('img', 'card-emblem'); image.src = art('emblem'); image.alt = ''; node.append(image); }
-  node.append(el('strong', '', card.owned ? card.title : 'Sobre ' + card.id));
-  return node;
-}
 function packArt(className = '') {
   const pack = el('div', 'envelope ' + className); pack.setAttribute('aria-hidden', 'true');
   const image = el('img'); image.src = state.campaign.media?.envelope || art('envelope'); image.alt = ''; pack.append(image);
@@ -114,9 +107,10 @@ function home(host) {
   const image = el('img', 'event-poster'); image.src = art('alliance-hero'); image.alt = ''; image.fetchPriority = 'high'; hero.append(image);
   const companions = el('img', 'hero-companions'); companions.src = apiRoot + '/companions.png'; companions.alt = ''; companions.setAttribute('aria-hidden', 'true'); companions.width = 480; companions.height = 728; hero.append(companions);
   const copy = el('div', 'poster-copy'); copy.append(el('p', 'eyebrow', schedule.day), el('h1', '', state.campaign.title), el('p', '', state.campaign.intro)); hero.append(copy); overview.append(hero);
-  if (!state.home_only) {
-    const next = el('a', 'primary next-step', state.completed >= total() ? 'Ir a la batalla final →' : state.completed ? 'Continuar el recorrido →' : 'Empezar el recorrido →');
-    next.href = state.completed >= total() ? '#batalla' : '#recorrido';
+  if (state.sections.recorrido !== 'disabled') {
+    const finalReady = state.completed >= total() && state.sections.batalla !== 'disabled';
+    const next = el('a', 'primary next-step', finalReady ? 'Ir a la batalla final →' : state.completed ? 'Continuar el recorrido →' : 'Empezar el recorrido →');
+    next.href = finalReady ? '#batalla' : '#recorrido';
     overview.append(next);
   }
   const planning = el('section', 'planning'); planning.append(el('h2', '', 'Vuestro planning'));
@@ -139,7 +133,7 @@ function home(host) {
     }
     section.append(list); planning.append(section);
   }
-  if (!state.home_only && arrived()) {
+  if (arrived() && state.sections.restaurantes !== 'disabled') {
     const food = el('a', 'planning-food-link', 'Dónde comer →');
     food.href = '#restaurantes';
     planning.append(food);
@@ -255,7 +249,7 @@ function journey(host) {
   const previous = el('div', 'journey-extras journey-previous');
   previous.append(stop(bus, '1 · Autobús'), stop(riddle, '2 · Adivinanza'));
   host.append(previous);
-  if (state.completed === total()) {
+  if (state.completed === total() && state.sections.batalla !== 'disabled') {
     const finale = el('a', 'primary', 'Ir a la batalla final →');
     finale.href = '#batalla';
     host.append(finale);
@@ -286,65 +280,108 @@ function challenge(station) {
   host.append(form); $('challenge').showModal();
 }
 
-async function startBattle() {
-  if (busy) return; busy = true;
-  try { await action('/battle/start'); selectedCard = null; render(); } catch (error) { note(error.message); } finally { busy = false; }
+async function markWin(tribute) {
+  if (busy) return;
+  busy = true;
+  for (const control of document.querySelectorAll('.tribute-win')) control.disabled = true;
+  try {
+    await action('/battle/win', { tribute, score_revision: state.score.revision });
+    render();
+    document.querySelector('.tribute-win[data-tribute="' + tribute + '"]')?.focus({ preventScroll: true });
+  } catch (error) {
+    note(error.message);
+  } finally {
+    busy = false;
+    for (const control of document.querySelectorAll('.tribute-win')) control.disabled = false;
+  }
 }
-async function move(actionName) {
-  if (busy) return; busy = true; document.querySelectorAll('.battle-actions button').forEach(node => { node.disabled = true; });
-  try { await action('/battle/action', { action: actionName, card: selectedCard }); selectedCard = null; render(); } catch (error) { note(error.message); } finally { busy = false; document.querySelectorAll('.battle-actions button').forEach(node => { node.disabled = false; }); }
-}
+
 function battle(host) {
-  host.append(el('p', 'eyebrow', 'LA ÚLTIMA ALIANZA'), el('h1', '', 'La batalla final'));
-  if (state.completed < total()) { const locked = el('section', 'battle-lock'); locked.append(icon('lock'), el('h2', '', 'La arena aún no está abierta'), el('p', '', 'Completa las ' + total() + ' pruebas del recorrido para enfrentarte al centinela.'), button('Volver al recorrido', () => { location.hash = 'recorrido'; }, 'primary')); host.append(locked); return; }
-  const fight = state.battle;
-  if (!fight || fight.state !== 'playing') {
-    const start = el('section', 'battle-result'); start.append(el('div', 'trophy'), el('h2', '', fight?.state === 'won' ? 'Vuestra alianza ha vencido' : fight?.state === 'lost' ? 'La arena te da otra oportunidad' : state.campaign.boss),
-      el('p', '', fight?.state === 'won' ? state.campaign.ending : 'Lee la intención del centinela, elige tu estrategia y usa tus cartas. Tienes doce turnos. Tus sobres y estaciones siempre se conservan.'),
-      button(fight ? 'Jugar otra batalla' : 'Entrar en la arena', startBattle, 'primary')); host.append(start); return;
+  host.append(el('h1', '', 'Batalla final'));
+  const board = el('div', 'tribute-scoreboard');
+  for (const [index, wins] of state.score.wins.entries()) {
+    const tribute = index + 1;
+    const name = 'Tributo ' + tribute;
+    const control = button('', () => markWin(tribute), 'tribute-win');
+    control.dataset.tribute = tribute;
+    control.setAttribute('aria-label', 'Anotar victoria para ' + name + '. ' + wins + ' registradas.');
+    const label = el('span', 'tribute-win-label');
+    label.append(el('strong', '', name), el('span', 'tribute-win-count', String(wins)), el('span', '', wins === 1 ? 'victoria' : 'victorias'), el('span', 'tribute-win-action', '+ Anotar victoria'));
+    control.append(label);
+    board.append(control);
   }
-  const arena = el('section', 'battle-arena'), fighters = el('div', 'combatants'); arena.dataset.intent = fight.intent;
-  for (const [name, energy, max, symbol, cls] of [[state.account.name, fight.energy, 28, '✦', ''], [state.campaign.boss, fight.boss_energy, 30, '♜', ' boss']]) {
-    const actor = el('div', 'combatant' + cls); const meter = el('progress'); meter.max = max; meter.value = energy; meter.setAttribute('aria-label', 'Energía de ' + name); actor.append(el('small', '', name), el('strong', '', symbol), meter, el('p', '', energy + '/' + max)); fighters.append(actor);
-  }
-  arena.append(fighters, el('p', 'intent', ({ strike: 'Levanta su arma. Defenderse frenará el ataque.', feint: 'Baja la guardia. Es tu momento para atacar.', charge: 'Acumula energía. Concéntrate para recuperar fuerzas.' })[fight.intent])); host.append(arena);
-  const line = el('div', 'section-line'); line.append(el('small', '', 'TURNO ' + (fight.turn + 1) + ' / 12'), el('small', '', fight.focus ? 'Concentración ×' + fight.focus : 'Elige tu siguiente movimiento')); host.append(line);
-  const actions = el('div', 'battle-actions');
-  for (const [id, symbol, title, sub] of [['attack', '↗', 'Atacar', 'Aprovecha su guardia'], ['guard', '◇', 'Defender', 'Protege tu energía'], ['focus', '✧', 'Concentrar', 'Prepara tu fuerza']]) { const control = button('', () => move(id)); control.dataset.move = id; control.append(el('span', '', symbol), el('strong', '', title), el('small', '', sub)); actions.append(control); }
-  host.append(actions, button(selectedCard ? 'Carta preparada: ' + state.cards[selectedCard - 1].title + ' · cambiar' : 'Preparar una carta · bonus de alianza', chooseCard, 'card-select'), el('p', 'battle-log', fight.log));
+  host.append(board);
 }
-function chooseCard() {
-  rewardDialog.dataset.rewardView = 'cards'; rewardDialog.removeAttribute('aria-label'); rewardDialog.setAttribute('aria-labelledby', 'reward-title');
-  const host = $('reward-content'); host.replaceChildren(); const title = el('h2', '', 'Tu carta de alianza'); title.id = 'reward-title'; host.append(title, el('p', 'muted', 'Cada carta puede usarse una vez por batalla. Añade fuerza o recuperación a tu siguiente movimiento.'));
-  const grid = el('div', 'collection'); for (const card of state.cards) { const node = cardArt(card); node.disabled = state.battle.used_cards.includes(card.id); const clone = node.cloneNode(true); clone.addEventListener('click', () => { selectedCard = card.id; $('reward').close(); render(); }); grid.append(clone); }
-  host.append(grid, button('Jugar sin carta', () => { selectedCard = null; $('reward').close(); render(); }, 'quiet')); $('reward').showModal();
-}
-function dining(host) {
-  if (arrived()) {
-    restaurants(host);
+
+function sectionGate(host, section) {
+  const label = sectionLabels[section];
+  host.append(el('h1', '', label));
+  const panel = el('section', 'battle-lock section-gate');
+  panel.append(icon('lock'));
+  host.append(panel);
+  if (state.sections[section] === 'waiting') {
+    panel.append(el('p', '', section === 'batalla'
+      ? 'Completa las ' + total() + ' pruebas del recorrido para abrir la batalla.'
+      : 'Completa las dos pruebas del autobús para descubrir dónde comer.'));
+    const route = el('a', 'primary', 'Ir al recorrido →');
+    route.href = '#recorrido';
+    panel.append(route);
     return;
   }
-  host.append(el('h1', 'food-title', 'Restaurantes'));
-  const locked = el('section', 'battle-lock');
-  locked.append(icon('lock'), el('p', '', 'Completa las dos pruebas del autobús para descubrir dónde comer.'));
-  const route = el('a', 'primary', 'Ir al recorrido →');
-  route.href = '#recorrido';
-  locked.append(route);
-  host.append(locked);
+
+  const form = el('form');
+  const field = el('label', '', 'Contraseña de ' + label);
+  const password = el('input');
+  password.type = 'password';
+  password.required = true;
+  password.maxLength = 72;
+  password.autocomplete = 'off';
+  field.append(password);
+  const submit = el('button', 'primary', 'Desbloquear');
+  submit.type = 'submit';
+  const error = el('p', 'error');
+  error.setAttribute('role', 'alert');
+  error.hidden = true;
+  form.append(field, submit, error);
+  panel.append(form);
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (busy) return;
+    busy = true;
+    submit.disabled = true;
+    error.hidden = true;
+    try {
+      state = await api('/sections/unlock', { section, password: password.value, revision: state.revision, request_id: crypto.randomUUID() });
+      render();
+      $('main').focus({ preventScroll: true });
+    } catch (problem) {
+      if (problem.status === 401) showLogin();
+      else if (problem.status === 409) await load();
+      else {
+        error.textContent = problem.message;
+        error.hidden = false;
+      }
+    } finally {
+      busy = false;
+      submit.disabled = false;
+    }
+  });
 }
 
 function render() {
   if (!state) return;
-  const pages = { inicio: home, recorrido: journey, batalla: battle, restaurantes: dining };
+  const pages = { inicio: home, recorrido: journey, batalla: battle, restaurantes: restaurants };
   const requested = location.hash.slice(1);
-  const page = !state.home_only && Object.keys(pages).includes(requested) ? requested : 'inicio';
-  if (state.home_only && requested && requested !== 'inicio') history.replaceState(null, '', '#inicio');
+  const page = Object.keys(sectionLabels).includes(requested) && state.sections[requested] !== 'disabled' ? requested : 'inicio';
+  if (state.sections[requested] === 'disabled') history.replaceState(null, '', '#inicio');
   document.body.dataset.view = page;
   clearRestaurantMap(); clearTownMap(); $('main').replaceChildren();
-  pages[page]($('main'));
+  if (page === 'inicio' || state.sections[page] === 'open') pages[page]($('main'));
+  else sectionGate($('main'), page);
   for (const link of document.querySelectorAll('.bottom-nav a')) {
     const section = link.dataset.section;
-    const locked = state.home_only && section !== 'inicio';
+    const status = state.sections[section];
+    const locked = status === 'disabled';
     if (locked) {
       link.removeAttribute('href');
       link.setAttribute('role', 'link');
@@ -354,7 +391,7 @@ function render() {
       link.removeAttribute('role');
       link.removeAttribute('aria-disabled');
     }
-    link.querySelector('use').setAttribute('href', '#i-' + (locked ? 'lock' : link.dataset.icon));
+    link.querySelector('use').setAttribute('href', '#i-' + (status && status !== 'open' ? 'lock' : link.dataset.icon));
     if (section === page) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   }

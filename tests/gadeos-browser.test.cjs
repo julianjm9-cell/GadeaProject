@@ -39,13 +39,16 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
  });
 
- test(`GADEOS completa diez pruebas, recupera una respuesta perdida y gana la batalla con API real en ${name}`,{timeout:90000},async t=>{
+ test(`GADEOS desbloquea secciones, completa diez pruebas y registra victorias con API real en ${name}`,{timeout:90000},async t=>{
   const base=await fixture(t),browser=await engine.launch(name.startsWith('Chromium')?{channel:'msedge'}:{});t.after(()=>browser.close());
   const page=await browser.newPage({viewport});page.setDefaultTimeout(10000);const errors=[];page.on('pageerror',error=>errors.push(error.message));
   const signed=await page.request.post(base+'/auth/login',{data:{email:'organizador@example.invalid',password:'ensayo-temporal-123'}});assert.equal(signed.status(),200);const token=(await signed.json()).access_token;
   const headers={Authorization:'Bearer '+token};
   const created=await page.request.post(base+'/admin/apps/gadeos/accounts',{headers,data:{name:'Alma',password:'ensayo-seguro-123'}});assert.equal(created.status(),201);
   const config=await (await page.request.get(base+'/admin/apps/gadeos/campaign',{headers})).json();
+  assert.deepEqual(Object.values(config.section_access).map(item=>item.enabled),[true,false,false]);
+  config.section_access.batalla.enabled=true;
+  config.section_access.restaurantes.enabled=true;
   const materialRoot=process.env.EDUCAME_GADEOS_MATERIALS_DIR;
   const manifest=materialRoot?JSON.parse(await readFile(join(materialRoot,'manifest.json'),'utf8')):{poster:'fixture',guide:[{title:'Portada',file:'fixture'},{title:'Instrucciones',file:'fixture',text:'Texto legible de ensayo.'}]};
   async function upload(file){const bytes=await readFile(materialRoot?join(materialRoot,file):resolve('marketing/app_landings_demo/assets/landing/profesor-dashboard.png'));const response=await page.request.post(base+'/admin/apps/gadeos/images',{headers,data:{data:bytes.toString('base64')}});assert.equal(response.status(),201);return (await response.json()).url;}
@@ -80,7 +83,16 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   await page.getByText('Completa las dos pruebas del autobús para descubrir dónde comer.').waitFor();
   assert.equal(await page.locator('#restaurant-map').count(),0);
   assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n/i);
-  await page.locator('.bottom-nav a[href="#recorrido"]').click();assert.equal(await page.locator('[data-station="2"]').isEnabled(),false);
+  async function unlock(label, password=label){
+   await page.getByLabel('Contraseña de '+label).fill(password);
+   await page.getByRole('button',{name:'Desbloquear',exact:true}).click();
+  }
+  await page.locator('.bottom-nav a[href="#recorrido"]').click();
+  await unlock('Recorrido','incorrecta');
+  await page.getByText('La contraseña no es correcta.').waitFor();
+  await unlock('Recorrido');
+  await page.locator('[data-station="2"]').waitFor();
+  assert.equal(await page.locator('[data-station="2"]').isEnabled(),false);
   assert.equal(await page.locator('[data-station]').count(),2);
   assert.equal(await page.locator('.journey-town-section').count(),0);
   assert.doesNotMatch(await page.locator('.journey-bus').innerText(),/Chinchón/);
@@ -145,7 +157,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
     assert.equal(await page.locator('[data-station="9"]').isEnabled(),false);
     assert.equal(await page.locator('[data-station="10"]').isEnabled(),false);
     await page.locator('.bottom-nav a[href="#batalla"]').click();
-    await page.getByRole('heading',{name:'La arena aún no está abierta'}).waitFor();
+    await page.getByText('Completa las 10 pruebas del recorrido para abrir la batalla.').waitFor();
     await page.locator('.bottom-nav a[href="#recorrido"]').click();
     await page.waitForFunction(()=>document.querySelector('.journey-town .journey-map')?.naturalWidth>0);
     if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-town-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
@@ -153,7 +165,9 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
     await page.getByRole('link',{name:'Dónde comer →'}).waitFor();
     assert.equal(await page.locator('.poster-copy .eyebrow').innerText(),'Viernes');
     assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n|\b337\b/i);
-    await page.locator('.bottom-nav a[href="#restaurantes"]').click();await page.locator('.leaflet-container').waitFor();
+    await page.locator('.bottom-nav a[href="#restaurantes"]').click();
+    await unlock('Restaurantes');
+    await page.locator('.leaflet-container').waitFor();
     assert.equal((await page.request.get(base+'/aventura-hambre-assets/town-map.svg')).status(),200);
     await page.waitForFunction(()=>document.querySelector('.leaflet-image-layer')?.naturalWidth>0).catch(async error=>{throw Error(error.message+'; JS='+JSON.stringify(errors)+'; mapa='+await page.locator('#restaurant-map').innerHTML());});
     assert.equal(await page.locator('[data-restaurant]').count(),12);
@@ -208,16 +222,21 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
    }
   }
   assert.ok(lost);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
-  await page.locator('.bottom-nav a[href="#batalla"]').click();await page.getByRole('button',{name:'Entrar en la arena',exact:true}).click();await page.locator('.battle-actions').waitFor();
-  if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
-  let state=await (await page.request.get(base+'/api/private-apps/gadeos/state')).json();
-  await page.getByRole('button',{name:'Preparar una carta · bonus de alianza',exact:true}).click();await page.locator('#reward').getByRole('button',{name:'Ver carta La partida',exact:true}).click();
-  while(state.battle.state==='playing'){
-   const done=page.waitForResponse(response=>response.url().endsWith('/battle/action')&&response.status()===200);
-   await page.locator(`[data-move="${({strike:'guard',feint:'attack',charge:'focus'})[state.battle.intent]}"]`).click();state=await (await done).json();
+  if(!page.url().endsWith('#batalla'))await page.locator('.bottom-nav a[href="#batalla"]').click();
+  await unlock('Batalla final');
+  await page.locator('.tribute-scoreboard').waitFor();
+  const buttons=page.locator('#main button');
+  assert.equal(await buttons.count(),2);
+  assert.deepEqual(await page.locator('.tribute-win-count').allTextContents(),['0','0']);
+  for(const index of [1,2,1]){
+   const done=page.waitForResponse(response=>response.url().endsWith('/battle/win')&&response.status()===200);
+   await page.locator('.tribute-win[data-tribute="'+index+'"]').click();
+   await done;
   }
-  assert.deepEqual(state.battle.used_cards,[1]);
-  await page.getByRole('heading',{name:'Vuestra alianza ha vencido',exact:true}).waitFor();assert.equal(state.victory,true);await page.reload();await page.getByRole('heading',{name:'Vuestra alianza ha vencido',exact:true}).waitFor();
+  await page.reload();
+  await page.locator('.tribute-scoreboard').waitFor();
+  assert.deepEqual(await page.locator('.tribute-win-count').allTextContents(),['2','1']);
+  if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));assert.deepEqual(errors,[]);
  });
 }

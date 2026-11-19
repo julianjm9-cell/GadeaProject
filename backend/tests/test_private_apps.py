@@ -7,10 +7,15 @@ from app.models import AppSetting, License, PrivateAppAccount, PrivateAppProgres
 from app.services import gadeos
 from app.api.auth import ensure_google_access
 
+real_section_status = gadeos.section_status
+
 
 @pytest.fixture(autouse=True)
 def playable_campaign(monkeypatch):
+    # Historic battle/progress assertions start from the already unlocked game.
     monkeypatch.setattr(gadeos.get_settings(), "gadeos_home_only", False)
+    monkeypatch.setattr(gadeos, "section_status", lambda config, data, key: (
+        "disabled" if gadeos.get_settings().gadeos_home_only else "open"))
 
 
 def admin(web, factory):
@@ -61,6 +66,73 @@ def test_home_only_keeps_saved_progress_and_rejects_game_actions(client, monkeyp
     resumed = web.get('/api/arena-hambre/state').json()
     assert resumed['completed'] == 2 and resumed['revision'] == 2
     assert not resumed['campaign']['stations'][2]['locked']
+
+
+def test_section_keys_are_private_and_rotate_without_losing_route(client, monkeypatch):
+    monkeypatch.setattr(gadeos, 'section_status', real_section_status)
+    web, factory = client
+    headers = admin(web, factory)
+    tribute(web, headers)
+    api = '/api/arena-hambre'
+    state = web.get(api + '/state').json()
+    assert state['sections'] == {'recorrido': 'locked', 'batalla': 'disabled', 'restaurantes': 'disabled'}
+    assert 'prompt' not in state['campaign']['stations'][0]
+    answer = {'station': 1, 'answer': '337', 'campaign_revision': 0, 'revision': 0, 'request_id': str(uuid4())}
+    assert web.post(api + '/stations/answer', json=answer).status_code == 403
+
+    def unlock(section, password, revision):
+        return web.post(api + '/sections/unlock', json={
+            'section': section, 'password': password, 'revision': revision, 'request_id': str(uuid4()),
+        })
+
+    assert unlock('batalla', 'Batalla final', 0).status_code == 403
+    assert unlock('recorrido', 'incorrecta', 0).status_code == 403
+    opened = unlock('recorrido', 'recorrido', 0).json()
+    assert opened['sections']['recorrido'] == 'open'
+    assert web.post(api + '/stations/answer', json={**answer, 'revision': opened['revision']}).status_code == 200
+    config = web.get('/admin/apps/gadeos/campaign', headers=headers).json()
+    config['section_access']['recorrido']['password'] = 'Clave nueva de ensayo'
+    saved = web.put('/admin/apps/gadeos/campaign', headers=headers, json=config)
+    assert saved.status_code == 200
+    assert saved.json()['section_access']['recorrido'] == {'enabled': True, 'custom_password': True}
+    assert 'Clave nueva de ensayo' not in saved.text and 'password_hash' not in saved.text
+    rotated = web.get(api + '/state').json()
+    assert rotated['sections']['recorrido'] == 'locked' and rotated['completed'] == 1
+    assert unlock('recorrido', 'Recorrido', rotated['revision']).status_code == 403
+    reopened = unlock('recorrido', 'Clave nueva de ensayo', rotated['revision']).json()
+    assert reopened['sections']['recorrido'] == 'open' and reopened['completed'] == 1
+
+
+def test_battle_score_is_shared_and_retries_do_not_duplicate_wins(client, monkeypatch):
+    monkeypatch.setattr(gadeos, 'section_status', real_section_status)
+    web, factory = client
+    headers = admin(web, factory)
+    api = '/api/arena-hambre'
+    path = '/admin/apps/gadeos/campaign'
+    config = web.get(path, headers=headers).json()
+    config['section_access']['batalla']['enabled'] = True
+    assert web.put(path, headers=headers, json=config).status_code == 200
+
+    def open_battle(name):
+        account = tribute(web, headers, name)
+        with factory() as db:
+            db.get(PrivateAppProgress, UUID(account['id'])).data = {'completed': 10}
+            db.commit()
+        response = web.post(api + '/sections/unlock', json={
+            'section': 'batalla', 'password': 'Batalla final', 'revision': 0, 'request_id': str(uuid4()),
+        })
+        assert response.status_code == 200
+        return response.json()['score']
+
+    assert open_battle('Alma')['wins'] == [0, 0]
+    body = {'tribute': 2, 'score_revision': 0, 'request_id': str(uuid4())}
+    first = web.post(api + '/battle/win', json=body)
+    assert first.status_code == 200 and first.json()['score']['wins'] == [0, 1]
+    assert web.post(api + '/battle/win', json=body).json()['reused']
+    assert open_battle('Bruno')['wins'] == [0, 1]
+    assert web.post(api + '/battle/win', json={**body, 'request_id': str(uuid4())}).status_code == 409
+    second = web.post(api + '/battle/win', json={'tribute': 1, 'score_revision': 1, 'request_id': str(uuid4())})
+    assert second.json()['score']['wins'] == [1, 1]
 
 
 def all_stations(web, headers):

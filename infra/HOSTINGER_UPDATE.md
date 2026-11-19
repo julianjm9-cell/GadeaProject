@@ -44,4 +44,4 @@ Si Git informa de cambios locales o divergencia, no uses `reset --hard`: revisa 
 
 Las comprobaciones del script se ejecutan dentro de la red Docker. Tras completarlo, abre la portada y `/profesor/login` usando el dominio o la IP habituales para confirmar también el acceso público, DNS y HTTPS.
 
-GADEOS ofrece solo Inicio mientras `GADEOS_HOME_ONLY` esté activado. El valor predeterminado es `true`. Para reabrir el juego, establece `GADEOS_HOME_ONLY=false` en el `.env` del VPS y actualiza con el mismo procedimiento. Las pruebas completadas y las cartas se conservan.
+Las secciones de GADEOS se gestionan desde LA TERRAZA, en **Apps → GADEOS → Editar contenido → Accesos por sección**. Si se fijó `GADEOS_HOME_ONLY=true` en el `.env` del VPS, establece `GADEOS_HOME_ONLY=false` al actualizar para habilitar los desbloqueos por sección. El valor predeterminado es `false`.

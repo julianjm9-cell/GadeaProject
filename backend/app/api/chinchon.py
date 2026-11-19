@@ -1,9 +1,12 @@
 """Neutral public routes keep the collection's name a surprise; account IDs stay stable."""
 import copy
 import re
+from typing import Literal
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import FileResponse, RedirectResponse
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.api import private_apps
@@ -15,6 +18,17 @@ router = APIRouter(tags=["chinchon-adventure"])
 
 def member(request: Request, db: Session = Depends(get_db)):
     return private_apps.member("gadeos", request, db)
+
+
+class SectionUnlock(private_apps.GameAction):
+    section: Literal["recorrido", "batalla", "restaurantes"]
+    password: str = Field(min_length=1, max_length=72)
+
+
+class Win(BaseModel):
+    request_id: UUID
+    score_revision: int = Field(ge=0)
+    tribute: int = Field(ge=1, le=2)
 
 
 def public_payload(value):
@@ -88,6 +102,18 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)):
 @router.get(gadeos.PUBLIC_API + "/state")
 def state(account=Depends(member), db: Session = Depends(get_db)):
     return public_payload(gadeos.progress_payload(db, account))
+
+
+@router.post(gadeos.PUBLIC_API + "/sections/unlock")
+def unlock(payload: SectionUnlock, account=Depends(member), db: Session = Depends(get_db)):
+    from app.api.auth import rate_limit_key
+    rate_limit_key("gadeos-section:" + str(account.id), limit=20)
+    return public_payload(gadeos.unlock_section(db, account, payload))
+
+
+@router.post(gadeos.PUBLIC_API + "/battle/win")
+def win(payload: Win, account=Depends(member), db: Session = Depends(get_db)):
+    return public_payload(gadeos.record_win(db, account, payload))
 
 
 @router.post("/api/arena-chinchon/stations/answer", include_in_schema=False)

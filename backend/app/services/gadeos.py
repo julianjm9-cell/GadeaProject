@@ -7,12 +7,16 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException
 from sqlalchemy import update
+from sqlalchemy.exc import IntegrityError
 
 from app.config import get_settings
 from app.models import AppSetting
 from app.models.private_apps import PrivateAppProgress
+from app.security.passwords import hash_password, verify_password
 
 CONFIG_KEY = "private_campaign:gadeos"
+SCORE_KEY = "private_score:gadeos"
+SECTION_NAMES = {"recorrido": "Recorrido", "batalla": "Batalla final", "restaurantes": "Restaurantes"}
 STATION_COUNT = 10
 PUBLIC_PATH = "/juegos-del-hambre"
 PUBLIC_API = "/api/arena-hambre"
@@ -156,6 +160,11 @@ def campaign(db):
     result = json.loads(row.value) if row else default_campaign()
     result["media"] = media_config(result.get("media"))
     result["planning"] = planning_config(result.get("planning"))
+    result["section_access"] = {
+        key: {"enabled": key == "recorrido", "version": 0, "password_hash": None,
+              **result.get("section_access", {}).get(key, {})}
+        for key in SECTION_NAMES
+    }
     if result.get("challenge_format") != 3:
         defaults = default_campaign()
         for new, previous in zip(defaults["stations"], result["stations"]):
@@ -167,6 +176,37 @@ def campaign(db):
         if re.fullmatch(r"Un viaje a Chinchón\. (?:Ocho|Nueve) (?:sobres|pruebas)\. Vuestra propia alianza\.", result["intro"]):
             result["intro"] = defaults["intro"]
     return result
+
+
+def admin_campaign(config):
+    return {**config, "section_access": {
+        key: {"enabled": access["enabled"], "custom_password": bool(access["password_hash"])}
+        for key, access in config["section_access"].items()
+    }}
+
+
+def update_section_access(current, changes):
+    if not isinstance(changes, dict) or not changes.keys() <= SECTION_NAMES.keys():
+        raise HTTPException(422, "Revisa los accesos por sección.")
+    sections = copy.deepcopy(current)
+    for key, change in changes.items():
+        if not isinstance(change, dict):
+            raise HTTPException(422, "Revisa el acceso de " + SECTION_NAMES[key] + ".")
+        access = sections[key]
+        enabled = change.get("enabled", access["enabled"])
+        password = change.get("password", "")
+        reset = change.get("reset_password", False)
+        if type(enabled) is not bool or type(reset) is not bool or not isinstance(password, str):
+            raise HTTPException(422, "Revisa el acceso de " + SECTION_NAMES[key] + ".")
+        key_text = normalized(password)
+        if password and (not key_text or len(key_text.encode()) > 72 or reset):
+            raise HTTPException(422, "Escribe una clave válida o restaura la clave predeterminada.")
+        if enabled != access["enabled"] or password or (reset and access["password_hash"]):
+            access["version"] += 1
+            access["enabled"] = enabled
+            if password or reset:
+                access["password_hash"] = hash_password(key_text) if password else None
+    return sections
 
 
 def validate_campaign(data):
@@ -204,6 +244,50 @@ def completed_stations(data):
     return set(data.get("completed_stations", range(1, data.get("completed", 0) + 1)))
 
 
+def section_status(config, data, key):
+    access = config["section_access"][key]
+    if get_settings().gadeos_home_only or not access["enabled"]:
+        return "disabled"
+    completed = completed_stations(data)
+    if key == "batalla" and len(completed) < STATION_COUNT:
+        return "waiting"
+    if key == "restaurantes" and not {1, 2}.issubset(completed):
+        return "waiting"
+    if data.get("section_grants", {}).get(key) == access["version"]:
+        return "open"
+    return "locked"
+
+
+def require_section(db, account, key, config=None):
+    if get_settings().gadeos_home_only:
+        raise HTTPException(403, "Por ahora solo está disponible Inicio.")
+    config = config if config is not None else campaign(db)
+    data = db.get(PrivateAppProgress, account.id).data or {}
+    if section_status(config, data, key) != "open":
+        raise HTTPException(403, "La sección está bloqueada.")
+
+
+def unlock_section(db, account, payload):
+    config = campaign(db)
+    key = payload.section
+    access = config["section_access"][key]
+    def apply(data):
+        status = section_status(config, data, key)
+        if status == "open":
+            return
+        if status != "locked":
+            raise HTTPException(403, "La sección está bloqueada.")
+        password = normalized(payload.password)
+        if not password or len(password.encode()) > 72:
+            raise HTTPException(403, "La contraseña no es correcta.")
+        password_hash = access["password_hash"]
+        valid = verify_password(password, password_hash) if password_hash else password == normalized(SECTION_NAMES[key])
+        if not valid:
+            raise HTTPException(403, "La contraseña no es correcta.")
+        data.setdefault("section_grants", {})[key] = access["version"]
+    return mutate(db, account, payload.revision, payload.request_id, apply)
+
+
 def station_available(number, station, completed):
     return bool(station["solution"]) and (number == 1 or 1 in completed and (number == 2 or 2 in completed))
 
@@ -219,7 +303,7 @@ def collection_discovered(data, config):
     )
 
 
-def public_campaign(config, completed, home_only):
+def public_campaign(config, completed, route_open):
     result = {key: config[key] for key in ("revision", "title", "intro", "boss", "ending")}
     result["media"] = config.get("media", media_config())
     planning = map_text(public_planning(config["planning"]), without_town_name)
@@ -232,14 +316,14 @@ def public_campaign(config, completed, home_only):
     result["stations"] = []
     for number, station in enumerate(config["stations"], 1):
         done = number in completed
-        available = not home_only and (done or station_available(number, station, completed))
+        available = route_open and (done or station_available(number, station, completed))
         title = station["title"] or f"Prueba {number}"
         entry = {"number": number, "title": title if available else f"Prueba {number}", "locked": not available,
                  "completed": done, "pending": not done and not station["solution"]}
         if available:
             entry.update({"prompt": title, "kind": "code", "options": []})
         result["stations"].append(entry)
-    if not home_only and {1, 2}.issubset(completed):
+    if route_open and {1, 2}.issubset(completed):
         return result
 
     return map_text(result, without_town_name)
@@ -267,11 +351,14 @@ def progress_payload(db, account):
     config = campaign(db)
     discovered = collection_discovered(data, config)
     home_only = get_settings().gadeos_home_only
+    sections = {key: section_status(config, data, key) for key in SECTION_NAMES}
+    score = battle_score(db.get(AppSetting, SCORE_KEY)) if sections["batalla"] == "open" else None
     return {"account": {"id": str(account.id), "name": account.name}, "revision": row.revision, "completed": len(completed),
-            "home_only": home_only,
+            "home_only": home_only, "sections": sections,
+            "score": {key: score[key] for key in ("revision", "wins")} if score else None,
             "secret_discovered": discovered, "collection_name": "GADEOS" if discovered else None,
             "cards": [{"id": number, **(station["card"] if number in completed else {"title": f"Sobre {number}", "description": "", "image": None}), "owned": number in completed} for number, station in enumerate(config["stations"], 1)],
-            "campaign": public_campaign(config, completed, home_only), "battle": data.get("battle"), "victory": data.get("victory", False)}
+            "campaign": public_campaign(config, completed, sections["recorrido"] == "open"), "battle": data.get("battle"), "victory": data.get("victory", False)}
 
 
 def mutate(db, account, revision, request_id, action, render=None):
@@ -299,14 +386,9 @@ def normalized(value):
     return " ".join("".join(c for c in unicodedata.normalize("NFKD", str(value)) if not unicodedata.combining(c)).casefold().split())
 
 
-def require_open_game():
-    if get_settings().gadeos_home_only:
-        raise HTTPException(403, "Por ahora solo está disponible Inicio.")
-
-
 def complete_station(db, account, payload):
-    require_open_game()
     config = campaign(db)
+    require_section(db, account, "recorrido", config)
     if payload.campaign_revision != config["revision"]:
         raise HTTPException(409, "La prueba se ha actualizado. Vuelve a abrir la estación.")
     station = config["stations"][payload.station - 1]
@@ -335,8 +417,40 @@ def complete_station(db, account, payload):
 INTENTS = ["strike", "feint", "charge"]
 
 
+def battle_score(row):
+    return json.loads(row.value) if row else {"revision": 0, "wins": [0, 0], "receipts": []}
+
+
+def record_win(db, account, payload):
+    require_section(db, account, "batalla")
+    row = db.get(AppSetting, SCORE_KEY)
+    score = battle_score(row)
+    receipt = str(payload.request_id)
+    if receipt in score["receipts"]:
+        return {"ok": True, "reused": True, **progress_payload(db, account)}
+    if payload.score_revision != score["revision"]:
+        raise HTTPException(409, "El marcador cambió. Revísalo antes de anotar otra victoria.")
+
+    score["wins"][payload.tribute - 1] += 1
+    score["revision"] += 1
+    score["receipts"] = [*score["receipts"], receipt][-64:]
+    value = json.dumps(score)
+    if row:
+        saved = db.execute(update(AppSetting).where(AppSetting.key == SCORE_KEY, AppSetting.value == row.value).values(value=value))
+        if saved.rowcount != 1:
+            raise HTTPException(409, "Otra victoria llegó primero. El marcador se ha conservado.")
+    else:
+        db.add(AppSetting(key=SCORE_KEY, value=value))
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "Otra victoria llegó primero. El marcador se ha conservado.")
+    return {"ok": True, **progress_payload(db, account)}
+
+
 def start_battle(db, account, payload):
-    require_open_game()
+    require_section(db, account, "batalla")
     def apply(data):
         if len(completed_stations(data)) != STATION_COUNT:
             raise HTTPException(403, "La batalla se abre al completar las diez pruebas.")
@@ -347,7 +461,7 @@ def start_battle(db, account, payload):
 
 
 def battle_turn(db, account, payload):
-    require_open_game()
+    require_section(db, account, "batalla")
     def apply(data):
         battle = data.get("battle")
         if len(completed_stations(data)) != STATION_COUNT or not battle or battle["state"] != "playing":

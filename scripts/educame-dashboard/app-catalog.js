@@ -126,7 +126,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
     heading(app.name); body.append(el('p', 'muted', 'Cargando…'));
     try {
       const tabs = el('div', 'actions');
-      if (app.id === 'gadeos') tabs.append(button('Editar recorrido y cartas', campaign), button('Imágenes', materials));
+      if (app.id === 'gadeos') tabs.append(button('Editar recorrido y cartas', campaign), button('Accesos por sección', sectionAccess), button('Imágenes', materials));
       body.replaceChildren(tabs); const content = el('div'); content.id = 'managed-app-content'; body.append(content); await campaign();
     } catch (error) { feedback(error.message, true); }
   }
@@ -176,12 +176,70 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       finally { submit.disabled = false; }
     });
   }
+  async function sectionAccess() {
+    const host = document.getElementById('managed-app-content');
+    host.replaceChildren(el('p', 'muted', 'Cargando accesos…'));
+    try {
+      const config = await api('/api/operacion/admin/app-campaign');
+      if (!config.section_access) {
+        host.replaceChildren(el('p', 'form-message', 'Actualiza Hostinger para editar los accesos por sección.'));
+        return;
+      }
+      const form = el('form', 'managed-app-form');
+      const readers = {};
+      for (const [id, title] of [['recorrido', 'Recorrido'], ['batalla', 'Batalla final'], ['restaurantes', 'Restaurantes']]) {
+        const access = config.section_access[id];
+        const box = el('fieldset', 'campaign-day');
+        box.append(el('legend', '', title));
+        const enabledLabel = el('label', 'check-label', 'Habilitar ' + title);
+        const enabled = el('input');
+        enabled.type = 'checkbox';
+        enabled.checked = access.enabled;
+        enabledLabel.append(enabled);
+        box.append(enabledLabel, el('p', 'muted', access.custom_password ? 'Clave personalizada' : 'Clave predeterminada · ' + title));
+        const password = field(box, 'Nueva contraseña de ' + title, id + '_password', '');
+        password.type = 'password';
+        password.autocomplete = 'new-password';
+        password.maxLength = 72;
+        const resetLabel = el('label', 'check-label', 'Restaurar clave predeterminada');
+        const reset = el('input');
+        reset.type = 'checkbox';
+        resetLabel.append(reset);
+        if (access.custom_password) box.append(resetLabel);
+        reset.addEventListener('change', () => { password.disabled = reset.checked; });
+        readers[id] = () => ({ enabled: enabled.checked, password: reset.checked ? '' : password.value, reset_password: reset.checked });
+        form.append(box);
+      }
+      const submit = el('button', 'button primary', 'Guardar accesos');
+      submit.type = 'submit';
+      form.append(submit);
+      host.replaceChildren(form);
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (submit.disabled) return;
+        submit.disabled = true;
+        try {
+          const section_access = Object.fromEntries(Object.entries(readers).map(([id, read]) => [id, read()]));
+          await api('/api/operacion/admin/app-campaign', 'POST', { ...config, section_access });
+          feedback('Accesos guardados.');
+          await sectionAccess();
+        } catch (error) {
+          feedback(error.message, true);
+        } finally {
+          submit.disabled = false;
+        }
+      });
+    } catch (error) {
+      host.replaceChildren(el('p', 'form-message', error.message));
+    }
+  }
+
   async function campaign() {
     const host = document.getElementById('managed-app-content'); host.replaceChildren(el('p', 'muted', 'Cargando recorrido…'));
     try {
       const config = await api('/api/operacion/admin/app-campaign'); host.replaceChildren();
       const form = el('form', 'managed-app-form');
-      const title = field(form, 'Título del recorrido', 'title', config.title), intro = field(form, 'Introducción', 'intro', config.intro, true), boss = field(form, 'Nombre del rival final', 'boss', config.boss), ending = field(form, 'Mensaje de la victoria', 'ending', config.ending, true);
+      const title = field(form, 'Título del recorrido', 'title', config.title), intro = field(form, 'Introducción', 'intro', config.intro, true);
       const schedule = config.planning || { day: 'Viernes', place: 'Chinchón', start: '16:00', final: '22:00' };
       const day = field(form, 'Día del viaje', 'day', schedule.day), place = field(form, 'Lugar del viaje', 'place', schedule.place), start = field(form, 'Hora de inicio', 'start', schedule.start), final = field(form, 'Hora de la batalla', 'final', schedule.final);
       day.required = place.required = start.required = final.required = true; day.maxLength = place.maxLength = 80; start.type = final.type = 'time';
@@ -236,7 +294,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       form.append(cards);
       const submit = el('button', 'button primary', 'Guardar recorrido y cartas'); submit.type = 'submit'; form.append(submit);
       if (config.stations.length !== 10) { submit.disabled = true; form.append(el('p', 'form-message', 'Actualiza Hostinger para activar el recorrido de diez pruebas.')); }
-      form.addEventListener('submit', async event => { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; try { const updated = await api('/api/operacion/admin/app-campaign', 'POST', { revision: config.revision, media: config.media, planning: { ...schedule, day: day.value, place: place.value, start: start.value, final: final.value, ...(schedule.days || dayReaders.length ? {transport:transport.value,days:dayReaders.map(read => read()).filter(Boolean)} : {}) }, title: title.value, intro: intro.value, boss: boss.value, ending: ending.value, stations: entries.map(read => read()) }); config.revision = updated.revision; feedback('Recorrido guardado. Se conservan las cuentas y las estaciones completadas.'); } catch (error) { feedback(error.message, true); } finally { submit.disabled = false; } });
+      form.addEventListener('submit', async event => { event.preventDefault(); if (submit.disabled) return; submit.disabled = true; try { const updated = await api('/api/operacion/admin/app-campaign', 'POST', { revision: config.revision, media: config.media, planning: { ...schedule, day: day.value, place: place.value, start: start.value, final: final.value, ...(schedule.days || dayReaders.length ? {transport:transport.value,days:dayReaders.map(read => read()).filter(Boolean)} : {}) }, title: title.value, intro: intro.value, boss: config.boss, ending: config.ending, stations: entries.map(read => read()) }); config.revision = updated.revision; feedback('Recorrido guardado. Se conservan las cuentas y las estaciones completadas.'); } catch (error) { feedback(error.message, true); } finally { submit.disabled = false; } });
       host.append(form);
     } catch (error) { host.replaceChildren(el('p', 'form-message', error.message)); }
   }

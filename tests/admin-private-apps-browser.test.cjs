@@ -36,7 +36,9 @@ for (const [name, engine, viewport] of [['Chromium', chromium, { width: 1440, he
     const rows = await (await page.request.get(base + '/admin/apps/gadeos/accounts', { headers })).json(); assert.equal(rows.accounts.length, 1); const accountId = rows.accounts[0].id;
     const tribute = await browser.newContext(); t.after(() => tribute.close());
     assert.equal((await tribute.request.post(base + '/api/private-apps/gadeos/login', { data: { name: 'Alma', password: 'ensayo-seguro-123' } })).status(), 200);
-    assert.equal((await tribute.request.post(base + '/api/private-apps/gadeos/stations/answer', { data: { station: 1, answer: '337', revision: 0, campaign_revision: 0, request_id: crypto.randomUUID() } })).status(), 200);
+    const unlock = await tribute.request.post(base + '/api/arena-hambre/sections/unlock', { data: { section: 'recorrido', password: 'Recorrido', revision: 0, request_id: crypto.randomUUID() } });
+    assert.equal(unlock.status(), 200);
+    assert.equal((await tribute.request.post(base + '/api/private-apps/gadeos/stations/answer', { data: { station: 1, answer: '337', revision: (await unlock.json()).revision, campaign_revision: 0, request_id: crypto.randomUUID() } })).status(), 200);
     await screen.getByRole('button', { name: 'Actualizar', exact: true }).click(); await screen.getByText('1 / 10 pruebas completadas', { exact: true }).waitFor();
     await screen.getByRole('button', { name: 'Editar usuario', exact: true }).click(); await screen.getByLabel('Nueva contraseña (opcional)').fill('ensayo-renovado-123'); await screen.getByLabel('Cuenta activa', { exact: true }).uncheck(); await screen.getByRole('button', { name: 'Guardar usuario', exact: true }).click(); await screen.getByText('Acceso desactivado', { exact: true }).waitFor();
     assert.equal((await tribute.request.get(base + '/api/private-apps/gadeos/state')).status(), 401);
