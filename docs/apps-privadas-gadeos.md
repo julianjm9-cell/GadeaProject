@@ -74,3 +74,6 @@ Ajustes requiere la contraseña `ajustes` cada vez que se abre. El servidor la c
 
 
 El sábado, en la versión 8 del planning, queda en 11:00 check-out del refugio, 11:30 desayuno, 12:00–13:30 ruta al Castillo de los Condes, 14:00 comida, 15:00 ruta libre y regreso a Madrid sin hora determinada. Al actualizar configuraciones anteriores se sustituye el programa del sábado una sola vez. Los perfiles iniciales y reiniciados ven solo el check-out y BLOQUEADO; Desbloquear todo en Ajustes muestra el programa completo.
+
+
+Los desbloqueos dependen del progreso. Tras completar las pruebas 1 y 2 se abre todo el itinerario y Restaurantes. Al completar las diez pruebas se abre Batalla final. Estas secciones no solicitan contraseña adicional y sus antiguos controles de disponibilidad ya no intervienen. LA TERRAZA muestra los requisitos automáticamente. Recorrido conserva su acceso por clave y Ajustes sigue protegido con su contraseña. Reiniciar el perfil restaura los requisitos sin modificar el marcador compartido.

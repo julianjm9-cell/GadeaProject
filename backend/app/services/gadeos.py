@@ -219,10 +219,13 @@ def campaign(db):
 
 
 def admin_campaign(config):
-    return {**config, "section_access": {
+    sections = {
         key: {"enabled": access["enabled"], "custom_password": bool(access["password_hash"])}
         for key, access in config["section_access"].items()
-    }}
+    }
+    sections["batalla"]["unlock_after"] = STATION_COUNT
+    sections["restaurantes"]["unlock_after"] = 2
+    return {**config, "section_access": sections}
 
 
 def update_section_access(current, changes):
@@ -299,13 +302,15 @@ def section_status(config, data, key):
     if data.get("all_unlocked"):
         return "open"
     access = config["section_access"][key]
-    if get_settings().gadeos_home_only or not access["enabled"]:
+    if get_settings().gadeos_home_only:
         return "disabled"
     completed = completed_stations(data)
-    if key == "batalla" and len(completed) < STATION_COUNT:
-        return "waiting"
-    if key == "restaurantes" and not {1, 2}.issubset(completed):
-        return "waiting"
+    if key == "batalla":
+        return "open" if set(range(1, STATION_COUNT + 1)).issubset(completed) else "waiting"
+    if key == "restaurantes":
+        return "open" if {1, 2}.issubset(completed) else "waiting"
+    if not access["enabled"]:
+        return "disabled"
     if has_access(data, key, access):
         return "open"
     return "locked"
@@ -422,7 +427,7 @@ def progress_payload(db, account):
     home_only = get_settings().gadeos_home_only and not data.get("all_unlocked", False)
     sections = {key: section_status(config, data, key) for key in SECTION_NAMES}
     unlocked_planning = {key for key in PLANNING_NAMES if has_access(data, key, config["section_access"][key])}
-    if data.get("all_unlocked"):
+    if data.get("all_unlocked") or (not home_only and {1, 2}.issubset(completed)):
         unlocked_planning.add("*")
     score = battle_score(db.get(AppSetting, SCORE_KEY)) if sections["batalla"] == "open" else None
     return {"account": {"id": str(account.id), "name": account.name}, "revision": row.revision, "completed": len(completed),

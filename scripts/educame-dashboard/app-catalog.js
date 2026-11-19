@@ -271,6 +271,11 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
         if (id === 'plan_viernes') form.append(el('h4', '', 'Contraseñas del planning'));
         const box = el('fieldset', 'campaign-day');
         box.append(el('legend', '', title));
+        if (access.unlock_after) {
+          box.append(el('p', 'muted', 'Se desbloquea automáticamente al completar las ' + (id === 'restaurantes' ? 'dos primeras pruebas del autobús.' : access.unlock_after + ' pruebas del recorrido.')));
+          form.append(box);
+          continue;
+        }
         const enabledLabel = el('label', 'check-label', 'Habilitar ' + title);
         const enabled = el('input');
         enabled.type = 'checkbox';

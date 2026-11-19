@@ -109,8 +109,6 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   const created=await page.request.post(base+'/admin/apps/gadeos/accounts',{headers,data:{name:'Alma',password:'ensayo-seguro-123'}});assert.equal(created.status(),201);
   const config=await (await page.request.get(base+'/admin/apps/gadeos/campaign',{headers})).json();
   assert.deepEqual(Object.values(config.section_access).map(item=>item.enabled),[true,false,false,true,true]);
-  config.section_access.batalla.enabled=true;
-  config.section_access.restaurantes.enabled=true;
   const materialRoot=process.env.EDUCAME_GADEOS_MATERIALS_DIR;
   const manifest=materialRoot?JSON.parse(await readFile(join(materialRoot,'manifest.json'),'utf8')):{poster:'fixture',guide:[{title:'Portada',file:'fixture'},{title:'Instrucciones',file:'fixture',text:'Texto legible de ensayo.'}]};
   async function upload(file){const bytes=await readFile(materialRoot?join(materialRoot,file):resolve('marketing/app_landings_demo/assets/landing/profesor-dashboard.png'));const response=await page.request.post(base+'/admin/apps/gadeos/images',{headers,data:{data:bytes.toString('base64')}});assert.equal(response.status(),201);return (await response.json()).url;}
@@ -242,8 +240,11 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
     assert.equal(await page.locator('.poster-copy .eyebrow').innerText(),'Viernes');
     await page.getByText('Llegada a Chinchón.',{exact:true}).waitFor();
     assert.equal(await page.locator('.planning-unlock').count(),0);
+    await page.getByText('Ruta al Castillo de los Condes.',{exact:true}).waitFor();
+    assert.equal(await page.locator('.planning-locked').count(),0);
+    await page.reload();
+    await page.getByText('Ruta al Castillo de los Condes.',{exact:true}).waitFor();
     await page.locator('.bottom-nav a[href="#restaurantes"]').click();
-    await unlock('Restaurantes');
     await page.locator('.leaflet-container').waitFor();
     assert.equal((await page.request.get(base+'/aventura-hambre-assets/town-map.svg')).status(),200);
     await page.waitForFunction(()=>document.querySelector('.leaflet-image-layer')?.naturalWidth>0).catch(async error=>{throw Error(error.message+'; JS='+JSON.stringify(errors)+'; mapa='+await page.locator('#restaurant-map').innerHTML());});
@@ -300,7 +301,6 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   }
   assert.ok(lost);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   if(!page.url().endsWith('#batalla'))await page.locator('.bottom-nav a[href="#batalla"]').click();
-  await unlock('Batalla final');
   await page.locator('.tribute-scoreboard').waitFor();
   const buttons=page.locator('#main button');
   assert.equal(await buttons.count(),2);

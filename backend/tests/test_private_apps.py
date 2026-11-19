@@ -75,7 +75,7 @@ def test_section_keys_are_private_and_rotate_without_losing_route(client, monkey
     tribute(web, headers)
     api = '/api/arena-hambre'
     state = web.get(api + '/state').json()
-    assert state['sections'] == {'recorrido': 'locked', 'batalla': 'disabled', 'restaurantes': 'disabled'}
+    assert state['sections'] == {'recorrido': 'locked', 'batalla': 'waiting', 'restaurantes': 'waiting'}
     assert 'prompt' not in state['campaign']['stations'][0]
     answer = {'station': 1, 'answer': '337', 'campaign_revision': 0, 'revision': 0, 'request_id': str(uuid4())}
     assert web.post(api + '/stations/answer', json=answer).status_code == 403
@@ -626,7 +626,7 @@ def test_profile_reset_and_unlock_are_isolated_durable_and_idempotent(client, mo
     assert fresh.json()['completed'] == 0 and not fresh.json()['secret_discovered']
     assert not any(card['owned'] for card in fresh.json()['cards'])
     assert fresh.json()['sections']['recorrido'] == 'locked'
-    assert fresh.json()['sections']['batalla'] == 'disabled'
+    assert fresh.json()['sections']['batalla'] == 'waiting'
     assert web.post('/api/arena-hambre/profile', json=reset).json()['reused']
     assert web.post('/api/arena-hambre/profile', json=payload).json()['completed'] == 0
     second = tribute(web, headers, name='Otro tributo')
@@ -660,3 +660,26 @@ def test_saturday_schedule_updates_and_only_checkout_is_public(version):
     assert saved['days'][1]['activities'][1]['locked'] is False
     assert len(gadeos.public_planning(migrated, {'*'})['days'][1]['activities']) == 6
     assert gadeos.planning_config(migrated) == migrated
+
+
+def test_progress_automatically_opens_itinerary_food_and_final_battle(client, monkeypatch):
+    monkeypatch.setattr(gadeos, 'section_status', real_section_status)
+    web, factory = client
+    headers = admin(web, factory)
+    account = tribute(web, headers)
+    config = web.get('/admin/apps/gadeos/campaign', headers=headers).json()
+    assert config['section_access']['restaurantes']['unlock_after'] == 2
+    assert config['section_access']['batalla']['unlock_after'] == 10
+    for completed in ([], [1], [3,4], [1,2], list(range(1,10)), list(range(1,11))):
+        with factory() as db:
+            row = db.get(PrivateAppProgress, UUID(account['id']))
+            row.data = {'completed_stations':completed}
+            db.commit()
+        state = web.get('/api/arena-hambre/state').json()
+        arrived = {1,2}.issubset(completed)
+        assert state['sections']['restaurantes'] == ('open' if arrived else 'waiting')
+        assert state['sections']['batalla'] == ('open' if len(completed) == 10 else 'waiting')
+        assert len(state['campaign']['planning']['days'][1]['activities']) == (6 if arrived else 2)
+        win = web.post('/api/arena-hambre/battle/win', json={'tribute':1,'score_revision':0,'request_id':str(uuid4())})
+        assert win.status_code == (200 if len(completed) == 10 else 403)
+    assert web.get('/api/arena-hambre/state').json()['score']['wins'] == [1,0]
