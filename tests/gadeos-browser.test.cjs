@@ -69,7 +69,8 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-home-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   assert.deepEqual(await page.locator('.planning-day h3').allTextContents(),['Viernes 20','Sábado 21']);
-  assert.equal(await page.locator('.planning-list li').count(),4);assert.deepEqual(await page.locator('.planning-time').allTextContents(),['21:00','22:00']);assert.equal(await page.locator('.planning-locked').count(),2);assert.doesNotMatch(await page.locator('.planning').innerText(),/Check-out|Torre del Reloj|11:30|19:45|Atardecer, paseo y noche de juegos/);
+  assert.equal(await page.locator('.planning-list li').count(),3);assert.deepEqual(await page.locator('.planning-time').allTextContents(),['21:00','22:00']);assert.equal(await page.locator('.planning-locked').count(),2);assert.doesNotMatch(await page.locator('.planning').innerText(),/mochilas|Llegada al piso|Check-out|Torre del Reloj|11:30|19:45|Atardecer, paseo y noche de juegos/);
+  await page.getByText('Llegada al refugio.',{exact:true}).waitFor();
   assert.match(await page.locator('.planning-transport').innerText(),/^Salida: Metro Pavones/);
   assert.doesNotMatch(await page.locator('.planning').innerText(),/\b337\b/);
   assert.doesNotMatch(await page.locator('.planning-transport').innerText(),/Chinchón/);

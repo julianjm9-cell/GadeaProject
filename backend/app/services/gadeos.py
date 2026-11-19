@@ -22,9 +22,8 @@ PUBLIC_ASSETS = "/aventura-hambre-assets"
 def planning_config(value=None):
     days = [
         {"title": "Viernes 20", "subtitle": "", "activities": [
-            {"time": "", "text": "Llegada a Chinchón, dejar las mochilas en el apartamento."},
             {"time": "", "text": "", "locked": True},
-            {"time": "21:00", "text": "Llegada al piso."},
+            {"time": "21:00", "text": "Llegada al refugio."},
             {"time": "22:00", "text": "Batallas Finales de los juegos del hambre."}]},
         {"title": "Sábado 21", "subtitle": "Descubrir Chinchón", "locked": True, "activities": [
             {"time": "11:00", "text": "Check-out del apartamento."},
@@ -40,7 +39,7 @@ def planning_config(value=None):
         day.setdefault("locked", False)
         for entry in day["activities"]:
             entry.setdefault("locked", False)
-    defaults = {"version": 3, "day": "Viernes", "place": "Chinchón", "start": "16:00", "final": "22:00",
+    defaults = {"version": 4, "day": "Viernes", "place": "Chinchón", "start": "16:00", "final": "22:00",
                 "transport": "Autobús 337 · Salida: Metro Pavones (Línea 9, Madrid)", "days": days}
     if value is None:
         return defaults
@@ -61,8 +60,8 @@ def planning_config(value=None):
         raise HTTPException(422, "Indica el transporte y entre uno y siete días de planning.")
     clean_days = []
     for day in result["days"]:
-        if not isinstance(day, dict) or not isinstance(day.get("title"), str) or not 1 <= len(day["title"].strip()) <= 120 or not isinstance(day.get("subtitle"), str) or len(day["subtitle"].strip()) > 120 or not isinstance(day.get("activities"), list) or not 1 <= len(day["activities"]) <= 24:
-            raise HTTPException(422, "Cada día necesita título y entre una y veinticuatro actividades.")
+        if not isinstance(day, dict) or not isinstance(day.get("title"), str) or not 1 <= len(day["title"].strip()) <= 120 or not isinstance(day.get("subtitle"), str) or len(day["subtitle"].strip()) > 120 or not isinstance(day.get("activities"), list) or len(day["activities"]) > 24:
+            raise HTTPException(422, "Cada día necesita título y admite hasta veinticuatro actividades.")
         if type(day.get("locked", False)) is not bool:
             raise HTTPException(422, "El bloqueo del día debe ser verdadero o falso.")
         entries = []
@@ -73,17 +72,24 @@ def planning_config(value=None):
                 raise HTTPException(422, "Escribe el texto de la actividad. Si indicas una hora, usa un horario válido.")
             entries.append({"time": entry["time"], "text": entry["text"].strip(), "locked": entry.get("locked", False)})
         clean_days.append({"title": day["title"].strip(), "subtitle": day["subtitle"].strip(), "locked": day.get("locked", False), "activities": entries})
-    if version < 3:
-        if result["transport"].strip() == defaults["transport"] + " → Chinchón":
-            result["transport"] = defaults["transport"]
+    if version < 3 and result["transport"].strip() == defaults["transport"] + " → Chinchón":
+        result["transport"] = defaults["transport"]
+    if version < 4:
         for day in clean_days:
             if day["title"] != "Viernes 20":
                 continue
-            if day["subtitle"] == "Atardecer, paseo y noche de juegos":
+            if version < 3 and day["subtitle"] == "Atardecer, paseo y noche de juegos":
                 day["subtitle"] = ""
+            day["activities"] = [
+                entry for entry in day["activities"]
+                if entry["text"].casefold().rstrip(".") not in {
+                    "llegada a chinchón, dejar las mochilas en el apartamento",
+                    "llegada al pueblo, dejar las mochilas en el apartamento",
+                }
+            ]
             for entry in day["activities"]:
-                if entry["time"] == "18:00" and entry["text"] == days[0]["activities"][0]["text"]:
-                    entry["time"] = ""
+                if entry["text"].casefold().rstrip(".") == "llegada al piso":
+                    entry["text"] = "Llegada al refugio."
     return {**result, "transport": result["transport"].strip(), "days": clean_days}
 
 
