@@ -174,20 +174,38 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   }
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-route-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   let lost=false;await page.route('**/stations/answer',async route=>{const body=route.request().postDataJSON();if(!lost&&body.station===1&&body.answer===config.stations[0].solution){lost=true;await route.fetch();return route.abort();}return route.continue();});
-  for(const i of [0,1,7,3,6,4,2,5,9,8]){
+  for(const i of [0,1,7,3,6,4,2,5,8,9]){
    await page.locator(`[data-station="${i+1}"]`).click().catch(async error=>{await page.screenshot({path:'.educame-agents/chinchon-click-failed.png',fullPage:true,animations:'disabled'});throw Error(error.message+'; estado='+JSON.stringify(await page.locator(`[data-station="${i+1}"]`).evaluate(node=>({style:getComputedStyle(node).transform,box:node.getBoundingClientRect().toJSON(),animations:node.getAnimations().map(a=>({state:a.playState,time:a.currentTime})),dialogs:[...document.querySelectorAll('dialog[open]')].map(d=>d.id)}))));});const dialog=page.locator('#challenge');await dialog.waitFor();const input=dialog.getByLabel('Tu respuesta',{exact:true});
    if(i===0){if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-question-'+name.split(' ')[0]+'.png'),animations:'disabled'});await input.fill('INCORRECTO');await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();await dialog.getByRole('alert').waitFor({state:'visible'});assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);}
    assert.equal(await dialog.locator('input').count(),1);assert.equal(await dialog.locator('.choice-list,.memory-board,.order-slot').count(),0);
    assert.equal(await dialog.locator('.challenge-prompt').count(),1);
+   if(i===8){
+    assert.match(await page.locator('.journey-refuge img').getAttribute('src'),/refuge-v2\.webp$/);
+    await input.fill('Respuesta incorrecta');
+    await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();
+    await dialog.getByRole('alert').waitFor({state:'visible'});
+    assert.match(await page.locator('.journey-refuge img').getAttribute('src'),/refuge-v2\.webp$/);
+   }
    await input.fill(config.stations[i].solution);
    await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();
    if(i===0){await dialog.getByRole('alert').waitFor({state:'visible'});await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();}
    await checkReward();
    const saved=await (await page.request.get(base+'/api/arena-hambre/state')).json();assert.equal(saved.secret_discovered,false);
-   if(i===9)assert.equal(saved.sections.batalla,'waiting');
+   if(i===8)assert.equal(saved.sections.batalla,'waiting');
    if(i===0&&process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-pack-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
    if(i%3===0)await page.keyboard.press('Enter');else if(i%3===1)await page.locator('#reward').click();else await page.keyboard.press('Escape');
    await page.locator('#reward').waitFor({state:'hidden'});
+   if(i===8){
+    const checkWindow=()=>page.waitForFunction(()=>document.querySelector('.journey-refuge img')?.src.endsWith('/refuge-v1.webp')&&document.querySelector('.journey-refuge img').naturalWidth>0);
+    await checkWindow();
+    await page.reload();await checkWindow();
+    await page.getByRole('button',{name:'Cerrar sesión',exact:true}).click();
+    await page.getByLabel('Nombre de tributo').fill('Alma');
+    await page.getByLabel('Contraseña',{exact:true}).fill('ensayo-seguro-123');
+    await page.getByRole('button',{name:/Entrar en la arena/}).click();
+    await page.locator('.bottom-nav a[href="#recorrido"]').click();
+    await checkWindow();
+   }
    if(i===1){
     assert.equal(await page.locator('.journey-bus').count(),0);
     await page.waitForFunction(()=>document.querySelector('.journey-town .journey-map')?.naturalWidth>0);

@@ -359,7 +359,8 @@ function journey(host) {
   if (town.slice(6).every(station => station.locked)) refuge.append(el('p', 'muted', 'Completa las ocho primeras pruebas para entrar en el refugio.'));
   const room = el('div', 'journey journey-refuge');
   const roomImage = el('img', 'journey-map');
-  roomImage.src = '/aventura-hambre-assets/art/refuge-v2.webp';
+  const roomArt = state.campaign.stations.find(station => station.number === 9)?.completed ? 'refuge-v1.webp' : 'refuge-v2.webp';
+  roomImage.src = '/aventura-hambre-assets/art/' + roomArt;
   roomImage.alt = '';
   room.append(roomImage);
   const roomStops = el('div', 'bus-stops');

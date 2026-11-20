@@ -85,3 +85,6 @@ El fondo `apps/gadeos/assets/refuge-v1.webp` se generó con la herramienta integ
 
 
 Las pruebas 9 y 10 solo se habilitan tras completar las pruebas concretas 1 a 8. Se pueden resolver en cualquier orden y la batalla requiere ambas. El servidor comprueba esta condición al recibir respuestas y la conserva al recargar. El fondo `apps/gadeos/assets/refuge-v2.webp` sustituye la vista exterior por una ventana misteriosa, para no revelar la respuesta 9. Se editó con la herramienta integrada de imágenes a partir de refuge-v1.webp. El prompt pidió conservar el salón y reemplazar únicamente todo el exterior de la ventana por niebla azul opaca con una gran interrogación dorada, sin siluetas de edificios ni reflejos que revelen la torre.
+
+
+Acertar la prueba 9 cambia la ventana de refuge-v2.webp (incógnita) a refuge-v1.webp (torre visible). La imagen se elige según la prueba 9 completada en el estado de la cuenta. Se conserva al recargar y al volver a iniciar sesión. Una respuesta errónea mantiene la incógnita y reiniciar el perfil la restaura.
