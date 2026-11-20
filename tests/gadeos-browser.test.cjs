@@ -91,9 +91,9 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   await page.getByText('Llegada a Chinchón.',{exact:true}).waitFor();
   await page.getByText('Misiones.',{exact:true}).waitFor();
   await page.getByText('Check-out del refugio.',{exact:true}).waitFor();
-  assert.equal(await page.locator('.planning-locked').count(),1);
+  assert.equal(await page.locator('.planning-locked').count(),0);
   assert.equal(await page.locator('.planning-unlock').count(),0);
-  assert.doesNotMatch(await page.locator('.planning').innerText(),/Desayuno|Castillo|Descubrir|11:30|17:00/);
+  await page.getByText('Ruta al Castillo de los Condes.',{exact:true}).waitFor();
   assert.deepEqual((await page.locator('.planning-time').allTextContents()).slice(0,3),['20:00','20:00–22:00','23:00']);
   await page.reload();
   await page.getByText('Check-out del refugio.',{exact:true}).waitFor();
@@ -108,7 +108,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   const headers={Authorization:'Bearer '+token};
   const created=await page.request.post(base+'/admin/apps/gadeos/accounts',{headers,data:{name:'Alma',password:'ensayo-seguro-123'}});assert.equal(created.status(),201);
   const config=await (await page.request.get(base+'/admin/apps/gadeos/campaign',{headers})).json();
-  assert.deepEqual(Object.values(config.section_access).map(item=>item.enabled),[true,false,false,true,true]);
+  assert.deepEqual(Object.values(config.section_access).map(item=>item.enabled),[true,false,true,true,true]);
   const materialRoot=process.env.EDUCAME_GADEOS_MATERIALS_DIR;
   const manifest=materialRoot?JSON.parse(await readFile(join(materialRoot,'manifest.json'),'utf8')):{poster:'fixture',guide:[{title:'Portada',file:'fixture'},{title:'Instrucciones',file:'fixture',text:'Texto legible de ensayo.'}]};
   async function upload(file){const bytes=await readFile(materialRoot?join(materialRoot,file):resolve('marketing/app_landings_demo/assets/landing/profesor-dashboard.png'));const response=await page.request.post(base+'/admin/apps/gadeos/images',{headers,data:{data:bytes.toString('base64')}});assert.equal(response.status(),201);return (await response.json()).url;}
@@ -132,14 +132,14 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
   assert.equal((await (await page.request.get(base+'/api/private-apps/gadeos/state')).json()).completed,0);
   if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-home-'+name.split(' ')[0]+'.png'),fullPage:true,animations:"disabled"});
   assert.deepEqual(await page.locator('.planning-day h3').allTextContents(),['Viernes 20','Sábado 21']);
-  assert.equal(await page.locator('.planning-list li').count(),5);
+  assert.equal(await page.locator('.planning-list li').count(),9);
   assert.deepEqual((await page.locator('.planning-time').allTextContents()).slice(0,3),['20:00','20:00–22:00','23:00']);
-  assert.equal(await page.locator('.planning-locked').count(),1);
+  assert.equal(await page.locator('.planning-locked').count(),0);
   await page.getByText('Llegada a Chinchón.',{exact:true}).waitFor();
   assert.match(await page.locator('.planning-transport').innerText(),/^Autobús 337 · Salida: Metro Pavones/);
   assert.equal(await page.locator('.planning-food-link').count(),0);
   await page.locator('.bottom-nav a[href="#restaurantes"]').click();
-  await page.getByText('Completa las dos pruebas del autobús para descubrir dónde comer.').waitFor();
+  await page.getByLabel('Contraseña de Restaurantes',{exact:true}).waitFor();
   assert.equal(await page.locator('#restaurant-map').count(),0);
   assert.doesNotMatch(await page.locator('#main').innerText(),/chinch[oó]n/i);
   async function unlock(label, password=label){
@@ -228,8 +228,8 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
     await page.getByRole('button',{name:'Centrar',exact:true}).click();
     await checkRoute();
     assert.equal(await page.locator('[data-station="8"]').isEnabled(),true);
-    assert.equal(await page.locator('[data-station="9"]').isEnabled(),false);
-    assert.equal(await page.locator('[data-station="10"]').isEnabled(),false);
+    assert.equal(await page.locator('[data-station="9"]').isEnabled(),true);
+    assert.equal(await page.locator('[data-station="10"]').isEnabled(),true);
     await page.locator('.bottom-nav a[href="#batalla"]').click();
     await page.getByText('Completa las 10 pruebas del recorrido para abrir la batalla.').waitFor();
     await page.locator('.bottom-nav a[href="#recorrido"]').click();
@@ -245,6 +245,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
     await page.reload();
     await page.getByText('Ruta al Castillo de los Condes.',{exact:true}).waitFor();
     await page.locator('.bottom-nav a[href="#restaurantes"]').click();
+    await unlock('Restaurantes','restaurantes');
     await page.locator('.leaflet-container').waitFor();
     assert.equal((await page.request.get(base+'/aventura-hambre-assets/town-map.svg')).status(),200);
     await page.waitForFunction(()=>document.querySelector('.leaflet-image-layer')?.naturalWidth>0).catch(async error=>{throw Error(error.message+'; JS='+JSON.stringify(errors)+'; mapa='+await page.locator('#restaurant-map').innerHTML());});
@@ -270,15 +271,10 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
     await page.getByRole('button',{name:'Todos',exact:true}).click();assert.equal(await page.locator('[data-restaurant]').count(),12);
     await page.reload();await page.locator('.leaflet-container').waitFor();assert.equal(await page.locator('[data-restaurant]').count(),12);assert.equal(await page.locator('.refuge-marker').count(),1);
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
-    const current=await (await page.request.get(base+'/admin/apps/gadeos/campaign',{headers})).json();
-    for(const index of [8,9]){
-     Object.assign(current.stations[index],{title:'Pregunta de ensayo '+index,prompt:'Pregunta de ensayo '+index,solution:'Clave '+index});
-     config.stations[index]=current.stations[index];
-    }
-    assert.equal((await page.request.put(base+'/admin/apps/gadeos/campaign',{headers,data:current})).status(),200);
     await page.goto(base+'/juegos-del-hambre#recorrido');
     await page.reload();
     await page.locator('.journey-town').waitFor();
+    await page.waitForFunction(()=>document.querySelector('.journey-refuge img')?.naturalWidth>0);
    }
    if(i===7){
     await page.reload();

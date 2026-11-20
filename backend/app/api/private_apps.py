@@ -422,7 +422,7 @@ def app_asset(template: str, filename: str):
 
 @router.get("/private-app-assets/gadeos/art/{filename}")
 def gadeos_art(filename: str):
-    if filename not in {"alliance-hero-v2.webp", "journey-v2.webp", "journey-bus-v2.webp", "arena-v2.webp", "envelope-v2.webp", "emblem-v2.webp", "title-lockup-v1.webp", "title-lockup-v2.webp"}:
+    if filename not in {"alliance-hero-v2.webp", "journey-v2.webp", "journey-bus-v2.webp", "refuge-v1.webp", "arena-v2.webp", "envelope-v2.webp", "emblem-v2.webp", "title-lockup-v1.webp", "title-lockup-v2.webp"}:
         raise HTTPException(404, "Ilustración no encontrada.")
     source = PROJECT_ROOT / "apps/gadeos/assets" / filename
     if not source.is_file():

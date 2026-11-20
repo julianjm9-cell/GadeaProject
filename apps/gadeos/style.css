@@ -96,6 +96,11 @@ progress::-moz-progress-bar { background:#efc976; border-radius:8px; }
 .journey-town .leaflet-control-attribution a { color:var(--gold); }
 @media(max-width:550px) { .journey-town-section { padding:12px; border-radius:24px; } .town-toolbar h2 { font-size:20px; } }
 .journey-bus .journey-map { aspect-ratio:3/2; min-height:250px; object-fit:cover; }
+.refuge-trials { max-width:600px; margin:24px auto; }
+.refuge-trials h2 { font-size:24px; }
+.journey-refuge .journey-map { aspect-ratio:3/2; object-fit:cover; min-height:260px; }
+.journey-refuge:after { content:''; position:absolute; inset:45% 0 0; background:linear-gradient(transparent,#061126c9); pointer-events:none; }
+.journey-refuge .bus-stops { z-index:1; justify-content:space-around; bottom:20px; }
 .bus-title { position:absolute; inset:auto 0 76px; margin:0; text-align:center; font-size:clamp(23px,5vw,36px); }
 .bus-stops { position:absolute; inset:auto 0 16px; display:flex; justify-content:center; gap:18px; }
 .journey .bus-stops .station { position:relative; transform:none; }

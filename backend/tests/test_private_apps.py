@@ -75,7 +75,7 @@ def test_section_keys_are_private_and_rotate_without_losing_route(client, monkey
     tribute(web, headers)
     api = '/api/arena-hambre'
     state = web.get(api + '/state').json()
-    assert state['sections'] == {'recorrido': 'locked', 'batalla': 'waiting', 'restaurantes': 'waiting'}
+    assert state['sections'] == {'recorrido': 'locked', 'batalla': 'waiting', 'restaurantes': 'locked'}
     assert 'prompt' not in state['campaign']['stations'][0]
     answer = {'station': 1, 'answer': '337', 'campaign_revision': 0, 'revision': 0, 'request_id': str(uuid4())}
     assert web.post(api + '/stations/answer', json=answer).status_code == 403
@@ -167,7 +167,7 @@ def test_eight_station_campaign_gains_pending_trials_without_losing_personal_con
     assert len([card for card in state['cards'] if card['owned']]) == 8
     assert state['cards'][0]['title'] == 'Carta personal conservada'
     assert state['victory'] and state['battle']['state'] == 'won'
-    assert all(station['pending'] for station in state['campaign']['stations'][8:])
+    assert not any(station['pending'] for station in state['campaign']['stations'][8:])
     start = {'revision': state['revision'], 'request_id': str(uuid4())}
     assert web.post('/api/private-apps/gadeos/battle/start', json=start).status_code == 403
     config = web.get('/admin/apps/gadeos/campaign', headers=headers).json()
@@ -491,7 +491,7 @@ def test_trip_days_survive_legacy_edit_reload_and_progress(client):
     assert current['completed']==0
     assert current['campaign']['planning']['days'][0]['activities'][0]['time']=='18:15'
     assert current['campaign']['planning']['days'][0]['activities'][0]['text']=='Dejar las mochilas.'
-    assert len(current['campaign']['planning']['days'][1]['activities'])==2
+    assert len(current['campaign']['planning']['days'][1]['activities'])==6
     assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=config).status_code==409
     for value in [[],[{'title':'Viernes','subtitle':'Viaje','activities':[{'time':'29:00','text':'Cena'}]}]]:
         invalid=kept.json();invalid['planning']['days']=value
@@ -499,79 +499,18 @@ def test_trip_days_survive_legacy_edit_reload_and_progress(client):
     assert web.get('/admin/apps/gadeos/campaign',headers=headers).json()['planning']['days']==config['planning']['days']
 
 
-def test_locked_trip_content_is_private_editable_and_migrates_old_planning(client):
+def test_itinerary_is_public_from_login_and_remains_editable(client):
     web,factory=client;headers=admin(web,factory);tribute(web,headers)
     config=web.get('/admin/apps/gadeos/campaign',headers=headers).json()
-    friday,saturday=config['planning']['days']
-    assert [a['time'] for a in friday['activities']]==['20:00','20:00–22:00','23:00']
-    assert friday['activities'][1]['text']=='Misiones.'
-    assert friday['subtitle']=='' and 'Chinchón' not in config['planning']['transport']
-    assert not friday['activities'][0]['locked'] and not saturday['locked']
-    friday['activities'][0].update(locked=True,unlock_key='plan_viernes')
-    saturday.update(locked=True,unlock_key='plan_sabado')
-    friday['activities'][0].update(time='19:00',text='SORPRESA PRIVADA VIERNES')
-    saturday['activities'][0]['text']='SORPRESA PRIVADA SABADO'
-    config['section_access']['plan_viernes']['password'] = 'La primera sorpresa'
-    config['section_access']['plan_sabado']['password'] = 'La segunda sorpresa'
+    assert config['planning']['version']==9
+    config['planning']['days'][1]['activities'][1]['text']='Desayuno personalizado.'
     saved=web.put('/admin/apps/gadeos/campaign',headers=headers,json=config)
     assert saved.status_code==200
-    response=web.get('/api/arena-chinchon/state')
-    assert 'SORPRESA PRIVADA' not in response.text
-    assert response.json()['campaign']['planning']['days'][1]['activities']==[]
-    assert response.json()['campaign']['planning']['days'][1]['subtitle']==''
-    def unlock_plan(section, password, revision):
-        return web.post('/api/arena-hambre/sections/unlock', json={
-            'section': section, 'password': password, 'revision': revision, 'request_id': str(uuid4()),
-        })
-    assert unlock_plan('plan_viernes', 'La segunda sorpresa', 0).status_code == 403
-    friday_open = unlock_plan('plan_viernes', 'La primera sorpresa', 0)
-    assert friday_open.status_code == 200
-    assert 'SORPRESA PRIVADA VIERNES' in friday_open.text and 'SORPRESA PRIVADA SABADO' not in friday_open.text
-    saturday_open = unlock_plan('plan_sabado', 'La segunda sorpresa', friday_open.json()['revision'])
-    assert saturday_open.status_code == 200
-    fresh = web.get('/api/arena-hambre/state')
-    assert 'SORPRESA PRIVADA VIERNES' in fresh.text and 'SORPRESA PRIVADA SABADO' in fresh.text
-    rotated = saved.json()
-    rotated['section_access']['plan_viernes']['password'] = 'La segunda sorpresa'
-    assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=rotated).status_code == 422
-    rotated['section_access']['plan_viernes']['password'] = 'Otra clave del viernes'
-    rotation = web.put('/admin/apps/gadeos/campaign',headers=headers,json=rotated)
-    assert rotation.status_code == 200
-    fresh = web.get('/api/arena-hambre/state')
-    assert 'SORPRESA PRIVADA VIERNES' not in fresh.text and 'SORPRESA PRIVADA SABADO' in fresh.text
-    saved = rotation
-    old=saved.json();old['planning'].pop('version')
-    assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=old).status_code==409
-    unlock=saved.json();unlock['planning']['days'][0]['activities'][0]['locked']=False;unlock['planning']['days'][1]['locked']=False
-    updated=web.put('/admin/apps/gadeos/campaign',headers=headers,json=unlock)
-    assert updated.status_code==200
-    response=web.get('/api/arena-chinchon/state')
-    assert 'SORPRESA PRIVADA VIERNES' in response.text and 'SORPRESA PRIVADA SABADO' in response.text
-    assert response.json()['completed']==0
-    legacy={'day':'Viernes','place':'Chinchón','start':'16:00','final':'22:00','days':[
-        {'title':'Viernes 20','subtitle':'Antiguo viernes','activities':[{'time':'19:45','text':'Cena anterior'}]},
-        {'title':'Sábado 21','subtitle':'Antiguo sábado','activities':[{'time':'11:00','text':'Contenido guardado'}]}]}
-    migrated=gadeos.planning_config(legacy)
-    assert migrated['version']==8 and [a['time'] for a in migrated['days'][0]['activities']]==['20:00','20:00–22:00','23:00']
-    assert migrated['days'][1] == gadeos.planning_config()['days'][1]
-    assert legacy['days'][0]['activities'][0]['time']=='19:45'
-    previous = gadeos.planning_config()
-    previous['version'] = 2
-    previous['transport'] += ' → Chinchón'
-    previous['days'][0]['subtitle'] = 'Atardecer, paseo y noche de juegos'
-    previous['days'][0]['activities'][1]['text'] = 'Llegada al piso.'
-    previous['days'][0]['activities'].insert(0, {'time':'18:00','text':'Llegada a Chinchón, dejar las mochilas en el apartamento.'})
-    assert gadeos.planning_config(previous) == gadeos.planning_config()
-    previous['version'] = 3
-    previous['transport'] = gadeos.planning_config()['transport']
-    previous['days'][0]['subtitle'] = ''
-    previous['days'][0]['activities'][0]['time'] = ''
-    assert gadeos.planning_config(previous) == gadeos.planning_config()
-    previous = gadeos.planning_config()
-    previous['version'] = 4
-    previous['days'][0]['activities'][0].pop('unlock_key', None)
-    previous['days'][1].pop('unlock_key', None)
-    assert gadeos.planning_config(previous) == gadeos.planning_config()
+    current=web.get('/api/arena-hambre/state').json()
+    assert current['completed']==0
+    assert current['campaign']['planning']['days'][1]['activities'][1]['text']=='Desayuno personalizado.'
+    assert all(not day['locked'] and all(not entry['locked'] for entry in day['activities']) for day in current['campaign']['planning']['days'])
+    assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=config).status_code==409
 
 
 def test_open_itinerary_migrates_saved_passwords_once_and_updates_saturday():
@@ -586,9 +525,9 @@ def test_open_itinerary_migrates_saved_passwords_once_and_updates_saturday():
     assert [a['time'] for a in migrated['days'][0]['activities']] == ['20:00','20:00–22:00','23:00']
     assert migrated['days'][1] == gadeos.planning_config()['days'][1]
     assert not migrated['days'][1]['activities'][0]['locked']
-    assert all(a['locked'] for a in migrated['days'][1]['activities'][1:])
+    assert all(not a['locked'] for a in migrated['days'][1]['activities'][1:])
     public = gadeos.public_planning(migrated)
-    assert public['days'][1]['activities'] == [migrated['days'][1]['activities'][0], {'time':'','text':'','locked':True}]
+    assert public == migrated
     assert 'Desayuno personalizado' not in str(public)
     assert legacy['days'][1]['locked']
     migrated['days'][0]['activities'][0]['time'] = '20:15'
@@ -651,9 +590,8 @@ def test_saturday_schedule_updates_and_only_checkout_is_public(version):
     migrated = gadeos.planning_config(saved)
     public = gadeos.public_planning(migrated)['days'][1]
     assert public['subtitle'] == ''
-    assert public['activities'] == [
-        {'time':'11:00','text':'Check-out del refugio.','locked':False},
-        {'time':'','text':'','locked':True}]
+    assert len(public['activities']) == 6
+    assert all(not entry['locked'] for entry in public['activities'])
     assert len(migrated['days'][1]['activities']) == 6
     assert [entry['time'] for entry in migrated['days'][1]['activities']] == ['11:00','11:30','12:00–13:30','14:00','15:00','']
     assert [entry['text'] for entry in migrated['days'][1]['activities']] == ['Check-out del refugio.','Desayuno.','Ruta al Castillo de los Condes.','Comida.','Ruta libre.','Regreso a Madrid · hora por determinar.']
@@ -668,7 +606,7 @@ def test_progress_automatically_opens_itinerary_food_and_final_battle(client, mo
     headers = admin(web, factory)
     account = tribute(web, headers)
     config = web.get('/admin/apps/gadeos/campaign', headers=headers).json()
-    assert config['section_access']['restaurantes']['unlock_after'] == 2
+    assert 'unlock_after' not in config['section_access']['restaurantes']
     assert config['section_access']['batalla']['unlock_after'] == 10
     for completed in ([], [1], [3,4], [1,2], list(range(1,10)), list(range(1,11))):
         with factory() as db:
@@ -677,9 +615,32 @@ def test_progress_automatically_opens_itinerary_food_and_final_battle(client, mo
             db.commit()
         state = web.get('/api/arena-hambre/state').json()
         arrived = {1,2}.issubset(completed)
-        assert state['sections']['restaurantes'] == ('open' if arrived else 'waiting')
+        assert state['sections']['restaurantes'] == 'locked'
         assert state['sections']['batalla'] == ('open' if len(completed) == 10 else 'waiting')
-        assert len(state['campaign']['planning']['days'][1]['activities']) == (6 if arrived else 2)
+        assert len(state['campaign']['planning']['days'][1]['activities']) == 6
         win = web.post('/api/arena-hambre/battle/win', json={'tribute':1,'score_revision':0,'request_id':str(uuid4())})
         assert win.status_code == (200 if len(completed) == 10 else 403)
     assert web.get('/api/arena-hambre/state').json()['score']['wins'] == [1,0]
+
+
+def test_refuge_trials_migrate_without_losing_progress_and_remain_editable(client, monkeypatch):
+    monkeypatch.setattr(gadeos, "section_status", real_section_status)
+    web,factory=client;headers=admin(web,factory);account=tribute(web,headers)
+    legacy=gadeos.default_campaign();legacy['challenge_format']=3
+    legacy['stations'][8].update(title='',prompt='',solution='')
+    legacy['stations'][9].update(title='',prompt='',solution='')
+    with factory() as db:
+        db.add(AppSetting(key=gadeos.CONFIG_KEY,value=json.dumps(legacy)))
+        db.get(PrivateAppProgress,UUID(account['id'])).data={'completed_stations':[1,2,3]}
+        db.commit()
+    config=web.get('/admin/apps/gadeos/campaign',headers=headers).json()
+    assert config['stations'][8]['solution']=='Torre del reloj'
+    assert config['stations'][9]['solution']=='3'
+    assert web.get('/api/arena-hambre/state').json()['completed']==3
+    config['stations'][8]['title']=config['stations'][8]['prompt']='Pista personalizada del refugio'
+    assert web.put('/admin/apps/gadeos/campaign',headers=headers,json=config).status_code==200
+    assert web.get('/admin/apps/gadeos/campaign',headers=headers).json()['stations'][8]['title']=='Pista personalizada del refugio'
+    denied=web.post('/api/arena-hambre/sections/unlock',json={'section':'restaurantes','password':'incorrecta','revision':0,'request_id':str(uuid4())})
+    assert denied.status_code==403
+    opened=web.post('/api/arena-hambre/sections/unlock',json={'section':'restaurantes','password':'restaurantes','revision':0,'request_id':str(uuid4())})
+    assert opened.status_code==200 and opened.json()['sections']['restaurantes']=='open'

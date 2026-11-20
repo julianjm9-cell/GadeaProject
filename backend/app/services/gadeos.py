@@ -43,9 +43,7 @@ def planning_config(value=None):
         day.setdefault("locked", False)
         for entry in day["activities"]:
             entry.setdefault("locked", False)
-    for entry in days[1]["activities"][1:]:
-        entry["locked"] = True
-    defaults = {"version": 8, "day": "Viernes", "place": "Chinchón", "start": "20:00", "final": "23:00",
+    defaults = {"version": 9, "day": "Viernes", "place": "Chinchón", "start": "20:00", "final": "23:00",
                 "transport": "Autobús 337 · Salida: Metro Pavones (Línea 9, Madrid)", "days": days}
     if value is None:
         return defaults
@@ -124,6 +122,13 @@ def planning_config(value=None):
             if day["title"] == "Sábado 21":
                 day.clear()
                 day.update(copy.deepcopy(days[1]))
+    if version < 9:
+        for day in clean_days:
+            day["locked"] = False
+            day.pop("unlock_key", None)
+            for entry in day["activities"]:
+                entry["locked"] = False
+                entry.pop("unlock_key", None)
     return {**result, "transport": result["transport"].strip(), "days": clean_days}
 
 
@@ -183,10 +188,10 @@ def default_campaign():
         ("¿Con qué apodo se identifica al dueño de la taberna junto al ayuntamiento?", "Arriero", "La taberna"),
         ("¿Cómo se llama el dramaturgo que ya es amigo por segunda vez?", "Lope de Vega", "El teatro"),
         ("¿Qué animal aparece en el escudo del pueblo?", "Cabra", "El escudo"),
-        ("", "", "Noveno sobre"),
-        ("", "", "Décimo sobre"),
+        ("¿Qué se ve por la ventana desde enfrente del sofá?", "Torre del reloj", "La ventana del refugio"),
+        ("¿Cuántas veces está nombrado el refugio?", "3", "Los secretos del refugio"),
     ]
-    return {"revision": 0, "challenge_format": 3, "title": "La arena de los recuerdos", "intro": "Un viaje a Chinchón. Diez pruebas. Vuestra propia alianza.",
+    return {"revision": 0, "challenge_format": 4, "title": "La arena de los recuerdos", "intro": "Un viaje a Chinchón. Diez pruebas. Vuestra propia alianza.",
             "media": media_config(), "planning": planning_config(),
             "boss": "El centinela de la arena", "ending": "La mejor recompensa es haber recorrido este camino juntos.",
             "stations": [{"number": number, "title": prompt, "story": "",
@@ -201,11 +206,11 @@ def campaign(db):
     result["media"] = media_config(result.get("media"))
     result["planning"] = planning_config(result.get("planning"))
     result["section_access"] = {
-        key: {"enabled": key == "recorrido" or key in PLANNING_NAMES, "version": 0, "password_hash": None,
+        key: {"enabled": key in ("recorrido", "restaurantes") or key in PLANNING_NAMES, "version": 0, "password_hash": None,
               **result.get("section_access", {}).get(key, {})}
         for key in ACCESS_NAMES
     }
-    if result.get("challenge_format") != 3:
+    if result.get("challenge_format") not in (3, 4):
         defaults = default_campaign()
         for new, previous in zip(defaults["stations"], result["stations"]):
             new["card"] = previous.get("card", new["card"])
@@ -215,6 +220,16 @@ def campaign(db):
         result["challenge_format"] = 3
         if re.fullmatch(r"Un viaje a Chinchón\. (?:Ocho|Nueve) (?:sobres|pruebas)\. Vuestra propia alianza\.", result["intro"]):
             result["intro"] = defaults["intro"]
+    if result.get("challenge_format") == 3:
+        defaults = default_campaign()
+        for index in (8, 9):
+            for key in ("title", "prompt", "solution"):
+                result["stations"][index][key] = defaults["stations"][index][key]
+        result["section_access"]["recorrido"]["enabled"] = True
+        access = result["section_access"]["restaurantes"]
+        access.update(enabled=True, password_hash=None, version=access["version"] + 1)
+        result["challenge_format"] = 4
+        result["revision"] += 1
     return result
 
 
@@ -224,7 +239,6 @@ def admin_campaign(config):
         for key, access in config["section_access"].items()
     }
     sections["batalla"]["unlock_after"] = STATION_COUNT
-    sections["restaurantes"]["unlock_after"] = 2
     return {**config, "section_access": sections}
 
 
@@ -269,7 +283,7 @@ def validate_campaign(data):
     clean = {key: str(data.get(key, ""))[:1500] for key in ("title", "intro", "boss", "ending")}
     clean["media"] = media_config(data.get("media"))
     clean["planning"] = planning_config(data.get("planning"))
-    clean["challenge_format"] = 3
+    clean["challenge_format"] = 4
     clean["stations"] = []
     for index, station in enumerate(data["stations"]):
         if not isinstance(station, dict) or not isinstance(station.get("card", {}), dict):
@@ -308,7 +322,7 @@ def section_status(config, data, key):
     if key == "batalla":
         return "open" if set(range(1, STATION_COUNT + 1)).issubset(completed) else "waiting"
     if key == "restaurantes":
-        return "open" if {1, 2}.issubset(completed) else "waiting"
+        return "open" if has_access(data, key, access) else "locked"
     if not access["enabled"]:
         return "disabled"
     if has_access(data, key, access):
@@ -426,9 +440,7 @@ def progress_payload(db, account):
     discovered = collection_discovered(data, config)
     home_only = get_settings().gadeos_home_only and not data.get("all_unlocked", False)
     sections = {key: section_status(config, data, key) for key in SECTION_NAMES}
-    unlocked_planning = {key for key in PLANNING_NAMES if has_access(data, key, config["section_access"][key])}
-    if data.get("all_unlocked") or (not home_only and {1, 2}.issubset(completed)):
-        unlocked_planning.add("*")
+    unlocked_planning = {"*"}
     score = battle_score(db.get(AppSetting, SCORE_KEY)) if sections["batalla"] == "open" else None
     return {"account": {"id": str(account.id), "name": account.name}, "revision": row.revision, "completed": len(completed),
             "home_only": home_only, "sections": sections,

@@ -77,3 +77,8 @@ El sábado, en la versión 8 del planning, queda en 11:00 check-out del refugio,
 
 
 Los desbloqueos dependen del progreso. Tras completar las pruebas 1 y 2 se abre todo el itinerario y Restaurantes. Al completar las diez pruebas se abre Batalla final. Estas secciones no solicitan contraseña adicional y sus antiguos controles de disponibilidad ya no intervienen. LA TERRAZA muestra los requisitos automáticamente. Recorrido conserva su acceso por clave y Ajustes sigue protegido con su contraseña. Reiniciar el perfil restaura los requisitos sin modificar el marcador compartido.
+
+
+La versión actual muestra todo el itinerario desde Inicio. Recorrido sigue protegido por su clave y Restaurantes pide restaurantes. La batalla se abre al completar las diez pruebas. La migración a formato de campaña 4 completa las pruebas 9 y 10 una sola vez, conserva cartas y progreso y permite editarlas después desde LA TERRAZA. La prueba 9 acepta Torre del reloj y la 10 acepta 3. Ambas aparecen sobre la escena Dentro del refugio, después de las dos pruebas del autobús.
+
+El fondo `apps/gadeos/assets/refuge-v1.webp` se generó con la herramienta integrada de imágenes. Se usó la fotografía facilitada como referencia de distribución y `journey-v2.webp` como referencia de estilo. El encargo visual fue un salón inspirado en Villa Elisa, con sofá oscuro a la izquierda, mesa blanca con cristal, lámpara cálida y balcón a la derecha con la Torre del Reloj; ilustración de aventura azul y dorada, sin texto, personas ni interfaz y con espacio para los dos botones numerados. El original generado se conserva fuera del repositorio y el archivo WebP integrado está optimizado para la app.
