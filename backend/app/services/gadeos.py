@@ -378,6 +378,8 @@ def unlock_section(db, account, payload):
 
 
 def station_available(number, station, completed):
+    if number >= 9:
+        return bool(station["solution"]) and set(range(1, 9)).issubset(completed)
     return bool(station["solution"]) and (number == 1 or 1 in completed and (number == 2 or 2 in completed))
 
 
@@ -403,6 +405,8 @@ def public_campaign(config, completed, route_open, unlocked_planning):
     for number, station in enumerate(config["stations"], 1):
         done = number in completed
         available = route_open and (done or station_available(number, station, completed))
+        if number >= 9 and not set(range(1, 9)).issubset(completed):
+            available = False
         title = station["title"] or f"Prueba {number}"
         entry = {"number": number, "title": title if available else f"Prueba {number}", "locked": not available,
                  "completed": done, "pending": not done and not station["solution"]}
@@ -502,6 +506,8 @@ def complete_station(db, account, payload):
         if not station["solution"]:
             raise HTTPException(409, "Esta prueba aún está pendiente de configurar.")
         if not station_available(payload.station, station, completed):
+            if payload.station >= 9:
+                raise HTTPException(409, "Completa las ocho primeras pruebas para entrar en el refugio.")
             raise HTTPException(409, "Completa primero las pruebas del autobús.")
         if not valid:
             raise HTTPException(422, "Esa respuesta no es correcta. Revisa la pista e inténtalo de nuevo.")

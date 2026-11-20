@@ -184,6 +184,7 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
    if(i===0){await dialog.getByRole('alert').waitFor({state:'visible'});await dialog.getByRole('button',{name:'Comprobar',exact:true}).click();}
    await checkReward();
    const saved=await (await page.request.get(base+'/api/arena-hambre/state')).json();assert.equal(saved.secret_discovered,false);
+   if(i===9)assert.equal(saved.sections.batalla,'waiting');
    if(i===0&&process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gadeos-pack-'+name.split(' ')[0]+'.png'),fullPage:true,animations:'disabled'});
    if(i%3===0)await page.keyboard.press('Enter');else if(i%3===1)await page.locator('#reward').click();else await page.keyboard.press('Escape');
    await page.locator('#reward').waitFor({state:'hidden'});
@@ -228,8 +229,8 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
     await page.getByRole('button',{name:'Centrar',exact:true}).click();
     await checkRoute();
     assert.equal(await page.locator('[data-station="8"]').isEnabled(),true);
-    assert.equal(await page.locator('[data-station="9"]').isEnabled(),true);
-    assert.equal(await page.locator('[data-station="10"]').isEnabled(),true);
+    assert.equal(await page.locator('[data-station="9"]').isEnabled(),false);
+    assert.equal(await page.locator('[data-station="10"]').isEnabled(),false);
     await page.locator('.bottom-nav a[href="#batalla"]').click();
     await page.getByText('Completa las 10 pruebas del recorrido para abrir la batalla.').waitFor();
     await page.locator('.bottom-nav a[href="#recorrido"]').click();
@@ -275,6 +276,11 @@ for(const [name,engine,viewport] of [['Chromium escritorio',chromium,{width:1440
     await page.reload();
     await page.locator('.journey-town').waitFor();
     await page.waitForFunction(()=>document.querySelector('.journey-refuge img')?.naturalWidth>0);
+   }
+   if(i===5){
+    assert.equal(await page.locator('[data-station="9"]').isEnabled(),true);
+    assert.equal(await page.locator('[data-station="10"]').isEnabled(),true);
+    assert.equal((await (await page.request.get(base+'/api/arena-hambre/state')).json()).sections.batalla,'waiting');
    }
    if(i===7){
     await page.reload();

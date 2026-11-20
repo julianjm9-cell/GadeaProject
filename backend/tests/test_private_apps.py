@@ -644,3 +644,29 @@ def test_refuge_trials_migrate_without_losing_progress_and_remain_editable(clien
     assert denied.status_code==403
     opened=web.post('/api/arena-hambre/sections/unlock',json={'section':'restaurantes','password':'restaurantes','revision':0,'request_id':str(uuid4())})
     assert opened.status_code==200 and opened.json()['sections']['restaurantes']=='open'
+
+
+def test_refuge_requires_all_first_eight_and_battle_requires_both_refuge_trials(client, monkeypatch):
+    monkeypatch.setattr(gadeos, 'section_status', real_section_status)
+    web,factory=client;headers=admin(web,factory);account=tribute(web,headers)
+    for completed in ([1,2], [1,2,3,4,5,6,8], [1,2,3,4,5,6,7,9]):
+        with factory() as db:
+            db.get(PrivateAppProgress,UUID(account['id'])).data={'completed_stations':completed,'section_grants':{'recorrido':0}}
+            db.commit()
+        state=web.get('/api/arena-hambre/state').json()
+        assert all(station['locked'] for station in state['campaign']['stations'][8:])
+        for number,answer in ((9,'Torre del reloj'),(10,'3')):
+            response=web.post('/api/arena-hambre/stations/answer',json={'station':number,'answer':answer,'campaign_revision':state['campaign']['revision'],'revision':state['revision'],'request_id':str(uuid4())})
+            assert response.status_code==409
+        assert web.get('/api/arena-hambre/state').json()['completed']==len(completed)
+    with factory() as db:
+        db.get(PrivateAppProgress,UUID(account['id'])).data={'completed_stations':list(range(1,9)),'section_grants':{'recorrido':0}}
+        db.commit()
+    state=web.get('/api/arena-hambre/state').json()
+    assert all(not station['locked'] for station in state['campaign']['stations'][8:])
+    for number,answer in ((10,'3'),(9,'Torre del reloj')):
+        response=web.post('/api/arena-hambre/stations/answer',json={'station':number,'answer':answer,'campaign_revision':state['campaign']['revision'],'revision':state['revision'],'request_id':str(uuid4())})
+        assert response.status_code==200
+        state=response.json()
+        assert state['sections']['batalla']==('open' if state['completed']==10 else 'waiting')
+    assert web.get('/api/arena-hambre/state').json()['sections']['batalla']=='open'
