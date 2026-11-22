@@ -105,6 +105,9 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
         window.dispatchEvent(new CustomEvent('terrace-chat-scope', { detail: { app: app.id, area, name: app.name } })); location.hash = 'chat';
       }));
       card.append(actions);
+      card.append(button('Revisar contenido', () => {
+        window.dispatchEvent(new CustomEvent('terrace-content-app', { detail: { app: app.id } })); location.hash = 'contenido';
+      }));
       const footer = el('div', 'managed-app-footer');
       if (app.path) { const open = el('a', 'text-link', 'Abrir app ↗'); open.href = 'https://educame.tech' + app.path; open.target = '_blank'; open.rel = 'noopener noreferrer'; footer.append(open); }
       if (app.id === 'gadeos') footer.append(button('Editar contenido', () => connectedAction('Editar GADEOS', () => manageApp(app))));
@@ -432,6 +435,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
   }
   window.addEventListener('hashchange', () => { if (['#apps', '#inicio', ''].includes(location.hash)) load(); });
   window.addEventListener('terrace-admin-changed', load);
+  window.addEventListener('terrace-content-live', async () => { await load(); const app=catalog?.apps.find(item=>item.id==='gadeos'); if(app) connectedAction('Editar GADEOS',()=>manageApp(app)); });
   window.addEventListener('focus', () => { if (!saving) load(); });
   setInterval(() => { if (!document.hidden && !saving && !dialog.open && ['#apps', '#inicio', ''].includes(location.hash)) load(); }, 30000);
   load();

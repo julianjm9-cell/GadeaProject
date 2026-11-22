@@ -9,6 +9,7 @@ import { setupChat } from './chat.js';
 import { setupWorkProgress } from './work-progress.js';
 import { setupPublication } from './publication.js';
 import { setupAppCatalog } from './app-catalog.js';
+import { setupContentEditor } from './content-editor.js';
 import { setupDeploymentStatus } from './deployment-status.js';
 
 const agents = Object.create(null);
@@ -727,6 +728,7 @@ const agentEditor = setupAgentEditor({ api, button, formMessage, getState: () =>
   },
 });
 setupAppCatalog({ api, element, button, feedback });
+setupContentEditor({ api, feedback });
 const chat = setupChat({ api, element, button, feedback, formMessage, getState: () => state, openDelivery });
 const workProgress = setupWorkProgress({ element, button, badge, openDelivery, getState: () => state,
   upload: keys => publicationClient.upload(keys) });

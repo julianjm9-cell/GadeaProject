@@ -152,7 +152,7 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     })) return { uncertain: true, error: 'Ya existe una copia aislada de este encargo. Revisa su contenido antes de repetirlo.' };
     await git(['worktree', 'add', '--detach', cwd, start], root, 120_000);
     const pending = { branch: branch(task.id), base: task.parentImplementation?.base || baseRevision, start };
-    return complete(task, await codex.implement(task, cwd, allowed), pending);
+    return complete(task, task.contentEdit ? await task.contentEdit.apply(cwd) : await codex.implement(task, cwd, allowed), pending);
   }
 
   async function complete(task, output, pending) {
@@ -296,6 +296,10 @@ export function createImplementation(root, directory, codex, { localRemote = fal
     const changes = await changedFiles();
     if (!changes.size) return reject('El agente entregó una revisión sin cambios de código.');
     const files = [...changes];
+    if (task.contentEdit) {
+      try { await task.contentEdit.verify(cwd, files); }
+      catch (error) { return reject(error.message); }
+    }
     if (files.length > 120 || files.some(file => task.app === 'control' ? !terraceFile(file) :
       excluded.test(file) || !allowed.some(prefix => file.startsWith(prefix)))) {
       return reject('La entrega contiene archivos fuera del ámbito permitido. La copia aislada conserva los cambios.');

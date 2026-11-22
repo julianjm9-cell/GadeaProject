@@ -19,6 +19,7 @@ import { createChatImages, imageIds } from './educame-dashboard/chat-images.mjs'
 import { createPublication } from './educame-dashboard/publication.mjs';
 import { createAutomaticPublication } from './educame-dashboard/automatic-publication.mjs';
 import { createAppCatalog } from './educame-dashboard/app-catalog.mjs';
+import { createContentCatalog } from './educame-dashboard/content-catalog.mjs';
 import { createPrivateMaterials } from './educame-dashboard/private-materials.mjs';
 import { createKnowledge } from './educame-dashboard/knowledge.mjs';
 import { createProviders } from './educame-dashboard/api-agent.mjs';
@@ -48,6 +49,8 @@ const assets = new Map([
   ['/chat-attachments.js', ['chat-attachments.js', 'text/javascript']],
   ['/queue-view.js', ['queue-view.js', 'text/javascript']],
   ['/app-catalog.js', ['app-catalog.js', 'text/javascript']],
+  ['/content-editor.js', ['content-editor.js', 'text/javascript']],
+  ['/content-editor.css', ['content-editor.css', 'text/css']],
   ['/agent-editor.js', ['agent-editor.js', 'text/javascript']],
   ['/icons.js', ['icons.js', 'text/javascript']],
   ['/icons.svg', ['icons.svg', 'image/svg+xml']],
@@ -226,6 +229,7 @@ export async function createDashboard({
   const implementationPreviews = new Map();
   const knowledge = createKnowledge({ store, root: repositoryRoot,
     readDelivery: key => implementationDelivery(key) });
+  const content = createContentCatalog({ root: repositoryRoot, store, start: request => runner.start(request) });
   const runner = createRunner(store, directory, {
     automaticPublication,
     model, baseRevision: implementation.base, recoverImplementation: implementation.recover,
@@ -246,7 +250,14 @@ export async function createDashboard({
           if (source.app !== task.app) throw new PanelError(409, 'El ajuste debe continuar en la misma aplicación.');
           task = { ...task, parentImplementation: await implementation.continuation(source) };
         }
-        return implementation.execute(task, batch.base);
+        if (content.job(task.id)?.manual) task = { ...task, contentEdit: {
+          apply: cwd => content.apply(task.id, cwd), verify: (cwd, files) => content.verify(task.id, cwd, files),
+        } };
+        try { return await implementation.execute(task, batch.base); }
+        catch (error) {
+          if (error.status) return { error: error.message };
+          throw error;
+        }
       };
       if (batch.engine === 'codex') return codex.generate;
       if (batch.engine === 'claude' || batch.providerModel) return task => task.agente === researchRole && batch.engine === 'openai' ?
@@ -272,7 +283,7 @@ export async function createDashboard({
   });
   const publication = createPublication({ root: repositoryRoot, directory, store, implementation,
     readDelivery: implementationDelivery, revalidate,
-    repair: async delivery => saveDelivery(delivery, await implementation.repair(delivery)), assertIdle: () => chat.assertIdle(),
+    repair: async delivery => saveDelivery(delivery, await implementation.repair(withContentEdit(delivery))), assertIdle: () => chat.assertIdle(),
     onApplied: () => { terraceNeedsRestart = true; }, localRemote: implementationOptions?.localRemote });
   const automatic = automaticPublication ? createAutomaticPublication({ store, publication,
     readDelivery: key => readJson(implementationPath(key.slice('implementacion/'.length)), null) }) : null;
@@ -341,7 +352,12 @@ export async function createDashboard({
   }
 
   async function revalidate(delivery) {
-    return saveDelivery(delivery, await implementation.revalidate(delivery));
+    return saveDelivery(delivery, await implementation.revalidate(withContentEdit(delivery)));
+  }
+  function withContentEdit(task) {
+    return content.job(task.id)?.manual ? { ...task, contentEdit: {
+      apply: cwd => content.apply(task.id, cwd), verify: (cwd, files) => content.verify(task.id, cwd, files),
+    } } : task;
   }
   async function saveDelivery(delivery, result) {
     const updated = { ...delivery, ...result, error: result.error,
@@ -397,6 +413,13 @@ export async function createDashboard({
       if (restarting && request.method !== 'GET') throw new OperationError(409, 'LA TERRAZA se está reiniciando.');
       if (path === '/api/publicacion' && request.method === 'GET') return json(200, publication.status());
       if (path === '/api/apps/catalogo' && request.method === 'GET') return json(200, appCatalog.read());
+      if (path.startsWith('/api/content/')) {
+        if (request.headers['sec-fetch-site'] === 'cross-site' || (request.method !== 'GET' && request.headers.origin !== origin)) throw new OperationError(403, 'Edita el contenido desde LA TERRAZA.');
+        if (request.method === 'GET' && path === '/api/content/catalog') return json(200, await content.search(url.searchParams));
+        if (request.method === 'GET' && path === '/api/content/item') return json(200, await content.detail(url.searchParams.get('id')));
+        if (request.method === 'PUT' && path === '/api/content/draft') return json(200, await content.draft(await bodyJson(request, 350000)));
+        if (request.method === 'POST' && path === '/api/content/submit') return json(202, await content.submit(await bodyJson(request, 350000)));
+      }
       if (path === '/api/chat/imagenes' && request.method === 'POST') {
         if (request.headers.origin !== origin) throw new OperationError(403, 'Adjunta las imágenes desde LA TERRAZA.');
         return json(201, await images.save(await bodyJson(request, 6_700_000)));
