@@ -416,6 +416,12 @@ def test_private_images_unlock_with_card_and_admin_keeps_access(client, monkeypa
     response = web.get(url)
     assert response.status_code == 200 and response.headers['cache-control'] == 'private, no-store'
     assert Image.open(BytesIO(response.content)).format == 'WEBP'
+    catalog = web.get('/admin/apps', headers=headers).json()
+    assert web.patch('/admin/apps/gadeos', headers=headers, json={'id':'gadeos','state':'privada','revision':catalog['revision'],'access_password':'clave-prueba-123'}).status_code == 200
+    admin_url = '/admin/apps/gadeos/images/' + url.rsplit('/', 1)[-1]
+    assert web.get(url).status_code == 401
+    assert web.get(admin_url).status_code == 401
+    assert web.get(admin_url, headers=headers).status_code == 200
 
 
 def test_private_app_migration_is_repeatable_and_preserves_existing_data():
@@ -670,3 +676,62 @@ def test_refuge_requires_all_first_eight_and_battle_requires_both_refuge_trials(
         state=response.json()
         assert state['sections']['batalla']==('open' if state['completed']==10 else 'waiting')
     assert web.get('/api/arena-hambre/state').json()['sections']['batalla']=='open'
+
+
+def test_shared_app_password_gate_rotation_pause_and_cross_app_isolation(client):
+    web,factory=client;headers=admin(web,factory)
+    def change(app_id,state,password=None,revision=None):
+        catalog=web.get('/admin/apps',headers=headers).json()
+        return web.patch('/admin/apps/'+app_id,headers=headers,json={
+            'id':app_id,'state':state,'revision':catalog['revision'] if revision is None else revision,
+            **({'access_password':password} if password is not None else {})})
+    original=web.get('/admin/apps',headers=headers).json()
+    saved=change('ingles','privada','clave-ingles-123')
+    assert saved.status_code==200
+    app=next(item for item in saved.json()['apps'] if item['id']=='ingles')
+    assert app['password_protected']
+    assert 'access_password_hash' not in saved.text and 'clave-ingles-123' not in saved.text
+    html=web.get('/cambridge-info',headers={'Accept':'text/html'})
+    assert html.status_code==401 and 'Contraseña de acceso' in html.text
+    assert html.headers['cache-control']=='private, no-store'
+    assert web.get('/api/state?app=cambridge').json()['app_password_required']
+    assert web.post('/api/app-access/ingles/unlock',json={'password':'incorrecta'}).status_code==403
+    allowed=web.post('/api/app-access/ingles/unlock',json={'password':'clave-ingles-123'})
+    assert allowed.status_code==200 and 'HttpOnly' in allowed.headers['set-cookie']
+    assert web.get('/cambridge-info').status_code==200
+    # Opening the gate does not authenticate an account or grant a licence.
+    assert web.get('/api/state?app=cambridge').status_code==401
+    gate=web.cookies.get('educame_gate_ingles')
+    assert web.get('/admin/apps',headers={'Authorization':'Bearer '+gate}).status_code==401
+    assert change('eso','privada','clave-eso-123').status_code==200
+    assert web.get('/e25').json()['app_password_required']
+    assert change('ingles','privada','otra-clave-123').status_code==200
+    assert web.get('/cambridge-info').status_code==401
+    assert web.post('/api/app-access/ingles/unlock',json={'password':'clave-ingles-123'}).status_code==403
+    assert web.post('/api/app-access/ingles/unlock',json={'password':'otra-clave-123'}).status_code==200
+    assert change('ingles','pausada').status_code==200
+    assert web.get('/cambridge').status_code==503
+    assert web.post('/api/app-access/ingles/unlock',json={'password':'otra-clave-123'}).status_code==503
+    assert change('ingles','publica').status_code==200
+    assert web.get('/cambridge-info').status_code==200
+    assert change('ingles','privada').status_code==200
+    assert web.get('/cambridge-info').status_code==401
+    assert change('ingles','publica',revision=original['revision']).status_code==409
+    assert change('ingles','privada','corta').status_code==422
+
+
+def test_shared_gate_covers_private_app_accounts_and_default_product_api(client):
+    web,factory=client;headers=admin(web,factory);account=tribute(web,headers)
+    catalog=web.get('/admin/apps',headers=headers).json()
+    saved=web.patch('/admin/apps/gadeos',headers=headers,json={'id':'gadeos','state':'privada','revision':catalog['revision'],'access_password':'refugio-123'})
+    assert saved.status_code==200
+    assert web.get('/api/arena-hambre/state').status_code==401
+    assert web.get('/api/private-apps/gadeos/state').status_code==401
+    assert web.get('/juegos-del-hambre',headers={'Accept':'text/html'}).status_code==401
+    assert web.post('/api/app-access/gadeos/unlock',json={'password':'refugio-123'}).status_code==200
+    assert web.get('/api/arena-hambre/state').json()['account']['id']==account['id']
+    catalog=web.get('/admin/apps',headers=headers).json()
+    assert web.patch('/admin/apps/diplomator',headers=headers,json={'id':'diplomator','state':'privada','revision':catalog['revision'],'access_password':'diplomator-123'}).status_code==200
+    # The default product is checked even without an app query or client header.
+    denied=web.get('/api/state',headers=headers)
+    assert denied.status_code==401 and denied.json()['app_password_required']

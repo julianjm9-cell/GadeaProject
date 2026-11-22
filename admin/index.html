@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin | Educa Suite</title>
-  <link rel="stylesheet" href="managed-apps.css?v=20261118-1">
+  <link rel="stylesheet" href="managed-apps.css?v=20261122-access">
   <style>
     :root {
       --ink:#102033; --muted:#64748b; --paper:#f4f8ff; --panel:#fff; --line:#d9e5f4;
@@ -346,7 +346,7 @@ function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;'
 function badge(value){const text=value===true?'Activo':value===false?'Bloqueado':value||'-';const ok=['active','Activo','true'].includes(String(value))||value===true;return `<span class="badge ${ok?'ok':'off'}">${esc(text)}</span>`}
 function productByKey(key=currentApp){return PRODUCTS.find(p=>p.key===key)||PRODUCTS[0]}
 function table(headers,rows){if(!rows.length)return '<div class="empty">No hay datos todavia.</div>';return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.join('')}</tr>`).join('')}</tbody></table></div>`}
-async function api(path,options={}){const headers={'Content-Type':'application/json',...(options.headers||{})};if(token)headers.Authorization=`Bearer ${token}`;const res=await fetch(path,{...options,headers});if(res.status===401||res.status===403){localStorage.removeItem('educa_admin_token');token='';setLoginState(false)}const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||data.error||`Error ${res.status}`);return data}
+async function api(path,options={}){const headers={'Content-Type':'application/json',...(options.headers||{})};if(token)headers.Authorization=`Bearer ${token}`;const res=await fetch(path,{...options,headers});if(res.status===401||res.status===403){localStorage.removeItem('educa_admin_token');token='';setLoginState(false)}const data=await res.json().catch(()=>({}));if(!res.ok)throw Object.assign(new Error(data.detail||data.error||`Error ${res.status}`),{status:res.status});return data}
 function setLoginState(on){$('authScreen').hidden=!!on;$('adminPage').hidden=!on;$('loginStatus').textContent=on?'Sesion activa':'Introduce tus datos';$('loginStatus').classList.toggle('on',!!on)}
 async function login(event){event.preventDefault();try{const res=await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier:$('email').value.trim(),password:$('password').value})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'No se pudo entrar.');token=data.access_token;localStorage.setItem('educa_admin_token',token);setLoginState(true);await loadAll();toast('Panel cargado.')}catch(e){toast(e.message)}}
 function logout(){token='';localStorage.removeItem('educa_admin_token');setLoginState(false);toast('Sesion cerrada.')}
@@ -561,6 +561,6 @@ window.addEventListener('hashchange',()=>{const next=location.hash.slice(1);if(P
 setLoginState(false);if(token)loadAll();
 </script>
 <script src="notifications.js?v=20261107-apps-1"></script>
-<script src="managed-apps.js?v=20261118-1"></script>
+<script src="managed-apps.js?v=20261122-access"></script>
 </body>
 </html>

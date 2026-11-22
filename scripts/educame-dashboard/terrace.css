@@ -352,7 +352,7 @@ dialog::backdrop { background: #1b2c25a3; }
 [data-catalog-app=gadeos] .managed-app-monogram { background:#28392b; color:#dfc58a; border-color:#a59462; border-radius:50%; }
 .app-state-switch { display:flex; border:1px solid #d9ddcf; padding:4px; border-radius:12px; background:#f3f4ed; gap:3px; }
 .app-state-switch button { flex:1; border:0; border-radius:8px; padding:9px 5px; font-size:.77rem; min-height:38px; color:#657363; background:transparent; }
-.app-state-switch button[aria-pressed=true] { background:#fffefa; color:#244c39; box-shadow:0 2px 7px #243a1920; }
+.app-state-switch button[aria-pressed=true] { background:#285743; color:#fff; box-shadow:0 2px 7px #243a1920; }
 .managed-app-state { font-size:.8rem; color:#6d796b; margin:0; min-height:20px; }
 .managed-app-sections { display:flex; gap:8px; flex-wrap:wrap; }
 .managed-app-sections .button { padding:10px 12px; font-size:.8rem; background:#eef1e7; }

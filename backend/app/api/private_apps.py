@@ -67,6 +67,7 @@ class AppWrite(BaseModel):
     id: str = Field(max_length=50)
     state: str
     name: str | None = Field(default=None, max_length=100)
+    access_password: str | None = Field(default=None, max_length=72)
 
 
 class AccountCreate(BaseModel):
@@ -361,6 +362,7 @@ def battle_action(payload: BattleAction, account=Depends(member), db: Session = 
 
 
 @router.get("/api/private-apps/{app_id}/images/{filename}")
+@router.get("/admin/apps/{app_id}/images/{filename}", dependencies=[Depends(require_superadmin)])
 def private_image(app_id: str, filename: str, request: Request, db: Session = Depends(get_db)):
     if len(filename) != 37 or not filename.endswith(".webp") or any(c not in "0123456789abcdef" for c in filename[:-5]) or app_id != "gadeos":
         raise HTTPException(404, "Imagen no encontrada.")

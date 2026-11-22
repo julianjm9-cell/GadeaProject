@@ -13,7 +13,7 @@ from app.database.runtime_schema import ensure_runtime_schema
 from starlette.responses import HTMLResponse, JSONResponse
 from app.services.app_availability import PAUSE_MESSAGE
 from app.services.app_registry import enforce_managed_access
-from app.api import private_apps, chinchon
+from app.api import private_apps, chinchon, app_access
 
 
 settings = get_settings()
@@ -26,6 +26,10 @@ app = FastAPI(title=settings.app_name, dependencies=[Depends(enforce_managed_acc
 
 @app.exception_handler(HTTPException)
 async def paused_application_page(request: Request, exc: HTTPException):
+    if exc.status_code == 401 and str(exc.detail).startswith("APP_ACCESS_REQUIRED:"):
+        if "text/html" in request.headers.get("accept", ""):
+            return app_access.gate_page(str(exc.detail).split(":", 1)[1], getattr(request.state, "gated_app_name", "Aplicación privada"))
+        return JSONResponse({"detail":"Introduce la contraseña de acceso de esta aplicación.","app_password_required":True}, status_code=401, headers={"Cache-Control":"private, no-store"})
     if exc.status_code == 401 and str(exc.detail).startswith("Aplicación privada") and "text/html" in request.headers.get("accept", ""):
         from starlette.responses import RedirectResponse
         from urllib.parse import quote
@@ -43,7 +47,7 @@ async def paused_application_page(request: Request, exc: HTTPException):
 @app.middleware("http")
 async def protect_ads(request, call_next):
     path = request.scope.get("path", "")
-    if request.method in {"POST", "PUT", "PATCH", "DELETE"} and (request.cookies.get("diplomator_access") or request.cookies.get("profesor_student_access") or any(name.startswith("educame_private_") for name in request.cookies)):
+    if request.method in {"POST", "PUT", "PATCH", "DELETE"} and (request.cookies.get("diplomator_access") or request.cookies.get("profesor_student_access") or any(name.startswith(("educame_private_", "educame_gate_")) for name in request.cookies)):
         origin=request.headers.get("origin")
         if origin and origin not in {*settings.cors_origin_list, settings.public_base_url.rstrip("/")}:
             return JSONResponse({"detail":"Origen no permitido."},status_code=403,headers={"Cache-Control":"private, no-store"})
@@ -64,7 +68,7 @@ async def protect_ads(request, call_next):
         limit = 7_100_000
     elif path.startswith("/api/profesor/editor-drafts/"):
         limit = 1_100_000
-    bounded = protected or path in {"/api/state", "/api/study-appearance", "/api/chat", "/api/ocr", "/api/transcribe"} or path.startswith(("/auth/", "/api/profesor/", "/api/app-notifications/", "/api/private-apps/", "/api/arena-hambre/", "/api/arena-chinchon/", "/admin/apps"))
+    bounded = protected or path in {"/api/state", "/api/study-appearance", "/api/chat", "/api/ocr", "/api/transcribe"} or path.startswith(("/auth/", "/api/profesor/", "/api/app-notifications/", "/api/private-apps/", "/api/arena-hambre/", "/api/arena-chinchon/", "/api/app-access/", "/admin/apps"))
     if bounded and request.method in {"POST", "PUT", "PATCH"}:
         body = bytearray()
         async for chunk in request.stream():
@@ -100,6 +104,7 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=[host.strip() for host i
 
 app.include_router(auth.router)
 app.include_router(private_apps.router)
+app.include_router(app_access.router)
 app.include_router(chinchon.router)
 app.include_router(profesor_access.router)
 app.include_router(profesor_ads.router)

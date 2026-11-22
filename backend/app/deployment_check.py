@@ -56,8 +56,10 @@ def verify_expected_private(exc: HTTPError, path: str, availability: dict) -> bo
         return False
     try:
         with exc:
+            data = json.load(exc)
             return (exc.headers.get("Cache-Control") == "private, no-store" and
-                    json.load(exc).get("detail") in {"Aplicación privada. Entra con una cuenta invitada.", "Esta aplicación requiere una invitación de administración."})
+                    (data.get("detail") in {"Aplicación privada. Entra con una cuenta invitada.", "Esta aplicación requiere una invitación de administración."} or
+                     (exc.code == 401 and data.get("app_password_required") is True and data.get("detail") == "Introduce la contraseña de acceso de esta aplicación.")))
     except (ValueError, AttributeError):
         return False
 

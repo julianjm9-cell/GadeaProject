@@ -11,6 +11,7 @@ from app.database.session import get_db
 from app.models import AppSetting
 from app.services.app_availability import is_app_paused, PAUSE_MESSAGE, PRODUCT_CODES
 from app.services import gadeos
+from app.security.passwords import hash_password
 
 REGISTRY_KEY = "managed_app_registry:v1"
 DEFAULTS = [
@@ -27,7 +28,7 @@ ASSET_PREFIXES = {"profesor": ("/assets/profesor-", "/profesor-"), "ingles": ("/
                   "eso": ("/assets/eso-",), "diplomator": ("/assets/diplomator-",)}
 
 
-def registry(db: Session) -> dict:
+def registry(db: Session, *, include_secrets=False) -> dict:
     row = db.get(AppSetting, REGISTRY_KEY)
     saved = json.loads(row.value) if row else {"revision": 0, "apps": []}
     overrides = {app["id"]: app for app in saved["apps"]}
@@ -39,6 +40,9 @@ def registry(db: Session) -> dict:
         app["visibility"] = app["state"]
         if is_app_paused(db, app["product"]):
             app["state"] = "pausada"
+        app["password_protected"] = bool(app.get("access_password_hash"))
+        if not include_secrets:
+            app.pop("access_password_hash", None)
     return {"revision": saved["revision"], "apps": apps}
 
 
@@ -64,7 +68,7 @@ def known_app_for_path(path: str):
 def save_app(db: Session, payload: dict, *, create: bool = False) -> dict:
     row = db.scalar(select(AppSetting).where(AppSetting.key == REGISTRY_KEY).with_for_update())
     original = row.value if row else None
-    current = registry(db)
+    current = registry(db, include_secrets=True)
     if type(payload.get("revision")) is not int or payload["revision"] != current["revision"]:
         raise HTTPException(409, "El catálogo ha cambiado. Actualiza antes de guardar.")
     app_id, state = payload.get("id"), payload.get("state")
@@ -83,11 +87,21 @@ def save_app(db: Session, payload: dict, *, create: bool = False) -> dict:
         if not previous:
             raise HTTPException(404, "Aplicación no encontrada.")
         app = {**previous, "state": state}
+    password = payload.get("access_password")
+    if password is not None:
+        if not isinstance(password, str) or not 6 <= len(password) <= 72 or len(password.encode()) > 72:
+            raise HTTPException(422, "La contraseña de acceso debe tener entre 6 y 72 caracteres.")
+        app["access_password_hash"] = hash_password(password)
+    if password is not None or (previous and state != previous["state"]):
+        app["access_version"] = app.get("access_version", 0) + 1
     if app["product"] in PRODUCT_CODES and state == "pausada":
         previous_saved = next((item for item in json.loads(original)["apps"] if item["id"] == app_id), {}) if original else {}
         app["state"] = previous_saved.get("state", "publica")
     saved_apps = json.loads(original)["apps"] if original else []
     stored_app = {"id": app_id, "state": app["state"]} if app_id in {item["id"] for item in DEFAULTS} else app
+    for key in ("access_password_hash", "access_version"):
+        if key in app:
+            stored_app[key] = app[key]
     apps = [item for item in saved_apps if item["id"] != app_id] + [stored_app]
     value = json.dumps({"revision": current["revision"] + 1, "apps": apps}, ensure_ascii=False)
     if row:
@@ -122,9 +136,42 @@ def touch_registry(db: Session):
         db.add(AppSetting(key=REGISTRY_KEY, value=json.dumps(data)))
 
 
+def require_password_gate(request, app):
+    if app["visibility"] != "privada" or not app.get("access_password_hash"):
+        return False
+    request.state.managed_private = True
+    if app["state"] == "pausada":
+        raise HTTPException(503, PAUSE_MESSAGE, headers={"Retry-After": "3600"})
+    from app.api.app_access import granted
+    if not granted(request, app):
+        request.state.gated_app_name = app["name"]
+        raise HTTPException(401, "APP_ACCESS_REQUIRED:" + app["id"])
+    return True
+
+
+def require_product_password(request, db, product):
+    app = next((item for item in registry(db, include_secrets=True)["apps"] if item["product"] == product), None)
+    if app:
+        require_password_gate(request, app)
+
+
 def enforce_managed_access(request: Request, db: Session = Depends(get_db)):
     """Global route dependency: changing a label never grants private access."""
     path = request.url.path
+    if not path.startswith(("/admin", "/api/app-access/", "/auth/")):
+        candidate = known_app_for_path(path)
+        app_id = candidate["id"] if candidate else None
+        if path.startswith("/api/private-apps/") or path.startswith("/a/"):
+            parts = path.strip("/").split("/")
+            app_id = parts[2] if parts[0] == "api" and len(parts) > 2 else parts[1] if len(parts) > 1 else None
+        if path.startswith((gadeos.PUBLIC_API + "/", "/api/arena-chinchon/")):
+            app_id = "gadeos"
+        raw_app = str(request.headers.get("x-client-app") or request.query_params.get("app") or "").lower()
+        if not app_id and path.startswith("/api/"):
+            app_id = {"cambridge":"ingles", "eso_adultos":"eso", "profesor_particular":"profesor", "diplomator":"diplomator", "universidad_adultos":"universidad", "ocr_facturas":"facturas"}.get(raw_app)
+        gated = next((item for item in registry(db, include_secrets=True)["apps"] if item["id"] == app_id), None) if app_id else None
+        if gated and require_password_gate(request, gated):
+            return
     if path.startswith(("/admin", "/api/private-apps/", gadeos.PUBLIC_API + "/", gadeos.PUBLIC_PATH, "/gadeos", "/a/", "/auth/google/", "/auth/login", "/auth/refresh", "/auth/logout")):
         return
     raw = str(request.headers.get("x-client-app") or request.query_params.get("app") or "").lower().replace("-", "_")

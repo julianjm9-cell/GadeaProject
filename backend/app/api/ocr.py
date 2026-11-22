@@ -21,6 +21,8 @@ FIELDS = ("proveedor", "nif_cif", "empresa_receptora", "numero_factura", "fecha_
 
 
 def authorized(request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    from app.services.app_registry import require_product_password
+    require_product_password(request, db, "OCR_FACTURAS")
     require_app_available(db, "OCR_FACTURAS")
     if request.method != "GET" and request.headers.get("sec-fetch-site") == "cross-site":
         raise HTTPException(403, "Solicitud no permitida")

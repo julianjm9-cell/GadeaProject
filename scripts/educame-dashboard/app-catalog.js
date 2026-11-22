@@ -11,11 +11,12 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
   function connectionMessage(error) {
     return error?.status === 404 ? 'El servidor necesita la actualización de Hostinger para gestionar estas apps.' :
       error?.status === 403 ? 'Esta cuenta necesita permisos de administración de Educame.' :
-      error?.status && error.status !== 401 ? error.message : 'Conecta administración para crear apps y editar su contenido. Usuarios y accesos están en el dashboard online.';
+      error?.status && error.status !== 401 ? error.message : 'Conecta administración para gestionar el acceso de tus apps. Los usuarios se gestionan en el dashboard online.';
   }
   function acceptCatalog(data) {
     if (!Array.isArray(data?.apps) || !Number.isInteger(data.revision)) throw Object.assign(new Error('El servidor no devolvió un catálogo válido.'), { status: 502 });
-    catalog = data; live = true; connectionIssue = null;
+    if (!catalog || data.revision >= catalog.revision) catalog = data;
+    live = true; connectionIssue = null;
   }
   function connect(label, action) {
     pendingConnection = { label, action };
@@ -55,7 +56,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
   async function load() {
     if (loading) return loading;
     loading = (async () => {
-      catalog = await api('/api/apps/catalogo');
+      if (!catalog) catalog = await api('/api/apps/catalogo');
       try { acceptCatalog(await api('/api/operacion/admin/apps')); }
       catch (error) { live = false; connectionIssue = error; }
       if (!live) try { paused = (await api('/api/apps/estado')).paused || []; } catch {}
@@ -66,7 +67,12 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
   async function save(path, data) {
     if (saving) return;
     saving = true; root.querySelectorAll('button').forEach(node => { node.disabled = true; });
-    try { catalog = await api('/api/operacion/admin/' + path, 'POST', data); live = true; render(); return catalog; }
+    try {
+      const result = await api('/api/operacion/admin/' + path, 'POST', data);
+      acceptCatalog(result);
+      if (data.access_password && !result.apps.find(app => app.id === data.id)?.password_protected) throw Error('Actualiza Hostinger para activar la contraseña de acceso.');
+      render(); return catalog;
+    }
     catch (error) { feedback(error.message, true); await load(); throw error; }
     finally { saving = false; render(); }
   }
@@ -76,7 +82,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
     root.replaceChildren();
     const toolbar = el('div', 'app-management-toolbar');
     const create = button('Crear aplicación', () => connectedAction('Crear una aplicación', newApp)); create.className = 'button primary'; create.disabled = saving;
-    toolbar.append(el('p', 'muted', live ? 'Edición conectada. Las cuentas y los accesos se gestionan en el dashboard online.' : connectionMessage(connectionIssue)), create);
+    toolbar.append(el('p', 'muted', live ? 'Accesos sincronizados con el dashboard online.' : connectionMessage(connectionIssue)), button('Actualizar', load), create);
     if (!live) toolbar.append(button('Conectar administración', () => connect('Gestionar tus aplicaciones', async () => {})));
     root.append(toolbar);
     const grid = el('div', 'managed-app-grid');
@@ -84,7 +90,16 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       const card = el('article', 'card managed-app'); card.dataset.catalogApp = app.id;
       const top = el('div', 'managed-app-heading'), monogram = el('span', 'managed-app-monogram', app.id === 'gadeos' ? 'G' : app.name.slice(0, 1));
       top.append(monogram, el('h2', '', app.name)); card.append(top);
-      card.append(el('p', 'managed-app-state', (live ? labels[app.state] : 'Estado del servidor sin consultar') + ' · Usuarios y accesos en el dashboard online.'));
+      card.append(el('p', 'managed-app-state', live ? labels[app.state] + (app.state === 'privada' ? app.password_protected ? ' · Con contraseña' : ' · Cuentas autorizadas' : '') : 'Estado del servidor sin consultar'));
+      const states = el('div', 'app-state-switch');
+      states.setAttribute('role', 'group'); states.setAttribute('aria-label', 'Acceso de ' + app.name);
+      for (const [state, title] of Object.entries(labels)) {
+        const control = button(title, () => connectedAction('Cambiar acceso de ' + app.name, () => changeAccess(app.id, state)));
+        control.setAttribute('aria-pressed', String(live && app.state === state)); control.disabled = saving;
+        states.append(control);
+      }
+      card.append(states);
+      if (app.state === 'privada' && app.password_protected) card.append(button('Cambiar contraseña', () => connectedAction('Cambiar contraseña', () => changeAccess(app.id, 'privada'))));
       const actions = el('div', 'managed-app-sections');
       for (const [area, title] of (app.personal ? [['app', 'App']] : areas)) actions.append(button(title + ' →', () => {
         window.dispatchEvent(new CustomEvent('terrace-chat-scope', { detail: { app: app.id, area, name: app.name } })); location.hash = 'chat';
@@ -99,6 +114,35 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       card.append(footer); grid.append(card);
     }
     root.append(grid);
+  }
+  async function changeAccess(id, state) {
+    const app = catalog.apps.find(item => item.id === id);
+    let revision = catalog.revision;
+    if (state !== 'privada') {
+      await save('app-state', { id, state, revision: catalog.revision });
+      feedback('Acceso actualizado en LA TERRAZA y en el dashboard.');
+      return;
+    }
+    heading('Acceso privado · ' + app.name);
+    const form = el('form', 'managed-app-form');
+    form.append(el('p', 'muted', app.password_protected ? 'La contraseña actual está guardada. Déjalo vacío para conservarla.' : 'Elige la contraseña que pedirás antes de acceder a esta aplicación.'));
+    const password = field(form, 'Contraseña de acceso', 'access_password');
+    password.type = 'password'; password.autocomplete = 'new-password'; password.minLength = 6; password.maxLength = 72; password.required = !app.password_protected;
+    const submit = el('button', 'button primary', 'Guardar acceso privado'); submit.type = 'submit';
+    const message = el('p', 'form-message'); message.setAttribute('role', 'alert');
+    form.append(submit, message); body.append(form); password.focus();
+    form.addEventListener('submit', async event => {
+      event.preventDefault(); if (saving) return;
+      const value = password.value; password.value = ''; submit.disabled = true;
+      try {
+        await save('app-state', { id, state, revision, ...(value ? { access_password: value } : {}) });
+        dialog.close(); feedback('Acceso privado guardado y sincronizado.');
+      } catch (error) {
+        message.textContent = error.message;
+        if (error.status === 409) revision = catalog.revision;
+        if ([401, 403].includes(error.status)) { dialog.close(); connect('Guardar acceso privado', () => changeAccess(id, state)); }
+      } finally { submit.disabled = false; }
+    });
   }
   function renderHome() {
     const host = document.getElementById('workspace-apps');
@@ -388,5 +432,7 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
   }
   window.addEventListener('hashchange', () => { if (['#apps', '#inicio', ''].includes(location.hash)) load(); });
   window.addEventListener('terrace-admin-changed', load);
+  window.addEventListener('focus', () => { if (!saving) load(); });
+  setInterval(() => { if (!document.hidden && !saving && !dialog.open && ['#apps', '#inicio', ''].includes(location.hash)) load(); }, 30000);
   load();
 }

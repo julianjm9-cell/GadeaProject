@@ -115,12 +115,14 @@
     loadAccounts(app).catch(error => { if (current === generation) $('managedUsers').replaceChildren(node('p', error.message, 'notice')); });
   }
   function renderAccess(app, host) {
+    if (host.querySelector('form')?.dataset.app === app.id) return;
     host.replaceChildren();
     const wrap = node('div', undefined, 'managed-access'), copy = node('div');
-    copy.append(node('strong', 'Acceso de la aplicación'), node('p', ({ publica: 'Disponible con sus accesos habituales.', privada: 'Solo pueden entrar las cuentas invitadas.', pausada: 'Acceso detenido. Los datos se conservan.' })[app.state], 'muted'));
+    copy.append(node('strong', 'Acceso de la aplicación'), node('p', ({ publica: 'Disponible con sus accesos habituales.', privada: app.password_protected ? 'Protegida con contraseña de acceso.' : 'Acceso con cuentas autorizadas.', pausada: 'Acceso detenido. Los datos se conservan.' })[app.state], 'muted'));
     const choices = node('div', undefined, 'managed-access-choices'); choices.setAttribute('role', 'group'); choices.setAttribute('aria-label', 'Acceso de ' + label(app));
     for (const [value, title] of [['publica', 'Pública'], ['privada', 'Privada'], ['pausada', 'Pausada']]) {
       const control = button(title, async () => {
+        if (value === 'privada') { editPassword(app, host); return; }
         if (control.getAttribute('aria-pressed') === 'true') return;
         for (const item of choices.querySelectorAll('button')) item.disabled = true;
         try {
@@ -134,8 +136,40 @@
       control.setAttribute('aria-pressed', String(app.state === value)); choices.append(control);
     }
     wrap.append(copy, choices); host.append(wrap);
+    if (app.state === 'privada' && app.password_protected) host.append(button('Cambiar contraseña', () => editPassword(app, host)));
+  }
+  function editPassword(app, host) {
+    let revision = catalog.revision;
+    host.replaceChildren();
+    const form = node('form', undefined, 'managed-access-password');
+    form.dataset.app = app.id;
+    const passwordLabel = node('label', 'Contraseña de acceso · ' + label(app));
+    const password = node('input'); password.type = 'password'; password.minLength = 6; password.maxLength = 72; password.autocomplete = 'new-password'; password.required = !app.password_protected;
+    passwordLabel.append(password);
+    const hint = node('p', app.password_protected ? 'Déjalo vacío para conservar la contraseña guardada.' : 'Elige una contraseña de al menos seis caracteres.', 'muted');
+    const submit = node('button', 'Guardar acceso privado'); submit.type = 'submit';
+    const cancel = button('Cancelar', () => { host.replaceChildren(); renderAccess(catalog.apps.find(item => item.id === app.id) || app, host); });
+    const status = node('p', '', 'muted'); status.setAttribute('role', 'alert');
+    form.append(passwordLabel, hint, submit, cancel, status); host.append(form); password.focus();
+    form.addEventListener('submit', async event => {
+      event.preventDefault(); if (submit.disabled) return;
+      const value = password.value; password.value = ''; submit.disabled = cancel.disabled = true;
+      try {
+        const data = await api('/admin/apps/' + app.id, { method:'PATCH', body:JSON.stringify({ id:app.id, state:'privada', revision, ...(value ? {access_password:value} : {}) }) });
+        if (!Array.isArray(data.apps)) throw Error('Actualiza el catálogo para confirmar el acceso.');
+        if (value && !data.apps.find(item => item.id === app.id)?.password_protected) throw Error('Actualiza Hostinger para activar la contraseña de acceso.');
+        if (data.revision >= catalog.revision) catalog = data;
+        host.replaceChildren(); renderCatalog(); renderAll(); toast('Acceso privado guardado y sincronizado con LA TERRAZA.');
+      } catch(error) {
+        status.textContent = error.message;
+        if (error.status === 409) { await load(); revision = catalog.revision; }
+      }
+      finally { submit.disabled = cancel.disabled = false; }
+    });
   }
   window.managedApps = { load, render, hasView: next => Boolean(find(next)) };
   window.addEventListener('hashchange', () => { const next = location.hash.slice(1); if (find(next)) setView(next); });
+  window.addEventListener('focus', () => { if (token && !document.querySelector('.managed-access-password')) load(); });
+  setInterval(() => { if (token && !document.hidden && !document.querySelector('.managed-access-password')) load(); }, 30000);
   if (token) load();
 })();

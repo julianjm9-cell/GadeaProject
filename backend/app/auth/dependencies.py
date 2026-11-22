@@ -73,6 +73,8 @@ def license_prefix(product_code: str) -> str:
 
 def current_license(request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)) -> License:
     product_code = product_code_from_request(request)
+    from app.services.app_registry import require_product_password
+    require_product_password(request, db, product_code)
     require_app_available(db, product_code)
     decision: LicenseDecision = check_access(db, user, product_code, require_credits=product_code not in {"ESO_ADULTOS", "PROFESOR_PARTICULAR", "CAMBRIDGE"})
     if decision.ok and not decision.license and user.role == "superadmin":

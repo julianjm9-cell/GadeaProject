@@ -88,3 +88,8 @@ Las pruebas 9 y 10 solo se habilitan tras completar las pruebas concretas 1 a 8.
 
 
 Acertar la prueba 9 cambia la ventana de refuge-v2.webp (incógnita) a refuge-v1.webp (torre visible). La imagen se elige según la prueba 9 completada en el estado de la cuenta. Se conserva al recargar y al volver a iniciar sesión. Una respuesta errónea mantiene la incógnita y reiniciar el perfil la restaura.
+
+
+Desde las tarjetas de LA TERRAZA y el control de acceso del dashboard online se puede elegir Pública, Privada o Pausada y definir o cambiar una contraseña de acceso a la aplicación. Ambos escriben en `/admin/apps/{id}` usando la misma revisión y consultan el registro al recuperar el foco y cada treinta segundos mientras están visibles. La clave compartida se guarda como hash y abre una puerta previa al acceso normal de las cuentas. Cambiarla o cambiar el estado invalida los permisos de puerta anteriores. La pausa conserva cuentas, licencias y progreso. Los usuarios y las licencias se siguen gestionando en el dashboard. Las configuraciones privadas antiguas sin contraseña de puerta mantienen su acceso por cuentas autorizadas.
+
+La primera incorporación requiere desplegar esta versión en Hostinger. Después, cambiar el estado o la contraseña desde cualquiera de los dos paneles se aplica en el servidor sin otra subida de código. Una revisión antigua produce conflicto y un servidor que todavía no confirma `password_protected` muestra un aviso de actualización. Las claves de puerta no se incluyen en el catálogo, en la memoria de los agentes ni en el historial Git.

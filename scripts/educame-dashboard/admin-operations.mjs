@@ -66,7 +66,7 @@ export function adminOperations(fetchImpl = fetch, sessionStore) {
       if (action === 'app-campaign-read') return await call('/admin/apps/gadeos/campaign');
       if (action === 'app-image-read') {
         if (!/^[a-f0-9]{32}\.webp$/.test(body.name || '')) throw new OperationError(400, 'Selecciona una imagen válida.');
-        const image = await fetchImpl(origin + '/api/private-apps/gadeos/images/' + body.name, { headers: { Authorization: 'Bearer ' + session.token }, redirect: 'error', signal: AbortSignal.timeout(15000) });
+        const image = await fetchImpl(origin + '/admin/apps/gadeos/images/' + body.name, { headers: { Authorization: 'Bearer ' + session.token }, redirect: 'error', signal: AbortSignal.timeout(15000) });
         if (!image.ok) throw new OperationError(image.status, 'No se pudo cargar la imagen privada.');
         const bytes = Buffer.from(await image.arrayBuffer());
         if (bytes.length > 5_000_000) throw new OperationError(413, 'La imagen es demasiado grande.');
@@ -101,7 +101,7 @@ async function update(action, body, call) {
       throw new OperationError(400, 'Revisa la aplicación y su estado.');
     }
     return call('/admin/apps' + (action === 'create-app' ? '' : '/' + body.id), action === 'create-app' ? 'POST' : 'PATCH',
-      { id: body.id, name: body.name, state: body.state, revision: body.revision });
+      { id: body.id, name: body.name, state: body.state, revision: body.revision, ...(body.access_password ? { access_password: body.access_password } : {}) });
   }
   if (['app-account-create', 'app-account-update'].includes(action)) {
     if (!/^[a-z][a-z0-9-]{1,48}$/.test(body.app || '') || (action === 'app-account-update' && !uuid.test(body.id || ''))) throw new OperationError(400, 'Selecciona la app y el tributo.');
