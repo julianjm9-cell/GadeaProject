@@ -10,6 +10,7 @@ import { setupWorkProgress } from './work-progress.js';
 import { setupPublication } from './publication.js';
 import { setupAppCatalog } from './app-catalog.js';
 import { setupContentEditor } from './content-editor.js';
+import { setupManagement } from './management.js';
 import { setupDeploymentStatus } from './deployment-status.js';
 
 const agents = Object.create(null);
@@ -58,6 +59,7 @@ let poll;
 let workspace;
 let changes;
 let operations;
+let management;
 let publicationClient;
 let deploymentStatus;
 const pendingReplies = new Map();
@@ -124,7 +126,7 @@ function showPage() {
   const operation = /^control\/(github|hostinger|admin)(?:\/([a-f0-9]+))?$/.exec(hash);
   const deliveryId = /^entregas\/([a-z0-9][a-z0-9-]{0,63})$/.exec(hash)?.[1];
   const work = deliveryId || ['entregas', 'flujos', 'operaciones'].includes(hash) || hash.startsWith('agentes/');
-  const requested = development ? 'teoria' : operation ? 'control' : work ? 'agentes' : hash;
+  const requested = hash==='gestion'||hash.startsWith('gestion/') ? 'gestion' : development ? 'teoria' : operation ? 'control' : work ? 'agentes' : hash;
   const page = [...document.querySelectorAll('[data-page]')].some(node => node.dataset.page === requested) ? requested : 'inicio';
   document.querySelectorAll('[data-page]').forEach(node => { node.hidden = node.dataset.page !== page; });
   navigation.querySelectorAll('a').forEach(node => {
@@ -137,6 +139,7 @@ function showPage() {
   window.scrollTo(0, 0);
   if (page === 'cambios') changes?.load();
   if (page === 'control') operations?.open(operation?.[1], operation?.[2]);
+  if (page === 'gestion') management?.open();
   if ((deliveryId || hash === 'entregas') && state) refresh().then(openLinkedDelivery).catch(error => feedback(error.message, true));
   if (page === 'chat') chat.open();
   if (page === 'teoria') theory.openTrack(development);
@@ -729,6 +732,7 @@ const agentEditor = setupAgentEditor({ api, button, formMessage, getState: () =>
 });
 setupAppCatalog({ api, element, button, feedback });
 setupContentEditor({ api, feedback });
+management=setupManagement({ api, feedback });
 const chat = setupChat({ api, element, button, feedback, formMessage, getState: () => state, openDelivery });
 const workProgress = setupWorkProgress({ element, button, badge, openDelivery, getState: () => state,
   upload: keys => publicationClient.upload(keys) });

@@ -28,6 +28,7 @@ import { OperationError } from './educame-dashboard/operations.mjs';
 import { githubOperations } from './educame-dashboard/github-operations.mjs';
 import { hostingerOperations } from './educame-dashboard/hostinger-operations.mjs';
 import { adminOperations } from './educame-dashboard/admin-operations.mjs';
+import { managementAsset } from './educame-dashboard/admin-workspace.mjs';
 import { agentDirectory, agentEditor, defaultAgents, updateAgent } from './educame-dashboard/agent-profiles.mjs';
 
 const assets = new Map([
@@ -42,6 +43,10 @@ const assets = new Map([
   ['/changes.js', ['changes.js', 'text/javascript']],
   ['/operations.js', ['operations.js', 'text/javascript']],
   ['/admin-panel.js', ['admin-panel.js', 'text/javascript']],
+  ['/management.js', ['management.js', 'text/javascript']],
+  ['/management-bridge.js', ['management-bridge.js', 'text/javascript']],
+  ['/management.css', ['management.css', 'text/css']],
+  ['/management-embedded.css', ['management-embedded.css', 'text/css']],
   ['/operations.css', ['operations.css', 'text/css']],
   ['/terrace.css', ['terrace.css', 'text/css']],
   ['/terrace-hero.webp', ['terrace-hero.webp', 'image/webp']],
@@ -576,7 +581,7 @@ export async function createDashboard({
             'hostinger/preparar': () => hostinger.prepare(payload.revision), 'hostinger/desplegar': () => hostinger.start(payload),
           };
           if (Object.hasOwn(writes, route)) return json(200, await writes[route]());
-          const action = route.match(/^admin\/(login|logout|pause|create-account|account|license|create-app|app-state|app-account-create|app-account-update|app-campaign|app-image)$/)?.[1];
+          const action = route.match(/^admin\/(bridge|login|logout|pause|create-account|account|license|create-app|app-state|app-account-create|app-account-update|app-campaign|app-image)$/)?.[1];
           if (action) {
             const result = await admin.handle(action, request.headers.cookie, payload, response);
             if (action === 'pause') availabilityExpiry = 0;
@@ -622,6 +627,10 @@ export async function createDashboard({
       if (/^\/api\/(conexiones|publicaciones|estadisticas|videos)(\/|$)/.test(path)) {
         const payload = request.method === 'POST' ? await bodyJson(request) : {};
         return json(200, await connections.handle(path, request.method, payload, origin));
+      }
+      if(request.method==='GET'&&path.startsWith('/gestion/')){
+        const asset=await managementAsset(path);
+        response.writeHead(200,{'Content-Type':asset.type,...asset.headers});response.end(asset.bytes);return;
       }
       const asset = assets.get(path);
       const icon = path.startsWith('/marcas/') && path.slice('/marcas/'.length);

@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/operations.css">
   <link rel="stylesheet" href="/terrace.css">
   <link rel="stylesheet" href="/content-editor.css">
+  <link rel="stylesheet" href="/management.css">
   <script type="module" src="/panel.js"></script>
 </head>
 <body>
@@ -28,6 +29,7 @@
       <div class="nav-cluster"><p class="nav-group">Productos</p>
         <a href="#apps" data-icon="apps">Apps</a>
         <a href="#contenido" data-icon="book">Contenido</a>
+        <a href="#gestion" data-icon="shield">Gestión</a>
         <a href="#cambios" data-icon="history">Cambios</a>
         <a href="#control" data-icon="terminal">Operación</a>
       </div>
@@ -42,7 +44,7 @@
         <a href="#teoria" data-icon="book">Teoría</a>
       </div>
     </nav>
-    <a class="admin-link icon-label" data-icon="external" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noreferrer">Administración online</a>
+    <a class="admin-link icon-label" data-icon="external" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noreferrer">Dashboard de respaldo</a>
   </aside>
 
   <main id="main" tabindex="-1">
@@ -70,6 +72,13 @@
       </div>
       <div class="section-heading home-app-heading"><h2>Tus apps</h2><a class="text-link" href="#apps">Todos los accesos →</a></div>
       <div class="product-grid" id="workspace-apps"></div>
+    </section>
+
+    <section data-page="gestion" aria-labelledby="management-title" hidden>
+      <div class="management-heading"><h1 id="management-title">Gestión</h1><div class="actions"><button type="button" class="button secondary" id="management-refresh">Actualizar</button><button type="button" class="button secondary" id="management-logout">Cerrar sesión administrativa</button><a class="text-link" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noopener noreferrer">Dashboard de respaldo ↗</a></div></div>
+      <div class="management-toolbar"><label>Aplicación<select id="management-app" aria-label="Aplicación que gestionar"><option value="todas">Todas las apps</option></select></label><div id="management-tabs" class="management-tabs" role="group" aria-label="Opciones de gestión"></div></div>
+      <p id="management-status" class="management-status" role="status"></p>
+      <iframe id="management-frame" class="management-frame" title="Administración integrada de Educame" referrerpolicy="no-referrer"></iframe>
     </section>
 
     <section data-page="contenido" aria-labelledby="content-title" hidden>
@@ -195,7 +204,7 @@
     </section>
 
     <section data-page="apps" aria-labelledby="apps-title" hidden>
-      <div class="page-heading heading-actions"><h1 id="apps-title">Apps</h1><a class="button primary" href="https://educame.tech/admin-dashboard/" target="_blank" rel="noreferrer">Abrir dashboard online ↗</a></div>
+      <div class="page-heading heading-actions"><h1 id="apps-title">Apps</h1><a class="button primary" href="#gestion">Gestionar apps</a></div>
       <div id="app-management"></div>
       <div class="product-grid" id="directory-apps" hidden></div>
       <dialog id="app-editor" aria-labelledby="app-editor-title"><div class="dialog-heading"><h2 id="app-editor-title">Aplicación</h2><button class="icon-button" type="button" data-close aria-label="Cerrar aplicación">×</button></div><div id="app-editor-body"></div></dialog>
@@ -237,7 +246,7 @@
       <div class="operation-tabs" role="group" aria-label="Operación">
         <button class="button secondary" data-operation="github" type="button" aria-pressed="true">GitHub</button>
         <button class="button secondary" data-operation="hostinger" type="button" aria-pressed="false">Hostinger</button>
-        <button class="button secondary" data-operation="admin" type="button" aria-pressed="false">Dashboard online</button>
+        <a class="button secondary" href="#gestion">Gestión de apps →</a>
       </div>
       <section id="operation-github" class="card operation-panel" aria-label="GitHub">
         <div class="card-heading"><h2>Solicitudes de cambios</h2><button class="button secondary" data-operation-refresh type="button">Actualizar</button></div>

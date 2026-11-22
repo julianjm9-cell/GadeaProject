@@ -111,9 +111,8 @@ export function setupAppCatalog({ api, element: el, button, feedback }) {
       const footer = el('div', 'managed-app-footer');
       if (app.path) { const open = el('a', 'text-link', 'Abrir app ↗'); open.href = 'https://educame.tech' + app.path; open.target = '_blank'; open.rel = 'noopener noreferrer'; footer.append(open); }
       if (app.id === 'gadeos') footer.append(button('Editar contenido', () => connectedAction('Editar GADEOS', () => manageApp(app))));
-      const admin = el('a', 'text-link', 'Gestionar usuarios ↗');
-      const target = ['arena', 'workspace'].includes(app.template) ? 'app/' + app.id : ({ ingles: 'cambridge', facturas: 'ocr' })[app.id] || app.id;
-      admin.href = 'https://educame.tech/admin-dashboard/#' + target; admin.target = '_blank'; admin.rel = 'noopener noreferrer'; footer.append(admin);
+      const admin = el('a', 'text-link', 'Gestionar usuarios');
+      admin.href = '#gestion/' + app.id + '/usuarios'; footer.append(admin);
       card.append(footer); grid.append(card);
     }
     root.append(grid);

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { jsonRequest, OperationError } from './operations.mjs';
+import { validateManagementRequest } from './admin-workspace.mjs';
 
 const origin = 'https://educame.tech';
 const cookie = 'educame_local_admin';
@@ -58,6 +59,13 @@ export function adminOperations(fetchImpl = fetch, sessionStore) {
     }
     const call = (path, method, data) => request(path, session.token, method, data);
     try {
+      if (action === 'bridge') {
+        const next=validateManagementRequest(body);
+        if(next.method==='GET')return await call(next.path);
+        if(writing)throw new OperationError(409,'Hay otro cambio de administración en curso.');
+        writing=true;
+        try{return await call(next.path,next.method,next.data);}finally{writing=false;}
+      }
       if (action === 'apps') return await call('/admin/apps');
       if (action === 'app-accounts') {
         if (!/^[a-z][a-z0-9-]{1,48}$/.test(body.app || '')) throw new OperationError(400, 'Selecciona una app.');

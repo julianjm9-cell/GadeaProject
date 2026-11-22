@@ -228,6 +228,7 @@ export function setupOperations({ api, element, button, feedback, openCommand })
   const tabs = document.querySelectorAll('[data-operation]');
   function open(selected = tab, reference) {
     tab = selected;
+    $('operation-admin').hidden=selected!=='admin';
     if (reference && selected === 'github' && /^\d+$/.test(reference)) pullNumber = Number(reference);
     deliveryRevision = selected === 'hostinger' && /^[a-f0-9]{40}$/.test(reference || '') ? reference : undefined;
     message($('hostinger-delivery'), deliveryRevision ? 'Versión seleccionada para publicar · ' + short(deliveryRevision) : '');

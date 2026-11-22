@@ -522,7 +522,7 @@ for (const [name, engine, viewport] of [
     await page.getByText('[5/5] Comprobado', { exact: true }).waitFor();
     assert.equal(deploymentCount, 1);
 
-    await page.getByRole('button', { name: 'Dashboard online', exact: true }).click();
+    await page.goto(base + '/#control/admin');
     const online = page.getByRole('link', { name: 'Abrir administración online ↗', exact: true });
     await online.waitFor();assert.equal(await online.getAttribute('href'), 'https://educame.tech/admin-dashboard/');
     assert.equal(await page.getByLabel('Correo del administrador').count(), 0);

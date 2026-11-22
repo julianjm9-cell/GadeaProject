@@ -1,0 +1,39 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');
+const {spawn}=require('node:child_process');const {once}=require('node:events');
+const {mkdtemp,rm}=require('node:fs/promises');const {tmpdir}=require('node:os');const {join,resolve,relative}=require('node:path');
+const {chromium,webkit}=require('./browser-runtime.cjs');
+for(const [name,engine,viewport]of [['Chromium',chromium,{width:1440,height:1000}],['WebKit',webkit,{width:390,height:844}]]){
+  test('Gestión comparte cuentas, licencias y notificaciones con el dashboard de respaldo en '+name,{timeout:120000},async t=>{
+    const directory=await mkdtemp(join(tmpdir(),'educame-management-'));
+    const backend=spawn(process.env.PYTHON||'python',['tests/private-apps-browser-server.py'],{cwd:resolve(__dirname,'..'),windowsHide:true,env:{...process.env,ENVIRONMENT:'test',DATABASE_URL:'sqlite:///'+join(directory,'test.sqlite').replaceAll('\\','/'),EDUCAME_PRIVATE_IMAGE_DIR:join(directory,'images'),JWT_SECRET:'management-browser-ensayo-signing-secret-32',COOKIE_SECURE:'false',PYTHONPATH:'backend',PYTHONUNBUFFERED:'1'}});
+    let output='',errors='';backend.stderr.on('data',data=>errors+=data);
+    let local,browser;
+    t.after(async()=>{if(browser)await browser.close();if(local){await new Promise(resolve=>{local.close(resolve);local.closeAllConnections();});await new Promise(resolve=>setTimeout(resolve,100));}if(backend.exitCode===null){backend.kill();await once(backend,'exit',{signal:AbortSignal.timeout(5000)}).catch(()=>{});}assert.match(relative(resolve(tmpdir()),resolve(directory)),/^educame-management-[\w-]+$/);await rm(directory,{recursive:true,force:true,maxRetries:5,retryDelay:100});});
+    const base=await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error(errors)),15000);backend.once('error',reject);backend.stdout.on('data',data=>{output+=data;const line=output.split(/\r?\n/).find(row=>row.startsWith('{"url"'));if(line){clearTimeout(timeout);resolve(JSON.parse(line).url);}});});
+    for(let i=0;i<60;i++){try{if((await fetch(base+'/health')).ok)break;}catch{}await new Promise(resolve=>setTimeout(resolve,100));}
+    const {createDashboard}=await import('../scripts/educame-dashboard.mjs');const forwarded=[];
+    local=await createDashboard({directory:join(directory,'local'),apiKey:'',fetchImpl:(url,options)=>{const target=new URL(url);assert.equal(target.origin,'https://educame.tech');forwarded.push(target.pathname);return fetch(base+target.pathname+target.search,options);},codex:{status:async()=>({ready:true}),models:async()=>[],coordinate:async()=>({plan:{action:'answer',reply:'Ensayo',tasks:[]}})}});
+    local.listen(0,'127.0.0.1');await once(local,'listening');const origin='http://127.0.0.1:'+local.address().port;
+    browser=await engine.launch(name==='Chromium'?{channel:'msedge'}:{});const page=await browser.newPage({viewport});page.setDefaultTimeout(15000);const pageErrors=[];page.on('pageerror',e=>pageErrors.push(e.message));
+    await page.goto(origin+'/#gestion/gadeos/usuarios');const frame=page.frameLocator('#management-frame');
+    await frame.getByLabel('Admin',{exact:true}).fill('organizador@example.invalid');await frame.getByLabel('Clave',{exact:true}).fill('ensayo-temporal-123');await frame.getByRole('button',{name:'Conectar administración',exact:true}).click();
+    await frame.locator('#managedTitle').getByText('GADEOS',{exact:true}).waitFor();
+    assert.equal(await frame.locator('body').evaluate(()=>localStorage.getItem('educa_admin_token')),'terraza-session');
+    await frame.getByRole('button',{name:'+ Nuevo usuario',exact:true}).click();await frame.getByLabel('Nombre de tributo',{exact:true}).fill('Alma integrada');await frame.getByLabel('Contraseña inicial',{exact:true}).fill('ensayo-tributo-123');await frame.getByRole('button',{name:'Crear usuario',exact:true}).click();await frame.locator('#managedUsers').getByText('Alma integrada',{exact:true}).waitFor();
+    const online=await browser.newPage({viewport});online.setDefaultTimeout(15000);await online.goto(base+'/admin-dashboard/#app/gadeos');await online.getByLabel('Admin',{exact:true}).fill('organizador@example.invalid');await online.getByLabel('Clave',{exact:true}).fill('ensayo-temporal-123');await online.getByRole('button',{name:'Entrar al dashboard',exact:true}).click();await online.locator('#managedUsers').getByText('Alma integrada',{exact:true}).waitFor();
+    await online.getByRole('button',{name:'Editar usuario',exact:true}).click();await online.getByLabel('Nombre de tributo',{exact:true}).fill('Alma desde respaldo');await online.getByRole('button',{name:'Guardar usuario',exact:true}).click();await online.locator('#managedUsers').getByText('Alma desde respaldo',{exact:true}).waitFor();
+    await page.locator('#management-refresh').click();await frame.locator('#managedUsers').getByText('Alma desde respaldo',{exact:true}).waitFor();
+    await page.getByRole('combobox',{name:'Aplicación que gestionar',exact:true}).selectOption('ingles');await frame.locator('#appTitle').getByText('Titulo de ingles',{exact:true}).waitFor();
+    await frame.getByRole('button',{name:'+ Nuevo usuario',exact:true}).click();await frame.locator('#createUserForm').getByLabel('Correo electrónico',{exact:true}).fill('alumna@example.invalid');await frame.locator('#newName').fill('Alumna inglesa');await frame.getByLabel('Contraseña inicial (solo para cuentas nuevas)',{exact:true}).fill('ensayo-ingles-123');await frame.getByRole('button',{name:'Crear o dar acceso',exact:true}).click();await frame.locator('#appUsersTable').getByText('alumna@example.invalid',{exact:true}).waitFor();
+    await page.locator('#management-tabs').getByRole('button',{name:'Notificaciones',exact:true}).click();await frame.locator('#notificationAudience').getByText(/1 cuenta recibirá/).waitFor();assert.ok(forwarded.includes('/admin/app-notifications/CAMBRIDGE'));
+    await frame.getByLabel('Título',{exact:true}).fill('Aviso de ensayo');await frame.getByLabel('Mensaje',{exact:true}).fill('Mensaje ficticio enviado solo a la cuenta de prueba.');await frame.getByRole('button',{name:'Revisar aviso',exact:true}).click();await frame.getByRole('button',{name:'Enviar a 1 cuenta',exact:true}).click();await frame.locator('#notificationHistory').getByText('Aviso de ensayo',{exact:true}).waitFor();
+    await page.locator('#management-tabs').getByRole('button',{name:'Modelos de IA',exact:true}).click();await frame.locator('#aiAppTitle').getByText('Titulo de ingles',{exact:true}).waitFor();
+    await page.getByRole('combobox',{name:'Aplicación que gestionar',exact:true}).selectOption('profesor');await page.locator('#management-tabs').getByRole('button',{name:'Anuncios',exact:true}).click();await frame.getByRole('heading',{name:'Anuncios de profesores',exact:true}).waitFor();
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));assert.ok(await frame.locator('body').evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));assert.deepEqual(pageErrors,[]);
+    const activeTab=page.locator('#management-tabs button[aria-pressed=true]');await activeTab.hover();assert.equal(await activeTab.evaluate(node=>getComputedStyle(node).backgroundColor),'rgb(40, 87, 67)');
+    assert.match(await page.getByRole('link',{name:'Dashboard de respaldo ↗',exact:true}).getAttribute('href'),/educame.tech\/admin-dashboard/);
+    if(process.env.EDUCAME_SCREENSHOT_DIR)await page.screenshot({path:join(process.env.EDUCAME_SCREENSHOT_DIR,'gestion-integrada-'+name+'.png')});
+    await page.locator('#management-logout').click();await frame.getByRole('button',{name:'Conectar administración',exact:true}).waitFor();
+    const denied=await page.request.post(origin+'/api/operacion/admin/bridge',{headers:{Origin:origin},data:{path:'/admin/accounts'}});assert.equal(denied.status(),401);
+  });
+}
