@@ -22,7 +22,7 @@ export function setupManagement({api,feedback}){
   }
   app.addEventListener('change',()=>navigate(app.value,app.value==='todas'?'resumen':'usuarios'));
   $('management-refresh').addEventListener('click',()=>{if(dirty&&!window.confirm('Hay cambios sin guardar. ¿Quieres recargar la ficha?'))return;frame.contentWindow.location.reload();});
-  $('management-logout').addEventListener('click',async()=>{try{await api('/api/operacion/admin/logout','POST',{});frame.contentWindow.location.reload();window.dispatchEvent(new Event('terrace-admin-changed'));}catch(error){feedback(error.message,true);}});
+  $('management-logout').addEventListener('click',async()=>{try{frame.contentWindow.postMessage({type:'terrace-admin-forget-drafts'},location.origin);await api('/api/operacion/admin/logout','POST',{});frame.contentWindow.location.reload();window.dispatchEvent(new Event('terrace-admin-changed'));}catch(error){feedback(error.message,true);}});
   window.addEventListener('message',event=>{
     if(event.origin!==location.origin||event.source!==frame.contentWindow)return;
     const message=event.data;if(!message||typeof message!=='object')return;

@@ -45,6 +45,7 @@ const assets = new Map([
   ['/admin-panel.js', ['admin-panel.js', 'text/javascript']],
   ['/management.js', ['management.js', 'text/javascript']],
   ['/management-bridge.js', ['management-bridge.js', 'text/javascript']],
+  ['/management-recovery.js', ['management-recovery.js', 'text/javascript']],
   ['/management.css', ['management.css', 'text/css']],
   ['/management-embedded.css', ['management-embedded.css', 'text/css']],
   ['/operations.css', ['operations.css', 'text/css']],

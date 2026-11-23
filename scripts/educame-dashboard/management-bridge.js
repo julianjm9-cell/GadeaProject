@@ -8,7 +8,10 @@
     if(url.origin!==origin)return nativeFetch(input,options);
     if(url.pathname.startsWith('/admin/')){
       const method=(options.method||'GET').toUpperCase();
-      const response=await nativeFetch('/api/operacion/admin/bridge',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:url.pathname+url.search,method,...(options.body?{data:JSON.parse(options.body)}:{})})});
+      let response;
+      try{response=await nativeFetch('/api/operacion/admin/bridge',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:url.pathname+url.search,method,...(options.body?{data:JSON.parse(options.body)}:{})})});}
+      catch(error){window.dispatchEvent(new CustomEvent('terrace-admin-request',{detail:{method,ok:false}}));throw error;}
+      window.dispatchEvent(new CustomEvent('terrace-admin-request',{detail:{method,ok:response.ok}}));
       if(response.status===401||response.status===403)notify({type:'terrace-admin-session',connected:false});
       if(response.ok&&method!=='GET'){dirty=false;notify({type:'terrace-admin-changed'});}
       return response;
@@ -16,7 +19,7 @@
     if(url.pathname==='/auth/login'){
       const response=await nativeFetch('/api/operacion/admin/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:options.body});
       const password=document.getElementById('password');if(password)password.value='';
-      const data=await response.json();if(response.ok)notify({type:'terrace-admin-session',connected:true});
+      const data=await response.json();if(response.ok){window.dispatchEvent(new CustomEvent('terrace-admin-login',{detail:{identifier:JSON.parse(options.body).identifier}}));notify({type:'terrace-admin-session',connected:true});}
       return new Response(JSON.stringify(response.ok?{access_token:'terraza-session'}:{detail:data.error||'No se pudo conectar la administración.'}),{status:response.status,headers:{'Content-Type':'application/json'}});
     }
     return nativeFetch(input,options);
@@ -44,19 +47,26 @@
       oldView(next);skin();
       if(changed)notify({type:'terrace-admin-route',app:next==='overview'||next==='ai'?'todas':next==='ads'?'profesor':({cambridge:'ingles',ocr:'facturas'})[next]||next.replace(/^app\//,''),area});
     };
-    const oldLogout=window.logout;if(oldLogout)window.logout=async()=>{await nativeFetch('/api/operacion/admin/logout',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});oldLogout();notify({type:'terrace-admin-session',connected:false});};
+    const oldLogout=window.logout;if(oldLogout)window.logout=async()=>{window.dispatchEvent(new Event('terrace-admin-forget-drafts'));await nativeFetch('/api/operacion/admin/logout',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});oldLogout();notify({type:'terrace-admin-session',connected:false});};
     function route(){
       if(!window.setView||document.getElementById('adminPage')?.hidden)return;
       routing=true;
       try{
-        if(area==='ia'){if(codes[app])aiApp=codes[app];setView('ai');}
-        else if(area==='anuncios')setView('ads');
-        else if(app==='todas')setView('overview');
-        else setView(map[app]||((['profesor','eso','diplomator','universidad','hazlotu'].includes(app))?app:'app/'+app));
+        let next;
+        if(area==='ia'){if(codes[app])aiApp=codes[app];next='ai';}
+        else if(area==='anuncios')next='ads';
+        else if(app==='todas')next='overview';
+        else next=map[app]||((['profesor','eso','diplomator','universidad','hazlotu'].includes(app))?app:'app/'+app);
+        if(view!==next)setView(next);
         skin();
       }finally{routing=false;}
     }
-    const oldLoad=window.loadAll;if(oldLoad)window.loadAll=async()=>{await oldLoad();route();};
+    const oldLoad=window.loadAll;if(oldLoad)window.loadAll=async()=>{
+      document.documentElement.setAttribute('aria-busy','true');
+      window.dispatchEvent(new CustomEvent('terrace-admin-loading',{detail:{loading:true}}));
+      try{await oldLoad();route();}
+      finally{document.documentElement.setAttribute('aria-busy','false');window.dispatchEvent(new CustomEvent('terrace-admin-loading',{detail:{loading:false}}));}
+    };
     const page=document.getElementById('adminPage');
     if(page){new MutationObserver(()=>{if(!page.hidden)route();}).observe(page,{attributes:true,attributeFilter:['hidden']});}
     route();

@@ -23,9 +23,10 @@ export async function managementAsset(path){
     if(file==='index.html'){
       const tokenMarker="let token=localStorage.getItem('educa_admin_token')||''";
       if(!source.includes(tokenMarker))throw new OperationError(409,'La administración cambió. Revisa su integración antes de abrirla.');
-      source=source.replace(tokenMarker,"let token='terraza-session'").replace('>Entrar al dashboard<','>Conectar administración<');
+      source=source.replace(tokenMarker,"let token='terraza-session'").replace('>Entrar al dashboard<','>Conectar administración<')
+        .replace('setView(requested)}catch(e)', 'if(requested!==view)setView(requested)}catch(e)');
     }
-    source=source.replace('<head>','<head><script src="/management-bridge.js"></script><link rel="stylesheet" href="/management-embedded.css">').replaceAll('/assets/brand/facturas.svg','/gestion/assets/brand/facturas.svg');
+    source=source.replace('<head>','<head><script src="/management-bridge.js"></script><script src="/management-recovery.js"></script><link rel="stylesheet" href="/management-embedded.css">').replaceAll('/assets/brand/facturas.svg','/gestion/assets/brand/facturas.svg');
     bytes=Buffer.from(source);
   }
   return {bytes,type,headers:{'Content-Security-Policy':managementPolicy,'X-Frame-Options':'SAMEORIGIN'}};
@@ -36,9 +37,10 @@ export function validateManagementRequest(body){
   if(typeof path!=='string'||path.length>1500||!path.startsWith('/admin/')||path.includes('\\')||path.includes('#'))throw new OperationError(400,'Ruta de administración no permitida.');
   const url=new URL(path,'https://educame.tech');
   const id='[a-zA-Z0-9-]{1,64}';
-  const reads=new RegExp('^/admin/(?:accounts|users(?:/'+id+')?|organizations(?:/'+id+')?|licenses(?:/'+id+')?|ai-settings|app-availability|hazlotu-access|operations-health|profesor-ads(?:/'+id+'/reports)?|app-notifications/'+id+'|profesor-users/'+id+'(?:/materials)?|apps(?:/'+id+'/accounts)?)$');
-  const writes=new RegExp('^/admin/(?:organizations|users|licenses|apps(?:/'+id+'/accounts)?|hazlotu-access|ai-settings(?:/(?:apps/'+id+'|keys|test|test-connection))?|app-notifications/'+id+'|profesor-ads/'+id+'/(?:status|delete|reports/'+id+'))$');
-  const patches=new RegExp('^/admin/(?:app-availability/'+id+'|apps/'+id+'(?:/accounts/'+id+')?|organizations/'+id+'|licenses/'+id+'|users/'+id+'(?:/access/'+id+')?)$');
+  const product='[A-Z][A-Z0-9_]{0,63}';
+  const reads=new RegExp('^/admin/(?:accounts|users(?:/'+id+')?|organizations(?:/'+id+')?|licenses(?:/'+id+')?|ai-settings|app-availability|hazlotu-access|operations-health|profesor-ads(?:/'+id+'/reports)?|app-notifications/'+product+'|profesor-users/'+id+'(?:/materials)?|apps(?:/'+id+'/accounts)?)$');
+  const writes=new RegExp('^/admin/(?:organizations|users|licenses|apps(?:/'+id+'/accounts)?|hazlotu-access|ai-settings(?:/(?:apps/'+product+'|keys|test|test-connection))?|app-notifications/'+product+'|profesor-ads/'+id+'/(?:status|delete|reports/'+id+'))$');
+  const patches=new RegExp('^/admin/(?:app-availability/'+product+'|apps/'+id+'(?:/accounts/'+id+')?|organizations/'+id+'|licenses/'+id+'|users/'+id+'(?:/access/'+product+')?)$');
   const deletes=new RegExp('^/admin/users/'+id+'$');
   if(url.origin!=='https://educame.tech'||!({GET:reads,POST:writes,PATCH:patches,DELETE:deletes}[method]?.test(url.pathname)))throw new OperationError(400,'Esta operación no forma parte de la administración integrada.');
   if(data!==undefined&&(!data||typeof data!=='object'||Array.isArray(data)))throw new OperationError(400,'Datos de administración no válidos.');

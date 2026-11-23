@@ -26,8 +26,12 @@ El puente permite exclusivamente rutas y métodos administrativos enumerados. No
 
 Las modificaciones de cuentas, licencias y configuración se aplican inmediatamente online. No requieren un despliegue. Las implementaciones de código siguen pasando por Encargos, GitHub y Hostinger. Esta distinción se conserva también cuando se trabaja enteramente desde LA TERRAZA.
 
+La ficha de usuario permite activar y desactivar la cuenta, cambiar su contraseña, ajustar créditos y elegir el plan de Profesor Particular o el rol de Facturas. El guardado conserva el plan y rol elegidos antes de iniciar las peticiones para evitar que una recarga intermedia los sustituya.
+
+Los formularios de usuarios, notificaciones y modelos conservan un borrador por sección en la pestaña local. Tras un corte de conexión, una recarga o la renovación de la sesión, **Recuperar borrador** permite revisarlo antes de guardar. La recuperación espera a que termine la carga de datos del servidor. Las contraseñas y claves no se incluyen; hay que introducirlas de nuevo. Cerrar sesión o entrar con otra cuenta elimina los borradores de esa pestaña.
+
 ## Verificación y transición
 
-Las pruebas en Chromium y WebKit móvil utilizan una API real aislada y cuentas ficticias. Comprueban creación desde LA TERRAZA, lectura desde el dashboard, edición inversa, licencias, notificaciones dirigidas a una app, modelos, anuncios, cierre de sesión y pantalla móvil. Las pruebas unitarias verifican los destinos permitidos, la sesión del servidor y que los archivos online originales no se hayan transformado. No envían avisos a usuarios reales ni hacen llamadas de pago a proveedores.
+Las pruebas en Chromium y WebKit móvil utilizan una API real aislada y cuentas ficticias. Comprueban creación desde LA TERRAZA, lectura desde el dashboard, edición inversa, contraseñas, activación de cuentas, créditos, planes, roles, notificaciones dirigidas a una app, persistencia de modelos, moderación y eliminación de anuncios, borrado de una cuenta de ensayo, caducidad, recuperación de borradores y pantalla móvil. Las pruebas unitarias verifican los destinos permitidos, la sesión del servidor y que los archivos online originales no se hayan transformado. No envían avisos a usuarios reales ni hacen llamadas de pago a proveedores.
 
 Antes de retirar el dashboard de respaldo se debe revisar con el propietario el uso real de las funciones menos frecuentes, incluida la inspección, moderación y configuración de proveedores. Mientras tanto, el enlace al respaldo queda visible en Gestión y al pie de LA TERRAZA, y las rutas antiguas siguen funcionando.

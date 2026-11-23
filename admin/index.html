@@ -284,6 +284,7 @@
         <div class="form-grid">
           <div class="row"><div><label for="editName">Usuario</label><input id="editName"></div><div><label for="editEmail">Correo electrónico</label><input id="editEmail" type="email" required></div></div>
           <div><label for="editPassword">Nueva contraseña</label><input id="editPassword" type="password" minlength="8" placeholder="Dejar vacío para conservarla" autocomplete="new-password"></div>
+          <label><input id="editActive" type="checkbox" style="width:auto;min-height:0;margin-right:8px">Cuenta activa</label>
           <div class="row"><div><label for="editAvailable">Créditos disponibles</label><input id="editAvailable" type="number" min="0" step="1" required></div><div><label for="editUsed">Créditos gastados</label><input id="editUsed" type="number" readonly></div></div>
           <div id="editProfesorPlanWrap" hidden><label for="editProfesorPlan">Tipo de cuenta en Profesor Particular</label><select id="editProfesorPlan"><option value="PROFESOR_FREE">Normal</option><option value="PROFESOR_PREMIUM">Premium</option></select><small class="muted">Solo un administrador puede cambiar este acceso.</small></div>
           <div id="editOcrRoleWrap" hidden><label for="editOcrRole">Permisos en FACTURAS</label><select id="editOcrRole"><option value="admin">Administrador · modelos, claves y entrenamiento</option><option value="user">Usuario · uso de facturas</option></select></div>
@@ -485,6 +486,7 @@ function openUser(id){
   $('editEmail').value=user.email||'';
   $('editName').value=user.full_name||'';
   $('editPassword').value='';
+  $('editActive').checked=user.is_active;
   $('editAvailable').value=access.unlimited?0:Number(access.available_credits||0);
   $('editUsed').value=Number(access.used_credits||0);
   $('editProfesorPlan').value=access.plan==='PROFESOR_PREMIUM'?'PROFESOR_PREMIUM':'PROFESOR_FREE';
@@ -498,15 +500,16 @@ async function saveSelectedUser(event){
   const access=user&&accessFor(user,product.code);
   if(!access)return toast('Selecciona un usuario de esta app.');
   const available=Number($('editAvailable').value),total=access.unlimited&&available===0?0:available+Number(access.used_credits||0);
+  const selectedPlan=$('editProfesorPlan').value,selectedRole=$('editOcrRole').value;
   if(!Number.isSafeInteger(available)||available<0||!Number.isSafeInteger(total))return toast('Indica un saldo válido.');
   if(!access.unlimited&&total===0)return toast('Esta licencia necesita al menos 1 crédito total; 0 significaría acceso sin límite.');
   try{
-    const body={email:$('editEmail').value.trim(),full_name:$('editName').value.trim()};
+    const body={email:$('editEmail').value.trim(),full_name:$('editName').value.trim(),is_active:$('editActive').checked};
     if($('editPassword').value)body.password=$('editPassword').value;
     await api(`/admin/users/${user.id}`,{method:'PATCH',body:JSON.stringify(body)});
-    const roleChanged=product.code==='OCR_FACTURAS'&&$('editOcrRole').value!==access.access_role;
-    const planChanged=product.code==='PROFESOR_PARTICULAR'&&$('editProfesorPlan').value!==access.plan;
-    if(total!==Number(access.total_credits||0)||roleChanged||planChanged)await api(`/admin/users/${user.id}/access/${product.code}`,{method:'PATCH',body:JSON.stringify({usage_limit:total,...(product.code==='OCR_FACTURAS'?{access_role:$('editOcrRole').value}:{}),...(product.code==='PROFESOR_PARTICULAR'?{plan:$('editProfesorPlan').value}:{})})});
+    const roleChanged=product.code==='OCR_FACTURAS'&&selectedRole!==access.access_role;
+    const planChanged=product.code==='PROFESOR_PARTICULAR'&&selectedPlan!==access.plan;
+    if(total!==Number(access.total_credits||0)||roleChanged||planChanged)await api(`/admin/users/${user.id}/access/${product.code}`,{method:'PATCH',body:JSON.stringify({usage_limit:total,...(product.code==='OCR_FACTURAS'?{access_role:selectedRole}:{}),...(product.code==='PROFESOR_PARTICULAR'?{plan:selectedPlan}:{})})});
     await loadAll();
     closeUserEditor();
     toast('Usuario actualizado.');
