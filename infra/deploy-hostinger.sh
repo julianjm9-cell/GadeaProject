@@ -24,6 +24,12 @@ if [[ -n "${ENV_FILE:-}" && "$ENV_FILE" != .env ]]; then
 fi
 docker compose --profile proxy config --quiet
 
+# Nginx reads this public bind mount as an unprivileged user. Git invoked by
+# an SSH job with umask 077 can otherwise leave changed assets unreadable.
+# Keep the restrictive mask for backups, receipts and environment files.
+find admin -type d -exec chmod a+rx {} +
+find admin -type f -exec chmod a+r {} +
+
 # A Git checkout is not proof of what the current container is serving.
 export EDUCAME_BUILD_REVISION=unknown
 if git rev-parse --verify HEAD >/dev/null 2>&1 && [[ -z "$(git status --porcelain --untracked-files=no)" ]]; then

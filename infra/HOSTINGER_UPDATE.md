@@ -32,6 +32,8 @@ Consulta `docs/profesor-historial-recuperacion.md`.
 
 No ejecuta `bootstrap`, no cambia contraseñas, no elimina volúmenes y no sobrescribe `.env`. Los usuarios, licencias y contenidos existentes se conservan. Las claves de IA y OAuth siguen siendo las configuradas en el servidor. Este es un procedimiento de actualización, no de instalación inicial.
 
+El acceso SSH de LA TERRAZA conserva permisos privados para sus recibos, copias y configuración. La actualización Git usa permisos normales para el código público y el script restablece la lectura de `admin/` para Nginx. Esto evita un 403 del dashboard de respaldo cuando un archivo se creó bajo una máscara restrictiva; no cambia permisos del `.env` ni de las copias.
+
 Los documentos se conservan en el volumen `educa_suite_documents`. Si el backend está en marcha, el script también guarda sus documentos en `documents.tar`; al incorporar por primera vez un volumen vacío, recupera ahí los archivos existentes antes de actualizar el contenedor.
 
 Profesor Particular queda disponible en `/profesor`, `/profesor/login`, `/profesor/demo` y `/profesor-particular`. El dashboard sigue en `/admin-dashboard/`. La imagen incluye el código de la app, su landing y la captura de presentación; el dashboard usa el directorio `admin/` del repositorio.

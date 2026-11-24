@@ -73,7 +73,7 @@ flock -n 8 || { printf 'EDUCAME_STEP Ya hay otro despliegue en curso.\n'; exit 1
 printf 'EDUCAME_STEP Comprobando la revisión de GitHub.\n'
 GIT_TERMINAL_PROMPT=0 git fetch origin main
 [[ "$(git rev-parse FETCH_HEAD)" == "$revision" ]] || { printf 'EDUCAME_STEP GitHub cambió después de la confirmación.\n'; exit 1; }
-git merge --ff-only "$revision"
+(umask 022; git merge --ff-only "$revision")
 [[ "$(git rev-parse HEAD)" == "$revision" ]]
 bash infra/deploy-hostinger.sh
 printf 'EDUCAME_STEP El VPS ha completado las verificaciones.\n'
