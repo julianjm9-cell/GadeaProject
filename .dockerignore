@@ -8,6 +8,8 @@ backend/data/
 .agents
 .educame-agents/
 .codex
+.claude
+CLAUDE.local.md
 .env
 .env.*
 !.env.example

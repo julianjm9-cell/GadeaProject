@@ -34,6 +34,12 @@ test('las herramientas API aíslan ámbitos, secretos, enlaces, lectura y comand
   const tools = await createProviderTools({ cwd: dir, allowed: ['apps/profesor/', 'package.json'], writable: true,
     runChecks: implementation.runChecks });
   assert.deepEqual((await tools.execute('list_files', { prefix: '', offset: 0 })).files, ['apps/profesor/demo.js']);
+  await writeFile(join(dir, 'AGENTS.md'), 'Reglas comunes\n');
+  const guide = await tools.execute('read_file', { path: 'AGENTS.md', start: 1, count: 5 });
+  assert.match(guide.text, /Reglas comunes/);
+  assert.ok((await tools.execute('write_file', { path: 'AGENTS.md', content: 'otro' })).error);
+  assert.ok((await tools.execute('replace_text', { path: 'AGENTS.md', old_text: 'Reglas', new_text: 'Otros', expected_revision: guide.revision })).error);
+  assert.equal(await readFile(join(dir, 'AGENTS.md'), 'utf8'), 'Reglas comunes\n');
   assert.match((await tools.execute('read_file', { path: 'apps/profesor/demo.js', start: 1, count: 50 })).text, /pista/);
   for (const path of ['../private.txt', 'apps/profesor/../otro.js', 'apps/profesor/.env', 'apps/profesor/.git/config',
     'apps/profesor/credentials.json', 'backups/private.txt', 'package.json.extra', 'C:/data', 'apps\\profesor\\demo.js']) {

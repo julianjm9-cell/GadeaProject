@@ -4,6 +4,8 @@ Puedes dar un encargo distinto a cada agente y reunir varios en un lote. Dos age
 
 ## LA TERRAZA
 
+Para trabajar en paralelo con una suscripción personal de Claude, usa **Conexiones → Agentes e IA → Abrir Claude Code**. La [guía de colaboración](trabajo-codex-claude.md) explica las copias aisladas, la memoria compartida y cómo integrar una rama externa. El motor Claude API de la cola usa credenciales de Claude Console.
+
 Ejecuta el siguiente comando desde la raíz del proyecto y abre [LA TERRAZA en tu navegador](http://127.0.0.1:4317/).
 
 ```powershell

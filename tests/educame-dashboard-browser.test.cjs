@@ -135,8 +135,10 @@ for (const [name, engine, viewport] of [
 
   test(`Motores API se conectan, cambian de modelo y conservan el encargo en ${name}`, { timeout: 35000 }, async t => {
     const directory = await mkdtemp(join(tmpdir(), 'educame-browser-'));
-    let modelCalls = 0, messages = 0;
-    const server = await listen(t, directory, { codex: { status: async () => ({ ready: true }),
+    let modelCalls = 0, messages = 0, nativeLaunches = 0;
+    const server = await listen(t, directory, { openClaude: async root => {
+      assert.equal(resolve(root), resolve(__dirname, '..')); nativeLaunches++;
+    }, codex: { status: async () => ({ ready: true }),
       models: async () => [{ id: 'codex-ensayo', label: 'Codex ensayo' }] }, fetchImpl: async (url, options) => {
       if (url === 'https://api.anthropic.com/v1/models') { modelCalls++; return new Response(JSON.stringify({ data: [{ id: 'claude-test', display_name: 'Claude ensayo' }] })); }
       if (url === 'https://api.anthropic.com/v1/messages') {
@@ -158,6 +160,18 @@ for (const [name, engine, viewport] of [
     assert.equal(await page.getByRole('button', { name: 'Añadir a la cola', exact: true }).isEnabled(), false);
     await page.goto(base + '/#conexiones');
     await page.getByRole('button', { name: 'Agentes e IA', exact: true }).click();
+    const nativeUrl = base + '/api/claude-code/abrir';
+    assert.equal((await page.request.post(nativeUrl, { data: {} })).status(), 403);
+    assert.equal((await page.request.post(nativeUrl, { headers: { Origin: base }, data: { command: 'extra' } })).status(), 400);
+    await page.getByRole('button', { name: 'Abrir Claude Code', exact: true }).click();
+    await page.getByText('Continúa en la ventana de Claude Code.', { exact: true }).waitFor();
+    assert.equal(nativeLaunches, 1);
+    assert.equal(messages, 0);
+    for (const file of ['trabajo-codex-claude', 'auditoria-ecosistema']) {
+      const guide = await page.request.get(base + '/guias/' + file + '.md');
+      assert.equal(guide.status(), 200);
+      assert.match(await guide.text(), /LA TERRAZA/);
+    }
     await page.getByLabel('Clave API de Claude').fill('sk-ant-ensayo-no-real');
     await page.getByRole('button', { name: 'Guardar clave de Claude', exact: true }).click();
     await page.locator('#claude-status').getByText('Clave guardada', { exact: true }).waitFor();

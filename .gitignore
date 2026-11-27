@@ -18,6 +18,9 @@ license_server/.env
 license_server/data/
 .env
 .educame-agents/
+/.claude/worktrees/
+/.claude/settings.local.json
+/CLAUDE.local.md
 backend/data/
 
 # Generated packages

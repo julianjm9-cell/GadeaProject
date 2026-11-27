@@ -15,12 +15,14 @@ const properties = {
 
 export async function createProviderTools({ cwd, allowed, writable = false, runChecks }) {
   const root = await realpath(cwd);
+  const readScopes = [...allowed, 'AGENTS.md', 'CLAUDE.md', 'docs/trabajo-codex-claude.md',
+    'docs/auditoria-ecosistema.md', 'docs/guia-desarrollo-educame.md'];
   const checks = new Map();
   const revision = text => createHash('sha256').update(text).digest('hex');
-  const permitted = path => !privatePath.test(path) && allowed.some(prefix => /\.[a-z0-9]+$/i.test(prefix) ? path === prefix : path.startsWith(prefix));
+  const permitted = (path, scopes) => !privatePath.test(path) && scopes.some(prefix => /\.[a-z0-9]+$/i.test(prefix) ? path === prefix : path.startsWith(prefix));
   const safe = async (path, create = false) => {
     if (typeof path !== 'string' || !path || path.includes('\\') || path.includes(':') || path.includes('\0') || isAbsolute(path) ||
-        path.split('/').some(part => ['..', '.', ''].includes(part)) || !permitted(path)) throw new Error('Ruta fuera del ámbito permitido.');
+        path.split('/').some(part => ['..', '.', ''].includes(part)) || !permitted(path, create ? allowed : readScopes)) throw new Error('Ruta fuera del ámbito permitido.');
     const target = resolve(root, path);
     let current = root;
     for (const [index, part] of path.split('/').entries()) {
@@ -42,8 +44,8 @@ export async function createProviderTools({ cwd, allowed, writable = false, runC
         const path = prefix + entry.name;
         if (privatePath.test(path) || entry.isSymbolicLink()) continue;
         if (entry.isDirectory()) {
-          if (allowed.some(scope => scope.startsWith(path + '/') || path.startsWith(scope))) await visit(join(directory, entry.name), path + '/');
-        } else if (entry.isFile() && permitted(path)) result.push(path);
+          if (readScopes.some(scope => scope.startsWith(path + '/') || path.startsWith(scope))) await visit(join(directory, entry.name), path + '/');
+        } else if (entry.isFile() && permitted(path, readScopes)) result.push(path);
       }
     }
     await visit(root); files = result.sort(); return files;

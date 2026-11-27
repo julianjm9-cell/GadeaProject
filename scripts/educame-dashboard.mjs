@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
-import { spawn } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
+import { promisify } from 'node:util';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { concurrency, defaultModel, maxTasks, outputDir, requestDraft, validateTasks } from './educame-agents.mjs';
@@ -202,6 +203,22 @@ async function exampleDraft(task) {
   };
 }
 
+async function openLocalClaude(root) {
+  if (process.platform !== 'win32') throw new PanelError(400, 'Desde la carpeta del proyecto, ejecuta claude --worktree en tu terminal.');
+  const script = fileURLToPath(new URL('./educame-dashboard/open-claude.ps1', import.meta.url));
+  // Keep provider and deployment credentials from the panel process out of the interactive client.
+  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
+    /^(path|pathext|systemroot|windir|comspec|home|userprofile|homedrive|homepath|appdata|localappdata|temp|tmp|programfiles(?:\(x86\))?|programdata|username|systemdrive)$/i.test(key)));
+  try {
+    await promisify(execFile)('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'RemoteSigned', '-File', script],
+      { cwd: root, env, windowsHide: true, timeout: 15000 });
+  } catch (error) {
+    const message = error.code === 2 ? 'Instala Claude Code para Windows y vuelve a abrirlo desde aquí.' :
+      error.code === 3 ? 'Git no está disponible. Abre LA TERRAZA con su acceso directo.' : 'No se pudo abrir Claude Code. Puedes iniciar claude --worktree en la carpeta del proyecto.';
+    throw new PanelError(503, message);
+  }
+}
+
 export async function createDashboard({
   directory = outputDir,
   apiKey = process.env.EDUCAME_AGENTS_API_KEY?.trim(),
@@ -213,6 +230,7 @@ export async function createDashboard({
   implementationOptions,
   ssh,
   restartProcess,
+  openClaude = openLocalClaude,
   automaticPublication = false,
 } = {}) {
   await mkdir(directory, { recursive: true });
@@ -417,6 +435,19 @@ export async function createDashboard({
       const url = new URL(request.url, origin);
       const path = url.pathname;
       if (restarting && request.method !== 'GET') throw new OperationError(409, 'LA TERRAZA se está reiniciando.');
+      if (path === '/api/claude-code/abrir' && request.method === 'POST') {
+        if (request.headers.origin !== origin || request.headers['content-type']?.split(';')[0] !== 'application/json')
+          throw new PanelError(403, 'Abre Claude Code desde Conexiones en este equipo.');
+        if (Object.keys(await bodyJson(request)).length) throw new PanelError(400, 'El acceso a Claude Code abre la copia del proyecto.');
+        await openClaude(repositoryRoot);
+        return json(200, { opened: true });
+      }
+      if (request.method === 'GET' && ['/guias/trabajo-codex-claude.md', '/guias/auditoria-ecosistema.md'].includes(path)) {
+        const document = await readFile(new URL('../docs/' + path.slice('/guias/'.length), import.meta.url));
+        response.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'X-Content-Type-Options': 'nosniff' });
+        response.end(document);
+        return;
+      }
       if (path === '/api/publicacion' && request.method === 'GET') return json(200, publication.status());
       if (path === '/api/apps/catalogo' && request.method === 'GET') return json(200, appCatalog.read());
       if (path.startsWith('/api/content/')) {

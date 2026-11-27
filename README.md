@@ -2,6 +2,8 @@
 
 Suite SaaS multiapp para vender y administrar productos educativos con login, licencias, consumo IA, recursos oficiales centralizados, dashboard de negocio y despliegue Docker.
 
+Para incorporarte al proyecto, empieza por el [informe del ecosistema](docs/auditoria-ecosistema.md) y la [guía de trabajo simultáneo con Codex y Claude](docs/trabajo-codex-claude.md). La administración diaria está en Gestión de LA TERRAZA y el dashboard online sigue disponible como respaldo.
+
 ## Estructura final
 
 - `backend/`: API central con FastAPI, PostgreSQL, SQLAlchemy, Alembic, JWT, usuarios, organizaciones, licencias, estado por usuario y auditoria.

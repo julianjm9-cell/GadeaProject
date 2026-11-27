@@ -15,6 +15,8 @@ Lee la sección pertinente de la [guía de desarrollo](docs/guia-desarrollo-educ
 
 ## Cómo trabajar
 
+Si Codex y Claude colaboran, aplica el [protocolo de trabajo simultáneo](docs/trabajo-codex-claude.md). Para elegir el punto de entrada y las pruebas de cada app consulta el [informe del ecosistema](docs/auditoria-ecosistema.md).
+
 - Comprueba el estado de Git y conserva cambios ajenos al encargo. Parte de las rutas, componentes y datos que usan las personas. Si colaboran varios agentes, delimita los archivos de cada tarea y reúne las propuestas antes de integrar.
 - Simplifica alrededor de la acción principal. Conserva controles útiles y compatibilidad con el contenido guardado. Separa una mejora visual de los cambios en reglas, permisos, progreso y licencias.
 - Comprueba el flujo completo afectado. En interfaz, usa escritorio y móvil, con Chromium y WebKit cuando el cambio afecte al navegador. En juegos, comprueba entradas, aciertos, errores, final y recuperación con datos ficticios. Para persistencia, prueba recarga y el fallo que podría pisar un cambio más reciente.

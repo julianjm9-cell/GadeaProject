@@ -92,7 +92,7 @@ export async function draftRequest(task, { repository = false, implement = false
     'El encargo autoriza editar solo la copia aislada asignada. No autoriza publicar, desplegar ni consultar datos privados.')
     .replace('No afirmes haber ejecutado pruebas, publicado contenido o cambiado código. Entrega un borrador revisable.',
       'Distingue las pruebas realmente ejecutadas de las pendientes. Implementa la tarea en los archivos y describe el resultado real.') : scope;
-  const instructions = [mode, guidance, agentInstructions(task.agente, task.agentProfile, implement)].filter(Boolean).join('\n\n');
+  const instructions = [mode, guidance, repository && 'Consulta AGENTS.md y docs/trabajo-codex-claude.md para coordinar cambios concurrentes. El informe docs/auditoria-ecosistema.md orienta la búsqueda por producto. Confirma el comportamiento en la revisión asignada.', agentInstructions(task.agente, task.agentProfile, implement)].filter(Boolean).join('\n\n');
   const input = { encargo: task.encargo, contexto: task.contexto, contexto_proyecto: task.productContext ?? projectContext(task) };
   if (research) input.fuentes_publicas = task.fuentes;
   if (task.revision) input.entrega_a_revisar = task.revision;

@@ -84,11 +84,12 @@ for (const [name, engine, options] of [
       }
       await page.goto(`http://127.0.0.1:${server.address().port}/cambridge-info`);
       await page.locator('[data-preview-open="practice"]').click();
-      const audio = page.locator('#previewAudio');
-      await audio.evaluate(element => element.play());
-      await page.waitForFunction(() => document.getElementById('previewAudio').currentTime > 0.15);
+      const listening = page.locator('#sample-listening');
+      await listening.getByText('Ver un ejemplo de transcripción').click();
+      assert.equal(await listening.locator('blockquote').isVisible(), true);
       await page.getByRole('button', {name:'Writing', exact:true}).click();
-      assert.equal(await audio.evaluate(element => element.paused), true);
+      assert.equal(await listening.isVisible(), false);
+      assert.equal(await page.locator('#sample-writing').isVisible(), true);
     } finally {
       if (browser) await browser.close();
       await new Promise(done => server.close(done));

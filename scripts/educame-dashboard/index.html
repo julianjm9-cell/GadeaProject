@@ -485,8 +485,13 @@
           <details class="setup-guide"><summary>Cómo elegir el motor</summary><p>Guarda una clave y elige OpenAI API y un modelo en el chat o en el encargo. El consumo se factura en tu cuenta API, separado de Codex. Cada pasada tiene un límite de 24 pasos o 120.000 tokens; las implementaciones incluyen una segunda pasada de revisión. Si falla, conserva la copia y el motor elegido.</p></details>
           <button class="button subtle" type="button" data-disconnect="openai" hidden>Quitar clave del panel</button>
         </section>
+        <section class="card compose-card provider-card">
+          <h2>Claude Code</h2><p>Trabaja con tu suscripción en una copia propia de Educame mientras Codex sigue con su encargo.</p>
+          <div class="actions"><button class="button primary" id="open-claude-code" type="button">Abrir Claude Code</button></div>
+          <details class="setup-guide"><summary>Primer acceso y guías</summary><p>Inicia sesión en la ventana de Claude con tu cuenta personal. Pídele un cambio en una app distinta de la que esté editando Codex.</p><a href="/guias/trabajo-codex-claude.md" target="_blank" rel="noreferrer">Cómo trabajar juntos ↗</a> · <a href="/guias/auditoria-ecosistema.md" target="_blank" rel="noreferrer">Auditoría por aplicación ↗</a></details>
+        </section>
         <section class="card compose-card provider-card"><div class="provider-head"><span class="tile-icon amber" data-icon="sparkles"></span><span class="badge" id="claude-status">Por configurar</span></div>
-          <h2>Claude API</h2><p>El mismo chat, agentes y entregas, con modelos de tu cuenta de Anthropic. Conserva la memoria común y los criterios del encargo.</p>
+          <h2>Claude API</h2><p>Para automatizar encargos en la cola. Usa una clave de Claude Console de un solo espacio de trabajo y su facturación API.</p>
           <form id="claude-form"><label>Clave API de Claude<input type="password" name="key" maxlength="1000" autocomplete="off" required></label><div class="actions"><button class="button primary" type="submit">Guardar clave de Claude</button><a class="text-link" href="https://platform.claude.com/" target="_blank" rel="noreferrer">Obtener clave ↗</a></div><p class="form-message" role="alert" hidden></p></form>
           <details class="setup-guide"><summary>Cómo conectar Claude</summary><ol><li>Crea una clave API en tu cuenta de Anthropic con saldo disponible.</li><li>Guárdala aquí y elige Claude API en el chat o en un encargo.</li><li>Selecciona uno de los modelos que devuelve tu cuenta.</li></ol><p>La API tiene facturación propia. Cada pasada admite hasta 24 pasos o 120.000 tokens. Las implementaciones incluyen revisión. Copiador usa los motores con búsqueda disponibles; Claude no abre enlaces en esta versión.</p></details>
           <button class="button subtle" type="button" data-disconnect="claude" hidden>Quitar clave de Claude</button>

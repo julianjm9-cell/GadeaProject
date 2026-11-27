@@ -375,6 +375,18 @@ export function setupWorkspace({ agents, element, button, api, feedback, formMes
   for (const node of document.querySelectorAll('[data-connection], [data-open-connection]')) {
     node.addEventListener('click', () => connectionTab(node.dataset.connection || node.dataset.openConnection));
   }
+  $('#open-claude-code').addEventListener('click', async event => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    try {
+      await api('/api/claude-code/abrir', 'POST', {});
+      feedback('Continúa en la ventana de Claude Code.');
+    } catch (error) {
+      feedback(error.message, true);
+    } finally {
+      button.disabled = false;
+    }
+  });
   $('#copy-google-redirect').addEventListener('click', async () => {
     const field = $('#google-redirect');
     if (!field.value) return;
