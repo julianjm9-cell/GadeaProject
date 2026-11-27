@@ -314,7 +314,17 @@ dialog::backdrop { background: #1b2c25a3; }
 .order-running, .order-publishing { border-left-color: #3c8073; background: #f6faf4; }
 .order-running .order-status, .order-publishing .order-status { background: #dceee7; color: #225b4e; }
 .order-attention, .order-question { border-left-color: #bf8739; }
-.order-attention .order-status, .order-question .order-status { background: #fff0d5; color: #7c551c; }
+.order-attention .order-status { background: #fff0d5; color: #7c551c; }
+.order-question { border-left-color: #4d6f9a; }
+.order-question .order-status { background: #e3ecf7; color: #2e4f78; }
+.order-queued { border-left-color: #9aa59d; }
+.order-queued .order-status { background: #f1f2ee; color: #4f5d55; }
+.order-undone { border-left-color: #c3bcbc; }
+.order-undone .order-status { background: #f2f0f0; color: #6a6262; }
+.order-status::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 7px; background: currentColor; vertical-align: middle; }
+@keyframes order-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.order-running .order-status::before, .order-publishing .order-status::before { animation: order-pulse 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .order-running .order-status::before, .order-publishing .order-status::before { animation: none; } }
 .order-result { margin-top: 12px; color: #55645d; font-size: .88rem; }
 .order-result summary { cursor: pointer; }
 .order-result p { white-space: pre-wrap; overflow-wrap: anywhere; }
