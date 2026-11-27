@@ -257,7 +257,7 @@ def test_deployment_smoke_check_routes(client, monkeypatch, case):
             db.commit()
     if case in {"paused", "paused_with_unrelated_503"}:
         with db_factory() as db:
-            db.add(AppSetting(key="app_paused:OCR_FACTURAS", value="1"))
+            db.add(AppSetting(key="app_paused:CAMBRIDGE", value="1"))
             db.commit()
 
     def open_local(url, timeout=20):
@@ -266,7 +266,7 @@ def test_deployment_smoke_check_routes(client, monkeypatch, case):
             relative = url.removeprefix("http://admin/") or "index.html"
             return BytesIO((admin_root / relative).read_bytes())
         path = url.removeprefix("http://127.0.0.1:8000")
-        if path == "/facturas" and case.endswith("_503"):
+        if path == "/cambridge" and case.endswith("_503"):
             detail = deployment_check.PAUSE_MESSAGE if case == "unexpected_503" else "Unavailable"
             raise HTTPError(url, 503, "HTTP error", {"Retry-After": "3600"}, BytesIO(json.dumps({"detail": detail}).encode()))
         response = test_client.get(path)
@@ -277,10 +277,12 @@ def test_deployment_smoke_check_routes(client, monkeypatch, case):
         result.url = str(response.url)
         return result
 
+    from app.services import app_availability
+    monkeypatch.setattr(app_availability, "HIDDEN_PRODUCTS", frozenset({"OCR_FACTURAS", "UNIVERSIDAD_ADULTOS"}))
     monkeypatch.setattr(deployment_check, "urlopen", open_local)
     monkeypatch.setattr(deployment_check, "engine", db_factory.kw["bind"])
     if case.endswith("_503"):
-        with pytest.raises(AssertionError, match="No responde /facturas: HTTP 503"):
+        with pytest.raises(AssertionError, match="No responde /cambridge: HTTP 503"):
             deployment_check.check_deployment()
     else:
         deployment_check.check_deployment()
@@ -670,7 +672,7 @@ def test_eso_initial_credit_configuration_is_used(client, monkeypatch):
         assert 29 <= (lic.expires_at - datetime.now()).days <= 30
 
 
-@pytest.mark.parametrize("path", ["/", "/suite", "/u25", "/e25", "/cambridge-info", "/diplomator"])
+@pytest.mark.parametrize("path", ["/", "/suite", "/e25", "/cambridge-info", "/diplomator"])
 def test_public_marketing_pages_load_without_login(client, path):
     test_client, _ = client
     response = test_client.get(path)
@@ -1034,7 +1036,6 @@ def test_login_pages_load_without_login(client, path):
         ("/apps", "/apps"),
         ("/app", "/app"),
         ("/cambridge", "/cambridge"),
-        ("/universidad-adultos", "/universidad-adultos"),
         ("/eso-adultos", "/eso-adultos"),
     ],
 )
@@ -1620,3 +1621,22 @@ def test_app_ai_configuration_requires_admin(client):
     login(test_client)
     assert test_client.post("/admin/ai-settings/apps/ESO_ADULTOS", json={"capabilities": {"chat": None}}).status_code == 403
     assert test_client.post("/admin/ai-settings/keys", json={"openai_api_key": "sk-test"}).status_code == 403
+
+
+@pytest.fixture(autouse=True)
+def _engine_tests_see_retired_products(monkeypatch):
+    # Los motores de Universidad +25 y Facturas siguen probándose; la retirada se verifica en test_retired_products_are_hidden.
+    from app.services import app_availability
+    monkeypatch.setattr(app_availability, "HIDDEN_PRODUCTS", frozenset())
+
+
+def test_retired_products_are_hidden(client, monkeypatch):
+    from app.services import app_availability
+    monkeypatch.setattr(app_availability, "HIDDEN_PRODUCTS", frozenset({"OCR_FACTURAS", "UNIVERSIDAD_ADULTOS"}))
+    test_client, db_factory = client
+    for path in ("/u25", "/universidad-25.html", "/universidad-25-info", "/universidad-adultos", "/ocr-facturas", "/facturas", "/facturas/login"):
+        assert test_client.get(path, follow_redirects=False).status_code == 404, path
+    with db_factory() as db:
+        assert app_availability.is_app_paused(db, "UNIVERSIDAD_ADULTOS") is True
+        assert app_availability.is_app_paused(db, "OCR_FACTURAS") is True
+        assert app_availability.is_app_paused(db, "ESO_ADULTOS") is False

@@ -15,12 +15,14 @@ from app.services.app_registry import known_app_for_path, app_definition
 
 
 PAUSABLE_PATHS = {
-    "/facturas": "OCR_FACTURAS",
     "/cambridge": "CAMBRIDGE",
     "/profesor-particular": "PROFESOR_PARTICULAR",
     "/gadeos": "GADEOS",
     "/juegos-del-hambre": "GADEOS",
 }
+
+# Productos retirados (HIDDEN_PRODUCTS): ninguna de estas rutas debe servirse en Hostinger.
+RETIRED_PATHS = ("/ocr-facturas", "/facturas", "/facturas/login", "/u25", "/universidad-25-info", "/universidad-25.html", "/universidad-adultos")
 
 
 def verify_ad_policy(data: bytes) -> None:
@@ -89,10 +91,6 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
         connection.execute(text("SELECT id, send_key, product_code FROM profesor_notifications LIMIT 0"))
         connection.execute(text("SELECT notification_id, user_id, read_at, dismissed_at FROM profesor_notification_recipients LIMIT 0"))
     checks = {
-        "/ocr-facturas": b'href="/facturas/login"',
-        "/facturas": b"LOGIN_TARGETS",
-        "/facturas/login": b"facturas-access",
-        "/assets/brand/facturas.svg": b"<svg",
         "/health": b'"ok"',
         "/": b"<h1>Educame Tech</h1>",
         "/privacidad": b"Pol\xc3\xadtica de privacidad",
@@ -421,6 +419,13 @@ def check_deployment(base: str = "http://127.0.0.1:8000", admin: str = "http://a
     for product in PAUSABLE_PATHS.values():
         assert isinstance(availability[product]["paused"], bool), f"Estado de pausa inválido: {product}"
     print("OK /api/public/app-availability")
+    for path in RETIRED_PATHS:
+        try:
+            with urlopen(base + path, timeout=20):
+                raise AssertionError(f"{path} sigue publicada y debería estar retirada")
+        except HTTPError as exc:
+            assert exc.code == 404, f"{path} debería responder 404 y responde {exc.code}"
+    print("OK rutas retiradas")
     for path, expected in checks.items():
         try:
             with urlopen(base + path, timeout=20) as response:

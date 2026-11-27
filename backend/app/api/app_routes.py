@@ -46,7 +46,7 @@ from app.services.audit import audit
 from app.services.ai_delivery import reliable_ai, provider_post, lock_account
 from app.services.gemini_native import chat_data as gemini_chat_data, failure_message as gemini_failure_message, generate_url as gemini_generate_url, is_auth_key as is_gemini_auth_key, post_with_retry as gemini_post_with_retry, request_body as gemini_request_body
 from app.services.licenses import check_access, check_legacy_license, profesor_account_plan, usage_count_for_license
-from app.services.app_availability import PRODUCT_CODES as PAUSABLE_PRODUCTS, PAUSE_MESSAGE, is_app_paused, require_app_available
+from app.services.app_availability import PRODUCT_CODES as PAUSABLE_PRODUCTS, PAUSE_MESSAGE, is_app_paused, is_hidden, require_app_available
 from app.services.gamification import award_event, equip_item, get_or_create_profile, level_for_xp, profile_payload, public_config, purchase_item
 from app.services.resources import load_resource_catalog
 
@@ -1232,7 +1232,9 @@ def cambridge_public_page():
 @router.get("/u25")
 @router.get("/universidad-25.html")
 def universidad_public_page():
-    raise HTTPException(status_code=404)
+    if is_hidden("UNIVERSIDAD_ADULTOS"):
+        raise HTTPException(status_code=404)
+    return marketing_file("universidad-25.html", "text/html")
 
 
 @router.get("/eso-adultos-info")
@@ -1244,7 +1246,9 @@ def eso_public_page():
 
 @router.get("/ocr-facturas")
 def ocr_facturas_landing():
-    raise HTTPException(status_code=404)
+    if is_hidden("OCR_FACTURAS"):
+        raise HTTPException(status_code=404)
+    return marketing_file("ocr-facturas.html", "text/html")
 
 
 @router.get("/profesor")
@@ -1345,6 +1349,8 @@ def profesor_demo():
 @router.get("/diplomator/login")
 @router.get("/facturas/login")
 def login_page(request: Request):
+    if request.url.path == "/facturas/login" and is_hidden("OCR_FACTURAS"):
+        raise HTTPException(status_code=404)
     if request.url.path in {"/diplomator/login", "/facturas/login", "/e25/login", "/e25/register", "/profesor/login", "/profesor/register"} or request.query_params.get("next") in {"/app", "/eso-adultos", "/profesor-particular", "/facturas"}:
         return static_html("product-access.html", PROJECT_ROOT / "backend" / "app" / "static" / "product-access.html")
     return static_html("login.html", PROJECT_ROOT / "backend" / "app" / "static" / "login.html")
@@ -1386,7 +1392,8 @@ def cambridge_page(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/universidad-adultos")
 def universidad_adultos_page(request: Request, db: Session = Depends(get_db)):
-    raise HTTPException(status_code=404)
+    if is_hidden("UNIVERSIDAD_ADULTOS"):
+        raise HTTPException(status_code=404)
     user = page_user_or_redirect(request, db, "/universidad-adultos")
     if isinstance(user, RedirectResponse):
         return user

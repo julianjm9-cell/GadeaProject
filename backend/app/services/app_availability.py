@@ -25,6 +25,10 @@ def is_app_paused(db: Session, product_code: str) -> bool:
     return bool(row and row.value == "1")
 
 
+def is_hidden(product_code: str) -> bool:
+    return product_code in HIDDEN_PRODUCTS
+
+
 def require_app_available(db: Session, product_code: str) -> None:
     if is_app_paused(db, product_code):
         raise HTTPException(status_code=503, detail=PAUSE_MESSAGE, headers={"Retry-After": "3600"})

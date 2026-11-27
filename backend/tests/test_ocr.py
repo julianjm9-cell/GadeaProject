@@ -178,3 +178,10 @@ def test_original_engine_in_isolated_process(tmp_path, document_kind):
     finally:
         server.shutdown()
         server.server_close()
+
+
+@pytest.fixture(autouse=True)
+def _engine_tests_see_retired_products(monkeypatch):
+    # El motor OCR se prueba aunque la app esté retirada del público.
+    from app.services import app_availability
+    monkeypatch.setattr(app_availability, "HIDDEN_PRODUCTS", frozenset())

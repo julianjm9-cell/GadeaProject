@@ -1,23 +1,26 @@
 """The original FACTURAS interface and backend run with fresh, isolated data."""
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+import pytest
 from unittest.mock import patch
 
 from test_access_control import client, login, seed_user
 from app.services import ocr_legacy_bridge
 
 
-def test_public_facturas_pages(client):
+def test_public_facturas_pages_are_retired(client, monkeypatch):
+    from app.services import app_availability
+    monkeypatch.setattr(app_availability, "HIDDEN_PRODUCTS", frozenset({"OCR_FACTURAS"}))
     c, _ = client
-    landing = c.get("/ocr-facturas")
-    assert landing.status_code == 200
-    assert 'href="/facturas/login"' in landing.text
-    login_page = c.get("/facturas/login")
-    assert login_page.status_code == 200
-    assert "facturas-access" in login_page.text
-    assert c.get("/assets/brand/facturas.svg").status_code == 200
-    assert c.get("/assets/landing/facturas-dashboard.png").status_code == 200
-    assert c.get("/facturas", follow_redirects=False).headers["location"] == "/facturas/login"
+    for path in ("/ocr-facturas", "/facturas", "/facturas/login"):
+        assert c.get(path, follow_redirects=False).status_code == 404, path
+
+
+@pytest.fixture(autouse=True)
+def _engine_tests_see_retired_products(monkeypatch):
+    from app.services import app_availability
+    monkeypatch.setattr(app_availability, "HIDDEN_PRODUCTS", frozenset())
 
 
 def test_facturas_requires_dashboard_license_and_enforces_dashboard_role(client):
