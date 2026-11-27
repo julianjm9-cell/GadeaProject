@@ -2,12 +2,6 @@
   font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
   color: #172e2a;
   background: #f2f5f1;
-  --ink: #172e2a;
-  --muted: #50645d;
-  --line: #dce5dd;
-  --paper: #fff;
-  --green: #165c46;
-  --mint: #b6eccf;
 }
 
 *, *::before, *::after { box-sizing: border-box; }

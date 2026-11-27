@@ -34,6 +34,7 @@ import { agentDirectory, agentEditor, defaultAgents, updateAgent } from './educa
 
 const assets = new Map([
   ['/', ['index.html', 'text/html']],
+  ['/tokens.css', ['tokens.css', 'text/css']],
   ['/panel.css', ['panel.css', 'text/css']],
   ['/panel.js', ['panel.js', 'text/javascript']],
   ['/deployment-status.js', ['deployment-status.js', 'text/javascript']],

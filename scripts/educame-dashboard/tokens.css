@@ -1,0 +1,13 @@
+/* Tokens de diseño de LA TERRAZA. Única fuente de colores y tipografía compartida. */
+:root {
+  --ink: #23372e;
+  --muted: #54635a;
+  --line: #dddcd2;
+  --paper: #fffefa;
+  --green: #285543;
+  --mint: #e8efe6;
+  --canvas: #f5f3ed;
+  --sand: #eee7d8;
+  --wood: #806142;
+  --serif: Georgia, "Times New Roman", serif;
+}

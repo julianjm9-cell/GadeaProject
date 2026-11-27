@@ -1,10 +1,4 @@
 :root {
-  --ink: #1c2630;
-  --muted: #53616c;
-  --line: #dce1ed;
-  --paper: #fff;
-  --green: #17624e;
-  --mint: #e2f3eb;
   background: #f5f6fc;
 }
 body { grid-template-columns: 212px minmax(0, 1fr); color: var(--ink); background: radial-gradient(ellipse 55rem 37rem at 100% 0, #e5e6ff, transparent), radial-gradient(ellipse 46rem 35rem at 18% 85%, #dff5ee, transparent), #f5f6fc; }
