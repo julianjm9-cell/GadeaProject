@@ -11,9 +11,14 @@ PRODUCT_CODES = (
     "DIPLOMATOR", "PROFESOR_PARTICULAR", "HAZLOTU",
 )
 PAUSE_MESSAGE = "Esta aplicación está pausada temporalmente. Tus datos permanecen guardados; vuelve más tarde."
+# Productos retirados del público y del servidor de Hostinger. Siguen visibles en LA TERRAZA como pausados.
+# Su pausa es fija: no depende de un ajuste de base de datos y no se puede reanudar desde el panel público.
+HIDDEN_PRODUCTS = frozenset({"OCR_FACTURAS", "UNIVERSIDAD_ADULTOS"})
 
 
 def is_app_paused(db: Session, product_code: str) -> bool:
+    if product_code in HIDDEN_PRODUCTS:
+        return True
     if product_code not in PRODUCT_CODES:
         return False
     row = db.get(AppSetting, f"app_paused:{product_code}")

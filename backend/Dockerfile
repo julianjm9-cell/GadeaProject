@@ -19,7 +19,6 @@ COPY apps/cambridge/index.html /app/app/static/cambridge.html
 COPY apps/cambridge/assets/games /app/app/static/assets/cambridge-games
 COPY apps/cambridge/assets/listening /app/app/static/assets/listening
 COPY apps/cambridge/assets/studio /app/app/static/assets/cambridge-studio
-COPY apps/u25/index.html /app/app/static/universidad-adultos.html
 COPY apps/e25/index.html /app/app/static/eso-adultos.html
 COPY apps/e25/assets/eso-final.css /app/app/static/assets/eso-final.css
 COPY apps/e25/assets/eso-math-scenes.css /app/app/static/assets/eso-math-scenes.css
@@ -35,7 +34,6 @@ COPY apps/e25/assets/eso-history-missions.js /app/app/static/assets/eso-history-
 COPY apps/e25/assets/eso-science-missions.js /app/app/static/assets/eso-science-missions.js
 COPY apps/e25/assets/eso-external-games.js /app/app/static/assets/eso-external-games.js
 COPY apps/e25/assets/subjects /app/app/static/assets/subjects
-COPY apps/ocr/index.html /app/app/static/ocr-facturas-app.html
 COPY apps/profesor/index.html /app/app/static/profesor-particular.html
 COPY apps/profesor/*.js /app/app/static/assets/
 COPY apps/profesor/assets /app/app/static/assets

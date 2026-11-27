@@ -1232,7 +1232,7 @@ def cambridge_public_page():
 @router.get("/u25")
 @router.get("/universidad-25.html")
 def universidad_public_page():
-    return marketing_file("universidad-25.html", "text/html")
+    raise HTTPException(status_code=404)
 
 
 @router.get("/eso-adultos-info")
@@ -1244,7 +1244,7 @@ def eso_public_page():
 
 @router.get("/ocr-facturas")
 def ocr_facturas_landing():
-    return marketing_file("ocr-facturas.html", "text/html")
+    raise HTTPException(status_code=404)
 
 
 @router.get("/profesor")
@@ -1386,6 +1386,7 @@ def cambridge_page(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/universidad-adultos")
 def universidad_adultos_page(request: Request, db: Session = Depends(get_db)):
+    raise HTTPException(status_code=404)
     user = page_user_or_redirect(request, db, "/universidad-adultos")
     if isinstance(user, RedirectResponse):
         return user

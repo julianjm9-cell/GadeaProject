@@ -46,6 +46,7 @@ def summary(job):
 @router.get("/facturas")
 def page(request: Request, db: Session = Depends(get_db)):
     from app.api.app_routes import page_user_or_redirect, static_html, PROJECT_ROOT
+    raise HTTPException(404)  # Facturas OCR retirado del público; ver HIDDEN_PRODUCTS
     user = page_user_or_redirect(request, db, "/facturas")
     if isinstance(user, RedirectResponse):
         return RedirectResponse("/facturas/login")
